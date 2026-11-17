@@ -5,10 +5,11 @@
 ## alike), the player standing still while it is up.
 ##
 ## Walk keys (or the arrows, the stick) pick a tag, FIRE or ENTER tapes it on,
-## USE (Space too, USE's fixed key) or ESC shuts it; a click or tap on a tag picks and buys it. A buy goes
-## out with the next controls (Controls.buy: take_pending), so every copy of
-## a networked game, and a replay, buys alike. It shuts by itself when its
-## player walks off from the bench or goes down (settle).
+## USE (Space too, USE's fixed key) or ESC shuts it; a click or tap on a tag
+## picks and buys it. A buy goes out with the next controls (Controls.buy:
+## take_pending), so every copy of a networked game, and a replay, buys alike.
+## It shuts by itself when its player walks off from the bench or goes down
+## (settle).
 ##
 ## The pictures are tools/art/build_bench_art.gd's: bench_board (the board,
 ## its tape and can), bench_tag_<short> (each mod's tag, lettered),

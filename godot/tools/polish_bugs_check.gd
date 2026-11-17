@@ -110,7 +110,9 @@ static func _words(main: Control, check: Callable) -> void:
 	g.torch_key = "K"
 	g.use_key = "Y"
 	ev.begin("blackout")
-	check.call(g.notice.ends_with("FLASHLIGHT: K."), "the blackout names the bound key (%s)" % g.notice)
+	check.call(
+		g.notice.ends_with("FLASHLIGHT: K."), "the blackout names the bound key (%s)" % g.notice
+	)
 	ev.finish()
 	g.torch_key = ""
 	ev.begin("blackout")
@@ -135,15 +137,16 @@ static func _words(main: Control, check: Callable) -> void:
 	var plain := GameObjective.objective(hub)
 	hub.use_key = "Y"
 	check.call(
-		plain == "FACE A GATE AND PRESS E OR SPACE" and GameObjective.objective(hub).ends_with("PRESS Y"),
+		(
+			plain == "FACE A GATE AND PRESS E OR SPACE"
+			and GameObjective.objective(hub).ends_with("PRESS Y")
+		),
 		"the Crossroads' objective names the USE button (%s)" % GameObjective.objective(hub)
 	)
 	main.input_device = "pad"
 	main.open_hub(null)
 	main.input_device = "keys"
-	check.call(
-		main.game.notice.ends_with("PRESS Y."), "and its greeting (%s)" % main.game.notice
-	)
+	check.call(main.game.notice.ends_with("PRESS Y."), "and its greeting (%s)" % main.game.notice)
 
 
 static func _coop_shove(main: Control, check: Callable) -> void:
