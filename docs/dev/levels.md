@@ -211,8 +211,9 @@ camp and the still cave.
   the county events' revenue raid (`events.cfg [raid] kinds`) sends the
   revenooers, so that kind's pictures and model are in the base pack, not
   the chapter's (`Assets.CHAPTER_KINDS`).
-- Saves: save version 10 is the Moonshine Run's step (after the set pieces'
-  9): a version 9 campaign save at the Mothership gets the run in its history.
+- Saves: save version 11 is the Moonshine Run's step (after the junk
+  bench's 10): a version 10 campaign save at the Mothership gets the run in
+  its history.
 - `tools/moonshine_check.gd` (MOONSHINE CHECK OK, in check_all) holds it.
 
 ### Places to climb

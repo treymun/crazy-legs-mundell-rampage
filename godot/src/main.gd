@@ -30,6 +30,7 @@ func _ready() -> void:
 			"county_storm",
 			"boss_wrecks",
 			"hound",
+			"bench",
 			"events"
 		]:
 			if plain.has(key):
@@ -131,8 +132,10 @@ func _ready() -> void:
 	):
 		# A view tour and a tool play as the game did before BLUE (their
 		# references and expectations were made so): no hound unless the tool
-		# asks for him (options["hound"] = 1, tools/hound_check.gd).
+		# asks for him (options["hound"] = 1, tools/hound_check.gd). Nor the junk
+		# bench and its scrap (options["bench"] = 1, tools/bench_check.gd).
 		options["hound"] = 0
+		options["bench"] = 0
 		options["events"] = 0
 	_start_quality()
 	unlocked = SessionStore.unlocks("")
@@ -840,6 +843,7 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 	for step_i in steps:
 		if tactical:
 			TacticalScreens.take_pending(controls)
+		BenchScreen.take_pending(controls)
 		if pilots.is_empty() or game.players.size() < 2:
 			replays.before(game, options, mode_options, SIM_STEP, controls, step_i == 0)
 			var timed := console != null and console.overlays.ticks
@@ -986,9 +990,10 @@ func _watch_level() -> void:
 func _shop_pointer() -> void:
 	if state == "play" and game != null:
 		TacticalScreens.settle(game)
+	BenchScreen.settle(game if state == "play" else null)
 	var free := (
 		state == "play"
-		and (TacticalScreens.open or CountyScreens.wants_pointer(game))
+		and (TacticalScreens.open or BenchScreen.open or CountyScreens.wants_pointer(game))
 		and not mobile
 	)
 	if free == TacticalScreens.mouse_free:
@@ -1059,6 +1064,7 @@ func _net_advance(elapsed: float, controls: Game.Controls) -> void:
 				controls = _online_pilot_controls(controls)
 			TacticalScreens.take_pending(controls)
 			CountyScreens.take_pending(controls)
+			BenchScreen.take_pending(controls)
 			if hosting:
 				_net_host_tick(controls)
 				var target := net.match_game()

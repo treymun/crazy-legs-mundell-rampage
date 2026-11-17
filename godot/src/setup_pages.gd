@@ -318,6 +318,15 @@ static func build() -> Array:
 				),
 				(
 					SessionStore
+					. toggle(
+						"JUNK BENCH",
+						"bench",
+						1,
+						"PICK UP SCRAP, TAPE MODS ON YOUR GUNS AT MUNDELL'S BENCH (CROSSROADS, CHAPTER STARTS)"
+					)
+				),
+				(
+					SessionStore
 					. choices(
 						"COUNTY EVENTS",
 						"events",

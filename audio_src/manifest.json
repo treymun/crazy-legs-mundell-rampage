@@ -57004,6 +57004,132 @@
     "problems": []
    },
    "validation": "ok"
+  },
+  "mundell_bench_buy_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_bench_buy_0.mp3",
+   "prompt": "Duct tape and a prayer. Good as new.",
+   "credits": 36,
+   "destination": "audio_src/final/sfx/mundell_bench_buy_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.56
+    ],
+    "natural_seconds": 2.597,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.597
+   },
+   "measured": {
+    "seconds": 2.597,
+    "peak_db": -0.8,
+    "loud_db": -8.2,
+    "dc": 0.0,
+    "onset_ms": 6.4,
+    "centroid_hz": 1574,
+    "end_db": -150.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_bench_buy_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_bench_buy_1.mp3",
+   "prompt": "Now that's engineerin'.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/mundell_bench_buy_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.26
+    ],
+    "natural_seconds": 2.303,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.303
+   },
+   "measured": {
+    "seconds": 2.234,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0035,
+    "onset_ms": 13.2,
+    "centroid_hz": 1573,
+    "end_db": -107.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_bench_buy_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_bench_buy_2.mp3",
+   "prompt": "Taped on tight. Don't tell the county.",
+   "credits": 38,
+   "destination": "audio_src/final/sfx/mundell_bench_buy_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.98
+    ],
+    "natural_seconds": 2.83,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.83
+   },
+   "measured": {
+    "seconds": 2.83,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0001,
+    "onset_ms": 5.9,
+    "centroid_hz": 1381,
+    "end_db": -133.6,
+    "problems": []
+   },
+   "validation": "ok"
   }
  },
  "music": {
@@ -58804,6 +58930,9 @@
   "boss_revenue_man_worried_1",
   "bark_tough_hoss",
   "dj_boss_revenue_man_0",
-  "scan_place_moonshine_0"
+  "scan_place_moonshine_0",
+  "mundell_bench_buy_0",
+  "mundell_bench_buy_1",
+  "mundell_bench_buy_2"
  ]
 }

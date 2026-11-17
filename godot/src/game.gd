@@ -298,6 +298,10 @@ func tick(dt: float, controls: Variant) -> void:
 	body_cells_on = false
 	focus(local_player)
 	if in_hub:
+		# The junk bench on its counter: buys and the mods' looks (features/bench.gd).
+		var hub_bench: BenchScript = features.get("bench")
+		if hub_bench != null:
+			hub_bench.hub_tick(by_slot)
 		return
 	for q: Player in players:
 		if q.health > 0:
@@ -749,13 +753,17 @@ func _rewound_hands(p: Player, controls: Controls, dt: float, back: int) -> void
 
 
 func _step_hands(p: Player, controls: Controls, dt: float) -> void:
+	armory.mods_on = bench_live
 	if controls.weapon >= 0:
 		armory.select(controls.weapon, self)
 	if controls.cycle != 0:
 		armory.cycle(controls.cycle, self)
 	if controls.reload:
 		armory.start_reload(self)
-	if controls.buy >= 0:
+	var bench: BenchScript = features.get("bench") if bench_live else null
+	if controls.buy >= 0 and bench != null:
+		bench.buy(p, controls.buy)  # the junk bench's (src/bench_mods.gd)
+	elif controls.buy >= 0:
 		var mode_state: ModeFeatureScript = features.get("mode")
 		if mode_state != null and mode_state.mode != Modes.CAMPAIGN:
 			mode_state.rules().buy(self, mode_state, p, controls.buy)
@@ -803,7 +811,7 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	# A scoped gun's ALT FIRE puts the scope up and down instead of firing;
 	# a reload or another gun takes it down.
 	var alt: bool = controls.alt_fire
-	var firing: Dictionary = Weapons.FIRING[armory.active]
+	var firing := armory.firing(armory.active)
 	if firing.has("scope"):
 		if alt and not p.alt_held and armory.reload <= 0.0:
 			p.scoped = not p.scoped

@@ -321,6 +321,31 @@ static func _restore_armory(game: Game, doc: Dictionary) -> bool:
 	if not _restore_fields(game.armory, armory_doc, SessionStore.ARM_FIELDS):
 		SessionStore._fail_at(710)
 		return false
+	return _restore_bench(game, armory_doc)
+
+
+## The junk bench's scrap and mods (version 10): a mod no longer in
+## bench.cfg is dropped, the scrap kept to what a player may carry.
+static func _restore_bench(game: Game, armory_doc: Variant) -> bool:
+	var fields: Dictionary = armory_doc if armory_doc is Dictionary else {}
+	var scrap: Variant = fields.get("scrap", 0)
+	if not SessionStore._number(scrap) or SessionStore._int(scrap) < 0:
+		SessionStore._fail_at(711)
+		return false
+	var most: int = BenchMods.value("scrap", "most", 99)
+	game.armory.scrap = mini(most, SessionStore._int(scrap))
+	var saved: Variant = fields.get("mods", [])
+	if not (saved is Array):
+		SessionStore._fail_at(711)
+		return false
+	var list: Array = saved
+	var kept: Array[String] = []
+	for id: Variant in list:
+		var text := str(id)
+		if not BenchMods.mod(text).is_empty() and not kept.has(text):
+			kept.append(text)
+	kept.sort()
+	game.armory.mods = kept
 	return true
 
 
@@ -335,7 +360,11 @@ static func _check_armory(game: Game) -> bool:
 		if game.armory.loaded[i] < 0 or game.armory.loaded[i] > Weapons.SAVED_CAPACITY[i]:
 			SessionStore._fail_at(729)
 			return false
-		if game.armory.reserve[i] < 0 or game.armory.reserve[i] > Weapons.MAX_RESERVE[i]:
+		# (a mod may let a gun carry more: the drum mag)
+		var modded: float = BenchMods.firing(i, game.armory.mods).get("max_reserve", 0)
+		var base_most: int = Weapons.MAX_RESERVE[i]
+		var most: int = maxi(base_most, roundi(modded))
+		if game.armory.reserve[i] < 0 or game.armory.reserve[i] > most:
 			SessionStore._fail_at(731)
 			return false
 	return true

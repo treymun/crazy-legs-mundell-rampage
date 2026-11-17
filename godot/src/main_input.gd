@@ -302,6 +302,9 @@ func _key_play(code: int) -> void:
 	# COUNTY RUN's keys first: its cards, swap, build screen, slots and end.
 	if CountyInput.key_play(self, target, code):
 		return
+	# The junk bench's board, while it is up (src/bench_screen.gd).
+	if BenchScreen.key(target, code):
+		return
 	var tactical := Modes.is_tactical(target) and not target.showing_tally
 	# The 5v5 buy menu takes its keys first (B, the number keys, ESC to shut).
 	if tactical and TacticalScreens.key(target, code):
@@ -530,6 +533,8 @@ func _input(event: InputEvent) -> void:
 			mouse_rel += moved.relative
 		elif state == "play" and TacticalScreens.open:
 			TacticalScreens.hover(picture_point(moved.position))
+		elif state == "play" and BenchScreen.open:
+			BenchScreen.hover(picture_point(moved.position))
 		elif state == "play" and CountyScreens.covering(game):
 			CountyInput.hover(self, picture_point(moved.position))
 		elif state != "play":
@@ -590,6 +595,9 @@ func _input(event: InputEvent) -> void:
 			block_fire = true
 		if state != "play":
 			click(button.position, button.button_index)
+		elif BenchScreen.open and game != null and button.button_index == MOUSE_BUTTON_LEFT:
+			BenchScreen.tap(game, picture_point(button.position))  # the junk bench's board
+			block_fire = true
 		elif TacticalScreens.open and game != null and button.button_index == MOUSE_BUTTON_LEFT:
 			# The open store: a click buys what it is on (outside it: shut).
 			TacticalScreens.tap(game, picture_point(button.position))
@@ -1131,6 +1139,10 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		var pad_crouch: bool = pad["crouch"]
 		var finger_crouch: bool = fingers["crouch"]
 		controls.crouch = KeyBindings.held("crouch") or pad_crouch or finger_crouch
+	if BenchScreen.open and game != null:
+		# The junk bench's board: the walk keys pick, FIRE buys, USE shuts.
+		BenchScreen.steer(game, controls)
+		block_fire = true
 	return controls
 
 # -------------------------------------------------------------------- online

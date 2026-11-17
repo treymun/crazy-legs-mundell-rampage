@@ -840,6 +840,9 @@ func _bar_state(game: Game, armory: Weapons.Armory) -> int:
 			armory.owned,
 			armory.loaded,
 			armory.reserve,
+			armory.scrap,
+			armory.mods,
+			armory.mods_on,
 			health,
 			health <= 25 and int(game.clock * 3) % 2 == 0,
 			game.keys.has("key_brass"),
@@ -931,6 +934,8 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	number(c, amount, 77, View.VIEW + 23, amount == "0")
 	if Weapons.CAPACITY[slot] > 0 and armory.loaded[slot] == 0 and armory.reserve[slot] > 0:
 		text(c, "RELOAD", 77, View.VIEW + 36, "mini", AMBER, true, false)
+	elif armory.mods_on:
+		_draw_mods(c, armory)
 	if not team_bar.is_empty():
 		_draw_team_bar(c, game, team_bar)
 		return
@@ -984,6 +989,27 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			]
 		)
 	_draw_pocket(c, game)
+
+
+## The junk bench's mods on the gun in hand, a strip of tape under its rounds
+## with a little picture of each (src/bench_mods.gd), and the scrap carried
+## in the corner of the keys' box.
+func _draw_mods(c: Canvas, armory: Weapons.Armory) -> void:
+	if armory.scrap > 0 or not armory.mods.is_empty():
+		text(c, "%d" % armory.scrap, 126, View.VIEW + 36, "mini", INK, true, false)
+		if assets.has_art("bench_scrap_hud"):
+			_blit_art(c, "bench_scrap_hud", 112, View.VIEW + 35)
+	var shorts := BenchMods.shorts(armory.active, armory.mods)
+	if shorts.is_empty():
+		return
+	var each := 11
+	var x := 77 - (shorts.size() * each) / 2
+	c.fill_rect(x - 2, View.VIEW + 35, shorts.size() * each + 3, 8, Color8(116, 116, 112))
+	c.fill_rect(x - 2, View.VIEW + 35, shorts.size() * each + 3, 1, Color8(150, 150, 146))
+	for short: Variant in shorts:
+		if assets.has_art("bench_mod_%s_hud" % str(short)):
+			_blit_art(c, "bench_mod_%s_hud" % str(short), x, View.VIEW + 35)
+		x += each
 
 
 ## The campaign's pocket: the item picked, how many, its short name.
