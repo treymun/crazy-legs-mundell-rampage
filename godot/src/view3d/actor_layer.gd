@@ -51,6 +51,25 @@ func prepare(enemies: Array) -> void:
 		view.free()
 
 
+## Load the models of `kinds` that may come later (a county event's hogs and
+## raiders), make their looks and find their ragdoll rigs now (a level's
+## first frame) rather than when the first of them comes into view.
+func warm(kinds: Array) -> void:
+	for kind: String in kinds:
+		if not models.has(kind):
+			continue
+		models.material(kind)
+		var packed := models.scene(kind)
+		if packed == null:
+			continue
+		# The scene's first instance costs the most (as a prop's does).
+		var view := packed.instantiate()
+		var info: Dictionary = models.kinds[kind]
+		if not RagdollRig.has(kind) and info.get("ragdoll", true):
+			RagdollRig.of(kind, view, info)
+		view.free()
+
+
 ## The materials the models shown now draw with (bodies, gear shot off,
 ## the player in the mirror; each once).
 func live_materials() -> Array[ShaderMaterial]:

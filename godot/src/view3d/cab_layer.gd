@@ -90,6 +90,28 @@ func has_model(model: String) -> bool:
 	)
 
 
+## Make the seat views of `seats` (cab model names) now, hidden (a level's
+## first frame: a seat view's model, texture and shader cost a tenth of a
+## second the first time). Returns the materials made.
+func warm(seats: Array[String]) -> Array[ShaderMaterial]:
+	var fresh: Array[ShaderMaterial] = []
+	for model in seats:
+		if has_model(model) and not _roots.has(model):
+			fresh.append(_make(model))
+			var root: Node3D = _roots[model]
+			root.visible = false
+	return fresh
+
+
+## The seat views made and not shown (the view's warm-up draws them once).
+func hidden_roots() -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	for model: String in _roots:
+		if model != _shown:
+			out.append(_roots[model])
+	return out
+
+
 ## The material the cab shown now draws with (none when none is shown).
 func live_materials() -> Array[ShaderMaterial]:
 	var out: Array[ShaderMaterial] = []

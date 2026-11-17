@@ -58,6 +58,37 @@ func materials() -> Array[ShaderMaterial]:
 	return out
 
 
+## Load the models of the props the level stands (its billboards and props)
+## and make their looks now, at its first frame, rather than as each first
+## comes into view: the first of a model cost 5 to 7 ms there (its scene's
+## first instance, its texture), and a turn towards a yard of them over
+## 0.1 s (tools/hitch_bench.gd). Returns the materials made.
+func warm(level: LevelData) -> Array[ShaderMaterial]:
+	var pictures: Array[String] = []
+	for board: LevelData.Billboard in level.billboards:
+		pictures.append(board.image)
+	for spec: Array in level.props:
+		var row: Array = spec
+		if not row.is_empty():
+			pictures.append("prop_" + str(row[0]))
+	var fresh: Array[ShaderMaterial] = []
+	var done := {}
+	for picture in pictures:
+		var name := models.name_of(picture)
+		if name == "" or done.has(name):
+			continue
+		done[name] = true
+		var packed := models.scene(name)
+		if packed == null:
+			continue
+		packed.instantiate().free()
+		var had := _materials.size()
+		var material := _material(name)
+		if _materials.size() > had:
+			fresh.append(material)
+	return fresh
+
+
 func _material(name: String) -> ShaderMaterial:
 	var m: ShaderMaterial = _materials.get(name)
 	if m == null:

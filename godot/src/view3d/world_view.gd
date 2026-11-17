@@ -19,6 +19,7 @@ const OUTER_STORM := 2.5
 const WeatherFeature := preload("res://src/features/weather.gd")
 const WaterFeature := preload("res://src/features/water.gd")
 const CountyRun := preload("res://src/features/county_run.gd")
+const VehiclesFeature := preload("res://src/features/vehicles.gd")
 ## Render layers: the world (1), the player's reflection (2, the mirror's
 ## camera only), the sky behind the eye's camera (3), and the bit that tells
 ## the shaders they draw the mirror's pass (view_light.gdshaderinc).
@@ -88,6 +89,11 @@ var _storm_materials: Array[ShaderMaterial] = []
 ## cloud round its foot and the wall cloud over it (twister.gdshader).
 var _twister: Array[MeshInstance3D] = []
 var _twister_materials: Array[ShaderMaterial] = []
+## The warm-up (warm_up): frames of a new level left to draw what is still
+## hidden, and what was put out for it (node -> [its transform, shown]).
+const WARM_FRAMES := 2
+var _warm := 0
+var _warmed := {}
 ## SHADOWS: what the strong lights and the sky throw (view_shadows.gd).
 var _shadows := ViewShadows.new()
 ## Holes, scorch and char on props, vehicles and wreck pieces (thing_marks.gd).
@@ -262,6 +268,64 @@ func _init(assets: Assets) -> void:
 	_share("tile_info_tex", tiles.info)
 
 
+## What a level may show later that costs a hitch the first time (a model
+## loaded and its texture made, its ragdoll rig found): the county events'
+## hogs and raiders, the level's vehicles' seat views, the props it stands.
+## Made now, at the
+## level's first frame, behind the chapter's opener or the load.
+func _warm_models(game: Game) -> void:
+	_track_live(props.warm(game.level))
+	if game.features.get("events") != null:
+		actors.warm(["hog", EventRaid.squad_kind()])
+	var rides: VehiclesFeature = game.features.get("vehicles")
+	if rides != null:
+		var seats: Array[String] = []
+		for ride: VehicleDrive.Ride in rides.rides:
+			var seat := VehicleDrive.spec(ride.kind).cab
+			if seat != "" and not seat in seats:
+				seats.append(seat)
+		_track_live(cab.warm(seats))
+
+
+## The view's first frames of a level draw, a speck in front of the eye, all
+## that is hidden till something calls for it (the twister, County Run's
+## storm wall, the rain, the seat views made by _warm_models), so each
+## shader is compiled now rather than in the frame it first shows: the
+## twister cost 0.6 s there, a seat view 0.12 s (tools/hitch_bench.gd; the
+## browser and a phone's first run compile every shader the first time it is
+## drawn). The next frame puts them back as they were (_unwarm).
+func warm_up() -> void:
+	var front := camera.global_transform
+	var speck := Transform3D(
+		front.basis.scaled(Vector3.ONE * .001), front * Vector3(0.0, 0.0, -NEAR * 4.0)
+	)
+	var hidden: Array[Node3D] = []
+	hidden.append_array(_twister)
+	hidden.append_array(_storm_walls)
+	hidden.append_array(_rain)
+	hidden.append_array(cab.hidden_roots())
+	for node: Node3D in hidden:
+		if node.visible or _warmed.has(node):
+			continue
+		_warmed[node] = [node.transform, node.visible]
+		node.global_transform = speck
+		node.visible = true
+
+
+## What warm_up put out, put back.
+func _unwarm() -> void:
+	for node: Node3D in _warmed:
+		var was: Array = _warmed[node]
+		node.transform = was[0]
+		node.visible = was[1]
+	_warmed.clear()
+
+
+## Whether warm_up still has frames to draw (tools/view3d_check.gd).
+func warming() -> bool:
+	return _warm > 0
+
+
 func texture() -> ViewportTexture:
 	return viewport.get_texture()
 
@@ -346,6 +410,7 @@ func frame(game: Game) -> void:
 	if view.is_empty():
 		return
 	var t0 := Time.get_ticks_usec()
+	_unwarm()
 	var r: View = game.view
 	var level: LevelData = game.level
 	var vw: int = r.vw
@@ -365,6 +430,7 @@ func frame(game: Game) -> void:
 	if level != _rigged:
 		_rigged = level
 		actors.prepare(game.enemies)
+		_warm_models(game)
 	game_far = r.draw_far
 	var horizon: float = view["horizon"]
 	# A driver's view is a little wider, more so at speed (vehicle_cab.gd):
@@ -448,6 +514,9 @@ func frame(game: Game) -> void:
 	sprites.show_marks(marks, ground, Vector3(x, y, z), angle)
 	var t10 := Time.get_ticks_usec()
 	_uniforms(game, view, r, Vector3(x, y, z), angle, at_hub)
+	if _warm > 0:
+		_warm -= 1
+		warm_up()
 	var t11 := Time.get_ticks_usec()
 	var at := [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11]
 	for k in PART_NAMES.size():
@@ -528,6 +597,7 @@ func _build(level: LevelData, at_hub: bool) -> void:
 		_reshapes_seen = level.reshapes
 		_reshaped_seen = level.reshaped.size()
 		_level = level
+		_warm = WARM_FRAMES
 		_builder = LevelMesh.new(level)
 		for child in _chunks.get_children():
 			child.queue_free()
