@@ -2,6 +2,14 @@
 ## (alpha carries effects.cfg's glow, as the old shader's atlas did), and a
 ## row saying what each tile is to the weather (water, relief, puddles).
 ## Built once per Assets and kept; rebuilt when effects.cfg reloads.
+##
+## Each tile carries its mip levels (64x64 down to 1x1, a 2x2 box average),
+## as Quake's software renderer kept its textures: the world shader picks the
+## level by how many texels fall in a view pixel (world_body.gdshaderinc
+## tile_lod), so a far wall or a road seen low stays its colour instead of
+## breaking into crawling static. A glowing texel's glow (alpha) goes down as
+## the brightest of its four (the least alpha), so a lit window far off still
+## lights itself.
 class_name ViewTiles
 extends RefCounted
 
@@ -51,10 +59,36 @@ func refresh() -> void:
 			if maxi(data[o], maxi(data[o + 1], data[o + 2])) > int(spec.x):
 				data[o + 3] = alpha
 		layers[tile] = Image.create_from_data(SIZE, SIZE, false, Image.FORMAT_RGBA8, data)
+	for i in layers.size():
+		layers[i] = _with_mips(layers[i], layers[i] != _plain[i])
 	if tiles == null:
 		tiles = Texture2DArray.new()
 	tiles.create_from_images(layers)
 	info = ImageTexture.create_from_image(_info_row())
+
+
+## A copy of `image` with its mip levels; `glows`: the alpha (glow) of each
+## level's texel is the least of the four under it.
+static func _with_mips(image: Image, glows: bool) -> Image:
+	var mipped := image.duplicate() as Image
+	mipped.generate_mipmaps()
+	if not glows:
+		return mipped
+	var data := mipped.get_data()
+	var size := SIZE
+	var from := 0
+	while size > 1:
+		var half := size / 2
+		var to := from + size * size * 4
+		for y in half:
+			for x in half:
+				var a := from + ((y * 2) * size + x * 2) * 4 + 3
+				var b := a + size * 4
+				var least := mini(mini(data[a], data[a + 4]), mini(data[b], data[b + 4]))
+				data[to + (y * half + x) * 4 + 3] = least
+		from = to
+		size = half
+	return Image.create_from_data(SIZE, SIZE, true, Image.FORMAT_RGBA8, data)
 
 
 ## One texel a tile: r water, g relief (signed, 128 flat), b puddles.

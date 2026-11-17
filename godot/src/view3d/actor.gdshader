@@ -5,7 +5,7 @@
 // cels' lights were; then as its sprite was lit: light_at(distance, the
 // cell's light), no darker than a body's floor, the area's tint, a tough
 // guy's tint, a hit's wash toward hot white; LIGHTS AND GLOW's lights, grade
-// and fog.
+// and fog, and in the dark the moon's rim along its silhouette.
 shader_type spatial;
 render_mode unshaded, cull_back, shadows_disabled, fog_disabled;
 
@@ -102,6 +102,12 @@ void fragment() {
 		vec3 n = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
 		vec3 nf = vec3(n.x, n.z, n.y);
 		colour = surface_light(colour, map_p, t, nf, vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec2(0.0), 0.0, 2);
+		// The moon's rim: the silhouette's edge (turned away from the eye),
+		// most along the top (the light comes from the sky), so a figure in
+		// the dark shows its outline against dark ground.
+		vec3 nv = normalize(NORMAL);
+		float edge = (1.0 - smoothstep(0.15, 0.7, nv.z)) * clamp(0.55 + 0.9 * nv.y, 0.0, 1.0) * (1.0 - fallen * 0.6);
+		colour = moon_rim_on(colour, map_p, t, edge);
 	}
 	ALBEDO = to_output(colour);
 }

@@ -12,6 +12,8 @@ const FLIP := 1
 const GLOW := 4
 const BODY := 8
 const BOARD := 16
+## A pickup's slab (slab_layer.gd): in the dark it takes the moon's rim.
+const ITEM := 32
 ## The flags' word also holds the hurt wash (x 256) and a billboard's turn
 ## (x SPIN_ONE, in SPINS steps): sprite_body.gdshaderinc's numbers.
 const SPIN_ONE := 65536

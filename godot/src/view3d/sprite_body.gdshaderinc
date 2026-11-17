@@ -9,6 +9,7 @@ const int FLIP = 1;
 const int GLOW = 4;
 const int BODY = 8;
 const int BOARD = 16;
+const int ITEM = 32;
 // The flags' word: flags + 256 x hurt (0..100) + SPIN_ONE x the turn (0..SPINS-1).
 const int SPIN_ONE = 65536;
 const int SPINS = 32;
@@ -99,7 +100,8 @@ void fragment() {
 		lit = 1.1;
 	} else {
 		float raw = max(0.19, tone.a / (1.0 + 0.102 * t));
-		if ((flags & BODY) != 0) {
+		// In the dark (the moon's rim on) a pickup holds a body's floor too.
+		if ((flags & BODY) != 0 || ((flags & ITEM) != 0 && moon_rim.a > 0.0 && effects_on)) {
 			raw = max(raw, 0.58 - 0.021 * t);
 		}
 #ifdef MESH
@@ -125,6 +127,17 @@ void fragment() {
 		nf = normalize(nf + vec3(1e-5));
 #endif
 		colour = surface_light(colour, map_p, t, nf, vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec2(0.0), 0.0, 2);
+		if ((flags & ITEM) != 0 && moon_rim.a > 0.0) {
+			// The moon's rim round a pickup: its picture's edge texels (a
+			// clear texel beside them, or the picture's border) catch the light.
+			int slot = int(data.x + 0.5);
+			bool rim = at.x == 0 || at.y == 0 || at.x == size.x - 1 || at.y == size.y - 1;
+			rim = rim || texelFetch(art, ivec3(at + ivec2(1, 0), slot), 0).a * 255.0 <= 100.0;
+			rim = rim || texelFetch(art, ivec3(at - ivec2(1, 0), slot), 0).a * 255.0 <= 100.0;
+			rim = rim || texelFetch(art, ivec3(at + ivec2(0, 1), slot), 0).a * 255.0 <= 100.0;
+			rim = rim || texelFetch(art, ivec3(at - ivec2(0, 1), slot), 0).a * 255.0 <= 100.0;
+			colour = moon_rim_on(colour, map_p, t, rim ? 0.67 : 0.0);
+		}
 	}
 	ALBEDO = to_output(colour);
 #ifdef CLEAR

@@ -13,6 +13,11 @@ uniform int light_flags[16];
 // A blackout (features/county_events.gd): the share of the light gone, before
 // the lights (a flashlight's beam, a lantern) add theirs.
 uniform float blackout = 0.0;
+// The moon's rim (world_view.gd _moon_rim): in the night chapter and a
+// blackout, what stands in the dark (the enemies' silhouette edges, a
+// pickup's outline) catches the sky's cool light, rgb its colour, a how
+// strong (0: none). Added past the fog's share, never darkened by a blackout.
+uniform vec4 moon_rim = vec4(0.0);
 uniform vec3 fog_color = vec3(0.0);
 uniform vec3 fog_range = vec3(1000.0, 2000.0, 0.0);
 uniform vec3 grade = vec3(1.0);
@@ -473,6 +478,31 @@ float fog_bank(vec3 p, float reach, float t) {
 	return fog_banks * smoothstep(0.56, 0.9, roll) * low * smoothstep(3.0, 9.0, reach);
 }
 
+// How much of the fog's colour lies over a point t ahead (0 to 1).
+float fog_share(vec3 p, float t) {
+	float soak = 1.0 - 0.12 * rain;
+	float fog = min(fog_range.z + 0.06 * rain, 1.0) * smoothstep(fog_range.x * soak, fog_range.y * soak, t);
+	if (fog_banks > 0.0) {
+		fog = fog + (1.0 - fog) * fog_bank(p, min(t, 14.0), t);
+	}
+	return fog;
+}
+
+// The moon's rim on colour (0-255) at point p, t ahead, `edge` (0 to 1) of
+// it: stepped in thirds, as a 1997 light map would have it, and thinned by
+// the fog (and the storm's veil) the eye looks through.
+vec3 moon_rim_on(vec3 colour, vec3 p, float t, float edge) {
+	if (moon_rim.a <= 0.0 || edge <= 0.0) {
+		return colour;
+	}
+	float k = floor(clamp(edge, 0.0, 1.0) * 3.0 + 0.5) / 3.0;
+	float clear = 1.0 - fog_share(p, t);
+	if (storm_ring.w > 0.0) {
+		clear *= 1.0 - storm_veil(p);
+	}
+	return min(floor(colour + moon_rim.rgb * 255.0 * moon_rim.a * k * clear), vec3(255.0));
+}
+
 // the old view shader surface_light(): kind 0 a floor or ceiling, 1 a wall, 2 a
 // sprite. t is the distance ahead (the old renderer's `nearest`).
 vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 bump, float gloss, int kind) {
@@ -521,11 +551,7 @@ vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 b
 		float lift = outside ? 0.4 + 0.5 * clamp(dot(nb, toward), 0.0, 1.0) + gloss * 0.2 : 0.14;
 		base = min(base * (vec3(1.0) + lightning * lift * vec3(0.86, 0.93, 1.12)), vec3(255.0));
 	}
-	float soak = 1.0 - 0.12 * rain;
-	float fog = min(fog_range.z + 0.06 * rain, 1.0) * smoothstep(fog_range.x * soak, fog_range.y * soak, t);
-	if (fog_banks > 0.0) {
-		fog = fog + (1.0 - fog) * fog_bank(p, min(t, 14.0), t);
-	}
+	float fog = fog_share(p, t);
 	base = mix(base, fog_color * 255.0 * (1.0 - blackout * 0.75), fog);
 	if (veil > 0.0) {
 		base = mix(base, min(STORM_FOG * (1.0 + lightning * 1.6), vec3(255.0)), veil);

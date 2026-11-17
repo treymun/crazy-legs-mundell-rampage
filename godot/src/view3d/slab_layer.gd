@@ -114,6 +114,7 @@ func show_slabs(
 				if speed > 0.0:
 					turn = fposmod(clock * TURN * speed + s.x * 1.7 + s.y * 2.3, TAU)
 				var basis := Basis(Vector3.UP, turn).scaled(Vector3.ONE * s.height)
+				art.w += SpriteLayer3D.ITEM
 				_add(rows, s.image, Transform3D(basis, Vector3(s.x, s.z, s.y)), tone, art)
 			SlabModels.LOOSE:
 				_add(rows, s.image, _loose(s), tone, art)

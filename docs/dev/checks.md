@@ -224,6 +224,15 @@ godot --headless --path godot --script res://tools/compare_3d.gd -- <dir> update
 godot --headless --path godot --script res://tools/compare_sheet.gd -- <old dir> <new dir> <out dir> [mode=fx] [left=fx]   # side-by-side sheets
 ```
 
+- **Contrast floors.** A viewpoint with `contrast` (the ridge by night,
+  `moonshine_night_field_0` 6.5 and `moonshine_night_yard_0` 8.5, and the
+  blackout's `hickston_blackout_0` 5.2) is drawn again without its `actors`
+  (`<tag>_bare_fx.png`, `<tag>_bare_3d.png`); `compare_3d.gd` takes the pixels
+  that differ in the 3D pictures as the cast and fails (TOO DARK) when the
+  cast's mean |dL*| against what it hides in the finished frame
+  (`tools/night_contrast.gd`) is under the floor. With the moon's rim off they
+  read 5.3, 7.7 and 4.1; on, 7.4, 9.4 and 6.3. `update` never copies the bare
+  pictures.
 - **A view tour always draws with the default settings**, never the
   profile's (the owner's own copy shares it): a lowered gun or the film look
   in a local reference fails CI's Mesa window, which has none.

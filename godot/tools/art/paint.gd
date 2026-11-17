@@ -518,6 +518,37 @@ static func cloud(size: int, seed: int, octaves := [4, 8, 16, 32]) -> PackedFloa
 	return total
 
 
+## cloud() that tiles: each octave's grid wraps round (laid out three by three,
+## blown up, the middle kept), so a tile drawn with it has no seam at its edges.
+static func cloud_seamless(size: int, seed: int, octaves := [4, 8, 16, 32]) -> PackedFloat32Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var total := PackedFloat32Array()
+	total.resize(size * size)
+	var weight := 0.0
+	for k in octaves.size():
+		var cells: int = octaves[k]
+		var grid := PackedByteArray()
+		grid.resize(cells * cells * 9)
+		for y in cells:
+			for x in cells:
+				var v := int(rng.randf() * 255.0)
+				for ty in 3:
+					for tx in 3:
+						grid[(ty * cells + y) * cells * 3 + tx * cells + x] = v
+		var image := Image.create_from_data(cells * 3, cells * 3, false, Image.FORMAT_L8, grid)
+		image.resize(size * 3, size * 3, Image.INTERPOLATE_CUBIC)
+		var layer := image.get_data()
+		var gain := pow(.5, k)
+		for y in size:
+			for x in size:
+				total[y * size + x] += layer[(y + size) * size * 3 + x + size] / 255.0 * gain
+		weight += gain
+	for i in size * size:
+		total[i] /= weight
+	return total
+
+
 # --------------------------------------------------------------- digitize
 
 static var _lookup := PackedByteArray()

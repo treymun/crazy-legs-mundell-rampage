@@ -510,8 +510,10 @@ The pipeline is in [art.md](art.md#actors).
   prop and actor scene (a station's with both looks; every
   `town_quest_*` picture must have its model) and builds every slab
   (pickups, loose things, range targets; a gong with its plate), holding its
-  front to the picture's size and place (VIEW3D CHECK OK; in check_all and
-  CI).
+  front to the picture's size and place; it also holds the tiles' mip levels
+  (a glow kept whole), the moon's rim to the night chapter and the blackout,
+  and `night_contrast.gd`'s measure to a known figure (VIEW3D CHECK OK; in
+  check_all and CI).
 - `tools/check_shader.gd` counts textures (SHADER OK).
 - `tools/compare_3d.gd` holds a window tour's pictures against
   `tools/pictures_3d/` ([checks.md](checks.md#picture-references)).
@@ -619,9 +621,57 @@ parts carry marks. Looks only. Pictures: `docs/godot3d/polish/L/marks_*.png`.
 
 A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
 `wet`, `lightning`, `actors` (to show the 3D models), `cels` (true: enemies
-drawn as their old cels instead, for old-against-new sheets) and `motion`
-(EASY ON THE EYES: 0 full, the default, 1 reduced, 2 still). A tour or bench
+drawn as their old cels instead, for old-against-new sheets), `motion`
+(EASY ON THE EYES: 0 full, the default, 1 reduced, 2 still), `blackout`
+(true: the county blackout begun and faded in, the flashlight on) and
+`contrast` (a floor: the view is drawn again without its `actors` and
+`compare_3d.gd` holds how well they read, [checks.md](checks.md#picture-references)). A tour or bench
 keeps drawing when its window loses the focus.
+
+## Night and surfaces (polish pass 9)
+
+**Tile mip levels.** `ViewTiles` gives every tile its mip levels (64x64 down
+to 1x1, a 2x2 box average; a glowing texel's glow goes down as the least
+alpha of its four, so a lit window far off still lights itself). The world
+shader reads them with `texelFetch` at the level `tile_lod` picks from the
+screen derivatives of the texel coordinates (`world_body.gdshaderinc`: 0
+until a view pixel spans two texels, one level more each time it spans twice
+as many; the larger axis, so a road seen low settles too), as Quake's
+software renderer stepped its mips. Up close nothing changes; far walls and
+floors keep their colour instead of crawling. Measured on the tour's still
+viewpoints (each drawn again a 0.06-cell step ahead, mean |dL*| of the whole
+3D view, the frame-to-frame crawl): median 3.14 before, 1.90 after (mean 3.10
+to 2.16); the worst, the speedway's figure 8 stands, 7.3 to 7.1, the
+Crossroads hedge 7.1 to 4.2. The view's look (grain, dither, palette) is
+unchanged. A chain-link wall's holes (`mesh_hole`) are still cut at full size.
+
+**The moon's rim.** By night what stands in the dark catches the sky's light
+along its edges: `moon_rim` (`view_light.gdshaderinc`, rgb a colour, a how
+strong) is a level's own (effects.cfg `[level.moonshine] moon_rim`, the
+night chapter) plus, in a county blackout, events.cfg `[blackout] moon_rim`
+times how far the power has gone (`world_view.gd _moon_rim`). An actor
+(`actor.gdshader`) adds it on its silhouette's edge (normals turned away
+from the eye, most along the top, less on a body lying down) and a pickup's
+slab (`SpriteLayer3D.ITEM`, `sprite_body.gdshaderinc`) on its picture's edge
+texels at two thirds, and holds a body's floor of light; both in thirds
+(`moon_rim_on`), thinned by the fog's share (`fog_share`, the same sum
+`surface_light` fogs by) and the storm's veil, never darkened by the
+blackout, only with LIGHTS AND GLOW. Elsewhere `moon_rim` is 0 and nothing
+changes (the actors keep their cels' look). Measured with
+`tools/night_frames.gd` (below), mean |dL*| of each enemy against what it
+hides in the finished frame: Copperhead Ridge's gas man at 9 cells 5.9 to
+8.2, a revenooer at 9 cells 4.0 to 6.7, a skeeter at 9 cells 3.0 to 4.6; the
+blackout's hand just off the beam 2.3 to 4.4; the ridge's arm gun ammo at 3
+cells 2.4 to 13.7. The night stays dark: the backgrounds keep L* 2 to 10.
+
+**Audit pictures.** `tools/night_frames.gd` (a window, scratch APPDATA)
+stands each chapter's own hands where the level puts them, seen from 4 and 9
+cells, a few pickups from 3 and 6, and a blackout's hand in, at the edge of
+and out of the flashlight's beam, each drawn with and without it; it prints
+the mean L* of the figure, of what it hides and the mean |dL*| (CIE L*,
+`tools/night_contrast.gd`) and where it stood. Before this pass the whole
+game read 5 to 8 at 9 cells by day (the dusk palette) and 4 to 7 on the
+ridge, its pickups 2 to 3.
 
 ## Keeping the frame cheap (track R, before v3.3.0)
 

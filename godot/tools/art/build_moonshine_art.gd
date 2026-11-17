@@ -20,6 +20,10 @@ const Paint := preload("res://tools/art/paint.gd")
 
 ## How much wider the view draws the sky than the panorama is drawn.
 const SQUEEZE := 3.5
+## The chapter's dice as the first ridge_rock drawing left them (it drew with
+## them; the redrawn bluff has its own), so cave_floor, the sky and the signs
+## after it come out as they were.
+const RIDGE_DICE_AFTER := -4305328440299533373
 
 var rng := RandomNumberGenerator.new()
 
@@ -272,69 +276,89 @@ func ridge_pines() -> Paint.Sheet:
 	return Paint.digitize(s, 6.0)
 
 
-## The ridge's bluff: sandstone in bedding ledges that overhang a little,
-## cracks down through them, moss in the seams and pale lichen on the faces.
+## The ridge's bluff: sandstone laid down in beds of every thickness, each
+## a ledge with its lip catching the moon and a soft shadow under it, a few
+## joints wandering down through a bed (never on a grid), honeycomb pits, moss
+## along the ledges and pale lichen; drawn to tile without a seam (a wall of
+## it is many tiles long). Its own dice: the chapter's dice are left as the
+## old drawing left them (RIDGE_DICE_AFTER), so the tiles and signs after it
+## come out the same.
 func ridge_rock() -> Paint.Sheet:
 	var n := 128
 	var s := Paint.Sheet.new(n, n)
-	var cloud := Paint.cloud(n, rng.randi())
-	var fine := Paint.cloud(n, rng.randi(), [16, 32])
-	var beds := [0, 17, 36, 50, 71, 88, 104, 118]
+	var dice := RandomNumberGenerator.new()
+	dice.seed = 7031
+	var cloud := Paint.cloud_seamless(n, dice.randi())
+	var fine := Paint.cloud_seamless(n, dice.randi(), [16, 32, 64])
+	var beds := [0, 23, 31, 55, 69, 92, 101, 118]
 	var tone: Array = []
-	for k in beds.size() * 6:
-		tone.append(rng.randf_range(.82, 1.12))
-	var joints: Array = []
 	for k in beds.size():
-		joints.append(rng.randi_range(0, n - 1))
+		tone.append(dice.randf_range(.84, 1.1))
 	for y in n:
 		for x in n:
-			var wave := int(sin(x * .09 + y * .01) * 2.0 + sin(x * .31) * 1.0)
-			var yy := posmod(y + wave, n)
+			# The bedding lines roll gently (whole waves across the tile).
+			var wave := sin(x * TAU / n * 2.0 + y * .02) * 1.6 + sin(x * TAU / n * 5.0) * .7
+			var yy := posmod(int(floor(y + wave)), n)
 			var bed := 0
 			for k in beds.size():
 				if yy >= int(beds[k]):
 					bed = k
-			var into := yy - int(beds[bed])
-			var block := int(posmod(x - int(joints[bed]), n) / 64)
+			var top: int = beds[bed]
+			var bottom: int = beds[(bed + 1) % beds.size()] if bed + 1 < beds.size() else n
+			var into := yy - top
+			var left := bottom - yy
 			var d := cloud[y * n + x]
-			var f := fine[y * n + x]
-			var c := Color(.33, .27, .21).lerp(Color(.47, .39, .29), d)
-			c = shade(c, float(tone[bed * 6 + block]))
-			if into == 0:
-				c = Color(.07, .06, .05)
-			elif into == 1:
-				c = shade(c, 1.3)
+			var c := Color(.31, .25, .19).lerp(Color(.5, .41, .3), d)
+			c = shade(c, float(tone[bed]))
+			# The lip: the bed's top edge stands out and takes the light.
+			if into < 2:
+				c = shade(c, 1.22)
 			elif into < 4:
-				c = shade(c, 1.1)
-			var jx := int(joints[bed]) + int(sin(y * .7) * 1.5)
-			if (posmod(x - jx, n) == 0 or posmod(x - jx - 61 - bed * 7, n) == 0) and into > 2:
-				c = Color(.09, .08, .07)
-			c = shade(c, .86 + f * .26)
+				c = shade(c, 1.08)
+			# Under the next ledge: a soft shadow, deepest right under it.
+			if left <= 3:
+				c = shade(c, [.34, .5, .66, .82][left])
+			c = shade(c, .84 + fine[y * n + x] * .3)
 			s.put(x, y, c)
-	for _k in 7:
-		var x := rng.randi_range(0, n - 1)
-		var y := rng.randi_range(0, n - 30)
-		var length := rng.randi_range(10, 26)
-		for k in length:
-			x = posmod(x + rng.randi_range(-1, 1), n)
-			s.put(x, y + k, Color(.07, .06, .05))
+	# Joints: one or two to a bed, wandering, some beds unbroken.
+	for k in beds.size():
+		var top: int = beds[k]
+		var bottom: int = beds[k + 1] if k + 1 < beds.size() else n
+		for j in dice.randi_range(0, 2):
+			var x := dice.randi_range(0, n - 1)
+			for y in range(top + 2, bottom - 1):
+				if dice.randf() < .35:
+					x = posmod(x + dice.randi_range(-1, 1), n)
+				s.put(x, y, shade(_at(s, x, y), .35))
+				s.put(posmod(x + 1, n), y, shade(_at(s, posmod(x + 1, n), y), 1.12))
+	# Honeycomb weathering: clusters of small dark pits.
+	for _k in 6:
+		var cx := dice.randi_range(0, n - 1)
+		var cy := dice.randi_range(0, n - 1)
+		for _p in 14:
+			var px := posmod(cx + dice.randi_range(-7, 7), n)
+			var py := posmod(cy + dice.randi_range(-5, 5), n)
+			s.put(px, py, shade(_at(s, px, py), .55))
+	# Moss along the ledges, where the cloud says damp.
 	for k in beds.size():
 		var y0: int = beds[k]
 		for x in n:
-			if cloud[((y0 + 2) % n) * n + x] > .58:
-				var wave := int(sin(x * .09 + y0 * .01) * 2.0 + sin(x * .31) * 1.0)
-				for dy in rng.randi_range(1, 3):
-					var mc := Color(.16, .22, .1).lerp(Color(.24, .3, .12), rng.randf())
-					s.put(x, posmod(y0 - wave + dy + 1, n), mc)
-	for _k in 18:
-		var cx := rng.randi_range(0, n - 1)
-		var cy := rng.randi_range(0, n - 1)
-		var r := rng.randi_range(1, 3)
+			if cloud[posmod(y0 + 3, n) * n + x] > .56:
+				var wave := sin(x * TAU / n * 2.0 + y0 * .02) * 1.6 + sin(x * TAU / n * 5.0) * .7
+				for dy in dice.randi_range(1, 3):
+					var mc := Color(.15, .21, .1).lerp(Color(.25, .31, .13), dice.randf())
+					s.put(x, posmod(int(floor(y0 - wave)) + dy + 1, n), mc)
+	# Lichen: pale grey-green blots on the faces.
+	for _k in 12:
+		var cx := dice.randi_range(0, n - 1)
+		var cy := dice.randi_range(0, n - 1)
+		var r := dice.randi_range(1, 3)
 		for dy in range(-r, r + 1):
 			for dx in range(-r, r + 1):
-				if dx * dx + dy * dy <= r * r and rng.randf() < .6:
-					s.put(posmod(cx + dx, n), posmod(cy + dy, n), Color(.52, .54, .44))
+				if dx * dx + dy * dy <= r * r and dice.randf() < .6:
+					s.put(posmod(cx + dx, n), posmod(cy + dy, n), Color(.5, .52, .42))
 	grit(s, .05)
+	rng.state = RIDGE_DICE_AFTER
 	return Paint.digitize(s, 6.0)
 
 

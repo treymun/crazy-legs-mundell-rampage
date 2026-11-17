@@ -8,6 +8,8 @@
 ## Prints VIEW3D CHECK OK, or what failed. In check_all (quick too).
 extends SceneTree
 
+const Contrast := preload("res://tools/night_contrast.gd")
+
 var _failed: Array[String] = []
 
 
@@ -93,6 +95,7 @@ func _init() -> void:
 	_check_leftovers(models, actors)
 	_check_slabs(assets)
 	_check_reshape(assets)
+	_check_night(assets)
 	if _failed.is_empty():
 		print("VIEW3D CHECK OK")
 		quit(0)
@@ -360,3 +363,52 @@ static func _arrays(mesh: Variant) -> Array:
 func _fail(line: String) -> void:
 	if _failed.size() < 40:
 		_failed.append(line)
+
+
+## Polish pass 9: the tiles carry their mip levels (a glow kept as the
+## brightest of its four), the moon's rim is the night chapter's and a
+## blackout's only (by day the actors keep their cels' look), and the
+## contrast measure compare_3d.gd holds the night views to reads true.
+func _check_night(assets: Assets) -> void:
+	Effects.load_tuning()
+	var tiles := ViewTiles.new(assets)
+	if not tiles.tiles.has_mipmaps():
+		_fail("view tiles: no mip levels")
+	# One glowing texel (alpha 40) in a tile: its mip levels keep it whole.
+	var size := ViewTiles.SIZE
+	var lit := Image.create_empty(size, size, false, Image.FORMAT_RGBA8)
+	lit.fill(Color8(90, 80, 70, 255))
+	lit.set_pixel(6, 8, Color8(250, 220, 160, 40))
+	var mipped := ViewTiles._with_mips(lit, true)
+	var data := mipped.get_data()
+	var level1 := size * size * 4
+	var level2 := level1 + (size / 2) * (size / 2) * 4
+	if (
+		not mipped.has_mipmaps()
+		or data[level1 + (4 * size / 2 + 3) * 4 + 3] != 40
+		or data[level2 + (2 * size / 4 + 1) * 4 + 3] != 40
+		or data[level1 + 3] != 255
+	):
+		_fail("view tiles: a glow's mip levels are not the brightest of the texels under them")
+	for id: String in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+		var rim: Color = Effects.mood(id, "moon_rim", Color(0, 0, 0, 0))
+		if rim.a != 0.0:
+			_fail("effects.cfg: %s has a moon_rim (the night chapter's only)" % id)
+	var night: Color = Effects.mood("moonshine", "moon_rim", Color(0, 0, 0, 0))
+	if night.a <= 0.0:
+		_fail("effects.cfg: the night chapter has no moon_rim")
+	var blackout: float = Tuning.file("res://data/tuning/events.cfg").get_value(
+		"blackout", "moon_rim", 0.0
+	)
+	if blackout <= 0.0:
+		_fail("events.cfg: the blackout has no moon_rim")
+	# A grey figure on a darker ground: the measure finds just its pixels.
+	var with := Image.create_empty(40, 20, false, Image.FORMAT_RGB8)
+	var bare := Image.create_empty(40, 20, false, Image.FORMAT_RGB8)
+	with.fill(Color8(20, 20, 20))
+	bare.fill(Color8(20, 20, 20))
+	with.fill_rect(Rect2i(10, 5, 4, 8), Color8(60, 60, 60))
+	var r: Dictionary = Contrast.measure(with, bare, null, null)
+	var want := Contrast.lightness(Color8(60, 60, 60)) - Contrast.lightness(Color8(20, 20, 20))
+	if int(r["px"]) != 32 or absf(float(r["delta"]) - want) > .01:
+		_fail("night_contrast: measured %s, wanted 32 px %.2f apart" % [r, want])

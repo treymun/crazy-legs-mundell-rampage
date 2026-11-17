@@ -446,5 +446,77 @@
   "weapon": false,
   "x": 104.0,
   "y": 8.0
+ },
+ {
+  "actors": [
+   {
+    "ahead": 5.0,
+    "kind": "revenooer",
+    "side": -1.6
+   },
+   {
+    "ahead": 8.0,
+    "kind": "still_buster",
+    "side": 1.3
+   },
+   {
+    "ahead": 11.0,
+    "kind": "gas_man",
+    "side": -0.3
+   }
+  ],
+  "angle": -0.02,
+  "contrast": 6.5,
+  "level": "moonshine",
+  "pitch": 0.0,
+  "tag": "moonshine_night_field_0",
+  "weapon": false,
+  "x": 86.5,
+  "y": 91.7
+ },
+ {
+  "actors": [
+   {
+    "ahead": 6.0,
+    "kind": "revenooer",
+    "side": 1.0
+   },
+   {
+    "ahead": 9.5,
+    "kind": "skeeter",
+    "side": -1.2
+   }
+  ],
+  "angle": -1.67,
+  "contrast": 8.5,
+  "level": "moonshine",
+  "pitch": 0.0,
+  "tag": "moonshine_night_yard_0",
+  "weapon": false,
+  "x": 47.3,
+  "y": 73.5
+ },
+ {
+  "actors": [
+   {
+    "ahead": 5.0,
+    "kind": "billy",
+    "side": -2.4
+   },
+   {
+    "ahead": 7.0,
+    "kind": "coot",
+    "side": 2.6
+   }
+  ],
+  "angle": 0.05,
+  "blackout": true,
+  "contrast": 5.2,
+  "level": "hickston",
+  "pitch": -6.0,
+  "tag": "hickston_blackout_0",
+  "weapon": true,
+  "x": 7.5,
+  "y": 69.5
  }
 ]

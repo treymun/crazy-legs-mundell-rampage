@@ -42,6 +42,22 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_bench_art` | Mundell's junk bench (content pass 8): the screen's board `bench_board` (pegboard, a two-by-four frame, MUNDELL'S JUNK BENCH lettered on duct tape, the scrap's coffee can, the foot's tape strip), each mod's manila price tag `bench_tag_<short>` (and `_dim`) with the part rendered on it and its name and line hand lettered, each gun on its pegs `bench_gun_<gun>` (and `_bare`, its whitewash outline), the ON stamp, the HUD's marks `bench_mod_<short>_hud` and nut, the scrap pickups `item_scrap_bolts/wire/hubcap`; the parts, guns and scrap are rendered by `scripts/blender/weapon_mods.py items` |
 | `enemy_sheet` | `-- dirs=<old>,<new>` lays cels side by side (`docs/enemy_art/`) |
 
+Redrawn in polish pass 9 (each with a dice of its own, so the chapter's
+other tiles, sky and signs come out byte for byte as they were): the
+speedway's `tire_wall` (was white and black ovals that read as eggs: now
+tyres laid flat in stacks, the tread's slanted blocks and middle groove,
+painted white and left black by turns, the paint flaking, clay thrown up)
+and the ridge's `ridge_rock` (was a grid of black joints and bedding lines
+that read as brick: now sandstone beds of every thickness, each lip lit and
+a soft shadow under the next, a few wandering joints, honeycomb pits, moss,
+lichen, drawn with `Paint.cloud_seamless` so it tiles without a seam;
+`RIDGE_DICE_AFTER` puts the chapter's dice back where the old drawing left
+them). `hub_patch` (the Crossroads' patched concrete, no builder: it came
+from the Python game) had its long crack and the middle of its seam healed
+by hand, so a yard of it no longer shows a grid a cell wide. `Paint.cloud`
+does not tile (its grids are blown up without wrapping); use
+`cloud_seamless` for a new tile.
+
 CI runs `build_fx_art`, `build_building_tiles`, `build_menu_art` and
 `build_gore_art` into a scratch folder to check they still run.
 

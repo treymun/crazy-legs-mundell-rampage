@@ -266,6 +266,18 @@ func texture() -> ViewportTexture:
 	return viewport.get_texture()
 
 
+## The moon's rim (view_light.gdshaderinc moon_rim): the level's own
+## (effects.cfg `moon_rim`, the night chapter's), and in a blackout as much
+## more as the power is gone (events.cfg [blackout] `moon_rim`).
+func _moon_rim(id: String, county: CountyEvents, dark: float) -> Vector4:
+	var rim: Color = Effects.mood(id, "moon_rim", Color(0.55, 0.64, 0.95, 0.0))
+	var amount := rim.a
+	if dark > 0.0 and county != null:
+		var full := county.n("blackout", "dark")
+		amount += county.n("blackout", "moon_rim") * clampf(dark / maxf(full, .01), 0.0, 1.0)
+	return Vector4(rim.r, rim.g, rim.b, amount)
+
+
 ## Set a shader number on every material of the view in use, when it
 ## changed: the view's own and the props', wrecks' and actors' drawn lately
 ## (_track_live; one not drawn for a while is handed every number when it is
@@ -780,9 +792,12 @@ func _effects(game: Game) -> void:
 		_share("rain", 0.0)
 		_share("wet", 0.0)
 		_share("blackout", 0.0)
+		_share("moon_rim", Vector4.ZERO)
 		return
 	var county: CountyEvents = game.features.get("events")
-	_share("blackout", county.darkness() if county != null else 0.0)
+	var dark := county.darkness() if county != null else 0.0
+	_share("blackout", dark)
+	_share("moon_rim", _moon_rim(game.level.id, county, dark))
 	var found: Array = game.effect_lights()
 	var at := PackedVector4Array()
 	var tint := PackedVector4Array()

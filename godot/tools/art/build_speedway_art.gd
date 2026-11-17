@@ -375,33 +375,57 @@ func crash_wall() -> Paint.Sheet:
 	return s
 
 
-## Old tyres stacked five high and painted white and black, a stripe each.
+## Old tyres laid flat and stacked into a wall, seen from the track: four
+## stacks a tile, ten tyres to a stack, each tyre's tread a rounded band with
+## slanted blocks either side of a groove down the middle, the stacks painted white
+## and left black by turns, the paint chipped in flakes and the feet splashed
+## with clay. A local dice for the tyres keeps the chapter's own dice (one
+## cloud, one grit) as they were, so the other tiles come out the same.
 func tire_wall() -> Paint.Sheet:
-	var s := Paint.Sheet.new(128, 128, Color(.05, .05, .05))
-	for row in 5:
-		var y0 := row * 26 - 2
-		var off := 0 if row % 2 == 0 else 16
-		for k in 5:
-			var x0 := k * 32 - off
-			var white := (k + row) % 2 == 0
-			var body := Color(.82, .8, .74) if white else Color(.13, .12, .12)
-			for xx in range(x0, x0 + 32):
-				for yy in range(y0, y0 + 26):
-					var u := (xx - x0 - 16.0) / 16.0
-					var v := (yy - y0 - 13.0) / 13.0
-					var r := u * u + v * v
-					if r > 1.0:
+	var s := Paint.Sheet.new(128, 128, Color(.03, .03, .03))
+	var dice := RandomNumberGenerator.new()
+	dice.seed = 6017
+	var flakes := Paint.cloud(128, 6018, [8, 16, 32])
+	var rows := 10
+	for stack in 4:
+		var x0 := stack * 32
+		var white := stack % 2 == 0
+		for row in rows:
+			var y0 := row * 128 / rows
+			var tall := (row + 1) * 128 / rows - y0
+			# Each tyre sits a pixel off the one under it, some more worn.
+			var shift := dice.randi_range(-1, 1)
+			var worn := dice.randf_range(.8, 1.05)
+			var step := dice.randi_range(0, 3)
+			for yy in range(y0, y0 + tall):
+				var v := (yy - y0 + .5) / tall * 2.0 - 1.0
+				for xx in range(x0, x0 + 32):
+					var u := (xx - x0 - shift + .5) / 32.0 * 2.0 - 1.0
+					# Round each way: the tread bulges out between the beads
+					# and turns away at the stack's sides (a rounded band).
+					if pow(absf(u), 3.0) + pow(absf(v) / .94, 6.0) > 1.0:
 						continue
-					var c := shade(body, .7 + .4 * (1.0 - absf(v)))
-					if absf(v) > .78:
-						c = shade(c, .6)
-					s.put(posmod(xx, 128), yy, c)
-			Paint.rect(s, x0 + 4, y0 + 12, x0 + 27, y0 + 13, Color(.05, .04, .04))
+					var across := sqrt(maxf(0.0, 1.0 - u * u))
+					var i := yy * 128 + xx
+					var paint := white and flakes[i] < .7
+					var c := Color(.78, .76, .69) if paint else Color(.13, .125, .12)
+					c = shade(c, worn)
+					# The tread: slanted blocks either side of a middle groove.
+					var slant := posmod(xx + step + int(floor(v * 4.0)) * (1 if v < 0.0 else -1), 5)
+					if absf(v) < .1 or (absf(v) < .72 and slant == 0):
+						c = shade(c, .55)
+					# Lit from above: the upper face of the bulge brightest.
+					var lit := clampf(1.05 - (v + .3) * (v + .3) * .75, .25, 1.1)
+					c = shade(c, lit * (.4 + .65 * across))
+					s.put(xx, yy, c)
 	var cloud := Paint.cloud(128, rng.randi())
-	for i in 128 * 128:
-		var dirt := clampf(cloud[i] - .5, 0, 1) * .8
-		for k in 3:
-			s.data[i * 4 + k] = int(s.data[i * 4 + k] * (1.0 - dirt) + [70, 52, 36][k] * dirt)
+	for y in 128:
+		for x in 128:
+			var i := y * 128 + x
+			# Clay thrown up off the track, thickest low down.
+			var dirt := clampf(cloud[i] - .62 + y / 128.0 * .35, 0, 1) * .85
+			for k in 3:
+				s.data[i * 4 + k] = int(s.data[i * 4 + k] * (1.0 - dirt) + [96, 54, 34][k] * dirt)
 	grit(s, .05)
 	return s
 

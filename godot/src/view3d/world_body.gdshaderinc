@@ -5,7 +5,9 @@
 // and fog. The Crossroads' runoff and the water tower's shadow.
 #include "res://src/view3d/view_light.gdshaderinc"
 
-uniform sampler2DArray tiles : filter_nearest, repeat_disable;
+// The tiles with their mip levels (view_tiles.gd): read with texelFetch at
+// the level tile_lod picks, so the sampler's filter is never used.
+uniform sampler2DArray tiles : filter_nearest_mipmap, repeat_disable;
 uniform float flash = 0.0;
 // True in the moments the liquor tube dips (render_surfaces.gd flicker).
 uniform bool liquor_flicker = false;
@@ -45,6 +47,16 @@ bool mesh_hole(int pu, int pv) {
 		&& (pu - pv + 144) % 18 >= 2;
 }
 
+// The tile's mip level for a texel footprint (texels a view pixel, from the
+// screen derivatives of the texel coordinates): 0 up close, one level more
+// each time a pixel spans twice the texels, as Quake's software renderer
+// stepped down its mips. The larger of the two axes, so a road seen low
+// settles too.
+int tile_lod(vec2 dx, vec2 dy) {
+	float rho = max(length(dx), length(dy));
+	return clamp(int(floor(log2(max(rho, 1.0)))), 0, 7);
+}
+
 // How a tile's relief slopes at texel (pu, pv): darker texels raised (the
 // mortar between bricks), scaled by the tile's relief depth.
 vec2 relief_at(int tile, int pu, int pv, vec3 here) {
@@ -82,6 +94,12 @@ vec3 storm_ground(vec3 colour, float lit, inout float gloss) {
 }
 
 void fragment() {
+	// The texel footprints, worked out before anything branches.
+	vec2 floor_uv = map_p.xy * 128.0;
+	vec2 floor_dx = dFdx(floor_uv);
+	vec2 floor_dy = dFdy(floor_uv);
+	vec2 wall_dx = dFdx(tex);
+	vec2 wall_dy = dFdy(tex);
 	if (mirror_clipped(map_p, CAMERA_VISIBLE_LAYERS)) {
 		discard;
 	}
@@ -162,7 +180,8 @@ void fragment() {
 		ALPHA = 0.45;
 #endif
 	} else {
-	vec4 fetched = texelFetch(tiles, ivec3(pu, pv, tile), 0);
+	int lod = floor_ ? tile_lod(floor_dx, floor_dy) : tile_lod(wall_dx, wall_dy);
+	vec4 fetched = texelFetch(tiles, ivec3(pu >> lod, pv >> lod, tile), lod);
 	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
 	if (kind == KIND_GLOW || kind == KIND_FLICKER) {
 		bool dips = kind == KIND_FLICKER && liquor_flicker;

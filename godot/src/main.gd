@@ -307,8 +307,22 @@ func _view_tour() -> void:
 			held.forward = forward
 			for i in ticks:
 				game.tick(1.0 / 60.0, held)
+		if shot.has("blackout"):
+			# A viewpoint in a blackout (event_dark.gd), the lights gone out and
+			# the flashlight on.
+			var county: CountyEvents = game.features["events"]
+			p.flow.update(p.x, p.y, game.clock)
+			if not county.begin("blackout"):
+				push_error("view tour: no blackout at %s" % shot["tag"])
+			var fade := int(county.n("blackout", "fade") * 60.0) + 10
+			for i in fade:
+				game.tick(1.0 / 60.0, Game.Controls.new())
+			game.message_until = 0.0
+			game.caption_until = 0.0
+			game.barks.until = 0.0
+		var cast: Array[Enemy] = []
 		if shot.has("actors"):
-			_tour_actors(shot)
+			cast = _tour_actors(shot)
 		var cels: bool = shot.get("cels", false)
 		WorldView3D.cels = cels
 		if shot.has("rain"):
@@ -333,6 +347,22 @@ func _view_tour() -> void:
 				world_view.viewport.get_texture().get_image().save_png(
 					"%s/%s_3d.png" % [view_out, str(shot["tag"])]
 				)
+		if shot.has("contrast") and world_view != null:
+			# The same view without its cast, for compare_3d.gd's contrast floor
+			# (tools/night_contrast.gd): the pixels that differ are the cast.
+			Effects.enabled = true
+			for foe: Enemy in cast:
+				foe.x -= 500.0
+			render()
+			await RenderingServer.frame_post_draw
+			await RenderingServer.frame_post_draw
+			var tag := str(shot["tag"])
+			get_viewport().get_texture().get_image().save_png("%s/%s_bare_fx.png" % [view_out, tag])
+			world_view.viewport.get_texture().get_image().save_png(
+				"%s/%s_bare_3d.png" % [view_out, tag]
+			)
+			for foe: Enemy in cast:
+				foe.x += 500.0
 	get_tree().quit()
 
 
@@ -340,7 +370,9 @@ func _view_tour() -> void:
 ## to sleep, and each listed one stood `ahead` and `side` of the eye, turned
 ## `turn` from facing it, in `state`: idle, walk (at `gait`), aim, pain, hurt
 ## (under half health, walking), dying (`fallen` of the way down) or down.
-func _tour_actors(shot: Dictionary) -> void:
+## Returns the cast.
+func _tour_actors(shot: Dictionary) -> Array[Enemy]:
+	var cast: Array[Enemy] = []
 	var p := game.player
 	for e: Enemy in game.enemies:
 		e.dormant = true
@@ -352,6 +384,7 @@ func _tour_actors(shot: Dictionary) -> void:
 		var y := p.y + sin(p.angle) * ahead + cos(p.angle) * side
 		var facing := atan2(p.y - y, p.x - x) + turn
 		var foe := Enemy.new(str(spec["kind"]), x, y, facing)
+		cast.append(foe)
 		game.enemies.append(foe)
 		game.enemy_ids.append("tour-%d" % game.enemies.size())
 		foe.alerted = true
@@ -375,6 +408,7 @@ func _tour_actors(shot: Dictionary) -> void:
 			"down":
 				foe.hp = 0.0
 				foe.died_at = game.clock - 30.0
+	return cast
 
 
 func _view_bench() -> void:
