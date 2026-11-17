@@ -174,6 +174,11 @@ godot --headless --path godot --script res://tools/boss_rematch_check.gd -- only
 godot --headless --path godot --script res://tools/gun_sheet.gd    # the 5v5 guns' numbers side by side (md=<file>)
 godot --headless --path godot --script res://tools/map_timing.gd   # 5v5 maps: run times to sites, bots' routes and holds checked (strict)
 godot --headless --path godot --script res://tools/county_play.gd -- md=<file>   # County Run played to death and long runs
+godot --headless --path godot --script res://tools/balance.gd -- check [part=1..5]   # the balance guard (check_all): boss times, chapters cleared (BALANCE OK)
+godot --headless --path godot --script res://tools/balance.gd -- run diff=1 skill=1 seed=1 [hound=0] [chapters=a,b] out=<file.jsonl>   # one non-god campaign, a line a chapter attempt
+godot --headless --path godot --script res://tools/balance.gd -- county diff=1 seed=1 [maps=] [cap=900] out=<file.jsonl>   # County Run to death: survival, XP curve, cards
+godot --headless --path godot --script res://tools/balance.gd -- report in=<dir> [md=<file>]   # the tables from those lines
+bash godot/tools/balance_runs.sh <dir> [jobs=6] [diffs=] [skills=] [seeds=]   # the long report: every difficulty, skill and seed, spread over the PC
 godot --headless --path godot --script res://tools/net_bench.gd -- levels=hickston players=1,2,4 [host]   # ticks, snapshots, deltas
 ```
 

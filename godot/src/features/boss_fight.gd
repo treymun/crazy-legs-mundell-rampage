@@ -35,6 +35,10 @@ static var SLOWMO: float = BossData.get_value("boss_fight", "slowmo")
 ## player's facing (radians) a spot in plain view must be to count as unseen.
 static var BACKUP: Array = Difficulty.table("bosses", "backup")
 static var BEHIND: float = BossData.get_value("boss_fight", "behind")
+## Each boss's share of BACKUP (bosses.cfg [boss_fight] backup_share; 1 when
+## not listed): Hickston's two bosses each call half, so the chapter gets the
+## backup one boss brings anywhere else (polish pass 9).
+static var BACKUP_SHARE: Dictionary = BossData.get_value("boss_fight", "backup_share")
 ## The fewest and most pickups in a fallen boss's shower.
 static var LOOT: Array = BossData.get_value("boss_fight", "loot")
 static var LOOT_FALLBACK: Array = BossData.get_value("boss_fight", "loot_fallback")
@@ -195,7 +199,9 @@ func backup(e: Enemy, phase: int) -> int:
 		return 0
 	var p := game.player
 	var made := 0
-	var want: int = BACKUP[clampi(game.difficulty, 0, 3)]
+	var full: int = BACKUP[clampi(game.difficulty, 0, 3)]
+	var share: float = BACKUP_SHARE.get(e.kind, 1.0)
+	var want := ceili(full * share)
 	for spot: Vector2 in hidden_spots(e, want):
 		var kind := str(kinds[(made + phase) % kinds.size()])
 		var add := Enemy.new(kind, spot.x, spot.y, atan2(p.y - spot.y, p.x - spot.x))

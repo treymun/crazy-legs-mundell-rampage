@@ -331,6 +331,14 @@ static func _checkpoint(main, check: Callable, kind: String) -> void:
 	)
 	var health := g.player.health
 	var shells := g.armory.reserve[Weapons.SHOTGUN]
+	# RETRY THE FIGHT brings at least bosses.cfg [boss_retry]'s health and
+	# rounds (polish pass 9, BossDoor.retry_floor); above them, as they were.
+	var retry_health: int = BossData.get_value("boss_retry", "health")
+	var retry_shells: int = (BossData.get_value("boss_retry", "rounds") as Dictionary).get(
+		"shotgun", 0
+	)
+	if not g.armory.owned[Weapons.SHOTGUN]:
+		retry_shells = 0
 	var door := (
 		Vector2(float(feature.door[0]), float(feature.door[1]))
 		if feature.door.size() >= 3
@@ -358,22 +366,22 @@ static func _checkpoint(main, check: Callable, kind: String) -> void:
 	main.key(KEY_ENTER)
 	var back: Game = main.game
 	var whole := BossFight.of_kind(back, kind)
-	(
-		check
-		. call(
+	check.call(
+		(
+			back != g
+			and whole != null
+			and is_equal_approx(whole.hp, whole.max_hp)
+			and back.player.health == maxi(health, retry_health)
+			and back.armory.reserve[Weapons.SHOTGUN] == maxi(shells, retry_shells)
+			and Vector2(back.player.x, back.player.y).distance_to(door) < .01
+			and back.replay
+		),
+		(
 			(
-				back != g
-				and whole != null
-				and is_equal_approx(whole.hp, whole.max_hp)
-				and back.player.health == health
-				and back.armory.reserve[Weapons.SHOTGUN] == shells
-				and Vector2(back.player.x, back.player.y).distance_to(door) < .01
-				and back.replay
-			),
-			(
-				"%s: retried with the boss whole, at the door (%.1f, %.1f), health and rounds as they were"
-				% [kind, door.x, door.y]
+				"%s: retried with the boss whole, at the door (%.1f, %.1f),"
+				+ " health and rounds as they were (or the retry's least)"
 			)
+			% [kind, door.x, door.y]
 		)
 	)
 	back.cheats.god = true

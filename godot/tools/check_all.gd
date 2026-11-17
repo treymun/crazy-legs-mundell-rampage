@@ -43,6 +43,7 @@ const CHECKS := [
 	["opener_check", "OPENER CHECK OK"],
 	["gun_find_check", "GUN FIND OK"],
 	["pacing_check", "PACING OK"],
+	["balance", "BALANCE OK", ["check"]],
 	["hound_check", "HOUND CHECK OK"],
 	["bench_check", "BENCH CHECK OK"],
 	["gun_art_check", "GUN ART OK"],
@@ -145,6 +146,11 @@ const CI_SECONDS := {
 	"opener_check": 30,
 	"gun_find_check": 25,
 	"pacing_check": 20,
+	"balance_1": 90,
+	"balance_2": 180,
+	"balance_3": 130,
+	"balance_4": 280,
+	"balance_5": 300,
 	"hound_check": 25,
 	"actor_check": 20,
 	"bench_check": 12,
@@ -308,10 +314,14 @@ func _rows() -> Array:
 	for check: Array in CHECKS:
 		var script := String(check[0])
 		var own: Array = check[2] if check.size() > 2 else []
-		if script == "check_fixes":
-			var fixes: GDScript = load("res://tools/check_fixes.gd")
-			var parts: Array = fixes.get_script_constant_map()["PARTS"]
-			for k in range(1, parts.size() + 1):
+		if script in ["check_fixes", "balance"]:
+			# Run as its parts, one process each (check_fixes' PARTS, balance's
+			# CHECK_PARTS).
+			var constants: Dictionary = load("res://tools/%s.gd" % script).get_script_constant_map()
+			var count: int = (
+				constants["PARTS"].size() if script == "check_fixes" else constants["CHECK_PARTS"]
+			)
+			for k in range(1, count + 1):
 				rows.append(
 					{
 						"name": "%s_%d" % [script, k],
