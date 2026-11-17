@@ -768,6 +768,76 @@ Crossroads and the versus and 5v5 modes (`allowed()`).
   `tools/live_props_frames.gd -- out=<dir>` pictures it in a window
   (`docs/godot3d/features/b/`).
 
+### Dirty fighting (content pass 8)
+
+`features/brawl.gd` (SIM, carried in snapshots by uid, never saved: it is
+all seconds long), `src/brawl_hazards.gd`, `features/brawl_looks.gd` (looks);
+numbers in hits.cfg `[kick]`, `[finish]`, `[finish.<move>]`, `[hazard]`,
+`[hazard.<kind>]`. Everything is game.clock, game.rng and arithmetic, so
+co-op and online play it the same (`net_check`, brawl_check's snapshot).
+
+- **The boot.** USE with one of the county's hands in front (within `reach`
+  past his edge, `cone` of the aim, the same floor, in sight) is a kick, before
+  anything else USE does (`game.gd interact()`); with nobody there USE is as
+  before. The boot lands `land` later: `damage`, `stun`, `daze` (open to a
+  finisher) and a slide along the aim at `speed`, slowing by `drag`. Into a
+  wall faster than `slam_least` he takes `slam` a unit of speed; into another
+  hand that one slides on (`domino`); off a drop of more than `drop` he takes
+  `drop_damage` a cell; a kill throws the body by `kick` (corpses.gd KNOCK,
+  effects.cfg `[ragdoll] kick`: it crashes windows and fences like point-blank
+  buckshot). A boss slides `boss_share` as far and takes `boss_damage`. The
+  gun is down for `busy`. Running (faster than `door_speed`) at a plain shut
+  door (no key wanted, not secret, blast-only, controlled or a crouch hatch),
+  USE kicks it in: open at once, splinters, and whoever stands within
+  `door_reach` behind it is kicked back.
+- **Smashes.** FIRE with a thing held (features/carry.gd) and a hand at arm's
+  length (carry.cfg `[smash]`) breaks it over his head instead of throwing:
+  `hit` + `per_weight` x its weight (`smashed` in `[reaction]`), reeling and
+  dazed; a breakable piece breaks (a jug, a crate, a jar), a board (a rocker)
+  drops at his feet.
+- **Finishers.** USE, or a swing of the crowbar, sling blade or rip saw, at a
+  hand who is down to `low` of his health, reeling (`stun` at least
+  `stagger`) or dazed starts a move by the gun in hand (`pistol`, `long`,
+  `blade` lists; anything else, holstered too, is the boot's) picked by
+  game.rng: PISTOL WHIPPED or SAY AHH (a round in the mouth), BUTT STROKE or
+  BELLY FULL OF LEAD (a round), SKULL CRACKED or GUTTED, BOOT TO THE FACE or
+  PUNTED. A move that spends a round is left out with none loaded. The blow
+  lands `wind` later; the hands are busy `hold`. `end` "head_off" hits the
+  head just hard enough for the gore to take it (gore_extras.gd LIMB_HIT,
+  short of an overkill), "gib" takes him apart, "fall" drops him. Alone, the
+  world slows to `pace` for `slowmo` real seconds from the blow (the finishing
+  shot's own is held off meanwhile; never with two players, as finishers.gd).
+  The move's name is called on screen and Mundell says a `finisher` line
+  (barks.gd, voiced). Bosses are never finished.
+- **Hazards.** A man driven into one (only by a slide: a hand walking about
+  never is) dies the way it kills: the props named in `[hazard] images` (a
+  saw blade or the headrig, the wood chipper, the crushers: gib; the bug
+  zapper, the hot fence, the Mothership's beam emitters: shock and sparks; a
+  burn barrel: set alight (fire.gd); the well: down it, no body; the cattle
+  guard: his ankles); water a little ahead of him while he slides fast, if he
+  started dry (BayouBrains.wet_at: the creek, the bayou's deep water; he
+  floats); live hogs within `hog_reach` where his slide ends (they close in
+  and he is their slop 1.3 s later). A boss takes `boss_share` of his health
+  at most once in `boss_rest` and is never killed by one. Calls on screen and
+  a `hazard` line. Where they stand: [levels.md](levels.md#the-plans).
+- **Looks** (`brawl_looks.gd`, after feel.gd so it adds to the gun's place):
+  the boot cel `fx_boot_kick_1` (tools/art/build_boot_views.gd from
+  scripts/blender/boot_views.py: his overalls and brown work boot from his own
+  eye, `PLACES` where it sits) rises, drives out and drops under the gun,
+  only the rows over the view, lit as the gun is; the gun ducks out of its
+  way; each move moves the gun its own way (`PATHS`; the blade moves show the
+  weapon's own swing); every blow jolts the view (`feel.gd punch()`, SCREEN
+  SHAKE scales it).
+- `tools/brawl_check.gd` (check_all, quick): the slide, the slam, the domino,
+  a healthy hand kicked not finished, a finisher of each class (and every
+  move by seed) with its slow motion from the blow, the crowbar's swing, the
+  setting off, co-op's second player finishing with no slow motion, each
+  hazard kind and a hand walking by one, the creek, the hogs, a boss kicked
+  not finished and taking only his share, the door kicked in, smashes, two
+  runs the same, a snapshot mid-slide played on tick for tick, and the boot's
+  cels and their places. `tools/brawl_frames.gd -- out=<dir>` (a window)
+  pictures each.
+
 ### The bowling lane's pins (second remaster)
 
 The Bowl-O-Rama's ten pins are rigid bodies in three dimensions

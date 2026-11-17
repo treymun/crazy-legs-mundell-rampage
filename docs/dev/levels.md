@@ -37,6 +37,17 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
 | `pumpngo_plan.gd`, `pineacres_plan.gd`, `landing_plan.gd` | the 2v2 maps |
 | `county_hickston_plan.gd`, `county_quarry_plan.gd`, `county_bayou_plan.gd` (+ `county_kit.gd`) | the County Run maps ([county_run.md](county_run.md#the-maps)) |
 
+The county's hazards (content pass 8,
+[gameplay.md](gameplay.md#dirty-fighting-content-pass-8)) stand in the open
+where hands fight, each plan's `hazards()` (Hickston's in `hickston_cast.gd`):
+Hickston a well, a bug zapper, a cattle guard, a hot wire (and the hog pen,
+the creek); the fair two zappers, a burn barrel, a hot wire; the sawmill two
+wood chippers and a burn barrel (and its saws); the quarry a hot wire, a burn
+barrel, a cattle guard (and its crushers and saw); the bayou two zappers and a
+burn barrel (and the deep water); the speedway has its burn barrels and car
+crusher, the Mothership its beam emitters and hogs. A hot wire's run is a
+`volume()` its model shows. Layouts went up one for the five changed chapters.
+
 ### Placing things
 
 - **Every prop is placed by hand**: nothing scatters things to fill ground
