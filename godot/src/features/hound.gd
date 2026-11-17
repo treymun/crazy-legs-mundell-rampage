@@ -253,6 +253,7 @@ func _into(d: Dog, state: int) -> void:
 func _step(d: Dog, p: Player, dt: float) -> void:
 	d.flash = maxf(0.0, d.flash - dt)
 	d.pace = 0.0
+	_clear_of_rides(d, dt)
 	if d.state == DOWN:
 		_lying(d, dt)
 		return
@@ -303,9 +304,18 @@ func _heel(d: Dog, p: Player, dt: float) -> void:
 
 
 ## His place behind his player: behind and to his side, and out of their
-## sights if he is in front.
+## sights if he is in front. His player at the wheel: behind the vehicle.
 func _heel_spot(d: Dog, p: Player) -> Vector2:
 	var back := n("heel")
+	var rides: Game.VehiclesScript = game.features.get("vehicles")
+	if rides != null and rides.seated(p):
+		var v: VehicleDrive.Ride = rides.rides[rides.seat_of(p).x]
+		var s := VehicleDrive.spec(v.kind)
+		var tail := s.length * .5 + back
+		var aside := d.side * s.width * .3
+		return Vector2(
+			v.x - cos(v.h) * tail - sin(v.h) * aside, v.y - sin(v.h) * tail + cos(v.h) * aside
+		)
 	var a := p.angle + PI - d.side * .5
 	var spot := Vector2(p.x + cos(a) * back, p.y + sin(a) * back)
 	if game.world.blocked(spot.x, spot.y, n("radius")):
@@ -824,6 +834,43 @@ func _go(d: Dog, p: Player, tx: float, ty: float, pace: float, dt: float) -> flo
 		d.gait += moved * (3.4 if d.pace > 4.0 else 6.5)
 		d.angle = _turn(d.angle, heading, dt * 10.0)
 	return moved
+
+
+## A vehicle coming at him: he jumps aside, off its line; one on him shoves
+## him out of its hull (vehicles run hands down, never BLUE).
+func _clear_of_rides(d: Dog, dt: float) -> void:
+	var rides: Game.VehiclesScript = game.features.get("vehicles")
+	if rides == null:
+		return
+	for v: VehicleDrive.Ride in rides.rides:
+		if v.wreck >= 0.0:
+			continue
+		var s := VehicleDrive.spec(v.kind)
+		var reach := s.length * .5 + n("ride_reach") + 1.0
+		if absf(d.x - v.x) > reach or absf(d.y - v.y) > reach:
+			continue
+		var push := VehicleDrive.out_of(s, v, d.x, d.y, n("radius"))
+		if push != Vector2.INF:
+			_move(d, push.x, push.y)
+			continue
+		var speed := VehicleDrive.speed(v)
+		if speed < n("ride_from") or d.state == DOWN:
+			continue
+		var heading := Vector2(v.vx, v.vy) / speed
+		var rel := Vector2(d.x - v.x, d.y - v.y)
+		var ahead := rel.dot(heading) - s.length * .5
+		var side := rel.dot(Vector2(-heading.y, heading.x))
+		if ahead < -.2 or ahead > n("ride_reach") or absf(side) > s.width * .5 + .6:
+			continue
+		var away := 1.0 if side > 0.0 or (side == 0.0 and d.slot % 2 == 0) else -1.0
+		var step := n("ride_hop") * dt * away
+		var moved := _move(d, -heading.y * step, heading.x * step)
+		if moved < absf(step) * .3:
+			# A wall that side: the other.
+			_move(d, heading.y * step, -heading.x * step)
+		if game.clock - d.bark_at > 1.2:
+			d.bark_at = game.clock
+			game.sound_at("hound_bark", d.x, d.y, .9)
 
 
 func _move(d: Dog, dx: float, dy: float) -> float:

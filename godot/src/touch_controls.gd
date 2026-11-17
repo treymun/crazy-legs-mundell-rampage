@@ -36,9 +36,13 @@ const LABELS := {
 	"shine": "SHINE",
 	"map": "MAP",
 	"photo": "PHOTO",
+	"torch": "LIGHT",
+	"whistle": "WHISTLE",
 }
 ## One-shot roles: a press counts once, however long the finger rests there.
-const TAPPED := ["use", "next", "menu", "rinds", "beer", "shine", "map", "photo"]
+const TAPPED := [
+	"use", "next", "menu", "rinds", "beer", "shine", "map", "photo", "torch", "whistle"
+]
 ## TOUCH BUTTONS: MY LAYOUT puts the stick and buttons where the player
 ## dragged them (MOVE THEM), kept as parts of the overlay's width and height.
 const LAYOUT_FILE := "user://touch-layout.json"
@@ -65,6 +69,9 @@ var custom := {}
 var use_custom := false
 var editing := false
 var _moving := {}
+## Buttons shown only when they do something (offer): LIGHT while this
+## player has a flashlight, WHISTLE while BLUE is along. MOVE THEM shows all.
+var kept_off := {"torch": true, "whistle": true}
 var _done_rect := Rect2()
 var _reset_rect := Rect2()
 
@@ -112,6 +119,10 @@ func layout(rect: Rect2, again := false) -> void:
 		["shine", _place("shine", Vector2(.76, .10)), tiny],
 		["map", _place("map", Vector2(.85, .10)), tiny],
 		["photo", _place("photo", Vector2(.49, .10)), tiny],
+		# Shown only when they do something (offer), in the top row with
+		# the pocket's buttons.
+		["torch", _place("torch", Vector2(.40, .10)), tiny],
+		["whistle", _place("whistle", Vector2(.31, .10)), tiny],
 	]
 	_done_rect = Rect2(rect.position + Vector2(w * .30, h * .40), Vector2(w * .18, h * .12))
 	_reset_rect = Rect2(rect.position + Vector2(w * .52, h * .40), Vector2(w * .18, h * .12))
@@ -207,8 +218,27 @@ func _edit_drag(event: InputEventScreenDrag) -> void:
 	queue_redraw()
 
 
+## Shows or hides `role`'s button (LIGHT, WHISTLE): main.gd each frame.
+func offer(role: String, on: bool) -> void:
+	if kept_off.get(role, false) == (not on):
+		return
+	kept_off[role] = not on
+	if not on:
+		counts[role] = 0
+	queue_redraw()
+
+
+func _hides(role: String) -> bool:
+	return kept_off.get(role, false) and not editing
+
+
+## The buttons on screen now (the HUD's layout keeps clear of them).
+func shown_buttons() -> Array:
+	return buttons.filter(func(b: Array) -> bool: return not _hides(str(b[0])))
+
+
 func _hit_button(pos: Vector2) -> String:
-	for button: Array in buttons:
+	for button: Array in shown_buttons():
 		var center: Vector2 = button[1]
 		var radius: float = button[2]
 		if pos.distance_to(center) <= radius:
@@ -369,7 +399,7 @@ func _draw() -> void:
 	var pressed := {}
 	for state: Dictionary in fingers.values():
 		pressed[state["role"]] = true
-	for button: Array in buttons:
+	for button: Array in shown_buttons():
 		var role: String = button[0]
 		var center: Vector2 = button[1]
 		var radius: float = button[2]
@@ -381,6 +411,10 @@ func _draw() -> void:
 		var label: String = LABELS[role]
 		var size := font_size if radius >= font_size * 1.9 else maxi(9, int(radius * .52))
 		var extent := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size)
+		if extent.x > radius * 1.8:
+			# A long word (WHISTLE) shrinks to sit inside its ring.
+			size = maxi(8, int(size * radius * 1.8 / extent.x))
+			extent = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size)
 		var ink := Color8(255, 242, 214, 230 if hot else 180)
 		draw_string(
 			font,

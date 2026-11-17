@@ -89,8 +89,11 @@ this order (first come keeps its place):
    of room.
 
 With the touch buttons showing, each button over the view is pinned first
-(`main_state.gd _pin_hud`), so the notice and the rest keep off them; the
-move stick is the thumb's and is not.
+(`main_state.gd _pin_hud`, `TouchControls.shown_buttons`), so the notice
+and the rest keep off them; the move stick is the thumb's and is not. LIGHT
+and WHISTLE sit in the top row and show only when they do something (a
+flashlight, BLUE along: `TouchControls.offer`, main.gd each frame);
+`hud_crowd.gd`'s touch moment shows both.
 
 Pieces placed while drawing: partner tags at the view's edge (they wait
 when there is no room), the windup and hurt marks. A feature draws its piece

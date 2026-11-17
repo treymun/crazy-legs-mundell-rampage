@@ -40,6 +40,10 @@ static func make(main: Node, name: String) -> Game:
 	main.touch.showing = name.ends_with("_touch")
 	if main.touch.showing:
 		main.touch.layout(main.viewport_rect(), true)
+	# The buttons shown only now and then (LIGHT in a blackout, WHISTLE with
+	# BLUE along): both up, the most crowded the view gets.
+	main.touch.offer("torch", main.touch.showing)
+	main.touch.offer("whistle", main.touch.showing)
 	var g: Game
 	match name:
 		"campaign", "campaign_small", "campaign_minimal", "campaign_touch":
