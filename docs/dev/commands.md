@@ -141,6 +141,15 @@ godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bo
 
 (`...` is `--audio-driver Dummy --resolution 1280x800`.)
 
+The landing page's pictures are window captures too: `-- --view-tour=<absolute
+path>/scripts/site_views.json --view-out=<dir>` (the chapters and the Revenue
+Man) and the frame tools above; copy the ones wanted into one folder under the
+site's names and run `.venv\Scripts\python.exe scripts/build_site_assets.py
+--take <dir>` (its docstring lists which capture is which). It cuts each to the
+4:3 picture, brings it back to 320x200 and the game's own colours, stretches it
+to 640x480 and keeps it in `docs/media/site_shots`; `--audio` also encodes the
+sound previews (ffmpeg).
+
 ## Pacing and balance (not in CI)
 
 ```
