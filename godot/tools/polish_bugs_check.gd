@@ -16,6 +16,8 @@
 ## - The blackout's word names the FLASHLIGHT key as bound (and none on a pad
 ##   or a touch screen); the breaker's prompt and the Crossroads' objective
 ##   and greeting name the USE button (they said E whatever it was).
+## - PHOTO MODE never opens over a chapter's opener (the pause screen's Y
+##   while one waited behind it flew a camera nobody could see).
 extends RefCounted
 
 const STEP := 1.0 / 60.0
@@ -28,6 +30,7 @@ static func run(main: Control, check: Callable) -> void:
 	_flee_save(main, check)
 	_coop_shove(main, check)
 	_words(main, check)
+	_photo_over_opener(main, check)
 
 
 static func _game(main: Control, id: String, events := 2) -> Game:
@@ -170,4 +173,16 @@ static func _coop_shove(main: Control, check: Callable) -> void:
 	check.call(
 		Vector2(two.x, two.y).distance_to(before) > .0001 or two.knocked > 0.0,
 		"a co-op twister pulls player two too"
+	)
+
+
+static func _photo_over_opener(main: Control, check: Callable) -> void:
+	main.start("hickston")
+	var open_before: bool = PhotoMode.allowed(main)
+	main.opener.begin(main, main.game)
+	var during: bool = PhotoMode.allowed(main)
+	main.opener.stop(main)
+	check.call(
+		open_before and not during and PhotoMode.allowed(main),
+		"PHOTO MODE waits out a chapter's opener"
 	)

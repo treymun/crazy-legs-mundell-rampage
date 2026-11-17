@@ -60,6 +60,11 @@ static func allowed(m: MainState) -> bool:
 		and not g.showing_tally
 		and not g.defeated()
 		and not CountyScreens.covering(g)
+		# Never over a chapter's opener or the KILL CAM (their pictures are
+		# drawn instead, so the camera would fly unseen): the pause screen's
+		# Y while one waited behind it.
+		and not m.opener.playing
+		and not m.kill_cam.playing
 	)
 
 
