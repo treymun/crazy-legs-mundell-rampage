@@ -29,7 +29,8 @@ func _init() -> void:
 	quit()
 
 
-func _route(level: LevelData, out_dir: String) -> void:
+## The stops of a level's way through, in order: [name, Vector2].
+static func stops_of(level: LevelData) -> Array:
 	var exit: LevelData.Extraction = level.extraction
 	var stops: Array = []
 	if exit != null:
@@ -84,6 +85,11 @@ func _route(level: LevelData, out_dir: String) -> void:
 	else:
 		for station: LevelData.Station in level.stations:
 			stops.append([station.id, Vector2(station.x, station.y)])
+	return stops
+
+
+func _route(level: LevelData, out_dir: String) -> void:
+	var stops := stops_of(level)
 	var field := FlowField.new(level)
 	field.reach = 100000
 	field.doors_open = true
@@ -99,7 +105,7 @@ func _route(level: LevelData, out_dir: String) -> void:
 		field.next_at = 0.0
 		field.update(to.x, to.y, 0.0)
 		var path: Array = []
-		var begin := _nearest_reached(field, from)
+		var begin := nearest_reached(field, from)
 		field.waypoint(begin.x, begin.y, 100000, path)
 		var length := path.size()
 		var straight := from.distance_to(to)
@@ -148,7 +154,7 @@ func _route(level: LevelData, out_dir: String) -> void:
 
 ## A station stands against a wall or in its machine: start from the nearest
 ## cell the walk reached.
-func _nearest_reached(field: FlowField, point: Vector2) -> Vector2:
+static func nearest_reached(field: FlowField, point: Vector2) -> Vector2:
 	if field.distance(point.x, point.y) < FlowField.FAR:
 		return point
 	var best := point

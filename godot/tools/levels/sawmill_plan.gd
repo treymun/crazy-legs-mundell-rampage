@@ -41,7 +41,7 @@ func make() -> Builder:
 		"ending": '"CLOCK OUT. LEAVE THE BOOTS OUTSIDE."',
 		"score": "mill_score",
 		"ambience": "mill",
-		"layout": 8,
+		"layout": 9,
 		"sky": "mill_sky",
 		"control_name": "SLUICE FEED AND DRY-KILN BELT",
 		"objective_side_tasks": ["brake"],
@@ -162,6 +162,26 @@ func delivery_yard() -> void:
 	b.streetlamp(68.0, 78.0)
 	b.streetlamp(30.0, 76.0)
 	b.streetlamp(104.0, 76.0)
+	yard_work()
+
+
+## The delivery yard is the chapter's first look and read as a bare field
+## either side of the walk in (polish pass 9, layout 9): two jobs set against
+## its south fence. West, the log loader parked by the lumber it stacked, a
+## chopping stump and gas cans; east, a log truck broke down short of the scale,
+## its engine on the hoist, tools out, oil in the dirt. Clear of the lumber
+## shed's fall and the walk north.
+func yard_work() -> void:
+	b.town("log_loader", 45.5, 82.5, {"solid": .45})
+	b.town("lumber_stack", 48.5, 83.5, {"solid": .45})
+	b.town("axe_stump", 50.5, 83.5, {"solid": .26})
+	b.town("gas_cans", 43.6, 83.6)
+	b.paint(98, 80, 102, 82, "mill_oil")
+	b.town("semi_tractor", 100.5, 82.5, {"solid": .45})
+	b.town("engine_hoist", 103.5, 81.5, {"solid": .3})
+	b.town("engine_stand", 103.5, 83.5, {"solid": .3})
+	b.town("tool_chest", 97.5, 83.5, {"solid": .3})
+	b.town("tire_pile", 96.5, 81.5, {"solid": .45})
 
 
 func log_pond() -> void:

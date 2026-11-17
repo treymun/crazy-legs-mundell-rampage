@@ -30,7 +30,7 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
 | `quarry_plan.gd` | the quarry |
 | `bayou_plan.gd` (+ `bayou_cast.gd`) | chapter 5 |
 | `speedway_plan.gd` | chapter 6 |
-| `moonshine_plan.gd` (+ `moonshine_cast.gd`) | chapter 7, the Moonshine Run: Copperhead Ridge by night (below) |
+| `moonshine_plan.gd` (+ `moonshine_cast.gd`) | chapter 7, the Moonshine Run: Copperhead Ridge by night (below; layout 2: the blacktop's pull-offs) |
 | `mothership_plan.gd` (+ `mothership_cast.gd`) | chapter 8, all indoors, the last |
 | `range_plan.gd` | the firing range, not a chapter (layout 5: the games row south of the armory) |
 | `hub_plan.gd` | the Crossroads (`data/hub.json`; layout 4: Mundell's trophy shack behind the Road Department; layout 5: the ridge road's gate to the Moonshine Run, south off the county line road's west end, a revenue cruiser pulled off by it) |
@@ -168,7 +168,7 @@ further than `SIGNED` and out of sight: `tools/gun_find_check.gd`.
 
 ### The Moonshine Run (content pass 8)
 
-`moonshine_plan.gd` (+ `moonshine_cast.gd`), 128x96, layout 1, between the
+`moonshine_plan.gd` (+ `moonshine_cast.gd`), 128x96, layout 2 (1 until polish pass 9's pull-offs), between the
 speedway and the Mothership in `Campaign.ORDER`. Copperhead Ridge by night:
 the woods (`ridge_pines`) stand everywhere nobody cleared, the bluffs and the
 still cave are `ridge_rock` over `cave_floor` (`tools/art/build_moonshine_art.gd`,
@@ -215,6 +215,42 @@ camp and the still cave.
   bench's 10): a version 10 campaign save at the Mothership gets the run in
   its history.
 - `tools/moonshine_check.gd` (MOONSHINE CHECK OK, in check_all) holds it.
+
+### Pacing and dressing (polish pass 9)
+
+`tools/pacing_check.gd` walks each chapter's way through (route_map.gd's
+legs, `RouteMap.stops_of`) and prints its quiet stretches: steps with no hand
+within 10 cells, no pickup within 3.5, no station or sign within 5. The
+longest walked for the first time must stay at 24 steps or under; most
+chapters are under 10. `build_level.gd`'s empty ground and a window tour of
+the spots it points at (`--view-tour`, a list like `tools/picture_views.json`)
+are the rest of the audit. What pass 9 changed, each with its layout bumped
+(old saves of these chapters start them over; `tools/saves/*_layout<N>.json`
+keep the old layout's fixtures):
+
+- The Moonshine Run (layout 2): the north leg of the blacktop, the walk back
+  from the radio to the checkpoint, was 31 steps of trees and asphalt.
+  `pull_offs()` cuts two pull-offs into the woods on its north side, off the
+  cruisers' lane and the run's way: Cletus's fruit stand (PEACHES / NO SHINE
+  / HONEST, `moonshine_peaches`) with two agents seizing it, and a speed trap
+  (SPEED CHECKED BY BUZZARD, `moonshine_buzzard`), a cruiser tucked in and two
+  more; each has a pickup or two and an overheard exchange. The signs are
+  drawn last in `build_moonshine_art.gd` so every older sign's dice hold.
+- The speedway (layout 6): the crusher yard was a bare pad round the
+  crusher. `crusher_line()`: three wrecks waiting under the north stack, the
+  crusher's cubes stacked south with a forklift, oil drums, a tyre pile; all
+  off the switch's reach and the tire rollers' middle.
+- The sawmill (layout 9): the delivery yard, the chapter's first look, was
+  bare dirt either side of the walk in. `yard_work()` sets two jobs against
+  its south fence: the log loader by the lumber it stacked (clear of the
+  lumber shed's fall), and a truck broke down short of the scale, its engine
+  on the hoist.
+- The versus maps (grainyard, holler, salvage +1 layout; pumpngo, pineacres,
+  landing +1): nothing lay on them, so DEATHMATCH and TEAM DEATHMATCH there
+  were the starting kit with no way to heal. Each plan's `arena_loot()` lays
+  rounds, rinds and a beer down each lane and one heavier gun at each end
+  (the rifle, crossbow or dynamite), both sides alike; the 5v5 rounds clear
+  pickups (`tactical_mode.gd`), so those are unchanged.
 
 ### Places to climb
 

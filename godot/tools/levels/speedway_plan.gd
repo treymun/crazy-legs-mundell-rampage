@@ -71,7 +71,7 @@ func make() -> Builder:
 		# The far-off crowd of the range maps until the speedway has a bed of its
 		# own (docs/dev/audio.md): race night, not the yard's crickets.
 		"ambience": "range",
-		"layout": 5,
+		"layout": 6,
 		"sky": "speedway_sky",
 		"control_name": "FIX THE FIX: FUEL, CRUSHER, PA",
 		"extraction":
@@ -867,6 +867,7 @@ func salvage_yard() -> void:
 	b.town("floodlight_tower", 122.5, 33.5, {"solid": .25, "glow": true})
 	b.glow(122.5, 33.5, 9.0, .3)
 	b.glow(136.5, 31.5, 6.0, .22)
+	crusher_line()
 	# Boggs' office.
 	b.trailer(139, 61, "n", salvage)
 	b.notes.append(
@@ -890,6 +891,25 @@ func salvage_yard() -> void:
 		Vector2(124.0, 68.0)
 	]:
 		b.streetlamp(p.x, p.y)
+
+
+## The crusher yard read as a bare pad round one machine (polish pass 9,
+## layout 6): the day's work set out in it. The wrecks waiting their turn in
+## a row under the north stack where the crane reaches them, what the
+## crusher made stacked south of it with the forklift that moves it, the
+## drained oil in drums by the east stack, a tyre pile. All of it off the
+## crusher's switch and the rollers' lanes through the middle.
+func crusher_line() -> void:
+	for p in [["wrecked_derby", 131.5], ["wreck_sedan", 135.5], ["wreck_pickup", 139.5]]:
+		var x := float(p[1])
+		b.town(String(p[0]), x, 17.5, {"solid": .45})
+		b.fixture(x - 1.0, 17.1, x + 1.0, 17.9, .3, "mill_tin", "tin")
+	for x in [133.5, 135.5, 140.5]:
+		b.town("crushed_stack", x, 38.5, {"solid": .45})
+	b.town("forklift", 130.5, 36.5, {"solid": .45})
+	for p in [Vector2(146.5, 29.5), Vector2(146.5, 30.5), Vector2(145.5, 30.5)]:
+		b.town("warning_barrel", p.x, p.y, {"solid": .3})
+	b.town("tire_pile", 124.5, 21.5, {"solid": .45})
 
 
 ## The tow lot behind the stands: the wrecker, the cars waiting to be
