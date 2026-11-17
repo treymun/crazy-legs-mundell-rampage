@@ -1,0 +1,95 @@
+{
+ "text": "That twister took Earl's barn, his truck, and his mother-in-law. Earl says two out of three ain't bad",
+ "words": [
+  {
+   "text": "That",
+   "start": 0.1,
+   "end": 0.34
+  },
+  {
+   "text": "twister",
+   "start": 0.38,
+   "end": 0.82
+  },
+  {
+   "text": "took",
+   "start": 0.96,
+   "end": 1.18
+  },
+  {
+   "text": "Earl's",
+   "start": 1.24,
+   "end": 1.6
+  },
+  {
+   "text": "barn,",
+   "start": 1.72,
+   "end": 2.14
+  },
+  {
+   "text": "his",
+   "start": 2.2,
+   "end": 2.42
+  },
+  {
+   "text": "truck,",
+   "start": 2.48,
+   "end": 2.84
+  },
+  {
+   "text": "and",
+   "start": 2.92,
+   "end": 3.0
+  },
+  {
+   "text": "his",
+   "start": 3.04,
+   "end": 3.2
+  },
+  {
+   "text": "mother-in-law.",
+   "start": 3.28,
+   "end": 4.12
+  },
+  {
+   "text": "Earl",
+   "start": 4.48,
+   "end": 4.68
+  },
+  {
+   "text": "says",
+   "start": 4.8,
+   "end": 5.08
+  },
+  {
+   "text": "two",
+   "start": 5.14,
+   "end": 5.28
+  },
+  {
+   "text": "out",
+   "start": 5.36,
+   "end": 5.46
+  },
+  {
+   "text": "of",
+   "start": 5.5,
+   "end": 5.58
+  },
+  {
+   "text": "three",
+   "start": 5.62,
+   "end": 5.92
+  },
+  {
+   "text": "ain't",
+   "start": 5.98,
+   "end": 6.24
+  },
+  {
+   "text": "bad",
+   "start": 6.3,
+   "end": 6.74
+  }
+ ]
+}

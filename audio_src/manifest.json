@@ -54629,6 +54629,1157 @@
     "problems": []
    },
    "validation": "ok"
+  },
+  "mundell_event_twister_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_twister_0.mp3",
+   "prompt": "Twister! Git under a roof!",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/mundell_event_twister_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.4
+    ],
+    "natural_seconds": 2.167,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.167
+   },
+   "measured": {
+    "seconds": 2.167,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0,
+    "onset_ms": 5.5,
+    "centroid_hz": 1589,
+    "end_db": -125.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_twister_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_twister_1.mp3",
+   "prompt": "That ain't no dust devil.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/mundell_event_twister_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.0,
+     2.32
+    ],
+    "natural_seconds": 2.421,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.421
+   },
+   "measured": {
+    "seconds": 2.421,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0034,
+    "onset_ms": 0.0,
+    "centroid_hz": 1572,
+    "end_db": -158.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_hogs_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_hogs_0.mp3",
+   "prompt": "Hogs! Hit the fence!",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/mundell_event_hogs_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.28,
+     2.02
+    ],
+    "natural_seconds": 1.914,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.914
+   },
+   "measured": {
+    "seconds": 1.914,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.007,
+    "onset_ms": 1.4,
+    "centroid_hz": 1592,
+    "end_db": -144.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_hogs_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_hogs_1.mp3",
+   "prompt": "Sooie! Look out!",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_event_hogs_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.06
+    ],
+    "natural_seconds": 1.977,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.977
+   },
+   "measured": {
+    "seconds": 1.977,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0007,
+    "onset_ms": 43.8,
+    "centroid_hz": 1709,
+    "end_db": -141.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_raid_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_raid_0.mp3",
+   "prompt": "Revenuers! Hide the jugs!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/mundell_event_raid_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.24
+    ],
+    "natural_seconds": 2.311,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.311
+   },
+   "measured": {
+    "seconds": 2.311,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0018,
+    "onset_ms": 0.0,
+    "centroid_hz": 1590,
+    "end_db": -164.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_raid_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_raid_1.mp3",
+   "prompt": "Revenue men. Figures.",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/mundell_event_raid_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.86
+    ],
+    "natural_seconds": 1.602,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.602
+   },
+   "measured": {
+    "seconds": 1.602,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.008,
+    "onset_ms": 27.7,
+    "centroid_hz": 2025,
+    "end_db": -137.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_dark_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_dark_0.mp3",
+   "prompt": "Who forgot the light bill?",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/mundell_event_dark_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.34,
+     2.24
+    ],
+    "natural_seconds": 1.997,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.997
+   },
+   "measured": {
+    "seconds": 1.997,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0044,
+    "onset_ms": 0.0,
+    "centroid_hz": 1736,
+    "end_db": -138.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_dark_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_dark_1.mp3",
+   "prompt": "Dark as the inside of a cow.",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/mundell_event_dark_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     2.4
+    ],
+    "natural_seconds": 2.483,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.483
+   },
+   "measured": {
+    "seconds": 2.483,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.002,
+    "onset_ms": 9.7,
+    "centroid_hz": 1690,
+    "end_db": -168.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_event_light_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_event_light_0.mp3",
+   "prompt": "Let there be light.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_event_light_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.52
+    ],
+    "natural_seconds": 1.363,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.363
+   },
+   "measured": {
+    "seconds": 1.363,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.004,
+    "onset_ms": 12.1,
+    "centroid_hz": 1904,
+    "end_db": -133.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tornado_siren": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tornado_siren.mp3",
+   "prompt": "A lone hand-cranked civil defense siren on a pole in a small country town, wailing slowly up and down, heard across open fields at night.",
+   "credits": 67,
+   "destination": "audio_src/final/sfx/tornado_siren.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 4.2
+   },
+   "measured": {
+    "seconds": 4.2,
+    "peak_db": -9.8,
+    "loud_db": -14.0,
+    "dc": 0.0,
+    "onset_ms": 23.0,
+    "centroid_hz": 1024,
+    "end_db": -142.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tornado_roar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "near",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tornado_roar.mp3",
+   "prompt": "The deep continuous roar of a tornado passing close by: a freight-train rumble, howling wind, boards and sheet tin rattling and banging in it, steady.",
+   "credits": 67,
+   "destination": "audio_src/final/sfx/tornado_roar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "near",
+    "chain": {
+     "hp": 60,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 0.0,
+     "fade": 0,
+     "level": -11.0,
+     "loop": 0.3
+    },
+    "level": "-11.0 dB (new cue)",
+    "keep_seconds": 4.0
+   },
+   "measured": {
+    "seconds": 4.0,
+    "peak_db": -3.5,
+    "loud_db": -11.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 209,
+    "end_db": -14.1,
+    "seam_jump": 0.0302,
+    "seam_vs_p999": 0.39,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hog_stampede": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "near",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hog_stampede.mp3",
+   "prompt": "A herd of wild razorback hogs stampeding past on dirt: many hooves drumming fast, grunting and snorting, steady.",
+   "credits": 45,
+   "destination": "audio_src/final/sfx/hog_stampede.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "near",
+    "chain": {
+     "hp": 60,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 0.0,
+     "fade": 0,
+     "level": -11.0,
+     "loop": 0.3
+    },
+    "level": "-11.0 dB (new cue)",
+    "keep_seconds": 3.0
+   },
+   "measured": {
+    "seconds": 3.0,
+    "peak_db": -4.0,
+    "loud_db": -11.0,
+    "dc": 0.0,
+    "onset_ms": 1.0,
+    "centroid_hz": 1073,
+    "end_db": -19.3,
+    "seam_jump": 0.0333,
+    "seam_vs_p999": 0.14,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hog_squeal": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hog_squeal.mp3",
+   "prompt": "A wild hog squeals loudly as it runs, one short sharp squeal.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/hog_squeal.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.8,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.8,
+    "peak_db": -0.8,
+    "loud_db": -7.0,
+    "dc": 0.0039,
+    "onset_ms": 0.0,
+    "centroid_hz": 2298,
+    "end_db": -133.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "raid_siren": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/raid_siren.mp3",
+   "prompt": "Three old 1990s police cruisers roaring up a gravel road, mechanical sirens wailing and tires spitting gravel, coming closer.",
+   "credits": 45,
+   "destination": "audio_src/final/sfx/raid_siren.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 677,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 4.0
+   },
+   "measured": {
+    "seconds": 3.28,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 1159,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "power_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/power_down.mp3",
+   "prompt": "A small town's power failing: a transformer pops with a loud electric bang and buzz, then a deep electrical hum winding down into silence.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/power_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.4
+   },
+   "measured": {
+    "seconds": 2.4,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 262,
+    "end_db": -151.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "power_up": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/power_up.mp3",
+   "prompt": "The power coming back on: a heavy electrical clunk, a rising hum, old fluorescent lights ticking and buzzing to life.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/power_up.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -8.4,
+    "dc": 0.003,
+    "onset_ms": 0.0,
+    "centroid_hz": 229,
+    "end_db": -152.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "breaker_throw": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/breaker_throw.mp3",
+   "prompt": "A big rusty knife switch on an old fuse box thrown hard: a heavy metal clunk and a crackle of electric sparks.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/breaker_throw.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -12.0,
+    "dc": 0.0007,
+    "onset_ms": 5.9,
+    "centroid_hz": 3168,
+    "end_db": -155.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "torch_click": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/torch_click.mp3",
+   "prompt": "A cheap plastic flashlight switch clicked once.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/torch_click.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 36,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.444,
+    "peak_db": -0.8,
+    "loud_db": -21.2,
+    "dc": 0.0001,
+    "onset_ms": 13.7,
+    "centroid_hz": 4241,
+    "end_db": -138.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dj_bulletin_twister_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/dj_bulletin_twister_0.mp3",
+   "prompt": "We interrupt this here music. Tornado on the ground in Possum County. Get in the cellar, now.",
+   "credits": 93,
+   "destination": "audio_src/final/sfx/dj_bulletin_twister_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     5.62
+    ],
+    "natural_seconds": 5.689,
+    "speaker": "am",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 5.689
+   },
+   "measured": {
+    "seconds": 5.689,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0027,
+    "onset_ms": 0.0,
+    "centroid_hz": 1006,
+    "end_db": -131.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dj_bulletin_outage_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/dj_bulletin_outage_0.mp3",
+   "prompt": "Power's out across half the county. Folks, we're on the generator. Find a flashlight.",
+   "credits": 85,
+   "destination": "audio_src/final/sfx/dj_bulletin_outage_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     5.02
+    ],
+    "natural_seconds": 4.973,
+    "speaker": "am",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 4.973
+   },
+   "measured": {
+    "seconds": 4.973,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0002,
+    "onset_ms": 3.6,
+    "centroid_hz": 799,
+    "end_db": -135.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dj_twister_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/dj_twister_0.mp3",
+   "prompt": "That twister took Earl's barn. Earl says it was leanin' anyhow.",
+   "credits": 164,
+   "destination": "audio_src/final/sfx/dj_twister_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     3.9
+    ],
+    "natural_seconds": 3.858,
+    "speaker": "am",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.858
+   },
+   "measured": {
+    "seconds": 3.85,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0024,
+    "onset_ms": 4.8,
+    "centroid_hz": 928,
+    "end_db": -125.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dj_hogs_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/dj_hogs_0.mp3",
+   "prompt": "Hogs loose in town tonight. If one's in the road, let him have it.",
+   "credits": 164,
+   "destination": "audio_src/final/sfx/dj_hogs_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     3.54
+    ],
+    "natural_seconds": 3.613,
+    "speaker": "am",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.613
+   },
+   "measured": {
+    "seconds": 3.592,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0024,
+    "onset_ms": 2.0,
+    "centroid_hz": 971,
+    "end_db": -138.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dj_raid_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/dj_raid_0.mp3",
+   "prompt": "The revenue men paid a visit tonight. If you got a jug in the trunk, drive real slow.",
+   "credits": 85,
+   "destination": "audio_src/final/sfx/dj_raid_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     5.16
+    ],
+    "natural_seconds": 5.238,
+    "speaker": "am",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 5.238
+   },
+   "measured": {
+    "seconds": 5.219,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0022,
+    "onset_ms": 7.0,
+    "centroid_hz": 907,
+    "end_db": -120.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dj_outage_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/dj_outage_0.mp3",
+   "prompt": "Lights are back on. Whoever was usin' the dark to steal my lawn mower, I know who you are.",
+   "credits": 90,
+   "destination": "audio_src/final/sfx/dj_outage_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     5.46
+    ],
+    "natural_seconds": 5.659,
+    "speaker": "am",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 5.659
+   },
+   "measured": {
+    "seconds": 5.59,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0032,
+    "onset_ms": 0.0,
+    "centroid_hz": 835,
+    "end_db": -123.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "scan_twister_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/scan_twister_0.mp3",
+   "prompt": "Funnel cloud on the ground, headed for town.",
+   "credits": 44,
+   "destination": "audio_src/final/sfx/scan_twister_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     3.1
+    ],
+    "natural_seconds": 3.062,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.062
+   },
+   "measured": {
+    "seconds": 3.062,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0026,
+    "onset_ms": 44.9,
+    "centroid_hz": 1447,
+    "end_db": -131.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "scan_hogs_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/scan_hogs_0.mp3",
+   "prompt": "Livestock loose on the roadway. A whole lot of livestock.",
+   "credits": 57,
+   "destination": "audio_src/final/sfx/scan_hogs_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     4.04
+    ],
+    "natural_seconds": 4.158,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 4.158
+   },
+   "measured": {
+    "seconds": 4.15,
+    "peak_db": -0.8,
+    "loud_db": -3.2,
+    "dc": 0.0028,
+    "onset_ms": 0.0,
+    "centroid_hz": 1127,
+    "end_db": -134.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "scan_raid_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/scan_raid_0.mp3",
+   "prompt": "State revenue agents requestin' backup at a moonshine still.",
+   "credits": 110,
+   "destination": "audio_src/final/sfx/scan_raid_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.0,
+     5.34
+    ],
+    "natural_seconds": 5.541,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 5.541
+   },
+   "measured": {
+    "seconds": 5.48,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0022,
+    "onset_ms": 0.0,
+    "centroid_hz": 1377,
+    "end_db": -121.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "scan_outage_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/scan_outage_0.mp3",
+   "prompt": "Power outage, county wide. Co-op's sendin' a truck.",
+   "credits": 100,
+   "destination": "audio_src/final/sfx/scan_outage_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.0,
+     4.18
+    ],
+    "natural_seconds": 4.298,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 4.298
+   },
+   "measured": {
+    "seconds": 4.262,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.002,
+    "onset_ms": 3.2,
+    "centroid_hz": 1339,
+    "end_db": -130.8,
+    "problems": []
+   },
+   "validation": "ok"
   }
  },
  "music": {
@@ -56309,6 +57460,34 @@
   "tower_burst",
   "gas_leak",
   "gas_whoosh",
-  "plank_crack"
+  "plank_crack",
+  "mundell_event_twister_0",
+  "mundell_event_twister_1",
+  "mundell_event_hogs_0",
+  "mundell_event_hogs_1",
+  "mundell_event_raid_0",
+  "mundell_event_raid_1",
+  "mundell_event_dark_0",
+  "mundell_event_dark_1",
+  "mundell_event_light_0",
+  "tornado_siren",
+  "tornado_roar",
+  "hog_stampede",
+  "hog_squeal",
+  "raid_siren",
+  "power_down",
+  "power_up",
+  "breaker_throw",
+  "torch_click",
+  "dj_bulletin_twister_0",
+  "dj_bulletin_outage_0",
+  "dj_twister_0",
+  "dj_hogs_0",
+  "dj_raid_0",
+  "dj_outage_0",
+  "scan_twister_0",
+  "scan_hogs_0",
+  "scan_raid_0",
+  "scan_outage_0"
  ]
 }

@@ -147,6 +147,25 @@
 		],
 		"hound_up": [
 			"Hang on, Blue. I gotcha."
+		],
+		"event_twister": [
+			"Twister! Git under a roof!",
+			"That ain't no dust devil."
+		],
+		"event_hogs": [
+			"Hogs! Hit the fence!",
+			"Sooie! Look out!"
+		],
+		"event_raid": [
+			"Revenuers! Hide the jugs!",
+			"Revenue men. Figures."
+		],
+		"event_dark": [
+			"Who forgot the light bill?",
+			"Dark as the inside of a cow."
+		],
+		"event_light": [
+			"Let there be light."
 		]
 	}
 }

@@ -84,6 +84,10 @@ var _rain: Array[MeshInstance3D] = []
 ## and the one behind it (storm_wall.gdshader).
 var _storm_walls: Array[MeshInstance3D] = []
 var _storm_materials: Array[ShaderMaterial] = []
+## A county event's twister (src/event_twister.gd): its funnel, the debris
+## cloud round its foot and the wall cloud over it (twister.gdshader).
+var _twister: Array[MeshInstance3D] = []
+var _twister_materials: Array[ShaderMaterial] = []
 ## SHADOWS: what the strong lights and the sky throw (view_shadows.gd).
 var _shadows := ViewShadows.new()
 ## Holes, scorch and char on props, vehicles and wreck pieces (thing_marks.gd).
@@ -218,8 +222,38 @@ func _init(assets: Assets) -> void:
 		_root.add_child(wall)
 		_storm_walls.append(wall)
 		_storm_materials.append(storm_material)
+	var rope := CylinderMesh.new()
+	rope.top_radius = 1.0
+	rope.bottom_radius = 1.0
+	rope.height = 1.0
+	rope.cap_top = false
+	rope.cap_bottom = false
+	rope.radial_segments = 40
+	rope.rings = 48
+	var disc := CylinderMesh.new()
+	disc.top_radius = 1.0
+	disc.bottom_radius = 1.0
+	disc.height = 1.0
+	disc.radial_segments = 48
+	disc.rings = 6
+	var twister_shader: Shader = load("res://src/view3d/twister.gdshader")
+	for k in 3:
+		var twister_material := ShaderMaterial.new()
+		twister_material.shader = twister_shader
+		twister_material.set_shader_parameter("part", k)
+		twister_material.render_priority = [2, 3, 1][k]
+		var piece := MeshInstance3D.new()
+		piece.mesh = disc if k == 2 else rope
+		piece.material_override = twister_material
+		piece.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		piece.extra_cull_margin = 40.0
+		piece.visible = false
+		_root.add_child(piece)
+		_twister.append(piece)
+		_twister_materials.append(twister_material)
 	_materials = [world_material, glass_material, sky_material]
 	_materials.append_array(_storm_materials)
+	_materials.append_array(_twister_materials)
 	_materials.append_array(rain_materials)
 	_materials.append_array(sprites.materials())
 	_materials.append(slabs.material)
@@ -656,6 +690,36 @@ func _uniforms(
 		)
 	_effects(game)
 	_storm(game, cam)
+	_twister_at(game)
+
+
+## A county event's twister: its funnel stood where it is, its strength (a
+## rope forming or lifting), leaning back from the way it goes.
+func _twister_at(game: Game) -> void:
+	var ev: CountyEvents = game.features.get("events")
+	var on := ev != null and ev.kind == "twister" and ev.tw_k > 0.0
+	for piece: MeshInstance3D in _twister:
+		piece.visible = on
+	if not on:
+		return
+	var at := ev.tw_at
+	var ground := game.world.elevation(
+		clampf(at.x, 0.0, _level.width - .01), clampf(at.y, 0.0, _level.height - .01)
+	)
+	var way := (ev.tw_to - ev.tw_from).normalized()
+	var tall := 30.0
+	var lean := -way * .5
+	for k in 3:
+		var m := _twister_materials[k]
+		m.set_shader_parameter("strength", ev.tw_k)
+		m.set_shader_parameter("tall", tall)
+		m.set_shader_parameter("lean", lean)
+		m.set_shader_parameter("base_z", ground)
+	_twister[0].position = Vector3(at.x, ground - .3 + tall * .0, at.y)
+	_twister[1].position = Vector3(at.x, ground - .2, at.y)
+	var top := at + lean * 6.0
+	_twister[2].position = Vector3(top.x, ground + tall - .6, top.y)
+	_twister[2].scale = Vector3(15.0, 1.0, 15.0) * (.6 + .4 * ev.tw_k)
 
 
 ## County Run's storm front: its wall stood round the safe ground, as tall as
@@ -715,7 +779,10 @@ func _effects(game: Game) -> void:
 		_share("lightning", 0.0)
 		_share("rain", 0.0)
 		_share("wet", 0.0)
+		_share("blackout", 0.0)
 		return
+	var county: CountyEvents = game.features.get("events")
+	_share("blackout", county.darkness() if county != null else 0.0)
 	var found: Array = game.effect_lights()
 	var at := PackedVector4Array()
 	var tint := PackedVector4Array()

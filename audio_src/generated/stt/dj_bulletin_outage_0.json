@@ -1,0 +1,75 @@
+{
+ "text": "Power's out across half the county. Folks, we're on the generator. Find a flashlight",
+ "words": [
+  {
+   "text": "Power's",
+   "start": 0.1,
+   "end": 0.54
+  },
+  {
+   "text": "out",
+   "start": 0.62,
+   "end": 0.74
+  },
+  {
+   "text": "across",
+   "start": 0.8,
+   "end": 1.22
+  },
+  {
+   "text": "half",
+   "start": 1.26,
+   "end": 1.52
+  },
+  {
+   "text": "the",
+   "start": 1.56,
+   "end": 1.66
+  },
+  {
+   "text": "county.",
+   "start": 1.72,
+   "end": 2.12
+  },
+  {
+   "text": "Folks,",
+   "start": 2.26,
+   "end": 2.56
+  },
+  {
+   "text": "we're",
+   "start": 2.66,
+   "end": 2.84
+  },
+  {
+   "text": "on",
+   "start": 2.92,
+   "end": 3.06
+  },
+  {
+   "text": "the",
+   "start": 3.1,
+   "end": 3.2
+  },
+  {
+   "text": "generator.",
+   "start": 3.26,
+   "end": 3.76
+  },
+  {
+   "text": "Find",
+   "start": 3.9,
+   "end": 4.16
+  },
+  {
+   "text": "a",
+   "start": 4.2,
+   "end": 4.26
+  },
+  {
+   "text": "flashlight",
+   "start": 4.3,
+   "end": 5.02
+  }
+ ]
+}

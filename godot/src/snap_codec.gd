@@ -92,6 +92,7 @@ const SKIP_FIELDS := {
 	"boss_gear": ["_feels"],
 	# A hound's walking body (put in step from him each move) and the numbers.
 	"hound": ["_body", "_n"],
+	"events": ["_body", "_n"],
 	# The arena lights this machine's player is near (looks: each machine its own).
 	"boss_arena": ["_lights", "_light_used"],
 	# How bodies move (set in attach, the same everywhere; a body names its own).

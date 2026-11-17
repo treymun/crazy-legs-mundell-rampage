@@ -34,7 +34,19 @@ const TAIL := .6
 const NEWS_KEEPS := 600.0
 const TOLD_HOLDS := 420.0
 ## The order news is told in (a boss's fall first).
-const PRIORITY := ["boss", "boom", "wreck", "rampage", "deaths", "drunk", "secret"]
+const PRIORITY := [
+	"boss",
+	"twister",
+	"raid",
+	"hogs",
+	"outage",
+	"boom",
+	"wreck",
+	"rampage",
+	"deaths",
+	"drunk",
+	"secret"
+]
 ## Deaths this close together make a rough night.
 const DEATHS := 3
 const DEATH_WINDOW := 900.0
@@ -47,7 +59,10 @@ const SCAN_GAP := 16.0
 const SCAN_PIECE_GAP := .18
 const SCAN_WAITS := 8.0
 ## What sets the scanner off.
-const SCAN_CALLS := ["shots", "boom", "wreck", "rampage", "officer"]
+## (and the county events', features/county_events.gd).
+const SCAN_CALLS := [
+	"shots", "boom", "wreck", "rampage", "officer", "twister", "hogs", "raid", "outage"
+]
 ## A drive line when a vehicle is taken, at most this often.
 const TUNE_GAP := 90.0
 ## How many cues the log keeps (the checks read it).
@@ -205,6 +220,19 @@ func tune_in() -> void:
 	if talks() and not hold and now - _tuned_at >= TUNE_GAP:
 		_tuned_at = now
 		_talk.append(_line("drive"))
+	_talk_next = now
+
+
+## A county event breaking (features/event_looks.gd): Dub cuts in over the
+## music with a bulletin (dj "bulletin_<topic>"), when he talks and nothing
+## else is on.
+func bulletin(topic: String) -> void:
+	if not talks() or hold or in_break or not _talk.is_empty():
+		return
+	var row := _line("bulletin_" + topic)
+	if str(row[0]) == "" or not _made(str(row[0])):
+		return
+	_talk = [row]
 	_talk_next = now
 
 

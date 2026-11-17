@@ -1,0 +1,45 @@
+{
+ "text": "State revenue agents requesting backup at, uh, Still",
+ "words": [
+  {
+   "text": "State",
+   "start": 0.08,
+   "end": 0.34
+  },
+  {
+   "text": "revenue",
+   "start": 0.46,
+   "end": 1.0
+  },
+  {
+   "text": "agents",
+   "start": 1.22,
+   "end": 1.74
+  },
+  {
+   "text": "requesting",
+   "start": 1.84,
+   "end": 2.5
+  },
+  {
+   "text": "backup",
+   "start": 2.6,
+   "end": 3.16
+  },
+  {
+   "text": "at,",
+   "start": 3.44,
+   "end": 3.58
+  },
+  {
+   "text": "uh,",
+   "start": 3.66,
+   "end": 3.76
+  },
+  {
+   "text": "Still",
+   "start": 3.98,
+   "end": 4.42
+  }
+ ]
+}
