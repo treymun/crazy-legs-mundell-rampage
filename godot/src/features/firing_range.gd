@@ -686,6 +686,14 @@ func sprites() -> Array:
 	return out
 
 
+## The station's card where the HUD's layout has room (range_card.gd).
+func hud_flow(layout: HudLayout) -> void:
+	if Modes.is_versus(game) or not on or game.map or game.player.health <= 0:
+		return
+	if station != "" and L.station_at(game.player.x, game.player.y) == station:
+		Card.claim(layout, self)
+
+
 func draw_view(c: Canvas) -> void:
 	if Modes.is_versus(game):
 		return

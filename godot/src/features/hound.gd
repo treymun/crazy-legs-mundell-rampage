@@ -903,12 +903,19 @@ func sprites() -> Array:
 	return out
 
 
+## BLUE's badge keeps the view's bottom left corner (ui/hud/hud_layout.gd).
+func hud_fixed(layout: HudLayout) -> void:
+	if on and game.local_player != null and dog_of(game.local_player) != null:
+		layout.take("badge", HoundLooks.rect())
+
+
 func draw_view(c: Canvas) -> void:
 	if not on or game.local_player == null:
 		return
 	var d := dog_of(game.local_player)
 	if d == null:
 		return
+	HudLayout.begin(c, "badge")
 	var face := "0"
 	if d.state == DOWN:
 		face = "down"
@@ -918,3 +925,4 @@ func draw_view(c: Canvas) -> void:
 		face = "1"
 	var word: String = WORDS[d.state]
 	HoundLooks.badge(game, c, d.health / n("health"), face, word, d.state == DOWN)
+	HudLayout.end(c)

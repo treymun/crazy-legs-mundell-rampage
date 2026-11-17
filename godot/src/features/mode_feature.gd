@@ -265,6 +265,20 @@ func sprites() -> Array:
 	return out
 
 
+## The modes' HUD pieces (mode_screens.gd, tactical_screens.gd) in the HUD's
+## layout (ui/hud/hud_layout.gd).
+func hud_fixed(layout: HudLayout) -> void:
+	if game.players.size() > 1 and Modes.TACTICAL.has(mode):
+		TacticalScreens.hud_fixed(layout, game, self)
+	elif game.players.size() > 1:
+		ModeScreens.hud_fixed(layout, game, self)
+
+
+func hud_flow(layout: HudLayout) -> void:
+	if game.players.size() > 1 and not Modes.TACTICAL.has(mode):
+		ModeScreens.hud_flow(layout, game, self)
+
+
 func draw_view(c: Canvas) -> void:
 	if game.players.size() > 1 and Modes.TACTICAL.has(mode):
 		TacticalScreens.draw_view(c, game, self)

@@ -273,16 +273,22 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 		_mate_tags(c, game, st, me)
 		_objective_tags(c, game, st, me)
 		_spread_marks(c, game, me)
+	HudLayout.begin(c, "strip")
 	_top_strip(c, game, st, rules, me)
+	HudLayout.end(c)
+	HudLayout.begin(c, "kills")
 	_feed(c, game, st)
+	HudLayout.end(c)
 	TacticalRadio.listen(game, st)
 	if not me.scoped:
 		TacticalRadio.draw(c, game, st)
 	_bars(c, game, st, me)
 	_cash_gain(c, game, st, me)
 	if me.slot != human:
+		HudLayout.begin(c, "watching")
 		HUD.text(c, "WATCHING " + Modes.tag(me), 160, 22, "body", HUD.AMBER, true)
 		HUD.text(c, "SPACE  NEXT", 160, 32, "mini", HUD.DIM, true)
+		HudLayout.end(c)
 		_killed_line(c, st, 112)
 	if Input.is_key_pressed(KEY_TAB) and not open:
 		draw_board(
@@ -293,15 +299,46 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 			"ROUND %d OF %d" % [int(st.round_no), TacticalMode.max_rounds(st)]
 		)
 	if String(st.phase) == "post":
+		HudLayout.begin(c, "round")
 		_round_banner(c, game, st)
+		HudLayout.end(c)
 	elif String(st.phase) == "freeze":
 		var left := maxi(1, ceili(float(st.phase_until) - game.clock))
+		HudLayout.begin(c, "freeze")
 		HUD.text(c, str(left), 160, 18, "heading", HUD.AMBER, true)
 		if not open:
 			HUD.text(c, "TAP BUY" if touch_on else "B  BUY MENU", 160, 34, "body", HUD.INK, true)
+		HudLayout.end(c)
 	# (The open store is drawn over everything, gun and HUD too: main_state.gd.)
 	if not open and touch_on and me.slot == human and TacticalMode.can_buy(game, st, me):
 		LobbyScreens.button(c, BUY_PLATE, "BUY", true, "buy")
+
+
+## The round's own strips keep their places at the top (the score and
+## clock, the cash, the kill feed down the right): the HUD's layout fits the
+## notice and the rest round them (ui/hud/hud_layout.gd).
+static func hud_fixed(layout: HudLayout, game: Game, st: ModeFeature) -> void:
+	if st.money.size() < game.players.size() or String(st.phase) == "":
+		return
+	layout.take("strip", Rect2i(86, 0, 148, 10))
+	var money: int = st.money[game.local_player.slot]
+	var cash := HudLayout.text_rect("CASH %d" % money, 4, 1, "body")
+	layout.take("cash", cash.merge(HudLayout.text_rect("ROUND 99/99", 4, 11, "mini")))
+	if game.local_player.slot != human:
+		layout.take("watching", Rect2i(100, 21, 120, 19))
+	if String(st.phase) == "post":
+		layout.take("round", HudLayout.panel_rect(60, 40, 200, 34))
+	elif String(st.phase) == "freeze":
+		# The count and B  BUY MENU under it, centred.
+		var body_h: int = PixelType.style_of("body")[1]
+		layout.take("freeze", Rect2i(105, 16, 110, 34 + body_h + 3 - 16))
+	var widest := 0
+	for row: Array in st.feed:
+		widest = maxi(widest, PixelType.text_width(str(row[0]), "mini"))
+	if widest > 0:
+		var mini_h: int = PixelType.style_of("mini")[1]
+		var tall := (st.feed.size() - 1) * 7 + mini_h + 3
+		layout.take("kills", Rect2i(316 - widest - 1, 1, widest + 2, tall))
 
 
 ## A tap while a 5v5 round is on (main_input.gd _touch_actions): the BUY
@@ -353,10 +390,12 @@ static func _top_strip(
 	_pips(c, game, my_team, 120, mine_ink, false)
 	_pips(c, game, foe_team, 200, foe_ink, true)
 	var money: int = st.money[me.slot]
+	HudLayout.begin(c, "cash")
 	HUD.text(c, "CASH %d" % money, 4, 1, "body", GREEN)
 	HUD.text(
 		c, "ROUND %d/%d" % [int(st.round_no), TacticalMode.max_rounds(st)], 4, 11, "mini", HUD.DIM
 	)
+	HudLayout.end(c)
 
 
 ## What the 5v5 status bar shows of this machine's player (hud.gd draws it

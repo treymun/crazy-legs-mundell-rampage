@@ -162,6 +162,20 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 	return top + height
 
 
+## What HUD.banner of `value` wrapped at `limit` inks: its plate and the
+## drop shadow (one more column, two more rows).
+static func banner_size(value: String, limit := 288) -> Vector2i:
+	var style := text_style
+	var lines := PixelType.wrap(value, limit - 14, style)
+	if lines.is_empty():
+		return Vector2i.ZERO
+	var widest := 0
+	for line: String in lines:
+		widest = maxi(widest, PixelType.text_width(line, style))
+	var style_h: int = PixelType.style_of(style)[1]
+	return Vector2i(widest + 14 + 1, (style_h + 3) * lines.size() + 4 + 2)
+
+
 static var _banners := {}
 static var _banner_textures := {}
 ## TEXT SIZE: the type banners (notices, prompts, captions, one-liners) use.
@@ -474,6 +488,11 @@ static func _rgb_to_rgba(rgb: PackedByteArray) -> PackedByteArray:
 
 # ---------------------------------------------------------------- meters
 
+## The meters' well: where it starts in the plate (clear of DRUNK, its
+## longest caption: tools/hud_layout_check.gd) and each lamp's pitch.
+const METER_WELL := 38
+const METER_PITCH := 4
+
 
 func meter(c: Canvas, x: int, y: int, caption: String, value: float, colors: Array) -> void:
 	c.round_rect(x, y, 91, 12, 2, Color(57 / 255.0, 46 / 255.0, 38 / 255.0))
@@ -481,8 +500,9 @@ func meter(c: Canvas, x: int, y: int, caption: String, value: float, colors: Arr
 	c.line(x + 1, y + 1, x + 1, y + 9, Color(100 / 255.0, 92 / 255.0, 76 / 255.0))
 	c.line(x + 2, y + 10, x + 88, y + 10, Color(125 / 255.0, 111 / 255.0, 92 / 255.0))
 	text(c, caption, x + 4, y + 2, "body", INK, false, false)
-	x += 32
-	c.fill_rect(x - 2, y + 2, 58, 8, Color(29 / 255.0, 23 / 255.0, 19 / 255.0))
+	# The well starts past the longest caption (DRUNK), eleven lamps in it.
+	x += METER_WELL + 2
+	c.fill_rect(x - 2, y + 2, 11 * METER_PITCH + 3, 8, Color(29 / 255.0, 23 / 255.0, 19 / 255.0))
 	for i in 11:
 		var active := value > i * 9
 		var ink: Color = colors[mini(2, i / 4)]
@@ -494,12 +514,12 @@ func meter(c: Canvas, x: int, y: int, caption: String, value: float, colors: Arr
 		var sr := ir if active else ir / 4
 		var sg := ig if active else ig / 4
 		var sb := ib if active else ib / 4
-		c.fill_rect(x + i * 5, y + 3, 4, 6, Canvas.rgb(sr, sg, sb))
+		c.fill_rect(x + i * METER_PITCH, y + 3, METER_PITCH - 1, 6, Canvas.rgb(sr, sg, sb))
 		if active:
 			c.line(
-				x + i * 5,
+				x + i * METER_PITCH,
 				y + 3,
-				x + i * 5 + 3,
+				x + i * METER_PITCH + METER_PITCH - 2,
 				y + 3,
 				Canvas.rgb(mini(255, sr + 24), mini(255, sg + 24), mini(255, sb + 24))
 			)
@@ -789,6 +809,8 @@ var controls := false
 var minimal := false
 var shown_game: Game = null
 var shown_armory: Weapons.Armory = null
+## Where this frame's pieces over the view go (ui/hud/hud_layout.gd).
+var layout := HudLayout.new()
 
 
 func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:

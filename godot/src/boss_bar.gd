@@ -7,6 +7,43 @@ extends RefCounted
 
 
 static func draw(game: Game, c: Canvas, y: int) -> int:
+	var boss := _shown(game)
+	if boss == null:
+		return y
+	var phase := _phase(game, boss)
+	# Staggered by a big hit (boss_kit.gd): the bar flashes.
+	var reeling: bool = game.clock - boss.staggered_at < .35
+	HUD.panel(
+		c,
+		193,
+		y,
+		122,
+		27 if phase != "" else 20,
+		Canvas.rgb(35, 24, 20),
+		Canvas.rgb(250, 226, 170) if reeling else Canvas.rgb(126, 85, 57)
+	)
+	HUD.text(c, title(boss.kind), 253, y + 3, "body", HUD.INK, true, false)
+	c.fill_rect(199, y + 12, 110, 4, Canvas.rgb(70, 42, 32))
+	var fill := Canvas.rgb(236, 143, 69) if boss.windup > 0.0 else Canvas.rgb(204, 77, 47)
+	if reeling:
+		fill = Canvas.rgb(255, 238, 200)
+	c.fill_rect(199, y + 12, int(roundf(110.0 * boss.hp / boss.max_hp)), 4, fill)
+	if phase != "":
+		HUD.text(c, phase, 253, y + 19, "mini", Canvas.rgb(249, 194, 124), true, false)
+	return y + (27 if phase != "" else 20) + 2
+
+
+## The bar's height this frame (0 when there is none): the layout's room
+## for it (ui/hud/hud_layout.gd).
+static func height(game: Game) -> int:
+	var boss := _shown(game)
+	if boss == null:
+		return 0
+	return 27 if _phase(game, boss) != "" else 20
+
+
+## The boss whose bar is up (in its arena, awake), or null.
+static func _shown(game: Game) -> Enemy:
 	var p: Player = game.player
 	var finale: Enemy = game.finale
 	var jerry: Enemy = game.jerry
@@ -14,10 +51,16 @@ static func draw(game: Game, c: Canvas, y: int) -> int:
 		finale if finale != null else (jerry if jerry != null and jerry.alive else game.boss)
 	)
 	if boss == null:
-		return y
+		return null
 	var in_finale: bool = BossFight.in_arena_at(game, boss, p.x, p.y)
 	if not in_finale or not boss.alive or not boss.alerted or game.in_hub:
-		return y
+		return null
+	return boss
+
+
+## What the bar's last line says: the attack winding up, or how it is.
+static func _phase(game: Game, boss: Enemy) -> String:
+	var p: Player = game.player
 	var tell: String = str(
 		Enemy.TELLS.get(boss.kind, "PLASMA CHARGE" if boss == game.boss else "WHISTLE")
 	)
@@ -47,29 +90,9 @@ static func draw(game: Game, c: Canvas, y: int) -> int:
 		phase = "FIGHTIN' MAD"
 	if game.clock - boss.desperate_at < 1.6:
 		phase = "PLUM DESPERATE"
-	# Staggered by a big hit (boss_kit.gd): the bar flashes.
-	var reeling: bool = game.clock - boss.staggered_at < .35
-	if reeling:
+	if game.clock - boss.staggered_at < .35:
 		phase = "STAGGERED!"
-	phase = ShipAliens.phase_text(game, boss, phase)
-	HUD.panel(
-		c,
-		193,
-		y,
-		122,
-		27 if phase != "" else 20,
-		Canvas.rgb(35, 24, 20),
-		Canvas.rgb(250, 226, 170) if reeling else Canvas.rgb(126, 85, 57)
-	)
-	HUD.text(c, title(boss.kind), 253, y + 3, "body", HUD.INK, true, false)
-	c.fill_rect(199, y + 12, 110, 4, Canvas.rgb(70, 42, 32))
-	var fill := Canvas.rgb(236, 143, 69) if boss.windup > 0.0 else Canvas.rgb(204, 77, 47)
-	if reeling:
-		fill = Canvas.rgb(255, 238, 200)
-	c.fill_rect(199, y + 12, int(roundf(110.0 * boss.hp / boss.max_hp)), 4, fill)
-	if phase != "":
-		HUD.text(c, phase, 253, y + 19, "mini", Canvas.rgb(249, 194, 124), true, false)
-	return y + (27 if phase != "" else 20) + 2
+	return ShipAliens.phase_text(game, boss, phase)
 
 
 static func title(kind: String) -> String:

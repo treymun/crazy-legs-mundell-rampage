@@ -12,16 +12,12 @@ extends GameFeature
 ## Lines kept at once, and how long one stays (seconds of game clock).
 const MOST := 5
 const SECONDS := 5.0
-## Where the lines go: down the view's left, under the drive plate (when
-## driving: vehicle_hud.gd, 4,36 to 88,73) and under the objective pin's
-## arrow and plate (game.pin_top + PIN_CLEAR at the lowest, its last frame's;
-## the boss bar and the run plate are on the right), and above the revive
-## line (y 116): BOTTOM the last line's top, fewer lines when the pin is low.
-const X := 4
+## Where the lines go: down the view's left from TOP, under whatever the
+## layout has there already (the objective pin, the driving plate) and over
+## BLUE's badge and the flashlight (ui/hud/hud_layout.gd); the oldest lines
+## are left off when there is not room for them all.
+const X := HudLayout.EDGE + 1
 const TOP := 78
-const PIN_CLEAR := 32
-const BOTTOM := 106
-const STEP := 7
 ## A few hands are better known by another name than their kind's.
 const CALLED := {
 	"alien": "GREY",
@@ -43,6 +39,8 @@ const BOSS_INK := Color8(250, 196, 92)
 var rows: Array = []
 ## Each slot's [health > 0, away] as last seen.
 var _seen: Array = []
+## The first line with room this frame (hud_flow).
+var _first := 0
 
 
 func id() -> String:
@@ -136,18 +134,36 @@ func _up_line(p: Player) -> String:
 	return "%s DUSTED OFF AND CAME BACK" % Modes.tag(p)
 
 
-func draw_view(c: Canvas) -> void:
+## The lines go down the view's left where the HUD's layout has room once
+## the prompt and the caption have theirs, the oldest left off when there is
+## not room for them all.
+func hud_late(layout: HudLayout) -> void:
+	_first = rows.size()
 	if not shown() or rows.is_empty() or game.map:
 		return
-	var y := top()
-	var room := maxi(0, (BOTTOM - y) / STEP + 1)
-	for i in range(maxi(0, rows.size() - room), rows.size()):
+	var step: int = PixelType.style_of("mini")[1] + 2
+	var widest := 0
+	for row: Array in rows:
+		widest = maxi(widest, PixelType.text_width(str(row[0]), "mini"))
+	var first := 0
+	while first < rows.size():
+		var size := Vector2i(widest + 2, (rows.size() - first) * step + 1)
+		if layout.down("feed", size, X - 1, TOP).size.x > 0:
+			_first = first
+			return
+		first += 1
+
+
+func draw_view(c: Canvas) -> void:
+	var at := game.hud.layout.find("feed")
+	if not shown() or game.map or at.size.x <= 0 or _first >= rows.size():
+		return
+	var step: int = PixelType.style_of("mini")[1] + 2
+	HudLayout.begin(c, "feed")
+	var y := at.position.y + 1
+	for i in range(_first, rows.size()):
 		var row: Array = rows[i]
 		var ink: Color = row[2]
 		HUD.text(c, str(row[0]), X, y, "mini", ink, false, true)
-		y += STEP
-
-
-## The first line's top: TOP, or lower when the objective pin hangs lower.
-func top() -> int:
-	return maxi(TOP, game.pin_top + PIN_CLEAR)
+		y += step
+	HudLayout.end(c)

@@ -35,7 +35,9 @@ const LATE := 10.0
 ## driving plate (src/vehicle_hud.gd), clear of the touch buttons.
 const W := 84
 const H := 27
-const PLATE := Vector2i(View.WIDTH - W - 4, 36)
+## The plate's corner as wanted: across from the driving plate, its drop
+## shadow on the view's right margin (ui/hud/hud_layout.gd).
+const PLATE := Vector2i(View.WIDTH - HudLayout.EDGE - W - 1, 36)
 ## A flare's glow and the smoke off it.
 const FLARE := "fx_flare"
 const PUFFS := 4
@@ -454,6 +456,21 @@ func lights(_p: Player) -> Array:
 	return out
 
 
+## The run's plate goes where the HUD's layout has room for it: the top
+## right, under the objective pin (ui/hud/hud_layout.gd).
+func hud_flow(layout: HudLayout) -> void:
+	if defs.is_empty() or game.local_player == null:
+		return
+	var i := _running_for(game.local_player)
+	if i < 0:
+		return
+	if game.hud.minimal:
+		var box := HudLayout.text_rect("9:99  GATE 99/99", 0, 0, "mini")
+		layout.down("run", box.size, View.WIDTH - HudLayout.EDGE - box.size.x, PLATE.y)
+		return
+	layout.down("run", HudLayout.panel_rect(0, 0, W, H).size, PLATE.x, PLATE.y)
+
+
 ## The run's plate across from the driving plate: its name, the time left
 ## (red at the end), the gate or the lap, and where to next.
 func draw_view(c: Canvas) -> void:
@@ -474,12 +491,17 @@ func draw_view(c: Canvas) -> void:
 		else "GATE %d/%d" % [mini(gates.size(), next + 1), gates.size()]
 	)
 	var spot: Array = gates[next % gates.size()]
+	var at := game.hud.layout.find("run")
+	if at.size.x <= 0:
+		return
+	HudLayout.begin(c, "run")
 	if game.hud.minimal:
 		var line := "%s  %s" % [_short(left), count]
-		HUD.text(c, line, View.WIDTH - 6, VehicleHud.AT.y, "mini", HUD.INK, false, true, true)
+		HUD.text(c, line, at.end.x - 1, at.position.y + 1, "mini", HUD.INK, false, true, true)
+		HudLayout.end(c)
 		return
-	var x := PLATE.x
-	var y := PLATE.y
+	var x := at.position.x
+	var y := at.position.y
 	c.panel(x, y, W, H, VehicleHud.FACE, VehicleHud.EDGE)
 	HUD.text(c, str(d.get("title", "RUN")), x + 4, y + 3, "mini", HUD.AMBER, false, false)
 	HUD.text(c, count, x + W - 4, y + 3, "mini", HUD.INK, false, false, true)
@@ -487,3 +509,4 @@ func draw_view(c: Canvas) -> void:
 		c, _short(left), x + W / 2, y + 10, "body", HUD.LOW_HOT if late else HUD.INK, true, false
 	)
 	HUD.text(c, str(spot[3]), x + W / 2, y + 19, "mini", HUD.DIM, true, false)
+	HudLayout.end(c)

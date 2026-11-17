@@ -12,10 +12,11 @@ extends RefCounted
 
 const W := 84
 const H := 37
-## The plate's corner: the view's top left, under the objective pin's
-## arrow, clear of the hands on the controls at the bottom of the view and of
-## the touch buttons' move stick.
-const AT := Vector2i(4, 36)
+## The plate's corner as wanted: the view's top left, under the objective
+## pin's arrow, clear of the hands on the controls at the bottom of the view
+## and of the touch buttons' move stick (the HUD's layout moves it down past
+## a long notice: ui/hud/hud_layout.gd).
+const AT := Vector2i(HudLayout.EDGE, 36)
 ## MPH for each cell a second.
 const MPH := 3.4
 const LAMPS := 10
@@ -30,8 +31,16 @@ const NEEDLE := Color8(68, 45, 34)
 
 
 ## The plate for ride `v` (`driving`: this player has the wheel).
+## What the plate inks (HUD MINIMAL's two lines when `minimal`).
+static func size(minimal: bool) -> Vector2i:
+	if minimal:
+		var mini_h: int = PixelType.style_of("mini")[1]
+		return Vector2i(66, 10 + mini_h + 3)
+	return HudLayout.panel_rect(0, 0, W, H).size
+
+
 static func draw(
-	c: Canvas, game: Game, v: VehicleDrive.Ride, s: VehicleDrive.Spec, driving: bool
+	c: Canvas, game: Game, v: VehicleDrive.Ride, s: VehicleDrive.Spec, driving: bool, at := AT
 ) -> void:
 	var mph := roundi(VehicleDrive.speed(v) * MPH)
 	var share := clampf(v.hp / maxf(1.0, s.hp), 0.0, 1.0)
@@ -39,14 +48,14 @@ static func draw(
 	var state := condition(v, share)
 	var hot := share <= .25 and int(game.clock * 3.0) % 2 == 0
 	if game.hud.minimal:
-		HUD.text(c, "%d MPH" % mph, AT.x + 2, AT.y, "body", HUD.INK, false, true)
+		HUD.text(c, "%d MPH" % mph, at.x + 1, at.y + 1, "body", HUD.INK, false, true)
 		var line := "RIG %d%%" % health if state == "" else state
 		HUD.text(
-			c, line, AT.x + 2, AT.y + 9, "mini", HUD.LOW if share <= .5 else HUD.INK, false, true
+			c, line, at.x + 1, at.y + 10, "mini", HUD.LOW if share <= .5 else HUD.INK, false, true
 		)
 		return
-	var x := AT.x
-	var y := AT.y
+	var x := at.x
+	var y := at.y
 	c.panel(x, y, W, H, FACE, EDGE)
 	# The speed: big numerals, or STATUS PANEL's dial with them small.
 	var pace := clampf(VehicleDrive.speed(v) / maxf(1.0, s.top), 0.0, 1.0)

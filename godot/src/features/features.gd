@@ -141,6 +141,27 @@ static func draw_view(game: Game, c: Canvas) -> void:
 		feature.draw_view(c)
 
 
+## Each feature's HUD pieces that keep to the edges (GameFeature.hud_fixed).
+static func hud_fixed(game: Game, layout: HudLayout) -> void:
+	for key: String in game.features:
+		var feature: GameFeature = game.features[key]
+		feature.hud_fixed(layout)
+
+
+## Each feature's HUD pieces placed last (GameFeature.hud_late).
+static func hud_late(game: Game, layout: HudLayout) -> void:
+	for key: String in game.features:
+		var feature: GameFeature = game.features[key]
+		feature.hud_late(layout)
+
+
+## Each feature's HUD pieces that hang under the top (GameFeature.hud_flow).
+static func hud_flow(game: Game, layout: HudLayout) -> void:
+	for key: String in game.features:
+		var feature: GameFeature = game.features[key]
+		feature.hud_flow(layout)
+
+
 static func ground_marks(game: Game) -> Array:
 	var out: Array = []
 	for key: String in game.features:

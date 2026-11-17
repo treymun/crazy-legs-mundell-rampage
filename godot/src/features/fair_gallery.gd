@@ -566,12 +566,37 @@ func _prize_sprites(out: Array, floor_z: float) -> void:
 # ------------------------------------------------------------------ HUD
 
 
+## The gallery's card goes in the top left where the HUD's layout has room
+## (ui/hud/hud_layout.gd).
+func hud_flow(layout: HudLayout) -> void:
+	var lines := _card_lines()
+	if not lines.is_empty():
+		var size := HudLayout.panel_rect(0, 0, 150, 14 + lines.size() * 7).size
+		layout.down("card", size, HudLayout.EDGE, 18)
+
+
 func draw_view(c: Canvas) -> void:
-	if not on or game.map or Modes.is_versus(game):
+	var lines := _card_lines()
+	var at := game.hud.layout.find("card")
+	if lines.is_empty() or at.size.x <= 0:
 		return
+	var top := at.position.y
+	var left := at.position.x
+	HudLayout.begin(c, "card")
+	HUD.panel(c, left, top, 150, 14 + lines.size() * 7, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
+	HUD.text(c, "SHOOTING GALLERY", left + 5, top + 3, "body", HUD.AMBER)
+	for i in lines.size():
+		HUD.text(c, str(lines[i]), left + 5, top + 13 + i * 7, "mini", HUD.INK, false, false)
+	HudLayout.end(c)
+
+
+## The card's lines ([] when it is not up).
+func _card_lines() -> Array:
+	if not on or game.map or Modes.is_versus(game):
+		return []
 	var p := game.player
 	if not round_on and not standing_at(p):
-		return
+		return []
 	var lines: Array = []
 	if round_on:
 		lines.append("SCORE %d  TIME %d" % [score, ceili(ROUND - clock)])
@@ -582,8 +607,4 @@ func draw_view(c: Canvas) -> void:
 		if last != "":
 			lines.append("LAST: " + last)
 	lines.append("BEST %d" % best)
-	var top := 34 if game.message_until > game.clock else 18
-	HUD.panel(c, 4, top, 150, 14 + lines.size() * 7, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
-	HUD.text(c, "SHOOTING GALLERY", 9, top + 3, "body", HUD.AMBER)
-	for i in lines.size():
-		HUD.text(c, str(lines[i]), 9, top + 13 + i * 7, "mini", HUD.INK, false, false)
+	return lines

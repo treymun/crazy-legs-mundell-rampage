@@ -96,6 +96,26 @@ func draw_view(_c: Canvas) -> void:
 	pass
 
 
+## Its HUD pieces that keep to the view's edges whatever else is up (a
+## badge in a corner, a mode's strip): taken first, before the notice
+## (ui/hud/hud_layout.gd; game_view.gd _lay_hud). draw_view draws them where
+## they were taken.
+func hud_fixed(_layout: HudLayout) -> void:
+	pass
+
+
+## Its HUD pieces that hang under the top of the view (the driving plates,
+## a station's card): placed after the notice, the boss bar and the pin.
+func hud_flow(_layout: HudLayout) -> void:
+	pass
+
+
+## Its HUD pieces that give way to the prompt and the caption (the kill
+## feed): placed last, in what room is left.
+func hud_late(_layout: HudLayout) -> void:
+	pass
+
+
 ## Marks it lays on the floors this frame (View.GroundMark).
 func ground_marks() -> Array:
 	return []

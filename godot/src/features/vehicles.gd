@@ -1183,12 +1183,38 @@ func draw_view(c: Canvas) -> void:
 		if b != null and calm > 0.0:
 			lift = clampi(1 + roundi(b.heave * 30.0 * calm), 0, 3)
 		VehicleLooks.cab(c, v.steer, VehicleDrive.speed(v) / maxf(1.0, s.top), lift)
-	VehicleHud.draw(c, game, v, s, at.y == 0)
+	var plate := game.hud.layout.find("drive")
+	if plate.size.x > 0:
+		HudLayout.begin(c, "drive")
+		VehicleHud.draw(c, game, v, s, at.y == 0, plate.position)
+		HudLayout.end(c)
+	var lap := game.hud.layout.find("lap")
+	if lap.size.x > 0:
+		HudLayout.begin(c, "lap")
+		c.label(_lap_text(v), View.WIDTH / 2, lap.position.y + 1, "body", INK, true)
+		HudLayout.end(c)
+
+
+## The plate and the speedway's lap timer go where the HUD's layout has room
+## (ui/hud/hud_layout.gd): the plate down the left, the timer across the top.
+func hud_flow(layout: HudLayout) -> void:
+	if rides.is_empty():
+		return
+	var at := seat_of(game.local_player)
+	if at.x < 0 or not game.eye_override.is_empty():
+		return
+	var v: VehicleDrive.Ride = rides[at.x]
+	layout.down("drive", VehicleHud.size(game.hud.minimal), VehicleHud.AT.x, VehicleHud.AT.y)
 	var runs: GameFeature = game.features.get("vehicle_runs")
 	if runs != null and runs.call("live"):
 		return  # a set piece's own timer is up (features/vehicle_runs.gd)
 	if not line.is_empty() and v.kind == "car" and at.y == 0:
-		var text := "LAP " + clock_text(game.clock - v.lap_start)
-		if v.lap_best > 0.0:
-			text += "   BEST " + clock_text(v.lap_best)
-		c.label(text, View.WIDTH / 2, 4, "body", INK, true)
+		var box := HudLayout.text_rect(_lap_text(v), 0, 0, "body")
+		layout.centred("lap", box.size, HudLayout.TOP)
+
+
+func _lap_text(v: VehicleDrive.Ride) -> String:
+	var text := "LAP " + clock_text(game.clock - v.lap_start)
+	if v.lap_best > 0.0:
+		text += "   BEST " + clock_text(v.lap_best)
+	return text

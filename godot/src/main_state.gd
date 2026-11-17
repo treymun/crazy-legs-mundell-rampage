@@ -1219,6 +1219,7 @@ func render() -> void:
 		game.layered = gpu_look and canvas.gpu
 		game.view3d = game.layered
 		var crosshair: int = options["crosshair"]
+		_pin_hud()
 		if kill_cam.playing:
 			kill_cam.draw(self)  # the replay from its own camera, no HUD
 		elif opener.playing:
@@ -1241,7 +1242,7 @@ func render() -> void:
 				canvas,
 				"%d FPS" % roundi(Engine.get_frames_per_second()),
 				316,
-				2,
+				HudLayout.TOP,
 				"mini",
 				HUD.AMBER,
 				false,
@@ -1268,6 +1269,24 @@ func render() -> void:
 	if canvas.gpu:
 		palette_material.set_shader_parameter("base_on", canvas.base_set)
 	_apply_view()
+
+
+## The pieces drawn over play after it (the frame counter, the online
+## ping) keep the top right corner: the HUD's layout fits the rest round
+## them (ui/hud/hud_layout.gd).
+func _pin_hud() -> void:
+	var pins: Array = []
+	var show_fps: int = options.get("show_fps", 0)
+	if show_fps != 0 and not touring:
+		var fps := "999 FPS"
+		var at := 316 - PixelType.text_width(fps, "mini")
+		pins.append(["fps", HudLayout.text_rect(fps, at, HudLayout.TOP, "mini")])
+	if net != null and state == "play":
+		var ms := "999 MS"
+		pins.append(
+			["ping", HudLayout.text_rect(ms, 316 - PixelType.text_width(ms, "mini"), 12, "mini")]
+		)
+	hud.layout.pinned = pins
 
 
 ## Hand game.view_frame to the 3D view now (the KILL CAM's replay frames).
