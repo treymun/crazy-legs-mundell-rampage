@@ -303,7 +303,7 @@ What pass 9 found and did (2026-11-17, measured, not heard):
 - **Silent moments.** `honk` (a vehicle run's start), `impact_stone` (the
   Revenue Man's axe in the rock, the ship's boulders) and `step_water` (the
   swamp king's wave) were named and never made. `honk` is a new recording
-  (12 credits), `impact_stone` `impact_brick` a minor third down, the wave
+  (booked 12 credits), `impact_stone` `impact_brick` a minor third down, the wave
   plays `wade_splash`. `church_bell` and `cruiser_siren`, made for the
   Moonshine Run, were never played: the church's bell station rang the fair's
   bell (now `church_bell`, moonshine_plan.gd), and a cruiser coming round
@@ -331,7 +331,8 @@ What pass 9 found and did (2026-11-17, measured, not heard):
   last consonant fell under the build's hit floor; `bark_grey_cover_0` lost
   0.7 s): all whole now. 13 lines' last takes had never been transcribed
   (their transcripts were the takes before, so the cut and the check used the
-  wrong words): transcribed (156 credits), all say their captions;
+  wrong words): transcribed (booked 156; the account fell 24 for the pass
+  in all), all say their captions;
   `bark_grey_cover_0` loses its `heard`, `bark_grey_surprised_0` keeps its
   "Eep!" (`lead`, BARK_LEAD). `fuse_hiss` pulsed 3.3 dB at its 1.4 s join,
   now under 1.1; 29 cues held 0.45 to 1.4 s of silence at the end; six were
