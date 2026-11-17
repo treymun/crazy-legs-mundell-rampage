@@ -73,8 +73,9 @@ the county's hazards: `wood_chipper`, `bug_zapper`, `electric_fence`,
 `tools/art/build_boot_views.gd` (runs `scripts/blender/boot_views.py`) cuts
 Mundell's kick in first person, four cels `fx_boot_kick_0..3`: a work boot
 modelled from hulls (lug sole and heel, stitched welt, toe cap, eyelets and
-crossed laces, tongue, collar) in his model's brown, seen in profile from his
-eye, with his overalls' turned-up cuff and leg running off to the right,
+crossed laces, tongue, collar) in his model's brown, coming up sole first
+from the bottom of his view (chevron lugs, a separate darker stacked heel,
+the toe up), with his overalls' turned-up cuff under the heel,
 lit by the gun views' three suns, graded as the gun cels; where each sits on
 the view goes to `assets/art/boot_views.json` (`brawl_looks.gd PLACES`, held
 the same by brawl_check). The game's view is the top 156 rows of the 200 it

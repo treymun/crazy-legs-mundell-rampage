@@ -86,7 +86,7 @@ const PATHS := {
 		[0.36, -70.0, 0.0, 28.0],
 		[0.64, 0.0, 0.0, 0.0],
 	],
-	# The gun out of the boot's way.
+	# The gun out of the boot's way (it comes up the middle).
 	"stomp":
 	[[0.0, 0.0, 0.0, 0.0], [.1, 30.0, 90.0, 10.0], [.5, 30.0, 90.0, 10.0], [.7, 0.0, 0.0, 0.0]],
 	"punt":
@@ -122,9 +122,7 @@ func attach() -> void:
 ## Where each boot cel's top left corner sits on the 320x200 view, as
 ## tools/art/build_boot_views.gd wrote them to assets/art/boot_views.json
 ## (tools/brawl_check.gd holds the two the same).
-const PLACES := {
-	"kick_0": [202, 86], "kick_1": [135, 39], "kick_2": [122, 43], "kick_3": [194, 132]
-}
+const PLACES := {"kick_0": [146, 95], "kick_1": [143, 85], "kick_2": [140, 76], "kick_3": [168, 96]}
 
 
 func _brawl() -> Brawl:
@@ -175,7 +173,7 @@ func _kick_pose(t: float) -> Array:
 		return _at("kick_2", 0.0, 0.0)
 	var d := (t - KICK_OUT) / (KICK_DOWN - KICK_OUT)
 	if d < .4:
-		return _at("kick_1", lerpf(0.0, 14.0, d / .4), lerpf(0.0, 16.0, d / .4))
+		return _at("kick_1", 0.0, lerpf(0.0, 12.0, d / .4))
 	return _at("kick_3", 0.0, lerpf(0.0, 70.0, (d - .4) / .6))
 
 

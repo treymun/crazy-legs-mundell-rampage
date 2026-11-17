@@ -106,9 +106,12 @@ def mat(key, rgb, rough=.7, metal=0., grain=None, scale=30., bump=.3, weave=Fals
 DENIM = lambda: mat("denim", (52, 62, 86), .85, weave=True, grain=(64, 74, 98), scale=18.)
 PATCH = lambda: mat("patch", (176, 160, 124), .9, scale=24.)
 STITCH = lambda: mat("stitch", (150, 112, 62), .8, scale=60.)
-LEATHER = lambda: mat("leather", (92, 50, 22), .7, grain=(112, 66, 32), scale=22., bump=.5)
+LEATHER = lambda: mat("leather", (124, 68, 30), .7, grain=(146, 88, 44), scale=22., bump=.5)
 DARK_LEATHER = lambda: mat("dark_leather", (70, 38, 18), .8, grain=(110, 70, 40), scale=26.)
-SOLE = lambda: mat("sole", (34, 28, 24), .9, scale=40., bump=.8)
+SOLE = lambda: mat("sole", (104, 90, 70), .9, scale=40., bump=.6)
+LUG = lambda: mat("lug", (20, 17, 14), .95, scale=60., bump=.4)
+HEEL = lambda: mat("heel", (70, 44, 26), .85, grain=(96, 64, 40), scale=30.)
+HEEL_EDGE = lambda: mat("heel_edge", (34, 22, 14), .9, scale=40.)
 LACE = lambda: mat("lace", (150, 120, 76), .9, scale=50.)
 EYELET = lambda: mat("eyelet", (150, 120, 60), .35, metal=1.)
 MUD = lambda: mat("mud", (66, 50, 34), 1., grain=(60, 46, 30), scale=12., bump=1.)
@@ -199,27 +202,42 @@ def boot(m):
     """A worn brown work boot in the frame `m`: the heel's bottom at the
     origin, the toe along +y, the top of the foot +z. About .31 long, its
     shaft .24 high (a size up again in BOOT)."""
-    # The lug sole and the stacked heel, dark rubber, a welt stitched round.
-    hull(outline(1.0, 0.0) + outline(1.0, .026), SOLE(), m, smooth=False)
-    hull([(x, y, z) for x, y, z in outline(1.0, -.016) + outline(1.0, .0) if y < .085], SOLE(), m, False)
-    for k in range(7):
-        box((0, .02 + k * .04, -.004), (.085, .012, .012), SOLE(), m, bevel=.002)
+    # The sole, worn brown-grey rubber: the forefoot slab, a thin waist under
+    # the arch, the heel a block of its own (stacked, darker) with a step at
+    # its breast, so the arch shows as a recess between them.
+    hull([q for q in outline(1.0, -.01) + outline(1.0, .026) if q[1] > .13], SOLE(), m, False)
+    hull([q for q in outline(.96, .012) + outline(.96, .026) if .07 < q[1] < .15], SOLE(), m, False)
+    hull([q for q in outline(1.0, -.034) + outline(1.0, .026) if q[1] < .085], HEEL(), m, False)
+    for k in range(3):
+        hull([(x, y, z + .006 + k * .009) for x, y, z in outline(1.012, -.0) if y < .085]
+             + [(x, y, z + .009 + k * .009) for x, y, z in outline(1.012, -.0) if y < .085], HEEL_EDGE(), m, False)
+    # The lugs: chevrons down the forefoot, a grid on the heel, standing
+    # proud and darker so the tread reads.
+    for k in range(6):
+        y = .15 + k * .026
+        for side in (1, -1):
+            box((0, 0, 0), (.036, .011, .014), LUG(),
+                m @ Matrix.Translation((side * .022, y, -.016)) @ Matrix.Rotation(math.radians(28 * side), 4, "Z"),
+                bevel=.002)
+    for row in range(3):
+        for col in (-1, 0, 1):
+            box((col * .026, .0 + row * .026, -.04), (.02, .02, .014), LUG(), m, bevel=.002)
     hull(outline(1.045, .024) + outline(1.045, .036), DARK_LEATHER(), m, smooth=False)
     for k, (x, y, z) in enumerate(outline(1.05, .036)):
         if k % 2 == 0:
             box((x, y, z), (.006, .006, .004), STITCH(), m, bevel=0)
     # The upper: the hull of the foot's edge, a low round toe box, the
     # vamp sloping up to the shaft round the ankle.
-    upper = outline(.97, .036, .003)
+    upper = outline(.9, .036, .006)
     for k in range(9):
         a = math.pi * k / 8
-        upper.append((math.cos(a) * .046, .25 + math.sin(a) * .045, .09))
-        upper.append((math.cos(a) * .036, .23 + math.sin(a) * .055, .112))
-        upper.append((math.cos(a) * .02, .21 + math.sin(a) * .05, .122))
+        upper.append((math.cos(a) * .04, .25 + math.sin(a) * .042, .09))
+        upper.append((math.cos(a) * .032, .23 + math.sin(a) * .05, .112))
+        upper.append((math.cos(a) * .018, .21 + math.sin(a) * .046, .122))
     for k in range(16):
         a = math.tau * k / 16
         for z in (.12, .24):
-            upper.append((math.cos(a) * .058, .025 + math.sin(a) * .066, z))
+            upper.append((math.cos(a) * .046, .025 + math.sin(a) * .06, z))
     hull(upper, LEATHER(), m)
     # The toe cap: its own hull a hair proud, darker, so its seam shows.
     cap = [(x * 1.02, y, z + .002) for x, y, z in upper if y > .225]
@@ -249,19 +267,20 @@ def boot(m):
 
 
 def leg(knee, m):
-    """The right leg in the overalls from `knee` (off the view) to the boot's
-    shaft in the frame `m`, the cuff turned up once over it."""
-    top = m @ Vector((0, .025, .25))
-    up = (m.to_3x3() @ Vector((0, 0, 1))).normalized()
-    rod(Vector(knee), top + up * .02, .085, .074, DENIM(), squash=.9)
-    # The outside seam, stitched, and the tan patch's corner.
-    side = (Vector(knee) - top).cross(up)
+    """The right leg in the overalls from `knee` (below the view) up to the
+    boot's shaft in the frame `m`, the cuff turned up once at the ankle."""
+    top = m @ Vector((0, .0, .2))
+    knee = Vector(knee)
+    along = (top - knee).normalized()
+    rod(knee, top, .1, .08, DENIM(), squash=.9)
+    side = along.cross(Vector((0, 1, 0)))
     if side.length > 1e-4:
-        side = side.normalized() * .072
-        rod(Vector(knee) + side, top + side, .003, .003, STITCH(), seg=6)
-    # The cuff: a turned-up hem, paler on its fold.
-    rod(top - up * .01, top + up * .035, .08, .079, DENIM(), squash=.95)
-    rod(top + up * .028, top + up * .04, .081, .08, mat("hem", (104, 116, 140), .9, scale=20.), squash=.95)
+        side = side.normalized() * .082
+        rod(knee + side, top - along * .05 + side, .003, .003, STITCH(), seg=6)
+    # The cuff: a turned-up hem just short of the boot, paler on its fold.
+    rod(top - along * .1, top - along * .03, .094, .092, DENIM(), squash=.92)
+    rod(top - along * .1, top - along * .088, .096, .095, mat("hem", (104, 116, 140), .9, scale=20.),
+        squash=.92)
 
 
 def foot_frame(heel, toe_dir, up_dir):
@@ -273,33 +292,35 @@ def foot_frame(heel, toe_dir, up_dir):
     x = y.cross(z)
     m = Matrix((x, y, z)).transposed().to_4x4()
     m.translation = Vector(heel)
-    return m @ Matrix.Scale(BOOT, 4)
+    # A work boot read from its sole: a size up, and broad across the tread.
+    return m @ Matrix.Scale(BOOT, 4) @ Matrix.Scale(WIDE, 4, Vector((1, 0, 0)))
 
 
 # Mundell's boots, a size up on the eye (they read from the view as the
 # gun cels' hands do).
 BOOT = 1.3
+WIDE = 1.5
 
 # The kick from his own eye (at the origin, looking along +y, z up, map
-# units; the game's view is the top 156 of the 200 rows rendered): the right leg swings in from the bottom right and the boot drives
-# out across the view toe first, its side to you, the sole and heel under
-# it, the laces on top. Each: the heel, the toe's way, the top's way, the knee.
+# units; the game's view is the top 156 of the 200 rows rendered): the boot
+# comes up from the bottom of the view sole first, its tread to the man
+# kicked, the toe up, the stacked heel down and the overalls' cuff under it.
+# Each: the heel, the toe's way, the top of the foot's way, the knee.
 POSES = {
-    # Chambered: the knee up, the boot low at the right, toe raised.
-    "kick_0": ((.32, .52, -.22), (-.6, .4, .55), (.3, -.5, 1), (.85, .45, -.08)),
-    # Driven out: the boot across the middle of the view in profile, a little
-    # of its top showing (the laces), the shin running off to the right
-    # behind its cuff.
-    "kick_1": ((.17, .7, -.1), (-.85, .5, .05), (.1, -.45, 1), (.75, .58, -.02)),
-    # The blow: further, a little higher, the toe tipped up.
-    "kick_2": ((.08, .8, -.09), (-.8, .5, .3), (.25, -.45, 1), (.7, .68, .02)),
-    # Back down: the boot dropping away to the bottom right.
-    "kick_3": ((.34, .52, -.34), (-.6, .5, -.25), (0, -.4, 1), (.85, .4, -.28)),
+    # Chambered: the boot coming up low from the bottom of the view.
+    "kick_0": ((.07, .78, -.35), (0, .45, 1), (.4, .9, -.3), (.18, .2, -1.5)),
+    # Driven out, rising, the tread to him.
+    "kick_1": ((.03, 1.05, -.28), (0, .55, 1), (.45, .8, -.5), (.14, .3, -1.45)),
+    # The blow: the sole flat to him in the lower middle of the view, the
+    # toe up, the stacked heel down, the cuff under it.
+    "kick_2": ((.0, 1.28, -.2), (-.05, .6, 1), (.5, .8, -.5), (.12, .45, -1.45)),
+    # Back down and away to the right.
+    "kick_3": ((.14, .88, -.34), (.25, .5, 1), (.1, .9, -.4), (.24, .25, -1.5)),
 }
 LOOK_DOWN = {}
 # Every pose pushed this much further from the eye (the boot drawn this much
 # smaller where it falls on the view): at 1.0 it covered half the view.
-AWAY = 1.4
+AWAY = 1.0
 
 
 def stage():

@@ -822,8 +822,9 @@ co-op and online play it the same (`net_check`, brawl_check's snapshot).
   a `hazard` line. Where they stand: [levels.md](levels.md#the-plans).
 - **Looks** (`brawl_looks.gd`, after feel.gd so it adds to the gun's place):
   the kick is four cels `fx_boot_kick_0..3` (tools/art/build_boot_views.gd
-  from scripts/blender/boot_views.py: his brown work boot in profile on its
-  lug sole, the overalls' cuff and leg running off to the right; `PLACES`
+  from scripts/blender/boot_views.py: his brown work boot coming up sole
+  first, its tread to the man kicked, the stacked heel and the overalls' cuff
+  under it; `PLACES`
   where each sits): chambered, out, the blow held on contact (the hit-stop),
   back and away, drawn under the gun over the view's rows only, lit as the
   gun is; the gun ducks out of its way. Each finisher moves and turns the gun
