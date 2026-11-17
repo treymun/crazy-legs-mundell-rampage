@@ -2,7 +2,8 @@
 ## every chapter -> Crossroads -> unlock -> revisit -> ending, plus a save
 ## round-trip at every transition. Objectives are driven through the same calls
 ## the game makes (hit_scenery, interact, continue_campaign, travel), not by
-## poking `won`, so a broken trigger shows up here.
+## poking `won`, so a broken trigger shows up here. `-- hound` walks it with
+## BLUE along (tools play without him).
 extends SceneTree
 
 var failures: Array = []
@@ -26,6 +27,9 @@ func _run() -> void:
 	await process_frame
 	main.set_process(false)
 	main.state = "title"
+	if OS.get_cmdline_user_args().has("hound"):
+		# `-- hound`: the walk with BLUE along (tools play without him).
+		main.options["hound"] = 1
 
 	print("NEW GAME")
 	main.start("hickston")

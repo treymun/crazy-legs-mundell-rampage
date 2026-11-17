@@ -1,0 +1,20 @@
+{
+ "text": "Get 'em, boy!",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "'em,",
+   "start": 0.28,
+   "end": 0.4
+  },
+  {
+   "text": "boy!",
+   "start": 0.48,
+   "end": 0.98
+  }
+ ]
+}

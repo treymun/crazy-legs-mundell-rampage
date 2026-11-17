@@ -161,6 +161,12 @@ const REPORT_GAIN := {
 }
 
 const VARIANTS := {
+	# BLUE, the hound (features/hound.gd; scripts/audio_spec.py "the hound").
+	"hound_bark": ["hound_bark", "hound_bark_alt", "hound_bark_alt2"],
+	"hound_bay": ["hound_bay", "hound_bay_alt"],
+	"hound_whine": ["hound_whine", "hound_whine_alt"],
+	"hound_growl": ["hound_growl", "hound_growl_alt"],
+	"hound_yelp": ["hound_yelp", "hound_yelp_alt"],
 	"rifle": ["rifle", "rifle_alt", "rifle_alt2"],
 	"mower": ["mower", "mower_alt"],
 	"revolver": ["revolver", "revolver_alt"],

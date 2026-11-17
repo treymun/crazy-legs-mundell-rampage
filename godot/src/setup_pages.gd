@@ -300,6 +300,15 @@ static func build() -> Array:
 					["CLASSIC", "SMART"],
 					"SMART: THEY DUCK BEHIND THINGS, PEEK, RELOAD, KICK DOORS AND DROP OFF ROOFS"
 				),
+				(
+					SessionStore
+					. toggle(
+						"HOUND DOG",
+						"hound",
+						1,
+						"BLUE, YOUR COONHOUND: BAYS AT SECRETS AND NEW IRON, FETCHES, HOLDS VARMINTS DOWN"
+					)
+				),
 				SessionStore.toggle(
 					"ADAPTIVE DIFFICULTY",
 					"adaptive",

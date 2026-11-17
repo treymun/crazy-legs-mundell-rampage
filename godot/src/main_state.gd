@@ -859,6 +859,8 @@ func _pad_bindings() -> Array:
 			[JOY_BUTTON_RIGHT_SHOULDER, KEY_APOSTROPHE],
 			[JOY_BUTTON_START, KEY_ESCAPE],
 			[JOY_BUTTON_BACK, KEY_TAB],
+			# The pad's share or capture button whistles for BLUE.
+			[JOY_BUTTON_MISC1, KEY_G],
 			# With the map open, up and down zoom it instead.
 			[JOY_BUTTON_DPAD_UP, KEY_PAGEUP if game.map else KEY_C],
 			[JOY_BUTTON_DPAD_LEFT, KEY_B],

@@ -28,7 +28,8 @@ func _ready() -> void:
 			"smart_hands",
 			"weather",
 			"county_storm",
-			"boss_wrecks"
+			"boss_wrecks",
+			"hound"
 		]:
 			if plain.has(key):
 				sim[key] = plain[key]
@@ -123,6 +124,14 @@ func _ready() -> void:
 	# (its references must match CI's, which has no profile).
 	quality_first = not SessionStore.settings_saved()
 	options = SessionStore.settings("" if view_tour == "" else "res://no_settings.json")
+	if (
+		view_tour != ""
+		or (Engine.get_main_loop() != null and Engine.get_main_loop().get_script() != null)
+	):
+		# A view tour and a tool play as the game did before BLUE (their
+		# references and expectations were made so): no hound unless the tool
+		# asks for him (options["hound"] = 1, tools/hound_check.gd).
+		options["hound"] = 0
 	_start_quality()
 	unlocked = SessionStore.unlocks("")
 	hub_findings = SessionStore.road_notes("")

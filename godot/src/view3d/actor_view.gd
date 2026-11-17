@@ -358,6 +358,14 @@ func _time(frame: String, look: int, e: Enemy, clock: float) -> float:
 			var beat := fposmod(e.gait / (PI * .5), 4.0)
 			var walk_at: float = first
 			return walk_at + beat * ActorModels.KEY_TIME
+	if frame.begins_with("r") and frame.length() == 2 and frame[1].is_valid_int():
+		# A gallop (the hound's, scripts/blender/actors_hound.py): four beats
+		# run on the gait as the walk is.
+		var first_r: Variant = models.key_time(kind, hurt + "r0")
+		if first_r != null and models.key_time(kind, hurt + "r4") != null:
+			var beat_r := fposmod(e.gait / (PI * .5), 4.0)
+			var run_at: float = first_r
+			return run_at + beat_r * ActorModels.KEY_TIME
 	if frame.begins_with("die_"):
 		var first: Variant = models.key_time(kind, "die_0")
 		if first != null:

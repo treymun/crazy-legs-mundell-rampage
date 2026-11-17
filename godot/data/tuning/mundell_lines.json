@@ -113,6 +113,26 @@
 			"Smells like gun oil round here...",
 			"Somethin' shiny close by. New iron.",
 			"Gun's close. I can smell it."
+		],
+		"hound_sic": [
+			"Sic 'em, Blue!",
+			"Git 'em, boy!"
+		],
+		"hound_fetch": [
+			"Go fetch, Blue."
+		],
+		"hound_stay": [
+			"Stay, Blue."
+		],
+		"hound_come": [
+			"Blue! Here, boy!"
+		],
+		"hound_good": [
+			"Good boy, Blue.",
+			"That's my dog."
+		],
+		"hound_up": [
+			"Hang on, Blue. I gotcha."
 		]
 	}
 }

@@ -35356,14 +35356,770 @@
    "bytes": 47063
   },
   {
-   "id": "reconcile@2026-11-16T16:07:10",
+   "id": "sfx/hound_bark_alt#1",
+   "kind": "sfx",
+   "name": "hound_bark_alt",
+   "params": {
+    "text": "A big coonhound gives two quick excited barks, deep and gravelly. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e31cc5b1bfaa",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T17:45:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_bark_alt.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/hound_bay#1",
+   "kind": "sfx",
+   "name": "hound_bay",
+   "params": {
+    "text": "A bluetick coonhound bays on a scent: a long, mournful, rolling 'aroo-oo-ooo' with a bawl in it, out in the woods at night. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 2.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "22ed12bd8f75",
+   "reserved": 109,
+   "status": "settled",
+   "started": "2026-11-16T17:45:51",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_bay.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "sfx/hound_bark#1",
+   "kind": "sfx",
+   "name": "hound_bark",
+   "params": {
+    "text": "A big coonhound barks once, deep and hoarse: a single gruff 'rowf'. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "710b6a0d3b23",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T17:45:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_bark.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/hound_bark_alt2#1",
+   "kind": "sfx",
+   "name": "hound_bark_alt2",
+   "params": {
+    "text": "A big hound dog barks once, short and rough, a warning bark. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ec384334ba02",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T17:45:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_bark_alt2.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/hound_bay_alt#1",
+   "kind": "sfx",
+   "name": "hound_bay_alt",
+   "params": {
+    "text": "A coonhound bawls at something it found: a deep chopping 'rooo-roo-rooooo' bay, loud and drawn out. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 2.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "3c57a540c3c3",
+   "reserved": 109,
+   "status": "settled",
+   "started": "2026-11-16T17:45:53",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_bay_alt.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "sfx/hound_growl#1",
+   "kind": "sfx",
+   "name": "hound_growl",
+   "params": {
+    "text": "A big hound growls low and savage through clenched teeth, worrying something in its jaws. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a70ba4964007",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-16T17:45:53",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_growl.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "sfx/hound_growl_alt#1",
+   "kind": "sfx",
+   "name": "hound_growl_alt",
+   "params": {
+    "text": "A big dog snarls and growls, tugging and shaking hard with its teeth. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6c1550c2c0da",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-16T17:45:53",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_growl_alt.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "sfx/hound_bite#1",
+   "kind": "sfx",
+   "name": "hound_bite",
+   "params": {
+    "text": "A big dog lunges and bites: a quick snarl and a hard snap of jaws. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "16f8bddf0603",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-16T17:45:53",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_bite.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/hound_boof#1",
+   "kind": "sfx",
+   "name": "hound_boof",
+   "params": {
+    "text": "A big hound gives one soft low 'boof', a quiet single woof. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2ab46ea97e70",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-16T17:45:55",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_boof.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/hound_yelp#1",
+   "kind": "sfx",
+   "name": "hound_yelp",
+   "params": {
+    "text": "A big dog is kicked: one sharp, high yelp. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "13afe963e621",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-16T17:45:55",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_yelp.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/hound_yelp_alt#1",
+   "kind": "sfx",
+   "name": "hound_yelp_alt",
+   "params": {
+    "text": "A hound dog yelps twice in pain, short and high. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "329a776e4df4",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-16T17:45:55",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_yelp_alt.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/hound_whine#1",
+   "kind": "sfx",
+   "name": "hound_whine",
+   "params": {
+    "text": "A hurt hound dog lying down whimpers and whines softly, high and pitiful. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "21a3060bd198",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-16T17:45:55",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_whine.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/hound_whine_alt#1",
+   "kind": "sfx",
+   "name": "hound_whine_alt",
+   "params": {
+    "text": "A hurt hound dog gives a long, sad, nasal whine, then a little whimper. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4b8e21fea180",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-16T17:45:57",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_whine_alt.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/hound_whistle#1",
+   "kind": "sfx",
+   "name": "hound_whistle",
+   "params": {
+    "text": "A man whistles for his dog through his fingers: two short sharp notes, the second rising. Close foley, dry, no ambience, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "203d8e92c04d",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T17:45:57",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hound_whistle.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "tts/mundell_hound_sic_0#1",
+   "kind": "tts",
+   "name": "mundell_hound_sic_0",
+   "params": {
+    "text": "Sic 'em, Blue!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5e2de0c3745b",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-16T17:45:57",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_sic_0.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/mundell_hound_sic_1#1",
+   "kind": "tts",
+   "name": "mundell_hound_sic_1",
+   "params": {
+    "text": "Git 'em, boy!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "4d8f846c722d",
+   "reserved": 35,
+   "status": "settled",
+   "started": "2026-11-16T17:45:58",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_sic_1.mp3",
+   "bytes": 30763
+  },
+  {
+   "id": "tts/mundell_hound_fetch_0#1",
+   "kind": "tts",
+   "name": "mundell_hound_fetch_0",
+   "params": {
+    "text": "Fetch it, Blue.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a3db4edc9a05",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-16T17:45:58",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_fetch_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/mundell_hound_stay_0#1",
+   "kind": "tts",
+   "name": "mundell_hound_stay_0",
+   "params": {
+    "text": "Stay, Blue.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "fac9a57555bb",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-16T17:45:59",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_stay_0.mp3",
+   "bytes": 32643
+  },
+  {
+   "id": "tts/mundell_hound_come_0#1",
+   "kind": "tts",
+   "name": "mundell_hound_come_0",
+   "params": {
+    "text": "Blue! Here, boy!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0933ba7654bb",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-16T17:45:59",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_come_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/mundell_hound_good_0#1",
+   "kind": "tts",
+   "name": "mundell_hound_good_0",
+   "params": {
+    "text": "Good boy, Blue.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "87adaffd6d44",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-16T17:45:59",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_good_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/mundell_hound_good_1#1",
+   "kind": "tts",
+   "name": "mundell_hound_good_1",
+   "params": {
+    "text": "That's my dog.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "44c153c0261e",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-16T17:45:59",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_good_1.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/mundell_hound_up_0#1",
+   "kind": "tts",
+   "name": "mundell_hound_up_0",
+   "params": {
+    "text": "Hang on, Blue. I gotcha.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f38c2a35cc79",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-16T17:45:59",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_up_0.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "stt/mundell_hound_sic_0#1",
+   "kind": "stt",
+   "name": "mundell_hound_sic_0",
+   "params": {
+    "file": "mundell_hound_sic_0.mp3",
+    "bytes": 50825
+   },
+   "hash": "076976bccb6f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_sic_0.json",
+   "bytes": 165
+  },
+  {
+   "id": "stt/mundell_hound_sic_1#1",
+   "kind": "stt",
+   "name": "mundell_hound_sic_1",
+   "params": {
+    "file": "mundell_hound_sic_1.mp3",
+    "bytes": 30763
+   },
+   "hash": "9e454b4dd0d7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_sic_1.json",
+   "bytes": 224
+  },
+  {
+   "id": "stt/mundell_hound_fetch_0#1",
+   "kind": "stt",
+   "name": "mundell_hound_fetch_0",
+   "params": {
+    "file": "mundell_hound_fetch_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "e45edf22a6c7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_fetch_0.json",
+   "bytes": 226
+  },
+  {
+   "id": "stt/mundell_hound_stay_0#1",
+   "kind": "stt",
+   "name": "mundell_hound_stay_0",
+   "params": {
+    "file": "mundell_hound_stay_0.mp3",
+    "bytes": 32643
+   },
+   "hash": "f972659d3a1c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_stay_0.json",
+   "bytes": 161
+  },
+  {
+   "id": "stt/mundell_hound_come_0#1",
+   "kind": "stt",
+   "name": "mundell_hound_come_0",
+   "params": {
+    "file": "mundell_hound_come_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "d3ce3198d969",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_come_0.json",
+   "bytes": 227
+  },
+  {
+   "id": "stt/mundell_hound_good_0#1",
+   "kind": "stt",
+   "name": "mundell_hound_good_0",
+   "params": {
+    "file": "mundell_hound_good_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "7e5cf2b1ae4c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_good_0.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/mundell_hound_good_1#1",
+   "kind": "stt",
+   "name": "mundell_hound_good_1",
+   "params": {
+    "file": "mundell_hound_good_1.mp3",
+    "bytes": 48317
+   },
+   "hash": "9d353bd53049",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_good_1.json",
+   "bytes": 290
+  },
+  {
+   "id": "stt/mundell_hound_up_0#1",
+   "kind": "stt",
+   "name": "mundell_hound_up_0",
+   "params": {
+    "file": "mundell_hound_up_0.mp3",
+    "bytes": 49571
+   },
+   "hash": "a5d4c1ed469b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_up_0.json",
+   "bytes": 356
+  },
+  {
+   "id": "tts/mundell_hound_sic_0#2",
+   "kind": "tts",
+   "name": "mundell_hound_sic_0",
+   "params": {
+    "text": "Sick 'em, Blue!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "35c454d51bec",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-16T17:47:52",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_sic_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "stt/mundell_hound_sic_0#2",
+   "kind": "stt",
+   "name": "mundell_hound_sic_0",
+   "params": {
+    "file": "mundell_hound_sic_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "b0e54a4f4127",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_sic_0.json",
+   "bytes": 227
+  },
+  {
+   "id": "tts/mundell_hound_fetch_0#2",
+   "kind": "tts",
+   "name": "mundell_hound_fetch_0",
+   "params": {
+    "text": "Go fetch, Blue.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "74576c260355",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-16T17:47:54",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_fetch_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "stt/mundell_hound_fetch_0#2",
+   "kind": "stt",
+   "name": "mundell_hound_fetch_0",
+   "params": {
+    "file": "mundell_hound_fetch_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "5741b9a16b2b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:55",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_fetch_0.json",
+   "bytes": 287
+  },
+  {
+   "id": "tts/mundell_hound_good_1#2",
+   "kind": "tts",
+   "name": "mundell_hound_good_1",
+   "params": {
+    "text": "That's my dog.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "44c153c0261e",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-16T17:47:56",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hound_good_1.mp3",
+   "bytes": 57094
+  },
+  {
+   "id": "stt/mundell_hound_good_1#2",
+   "kind": "stt",
+   "name": "mundell_hound_good_1",
+   "params": {
+    "file": "mundell_hound_good_1.mp3",
+    "bytes": 57094
+   },
+   "hash": "ae5729414025",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:47:57",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hound_good_1.json",
+   "bytes": 227
+  },
+  {
+   "id": "reconcile@2026-11-16T17:52:36",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20218,
+   "actual": -17879,
    "basis": "account",
-   "balance_after": 73270
+   "balance_after": 76129
   }
  ],
  "anchor": {
@@ -35371,7 +36127,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T16:07:10",
-  "account_drop": 68547
+  "when": "2026-11-16T17:52:36",
+  "account_drop": 71406
  }
 }
