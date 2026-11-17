@@ -16,6 +16,9 @@
 ## - The blackout's word names the FLASHLIGHT key as bound (and none on a pad
 ##   or a touch screen); the breaker's prompt and the Crossroads' objective
 ##   and greeting name the USE button (they said E whatever it was).
+## - The junk bench's board: USE shut it for a frame and the same press,
+##   reaching the game as a use at the bench, put it up again (only ESC
+##   shut it); Space, USE's fixed key, bought the tag picked.
 ## - PHOTO MODE never opens over a chapter's opener (the pause screen's Y
 ##   while one waited behind it flew a camera nobody could see).
 extends RefCounted
@@ -31,6 +34,7 @@ static func run(main: Control, check: Callable) -> void:
 	_coop_shove(main, check)
 	_words(main, check)
 	_photo_over_opener(main, check)
+	_bench_done(main, check)
 
 
 static func _game(main: Control, id: String, events := 2) -> Game:
@@ -186,3 +190,54 @@ static func _photo_over_opener(main: Control, check: Callable) -> void:
 		open_before and not during and PhotoMode.allowed(main),
 		"PHOTO MODE waits out a chapter's opener"
 	)
+
+
+static func _frames(main: Control, n: int) -> void:
+	for f in n:
+		main._process(STEP)
+
+
+static func _use_key(main: Control, code: int) -> void:
+	main.key(code)
+	Input.action_press("use")
+	_frames(main, 3)
+	Input.action_release("use")
+	_frames(main, 3)
+
+
+static func _bench_done(main: Control, check: Callable) -> void:
+	var options: Dictionary = main.options.duplicate()
+	main.options["bench"] = 1
+	main.start("hickston")
+	main.focused = true
+	var g: Game = main.game
+	g.cheats.god = true
+	_frames(main, 3)
+	var bench: GameFeature = g.features.get("bench")
+	var benches: Array = bench.get("benches")
+	var b: Array = benches[0]
+	g.player.x = float(b[0]) + 1.0
+	g.player.y = float(b[1])
+	g.player.angle = PI
+	for k in 8:
+		if bench.call("at_bench", g.player) >= 0:
+			break
+		g.player.angle += PI / 4.0
+	g.armory.scrap = 40
+	g.armory.owned[Weapons.NAMES.find("revolver")] = true
+	_use_key(main, KEY_E)
+	var up := BenchScreen.open
+	_use_key(main, KEY_E)
+	check.call(up and not BenchScreen.open, "USE puts the bench's board up and USE again shuts it")
+	_use_key(main, KEY_E)
+	BenchScreen.row = 0
+	BenchScreen.column = 0
+	_use_key(main, KEY_SPACE)
+	_frames(main, 3)
+	check.call(
+		not BenchScreen.open and g.armory.scrap == 40 and g.armory.mods.is_empty(),
+		"Space (USE's own key) shuts it and buys nothing"
+	)
+	BenchScreen.reset()
+	main.options = options
+	main.return_to_title(true)

@@ -1114,7 +1114,9 @@ every older check, replay and picture is unchanged. Numbers in
 - **Buying**: USE at a bench (`game_use.gd`, before BLUE) sets
   `game.bench_asked` for this machine's player; the front end opens
   BenchScreen (`settle`, every frame; shut when its player walks `leave`
-  off). A pick goes out as `Controls.buy` (the place in bench.cfg's mods,
+  off, or by USE again: asked while up, `settle` shuts it, since the press
+  reaches the game as a use before `steer` sees it held; Space is USE's, not
+  a buy). A pick goes out as `Controls.buy` (the place in bench.cfg's mods,
   `take_pending`), so a replay, every copy online and co-op partners buy
   alike; `bench.buy` takes it only at a bench, once, with the gun and the
   scrap (`BenchMods.why_not`), says MODNAME TAPED ON with a strip of tape
