@@ -1,0 +1,30 @@
+{
+ "text": "The hogs hit the fence",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.06,
+   "end": 0.16
+  },
+  {
+   "text": "hogs",
+   "start": 0.28,
+   "end": 0.92
+  },
+  {
+   "text": "hit",
+   "start": 0.96,
+   "end": 1.22
+  },
+  {
+   "text": "the",
+   "start": 1.26,
+   "end": 1.38
+  },
+  {
+   "text": "fence",
+   "start": 1.52,
+   "end": 2.02
+  }
+ ]
+}

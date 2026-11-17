@@ -1,0 +1,25 @@
+{
+ "text": "Stay down, you varmints!",
+ "words": [
+  {
+   "text": "Stay",
+   "start": 0.12,
+   "end": 0.42
+  },
+  {
+   "text": "down,",
+   "start": 0.5,
+   "end": 0.86
+  },
+  {
+   "text": "you",
+   "start": 0.96,
+   "end": 1.1
+  },
+  {
+   "text": "varmints!",
+   "start": 1.18,
+   "end": 1.92
+  }
+ ]
+}

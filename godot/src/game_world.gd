@@ -87,6 +87,9 @@ func configure(options: Dictionary) -> void:
 	hound_on = hounding == 1
 	var benching: int = options.get("bench", 0)
 	bench_on = benching == 1
+	# Absent (an older replay, a tool): no events, as play was before them.
+	var eventful: int = options.get("events", 0)
+	events_on = clampi(eventful, 0, 2)
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)
 	chatter = clampi(cussing, 0, 2)
 	var fov: int = options.get("fov", 0)

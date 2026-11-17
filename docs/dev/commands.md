@@ -65,6 +65,9 @@ godot --headless --path godot --script res://tools/vehicle_check.gd    # VEHICLE
 godot --headless --path godot --script res://tools/vehicle_cab_check.gd    # VEHICLE CAB OK (the seat view, the driving plate)
 godot --headless --path godot --script res://tools/vehicle_set_check.gd    # VEHICLE SET OK (finding the vehicles, the channel run, the heat race, the window gun, riding shotgun)
 godot --headless --path godot --script res://tools/gun_find_check.gd [-- audit] [map=<dir>]   # GUN FIND OK (the guns along each chapter's way, their shine, map mark, prompt, smell; audit prints the table)
+godot --headless --path godot --script res://tools/events_check.gd   # EVENTS CHECK OK (the county events: twister, stampede, raid, blackout; the setting, no boss fights, saves, lockstep)
+godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/events_frames.gd -- out=<dir> [only=twister,hogs,raid,dark]   # the events in a window
+godot --headless --path godot --script res://tools/art/build_event_art.gd   # the events' small pictures (the hands' lantern)
 godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
 godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHECK OK (the fast level load the same as the old one; levels=a,b)
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)

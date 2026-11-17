@@ -145,6 +145,17 @@ listened to: the owner should hear the local voice's barks (a slower, lower
 voice than the hicks', and the longest barks at about 2 s) and the grey's
 new lines in game.
 
+### Pass 8: Mundell on finishers and hazards (2026-11-16)
+
+Ten lines in his voice (barks.gd and mundell_lines.json `finisher`,
+`hazard`; cues `mundell_finisher_0..4`, `mundell_hazard_0..4`), spoken over
+his kill line after a finisher or a hazard kill. Seven matched as made; "ya
+varmint" came back "you varmints" and "watch yer step" came back with ", son"
+(both captions reworded to the take, `heard` in MUNDELL_HEARD); "He had that
+comin'" was heard as "comments" and was reworded to "He was askin' fer that"
+(one more take). About 400 credits (264 voice, 132 transcripts). Not
+listened to.
+
 ## The county radio (content pass 8)
 
 KPSM, fourteen-ninety AM, the Possum: Dub Tillery, a gravel-voiced
@@ -204,6 +215,28 @@ sets are, and captions it; the words are `data/tuning/radio_lines.json`.
   Mundell's and the bosses'. The ledger booked 6,492 credits at expected
   rates; the account's own counter fell 2,437. Not listened to.
 - `tools/radio_check.gd` (check_all, quick) holds it.
+
+## The county events' sounds (content pass 8)
+
+The county events ([gameplay.md](gameplay.md#county-events-content-pass-8),
+`features/event_looks.gd`): `tornado_siren` (family `distant`, a hand-cranked
+civil defence siren far off), `tornado_roar` and `hog_stampede` (`near`
+loops on their own bed, `Sound.BED_EVENT`, the fifth: the roar by how near and
+strong the twister is, muffled under a roof; the hooves at the herd's
+middle), `hog_squeal` (`alert`), `raid_siren`, `power_down`, `power_up` and
+`breaker_throw` (`scene`), `torch_click` (`equip`); prompts in
+`audio_spec.py` (style `event`). Nine of Mundell's lines (`event_*` in
+mundell_lines.json), four scanner calls (`scan_twister`, `scan_hogs`,
+`scan_raid`, `scan_outage`), two of Dub's bulletins over the music
+(`dj_bulletin_twister`, `dj_bulletin_outage`, `RadioStation.bulletin`) and
+four of his words at a break (`dj_twister`, `dj_hogs`, `dj_raid`,
+`dj_outage`; news topics in `PRIORITY` after a boss's fall). Made
+2026-11-16: 9 effects and 19 lines; 13 lines matched as made, 3 only spelled
+a word their own way (`heard`: "Sooie" written "Zoe", "lawnmower", "cow's"),
+3 said something else ("Feds. Figures." came back as a jingle, "Power's out"
+as "Failures out", "at a still" with an "uh") and were reworded and made
+again (one of those then heard "man" for "men"). About 1,330 credits at the
+ledger's expected rates. Not listened to.
 
 ## The 3.0.0 remaster pass (measured, not heard)
 

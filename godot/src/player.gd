@@ -39,6 +39,9 @@ var climb_then := -1
 ## a strafe, down on landing, kicked back by a shot, jolted by a hit
 ## (features/feel.gd's springs work it out; never saved).
 var weapon_lag := Vector2.ZERO
+## How far the gun is turned on the view (radians, about its grip): a
+## finisher's swing (features/brawl_looks.gd; looks only, never carried).
+var weapon_turn := 0.0
 
 # What each player has of their own (src/players.gd: the per-player vs shared
 # split). The game's `armory`, `inventory`, `keys`, `task_items`, `sprint`,

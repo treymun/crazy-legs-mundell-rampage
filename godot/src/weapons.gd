@@ -68,6 +68,8 @@ const GUN_H := 120
 const HIP_PISTOL := Vector2(13, 9)
 const HIP_LONG := Vector2(15, 11)
 const VIEW_PIVOT := Vector2(160.0, 120.0)
+## Where on a gun cel (shares of its size) a finisher turns it: the hand.
+const TURN_GRIP := Vector2(.72, .92)
 
 ## Defined in data/tuning/weapons.cfg (see the key list there), loaded by
 ## load_tuning(): each gun's name and its reload and open sounds; the guns
@@ -592,8 +594,11 @@ class Armory:
 			)
 
 	## A bayonet's jab (a mod's `bayonet`: [damage, reach, finish below]):
-	## FIRE with the gun dry or loading drives it into the hand in front; one
-	## already under that share of its health is finished. True when it jabbed.
+	## FIRE with the gun dry or loading drives it into the hand in front. One
+	## the game's finishers can take (features/brawl.gd finishable: low,
+	## reeling or dazed) gets the gun's own finisher, as USE would start it;
+	## where there are no finishers, one under the knife's share of its health
+	## is finished by the jab. True when it jabbed.
 	func _jab(game: Game) -> bool:
 		var how := firing(active)
 		if not how.has("bayonet"):
@@ -620,7 +625,14 @@ class Armory:
 			if d.length() < near and off < .5:
 				near = d.length()
 				best = e
-		if best != null and best.hp <= best.max_hp * finish:
+		var brawl: GameFeature = game.features.get("brawl")
+		if best != null and brawl != null:
+			var open: bool = brawl.call("allowed")
+			var low: bool = brawl.call("finishable", best) if open else false
+			if low:
+				brawl.call("start_finish", p, best)
+				return true
+		if best != null and brawl == null and best.hp <= best.max_hp * finish:
 			damage = best.hp + 1.0
 		if game.hitscan(aim, slope, damage, reach, .34):
 			game.sound.play("crowbar_hit", .85)
@@ -913,15 +925,24 @@ class Armory:
 			var rim_w: int = rim["w"]
 			var rim_h: int = rim["h"]
 			var rim_data: PackedByteArray = rim["data"]
-			canvas.gpu_texture(
-				Canvas.texture("gunrim|" + key, rim_data, rim_w, rim_h), bx, by - 1, rim_w, rim_h
-			)
+			if player.weapon_turn == 0.0:
+				canvas.gpu_texture(
+					Canvas.texture("gunrim|" + key, rim_data, rim_w, rim_h),
+					bx,
+					by - 1,
+					rim_w,
+					rim_h
+				)
 			var cel_w: int = image["w"]
 			var cel_h: int = image["h"]
 			var cel_data: PackedByteArray = image["data"]
-			canvas.gpu_texture(
-				Canvas.texture("gun|" + key, cel_data, cel_w, cel_h), bx, by, cel_w, cel_h
-			)
+			var made := Canvas.texture("gun|" + key, cel_data, cel_w, cel_h)
+			if player.weapon_turn != 0.0:
+				# A finisher's swing (brawl_looks.gd): turned about the grip.
+				var grip := Vector2(cel_w * Weapons.TURN_GRIP.x, cel_h * Weapons.TURN_GRIP.y)
+				canvas.gpu_texture_turned(made, bx, by, cel_w, cel_h, player.weapon_turn, grip)
+			else:
+				canvas.gpu_texture(made, bx, by, cel_w, cel_h)
 		elif not lay:
 			# Rim first, one pixel high, then the cel.
 			WeaponPaint.blit_rgba(frame, rim, bx, by - 1)

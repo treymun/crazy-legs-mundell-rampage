@@ -95,6 +95,24 @@
 		],
 		"boss_maw": [
 			"Somethin' big just fell out of the sky. If you find a grandma, don't feed her."
+		],
+		"bulletin_twister": [
+			"We interrupt this here music. Tornado on the ground in Possum County. Get in the cellar, now."
+		],
+		"bulletin_outage": [
+			"Power's out across half the county. Folks, we're on the generator. Find a flashlight."
+		],
+		"twister": [
+			"That twister took Earl's barn. Earl says it was leanin' anyhow."
+		],
+		"hogs": [
+			"Hogs loose in town tonight. If one's in the road, let him have it."
+		],
+		"raid": [
+			"The revenue men paid a visit tonight. If you got a jug in the trunk, drive real slow."
+		],
+		"outage": [
+			"Lights are back on. Whoever was usin' the dark to steal my lawn mower, I know who you are."
 		]
 	},
 	"cuss": {
@@ -167,6 +185,18 @@
 			"Somebody wake up the deputy.",
 			"It's Mundell again, y'all.",
 			"Code three, lights and sirens."
+		],
+		"twister": [
+			"Funnel cloud on the ground, headed for town."
+		],
+		"hogs": [
+			"Livestock loose on the roadway. A whole lot of livestock."
+		],
+		"raid": [
+			"State revenue agents requestin' backup at a moonshine still."
+		],
+		"outage": [
+			"Power outage, county wide. Co-op's sendin' a truck."
 		]
 	}
 }

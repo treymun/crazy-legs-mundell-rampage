@@ -1,0 +1,40 @@
+{
+ "text": "Dark as the inside of a cow's",
+ "words": [
+  {
+   "text": "Dark",
+   "start": 0.04,
+   "end": 0.36
+  },
+  {
+   "text": "as",
+   "start": 0.46,
+   "end": 0.58
+  },
+  {
+   "text": "the",
+   "start": 0.64,
+   "end": 0.78
+  },
+  {
+   "text": "inside",
+   "start": 0.86,
+   "end": 1.48
+  },
+  {
+   "text": "of",
+   "start": 1.54,
+   "end": 1.6
+  },
+  {
+   "text": "a",
+   "start": 1.68,
+   "end": 1.78
+  },
+  {
+   "text": "cow's",
+   "start": 1.86,
+   "end": 2.4
+  }
+ ]
+}

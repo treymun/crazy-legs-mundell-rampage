@@ -36,7 +36,7 @@ const VIEW_CLASSES := [
 ## tuning, its lookups over the level's walls).
 const SKIP_FIELDS := {
 	"Enemy": ["alive", "z"],
-	"Player": ["voice", "weapon_lag"],
+	"Player": ["voice", "weapon_lag", "weapon_turn"],
 	"Weapons.Armory": ["boxes"],
 	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
 	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty", "_crack_seen"],
@@ -92,10 +92,13 @@ const SKIP_FIELDS := {
 	"boss_gear": ["_feels"],
 	# A hound's walking body (put in step from him each move) and the numbers.
 	"hound": ["_body", "_n"],
+	"events": ["_body", "_n"],
 	# The arena lights this machine's player is near (looks: each machine its own).
 	"boss_arena": ["_lights", "_light_used"],
 	# How bodies move (set in attach, the same everywhere; a body names its own).
 	"corpses": ["_feel", "_slick", "_flung"],
+	# The hazard props of the level (worked out the same everywhere).
+	"brawl": ["_spots", "_spots_of"],
 	# Looks kept in a simulation feature: the specks' own dice (how many a
 	# hit throws hangs on the specks already about, which are never carried)
 	# and when HEADSHOT! was last called (this machine's callouts).

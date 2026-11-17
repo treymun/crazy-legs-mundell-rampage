@@ -96,6 +96,22 @@ const LINES := {
 		"TIME TO CLEAN HOUSE.",
 		"SOMEBODY'S FIXIN' TO GET LEARNED."
 	],
+	"finisher":
+	[
+		"NIGHT NIGHT, BUBBA.",
+		"THAT'S HOW WE DO IT IN THE COUNTY.",
+		"STAY DOWN, YA VARMINTS.",
+		"SHOULDA RUN, BOY.",
+		"LIGHTS OUT, COUSIN."
+	],
+	"hazard":
+	[
+		"WELL, THAT'S ONE WAY TO GO.",
+		"HE WAS ASKIN' FER THAT.",
+		"MAMA SAID WATCH YER STEP, SON.",
+		"COUNTY CLEANS UP AFTER ITSELF.",
+		"THAT'S WHAT THE SIGN WAS FOR."
+	],
 	"new_iron":
 	[
 		"SMELLS LIKE GUN OIL ROUND HERE...",
@@ -116,6 +132,12 @@ const LINES := {
 		"NOW THAT'S ENGINEERIN'.",
 		"TAPED ON TIGHT. DON'T TELL THE COUNTY.",
 	],
+	# The county events (features/county_events.gd).
+	"event_twister": ["TWISTER! GIT UNDER A ROOF!", "THAT AIN'T NO DUST DEVIL."],
+	"event_hogs": ["HOGS! HIT THE FENCE!", "SOOIE! LOOK OUT!"],
+	"event_raid": ["REVENUERS! HIDE THE JUGS!", "REVENUE MEN. FIGURES."],
+	"event_dark": ["WHO FORGOT THE LIGHT BILL?", "DARK AS THE INSIDE OF A COW."],
+	"event_light": ["LET THERE BE LIGHT."],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -135,13 +157,20 @@ const COOLDOWN := {
 	"headshot": 7.0,
 	"start": 60.0,
 	"new_iron": 4.0,
+	"finisher": 5.0,
+	"hazard": 4.0,
 	"hound_sic": 1.5,
 	"hound_fetch": 1.5,
 	"hound_stay": 1.5,
 	"hound_come": 1.5,
 	"hound_good": 9.0,
 	"hound_up": 2.0,
-	"bench_buy": 1.0
+	"bench_buy": 1.0,
+	"event_twister": 2.0,
+	"event_hogs": 2.0,
+	"event_raid": 2.0,
+	"event_dark": 2.0,
+	"event_light": 2.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

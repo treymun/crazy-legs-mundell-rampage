@@ -1,0 +1,50 @@
+{
+ "text": "A power outage countywide. Co-ops send in a truck",
+ "words": [
+  {
+   "text": "A",
+   "start": 0.0,
+   "end": 0.1
+  },
+  {
+   "text": "power",
+   "start": 0.16,
+   "end": 0.52
+  },
+  {
+   "text": "outage",
+   "start": 0.66,
+   "end": 1.06
+  },
+  {
+   "text": "countywide.",
+   "start": 1.2,
+   "end": 2.2
+  },
+  {
+   "text": "Co-ops",
+   "start": 2.4,
+   "end": 3.02
+  },
+  {
+   "text": "send",
+   "start": 3.18,
+   "end": 3.38
+  },
+  {
+   "text": "in",
+   "start": 3.42,
+   "end": 3.5
+  },
+  {
+   "text": "a",
+   "start": 3.54,
+   "end": 3.62
+  },
+  {
+   "text": "truck",
+   "start": 3.68,
+   "end": 4.18
+  }
+ ]
+}

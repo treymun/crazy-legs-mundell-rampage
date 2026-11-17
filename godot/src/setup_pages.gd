@@ -325,6 +325,16 @@ static func build() -> Array:
 						"PICK UP SCRAP, TAPE MODS ON YOUR GUNS AT MUNDELL'S BENCH (CROSSROADS, CHAPTER STARTS)"
 					)
 				),
+				(
+					SessionStore
+					. choices(
+						"COUNTY EVENTS",
+						"events",
+						1,
+						["OFF", "SOMETIMES", "OFTEN"],
+						"A TWISTER, A HOG STAMPEDE, A REVENUE RAID OR A BLACKOUT NOW AND THEN IN A CHAPTER"
+					)
+				),
 				SessionStore.toggle(
 					"ADAPTIVE DIFFICULTY",
 					"adaptive",

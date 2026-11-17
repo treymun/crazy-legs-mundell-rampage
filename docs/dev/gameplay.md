@@ -23,8 +23,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (73 now;
-  JUNK BENCH is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (75 now;
+  JUNK BENCH and COUNTY EVENTS are the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -774,6 +774,85 @@ Crossroads and the versus and 5v5 modes (`allowed()`).
   `tools/live_props_frames.gd -- out=<dir>` pictures it in a window
   (`docs/godot3d/features/b/`).
 
+### Dirty fighting (content pass 8)
+
+`features/brawl.gd` (SIM, carried in snapshots by uid, never saved: it is
+all seconds long), `src/brawl_hazards.gd`, `features/brawl_looks.gd` (looks);
+numbers in hits.cfg `[kick]`, `[finish]`, `[finish.<move>]`, `[hazard]`,
+`[hazard.<kind>]`. Everything is game.clock, game.rng and arithmetic, so
+co-op and online play it the same (`net_check`, brawl_check's snapshot).
+
+- **The boot.** USE with one of the county's hands in front (within `reach`
+  past his edge, `cone` of the aim, the same floor, in sight) is a kick, before
+  anything else USE does (`game.gd interact()`); with nobody there USE is as
+  before. The boot lands `land` later: `damage`, `stun`, `daze` (open to a
+  finisher) and a slide along the aim at `speed`, slowing by `drag`. Into a
+  wall faster than `slam_least` he takes `slam` a unit of speed; into another
+  hand that one slides on (`domino`); off a drop of more than `drop` he takes
+  `drop_damage` a cell; a kill throws the body by `kick` (corpses.gd KNOCK,
+  effects.cfg `[ragdoll] kick`: it crashes windows and fences like point-blank
+  buckshot). A boss slides `boss_share` as far and takes `boss_damage`. The
+  gun is down for `busy`. Running (faster than `door_speed`) at a plain shut
+  door (no key wanted, not secret, blast-only, controlled or a crouch hatch),
+  USE kicks it in: open at once, splinters, and whoever stands within
+  `door_reach` behind it is kicked back.
+- **Smashes.** FIRE with a thing held (features/carry.gd) and a hand at arm's
+  length (carry.cfg `[smash]`) breaks it over his head instead of throwing:
+  `hit` + `per_weight` x its weight (`smashed` in `[reaction]`), reeling and
+  dazed; a breakable piece breaks (a jug, a crate, a jar), a board (a rocker)
+  drops at his feet.
+- **Finishers.** USE, or a swing of the crowbar, sling blade or rip saw, at a
+  hand who is down to `low` of his health, reeling (`stun` at least
+  `stagger`) or dazed starts a move by the gun in hand (`pistol`, `long`,
+  `blade` lists; anything else, holstered too, is the boot's) picked by
+  game.rng: PISTOL WHIPPED or SAY AHH (a round in the mouth), BUTT STROKE or
+  BELLY FULL OF LEAD (a round), SKULL CRACKED or GUTTED, BOOT TO THE FACE or
+  PUNTED. A move that spends a round is left out with none loaded. The blow
+  lands `wind` later; the hands are busy `hold`. `end` "head_off" hits the
+  head just hard enough for the gore to take it (gore_extras.gd LIMB_HIT,
+  short of an overkill), "gib" takes him apart, "fall" drops him. Alone, the
+  world slows to `pace` for `slowmo` real seconds from the blow (the finishing
+  shot's own is held off meanwhile; never with two players, as finishers.gd).
+  The move's name is called on screen and Mundell says a `finisher` line
+  (barks.gd, voiced). Bosses are never finished.
+- **Hazards.** A man driven into one (only by a slide: a hand walking about
+  never is) dies the way it kills: the props named in `[hazard] images` (a
+  saw blade or the headrig, the wood chipper, the crushers: gib; the bug
+  zapper, the hot fence, the Mothership's beam emitters: shock and sparks; a
+  burn barrel: set alight (fire.gd); the well: down it, no body; the cattle
+  guard: his ankles); water a little ahead of him while he slides fast, if he
+  started dry (BayouBrains.wet_at: the creek, the bayou's deep water; he
+  floats); live hogs within `hog_reach` where his slide ends (they close in
+  and he is their slop 1.3 s later). A boss takes `boss_share` of his health
+  at most once in `boss_rest` and is never killed by one. Calls on screen and
+  a `hazard` line. Where they stand: [levels.md](levels.md#the-plans).
+- **Looks** (`brawl_looks.gd`, after feel.gd so it adds to the gun's place):
+  the kick is four cels `fx_boot_kick_0..3` (tools/art/build_boot_views.gd
+  from scripts/blender/boot_views.py: his brown work boot coming up sole
+  first, its tread to the man kicked, the stacked heel and the overalls' cuff
+  under it; `PLACES`
+  where each sits): chambered, out, the blow held on contact (the hit-stop),
+  back and away, drawn under the gun over the view's rows only, lit as the
+  gun is; the gun ducks out of its way. Each finisher moves and turns the gun
+  in hand along its own path (`PATHS`: the revolver cocked low and swung
+  across butt first, the long gun driven up stock first, the blade raised
+  and brought down or swung flat, a round pushed into his mouth or gut and
+  fired), holding still on contact while the slow motion stretches it:
+  `Player.weapon_turn` (looks, never carried) turns the gun cel about its
+  grip on the graphics-card canvas (`Canvas.gpu_texture_turned`; the
+  software canvas draws it unturned). Every blow jolts the view
+  (`feel.gd punch()`, SCREEN SHAKE scales it). The bug zapper's lantern
+  lights the ground about it violet (effects.cfg `[light.bug_zapper]`).
+- `tools/brawl_check.gd` (check_all, quick): the slide, the slam, the domino,
+  a healthy hand kicked not finished, a finisher of each class (and every
+  move by seed) with its slow motion from the blow, the crowbar's swing, the
+  setting off, co-op's second player finishing with no slow motion, each
+  hazard kind and a hand walking by one, the creek, the hogs, a boss kicked
+  not finished and taking only his share, the door kicked in, smashes, two
+  runs the same, a snapshot mid-slide played on tick for tick, and the boot's
+  cels and their places. `tools/brawl_frames.gd -- out=<dir>` (a window)
+  pictures each.
+
 ### The bowling lane's pins (second remaster)
 
 The Bowl-O-Rama's ten pins are rigid bodies in three dimensions
@@ -1063,6 +1142,116 @@ every older check, replay and picture is unchanged. Numbers in
 
 `tools/bench_check.gd` (BENCH CHECK OK, in check_all) holds it;
 `tools/bench_frames.gd` takes its pictures in a window.
+
+### County events (content pass 8)
+
+Now and then a campaign chapter gets something nobody planned, so no two
+runs through it go alike: a twister, a hog stampede, a revenue raid or (in
+the night chapters) a blackout. `features/county_events.gd` (`CountyEvents`,
+id `events`, a SIM feature, saved) plans and runs them; each kind is a file
+of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
+`event_raid.gd`, `event_dark.gd`. The sights and sounds are
+`features/event_looks.gd` (looks) and the 3D view. Numbers in
+`data/tuning/events.cfg`.
+
+- **The plan.** COUNTY EVENTS (PLAY page, `events`: OFF, SOMETIMES, OFTEN;
+  SOMETIMES by default; a net match takes the host's, it is in the lobby's
+  sim options). A game reads `events` with 0 when it is missing, and the
+  front end sets it to 0 for tools and view tours (`main.gd`), so every
+  check, replay and picture made before them is the same; off, not one die
+  is cast. On the first tick of a campaign chapter, alone or in co-op (not
+  the hub, the range, the Mothership, a rematch, County Run or a versus
+  map), game.rng says whether it gets one (`chance_often`,
+  `chance_sometimes`), which (`weights`; a blackout only in `night`
+  levels) and when (`start_after`, OFTEN sooner). At that time it starts if
+  it can: no boss awake and standing, everyone up, a place for it found at
+  run time from the level (nothing in the chapter plans: a new chapter gets
+  them for free). Else it tries again every `retry`, eight times. At most
+  one a chapter, never within `boss_clear` of a boss. A boss fight starting
+  cuts one short (the twister lifts, the herd runs off, the power comes
+  back). Nothing it does shuts a way: a barn it tears down falls by the set
+  pieces' own rules.
+- **The twister.** `start_far` out (13 cells at least from the player) it
+  touches down after the siren and the scanner (`warn`), comes across at
+  `speed`, swinging a little off its line, passing `pass_near`..`pass_far`
+  beside a player or right through a standing barn or tower within
+  `aim_set_piece` of them, and lifts past the far side. Within `reach`,
+  under the open sky only (`roof_over`: seek cover), bodies are drawn round
+  and in; in the `core` a player is knocked flat and hurt (`bite`), a hand
+  stunned and hurt (`bite_enemy`, credited to the nearest player), the
+  breakables smashed, a set piece's parts torn (`set_pieces.blast` every
+  `rip_every`: a barn comes down in its pieces, a tower over), the dead
+  shoved, and a loose thing near torn off its place and flung round
+  (`carry.fling`; in flight it hurts whoever it strikes, as a hand's throw).
+  Drawn by `view3d/twister.gdshader` (`world_view.gd _twister_at`): the
+  funnel, a cone of cloud bent and swaying, bands spiralling up it, frayed
+  at its edges, debris silhouettes whirled in it; a torn skirt of dirt at its
+  foot; the wall cloud it hangs from; forming and lifting, the rope shows
+  from the cloud down to where it reaches. event_looks whirls breakables'
+  bits (`fx_brk_*`) and dust round its foot and plays `tornado_roar` on its
+  own bed (`Sound.BED_EVENT`), muffled under a roof.
+- **The stampede.** A run of open ground (`run_least`..`run_most`, one
+  floor height) through a point within `pass_near` of a player, preferring a
+  long one that starts out of their sight; `count` razorbacks bunched
+  `spread` wide gallop down it at `pace`, scatter at its end and are gone
+  once out of sight. Trampled: a player knocked flat and hurt (`trample`), a
+  hand stunned and hurt, a low breakable bowled over; a blast kills the hogs
+  it reaches. The hogs are rows in the feature (not enemies: nothing to
+  count), moved like a hand (`LevelData.move`), drawn by their own model
+  (`scripts/blender/actors_hog.py`, `scenes/actors/hog.tscn`: a razorback,
+  its frames `0`, the gallop `r0..r4`, `down`) through a stand-in
+  (`ModeBodies.stand_in`, `hog<i>`), the gallop on their gait. Dust behind
+  them, squeals, `hog_stampede` hooves on the event bed.
+- **The raid.** A still standing (`EventRaid.STILLS`) within 45 cells of a
+  player, else the county's hands where three or more gather asleep; the
+  squad (`count`, `count_hard` on HARD and up) comes in out of every
+  player's sight `come_from` away where the player's flow field reaches.
+  The squad is the first of `kinds` the game has: a `revenuer` kind when one
+  is made (the hook), else the yard and shield deputies. They join the
+  enemies after the level's own (`features/posse.gd` saves them) and count
+  as varmints. Every half second a raider picks a fight with the nearest of
+  the county's hands it sees (`grudge` both ways, the hand woken):
+  `Enemy.tick` asks `CountyEvents.feud` before a brawl, and a raider in
+  sight of its foe shoots (`shot_every`, `hit`, `hurt`; event_looks draws the
+  streak) while the hand comes at it with its fists (the old brawl). At the
+  still they bust it. Over when the last of them is down, or after `most`.
+- **The blackout.** The breaker first: a spot on a wall `breaker_far` from
+  the player, on their floor, that their flow field reaches (the quest
+  switch's model, `town_quest_switch_off`, a red lamp blinking). Then the
+  power dies in stutters over `fade`: `darkness()` (`dark` of the light
+  gone) goes to the view as `blackout` (`view_light.gdshaderinc`: every
+  surface darkened before the lights add theirs, the fog with it; lit
+  windows' and signs' glow out) and the lamp props, street lamps and
+  floodlights give no light (`view_lights.gd`); fires and lanterns burn on.
+  Every player has a flashlight, on: L (KEYS page `flashlight`; online and
+  for bots `Controls.item == Game.TORCH`, 97; replay op `torch`) switches
+  it. Its battery (`battery` seconds) runs down while it shines, flickers
+  under `flicker`, dies; off, it gets `rest` a second back. Its beam is a
+  spot light: `EventDark.spot_flags` packs the way (yaw, pitch) and cone into
+  the light's flags (bit 2), and the shader lights a stepped hot middle,
+  ring and edge in the cone, carrying further than a lamp. `lanterns` of the
+  hands carry one (a warm light, `event_lantern` in the fist). Play:
+  `Enemy.tick` scales how far a calm hand notices a player by
+  `CountyEvents.notice` (`dark_sight`; `lit_sight` with their light on; 1 for
+  a lantern hand). USE by the breaker (THROW THE MAIN BREAKER,
+  `game_use.gd`) or `back_after` brings the power back. The battery shows on
+  the HUD over BLUE's badge.
+- **The word on it.** The civil defence siren (`tornado_siren`), the
+  revenue men's sirens (`raid_siren`), `power_down`, `power_up`; Mundell's
+  lines (`event_twister`, `event_hogs`, `event_raid`, `event_dark`,
+  `event_light`); the radio: the scanner's call (`scan_twister`,
+  `scan_hogs`, `scan_raid`, `scan_outage`), Dub's bulletin over the music
+  (`RadioStation.bulletin`, `dj_bulletin_twister`, `dj_bulletin_outage`) and
+  his word at the next break (`dj_twister`, `dj_hogs`, `dj_raid`,
+  `dj_outage`).
+- **Play, the same everywhere.** Every variable of the feature is carried
+  (plain values; its numbers and the hogs' body are `SnapCodec.SKIP_FIELDS`),
+  game.rng only. Saved in the save's features block (no new save version);
+  a save from before them gets the chapter's own plan.
+- `tools/events_check.gd` (EVENTS CHECK OK, check_all) holds it;
+  `tools/events_frames.gd -- out=<dir>` pictures each in a window;
+  `bot_campaign.gd -- events` walks the campaign with one played out at the
+  start of every chapter.
 
 ### Walls break too
 

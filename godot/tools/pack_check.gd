@@ -34,7 +34,8 @@ const STEP := 1.0 / 60.0
 ## not the engine, its scripts or the browser's own files), and each chapter's
 ## pack, in MB. On 2026-11-16: 70.4 with the lighter copy (75.4 with the
 ## desktop's, which the checks' runners measure), the biggest pack 16.3.
-const FIRST_BUDGET_MB := 80.0
+## Raised from 80 in content pass 8 (radio, dog, events: assets every chapter uses).
+const FIRST_BUDGET_MB := 86.0
 const PACK_BUDGET_MB := 20.0
 const WEB_PRESETS := ["Web", "Web Lite"]
 const LIGHT_PRESETS := ["Web", "Web Lite", "Android"]

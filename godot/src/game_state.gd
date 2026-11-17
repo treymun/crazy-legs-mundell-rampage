@@ -16,6 +16,9 @@ const PLAYER_RADIUS := .19
 const POCKET_PICK := 64
 ## Controls.item that whistles for the player's hound (features/hound.gd).
 const HOUND_CALL := 96
+## Controls.item that switches the player's flashlight in a blackout
+## (features/county_events.gd).
+const TORCH := 97
 const HUB_BOARD := Vector2(30.36, 44.13)
 const GALLERY_STAND := Vector2(25.96, 33.42)
 const GALLERY_TARGETS := [
@@ -624,6 +627,9 @@ var bench_live := false
 ## This machine's player used a bench: the front end opens the bench screen
 ## (BenchScreen) and clears it.
 var bench_asked := false
+## EVENTS (setting): 0 off, 1 sometimes, 2 often: a twister, a stampede, a
+## raid or a blackout now and then in a chapter (features/county_events.gd).
+var events_on := 0
 ## The touch overlay is in use (main.gd sets it): aim help reaches further.
 var touch_aim := false
 ## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): its last answer. The

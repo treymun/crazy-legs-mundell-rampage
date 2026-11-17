@@ -425,7 +425,33 @@ func _mods() -> void:
 	var shoot := Game.Controls.new()
 	shoot.fire = true
 	g.tick(STEP, shoot)
-	_check(not hand.alive, "corn knife: dry, FIRE jabs the hurt hand in front dead")
+	var brawl: GameFeature = g.features.get("brawl")
+	var finishing: Array = brawl.get("moves") if brawl != null else []
+	_check(
+		not finishing.is_empty() or not hand.alive,
+		"corn knife: dry, FIRE on a low hand starts the gun's finisher (features/brawl.gd)"
+	)
+	_tick(g, 90)
+	_check(not hand.alive, "corn knife: the finisher lands, the hand is dead")
+	# A whole hand only takes the jab's damage.
+	var whole: Enemy = null
+	for e: Enemy in g.enemies:
+		if e.alive and e.hostile and not BossKit.is_boss(e) and e.tactical() and whole == null:
+			whole = e
+	if whole != null:
+		whole.x = p.x + cos(p.angle) * 1.0
+		whole.y = p.y + sin(p.angle) * 1.0
+		whole.floor_z = g.world.elevation(whole.x, whole.y)
+		whole.dormant = false
+		whole.hp = whole.max_hp
+		arm.jab_age = 9.0
+		arm.cooldown = 0.0
+		var before_hp := whole.hp
+		g.tick(STEP, shoot)
+		_check(
+			whole.alive and whole.hp < before_hp and finishing.is_empty(),
+			"corn knife: a whole hand takes the jab (%.0f), no finisher" % (before_hp - whole.hp)
+		)
 	arm.mods = none
 	arm.jab_age = 9.0
 	var before_jab := arm.jab_age

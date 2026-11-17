@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_a2seo"]
+[ext_resource type="PackedScene" path="res://assets3d/props/cattle_guard.glb" id="2_h6dai"]
+
+[node name="CattleGuard" type="Node3D" unique_id=708019253]
+script = ExtResource("1_a2seo")
+prop = "cattle_guard"
+
+[node name="Model" type="Node3D" parent="." unique_id=1575345591 instance=ExtResource("2_h6dai")]

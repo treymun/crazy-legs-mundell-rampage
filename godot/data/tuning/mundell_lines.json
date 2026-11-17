@@ -114,6 +114,20 @@
 			"Somethin' shiny close by. New iron.",
 			"Gun's close. I can smell it."
 		],
+		"finisher": [
+			"Night night, bubba.",
+			"That's how we do it in the county.",
+			"Stay down, ya varmints.",
+			"Shoulda run, boy.",
+			"Lights out, cousin."
+		],
+		"hazard": [
+			"Well, that's one way to go.",
+			"He was askin' fer that.",
+			"Mama said watch yer step, son.",
+			"County cleans up after itself.",
+			"That's what the sign was for."
+		],
 		"hound_sic": [
 			"Sic 'em, Blue!",
 			"Git 'em, boy!"
@@ -138,6 +152,25 @@
 			"Duct tape and a prayer. Good as new.",
 			"Now that's engineerin'.",
 			"Taped on tight. Don't tell the county."
+		],
+		"event_twister": [
+			"Twister! Git under a roof!",
+			"That ain't no dust devil."
+		],
+		"event_hogs": [
+			"Hogs! Hit the fence!",
+			"Sooie! Look out!"
+		],
+		"event_raid": [
+			"Revenuers! Hide the jugs!",
+			"Revenue men. Figures."
+		],
+		"event_dark": [
+			"Who forgot the light bill?",
+			"Dark as the inside of a cow."
+		],
+		"event_light": [
+			"Let there be light."
 		]
 	}
 }

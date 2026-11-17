@@ -67,7 +67,20 @@ fingerpost's arms and the beam pad's order: signs, not stations.
 in `assets/art/town_props.json` for the level builder's `town()`. Broken
 props come from `scripts/blender/props_broken.py` through the same tool
 (breakables, [gameplay.md](gameplay.md#things-break)). `no-render` reuses the
-last renders; `names=` picks some.
+last renders; `names=` picks some. `props_hazards.py` (content pass 8) is
+the county's hazards: `wood_chipper`, `bug_zapper`, `electric_fence`,
+`well`, `cattle_guard` (sprites, meshes and scenes like the rest).
+
+`tools/art/build_boot_views.gd` (runs `scripts/blender/boot_views.py`) cuts
+Mundell's kick in first person, four cels `fx_boot_kick_0..3`: a work boot
+modelled from hulls (lug sole and heel, stitched welt, toe cap, eyelets and
+crossed laces, tongue, collar) in his model's brown, coming up sole first
+from the bottom of his view (chevron lugs, a separate darker stacked heel,
+the toe up), with his overalls' turned-up cuff under the heel,
+lit by the gun views' three suns, graded as the gun cels; where each sits on
+the view goes to `assets/art/boot_views.json` (`brawl_looks.gd PLACES`, held
+the same by brawl_check). The game's view is the top 156 rows of the 200 it
+is rendered over: keep the boot above row 150.
 
 ### Enemies and bosses
 
@@ -232,6 +245,15 @@ a shop lamp falling in the saw floor's arena.
      pixels, cels only (`cels_only`: export_actors.py makes no model of it),
      lit with the rims down and no road dirt (`_CLEAN`). `build_enemy_actors.gd --
      kinds=hound,hound_face`, then the steps below for `hound`.
+   - The county events' razorback (`actors_hog.py`, content pass 8) is a
+     kind with its own frames like the hound (`0`, the gallop `r0..r4`,
+     `down`), built square for the model, legs of fixed pieces posed by IK,
+     a bristle coat sized to each part (`_hog_coat`: streaks along the body,
+     grizzled tips, mud caked up from the ground), a ridge of bristles down
+     the spine, the flat snout and tusks; its balls are 16 x 10 (`_hog_sphere`) and its
+     looks bake at 256 (`FINE`): it is in the browser's first download. Every name in it starts `_hog`
+     (actors_hound.py is exec'd after it and has its own `_leg`, `_body`).
+     `build_enemy_actors.gd -- kinds=hog`, then the steps below for `hog`.
 2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
    [rig-only] [raw=<dir>]` grades and digitizes
    (`assets/art/actor3d_<kind>[_<look>].png`) and writes

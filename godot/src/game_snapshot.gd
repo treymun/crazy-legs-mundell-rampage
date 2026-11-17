@@ -109,6 +109,7 @@ const SIM_FIELDS := [
 	"hound_on",
 	"bench_on",
 	"bench_live",
+	"events_on",
 	"aim_assist",
 	"smart_hands",
 	"touch_aim",
@@ -296,6 +297,7 @@ const SIM_FEATURES := [
 	"mothership",
 	"corpses",
 	"finishers",
+	"brawl",
 	"breakables",
 	"wall_breaks",
 	"carry",
@@ -317,6 +319,7 @@ const SIM_FEATURES := [
 	"fair_gallery",
 	"hound",
 	"bench",
+	"events",
 ]
 ## Features that only look or sound (their own dice; never carried).
 const LOOKS_FEATURES := [
@@ -334,6 +337,7 @@ const LOOKS_FEATURES := [
 	"dust",
 	"gun_fx",
 	"feel",
+	"brawl_looks",
 	"soundscape",
 	"boss_voices",
 	"enemy_barks",
@@ -343,6 +347,7 @@ const LOOKS_FEATURES := [
 	"kill_feed",
 	"new_iron",
 	"radio",
+	"event_looks",
 ]
 
 

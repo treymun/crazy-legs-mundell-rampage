@@ -416,6 +416,8 @@ func _key_play(code: int) -> void:
 		crouch_latched = not crouch_latched
 	elif code == KEY_G:
 		act(target, ["hound"])
+	elif code == KEY_L:
+		act(target, ["torch"])
 	elif code == KEY_Y:
 		sound.play("yee_haw")
 

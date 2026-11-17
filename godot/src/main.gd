@@ -30,7 +30,8 @@ func _ready() -> void:
 			"county_storm",
 			"boss_wrecks",
 			"hound",
-			"bench"
+			"bench",
+			"events"
 		]:
 			if plain.has(key):
 				sim[key] = plain[key]
@@ -135,6 +136,7 @@ func _ready() -> void:
 		# bench and its scrap (options["bench"] = 1, tools/bench_check.gd).
 		options["hound"] = 0
 		options["bench"] = 0
+		options["events"] = 0
 	_start_quality()
 	unlocked = SessionStore.unlocks("")
 	hub_findings = SessionStore.road_notes("")
