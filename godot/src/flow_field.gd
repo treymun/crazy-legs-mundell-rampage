@@ -143,13 +143,16 @@ func _measure_open(nodes: int) -> void:
 ## Shut the open floor in a box something now fills (a set piece's rubble,
 ## features/set_pieces.gd), and measure again.
 func close(x0: float, y0: float, x1: float, y1: float) -> void:
+	var shut := false
 	for cy in range(maxi(0, int(y0 - BODY)), mini(height - 1, int(y1 + BODY)) + 1):
 		for cx in range(maxi(0, int(x0 - BODY)), mini(width - 1, int(x1 + BODY)) + 1):
 			var cell := cy * width + cx
 			if open[cell] == 1 and world.blocked(cx + .5, cy + .5, BODY):
 				open[cell] = 0
-	origin = Vector2i(-1, -1)
-	next_at = 0.0
+				shut = true
+	if shut:
+		origin = Vector2i(-1, -1)
+		next_at = 0.0
 
 
 func reopen(x0: float, y0: float, x1: float, y1: float) -> void:

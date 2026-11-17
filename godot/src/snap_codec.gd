@@ -73,8 +73,11 @@ const SKIP_FIELDS := {
 		"_boxes",
 		"_tile",
 		"_sprites",
+		"_draw_plan",
+		"_drawn_version",
 		"mark_cache",
 		"_hiss_at",
+		"_to_shut",
 		"ray_d",
 		"ray_hit"
 	],

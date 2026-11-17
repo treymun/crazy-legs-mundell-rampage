@@ -241,8 +241,9 @@ func _watch() -> void:
 		_watch_sets(sets)
 
 
-## A set piece's tank burst throws its staves, hoops, cap and deck; a big
-## piece coming down, or a post or a leg knocked out, throws splinters.
+## A set piece's tank burst throws its staves, hoops, cap, deck and name
+## (the barns' pieces throw only chips: game.burst, cheap; real splinters
+## wedged among their rubble cost the wreck physics milliseconds a tick).
 func _watch_sets(sets: SetPiecesFeature) -> void:
 	for i in sets.pieces.size():
 		var st: Dictionary = sets.pieces[i]
@@ -264,18 +265,6 @@ func _watch_sets(sets: SetPiecesFeature) -> void:
 			if now == SetPiecesFeature.GONE and part.tank:
 				var src := {"key": part.key, "origin": c, "basis": Basis(q), "size": 1.0}
 				_throw(src, Vector3(lean.x, lean.y, 2.2), 1.0, 99, "debris_settle", [])
-			elif part.tile != "" and part.role != "pipe":
-				var big := part.half.length() > 1.0
-				if now == SetPiecesFeature.LYING and not big:
-					continue
-				var splinters := {
-					"key": "t:%s@0.7,0.7|planks:2,2" % part.tile,
-					"origin": c - Vector3(0, 0, .2),
-					"basis": Basis(Vector3(0, 0, 1), dice.randf() * TAU),
-					"size": 1.0,
-				}
-				var knock := Vector3(lean.x * .5, lean.y * .5, .9)
-				_throw(splinters, knock, .7, 3 if big else 2, "debris_settle", [])
 
 
 func _exploded(x: float, y: float, z: float, _energy: bool) -> void:
@@ -364,6 +353,12 @@ static func _frame(axis: Vector3) -> Basis:
 func _break_piece(p: Breakables.Piece) -> void:
 	var src := _source(p)
 	if src.is_empty():
+		return
+	var sets: SetPiecesFeature = game.features.get("set_pieces")
+	if sets != null and sets.rubble_at(p.x, p.y):
+		# Broken in a barn come down (set_pieces.gd): flattened under its tin,
+		# no real pieces wedged in the rubble (they cost the physics
+		# milliseconds a tick there); its bits and chips fly as ever.
 		return
 	var knock := _knock(p.x, p.y)
 	var is_sign: bool = p.spec.get("sign", false)

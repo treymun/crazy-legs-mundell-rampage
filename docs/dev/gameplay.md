@@ -1168,8 +1168,10 @@ the versus maps or the hub (`[all] never`):
   (`WreckCuts.put`: a few nodes, each holding its shader slots), what moves
   is drawn piece by piece; set piece parts are drawn out to `WreckLayer3D.FAR`.
   `wreckage.gd` (looks) watches the parts' states: a tank burst throws its
-  staves, hoops and cap, a big piece landing or a post knocked out throws
-  splinters of its tile.
+  staves, hoops, cap, deck and painted name as real pieces; a barn's
+  landings throw chips only (`game.burst`), and a breakable broken inside a
+  barn come down (`rubble_at`) throws no real pieces: pieces wedged among
+  the rubble's volumes cost the wreck physics 15 to 25 ms a tick.
 - **Sounds**: `collapse_creak`, `collapse_crash`, `tower_groan`,
   `tower_burst`, `gas_leak`, `gas_whoosh`, `plank_crack` (ElevenLabs, pass 8).
 - **Cost**: asleep (no tick) while nothing moves, leaks, floods or burns;

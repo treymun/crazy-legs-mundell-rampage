@@ -69,8 +69,13 @@ var _boxes: Array = []
 var _tile := 0.0
 ## Looks: the sprites shown (by piece and part), the gas and water marks.
 var _sprites := {}
+## How each piece in view is drawn (_plan), made again when it changes.
+var _draw_plan := {}
+var _drawn_version := -1
 var mark_cache := {}
 var _hiss_at := 0.0
+## Rubble laid this fall, its paths to shut once nothing moves.
+var _to_shut: Array = []
 ## The last ray(): how far, and which part (piece * 1000 + part).
 var ray_d := 0.0
 var ray_hit := -1
@@ -487,6 +492,17 @@ func _warn(i: int) -> void:
 	game.disturb(mid.x, mid.y, heard, top)
 
 
+## Whether (x, y) is in the footprint of a barn or shed coming or come down.
+func rubble_at(x: float, y: float) -> bool:
+	for i in pieces.size():
+		var st: Dictionary = pieces[i]
+		var stage: int = st["stage"]
+		var box: Rect2 = _boxes[i]
+		if stage >= FALLING and str(st["kind"]) == "barn" and box.has_point(Vector2(x, y)):
+			return true
+	return false
+
+
 # ------------------------------------------------------------------ blasts
 
 
@@ -568,6 +584,10 @@ func _tick(dt: float) -> void:
 	if not floods.is_empty():
 		busy = true
 		Flow.flood_tick(self, dt)
+	if not _to_shut.is_empty() and not _falling_any():
+		for v: PackedFloat32Array in _to_shut:
+			_shut(v[0], v[1], v[2], v[3])
+		_to_shut.clear()
 	# Every `burn_every` of the clock (no state of its own: a copy woken at
 	# another tick burns on the same ticks).
 	var every := Shape.num("all", "burn_every", .5)
@@ -577,6 +597,13 @@ func _tick(dt: float) -> void:
 		# Nothing moving, leaking or burning: no tick until something strikes,
 		# blasts or a fire starts (wake()).
 		sleep()
+
+
+func _falling_any() -> bool:
+	for st: Dictionary in pieces:
+		if _any_moving(st):
+			return true
+	return false
 
 
 func _any_moving(st: Dictionary) -> bool:
@@ -1104,7 +1131,9 @@ func _cover(v: PackedFloat32Array) -> void:
 			return
 	added.append(row)
 	ArenaWreckFeature.add_volume(game.world, v)
-	_shut(v[0], v[1], v[2], v[3])
+	# The paths shut round it once everything has come down (one walk of
+	# the flow fields again, not one a piece landing: _tick).
+	_to_shut.append(v)
 
 
 ## The paths shut where something now stands in the way.
@@ -1122,43 +1151,44 @@ func sprites() -> Array:
 	var out: Array = []
 	if _specs.is_empty():
 		return out
+	if _drawn_version != net_version:
+		_drawn_version = net_version
+		_draw_plan.clear()
+	# One merged mesh made a frame at most (a few milliseconds each): the
+	# rest are drawn a part at a time until their turn.
+	var merges := 1
 	for i in pieces.size():
 		var box: Rect2 = _boxes[i]
 		var mid := box.get_center()
 		if not game.in_view(mid.x, mid.y, box.size.length() * .5 + 2.0):
 			continue
-		var st: Dictionary = pieces[i]
-		var made: Array = shapes[i]
-		var outs: Array = st["out"]
-		var still := not _any_moving(st)
+		if not _draw_plan.has(i):
+			_draw_plan[i] = _plan(i)
+		var plan: Array = _draw_plan[i]
+		var groups: Dictionary = plan[0]
+		var moving: Array = plan[1]
 		var floor_z: float = _ground[i]
-		# What stands (and, once nothing of it moves, what lies) is drawn
-		# merged, a mesh a tile (few nodes: each holds shader slots); what
-		# moves is drawn a piece at a time.
-		var groups := {}
-		for k in made.size():
-			var was: int = outs[k]
-			var part: Shape.Part = made[k]
-			if was == GONE or part.key == "":
-				continue
-			if was == UP or (was == LYING and still):
-				var tile := _tile_of(st, k)
-				if not groups.has(tile):
-					groups[tile] = []
-				var list: Array = groups[tile]
-				list.append(k)
-				continue
-			var key := _key_of(st, k)
+		var st: Dictionary = pieces[i]
+		for k: int in moving:
 			var at: Array = pose(i, k, game.clock)
 			var c: Vector3 = at[0]
 			var q: Quaternion = at[1]
-			_put_parts(out, i, k, key, c, q)
-		for tile: String in groups:
-			var ks: Array = groups[tile]
-			var key := _group_key(i, tile, ks, outs)
+			_put_parts(out, i, k, _key_of(st, k), c, q)
+		var n := 0
+		for key: String in groups:
+			n += 1
+			var ks: Array = groups[key]
 			if not WreckCuts.has(key):
+				if merges <= 0:
+					for k: int in ks:
+						var at: Array = _rest_pose(i, k)
+						var c: Vector3 = at[0]
+						var q: Quaternion = at[1]
+						_put_parts(out, i, k, _key_of(st, k), c, q)
+					continue
+				merges -= 1
 				WreckCuts.put(key, [_merged(i, ks, Vector3(mid.x, mid.y, floor_z))])
-			var tag := -1 - (i * 64 + groups.keys().find(tile))
+			var tag := -1 - (i * 64 + n)
 			var s: View.Sprite = _sprites.get(tag)
 			if s == null:
 				s = View.Sprite.new(mid.x, mid.y, "", 1.0, floor_z)
@@ -1167,6 +1197,49 @@ func sprites() -> Array:
 			s.turn = Basis.IDENTITY
 			out.append(s)
 	return out
+
+
+## How piece i is drawn while it stays as it is: [{merged key: its parts},
+## the parts moving]. What stands (and, once nothing of it moves, what
+## lies) is merged, a mesh a tile (a few nodes: each holds shader slots);
+## what moves is drawn a part at a time.
+func _plan(i: int) -> Array:
+	var st: Dictionary = pieces[i]
+	var made: Array = shapes[i]
+	var outs: Array = st["out"]
+	var still := not _any_moving(st)
+	var by_tile := {}
+	var moving: Array = []
+	for k in made.size():
+		var was: int = outs[k]
+		var part: Shape.Part = made[k]
+		if was == GONE or part.key == "":
+			continue
+		if was == UP or (was == LYING and still):
+			var tile := _tile_of(st, k)
+			if not by_tile.has(tile):
+				by_tile[tile] = []
+			var list: Array = by_tile[tile]
+			list.append(k)
+		else:
+			moving.append(k)
+	var groups := {}
+	for tile: String in by_tile:
+		var ks: Array = by_tile[tile]
+		groups[_group_key(i, tile, ks, outs)] = ks
+	return [groups, moving]
+
+
+## Where part k of piece i stands or lies still.
+func _rest_pose(i: int, k: int) -> Array:
+	var st: Dictionary = pieces[i]
+	var outs: Array = st["out"]
+	var was: int = outs[k]
+	if was == UP:
+		var made: Array = shapes[i]
+		var part: Shape.Part = made[k]
+		return [part.p, part.q]
+	return pose(i, k, INF)
 
 
 ## The tile part k shows now (a wall shot about shows its boards out).

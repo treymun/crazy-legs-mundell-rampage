@@ -1,7 +1,10 @@
 ## Pictures of the big breaks (features/set_pieces.gd) in a real window (the
 ## graphics-card view players see): each chapter's barn, water tower and fuel
 ## line standing, coming down (or leaking and burning) and down. Each is
-## <level>_<id>_<n>.png in out=<dir>; only=<id,id> picks some.
+## <level>_<id>_<n>.png in out=<dir>; only=<id,id> picks some. With
+## `bench` it pictures nothing and times each one instead: the frame (tick
+## and draw, as the game runs them) over two seconds standing, then from
+## the moment it is brought down for six (median, p99, worst, in ms).
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/set_piece_frames.gd -- out=<dir> [only=a,b]
@@ -24,6 +27,7 @@ const VIEWS := {
 var main
 var out := ""
 var only: Array = []
+var bench := false
 
 
 func _init() -> void:
@@ -36,6 +40,8 @@ func _run() -> void:
 			out = String(arg).substr(4)
 		elif String(arg).begins_with("only="):
 			only = String(arg).substr(5).split(",")
+		elif String(arg) == "bench":
+			bench = true
 	if out == "":
 		push_error("out=<dir> is needed")
 		quit(1)
@@ -59,6 +65,9 @@ func _run() -> void:
 				continue
 			g = _level(level_id)
 			sp = g.features.get("set_pieces")
+			if bench:
+				await _bench(g, sp, i, level_id + "_" + id)
+				continue
 			match str(spec["kind"]):
 				"barn":
 					await _barn(g, sp, i, level_id + "_" + id)
@@ -253,3 +262,59 @@ func _fuel(g: Game, sp: SetPieces, i: int, name: String) -> void:
 	await _snap(name + "_2_running")
 	_ticks(g, 1.2)
 	await _snap(name + "_3_end")
+
+
+## The frame's cost round piece i: standing, then brought down.
+func _bench(g: Game, sp: SetPieces, i: int, name: String) -> void:
+	var spec: Dictionary = sp.spec_of(i)
+	var id := str(spec.get("id", ""))
+	var box: Rect2 = sp._boxes[i]
+	var mid := box.get_center()
+	if not _view(g, id):
+		var eye := _spot(g, mid, 9.0, 0.0)
+		_stand(g, eye.x, eye.y, mid.x, mid.y, g.world.elevation(mid.x, mid.y) + 1.5)
+	var before := await _frames(g, 120)
+	match str(spec["kind"]):
+		"barn":
+			for code: int in _codes(sp, i, "post").slice(0, 2):
+				sp.strike(code, 300.0, 0.0, 1.0)
+		"tower":
+			var falls: Array = spec.get("falls", [3])
+			var way := (
+				Vector2.from_angle(roundi(Shape.f(falls[falls.size() - 1])) * PI * .5).round()
+			)
+			for code: int in _codes(sp, i, "leg"):
+				var part: Shape.Part = sp.shapes[i][code % 1000]
+				if part.side.dot(way) > 0.0:
+					sp.strike(code, 400.0, way.x, way.y)
+		"fuel":
+			sp.strike(_codes(sp, i, "pump")[0], 100.0, 0.0, 1.0)
+			var cells: Array = sp.trails[i]
+			var first: Vector2i = cells[0]
+			var fire = g.features["fire"]
+			_ticks(g, 3.0)
+			fire.fresh()
+			fire.ignite(
+				first.x + .5, first.y + .5, g.world.elevation(first.x + .5, first.y + .5), 3.0
+			)
+	var during := await _frames(g, 360)
+	print(
+		(
+			"%-28s standing median %5.2f p99 %5.2f max %5.2f | down median %5.2f p99 %5.2f max %5.2f"
+			% [name, before[0], before[1], before[2], during[0], during[1], during[2]]
+		)
+	)
+
+
+## n frames as the game runs them (a tick, then the draw), each timed:
+## [median, p99, worst] in ms.
+func _frames(g: Game, n: int) -> Array:
+	var times: Array = []
+	for f in n:
+		var t0 := Time.get_ticks_usec()
+		g.tick(1.0 / 60.0, Game.Controls.new())
+		main.render()
+		await RenderingServer.frame_post_draw
+		times.append((Time.get_ticks_usec() - t0) / 1000.0)
+	times.sort()
+	return [times[n / 2], times[mini(n - 1, int(n * .99))], times[n - 1]]
