@@ -56,6 +56,9 @@ class Spec:
 	## A rider's body seen from outside (looks only): how far its feet stand
 	## over the floor (below it: sunk so the hips sit on the seat).
 	var sit := 0.0
+	## The frame the rider's model shows in it ("": as on foot; "sit": seated,
+	## Mundell's model's own `sit` key, polish pass 9).
+	var pose := ""
 	var ram := 10.0
 	var ram_from := 2.5
 	var blade := 0.0

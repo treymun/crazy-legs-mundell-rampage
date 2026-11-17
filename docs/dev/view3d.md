@@ -88,7 +88,9 @@ faster), sliding along walls, off floors and ceilings and within `reach` of
 the player (`camera.cfg [photo]`). `game.eye_override` (a VIEW field) is the
 eye `game_view.gd _draw` uses: no shake, the sprites culled to it, the player
 added as Mundell (`ModeBodies.player_sprite`; in a vehicle he sits down into
-an open seat by vehicles.cfg `sit`, `ModeBodies.feet_of`, and the car's
+an open seat by vehicles.cfg `sit`, `ModeBodies.feet_of`; on the riding mower
+(vehicles.cfg `pose="sit"`) his model shows its own `sit` key, hips on the
+seat and boots out front, where before pass 9 he stood sunk to the chest in it; and the car's
 shell hides its driver, `hidden_in_vehicle`: he stood up through its roof
 before 3.3.0; a partner and the mirror the same), and no gun, sights, prompts or
 HUD. The strip in the status bar's rows names the filter and the buttons
@@ -454,6 +456,28 @@ Each enemy and boss with a model shows as an `ActorView` scene
   (and a gallop's `r0..r4`, the hound's) interpolated on gait; a living
   body shown in a step of a fall it never took (`ActorView.held`: a hand
   the hound drags down) holds that step's key, falls on time since death.
+- Looks-only motion over the keys (polish pass 9; none of it reads or
+  spends `game.rng`, its dice are hashes of the body's uid and the moment):
+  a jump between frames that are not neighbours in the action (idle to aim,
+  aim to fire, pain, walking to standing, a hurt look's frames, the fall's
+  start) blends every bone over `BLEND` (.13 s; `BLEND_SNAP` .06 into fire
+  and pain) instead of snapping (`ActorView.group_of`: the walk's beats, the
+  gallop's and the fall's steps are one group each and never blend, the
+  flapping bugs and saucers not at all). A hit rocks the living body about
+  its feet for `FLINCH` (.34 s) by `Enemy.last_zone` and `last_side`: a head
+  shot snaps it back, the body rocks and twists, an arm turns the shoulders,
+  a leg buckles it forward and down, sized by `struck_sum`, a boss at .4.
+  Standing idle (`0`) it breathes and sways a touch. A scripted fall (RAGDOLLS
+  off, or a kind with no ragdoll) is mirrored for about half the deaths (not
+  a boss's set piece, a tipping cow or a `down_cel` kind) and runs up to
+  `FALL_QUICK` (18%) quicker. The Swamp King and Maw's bare model, kinds with
+  their own frame lists, now have the walk's closing `w4` key too
+  (export_actors.py `_frames`), so their walks run smoothly instead of
+  snapping beat to beat. `tools/actor_check.gd` holds all of it.
+- Thrown specks (`game.specks`: blood, sparks, grit) are `View.SPECK` (.095)
+  tall but drawn between `SPECK_PX_MIN` (1.6) and `SPECK_PX_MAX` (6) of the
+  view's pixels (`View.speck_size`): far off they winked out under a pixel,
+  right in front one was a blot a tenth of the view across.
 - The look (plain, hurt, p2, p3) is picked by health and boss phase.
 - Lost limbs are left off (`Gore.lost`), and a boss's gear shot off
   (`features/boss_gear.gd`, the frame's `gear_lost`; `ActorView.lose_gear`

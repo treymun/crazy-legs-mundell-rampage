@@ -375,4 +375,5 @@ MUNDELL = cast(AVG, gut=.18, sw=.235, head_scale=1.28, canvas=(1.6, 1.87), px=16
                hat_c=(96, 104, 54), band_c=(48, 50, 34), patch_c=(176, 160, 124), tee=(196, 104, 46), depth_k=.7,
                shirt=(138, 46, 36), plaid=1, bib=(60, 70, 94), pants=(60, 70, 94),
                boots=(80, 54, 36), boot_top=.22, weapon="pump", hold=MUNDELL_HOLD)
-ACTORS["mundell"] = (maker(MUNDELL), MUNDELL, (), None)
+# "sit": a partner in an open seat (the riding mower: ModeBodies.player_pose).
+ACTORS["mundell"] = (maker(MUNDELL), MUNDELL, ("sit",), None)

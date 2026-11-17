@@ -278,12 +278,17 @@ static func _mower(main, check: Callable) -> void:
 		clips > 0 or not ["grass", "lawn", "bayou_marsh"].has(tile),
 		"mower: on the grass it spits clippings (%d, on %s)" % [clips, tile]
 	)
-	# Its rider from outside sits down into the seat (vehicles.cfg `sit`).
+	# Its rider from outside sits on the seat (vehicles.cfg `pose` "sit":
+	# Mundell's model's own sitting key, his boots over its floor, `sit`).
 	var p := g.player
 	var feet := ModeBodies.feet_of(g, p)
+	var pose := ModeBodies.player_pose(g, p, "mundell")
 	check.call(
-		not ModeBodies.hidden_in_vehicle(g, p) and feet < v.z - .2,
-		"mower: its rider shows, sat down into the seat (feet %.2f under its floor)" % (v.z - feet)
+		not ModeBodies.hidden_in_vehicle(g, p) and pose.ends_with("_sit") and feet >= v.z,
+		(
+			"mower: its rider shows, sat on the seat (%s, feet %.2f over its floor)"
+			% [pose, feet - v.z]
+		)
 	)
 
 

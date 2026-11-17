@@ -30,6 +30,21 @@ static var ragdolls := true
 ## (view3d/view_shadows.gd). Needs LIGHTS AND GLOW.
 static var shadows := true
 
+## A thrown speck (blood, a spark, grit: game.specks) is SPECK map units
+## tall, but never fewer than SPECK_PX_MIN of the view's pixels (far off it
+## winked out under one) nor more than SPECK_PX_MAX (right in front a speck
+## was a blot a tenth of the view across).
+const SPECK := .095
+const SPECK_PX_MIN := 1.6
+const SPECK_PX_MAX := 6.0
+
+
+## A speck's height `distance` map units from the eye.
+static func speck_size(distance: float) -> float:
+	var d := maxf(distance, .05)
+	var px := SPECK * base_focal / d
+	return clampf(px, SPECK_PX_MIN, SPECK_PX_MAX) * d / base_focal
+
 
 ## A picture standing in the world: x, y on the map, z its feet, `height` tall
 ## (width from the picture's own shape). plane NaN faces the camera; an angle

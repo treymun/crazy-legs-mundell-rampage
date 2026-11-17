@@ -131,6 +131,11 @@ def _frames(kind):
     make, S, extra, own = ACTORS[kind]
     if own:
         living = [(f, str(f)) for f in own]
+        # A kind with its own frames that walks (the Swamp King, Maw bare)
+        # gets the loop's closing beat too, or its walk snaps beat to beat.
+        names = [n for _f, n in living]
+        if "w3" in names and "w0" in names and "w4" not in names:
+            living.insert(names.index("w3") + 1, ("w0", "w4"))
         dying = []
     else:
         living = [(0, "0"), ("w0", "w0"), ("w1", "w1"), ("w2", "w2"), ("w3", "w3"), ("w0", "w4")]
@@ -747,13 +752,20 @@ def _fcurves(action):
     return out
 
 
+# Every kind's head gets this much more texture across than its size (a
+# kind's look may set its own `uv_head`): the face is what reads at the
+# view's size (polish pass 9; before it 1, and the hands' faces were a few
+# blocky texels).
+HEAD = 1.4
+
+
 def _favour_head(body, S, labels):
     """A kind may give its head more of the texture than its size (S's look
     `uv_head`, and `uv_face` for the parts wearing a photograph: Mundell's
     face, actors_mundell.py): those UV islands grow by that much across,
     then the unwrap packs every island. In edit mode, after smart project."""
     look = S.get("look", {})
-    head_k, face_k = look.get("uv_head", 1.0), look.get("uv_face", 1.0)
+    head_k, face_k = look.get("uv_head", HEAD), look.get("uv_face", 1.0)
     if head_k == 1.0 and face_k == 1.0:
         return
     from bpy_extras import bmesh_utils

@@ -621,8 +621,9 @@ for something that can be up on one; use `floor_under(x, y, z)` or
 - **Which bodies**: every kind whose labelled parts stand on two legs gets a
   rig (`RagdollRig.ok`). Bosses keep their scripted falls (their falls are
   set pieces), and fit.json `"ragdoll": false` keeps big Billy's (his thigh
-  part swings up through his belly) and the millhand's (his saw stands up
-  off him); kinds without legs (gator, crawler, drone saucers, the derby
+  part swings up through his belly), the millhand's (his saw stands up
+  off him) and, since polish pass 9's re-bake, the tin guard's (his door of
+  a shield propped his ragdoll a metre up); kinds without legs (gator, crawler, drone saucers, the derby
   champ's truck, the swamp king's boat, the Maw, lanterns, valve rats,
   boilerbacks) as ever. RAGDOLLS (a setting, `View.ragdolls`) off brings the
   old falls back. Lost limbs stay off (`Gore.lost`), the parts the dead body
@@ -1036,7 +1037,9 @@ numbers in `data/tuning/hound.cfg`.
   time, it cannot fight or walk, dragged half down (its fall's `die_1` held,
   `Enemy.held_cel`, now and then its pain twist), turned to face his player
   so it leans back along their line of sight and their shots land on what
-  they see (its hit cylinder never moves). The hands within `kick_reach`, the held one
+  they see (its hit cylinder never moves). His body is drawn `HoundLooks.PIN_BACK`
+  (.3) back along his heading while he holds it (looks only, polish pass 9): at
+  the hold's gap his head stood inside its chest. The hands within `kick_reach`, the held one
   too, kick at him (`kick_rate`, the kick shown as the hand's attack frame);
   blasts hurt him. A held hand finished counts on the tally (BLUE: FETCHED,
   HELD) and gets a GOOD BOY.
