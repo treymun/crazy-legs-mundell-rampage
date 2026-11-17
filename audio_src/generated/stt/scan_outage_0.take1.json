@@ -1,0 +1,45 @@
+{
+ "text": "Failures out countywide. Co-ops send in a truck",
+ "words": [
+  {
+   "text": "Failures",
+   "start": 0.1,
+   "end": 0.86
+  },
+  {
+   "text": "out",
+   "start": 1.04,
+   "end": 1.2
+  },
+  {
+   "text": "countywide.",
+   "start": 1.32,
+   "end": 2.22
+  },
+  {
+   "text": "Co-ops",
+   "start": 2.48,
+   "end": 2.98
+  },
+  {
+   "text": "send",
+   "start": 3.12,
+   "end": 3.34
+  },
+  {
+   "text": "in",
+   "start": 3.38,
+   "end": 3.46
+  },
+  {
+   "text": "a",
+   "start": 3.52,
+   "end": 3.6
+  },
+  {
+   "text": "truck",
+   "start": 3.66,
+   "end": 4.1
+  }
+ ]
+}

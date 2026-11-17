@@ -71,12 +71,18 @@ static func _gather(g: GameView) -> Array:
 			func(board: LevelData.Billboard) -> bool:
 				return board.glow and board.image in ["hub_lamp", "town_floodlight_tower"]
 		)
+	# A blackout (features/county_events.gd) puts out the electric lamps and
+	# brings its own: the flashlights' beams, the hands' lanterns.
+	var county: CountyEvents = g.features.get("events")
+	var powered := county == null or county.darkness() < .3
+	if county != null:
+		found.append_array(county.lights(p))
 	for spr: View.Sprite in g.lamp_props:
-		if absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
+		if powered and absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
 			found.append(Effects.light("lamp", spr.x, spr.y, spr.z, 1.0, g.clock))
 	# Street lamps pool their light on the ground; the keys glint where they lie.
 	for board: LevelData.Billboard in g.lamp_boards:
-		if absf(board.x - p.x) < 14.0 and absf(board.y - p.y) < 14.0:
+		if powered and absf(board.x - p.x) < 14.0 and absf(board.y - p.y) < 14.0:
 			var top := g.world.elevation(board.x, board.y) + board.z + board.height * .9
 			found.append(Effects.light("streetlamp", board.x, board.y, top, 1.0, g.clock))
 	found.append_array(_prop_lights(g))
@@ -155,6 +161,12 @@ static func gun_light(g: GameView) -> Color:
 		sum += Vector3(c.r, c.g, c.b) * strength * reach * reach
 	var tone: Color = Effects.mood(g.level.id, "grade", Color(1, 1, 1))
 	sum *= Vector3(tone.r, tone.g, tone.b) * (1.0 + g.lightning * .5)
+	# In a blackout the gun is in the dark but for the flashlight's spill.
+	var county: CountyEvents = g.features.get("events")
+	if county != null and county.darkness() > 0.0:
+		var torch := county.torch_of(p)
+		var lit: bool = not torch.is_empty() and torch[0]
+		sum = sum * (1.0 - county.darkness()) + Vector3.ONE * (.55 if lit else 0.0)
 	return Color(minf(sum.x, 1.8), minf(sum.y, 1.8), minf(sum.z, 1.8))
 
 

@@ -33,7 +33,9 @@ const CHAPTER_KINDS := {
 	"quarry": ["baron", "boilerback", "chalk_spitter", "valve_rat"],
 	"bayou": ["chum_tosser", "gator", "noodler", "swamp_king"],
 	"speedway": ["derby_champ", "flagman", "nitro_huffer", "pit_mechanic", "tire_roller"],
-	"moonshine": ["gas_man", "revenooer", "revenue_man", "still_buster"],
+	# The revenooer is not here: the county events' revenue raids bring him
+	# to every chapter (events.cfg [raid] kinds).
+	"moonshine": ["gas_man", "revenue_man", "still_buster"],
 	"mothership": ["drone", "maw", "probe", "tin_guard"],
 }
 ## Each chapter's art file; its sounds are in sfx_<the same stem>.bin and its

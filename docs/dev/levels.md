@@ -207,7 +207,10 @@ camp and the still cave.
   (`hazards()`): Granny's well, a burn barrel at the camp and the farm's, a bug
   zapper on the church's porch; the radio: Dub's line on the Revenue Man's fall
   (`dj.boss_revenue_man`) and the scanner's place (`scanner.place_moonshine`) in
-  `radio_lines.json`; the hound: a line at Blue's old doghouse by Granny's porch.
+  `radio_lines.json`; the hound: a line at Blue's old doghouse by Granny's porch;
+  the county events' revenue raid (`events.cfg [raid] kinds`) sends the
+  revenooers, so that kind's pictures and model are in the base pack, not
+  the chapter's (`Assets.CHAPTER_KINDS`).
 - Saves: save version 10 is the Moonshine Run's step (after the set pieces'
   9): a version 9 campaign save at the Mothership gets the run in its history.
 - `tools/moonshine_check.gd` (MOONSHINE CHECK OK, in check_all) holds it.

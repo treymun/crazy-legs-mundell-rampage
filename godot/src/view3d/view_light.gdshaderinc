@@ -10,6 +10,9 @@ uniform int light_count = 0;
 uniform vec4 light_pos[16];
 uniform vec4 light_col[16];
 uniform int light_flags[16];
+// A blackout (features/county_events.gd): the share of the light gone, before
+// the lights (a flashlight's beam, a lantern) add theirs.
+uniform float blackout = 0.0;
 uniform vec3 fog_color = vec3(0.0);
 uniform vec3 fog_range = vec3(1000.0, 2000.0, 0.0);
 uniform vec3 grade = vec3(1.0);
@@ -427,9 +430,28 @@ vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view, in
 			continue;
 		}
 		vec3 l = d / max(dist, 0.001);
-		float k = reach * reach * max(0.0, 1.0 + RELIEF_K * (dot(nb, l) - dot(nf, l)));
+		float fall = reach * reach;
+		float shine = reach;
+		int fl = light_flags[i];
+		if ((fl & 2) != 0) {
+			// A spot (a flashlight): its way and cone packed in its flags
+			// (event_dark.gd spot_flags). A hot middle, a ring, a soft edge,
+			// in steps as a 1997 light map would have it; it carries further.
+			float yaw = float((fl >> 8) & 1023) / 1024.0 * 6.2831853;
+			float tilt = float((fl >> 18) & 511) / 511.0 * 3.1415927 - 1.5707963;
+			float cone = float((fl >> 27) & 15) / 15.0 * 0.8 + 0.05;
+			vec3 axis = vec3(cos(yaw) * cos(tilt), sin(yaw) * cos(tilt), sin(tilt));
+			float c = dot(-l, axis);
+			float beam = smoothstep(cos(cone), cos(cone * 0.62), c);
+			float hot = smoothstep(cos(cone * 0.34), cos(cone * 0.12), c);
+			float ring = smoothstep(cos(cone * 0.7), cos(cone * 0.6), c) * (1.0 - smoothstep(cos(cone * 0.5), cos(cone * 0.4), c));
+			beam = floor((beam * 0.7 + hot * 0.6 + ring * 0.2) * 5.0 + 0.5) / 5.0;
+			fall = sqrt(reach) * beam;
+			shine = reach * beam;
+		}
+		float k = fall * max(0.0, 1.0 + RELIEF_K * (dot(nb, l) - dot(nf, l)));
 		if (gloss > 0.0) {
-			k += gloss * reach * pow(max(dot(nb, normalize(l + view)), 0.0), 24.0) * 2.2;
+			k += gloss * shine * pow(max(dot(nb, normalize(l + view)), 0.0), 24.0) * 2.2;
 		}
 		if (ground && (light_flags[i] & 1) != 0) {
 			float q = clamp(1.0 - length(d.xy) / (at.w * POOL_REACH), 0.0, 1.0);
@@ -478,6 +500,9 @@ vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 b
 	if (ground && blob_count > 0) {
 		base = floor(base * (1.0 - BLOB_DARK * blob_shadow(p, nf)));
 	}
+	if (blackout > 0.0) {
+		base = floor(base * (1.0 - blackout));
+	}
 	if (light_count > 0 && t < 160.0) {
 		vec3 view = normalize(eye - p);
 		base = min(floor(base * (vec3(1.0) + lights_at(p, nf, nb, ground, outside ? gloss : gloss * 0.5, view, kind))), vec3(255.0));
@@ -501,7 +526,7 @@ vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 b
 	if (fog_banks > 0.0) {
 		fog = fog + (1.0 - fog) * fog_bank(p, min(t, 14.0), t);
 	}
-	base = mix(base, fog_color * 255.0, fog);
+	base = mix(base, fog_color * 255.0 * (1.0 - blackout * 0.75), fog);
 	if (veil > 0.0) {
 		base = mix(base, min(STORM_FOG * (1.0 + lightning * 1.6), vec3(255.0)), veil);
 	}

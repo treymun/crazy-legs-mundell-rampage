@@ -1,0 +1,75 @@
+{
+ "text": "Hogs loose in town tonight. If one's in the road, let him have it",
+ "words": [
+  {
+   "text": "Hogs",
+   "start": 0.08,
+   "end": 0.38
+  },
+  {
+   "text": "loose",
+   "start": 0.46,
+   "end": 0.72
+  },
+  {
+   "text": "in",
+   "start": 0.78,
+   "end": 0.94
+  },
+  {
+   "text": "town",
+   "start": 1.0,
+   "end": 1.3
+  },
+  {
+   "text": "tonight.",
+   "start": 1.34,
+   "end": 1.7
+  },
+  {
+   "text": "If",
+   "start": 1.8,
+   "end": 1.9
+  },
+  {
+   "text": "one's",
+   "start": 1.96,
+   "end": 2.18
+  },
+  {
+   "text": "in",
+   "start": 2.24,
+   "end": 2.32
+  },
+  {
+   "text": "the",
+   "start": 2.36,
+   "end": 2.42
+  },
+  {
+   "text": "road,",
+   "start": 2.5,
+   "end": 2.78
+  },
+  {
+   "text": "let",
+   "start": 2.84,
+   "end": 2.96
+  },
+  {
+   "text": "him",
+   "start": 2.98,
+   "end": 3.1
+  },
+  {
+   "text": "have",
+   "start": 3.16,
+   "end": 3.36
+  },
+  {
+   "text": "it",
+   "start": 3.4,
+   "end": 3.54
+  }
+ ]
+}

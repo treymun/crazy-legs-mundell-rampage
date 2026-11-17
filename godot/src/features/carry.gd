@@ -215,6 +215,28 @@ func takeable(t: Thing) -> bool:
 	return t.piece < 0 or _bk.liftable(t.piece)
 
 
+## A twister's pull (features/county_events.gd): standing thing i torn off
+## its place at (vx, vy, vz), in flight as if a hand had thrown it (it hurts
+## whoever it strikes). True when it went.
+func fling(i: int, vx: float, vy: float, vz: float) -> bool:
+	var t: Thing = things[i]
+	if not takeable(t):
+		return false
+	var at := place_of(t)
+	t.x = at.x
+	t.y = at.y
+	t.z = at.z + _feel(t).lift + .15
+	t.vx = vx
+	t.vy = vy
+	t.vz = vz
+	t.moved = true
+	if not active.has(i):
+		active.append(i)
+	_fly(t, -1, 0, -vy, vx)
+	_changed()
+	return true
+
+
 # --------------------------------------------------------------- the player
 
 

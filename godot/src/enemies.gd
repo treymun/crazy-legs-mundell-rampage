@@ -729,6 +729,11 @@ func tick(dt: float, game: Game) -> void:
 			aggro_range += .9
 		if mind != null and not alerted:
 			aggro_range *= IdleLife.notice(self, game)
+		var county: Object = game.features.get("events")
+		if county != null and not alerted:
+			# The dark of a blackout hides a player with no light on.
+			var dark: float = county.call("notice", self, p)
+			aggro_range *= dark
 		var watching := absf(angle_delta(direction, angle)) < 1.55 or distance < 2.65
 		if alerted or (distance < aggro_range and watching):
 			wake(game, p.x, p.y)
@@ -788,8 +793,13 @@ func tick(dt: float, game: Game) -> void:
 		return
 	if recovery > .17 and (BOSS_TITLES.has(kind) or SIGNATURES.has(kind) or brain == "boilerback"):
 		return
-	if grudge != null and HandTactics.brawl(self, dt, game):
-		return
+	if grudge != null:
+		# A raider shoots at a hand it feuds with (features/county_events.gd).
+		var events: Object = game.features.get("events")
+		if events != null and events.call("feud", self, dt):
+			return
+		if HandTactics.brawl(self, dt, game):
+			return
 	if fetching != null and HandTactics.fetch(self, dt, game, p):
 		return
 	if cover != null and HandTactics.hold_cover(self, dt, game, can_see, direction):

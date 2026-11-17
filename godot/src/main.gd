@@ -29,7 +29,8 @@ func _ready() -> void:
 			"weather",
 			"county_storm",
 			"boss_wrecks",
-			"hound"
+			"hound",
+			"events"
 		]:
 			if plain.has(key):
 				sim[key] = plain[key]
@@ -132,6 +133,7 @@ func _ready() -> void:
 		# references and expectations were made so): no hound unless the tool
 		# asks for him (options["hound"] = 1, tools/hound_check.gd).
 		options["hound"] = 0
+		options["events"] = 0
 	_start_quality()
 	unlocked = SessionStore.unlocks("")
 	hub_findings = SessionStore.road_notes("")
