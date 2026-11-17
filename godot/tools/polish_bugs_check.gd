@@ -9,6 +9,10 @@
 ##   holds a retreat without the once-only fall-back; Python's save check
 ##   refused such a save, and with it every later campaign save keeping that
 ##   chapter (seen after a twister on Copperhead Ridge).
+## - In co-op the twister and the hogs shoved player two with move_actor,
+##   which took any player but the acting one for a hand: a script error a
+##   frame and the rest of the twister's pull skipped (the swamp waves of the
+##   bayou's arena too).
 ## - The blackout's word names the FLASHLIGHT key as bound (and none on a pad
 ##   or a touch screen); the breaker's prompt names the USE button.
 extends RefCounted
@@ -21,6 +25,7 @@ static func run(main: Control, check: Callable) -> void:
 	for id: String in ["quarry", "moonshine"]:
 		_twister_edge(main, check, id)
 	_flee_save(main, check)
+	_coop_shove(main, check)
 	_words(main, check)
 
 
@@ -116,3 +121,37 @@ static func _words(main: Control, check: Callable) -> void:
 	var padded: String = main.torch_button()
 	main.options = options
 	check.call(keyed == "K" and padded == "", "the front end names the key, none on a pad")
+
+
+static func _coop_shove(main: Control, check: Callable) -> void:
+	var g := _game(main, "hickston")
+	Modes.setup(g, Modes.COOP, 2, {})
+	for t in 30:
+		g.tick(STEP, Game.Controls.new())
+	var one: Player = g.players[0]
+	var two: Player = g.players[1]
+	g.focus(one)
+	var x0 := two.x
+	g.move_actor(two, .25, 0.0, GameState.PLAYER_RADIUS)
+	g.move_actor(two, -.25, 0.0, GameState.PLAYER_RADIUS)
+	g.move_actor(two, .25, 0.0, GameState.PLAYER_RADIUS)
+	check.call(
+		absf(two.x - x0) > .001 and g.player == one,
+		"move_actor shoves player two while player one acts (%.2f)" % (two.x - x0)
+	)
+	var ev: CountyEvents = g.features["events"]
+	if not ev.begin("twister"):
+		check.call(false, "a co-op twister starts")
+		return
+	ev.phase = EventTwister.CROSS
+	ev.since = g.clock
+	var before := Vector2(two.x, two.y)
+	for t in 20:
+		two.x = ev.tw_at.x + 1.6
+		two.y = ev.tw_at.y
+		before = Vector2(two.x, two.y)
+		g.tick(STEP, Game.Controls.new())
+	check.call(
+		Vector2(two.x, two.y).distance_to(before) > .0001 or two.knocked > 0.0,
+		"a co-op twister pulls player two too"
+	)

@@ -477,9 +477,12 @@ func use_item(slot := -1) -> void:
 ## Mirrors Game.move_actor: axis-separated world move with body separation, so
 ## the player cannot walk through a hostile actor (or an actor through them).
 ## (A hostile body keeps out of every player's way; a player out of the
-## enemies'; players who are up out of each other's.)
+## enemies'; players who are up out of each other's.) Any player may be the
+## body, not only the acting one (a twister or the hogs shoving player two).
 func move_actor(body: Variant, dx: float, dy: float, radius: float) -> void:
 	var p := player
+	if body is Player:
+		p = body
 	var neighbors: Array = []
 	if body == p and body_cells_on:
 		# (Several players: the bodies by cell, game.gd. Any of them blocks.)

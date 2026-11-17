@@ -18,6 +18,13 @@ level builder in [levels.md](levels.md).
   `src/save_upgrade.gd`, and running `tools/save_fixtures.gd -- make` to add
   saves of the new version to `godot/tools/saves/`. Never delete the old ones:
   they are how CI knows players' saves still load.
+- **A save file's numbers come back as floats** (JSON). A feature's
+  `restore()` reads each into a typed variable (`var slot: int = row[0]`)
+  before it is compared, looked up with `has()`/`find()` or used as an index:
+  `[0.0].find(0)` is -1. A seat list read back raw left a player saved at the
+  wheel on foot and the seat taken for good (polish pass 9;
+  `tools/save_numbers_check.gd` round-trips saves through JSON mid-ride,
+  mid-raid and mid-blackout).
 - **Tool scripts never write the player's settings** (`main_state.gd
   persist_options` returns when a script runs the main loop), and tests write
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
@@ -1175,7 +1182,9 @@ of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
   touches down after the siren and the scanner (`warn`), comes across at
   `speed`, swinging a little off its line, passing `pass_near`..`pass_far`
   beside a player or right through a standing barn or tower within
-  `aim_set_piece` of them, and lifts past the far side. Within `reach`,
+  `aim_set_piece` of them, and lifts past the far side (on past the map's
+  edge sometimes: the ground there is read with `LevelData.elevation_near`,
+  the nearest cell's). Within `reach`,
   under the open sky only (`roof_over`: seek cover), bodies are drawn round
   and in; in the `core` a player is knocked flat and hurt (`bite`), a hand
   stunned and hurt (`bite_enemy`, credited to the nearest player), the
@@ -1223,7 +1232,9 @@ of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
   surface darkened before the lights add theirs, the fog with it; lit
   windows' and signs' glow out) and the lamp props, street lamps and
   floodlights give no light (`view_lights.gd`); fires and lanterns burn on.
-  Every player has a flashlight, on: L (KEYS page `flashlight`; online and
+  Every player has a flashlight, on: L (KEYS page `flashlight`; the word
+  names the bound key, `game.torch_key`, none with a pad or touch, which have
+  no button for it yet; online and
   for bots `Controls.item == Game.TORCH`, 97; replay op `torch`) switches
   it. Its battery (`battery` seconds) runs down while it shines, flickers
   under `flicker`, dies; off, it gets `rest` a second back. Its beam is a
@@ -1450,7 +1461,8 @@ the versus maps or the hub (`[all] never`):
   (`blast_frame`), rams (`ram_frame`) or fire in its footprint
   (`burn_frame`, `burn_part`), and it creaks (`warn`): dust sifts, the call
   goes up (`call`), the county's hands round it run (`flee`, their
-  `retreat`). Then it comes down in its own pieces: the tin drops and slides
+  `retreat`, without `responded`: a save holds such a retreat since polish
+  pass 9, where Python's save check refused it). Then it comes down in its own pieces: the tin drops and slides
   the way it leans, the walls go over on their bottom edges, posts and
   plates fall, each a little apart in time (game.rng). A wall panel shot
   about shows its tile's `_hit` boards; shot through it goes over on its
