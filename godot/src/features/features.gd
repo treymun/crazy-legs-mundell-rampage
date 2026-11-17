@@ -30,6 +30,7 @@ const ALL := [
 	preload("res://src/features/carry.gd"),
 	preload("res://src/features/fire.gd"),
 	preload("res://src/features/stills.gd"),
+	preload("res://src/features/set_pieces.gd"),
 	preload("res://src/features/wreckage.gd"),
 	preload("res://src/features/water.gd"),
 	preload("res://src/features/impacts.gd"),

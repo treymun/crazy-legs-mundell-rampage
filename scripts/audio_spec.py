@@ -1214,6 +1214,19 @@ add("impact",
     # from the scrap-metal knock a fourth lower until a take of its own.
     metal_down=D("scenery_scrap", "pitch", cents=-500, keep=.8),
     )
+# The big breaks (content pass 8, godot/src/features/set_pieces.gd): a barn
+# or a water tower creaking before it goes, the barn caving in, the tower's
+# tank bursting in the street, the gas leaking from a holed pump and the fire
+# racing along it, a plank wall panel split.
+add("scene",
+    collapse_creak=N("An old timber pole barn straining before it gives way: deep wooden groans, beams creaking and popping, rusty nails squealing out, dust and grit trickling.", 2.4, style="scene"),
+    collapse_crash=N("A big wooden hay barn caving in all at once: corrugated tin roof sheets crashing down, heavy timber beams snapping and splintering, planks clattering in a long rolling crash.", 2.8, style="scene"),
+    tower_groan=N("A tall wooden water tower toppling over: its timber legs cracking and splitting, a long deep wooden groan, water sloshing heavily inside the tank.", 2.6, style="scene"),
+    tower_burst=N("A huge wooden water tank smashing into a street: staves bursting apart, iron hoops ringing, then a massive gush and splash of water flooding out across the ground.", 3.2, style="scene"),
+    gas_leak=N("Gasoline gushing and glugging out of a shot-up gas pump hose, a wet hissing spray pattering on concrete.", 1.8, style="scene"),
+    gas_whoosh=N("A trail of spilled gasoline catching fire: a quick rushing whoosh of flame racing along the ground.", 1.4, style="scene"),
+    plank_crack=N("Weathered barn planks split by a shotgun blast: a sharp dry splintering crack and a board knocked loose.", .8, style="scene"),
+    )
 
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "

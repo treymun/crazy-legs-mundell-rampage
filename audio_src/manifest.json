@@ -40993,6 +40993,267 @@
    },
    "validation": "ok"
   },
+  "collapse_creak": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/collapse_creak.mp3",
+   "prompt": "An old timber pole barn straining before it gives way: deep wooden groans, beams creaking and popping, rusty nails squealing out, dust and grit trickling.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/collapse_creak.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 25,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.4
+   },
+   "measured": {
+    "seconds": 2.375,
+    "peak_db": -0.8,
+    "loud_db": -7.9,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 3660,
+    "end_db": -166.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "collapse_crash": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/collapse_crash.mp3",
+   "prompt": "A big wooden hay barn caving in all at once: corrugated tin roof sheets crashing down, heavy timber beams snapping and splintering, planks clattering in a long rolling crash.",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/collapse_crash.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 153,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.8
+   },
+   "measured": {
+    "seconds": 2.589,
+    "peak_db": -0.8,
+    "loud_db": -13.0,
+    "dc": 0.0001,
+    "onset_ms": 0.4,
+    "centroid_hz": 4449,
+    "end_db": -172.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tower_groan": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tower_groan.mp3",
+   "prompt": "A tall wooden water tower toppling over: its timber legs cracking and splitting, a long deep wooden groan, water sloshing heavily inside the tank.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/tower_groan.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.6
+   },
+   "measured": {
+    "seconds": 2.56,
+    "peak_db": -0.8,
+    "loud_db": -6.7,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 309,
+    "end_db": -174.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tower_burst": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tower_burst.mp3",
+   "prompt": "A huge wooden water tank smashing into a street: staves bursting apart, iron hoops ringing, then a massive gush and splash of water flooding out across the ground.",
+   "credits": 36,
+   "destination": "audio_src/final/sfx/tower_burst.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 3.2
+   },
+   "measured": {
+    "seconds": 3.2,
+    "peak_db": -0.8,
+    "loud_db": -7.8,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1506,
+    "end_db": -157.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "gas_leak": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/gas_leak.mp3",
+   "prompt": "Gasoline gushing and glugging out of a shot-up gas pump hose, a wet hissing spray pattering on concrete.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/gas_leak.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.76,
+    "peak_db": -0.8,
+    "loud_db": -14.9,
+    "dc": 0.0001,
+    "onset_ms": 0.1,
+    "centroid_hz": 6335,
+    "end_db": -155.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "gas_whoosh": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/gas_whoosh.mp3",
+   "prompt": "A trail of spilled gasoline catching fire: a quick rushing whoosh of flame racing along the ground.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/gas_whoosh.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.4
+   },
+   "measured": {
+    "seconds": 1.36,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0002,
+    "onset_ms": 5.1,
+    "centroid_hz": 264,
+    "end_db": -167.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "plank_crack": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/plank_crack.mp3",
+   "prompt": "Weathered barn planks split by a shotgun blast: a sharp dry splintering crack and a board knocked loose.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/plank_crack.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.794,
+    "peak_db": -0.8,
+    "loud_db": -12.1,
+    "dc": 0.0001,
+    "onset_ms": 4.5,
+    "centroid_hz": 3422,
+    "end_db": -147.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "shotgun_alt": {
    "purpose": "new cue",
    "refs": [],
@@ -50776,6 +51037,13 @@
   "step_water_2",
   "step_water_3",
   "step_wood_2",
-  "step_wood_3"
+  "step_wood_3",
+  "collapse_creak",
+  "collapse_crash",
+  "tower_groan",
+  "tower_burst",
+  "gas_leak",
+  "gas_whoosh",
+  "plank_crack"
  ]
 }

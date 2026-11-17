@@ -12,6 +12,7 @@ extends RefCounted
 
 const Climb := preload("res://tools/levels/climb_kit.gd")
 const Climbs := preload("res://tools/levels/climbs.gd")
+const SetPieces := preload("res://tools/levels/set_piece_kit.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
@@ -43,7 +44,7 @@ func make() -> Builder:
 		"ending": '"NO REFUNDS AFTER THE ABDUCTION."',
 		"score": "fair_score",
 		"ambience": "fair",
-		"layout": 5,
+		"layout": 6,
 		"sky": "fair_sky",
 		"control_name": "CONCESSION AND BACKSTAGE PA",
 		"objective_side_tasks": ["bell"],
@@ -90,6 +91,7 @@ func build(_b) -> Array:
 	polish()
 	new_iron()
 	Climbs.fair(b)
+	SetPieces.fair(b)
 	return [64.5, 81.5, -PI / 2]
 
 

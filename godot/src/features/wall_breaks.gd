@@ -60,6 +60,9 @@ class WindowFace:
 	var edge := Vector4.ZERO
 	var whole := 0
 	var shot := 0
+	## Shot once it cracks first (<material>_crk, a lit one's _lck; -1 none).
+	var crack := -1
+	var cracked := false
 	var low := 0.0
 	var high := 0.0
 	var broken := false
@@ -155,13 +158,16 @@ static func _section(cfg: ConfigFile, name: String) -> Dictionary:
 func _find_windows() -> void:
 	var world: LevelData = game.world
 	var shot_of := {}
+	var crack_of := {}
 	for i in world.tile_names.size():
 		var name := String(world.tile_names[i])
 		for tail: String in ["_window", "_win", "_lit"]:
 			if name.ends_with(tail):
-				var broken := world.tile_id(name.trim_suffix(tail) + "_brk")
+				var base := name.trim_suffix(tail)
+				var broken := world.tile_id(base + "_brk")
 				if broken >= 0:
 					shot_of[i] = broken
+				crack_of[i] = world.tile_id(base + ("_lck" if tail == "_lit" else "_crk"))
 				break
 	var stride := LevelData.WALL_STRIDE
 	for i in world.wall_count:
@@ -182,6 +188,7 @@ func _find_windows() -> void:
 			continue
 		face.whole = tile
 		face.shot = shot_of[tile]
+		face.crack = crack_of.get(tile, -1)
 		var bottom: float = world.walls[o + 6]
 		var top: float = world.walls[o + 7]
 		if (
@@ -580,7 +587,12 @@ func strike(x: float, y: float, z: float, ax: float, ay: float, amount: float) -
 		if z < face.low or z > face.high:
 			continue
 		if not face.broken:
-			_break_window(face, false)
+			# Layers: a first round cracks the glass, the next shoots it out
+			# (a load of buckshot or a big round does both at once).
+			if face.crack >= 0 and not face.cracked and amount < win.get("crack_most", 50.0):
+				_crack_window(face, false)
+			else:
+				_break_window(face, false)
 		return HOLE
 	var f: Fence = fences.get(cell)
 	if f != null:
@@ -678,12 +690,32 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 # ------------------------------------------------------------------ breaking
 
 
+## Shot once: the glass cracks from the hole and stays in its frame.
+func _crack_window(face: WindowFace, quiet: bool) -> void:
+	face.cracked = true
+	net_version += 1
+	var world: LevelData = game.world
+	for i in world.walls_on(face.edge.x, face.edge.y, face.edge.z, face.edge.w):
+		if int(world.walls[i * LevelData.WALL_STRIDE + 4]) == face.whole:
+			world.set_wall_tile(i, face.crack)
+	if quiet:
+		return
+	var n := face.normal()
+	var at := face.middle() + n * .1
+	var z := (face.low + face.high) * .5
+	game.burst(at.x, at.y, z, "glass", 4, 1.0)
+	game.sound_at(str(win.get("crack_cue", "glass_settle")), at.x, at.y, .7)
+	var heard: float = win.get("heard", 6.8)
+	game.disturb(at.x, at.y, heard * .5, z)
+
+
 func _break_window(face: WindowFace, quiet: bool) -> void:
 	face.broken = true
 	net_version += 1
 	var world: LevelData = game.world
 	for i in world.walls_on(face.edge.x, face.edge.y, face.edge.z, face.edge.w):
-		if int(world.walls[i * LevelData.WALL_STRIDE + 4]) == face.whole:
+		var now := int(world.walls[i * LevelData.WALL_STRIDE + 4])
+		if now == face.whole or (face.crack >= 0 and now == face.crack):
 			world.set_wall_tile(i, face.shot)
 	if quiet:
 		return
@@ -879,9 +911,12 @@ func forget() -> void:
 
 func save() -> Dictionary:
 	var shot: Array = []
+	var cracked: Array = []
 	for face: WindowFace in windows:
 		if face.broken:
 			shot.append([face.edge.x, face.edge.y, face.edge.z, face.edge.w])
+		elif face.cracked:
+			cracked.append([face.edge.x, face.edge.y, face.edge.z, face.edge.w])
 	var knocked: Array = []
 	var w: int = game.world.width
 	var keys: Array = fences.keys()
@@ -890,9 +925,12 @@ func save() -> Dictionary:
 		var f: Fence = fences[key]
 		if f.hp < f.most:
 			knocked.append([f.cell.x, f.cell.y, f.stage, snappedf(f.hp, .1)])
-	if shot.is_empty() and knocked.is_empty():
+	if shot.is_empty() and knocked.is_empty() and cracked.is_empty():
 		return {}
-	return {"windows": shot, "fences": knocked}
+	var out := {"windows": shot, "fences": knocked}
+	if not cracked.is_empty():
+		out["cracked"] = cracked
+	return out
 
 
 func restore(state: Dictionary) -> void:
@@ -912,6 +950,19 @@ func restore(state: Dictionary) -> void:
 		var face: WindowFace = by_edge.get(Vector4(ax, ay, bx, by))
 		if face != null and not face.broken:
 			_break_window(face, true)
+	for item: Variant in state.get("cracked", []):
+		if not (item is Array):
+			continue
+		var row: Array = item
+		if row.size() != 4:
+			continue
+		var cx: float = row[0]
+		var cy: float = row[1]
+		var dx: float = row[2]
+		var dy: float = row[3]
+		var face: WindowFace = by_edge.get(Vector4(cx, cy, dx, dy))
+		if face != null and not face.broken and not face.cracked and face.crack >= 0:
+			_crack_window(face, true)
 	for item: Variant in state.get("fences", []):
 		if not (item is Array):
 			continue

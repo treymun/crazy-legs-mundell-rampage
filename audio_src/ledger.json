@@ -35356,14 +35356,161 @@
    "bytes": 47063
   },
   {
-   "id": "reconcile@2026-11-16T16:07:10",
+   "id": "sfx/tower_burst#1",
+   "kind": "sfx",
+   "name": "tower_burst",
+   "params": {
+    "text": "A huge wooden water tank smashing into a street: staves bursting apart, iron hoops ringing, then a massive gush and splash of water flooding out across the ground. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 3.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "048cd0b8f8ca",
+   "reserved": 133,
+   "status": "settled",
+   "started": "2026-11-16T17:57:27",
+   "actual": 36,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tower_burst.mp3",
+   "bytes": 78410
+  },
+  {
+   "id": "sfx/collapse_crash#1",
+   "kind": "sfx",
+   "name": "collapse_crash",
+   "params": {
+    "text": "A big wooden hay barn caving in all at once: corrugated tin roof sheets crashing down, heavy timber beams snapping and splintering, planks clattering in a long rolling crash. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 2.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2e1c2d48551a",
+   "reserved": 117,
+   "status": "settled",
+   "started": "2026-11-16T17:57:27",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/collapse_crash.mp3",
+   "bytes": 67752
+  },
+  {
+   "id": "sfx/collapse_creak#1",
+   "kind": "sfx",
+   "name": "collapse_creak",
+   "params": {
+    "text": "An old timber pole barn straining before it gives way: deep wooden groans, beams creaking and popping, rusty nails squealing out, dust and grit trickling. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 2.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9c637e3d7825",
+   "reserved": 101,
+   "status": "settled",
+   "started": "2026-11-16T17:57:27",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/collapse_creak.mp3",
+   "bytes": 58975
+  },
+  {
+   "id": "sfx/tower_groan#1",
+   "kind": "sfx",
+   "name": "tower_groan",
+   "params": {
+    "text": "A tall wooden water tower toppling over: its timber legs cracking and splitting, a long deep wooden groan, water sloshing heavily inside the tank. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 2.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "02b5bf1ba497",
+   "reserved": 109,
+   "status": "settled",
+   "started": "2026-11-16T17:57:27",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tower_groan.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "sfx/gas_leak#1",
+   "kind": "sfx",
+   "name": "gas_leak",
+   "params": {
+    "text": "Gasoline gushing and glugging out of a shot-up gas pump hose, a wet hissing spray pattering on concrete. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "dbf51e39c19c",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-16T17:57:29",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/gas_leak.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "sfx/gas_whoosh#1",
+   "kind": "sfx",
+   "name": "gas_whoosh",
+   "params": {
+    "text": "A trail of spilled gasoline catching fire: a quick rushing whoosh of flame racing along the ground. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "14f726310735",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-16T17:57:30",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/gas_whoosh.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/plank_crack#1",
+   "kind": "sfx",
+   "name": "plank_crack",
+   "params": {
+    "text": "Weathered barn planks split by a shotgun blast: a sharp dry splintering crack and a board knocked loose. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "90134bcf948a",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-16T17:57:30",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/plank_crack.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "reconcile@2026-11-16T17:58:33",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20218,
+   "actual": -17366,
    "basis": "account",
-   "balance_after": 73270
+   "balance_after": 76294
   }
  ],
  "anchor": {
@@ -35371,7 +35518,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T16:07:10",
-  "account_drop": 68547
+  "when": "2026-11-16T17:58:33",
+  "account_drop": 71571
  }
 }

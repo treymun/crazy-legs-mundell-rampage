@@ -467,6 +467,15 @@ func _bump(v: VehicleDrive.Ride, s: VehicleDrive.Spec, speed: float, driver: Pla
 	var breaks: GameFeature = game.features.get("wall_breaks")
 	if breaks != null and speed > 1.0:
 		breaks.call("crash", v.bump_x, v.bump_y, v.z + .5, -dir.x, -dir.y, speed * 9.0)
+	# A barn's post or wall, a tower's leg rammed (features/set_pieces.gd).
+	var sets: GameFeature = game.features.get("set_pieces")
+	if sets != null and speed >= s.ram_from:
+		var hit: int = sets.call(
+			"touch", v.bump_x - dir.x * .1, v.bump_y - dir.y * .1, v.z + .5, .3
+		)
+		if hit >= 0:
+			var knock := s.ram * speed * SetPieceShape.num("all", "ram_frame", .6) * 2.0
+			sets.call("strike", hit, knock, -dir.x, -dir.y)
 	var from := VehicleDrive.shared("bump_from")
 	if speed < from:
 		return

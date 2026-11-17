@@ -43,7 +43,7 @@ const VERSION := 3
 static var _guarded := {}
 ## Features whose save() is how the level's walls and floor are put back (a
 ## piece broken leaves its base, a fence shot through opens its cell).
-const FACT_FEATURES := ["breakables", "wall_breaks", "arena_wreck", "boss_lock"]
+const FACT_FEATURES := ["breakables", "wall_breaks", "arena_wreck", "boss_lock", "set_pieces"]
 ## The game's simulation state: carried and put back.
 const SIM_FIELDS := [
 	"clock",
@@ -297,6 +297,7 @@ const SIM_FEATURES := [
 	"carry",
 	"fire",
 	"stills",
+	"set_pieces",
 	"boss_rematch",
 	"boss_arena",
 	"boss_arenas",

@@ -16,6 +16,7 @@
 extends RefCounted
 
 const Climbs := preload("res://tools/levels/climbs.gd")
+const SetPieces := preload("res://tools/levels/set_piece_kit.gd")
 const Climb := preload("res://tools/levels/climb_kit.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Cast := preload("res://tools/levels/speedway_cast.gd")
@@ -70,7 +71,7 @@ func make() -> Builder:
 		# The far-off crowd of the range maps until the speedway has a bed of its
 		# own (docs/dev/audio.md): race night, not the yard's crickets.
 		"ambience": "range",
-		"layout": 4,
+		"layout": 5,
 		"sky": "speedway_sky",
 		"control_name": "FIX THE FIX: FUEL, CRUSHER, PA",
 		"extraction":
@@ -113,6 +114,7 @@ func build(_b) -> Array:
 	cast.dress(self)
 	heat_race()
 	Climbs.speedway(b)
+	SetPieces.speedway(b)
 	return [12.0, 100.5, -PI / 2]
 
 

@@ -78,6 +78,10 @@ var _seen_windows := {}
 var _fence_stage := {}
 var _version := -1
 var _wall_version := -1
+## The set pieces' parts as last seen (features/set_pieces.gd): "<i>:<k>" ->
+## its state, so a tank burst throws its staves and a piece landing splinters.
+var _set_out := {}
+var _set_version := -1
 ## Blasts lately: [x, y, z, clock].
 var _blasts: Array = []
 var _groups := 0
@@ -153,6 +157,15 @@ func _sync() -> void:
 		for cell: Vector2i in walls.fences:
 			var f: WallBreaks.Fence = walls.fences[cell]
 			_fence_stage[cell] = f.stage
+	_set_out.clear()
+	var sets: SetPiecesFeature = game.features.get("set_pieces")
+	if sets != null:
+		_set_version = sets.net_version
+		for i in sets.pieces.size():
+			var st: Dictionary = sets.pieces[i]
+			var outs: Array = st["out"]
+			for k in outs.size():
+				_set_out["%d:%d" % [i, k]] = outs[k]
 
 
 func restore(_state: Dictionary) -> void:
@@ -222,6 +235,47 @@ func _watch() -> void:
 			if f.stage > was:
 				_fence_stage[cell] = f.stage
 				_knock_fence(f, was)
+	var sets: SetPiecesFeature = game.features.get("set_pieces")
+	if sets != null and sets.net_version != _set_version:
+		_set_version = sets.net_version
+		_watch_sets(sets)
+
+
+## A set piece's tank burst throws its staves, hoops, cap and deck; a big
+## piece coming down, or a post or a leg knocked out, throws splinters.
+func _watch_sets(sets: SetPiecesFeature) -> void:
+	for i in sets.pieces.size():
+		var st: Dictionary = sets.pieces[i]
+		var outs: Array = st["out"]
+		var made: Array = sets.shapes[i]
+		var lean_row: Array = st["lean"]
+		var lean := Vector2(SetPieceShape.f(lean_row[0]), SetPieceShape.f(lean_row[1]))
+		for k in outs.size():
+			var tag := "%d:%d" % [i, k]
+			var now: int = outs[k]
+			var was: int = _set_out.get(tag, SetPiecesFeature.UP)
+			if now == was:
+				continue
+			_set_out[tag] = now
+			var part: SetPieceShape.Part = made[k]
+			var at: Array = sets.pose(i, k, game.clock)
+			var c: Vector3 = at[0]
+			var q: Quaternion = at[1]
+			if now == SetPiecesFeature.GONE and part.tank:
+				var src := {"key": part.key, "origin": c, "basis": Basis(q), "size": 1.0}
+				_throw(src, Vector3(lean.x, lean.y, 2.2), 1.0, 99, "debris_settle", [])
+			elif part.tile != "" and part.role != "pipe":
+				var big := part.half.length() > 1.0
+				if now == SetPiecesFeature.LYING and not big:
+					continue
+				var splinters := {
+					"key": "t:%s@0.7,0.7|planks:2,2" % part.tile,
+					"origin": c - Vector3(0, 0, .2),
+					"basis": Basis(Vector3(0, 0, 1), dice.randf() * TAU),
+					"size": 1.0,
+				}
+				var knock := Vector3(lean.x * .5, lean.y * .5, .9)
+				_throw(splinters, knock, .7, 3 if big else 2, "debris_settle", [])
 
 
 func _exploded(x: float, y: float, z: float, _energy: bool) -> void:
