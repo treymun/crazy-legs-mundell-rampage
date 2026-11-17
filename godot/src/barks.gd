@@ -109,6 +109,12 @@ const LINES := {
 	"hound_come": ["BLUE! HERE, BOY!"],
 	"hound_good": ["GOOD BOY, BLUE.", "THAT'S MY DOG."],
 	"hound_up": ["HANG ON, BLUE. I GOTCHA."],
+	# The county events (features/county_events.gd).
+	"event_twister": ["TWISTER! GIT UNDER A ROOF!", "THAT AIN'T NO DUST DEVIL."],
+	"event_hogs": ["HOGS! HIT THE FENCE!", "SOOIE! LOOK OUT!"],
+	"event_raid": ["REVENUERS! HIDE THE JUGS!", "REVENUE MEN. FIGURES."],
+	"event_dark": ["WHO FORGOT THE LIGHT BILL?", "DARK AS THE INSIDE OF A COW."],
+	"event_light": ["LET THERE BE LIGHT."],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -133,7 +139,12 @@ const COOLDOWN := {
 	"hound_stay": 1.5,
 	"hound_come": 1.5,
 	"hound_good": 9.0,
-	"hound_up": 2.0
+	"hound_up": 2.0,
+	"event_twister": 2.0,
+	"event_hogs": 2.0,
+	"event_raid": 2.0,
+	"event_dark": 2.0,
+	"event_light": 2.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

@@ -597,6 +597,8 @@ static func apply_op(g: Game, op: Array) -> Variant:
 			g.player.pitch = 0.0
 		"hound":
 			g.hound_call()
+		"torch":
+			g.torch()
 		"pocket":
 			g.inventory_slot = arg
 		"county":

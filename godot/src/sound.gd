@@ -223,7 +223,9 @@ const BED_RAIN := 0
 const BED_ROOF := 1
 const BED_NEAR := 2
 const BED_WAKE := 3
-const BEDS := 4
+## A county event's loop (features/event_looks.gd): a twister's roar, hooves.
+const BED_EVENT := 4
+const BEDS := 5
 
 
 ## Small deterministic generator so shuffling never touches the global RNG.

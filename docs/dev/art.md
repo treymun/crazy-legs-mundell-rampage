@@ -231,6 +231,15 @@ a shop lamp falling in the saw floor's arena.
      pixels, cels only (`cels_only`: export_actors.py makes no model of it),
      lit with the rims down and no road dirt (`_CLEAN`). `build_enemy_actors.gd --
      kinds=hound,hound_face`, then the steps below for `hound`.
+   - The county events' razorback (`actors_hog.py`, content pass 8) is a
+     kind with its own frames like the hound (`0`, the gallop `r0..r4`,
+     `down`), built square for the model, legs of fixed pieces posed by IK,
+     a bristle coat sized to each part (`_hog_coat`: streaks along the body,
+     grizzled tips, mud caked up from the ground), a ridge of bristles down
+     the spine, the flat snout and tusks; its balls are 16 x 10 (`_hog_sphere`) and its
+     looks bake at 256 (`FINE`): it is in the browser's first download. Every name in it starts `_hog`
+     (actors_hound.py is exec'd after it and has its own `_leg`, `_body`).
+     `build_enemy_actors.gd -- kinds=hog`, then the steps below for `hog`.
 2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
    [rig-only] [raw=<dir>]` grades and digitizes
    (`assets/art/actor3d_<kind>[_<look>].png`) and writes

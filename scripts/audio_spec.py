@@ -36,6 +36,7 @@ STYLE = {
     "vox": "One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
     "sting": "Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
     "scene": "Close, dry, comic prop destruction foley. No music, no voice.",
+    "event": "Big, real outdoor sound recorded on a rural night, full and dramatic, not musical. No music, no voice.",
     "crowd": "A small rural outdoor crowd, a few dozen people, short, slightly distant. No music.",
 }
 
@@ -1153,6 +1154,9 @@ MUNDELL_HEARD = {
     "mundell_station_3": "Mama, I'd be proud.",
     "mundell_pickup_food_1": "Um, salty.",
     "mundell_streak_2": "It's Rampage Times!",
+    "mundell_event_dark_1": "Dark as the inside of a cow's",
+    "mundell_event_hogs_1": "Zoe, look out!",
+    "mundell_event_raid_1": "Revenue man. Figures",
 }
 # Where the voice needs the words spelt as said (BLUE's "sic 'em").
 MUNDELL_SAY = {
@@ -1257,6 +1261,29 @@ add("scene",
     gas_whoosh=N("A trail of spilled gasoline catching fire: a quick rushing whoosh of flame racing along the ground.", 1.4, style="scene"),
     plank_crack=N("Weathered barn planks split by a shotgun blast: a sharp dry splintering crack and a board knocked loose.", .8, style="scene"),
     )
+# The county events (content pass 8, godot/src/features/county_events.gd,
+# features/event_looks.gd): the civil defence siren and the twister's roar, a
+# herd of razorbacks stampeding and squealing, the revenue men's sirens, the
+# power dying and coming back, the flashlight's switch and the main breaker.
+add("distant",
+    tornado_siren=N("A lone hand-cranked civil defense siren on a pole in a small country town, wailing slowly up and down, heard across open fields at night.", 6.0, 4.2, style="event"),
+    )
+add("near",
+    tornado_roar=LOOP("The deep continuous roar of a tornado passing close by: a freight-train rumble, howling wind, boards and sheet tin rattling and banging in it, steady.", 6.0, 4.0, "event"),
+    hog_stampede=LOOP("A herd of wild razorback hogs stampeding past on dirt: many hooves drumming fast, grunting and snorting, steady.", 4.0, 3.0, "event"),
+    )
+add("alert",
+    hog_squeal=N("A wild hog squeals loudly as it runs, one short sharp squeal.", .9, style="creature"),
+    )
+add("scene",
+    raid_siren=N("Three old 1990s police cruisers roaring up a gravel road, mechanical sirens wailing and tires spitting gravel, coming closer.", 4.0, style="event"),
+    power_down=N("A small town's power failing: a transformer pops with a loud electric bang and buzz, then a deep electrical hum winding down into silence.", 2.4, style="event"),
+    power_up=N("The power coming back on: a heavy electrical clunk, a rising hum, old fluorescent lights ticking and buzzing to life.", 2.2, style="event"),
+    breaker_throw=N("A big rusty knife switch on an old fuse box thrown hard: a heavy metal clunk and a crackle of electric sparks.", 1.0, style="mech"),
+    )
+add("equip",
+    torch_click=N("A cheap plastic flashlight switch clicked once.", .5, style="mech"),
+    )
 
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "
@@ -1345,6 +1372,9 @@ RADIO_HEARD: dict[str, str] = {
     "dj_ad_3": "the Possum County Fair's back. Rides inspected by somebody, probably",
     "dj_wreck_0": "Report of a wreck tonight. Nobody hurt but the car's feelings",
     "dj_boss_boggs_0": "Bumper Boggs lost a derby. Folks, I've been on the air 30 years. Never",
+    "scan_outage_0": "A power outage countywide. Co-ops send in a truck",
+    "dj_twister_0": "That twister took Earl's barn. Earl says it was leaning anyhow",
+    "dj_outage_0": "Lights are back on. Whoever was using the dark to steal my lawnmower, I know who you are",
 }
 # Captions put the way the voice said them: the words sent were these.
 RADIO_SAID = {

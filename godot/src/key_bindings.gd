@@ -36,6 +36,7 @@ const ACTIONS := [
 	["turn_around", "TURN AROUND", KEY_BACKSPACE, []],
 	["always_run", "ALWAYS RUN ON/OFF", KEY_CAPSLOCK, []],
 	["whistle", "WHISTLE FOR BLUE", KEY_G, []],
+	["flashlight", "FLASHLIGHT", KEY_L, []],
 ]
 
 ## What a key does where its label alone does not say (the KEYS page's help).
@@ -45,6 +46,7 @@ const HINTS := {
 	"holster": "PUTS THE GUN AWAY AND TAKES IT OUT AGAIN",
 	"always_run": "FLIPS ALWAYS RUN ON AND OFF",
 	"whistle": "AIMED AT A VARMINT: SIC 'EM. AT A PICKUP: FETCH. ELSE STAY/COME",
+	"flashlight": "SWITCHES YOUR FLASHLIGHT WHEN THE POWER'S OUT",
 }
 
 ## Bound key -> the default key of its action, for keys that differ.

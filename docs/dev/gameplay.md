@@ -23,8 +23,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (72 now;
-  HOUND DOG is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (74 now;
+  COUNTY EVENTS is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -996,6 +996,116 @@ hounds and their own whistles; two games in lockstep with him about, a
 snapshot onto a fresh game running on the same; his art, the stand-in and
 the badge. `-- play=<level>` lets the campaign bot play two minutes with him
 and prints what he did.
+
+### County events (content pass 8)
+
+Now and then a campaign chapter gets something nobody planned, so no two
+runs through it go alike: a twister, a hog stampede, a revenue raid or (in
+the night chapters) a blackout. `features/county_events.gd` (`CountyEvents`,
+id `events`, a SIM feature, saved) plans and runs them; each kind is a file
+of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
+`event_raid.gd`, `event_dark.gd`. The sights and sounds are
+`features/event_looks.gd` (looks) and the 3D view. Numbers in
+`data/tuning/events.cfg`.
+
+- **The plan.** COUNTY EVENTS (PLAY page, `events`: OFF, SOMETIMES, OFTEN;
+  SOMETIMES by default; a net match takes the host's, it is in the lobby's
+  sim options). A game reads `events` with 0 when it is missing, and the
+  front end sets it to 0 for tools and view tours (`main.gd`), so every
+  check, replay and picture made before them is the same; off, not one die
+  is cast. On the first tick of a campaign chapter, alone or in co-op (not
+  the hub, the range, the Mothership, a rematch, County Run or a versus
+  map), game.rng says whether it gets one (`chance_often`,
+  `chance_sometimes`), which (`weights`; a blackout only in `night`
+  levels) and when (`start_after`, OFTEN sooner). At that time it starts if
+  it can: no boss awake and standing, everyone up, a place for it found at
+  run time from the level (nothing in the chapter plans: a new chapter gets
+  them for free). Else it tries again every `retry`, eight times. At most
+  one a chapter, never within `boss_clear` of a boss. A boss fight starting
+  cuts one short (the twister lifts, the herd runs off, the power comes
+  back). Nothing it does shuts a way: a barn it tears down falls by the set
+  pieces' own rules.
+- **The twister.** `start_far` out (13 cells at least from the player) it
+  touches down after the siren and the scanner (`warn`), comes across at
+  `speed`, swinging a little off its line, passing `pass_near`..`pass_far`
+  beside a player or right through a standing barn or tower within
+  `aim_set_piece` of them, and lifts past the far side. Within `reach`,
+  under the open sky only (`roof_over`: seek cover), bodies are drawn round
+  and in; in the `core` a player is knocked flat and hurt (`bite`), a hand
+  stunned and hurt (`bite_enemy`, credited to the nearest player), the
+  breakables smashed, a set piece's parts torn (`set_pieces.blast` every
+  `rip_every`: a barn comes down in its pieces, a tower over), the dead
+  shoved, and a loose thing near torn off its place and flung round
+  (`carry.fling`; in flight it hurts whoever it strikes, as a hand's throw).
+  Drawn by `view3d/twister.gdshader` (`world_view.gd _twister_at`): the
+  funnel, a cone of cloud bent and swaying, bands spiralling up it, frayed
+  at its edges, debris silhouettes whirled in it; a torn skirt of dirt at its
+  foot; the wall cloud it hangs from; forming and lifting, the rope shows
+  from the cloud down to where it reaches. event_looks whirls breakables'
+  bits (`fx_brk_*`) and dust round its foot and plays `tornado_roar` on its
+  own bed (`Sound.BED_EVENT`), muffled under a roof.
+- **The stampede.** A run of open ground (`run_least`..`run_most`, one
+  floor height) through a point within `pass_near` of a player, preferring a
+  long one that starts out of their sight; `count` razorbacks bunched
+  `spread` wide gallop down it at `pace`, scatter at its end and are gone
+  once out of sight. Trampled: a player knocked flat and hurt (`trample`), a
+  hand stunned and hurt, a low breakable bowled over; a blast kills the hogs
+  it reaches. The hogs are rows in the feature (not enemies: nothing to
+  count), moved like a hand (`LevelData.move`), drawn by their own model
+  (`scripts/blender/actors_hog.py`, `scenes/actors/hog.tscn`: a razorback,
+  its frames `0`, the gallop `r0..r4`, `down`) through a stand-in
+  (`ModeBodies.stand_in`, `hog<i>`), the gallop on their gait. Dust behind
+  them, squeals, `hog_stampede` hooves on the event bed.
+- **The raid.** A still standing (`EventRaid.STILLS`) within 45 cells of a
+  player, else the county's hands where three or more gather asleep; the
+  squad (`count`, `count_hard` on HARD and up) comes in out of every
+  player's sight `come_from` away where the player's flow field reaches.
+  The squad is the first of `kinds` the game has: a `revenuer` kind when one
+  is made (the hook), else the yard and shield deputies. They join the
+  enemies after the level's own (`features/posse.gd` saves them) and count
+  as varmints. Every half second a raider picks a fight with the nearest of
+  the county's hands it sees (`grudge` both ways, the hand woken):
+  `Enemy.tick` asks `CountyEvents.feud` before a brawl, and a raider in
+  sight of its foe shoots (`shot_every`, `hit`, `hurt`; event_looks draws the
+  streak) while the hand comes at it with its fists (the old brawl). At the
+  still they bust it. Over when the last of them is down, or after `most`.
+- **The blackout.** The breaker first: a spot on a wall `breaker_far` from
+  the player, on their floor, that their flow field reaches (the quest
+  switch's model, `town_quest_switch_off`, a red lamp blinking). Then the
+  power dies in stutters over `fade`: `darkness()` (`dark` of the light
+  gone) goes to the view as `blackout` (`view_light.gdshaderinc`: every
+  surface darkened before the lights add theirs, the fog with it; lit
+  windows' and signs' glow out) and the lamp props, street lamps and
+  floodlights give no light (`view_lights.gd`); fires and lanterns burn on.
+  Every player has a flashlight, on: L (KEYS page `flashlight`; online and
+  for bots `Controls.item == Game.TORCH`, 97; replay op `torch`) switches
+  it. Its battery (`battery` seconds) runs down while it shines, flickers
+  under `flicker`, dies; off, it gets `rest` a second back. Its beam is a
+  spot light: `EventDark.spot_flags` packs the way (yaw, pitch) and cone into
+  the light's flags (bit 2), and the shader lights a stepped hot middle,
+  ring and edge in the cone, carrying further than a lamp. `lanterns` of the
+  hands carry one (a warm light, `event_lantern` in the fist). Play:
+  `Enemy.tick` scales how far a calm hand notices a player by
+  `CountyEvents.notice` (`dark_sight`; `lit_sight` with their light on; 1 for
+  a lantern hand). USE by the breaker (THROW THE MAIN BREAKER,
+  `game_use.gd`) or `back_after` brings the power back. The battery shows on
+  the HUD over BLUE's badge.
+- **The word on it.** The civil defence siren (`tornado_siren`), the
+  revenue men's sirens (`raid_siren`), `power_down`, `power_up`; Mundell's
+  lines (`event_twister`, `event_hogs`, `event_raid`, `event_dark`,
+  `event_light`); the radio: the scanner's call (`scan_twister`,
+  `scan_hogs`, `scan_raid`, `scan_outage`), Dub's bulletin over the music
+  (`RadioStation.bulletin`, `dj_bulletin_twister`, `dj_bulletin_outage`) and
+  his word at the next break (`dj_twister`, `dj_hogs`, `dj_raid`,
+  `dj_outage`).
+- **Play, the same everywhere.** Every variable of the feature is carried
+  (plain values; its numbers and the hogs' body are `SnapCodec.SKIP_FIELDS`),
+  game.rng only. Saved in the save's features block (no new save version);
+  a save from before them gets the chapter's own plan.
+- `tools/events_check.gd` (EVENTS CHECK OK, check_all) holds it;
+  `tools/events_frames.gd -- out=<dir>` pictures each in a window;
+  `bot_campaign.gd -- events` walks the campaign with one played out at the
+  start of every chapter.
 
 ### Walls break too
 

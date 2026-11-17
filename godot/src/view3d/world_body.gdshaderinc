@@ -175,7 +175,7 @@ void fragment() {
 			}
 		}
 	}
-	float glow = effects_on ? 1.0 - fetched.a : 0.0;
+	float glow = effects_on ? (1.0 - fetched.a) * (1.0 - blackout) : 0.0;
 	lit = max(lit, glow);
 	if (effects_on && anim_count > 0) {
 		lit *= anim_light(tile);

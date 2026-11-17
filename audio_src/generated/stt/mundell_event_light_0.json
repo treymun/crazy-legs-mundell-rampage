@@ -1,0 +1,25 @@
+{
+ "text": "Let there be light",
+ "words": [
+  {
+   "text": "Let",
+   "start": 0.2,
+   "end": 0.4
+  },
+  {
+   "text": "there",
+   "start": 0.48,
+   "end": 0.8
+  },
+  {
+   "text": "be",
+   "start": 0.9,
+   "end": 1.04
+  },
+  {
+   "text": "light",
+   "start": 1.18,
+   "end": 1.52
+  }
+ ]
+}

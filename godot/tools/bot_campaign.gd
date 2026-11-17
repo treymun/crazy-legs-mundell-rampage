@@ -3,7 +3,9 @@
 ## round-trip at every transition. Objectives are driven through the same calls
 ## the game makes (hit_scenery, interact, continue_campaign, travel), not by
 ## poking `won`, so a broken trigger shows up here. `-- hound` walks it with
-## BLUE along (tools play without him).
+## BLUE along (tools play without him); `-- events` with a county event
+## (features/county_events.gd) set off and played out at the start of every
+## chapter, a different one each, so none of them shuts a chapter.
 extends SceneTree
 
 var failures: Array = []
@@ -30,6 +32,8 @@ func _run() -> void:
 	if OS.get_cmdline_user_args().has("hound"):
 		# `-- hound`: the walk with BLUE along (tools play without him).
 		main.options["hound"] = 1
+	if OS.get_cmdline_user_args().has("events"):
+		main.options["events"] = 2
 
 	print("NEW GAME")
 	main.start("hickston")
@@ -147,10 +151,48 @@ func _run() -> void:
 
 
 ## Clear a chapter through its real objective chain.
+## `-- events`: one county event set off at once and played out (each
+## chapter the next kind it can have), the chapter's own work after it.
+func play_event(g: Game, chapter: String) -> void:
+	var ev: CountyEvents = g.features.get("events")
+	if ev == null or not ev.allowed():
+		print("  (no events in ", chapter, ")")
+		return
+	# The next kind it has that finds a place here (a raid needs a still or
+	# a gathering of hands near the player; one that cannot start waits).
+	var first: String = (
+		{"hickston": "raid", "fair": "blackout", "sawmill": "hogs", "bayou": "blackout"}
+		. get(chapter, "twister")
+	)
+	# A moment of play first: the player's flow field (where the raid and
+	# the breaker look for a way) is made on the first ticks.
+	for t in 30:
+		g.tick(1.0 / 60.0, Game.Controls.new())
+	var kinds := ev.kinds_here()
+	var at := maxi(0, kinds.find(first))
+	var pick := ""
+	for k in kinds.size():
+		var kind: String = kinds[(at + k) % kinds.size()]
+		if ev.begin(kind):
+			pick = kind
+			break
+	check(pick != "", "%s: a %s set off" % [chapter, pick])
+	for t in 60 * 180:
+		g.tick(1.0 / 60.0, Game.Controls.new())
+		if ev.kind == "":
+			break
+	check(ev.kind == "", "%s: the %s played out" % [chapter, pick])
+	if ev.kind != "":
+		ev.finish()
+	g.player.health = 100
+
+
 func clear_chapter(main: Control, chapter: String) -> void:
 	var g: Game = main.game
 	g.cheats.god = true
 	g.player.health = 100
+	if OS.get_cmdline_user_args().has("events"):
+		play_event(g, chapter)
 	if chapter == "hickston":
 		check(g.collect("key_brass"), "picked up the brass key")
 		check(g.keys.has("key_brass"), "brass key registered")

@@ -1,0 +1,50 @@
+{
+ "text": "State revenue agents requesting backup at a moonshine still",
+ "words": [
+  {
+   "text": "State",
+   "start": 0.0,
+   "end": 0.4
+  },
+  {
+   "text": "revenue",
+   "start": 0.52,
+   "end": 0.92
+  },
+  {
+   "text": "agents",
+   "start": 1.04,
+   "end": 1.5
+  },
+  {
+   "text": "requesting",
+   "start": 1.62,
+   "end": 2.24
+  },
+  {
+   "text": "backup",
+   "start": 2.34,
+   "end": 2.94
+  },
+  {
+   "text": "at",
+   "start": 3.14,
+   "end": 3.4
+  },
+  {
+   "text": "a",
+   "start": 3.58,
+   "end": 3.74
+  },
+  {
+   "text": "moonshine",
+   "start": 3.8,
+   "end": 4.7
+  },
+  {
+   "text": "still",
+   "start": 4.94,
+   "end": 5.34
+  }
+ ]
+}

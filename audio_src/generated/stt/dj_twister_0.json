@@ -1,0 +1,60 @@
+{
+ "text": "That twister took Earl's barn. Earl says it was leaning anyhow",
+ "words": [
+  {
+   "text": "That",
+   "start": 0.24,
+   "end": 0.42
+  },
+  {
+   "text": "twister",
+   "start": 0.48,
+   "end": 0.86
+  },
+  {
+   "text": "took",
+   "start": 0.98,
+   "end": 1.18
+  },
+  {
+   "text": "Earl's",
+   "start": 1.24,
+   "end": 1.54
+  },
+  {
+   "text": "barn.",
+   "start": 1.66,
+   "end": 2.04
+  },
+  {
+   "text": "Earl",
+   "start": 2.08,
+   "end": 2.28
+  },
+  {
+   "text": "says",
+   "start": 2.38,
+   "end": 2.6
+  },
+  {
+   "text": "it",
+   "start": 2.66,
+   "end": 2.7
+  },
+  {
+   "text": "was",
+   "start": 2.76,
+   "end": 2.88
+  },
+  {
+   "text": "leaning",
+   "start": 2.96,
+   "end": 3.32
+  },
+  {
+   "text": "anyhow",
+   "start": 3.38,
+   "end": 3.9
+  }
+ ]
+}

@@ -760,6 +760,8 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 			mode_state.rules().buy(self, mode_state, p, controls.buy)
 	if controls.item == HOUND_CALL:
 		hound_call()
+	elif controls.item == TORCH:
+		torch()
 	elif controls.item >= POCKET_PICK:
 		inventory_slot = clampi(controls.item - POCKET_PICK, 0, HUD.ITEMS.size() - 1)
 	elif controls.item >= 0:
@@ -838,6 +840,14 @@ func use_prompt() -> String:
 	if carry != null and carry.allowed():
 		return carry.prompt(shown)
 	return shown
+
+
+## The flashlight (L) in a blackout: the acting player's
+## (features/county_events.gd), from the front end's key or Controls.item.
+func torch() -> void:
+	var ev: CountyEvents = features.get("events")
+	if ev != null:
+		ev.torch(player)
 
 
 ## The whistle (WHISTLE FOR BLUE): the acting player's hound's command

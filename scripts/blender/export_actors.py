@@ -48,7 +48,9 @@ TEXTURE = 512
 # The bosses with the most parts bake their looks twice as fine: at 512 their
 # hundreds of parts each got a few texels, blocky and dark at the seams up
 # close against their cels.
-FINE = {"baron": 1024, "derby_champ": 1024, "swamp_king": 1024, "maw": 1024, "maw_bare": 1024}
+# The county events' razorback (actors_hog.py) bakes half as fine: one of a
+# herd, seldom near, and its looks are in the browser's first download.
+FINE = {"baron": 1024, "derby_champ": 1024, "swamp_king": 1024, "maw": 1024, "maw_bare": 1024, "hog": 256}
 RECORD = []
 _place = place
 

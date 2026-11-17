@@ -75,7 +75,8 @@ const KINDS := [
 	"maw",
 	"maw_bare",
 	"hound",
-	"hound_face"
+	"hound_face",
+	"hog"
 ]
 
 

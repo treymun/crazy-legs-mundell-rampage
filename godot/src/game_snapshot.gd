@@ -107,6 +107,7 @@ const SIM_FIELDS := [
 	"adaptive",
 	"boss_wrecks",
 	"hound_on",
+	"events_on",
 	"aim_assist",
 	"smart_hands",
 	"touch_aim",
@@ -313,6 +314,7 @@ const SIM_FEATURES := [
 	"mode",
 	"fair_gallery",
 	"hound",
+	"events",
 ]
 ## Features that only look or sound (their own dice; never carried).
 const LOOKS_FEATURES := [
@@ -339,6 +341,7 @@ const LOOKS_FEATURES := [
 	"kill_feed",
 	"new_iron",
 	"radio",
+	"event_looks",
 ]
 
 

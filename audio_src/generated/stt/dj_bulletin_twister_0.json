@@ -1,0 +1,90 @@
+{
+ "text": "We interrupt this here music. Tornado on the ground in Possum County. Get in the cellar now",
+ "words": [
+  {
+   "text": "We",
+   "start": 0.12,
+   "end": 0.22
+  },
+  {
+   "text": "interrupt",
+   "start": 0.26,
+   "end": 0.68
+  },
+  {
+   "text": "this",
+   "start": 0.74,
+   "end": 0.92
+  },
+  {
+   "text": "here",
+   "start": 0.96,
+   "end": 1.2
+  },
+  {
+   "text": "music.",
+   "start": 1.26,
+   "end": 1.64
+  },
+  {
+   "text": "Tornado",
+   "start": 1.72,
+   "end": 2.3
+  },
+  {
+   "text": "on",
+   "start": 2.36,
+   "end": 2.46
+  },
+  {
+   "text": "the",
+   "start": 2.5,
+   "end": 2.6
+  },
+  {
+   "text": "ground",
+   "start": 2.64,
+   "end": 3.0
+  },
+  {
+   "text": "in",
+   "start": 3.04,
+   "end": 3.2
+  },
+  {
+   "text": "Possum",
+   "start": 3.24,
+   "end": 3.64
+  },
+  {
+   "text": "County.",
+   "start": 3.78,
+   "end": 4.12
+  },
+  {
+   "text": "Get",
+   "start": 4.38,
+   "end": 4.52
+  },
+  {
+   "text": "in",
+   "start": 4.58,
+   "end": 4.66
+  },
+  {
+   "text": "the",
+   "start": 4.7,
+   "end": 4.8
+  },
+  {
+   "text": "cellar",
+   "start": 4.86,
+   "end": 5.16
+  },
+  {
+   "text": "now",
+   "start": 5.26,
+   "end": 5.62
+  }
+ ]
+}

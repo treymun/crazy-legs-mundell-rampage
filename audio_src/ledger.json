@@ -40014,14 +40014,1211 @@
    "bytes": 20732
   },
   {
-   "id": "reconcile@2026-11-16T18:59:28",
+   "id": "sfx/tornado_roar#1",
+   "kind": "sfx",
+   "name": "tornado_roar",
+   "params": {
+    "text": "The deep continuous roar of a tornado passing close by: a freight-train rumble, howling wind, boards and sheet tin rattling and banging in it, steady. Big, real outdoor sound recorded on a rural night, full and dramatic, not musical. No music, no voice.",
+    "duration_seconds": 6.0,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5846aafb3439",
+   "reserved": 245,
+   "status": "settled",
+   "started": "2026-11-16T21:16:22",
+   "actual": 67,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tornado_roar.mp3",
+   "bytes": 145492
+  },
+  {
+   "id": "sfx/hog_squeal#1",
+   "kind": "sfx",
+   "name": "hog_squeal",
+   "params": {
+    "text": "A wild hog squeals loudly as it runs, one short sharp squeal. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a522975b2b87",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-16T21:16:22",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hog_squeal.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/tornado_siren#1",
+   "kind": "sfx",
+   "name": "tornado_siren",
+   "params": {
+    "text": "A lone hand-cranked civil defense siren on a pole in a small country town, wailing slowly up and down, heard across open fields at night. Big, real outdoor sound recorded on a rural night, full and dramatic, not musical. No music, no voice.",
+    "duration_seconds": 6.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4dcb18f225a8",
+   "reserved": 245,
+   "status": "settled",
+   "started": "2026-11-16T21:16:22",
+   "actual": 67,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tornado_siren.mp3",
+   "bytes": 145492
+  },
+  {
+   "id": "sfx/hog_stampede#1",
+   "kind": "sfx",
+   "name": "hog_stampede",
+   "params": {
+    "text": "A herd of wild razorback hogs stampeding past on dirt: many hooves drumming fast, grunting and snorting, steady. Big, real outdoor sound recorded on a rural night, full and dramatic, not musical. No music, no voice.",
+    "duration_seconds": 4.0,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "eff506285a9d",
+   "reserved": 165,
+   "status": "settled",
+   "started": "2026-11-16T21:16:22",
+   "actual": 45,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hog_stampede.mp3",
+   "bytes": 97845
+  },
+  {
+   "id": "sfx/raid_siren#1",
+   "kind": "sfx",
+   "name": "raid_siren",
+   "params": {
+    "text": "Three old 1990s police cruisers roaring up a gravel road, mechanical sirens wailing and tires spitting gravel, coming closer. Big, real outdoor sound recorded on a rural night, full and dramatic, not musical. No music, no voice.",
+    "duration_seconds": 4.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e2bebcdf58e3",
+   "reserved": 165,
+   "status": "settled",
+   "started": "2026-11-16T21:16:25",
+   "actual": 45,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/raid_siren.mp3",
+   "bytes": 97845
+  },
+  {
+   "id": "sfx/power_down#1",
+   "kind": "sfx",
+   "name": "power_down",
+   "params": {
+    "text": "A small town's power failing: a transformer pops with a loud electric bang and buzz, then a deep electrical hum winding down into silence. Big, real outdoor sound recorded on a rural night, full and dramatic, not musical. No music, no voice.",
+    "duration_seconds": 2.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e0a7a910ea0b",
+   "reserved": 101,
+   "status": "settled",
+   "started": "2026-11-16T21:16:25",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/power_down.mp3",
+   "bytes": 58975
+  },
+  {
+   "id": "sfx/power_up#1",
+   "kind": "sfx",
+   "name": "power_up",
+   "params": {
+    "text": "The power coming back on: a heavy electrical clunk, a rising hum, old fluorescent lights ticking and buzzing to life. Big, real outdoor sound recorded on a rural night, full and dramatic, not musical. No music, no voice.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9b8a7eaa3b29",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-16T21:16:26",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/power_up.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/breaker_throw#1",
+   "kind": "sfx",
+   "name": "breaker_throw",
+   "params": {
+    "text": "A big rusty knife switch on an old fuse box thrown hard: a heavy metal clunk and a crackle of electric sparks. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8a210a6a9a1e",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T21:16:26",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/breaker_throw.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/torch_click#1",
+   "kind": "sfx",
+   "name": "torch_click",
+   "params": {
+    "text": "A cheap plastic flashlight switch clicked once. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2045bf69b9cb",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-16T21:16:28",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/torch_click.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "tts/mundell_event_twister_0#1",
+   "kind": "tts",
+   "name": "mundell_event_twister_0",
+   "params": {
+    "text": "Twister! Git under a roof!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7823b6e8770a",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-16T21:16:29",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_twister_0.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "tts/mundell_event_twister_1#1",
+   "kind": "tts",
+   "name": "mundell_event_twister_1",
+   "params": {
+    "text": "That ain't no dust devil.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "10067f939317",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-16T21:16:29",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_twister_1.mp3",
+   "bytes": 68379
+  },
+  {
+   "id": "tts/mundell_event_hogs_0#1",
+   "kind": "tts",
+   "name": "mundell_event_hogs_0",
+   "params": {
+    "text": "Hogs! Hit the fence!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "16e3efacdb0b",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-16T21:16:29",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_hogs_0.mp3",
+   "bytes": 53959
+  },
+  {
+   "id": "tts/mundell_event_hogs_1#1",
+   "kind": "tts",
+   "name": "mundell_event_hogs_1",
+   "params": {
+    "text": "Sooie! Look out!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c2c41644d027",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-16T21:16:30",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_hogs_1.mp3",
+   "bytes": 53959
+  },
+  {
+   "id": "tts/mundell_event_raid_0#1",
+   "kind": "tts",
+   "name": "mundell_event_raid_0",
+   "params": {
+    "text": "Revenuers! Hide the jugs!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0d9db23a1efd",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-16T21:16:30",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_raid_0.mp3",
+   "bytes": 59602
+  },
+  {
+   "id": "tts/mundell_event_raid_1#1",
+   "kind": "tts",
+   "name": "mundell_event_raid_1",
+   "params": {
+    "text": "Feds. Figures.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a5507474b221",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-16T21:16:31",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_raid_1.mp3",
+   "bytes": 33897
+  },
+  {
+   "id": "tts/mundell_event_dark_0#1",
+   "kind": "tts",
+   "name": "mundell_event_dark_0",
+   "params": {
+    "text": "Who forgot the light bill?",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1785ce5f7fb5",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-16T21:16:31",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_dark_0.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/mundell_event_dark_1#1",
+   "kind": "tts",
+   "name": "mundell_event_dark_1",
+   "params": {
+    "text": "Dark as the inside of a cow.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "47f33bf6f4ee",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-16T21:16:31",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_dark_1.mp3",
+   "bytes": 61483
+  },
+  {
+   "id": "tts/mundell_event_light_0#1",
+   "kind": "tts",
+   "name": "mundell_event_light_0",
+   "params": {
+    "text": "Let there be light.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0b381c9789e3",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-16T21:16:32",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_light_0.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/dj_bulletin_twister_0#1",
+   "kind": "tts",
+   "name": "dj_bulletin_twister_0",
+   "params": {
+    "text": "We interrupt this here music. Tornado on the ground in Possum County. Get in the cellar, now.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a02b087534e3",
+   "reserved": 131,
+   "status": "settled",
+   "started": "2026-11-16T21:16:32",
+   "actual": 93,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_bulletin_twister_0.mp3",
+   "bytes": 142985
+  },
+  {
+   "id": "tts/dj_bulletin_outage_0#1",
+   "kind": "tts",
+   "name": "dj_bulletin_outage_0",
+   "params": {
+    "text": "Power's out across half the county. Folks, we're on the generator. Find a flashlight.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "50ff0931e422",
+   "reserved": 122,
+   "status": "settled",
+   "started": "2026-11-16T21:16:32",
+   "actual": 85,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_bulletin_outage_0.mp3",
+   "bytes": 124176
+  },
+  {
+   "id": "tts/dj_twister_0#1",
+   "kind": "tts",
+   "name": "dj_twister_0",
+   "params": {
+    "text": "That twister took Earl's barn, his truck, and his mother-in-law. Earl says two outta three ain't bad.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "80e3984b69c2",
+   "reserved": 141,
+   "status": "settled",
+   "started": "2026-11-16T21:16:33",
+   "actual": 101,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_twister_0.mp3",
+   "bytes": 169943
+  },
+  {
+   "id": "tts/dj_hogs_0#1",
+   "kind": "tts",
+   "name": "dj_hogs_0",
+   "params": {
+    "text": "Hogs loose in town tonight. If you see a razorback in the road, let him have it. The road, I mean.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "771081638633",
+   "reserved": 137,
+   "status": "settled",
+   "started": "2026-11-16T21:16:33",
+   "actual": 98,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_hogs_0.mp3",
+   "bytes": 151762
+  },
+  {
+   "id": "tts/dj_raid_0#1",
+   "kind": "tts",
+   "name": "dj_raid_0",
+   "params": {
+    "text": "The revenue men paid a visit tonight. If you got a jug in the trunk, drive real slow.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "458eb0fa730b",
+   "reserved": 122,
+   "status": "settled",
+   "started": "2026-11-16T21:16:33",
+   "actual": 85,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_raid_0.mp3",
+   "bytes": 132954
+  },
+  {
+   "id": "tts/dj_outage_0#1",
+   "kind": "tts",
+   "name": "dj_outage_0",
+   "params": {
+    "text": "Lights are back on. Whoever was usin' the dark to steal my lawn mower, I know who you are.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a85af0a7c541",
+   "reserved": 128,
+   "status": "settled",
+   "started": "2026-11-16T21:16:34",
+   "actual": 90,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outage_0.mp3",
+   "bytes": 137342
+  },
+  {
+   "id": "tts/scan_twister_0#1",
+   "kind": "tts",
+   "name": "scan_twister_0",
+   "params": {
+    "text": "Funnel cloud on the ground, headed for town.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "addb327dc21f",
+   "reserved": 72,
+   "status": "settled",
+   "started": "2026-11-16T21:16:35",
+   "actual": 44,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_twister_0.mp3",
+   "bytes": 80918
+  },
+  {
+   "id": "tts/scan_hogs_0#1",
+   "kind": "tts",
+   "name": "scan_hogs_0",
+   "params": {
+    "text": "Livestock loose on the roadway. A whole lot of livestock.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cd80c0a99783",
+   "reserved": 88,
+   "status": "settled",
+   "started": "2026-11-16T21:16:35",
+   "actual": 57,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_hogs_0.mp3",
+   "bytes": 101607
+  },
+  {
+   "id": "tts/scan_raid_0#1",
+   "kind": "tts",
+   "name": "scan_raid_0",
+   "params": {
+    "text": "State revenue agents requestin' backup at a still.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "80e0d7a9c75b",
+   "reserved": 80,
+   "status": "settled",
+   "started": "2026-11-16T21:16:35",
+   "actual": 50,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_raid_0.mp3",
+   "bytes": 112892
+  },
+  {
+   "id": "tts/scan_outage_0#1",
+   "kind": "tts",
+   "name": "scan_outage_0",
+   "params": {
+    "text": "Power's out county wide. Co-op's sendin' a truck.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b6cd2bbdae3b",
+   "reserved": 78,
+   "status": "settled",
+   "started": "2026-11-16T21:16:35",
+   "actual": 49,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_outage_0.mp3",
+   "bytes": 106622
+  },
+  {
+   "id": "stt/mundell_event_twister_1#1",
+   "kind": "stt",
+   "name": "mundell_event_twister_1",
+   "params": {
+    "file": "mundell_event_twister_1.mp3",
+    "bytes": 68379
+   },
+   "hash": "393a3ab5ea8d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:48",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_twister_1.json",
+   "bytes": 357
+  },
+  {
+   "id": "stt/mundell_event_hogs_1#1",
+   "kind": "stt",
+   "name": "mundell_event_hogs_1",
+   "params": {
+    "file": "mundell_event_hogs_1.mp3",
+    "bytes": 53959
+   },
+   "hash": "4b00748cf34c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:48",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_hogs_1.json",
+   "bytes": 227
+  },
+  {
+   "id": "stt/mundell_event_twister_0#1",
+   "kind": "stt",
+   "name": "mundell_event_twister_0",
+   "params": {
+    "file": "mundell_event_twister_0.mp3",
+    "bytes": 62736
+   },
+   "hash": "afd1907995d9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:48",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_twister_0.json",
+   "bytes": 359
+  },
+  {
+   "id": "stt/mundell_event_hogs_0#1",
+   "kind": "stt",
+   "name": "mundell_event_hogs_0",
+   "params": {
+    "file": "mundell_event_hogs_0.mp3",
+    "bytes": 53959
+   },
+   "hash": "2b71934d36af",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:48",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_hogs_0.json",
+   "bytes": 355
+  },
+  {
+   "id": "stt/mundell_event_raid_0#1",
+   "kind": "stt",
+   "name": "mundell_event_raid_0",
+   "params": {
+    "file": "mundell_event_raid_0.mp3",
+    "bytes": 59602
+   },
+   "hash": "8a2ef29992af",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:49",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_raid_0.json",
+   "bytes": 300
+  },
+  {
+   "id": "stt/mundell_event_raid_1#1",
+   "kind": "stt",
+   "name": "mundell_event_raid_1",
+   "params": {
+    "file": "mundell_event_raid_1.mp3",
+    "bytes": 33897
+   },
+   "hash": "1360db95dd83",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:49",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_raid_1.json",
+   "bytes": 43
+  },
+  {
+   "id": "stt/mundell_event_dark_0#1",
+   "kind": "stt",
+   "name": "mundell_event_dark_0",
+   "params": {
+    "file": "mundell_event_dark_0.mp3",
+    "bytes": 58348
+   },
+   "hash": "bab5e8ec5d34",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:49",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_dark_0.json",
+   "bytes": 430
+  },
+  {
+   "id": "stt/mundell_event_dark_1#1",
+   "kind": "stt",
+   "name": "mundell_event_dark_1",
+   "params": {
+    "file": "mundell_event_dark_1.mp3",
+    "bytes": 61483
+   },
+   "hash": "6a1a700f3c01",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:50",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_dark_1.json",
+   "bytes": 479
+  },
+  {
+   "id": "stt/mundell_event_light_0#1",
+   "kind": "stt",
+   "name": "mundell_event_light_0",
+   "params": {
+    "file": "mundell_event_light_0.mp3",
+    "bytes": 45182
+   },
+   "hash": "f99cc1323068",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:50",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_light_0.json",
+   "bytes": 287
+  },
+  {
+   "id": "stt/dj_bulletin_twister_0#1",
+   "kind": "stt",
+   "name": "dj_bulletin_twister_0",
+   "params": {
+    "file": "dj_bulletin_twister_0.mp3",
+    "bytes": 142985
+   },
+   "hash": "252db5394596",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_bulletin_twister_0.json",
+   "bytes": 1157
+  },
+  {
+   "id": "stt/dj_bulletin_outage_0#1",
+   "kind": "stt",
+   "name": "dj_bulletin_outage_0",
+   "params": {
+    "file": "dj_bulletin_outage_0.mp3",
+    "bytes": 124176
+   },
+   "hash": "da68eb19c733",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_bulletin_outage_0.json",
+   "bytes": 976
+  },
+  {
+   "id": "stt/dj_twister_0#1",
+   "kind": "stt",
+   "name": "dj_twister_0",
+   "params": {
+    "file": "dj_twister_0.mp3",
+    "bytes": 169943
+   },
+   "hash": "8cd84918542a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_twister_0.json",
+   "bytes": 1233
+  },
+  {
+   "id": "stt/dj_hogs_0#1",
+   "kind": "stt",
+   "name": "dj_hogs_0",
+   "params": {
+    "file": "dj_hogs_0.mp3",
+    "bytes": 151762
+   },
+   "hash": "bf64e5cc65b8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_hogs_0.json",
+   "bytes": 1390
+  },
+  {
+   "id": "stt/dj_raid_0#1",
+   "kind": "stt",
+   "name": "dj_raid_0",
+   "params": {
+    "file": "dj_raid_0.mp3",
+    "bytes": 132954
+   },
+   "hash": "883a951dbd2e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:52",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_raid_0.json",
+   "bytes": 1201
+  },
+  {
+   "id": "stt/dj_outage_0#1",
+   "kind": "stt",
+   "name": "dj_outage_0",
+   "params": {
+    "file": "dj_outage_0.mp3",
+    "bytes": 137342
+   },
+   "hash": "36c242f128d8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:52",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outage_0.json",
+   "bytes": 1211
+  },
+  {
+   "id": "stt/scan_twister_0#1",
+   "kind": "stt",
+   "name": "scan_twister_0",
+   "params": {
+    "file": "scan_twister_0.mp3",
+    "bytes": 80918
+   },
+   "hash": "60c8e2ea39bf",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_twister_0.json",
+   "bytes": 561
+  },
+  {
+   "id": "stt/scan_hogs_0#1",
+   "kind": "stt",
+   "name": "scan_hogs_0",
+   "params": {
+    "file": "scan_hogs_0.mp3",
+    "bytes": 101607
+   },
+   "hash": "69bc91ab35e5",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_hogs_0.json",
+   "bytes": 696
+  },
+  {
+   "id": "stt/scan_raid_0#1",
+   "kind": "stt",
+   "name": "scan_raid_0",
+   "params": {
+    "file": "scan_raid_0.mp3",
+    "bytes": 112892
+   },
+   "hash": "9d8e554deddb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_raid_0.json",
+   "bytes": 580
+  },
+  {
+   "id": "stt/scan_outage_0#1",
+   "kind": "stt",
+   "name": "scan_outage_0",
+   "params": {
+    "file": "scan_outage_0.mp3",
+    "bytes": 106622
+   },
+   "hash": "f00622f2a3aa",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:17:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_outage_0.json",
+   "bytes": 569
+  },
+  {
+   "id": "tts/scan_raid_0#2",
+   "kind": "tts",
+   "name": "scan_raid_0",
+   "params": {
+    "text": "State revenue agents requestin' backup at a moonshine still.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f2b5b77af90c",
+   "reserved": 92,
+   "status": "settled",
+   "started": "2026-11-16T21:19:40",
+   "actual": 60,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_raid_0.mp3",
+   "bytes": 135461
+  },
+  {
+   "id": "tts/mundell_event_raid_1#2",
+   "kind": "tts",
+   "name": "mundell_event_raid_1",
+   "params": {
+    "text": "Revenue men. Figures.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "84fc21871685",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T21:19:40",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_event_raid_1.mp3",
+   "bytes": 57094
+  },
+  {
+   "id": "tts/scan_outage_0#2",
+   "kind": "tts",
+   "name": "scan_outage_0",
+   "params": {
+    "text": "Power outage, county wide. Co-op's sendin' a truck.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ee96ad2e4784",
+   "reserved": 81,
+   "status": "settled",
+   "started": "2026-11-16T21:19:40",
+   "actual": 51,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_outage_0.mp3",
+   "bytes": 104114
+  },
+  {
+   "id": "stt/mundell_event_raid_1#2",
+   "kind": "stt",
+   "name": "mundell_event_raid_1",
+   "params": {
+    "file": "mundell_event_raid_1.mp3",
+    "bytes": 57094
+   },
+   "hash": "a8cff84a4774",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:21:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_event_raid_1.json",
+   "bytes": 239
+  },
+  {
+   "id": "stt/scan_outage_0#2",
+   "kind": "stt",
+   "name": "scan_outage_0",
+   "params": {
+    "file": "scan_outage_0.mp3",
+    "bytes": 104114
+   },
+   "hash": "4f4ac6a4c68e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:21:52",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_outage_0.json",
+   "bytes": 627
+  },
+  {
+   "id": "stt/scan_raid_0#2",
+   "kind": "stt",
+   "name": "scan_raid_0",
+   "params": {
+    "file": "scan_raid_0.mp3",
+    "bytes": 135461
+   },
+   "hash": "142eb6b14751",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:21:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_raid_0.json",
+   "bytes": 647
+  },
+  {
+   "id": "tts/dj_hogs_0#2",
+   "kind": "tts",
+   "name": "dj_hogs_0",
+   "params": {
+    "text": "Hogs loose in town tonight. If one's in the road, let him have it.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "437da906864d",
+   "reserved": 99,
+   "status": "settled",
+   "started": "2026-11-16T21:55:55",
+   "actual": 66,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_hogs_0.mp3",
+   "bytes": 88441
+  },
+  {
+   "id": "tts/dj_twister_0#2",
+   "kind": "tts",
+   "name": "dj_twister_0",
+   "params": {
+    "text": "That twister took Earl's barn. Earl says it was leanin' anyhow.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "086986b4a909",
+   "reserved": 95,
+   "status": "settled",
+   "started": "2026-11-16T21:55:55",
+   "actual": 63,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_twister_0.mp3",
+   "bytes": 101607
+  },
+  {
+   "id": "stt/dj_twister_0#2",
+   "kind": "stt",
+   "name": "dj_twister_0",
+   "params": {
+    "file": "dj_twister_0.mp3",
+    "bytes": 101607
+   },
+   "hash": "0151249d8a2d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:56:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_twister_0.json",
+   "bytes": 768
+  },
+  {
+   "id": "stt/dj_hogs_0#2",
+   "kind": "stt",
+   "name": "dj_hogs_0",
+   "params": {
+    "file": "dj_hogs_0.mp3",
+    "bytes": 88441
+   },
+   "hash": "2b592217a199",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T21:57:00",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_hogs_0.json",
+   "bytes": 937
+  },
+  {
+   "id": "reconcile@2026-11-16T21:58:02",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20175,
+   "actual": -21057,
    "basis": "account",
-   "balance_after": 80497
+   "balance_after": 81421
   }
  ],
  "anchor": {
@@ -40029,7 +41226,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T18:59:28",
-  "account_drop": 75774
+  "when": "2026-11-16T21:58:02",
+  "account_drop": 76698
  }
 }
