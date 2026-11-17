@@ -183,6 +183,10 @@ static func use_prompt(g: Game) -> String:
 	if g.players.size() > 1 and ModeScreens.revive_prompt(g) != "":
 		g.use_aim = Vector3.INF  # a partner down beside you (src/modes/)
 		return ModeScreens.revive_prompt(g)
+	var bench: Game.BenchScript = g.features.get("bench")
+	if bench != null and bench.prompt(g.player) != "":
+		g.use_aim = Vector3.INF  # the junk bench (features/bench.gd)
+		return bench.prompt(g.player)
 	var ev: CountyEvents = g.features.get("events")
 	if ev != null and ev.prompt(g.player) != "":
 		g.use_aim = Vector3.INF  # the main breaker in a blackout (features/county_events.gd)
@@ -277,6 +281,9 @@ static func interact(g: Game) -> void:
 	var rides: Game.VehiclesScript = g.features.get("vehicles")
 	if rides != null and rides.use(g.player):
 		return  # in or out of a vehicle (features/vehicles.gd)
+	var bench: Game.BenchScript = g.features.get("bench")
+	if bench != null and bench.use(g.player):
+		return  # the junk bench's screen (features/bench.gd)
 	var ev: CountyEvents = g.features.get("events")
 	if ev != null and ev.use(g.player):
 		return  # the main breaker thrown (features/county_events.gd)

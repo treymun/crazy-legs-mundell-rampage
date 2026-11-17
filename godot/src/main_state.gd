@@ -1230,6 +1230,7 @@ func render() -> void:
 			photo.draw(self)
 		if TacticalScreens.open and Modes.is_tactical(game) and not game.showing_tally:
 			TacticalScreens.draw_shop(canvas, game, Modes.feature(game))
+		BenchScreen.draw(canvas, game)  # the junk bench's board, when it is up
 		CountyScreens.draw_over(canvas, game)  # a COUNTY RUN's HUD, cards and end
 		if net != null and state == "play":
 			LobbyScreens.draw_match(canvas, net, game, net_leave)

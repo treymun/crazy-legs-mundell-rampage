@@ -21,7 +21,7 @@ static var _mask := PackedByteArray()
 static func focal(game: Game, p: Player) -> void:
 	var zoom := 1.0
 	if p.scoped and p.health > 0:
-		var firing: Dictionary = Weapons.FIRING[game.armory.active]
+		var firing := game.armory.firing(game.armory.active)
 		zoom = firing.get("scope", 1.0)
 	var want := View.fov_focal * zoom
 	if absf(want - View.base_focal) > .01:

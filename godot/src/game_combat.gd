@@ -7,6 +7,7 @@ extends GameWorld
 const BreakablesFeature := preload("res://src/features/breakables.gd")
 const WallBreaksFeature := preload("res://src/features/wall_breaks.gd")
 const SetPieces := preload("res://src/features/set_pieces.gd")
+const SpreadFire := preload("res://src/features/fire.gd")
 const CorpsesFeature := preload("res://src/features/corpses.gd")
 
 
@@ -54,7 +55,9 @@ func throw_dynamite(remaining: float) -> void:
 		x = p.x
 		y = p.y
 	if remaining <= 0.0:
-		explode(Shot.new(p.x, p.y, p.eye - .30, 0.0, 0.0, 0.0, "tnt", 0.0, false, 0))
+		var in_hand := Shot.new(p.x, p.y, p.eye - .30, 0.0, 0.0, 0.0, "tnt", 0.0, false, 0)
+		in_hand.slot = p.slot
+		explode(in_hand)
 		damage(21, [p.x, p.y], "LIT DYNAMITE")
 		return
 	var stick := Shot.new(
@@ -466,6 +469,30 @@ func drum_hit(point: Vector2, amount: float) -> void:
 		burst(x, y, z, "spark", 4, .8)
 
 
+## A flaming bolt's blast (the junk bench's `burns`): what is within `reach`
+## and in sight of it set alight (features/fire.gd).
+func _light_up(x: float, y: float, z: float, reach: float) -> void:
+	var fire: SpreadFire = features.get("fire")
+	if fire == null:
+		return
+	fire.fresh()
+	var base := world.floor_under(x, y, z + .3)
+	for cy in range(int(y - reach), int(y + reach) + 1):
+		for cx in range(int(x - reach), int(x + reach) + 1):
+			var px := cx + .5
+			var py := cy + .5
+			if Vector2(px - x, py - y).length() > reach:
+				continue
+			if px < 0.0 or py < 0.0 or px >= world.width or py >= world.height:
+				continue
+			if (
+				world.solid[world.cell(px, py)] >= 0
+				or not world.visible(x, y, px, py, z, base + .2)
+			):
+				continue
+			fire.ignite(px, py, base, 1.6)
+
+
 func explode(shot: Shot) -> void:
 	var me: Game = self as Object
 	if TacticalUtility.KINDS.has(shot.kind):
@@ -485,6 +512,10 @@ func explode(shot: Shot) -> void:
 	var tuned := Modes.blast_tuning(me, shot, radius, strength)
 	radius = tuned[0]
 	strength = tuned[1]
+	# The junk bench's mods on what threw it (the bundle, the flaming bolts).
+	var benched := BenchMods.blast_of(me, shot)
+	radius *= benched[0]
+	strength *= benched[1]
 	var middle_share: float = tuned[2]
 	var edge_share: float = tuned[3]
 	if spec.has("also_sound"):
@@ -547,6 +578,9 @@ func explode(shot: Shot) -> void:
 		):
 			hit_scenery(prop)
 	_blast_shoves(shot, x, y, z, radius, strength, energy)
+	var burns: float = benched[2]
+	if burns > 0.0 and not energy:
+		_light_up(x, y, z, radius * burns)
 	# Every player in reach (its owner's own blast is a BACKBLAST; a partner's
 	# or another player's as the mode says, Modes.blast_hit).
 	for p: Player in players:

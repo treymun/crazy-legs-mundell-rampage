@@ -125,6 +125,13 @@ const LINES := {
 	"hound_come": ["BLUE! HERE, BOY!"],
 	"hound_good": ["GOOD BOY, BLUE.", "THAT'S MY DOG."],
 	"hound_up": ["HANG ON, BLUE. I GOTCHA."],
+	# A mod taped on at the junk bench (features/bench.gd).
+	"bench_buy":
+	[
+		"DUCT TAPE AND A PRAYER. GOOD AS NEW.",
+		"NOW THAT'S ENGINEERIN'.",
+		"TAPED ON TIGHT. DON'T TELL THE COUNTY.",
+	],
 	# The county events (features/county_events.gd).
 	"event_twister": ["TWISTER! GIT UNDER A ROOF!", "THAT AIN'T NO DUST DEVIL."],
 	"event_hogs": ["HOGS! HIT THE FENCE!", "SOOIE! LOOK OUT!"],
@@ -158,6 +165,7 @@ const COOLDOWN := {
 	"hound_come": 1.5,
 	"hound_good": 9.0,
 	"hound_up": 2.0,
+	"bench_buy": 1.0,
 	"event_twister": 2.0,
 	"event_hogs": 2.0,
 	"event_raid": 2.0,

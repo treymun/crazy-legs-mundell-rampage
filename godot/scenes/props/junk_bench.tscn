@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_nxk38"]
+[ext_resource type="PackedScene" path="res://assets3d/props/junk_bench.glb" id="2_cc2hh"]
+
+[node name="JunkBench" type="Node3D" unique_id=1874144235]
+script = ExtResource("1_nxk38")
+prop = "junk_bench"
+
+[node name="Model" type="Node3D" parent="." unique_id=1113360652 instance=ExtResource("2_cc2hh")]

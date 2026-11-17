@@ -21,6 +21,7 @@ const MADE_CUES := [
 	"county_level",
 	"county_milestone",
 	"mule_bray",
+	"bench_tape",
 ]
 ## Enemies only one chapter has. Everything named after one lives in that
 ## chapter's own files (chapter_of: its pictures, its model and baked looks,
@@ -195,9 +196,12 @@ func tile(name: String) -> int:
 ## chapter enemy's kind itself, and anything named <kind>_..., actor3d_<kind>
 ## (its baked looks) or boss_<kind>_... (its lines). One rule for every
 ## asset, so a new one finds its home without a list (tools/pack_check.gd
-## holds the levels and the code to it).
+## holds the levels and the code to it). A chapter's opener (src/opener.gd)
+## keeps its lines and sting there too: narr_<chapter>_..., sting_open_<chapter>.
 static func chapter_of(name: String) -> String:
 	for level_id: String in CHAPTER_KINDS:
+		if name.begins_with("narr_%s_" % level_id) or name == "sting_open_" + level_id:
+			return level_id
 		for kind: String in CHAPTER_KINDS[level_id]:
 			for prefix: String in KIND_PREFIXES:
 				var stem := prefix + kind
@@ -452,6 +456,7 @@ func _made_cue(name: String) -> AudioStreamWAV:
 			"county_level": .7,
 			"county_milestone": 1.6,
 			"mule_bray": 1.3,
+			"bench_tape": .62,
 		}
 		. get(name, .045)
 	)
@@ -496,6 +501,19 @@ func _made_cue(name: String) -> AudioStreamWAV:
 				v = _county_cue(name, t, hiss)
 			"mule_bray":
 				v = _bray(t, hiss)
+			"bench_tape":
+				# Duct tape torn off the roll (bright noise that chatters as it
+				# peels), then a palm slapping it down.
+				low += (hiss - low) * .35
+				var pull := 1.0 if t < .36 else 0.0
+				var chatter := .55 + .45 * sin(TAU * (55.0 + 90.0 * t) * t)
+				v = (hiss - low) * chatter * pull * minf(1.0, t * 40.0) * (1.0 - t * 1.1) * 1.3
+				var slap := t - .4
+				if slap > 0.0:
+					v += (
+						sin(TAU * 105.0 * slap) * exp(-slap * 28.0) * .7
+						+ hiss * exp(-slap * 150.0) * .5
+					)
 			_:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5

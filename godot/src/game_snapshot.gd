@@ -107,6 +107,8 @@ const SIM_FIELDS := [
 	"adaptive",
 	"boss_wrecks",
 	"hound_on",
+	"bench_on",
+	"bench_live",
 	"events_on",
 	"aim_assist",
 	"smart_hands",
@@ -144,6 +146,7 @@ const PLAYER_FIELDS := [
 ## dangers and the use/aim caches are worked out from the level or the tick.)
 const VIEW_FIELDS := [
 	"net_role",
+	"bench_asked",
 	"_named_enemies",
 	"place_log",
 	"specks",
@@ -315,6 +318,7 @@ const SIM_FEATURES := [
 	"mode",
 	"fair_gallery",
 	"hound",
+	"bench",
 	"events",
 ]
 ## Features that only look or sound (their own dice; never carried).

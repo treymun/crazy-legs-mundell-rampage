@@ -372,6 +372,8 @@ static func carry(from: Player, to: Player) -> void:
 		to.armory.loaded[i] = from.armory.loaded[i]
 		to.armory.reserve[i] = from.armory.reserve[i]
 	to.armory.active = from.armory.active
+	to.armory.scrap = from.armory.scrap
+	to.armory.mods = from.armory.mods.duplicate()
 	if not is_same(from.inventory, to.inventory):
 		to.inventory = from.inventory.duplicate()
 	to.frags = from.frags

@@ -61,6 +61,7 @@ const ALL := [
 	preload("res://src/features/new_iron.gd"),
 	preload("res://src/features/radio.gd"),
 	preload("res://src/features/hound.gd"),
+	preload("res://src/features/bench.gd"),
 	preload("res://src/features/county_events.gd"),
 	preload("res://src/features/event_looks.gd"),
 ]

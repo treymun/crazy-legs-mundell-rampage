@@ -638,6 +638,15 @@ var boss_wrecks := true
 ## HOUND DOG (setting): BLUE comes along in the campaign's chapters
 ## (features/hound.gd); off, no hound.
 var hound_on := false
+## WORKBENCH (setting): scrap and Mundell's junk bench (src/bench_mods.gd);
+## off, neither. Absent (an older replay, a tool): off, as play was before it.
+var bench_on := false
+## The bench is live in this game (BenchMods.on, set as the bench feature
+## starts): the guns' mods count (Weapons.Armory.mods_on, set each tick).
+var bench_live := false
+## This machine's player used a bench: the front end opens the bench screen
+## (BenchScreen) and clears it.
+var bench_asked := false
 ## EVENTS (setting): 0 off, 1 sometimes, 2 often: a twister, a stampede, a
 ## raid or a blackout now and then in a chapter (features/county_events.gd).
 var events_on := 0

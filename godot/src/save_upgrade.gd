@@ -86,7 +86,16 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 				doc["features"] = {}
 			return doc
 		9:
-			# Version 10 has the Moonshine Run between the speedway and the
+			# Version 10 keeps the junk bench's scrap and mods with the guns
+			# (src/bench_mods.gd); nobody had any before it.
+			var armory: Variant = doc.get("armory")
+			if armory is Dictionary:
+				var guns: Dictionary = armory
+				guns["scrap"] = 0
+				guns["mods"] = []
+			return doc
+		10:
+			# Version 11 has the Moonshine Run between the speedway and the
 			# Mothership: a campaign save at the Mothership finished the six
 			# chapters before it, so the new one is put in its history as gone
 			# by (nothing killed or found; its gate stays open for a replay).
@@ -97,7 +106,7 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			return null
 
 
-## A version 9 campaign save of a chapter after the Moonshine Run (the
+## A version 10 campaign save of a chapter after the Moonshine Run (the
 ## Mothership) gets the run's row in its history, where it falls in
 ## Campaign.ORDER; any other save is as it was.
 static func _moonshine_passed(doc: Dictionary) -> void:

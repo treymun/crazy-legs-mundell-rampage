@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 10
+const VERSION := 11
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
@@ -292,6 +292,15 @@ static func _resolve(path: String, name: String) -> String:
 # -------------------------------------------------------------- serialising
 
 
+## The guns as a save keeps them: ARM_FIELDS, and the junk bench's scrap and
+## mods (version 10; src/bench_mods.gd).
+static func _armory_doc(armory: Weapons.Armory) -> Dictionary:
+	var out := _selected(armory, ARM_FIELDS)
+	out["scrap"] = armory.scrap
+	out["mods"] = Array(armory.mods)
+	return out
+
+
 static func _selected(obj: Object, keys: Array) -> Dictionary:
 	var out := {}
 	for key: String in keys:
@@ -383,7 +392,7 @@ static func snapshot(game: Game) -> Dictionary:
 		"layout": game.level.layout,
 		"game": _selected(game, GAME_FIELDS),
 		"player": _selected(game.player, PLAYER_FIELDS),
-		"armory": _selected(game.armory, ARM_FIELDS),
+		"armory": _armory_doc(game.armory),
 		"doors": doors,
 		"enemies": enemies,
 		"ai": ai,
