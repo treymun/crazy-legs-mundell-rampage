@@ -11,6 +11,7 @@ const ModeFeatureScript := preload("res://src/features/mode_feature.gd")
 ## Picking things up and throwing them, and the fire that spreads.
 const CarryScript := preload("res://src/features/carry.gd")
 const FireScript := preload("res://src/features/fire.gd")
+const BrawlScript := preload("res://src/features/brawl.gd")
 ## What the fair's loudspeaker says near its pole, by turns (cues ann_fair_<n>,
 ## scripts/audio_spec.py FAIR_PA); on screen as PA: in capitals.
 const FAIR_PA := [
@@ -758,7 +759,9 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 		var mode_state: ModeFeatureScript = features.get("mode")
 		if mode_state != null and mode_state.mode != Modes.CAMPAIGN:
 			mode_state.rules().buy(self, mode_state, p, controls.buy)
-	if controls.item >= POCKET_PICK:
+	if controls.item == HOUND_CALL:
+		hound_call()
+	elif controls.item >= POCKET_PICK:
 		inventory_slot = clampi(controls.item - POCKET_PICK, 0, HUD.ITEMS.size() - 1)
 	elif controls.item >= 0:
 		use_item(controls.item)
@@ -783,6 +786,12 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 				remaining.append(entry)
 		pickups = remaining
 	armory.tick(dt, self)
+	# A boot or a finisher under way, or a blade's swing that finishes a man
+	# (features/brawl.gd): the gun is not fired.
+	var brawl: BrawlScript = features.get("brawl")
+	if brawl != null and brawl.hands(p, controls.fire):
+		p.alt_held = controls.alt_fire
+		return
 	# A thing held up in both hands (features/carry.gd): FIRE throws it, ALT
 	# FIRE sets it down, the gun stays down.
 	var carry: CarryScript = features.get("carry")
@@ -814,9 +823,14 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 		armory.release_dynamite(self)
 
 
-## USE also takes up a loose thing, or sets down the one held
-## (features/carry.gd), when nothing else answers it.
+## USE puts a boot in the man in front (features/brawl.gd) and also takes up
+## a loose thing, or sets down the one held (features/carry.gd), when nothing
+## else answers it.
 func interact() -> void:
+	# A boot, a finisher or a door kicked in (features/brawl.gd) first.
+	var brawl: BrawlScript = features.get("brawl")
+	if brawl != null and boss_hold <= 0.0 and brawl.use(player):
+		return
 	var carry: CarryScript = features.get("carry")
 	if (
 		carry != null
@@ -836,6 +850,14 @@ func use_prompt() -> String:
 	if carry != null and carry.allowed():
 		return carry.prompt(shown)
 	return shown
+
+
+## The whistle (WHISTLE FOR BLUE): the acting player's hound's command
+## (features/hound.gd), from the front end's key or Controls.item.
+func hound_call() -> void:
+	var hound: HoundScript = features.get("hound")
+	if hound != null:
+		hound.command(player)
 
 
 ## LIVE PROPS AND FIRE (setup_pages.gd): off, nothing is taken up and fire

@@ -14,6 +14,8 @@ const PLAYER_RADIUS := .19
 ## Controls.item at or past this picks pocket item - POCKET_PICK (online: the
 ## pocket a client's Q steps to goes to every copy as its controls).
 const POCKET_PICK := 64
+## Controls.item that whistles for the player's hound (features/hound.gd).
+const HOUND_CALL := 96
 const HUB_BOARD := Vector2(30.36, 44.13)
 const GALLERY_STAND := Vector2(25.96, 33.42)
 const GALLERY_TARGETS := [
@@ -630,6 +632,9 @@ var adaptive := true
 ## (features/arena_wreck.gd) and gear can be shot off the bosses
 ## (features/boss_gear.gd); off, the arenas and bosses stay as they were.
 var boss_wrecks := true
+## HOUND DOG (setting): BLUE comes along in the campaign's chapters
+## (features/hound.gd); off, no hound.
+var hound_on := false
 ## The touch overlay is in use (main.gd sets it): aim help reaches further.
 var touch_aim := false
 ## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): its last answer. The

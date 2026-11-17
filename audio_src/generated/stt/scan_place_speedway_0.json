@@ -1,0 +1,30 @@
+{
+ "text": "Respond to Buzzard Bend Speedway",
+ "words": [
+  {
+   "text": "Respond",
+   "start": 0.04,
+   "end": 0.44
+  },
+  {
+   "text": "to",
+   "start": 0.48,
+   "end": 0.56
+  },
+  {
+   "text": "Buzzard",
+   "start": 0.6,
+   "end": 0.84
+  },
+  {
+   "text": "Bend",
+   "start": 0.92,
+   "end": 1.08
+  },
+  {
+   "text": "Speedway",
+   "start": 1.22,
+   "end": 1.86
+  }
+ ]
+}

@@ -395,6 +395,30 @@ add("death",
     spitter_down=G("A dusty choking creature dies: dry rasping cough and a wet collapse.", 1.2, 1.0, "creature"),
     )
 
+# -------------------------------------------------------------- the hound
+# BLUE, Mundell's bluetick coonhound (godot/src/features/hound.gd; the takes
+# Sound.VARIANTS deals in turn).
+add("alert",
+    hound_bark=G("A big coonhound barks once, deep and hoarse: a single gruff 'rowf'.", 1.0, .6, "creature"),
+    hound_bark_alt=G("A big coonhound gives two quick excited barks, deep and gravelly.", 1.0, .7, "creature"),
+    hound_bark_alt2=G("A big hound dog barks once, short and rough, a warning bark.", 1.0, .6, "creature"),
+    hound_bay=G("A bluetick coonhound bays on a scent: a long, mournful, rolling 'aroo-oo-ooo' with a bawl in it, out in the woods at night.", 2.6, 2.4, "creature"),
+    hound_bay_alt=G("A coonhound bawls at something it found: a deep chopping 'rooo-roo-rooooo' bay, loud and drawn out.", 2.6, 2.4, "creature"),
+    hound_growl=G("A big hound growls low and savage through clenched teeth, worrying something in its jaws.", 1.5, 1.2, "creature"),
+    hound_growl_alt=G("A big dog snarls and growls, tugging and shaking hard with its teeth.", 1.5, 1.2, "creature"),
+    hound_bite=G("A big dog lunges and bites: a quick snarl and a hard snap of jaws.", .7, .5, "creature"),
+    hound_boof=G("A big hound gives one soft low 'boof', a quiet single woof.", .6, .45, "creature"),
+    )
+add("death",
+    hound_yelp=G("A big dog is kicked: one sharp, high yelp.", .6, .45, "creature"),
+    hound_yelp_alt=G("A hound dog yelps twice in pain, short and high.", .7, .55, "creature"),
+    hound_whine=G("A hurt hound dog lying down whimpers and whines softly, high and pitiful.", 2.0, 1.6, "creature"),
+    hound_whine_alt=G("A hurt hound dog gives a long, sad, nasal whine, then a little whimper.", 2.0, 1.6, "creature"),
+    )
+add("player",
+    hound_whistle=G("A man whistles for his dog through his fingers: two short sharp notes, the second rising.", 1.0, .8, "foot"),
+    )
+
 # ------------------------------------------------------------------- player
 add("player",
     hurt=G("A man grunts in pain: short gruff 'ugh'.", .6, None, "vox"),
@@ -1174,10 +1198,19 @@ MUNDELL_HEARD = {
     "mundell_station_3": "Mama, I'd be proud.",
     "mundell_pickup_food_1": "Um, salty.",
     "mundell_streak_2": "It's Rampage Times!",
+    "mundell_finisher_2": "Stay down, you varmints!",
+    "mundell_hazard_1": "He was asking for that",
+    "mundell_hazard_2": "Mama said watch your step, son",
+}
+# Where the voice needs the words spelt as said (BLUE's "sic 'em").
+MUNDELL_SAY = {
+    "mundell_hound_sic_0": "Sick 'em, Blue!",
 }
 add("voice", **{f"mundell_{moment}_{n}": V(text, "mundell", **(
                     {"heard": MUNDELL_HEARD[f"mundell_{moment}_{n}"]}
-                    if f"mundell_{moment}_{n}" in MUNDELL_HEARD else {}))
+                    if f"mundell_{moment}_{n}" in MUNDELL_HEARD else {}), **(
+                    {"say": MUNDELL_SAY[f"mundell_{moment}_{n}"]}
+                    if f"mundell_{moment}_{n}" in MUNDELL_SAY else {}))
                 for moment, lines in _MUNDELL.items()
                 for n, text in enumerate(lines)})
 # Each cuss line's CLEAN copy: the cuss words under a duck call or a horn, by
@@ -1259,6 +1292,19 @@ add("impact",
     # from the scrap-metal knock a fourth lower until a take of its own.
     metal_down=D("scenery_scrap", "pitch", cents=-500, keep=.8),
     )
+# The big breaks (content pass 8, godot/src/features/set_pieces.gd): a barn
+# or a water tower creaking before it goes, the barn caving in, the tower's
+# tank bursting in the street, the gas leaking from a holed pump and the fire
+# racing along it, a plank wall panel split.
+add("scene",
+    collapse_creak=N("An old timber pole barn straining before it gives way: deep wooden groans, beams creaking and popping, rusty nails squealing out, dust and grit trickling.", 2.4, style="scene"),
+    collapse_crash=N("A big wooden hay barn caving in all at once: corrugated tin roof sheets crashing down, heavy timber beams snapping and splintering, planks clattering in a long rolling crash.", 2.8, style="scene"),
+    tower_groan=N("A tall wooden water tower toppling over: its timber legs cracking and splitting, a long deep wooden groan, water sloshing heavily inside the tank.", 2.6, style="scene"),
+    tower_burst=N("A huge wooden water tank smashing into a street: staves bursting apart, iron hoops ringing, then a massive gush and splash of water flooding out across the ground.", 3.2, style="scene"),
+    gas_leak=N("Gasoline gushing and glugging out of a shot-up gas pump hose, a wet hissing spray pattering on concrete.", 1.8, style="scene"),
+    gas_whoosh=N("A trail of spilled gasoline catching fire: a quick rushing whoosh of flame racing along the ground.", 1.4, style="scene"),
+    plank_crack=N("Weathered barn planks split by a shotgun blast: a sharp dry splintering crack and a board knocked loose.", .8, style="scene"),
+    )
 
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "
@@ -1336,3 +1382,61 @@ LOOP_LENGTH = {"boss_mothership": 90}
 VICTORY = ("victory", "A short celebratory cowpunk victory tune for a score tally screen: jubilant twangy "
            "guitar fanfare lick, slap bass and drums, playful and proud, ending on a big ringing final "
            "chord with a cymbal crash. " + BAND.split(" No vocals")[0] + " No vocals.", 14)
+
+# ------------------------------------------------- content pass 8: the county radio
+# KPSM, fourteen-ninety AM, the Possum: Dub Tillery's talk between the songs, in
+# the trucks and on the sets (voice "dj", an original late-night jock, through
+# an AM box), and the county's police scanner in the dispatch voice through the
+# radio box (src/radio_station.gd, features/radio.gd). The words are in
+# godot/data/tuning/radio_lines.json, which the game reads too. The crude lines
+# are cuss_dj_<topic>_<n> with CLEAN copies after every older one's.
+_RADIO = _json.loads((_Path(__file__).resolve().parent.parent / "godot" / "data" / "tuning"
+                      / "radio_lines.json").read_text(encoding="utf-8"))
+# How a radio line's transcript writes what the caption spells its own way.
+RADIO_HEARD: dict[str, str] = {
+    "dj_id_1": "KPSM 1490 AM. Still here, still awake, still the Possum",
+    "dj_ad_2": "Fill up at the Gas 'N Gut. Gas, gizzards, and lottery tickets, all one register",
+    "dj_ad_3": "the Possum County Fair's back. Rides inspected by somebody, probably",
+    "dj_wreck_0": "Report of a wreck tonight. Nobody hurt but the car's feelings",
+    "dj_boss_boggs_0": "Bumper Boggs lost a derby. Folks, I've been on the air 30 years. Never",
+    "dj_boss_revenue_man_0": "The revenue man got run off Copperhead Ridge. Taxes paid, says Granny",
+}
+# Captions put the way the voice said them: the words sent were these.
+RADIO_SAID = {
+    "dj_ad_3": "The Possum County Fair is back. Rides inspected by somebody, probably.",
+    "scan_tag_4": "Code three, lights and siren.",
+}
+
+
+def _radio(name, text, who, fx, **opts):
+    if name in RADIO_HEARD:
+        opts["heard"] = RADIO_HEARD[name]
+    if name in RADIO_SAID:
+        opts["say"] = RADIO_SAID[name]
+    return V(text, who, fx, **opts)
+
+
+# keep 2: a jock's line runs up to 12 s (NATURAL's six times its keep).
+add("voice", **{f"dj_{group}_{n}": _radio(f"dj_{group}_{n}", text, "dj", "am", keep=2.0)
+                for group, lines in _RADIO["dj"].items()
+                for n, text in enumerate(lines)})
+add("voice", **{f"scan_{group}_{n}": _radio(f"scan_{group}_{n}", text, "dispatch", "radio")
+                for group, lines in _RADIO["scanner"].items()
+                for n, text in enumerate(lines)})
+_DJ_CUSS = []
+for _topic, _lines in _RADIO["cuss"].items():
+    for _n, _text in enumerate(_lines):
+        _name = f"cuss_dj_{_topic}_{_n}"
+        _entry = _cuss(_name, _text, "dj")
+        _entry.update(fx="am", keep=2.0, **({"heard": RADIO_HEARD[_name]} if _name in RADIO_HEARD else {}))
+        add("voice", **{_name: _entry})
+        _DJ_CUSS.append(_name)
+add("voice", **{f"{name}_clean": D(name, "bleep", **{"with": "duck" if i % 2 == 0 else "horn"})
+                for i, name in enumerate(_DJ_CUSS)})
+# The set clicking on as a truck's radio is tuned in, and the scanner's key-up.
+add("ui",
+    radio_tune=G("An old AM car radio switched on and its dial turned: a click, a quick sweep of crackling "
+                 "static and whistles, settling on a faint station.", 1.2, 1.1, "ui"),
+    scan_squelch=G("A police scanner squelch: a short burst of radio static with a chirp as the "
+                   "channel opens.", .6, .45, "ui"),
+    )

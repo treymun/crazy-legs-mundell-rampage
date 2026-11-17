@@ -1,0 +1,65 @@
+{
+ "text": "The revenue man got run off Copperhead Ridge. Taxes paid, says Granny.",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.08,
+   "end": 0.16
+  },
+  {
+   "text": "revenue",
+   "start": 0.2,
+   "end": 0.56
+  },
+  {
+   "text": "man",
+   "start": 0.66,
+   "end": 0.94
+  },
+  {
+   "text": "got",
+   "start": 1.04,
+   "end": 1.28
+  },
+  {
+   "text": "run",
+   "start": 1.34,
+   "end": 1.5
+  },
+  {
+   "text": "off",
+   "start": 1.6,
+   "end": 1.78
+  },
+  {
+   "text": "Copperhead",
+   "start": 1.9,
+   "end": 2.46
+  },
+  {
+   "text": "Ridge.",
+   "start": 2.56,
+   "end": 3.02
+  },
+  {
+   "text": "Taxes",
+   "start": 3.12,
+   "end": 3.62
+  },
+  {
+   "text": "paid,",
+   "start": 3.74,
+   "end": 4.08
+  },
+  {
+   "text": "says",
+   "start": 4.18,
+   "end": 4.4
+  },
+  {
+   "text": "Granny.",
+   "start": 4.48,
+   "end": 4.92
+  }
+ ]
+}

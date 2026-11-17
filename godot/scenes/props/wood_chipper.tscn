@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_dre7s"]
+[ext_resource type="PackedScene" path="res://assets3d/props/wood_chipper.glb" id="2_dj8b7"]
+
+[node name="WoodChipper" type="Node3D" unique_id=1088533270]
+script = ExtResource("1_dre7s")
+prop = "wood_chipper"
+
+[node name="Model" type="Node3D" parent="." unique_id=493263836 instance=ExtResource("2_dj8b7")]

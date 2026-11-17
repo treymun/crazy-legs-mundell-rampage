@@ -73,7 +73,9 @@ const KINDS := [
 	"tin_guard",
 	"probe",
 	"maw",
-	"maw_bare"
+	"maw_bare",
+	"hound",
+	"hound_face"
 ]
 
 

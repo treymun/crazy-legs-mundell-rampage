@@ -66,7 +66,7 @@ func make() -> Builder:
 		"ending": '"WEIGHT INCLUDES CONTENTS AND DEBTS."',
 		"score": "quarry_score",
 		"ambience": "quarry",
-		"layout": 6,
+		"layout": 7,
 		"sky": "quarry_sky",
 		"control_name": "QUARRY FEEDS ISOLATED",
 		"extraction":
@@ -108,6 +108,7 @@ func build(_b) -> Array:
 	polish()
 	dress()
 	lintels()
+	hazards()
 	new_iron()
 	Climbs.quarry(b)
 	return [64.5, 81.5, -PI / 2]
@@ -1088,3 +1089,14 @@ func dress_works() -> void:
 	b.town("mash_barrel", 85.5, 25.5, {"solid": .4})
 	b.town("jug_stack", 60.5, 28.5, {"solid": .4})
 	b.town("jug_stack", 68.5, 28.5, {"solid": .4})
+
+
+## The county's hazards a man can be booted into (content pass 8,
+## src/features/brawl.gd and src/brawl_hazards.gd): a hot wire, a burn barrel,
+## a cattle guard (and the crushers and the saw). Each stands in the open where
+## the chapter's hands fight; layout 7 for them.
+func hazards() -> void:
+	b.volume(96.5, 31.38, 98.5, 31.62, 1.2)
+	b.town("electric_fence", 97.5, 31.5, {"plane": 0.0})
+	b.town("burn_barrel", 80.5, 49.5, {"solid": .28, "glow": true})
+	b.town("cattle_guard", 66.5, 54.5)

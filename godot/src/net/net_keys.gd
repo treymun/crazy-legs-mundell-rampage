@@ -61,6 +61,8 @@ static func key(main: MainState, game: Game, code: int) -> bool:
 		TacticalScreens.pending_item = me.inventory_slot
 	elif code in [KEY_C, KEY_B, KEY_M, KEY_V, KEY_X]:
 		TacticalScreens.pending_item = [KEY_C, KEY_B, KEY_M, KEY_V, KEY_X].find(code)
+	elif code == KEY_G:
+		TacticalScreens.pending_item = Game.HOUND_CALL
 	elif code == KEY_H or code == KEY_SCROLLLOCK:
 		pass  # holstering is the campaign's alone (nothing carries it as controls)
 	else:

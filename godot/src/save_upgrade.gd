@@ -75,7 +75,18 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 						body["floor_z"] = 0.0
 			return doc
 		8:
-			# Version 9 has the Moonshine Run between the speedway and the
+			# Version 9 keeps what the set pieces brought down (the barns, water
+			# towers and fuel lines: features/set_pieces.gd) in the features
+			# block; nothing had come down before them, so they stand.
+			var features: Variant = doc.get("features")
+			if features is Dictionary:
+				var block: Dictionary = features
+				block.erase("set_pieces")
+			else:
+				doc["features"] = {}
+			return doc
+		9:
+			# Version 10 has the Moonshine Run between the speedway and the
 			# Mothership: a campaign save at the Mothership finished the six
 			# chapters before it, so the new one is put in its history as gone
 			# by (nothing killed or found; its gate stays open for a replay).
@@ -86,7 +97,7 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			return null
 
 
-## A version 8 campaign save of a chapter after the Moonshine Run (the
+## A version 9 campaign save of a chapter after the Moonshine Run (the
 ## Mothership) gets the run's row in its history, where it falls in
 ## Campaign.ORDER; any other save is as it was.
 static func _moonshine_passed(doc: Dictionary) -> void:

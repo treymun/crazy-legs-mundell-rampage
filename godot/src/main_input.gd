@@ -411,6 +411,8 @@ func _key_play(code: int) -> void:
 		notice("ALWAYS RUN ON" if autorun != 0 else "ALWAYS RUN OFF", 1.3)
 	elif code == KEY_Z and _option_on("crouch"):
 		crouch_latched = not crouch_latched
+	elif code == KEY_G:
+		act(target, ["hound"])
 	elif code == KEY_Y:
 		sound.play("yee_haw")
 
@@ -974,6 +976,14 @@ func _touch_actions() -> void:
 	if tapped != null and state == "play" and game != null and game.map:
 		# A tap on the open map steps the zoom in, then back out to the whole level.
 		game.map_zoom = (game.map_zoom + 1) % 4
+	elif (
+		tapped != null
+		and state == "play"
+		and game != null
+		and not game.showing_tally
+		and HoundLooks.on_badge(game, picture_point(tap_at))
+	):
+		key(KEY_G)  # a tap on BLUE's badge whistles for him
 	elif (
 		tapped != null
 		and state == "play"

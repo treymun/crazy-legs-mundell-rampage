@@ -25,16 +25,16 @@ them).
 
 BOSS_PHASES["revenue_man"] = [(2, "revenue_man", ""), (3, "revenue_man", "")]
 
-MIRROR = lambda: mat(176, 196, 222, .06, .95, grime=0)
+MIRROR = lambda: mat(58, 74, 104, .05, .95, grime=0)
 FRAME = lambda: mat(170, 160, 130, .3, .9, grime=.1)
 
 
 # ---------------------------------------------------------------- hold tables
 # The fire axe in both hands: across the body at the ready, raised over the
 # right shoulder to aim, brought down through the swing, high back to wind up.
-AXE = {"ready": ((-.22, -.30, -.40), (.55, -.5, .65)), "aim": ((-.30, -.10, .22), (.15, .35, .92)),
-       "fire": ((-.12, -.46, -.18), (.15, -.85, -.5)), "recover": ((-.18, -.36, -.42), (.3, -.7, -.6)),
-       "pain": ((-.44, -.16, -.30), (-.3, -.3, .9)), "fidget": ((-.25, -.2, -.5), (.2, -.3, -.93)),
+AXE = {"ready": ((-.36, -.20, -.52), (-.08, -.32, .94)), "aim": ((-.30, -.10, .22), (.15, .35, .92)),
+       "fire": ((-.12, -.46, -.18), (.15, -.85, -.5)), "recover": ((-.3, -.3, -.5), (.05, -.6, -.8)),
+       "pain": ((-.44, -.16, -.30), (-.3, -.3, .9)), "fidget": ((-.34, -.18, -.56), (.05, -.2, -.97)),
        "wind": ((-.34, .14, .28), (-.1, .55, .82))}
 TOMMY = {"ready": ((-.22, -.30, -.30), (.6, -.6, .35)), "aim": ((-.20, -.34, -.12), (.35, -1, 0)),
          "fire": ((-.20, -.30, -.10), (.35, -1, .1)), "recover": ((-.21, -.33, -.22), (.45, -.75, .1)),
@@ -138,7 +138,7 @@ def head(Hm, C, J):
         hair = mat(*C.get("hair", (62, 46, 32)), .95)
         box((0, .02, .1), (.19, .19, .035), hair, Hm)
     if C.get("fedora"):
-        gear("hat")
+        gear("hat")  # only the boss wears one
         felt = mat(*C["fedora"], .85)
         band = mat(26, 22, 22, .8)
         ball((0, 0, .085), (.2, .21, .016), felt, Hm, (.06, 0, 0))
@@ -146,17 +146,30 @@ def head(Hm, C, J):
         ball((0, .005, .19), (.09, .1, .03), mat(*[int(v * .8) for v in C["fedora"]], .85), Hm)
         limb((0, .005, .1), (0, .005, .125), .118, .118, band, Hm, caps=False, seg=24)
         gear("")
+    if C.get("face"):
+        # A hard face under the shades: heavy brows, a set mouth, the jaw's
+        # shadow and a crease each side of the nose, read at game size.
+        brow = mat(*C.get("brow", C.get("hair", (62, 46, 32))), .9, grime=0)
+        for s in (-1, 1):
+            limb((s * .088, -.11, .072), (s * .016, -.126, .06), .016, .013, brow, Hm)
+            limb((s * .03, -.128, -.03), (s * .05, -.118, -.08), .006, .005, mat(120, 70, 56, .8, grime=0), Hm)
+        limb((-.03, -.13, -.088), (.03, -.13, -.088), .009, .009, mat(70, 30, 26, .7, grime=0), Hm)
+        skin_c = C.get("skin", (186, 122, 92))
+        jaw = mat(int(skin_c[0] * .78), int(skin_c[1] * .74), int(skin_c[2] * .72), .85, grime=0)
+        ball((0, -.05, -.115), (.085, .07, .04), jaw, Hm)
     if C.get("mirrors"):
         # Mirrored aviators: two teardrop lenses in a thin gold frame.
-        gear("shades")
+        gear("shades") if C.get("cracks") else None
         lens = MIRROR() if not (DAMAGE >= 2 and C.get("cracks")) else mat(120, 130, 150, .4, .7, grime=.2)
         for s in (-1, 1):
             ball((s * .048, -.118, .028), (.04, .012, .032), lens, Hm, (0, s * .15, 0))
             limb((s * .085, -.112, .042), (s * .118, -.02, .04), .005, .005, FRAME(), Hm)
         limb((-.012, -.13, .042), (.012, -.13, .042), .006, .006, FRAME(), Hm)
+        for s in (-1, 1):
+            ball((s * .058 - .012, -.13, .045), .007, mat(236, 240, 250, .1, .3, emit=.4, grime=0), Hm)
         if DAMAGE >= 2 and C.get("cracks"):
             limb((.02, -.132, .05), (.07, -.132, .01), .003, .003, WHITE(), Hm)
-        gear("")
+        gear("") if C.get("cracks") else None
     if C.get("gasmask"):
         rubber = mat(46, 50, 44, .7, grime=.3)
         ball((0, -.04, -.015), (.118, .118, .132), rubber, Hm)
@@ -180,25 +193,35 @@ def body(Tm, S, C, J):
     _ms_body_base(Tm, S, C, J)
     L, sw, g = S["torso_len"], S["sw"], S["gut"]
     front = -(.17 + .03 * g)
-    if C.get("tie"):
-        tie = mat(*C["tie"], .7)
-        knot = Vector((0, front - .045, L - .02))
-        ball(knot, (.024, .016, .022), tie, Tm)
-        loose = .04 if DAMAGE >= 1 else 0.
-        limb(knot, (loose, front - .05 - .02 * g, L - .3), .02, .03, tie, Tm)
-        ball((loose, front - .05 - .02 * g, L - .32), (.03, .012, .02), tie, Tm)
-        white = mat(*C["shirt"], .7, grime=.2)
-        for s in (-1, 1):
-            limb((s * .015, front - .04, L - .01), (s * .06, front - .05, L - .05), .014, .01, white, Tm)
     if C.get("lapels"):
-        # The suit coat over the shoulders and the upper back (the shirt shows
-        # only at the front, under the tie).
+        # The suit coat over the shoulders, the upper back and both sides of
+        # the chest (the cloth's grime read as spilled paint on a white shirt
+        # showing there): only a clean white front shows, down the middle.
         coat = mat(*C["coat"], .9)
+        clean = mat(*C["shirt"], .5, grime=0)
+        ball((0, -.03 - .07 * g, .20), (sw * .86 + .06 * g, .163 + .10 * g, .193 + .03 * g), clean, Tm)
+        ball((0, -.01, L - .14), (sw * .55, .172 + .03 * g, .192), clean, Tm)
         limb((-sw * .82, .01, L - .02), (sw * .82, .01, L - .02), .092, .092, coat, Tm)
         ball((0, .04, L - .14), (sw * 1.0, .17 + .03 * g, .2), coat, Tm)
-        lap = mat(*[int(v * .85) for v in C["coat"]], .8)
         for s in (-1, 1):
-            limb((s * .06, front - .045, L - .02), (s * .1, front - .045, L - .28), .028, .012, lap, Tm)
+            ball((s * sw * .58, front + .04 - .03 * g, L - .2), (sw * .5, .07, .22), coat, Tm)
+            ball((s * sw * .64, -.02 - .06 * g, .2), (sw * .46, .16 + .09 * g, .2 + .03 * g), coat, Tm)
+    if C.get("tie"):
+        white_front = mat(*C["shirt"], .5, grime=0)
+        box((0, front - .01 - .03 * g, L - .17), (.1, .03, .3), white_front, Tm, (-.12, 0, 0))
+        for s in (-1, 1):
+            box((s * .028, front - .03, L - .02), (.05, .012, .035), white_front, Tm, (0, s * .5, 0))
+        tie = mat(*C["tie"], .6, grime=0)
+        knot = Vector((0, front - .045, L - .04))
+        ball(knot, (.022, .016, .022), tie, Tm)
+        loose = .04 if DAMAGE >= 1 else 0.
+        limb(knot, (loose, front - .05 - .03 * g, L - .3), .018, .028, tie, Tm)
+        ball((loose, front - .05 - .03 * g, L - .32), (.028, .012, .02), tie, Tm)
+    if C.get("lapels"):
+        # The lapels, a satin shade lighter, folded back from the collar.
+        lap = mat(*[min(255, int(v * 1.5) + 8) for v in C["coat"]], .45, grime=.1)
+        for s in (-1, 1):
+            box((s * .075, front - .035 - .015 * g, L - .14), (.045, .014, .26), lap, Tm, (-.1, s * .32, 0))
     if C.get("belt_badge"):
         box((sw * .55, front - .02, .1), (.05, .02, .06), mat(214, 168, 64, .35, .85, grime=.2), Tm)
     if C.get("raid"):
@@ -234,12 +257,12 @@ def body(Tm, S, C, J):
 SUIT = (34, 34, 40)
 SHIRT = (224, 222, 212)
 REVENOOER = cast(AVG, gut=.2, px=160, hip_h=.9, shirt=SHIRT, coat=SUIT, pants=SUIT,
-                 tie=(24, 22, 26), lapels=1, belt_badge=1, skin=(198, 150, 118), hair=(58, 44, 34),
-                 hair_show=True, flattop=1, mirrors=1, boots=(20, 18, 18), boot_top=.12,
+                 tie=(18, 18, 20), lapels=1, belt_badge=1, skin=(192, 140, 108), hair=(40, 32, 26),
+                 hair_show=True, flattop=1, mirrors=1, face=1, beard="stubble", boots=(20, 18, 18), boot_top=.12,
                  weapon="pistol", hold=ONE)
 STILL_BUSTER = cast(AVG, gut=.35, sw=.25, px=164, limb=(.094, .076, .062), arm=(.072, .06, .048),
                     shirt=(36, 44, 74), coat=(36, 44, 74), pants=(70, 66, 58), raid=(232, 200, 64),
-                    hat="cap", hat_c=(36, 44, 74), mirrors=1, beard="moustache", hair=(80, 58, 40),
+                    hat="cap", hat_c=(36, 44, 74), mirrors=1, face=1, beard="moustache", hair=(80, 58, 40),
                     skin=(190, 140, 108), gloves=(80, 62, 44), boots=(30, 26, 24), boot_top=.4,
                     weapon="fire_axe", hold=AXE)
 GAS_MAN = cast(AVG, gut=.15, px=158, shirt=(90, 96, 66), coat=(90, 96, 66), pants=(64, 62, 52),
@@ -248,8 +271,9 @@ GAS_MAN = cast(AVG, gut=.15, px=158, shirt=(90, 96, 66), coat=(90, 96, 66), pant
 REVENUE = cast(AVG, gut=.3, sw=.26, px=184, canvas=(1.9, 2.3), hip_h=.96, thigh=.46, shin=.45,
                torso_len=.58, limb=(.1, .082, .066), arm=(.078, .064, .05), upper=.32, fore=.3, head_scale=1.15,
                shirt=SHIRT, coat=(22, 22, 26), coat_long=1, pants=(22, 22, 26),
-               tie=(120, 20, 22), lapels=1, belt_badge=1, skin=(204, 156, 124), hair=(120, 116, 110),
-               hair_show=True, fedora=(110, 108, 104), mirrors=1, cracks=1, axe_back=1, boss_wear=1,
+               tie=(18, 18, 20), lapels=1, belt_badge=1, skin=(198, 148, 116), hair=(120, 116, 110),
+               hair_show=True, fedora=(110, 108, 104), mirrors=1, cracks=1, face=1, brow=(90, 86, 80),
+               beard="moustache", beard_c=(132, 128, 122), axe_back=1, boss_wear=1,
                boots=(16, 14, 14), boot_top=.12, weapon="tommy", hold=TOMMY, two_hand=1)
 REVENUE["down_frame"] = (3.2, 1.6)
 

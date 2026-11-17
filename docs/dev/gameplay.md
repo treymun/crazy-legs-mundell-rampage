@@ -23,8 +23,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (71 now;
-  REPLAYS is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (72 now;
+  HOUND DOG is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -485,6 +485,12 @@ Setting `chatter`: OFF 0, CLEAN 1, CUSSIN' 2, the owner's default;
   lines for every other voice's moments, Mundell's 9 and each chapter's tough
   guy's own line; and turns: nobody talks over a line still playing
   ([audio.md](audio.md#voices)).
+- The county radio (content pass 8, `features/radio.gd`, a looks feature):
+  KPSM's DJ between the songs and the police scanner react to what Mundell
+  does (a blast, a boss down, a car burnt out, a run of kills, drunk, a
+  secret, deaths; shots fired and a deputy down for the scanner); its own
+  RADIO setting, its crude lines follow CHATTER
+  ([audio.md](audio.md#the-county-radio-content-pass-8)).
 
 ## Things break
 
@@ -768,6 +774,85 @@ Crossroads and the versus and 5v5 modes (`allowed()`).
   `tools/live_props_frames.gd -- out=<dir>` pictures it in a window
   (`docs/godot3d/features/b/`).
 
+### Dirty fighting (content pass 8)
+
+`features/brawl.gd` (SIM, carried in snapshots by uid, never saved: it is
+all seconds long), `src/brawl_hazards.gd`, `features/brawl_looks.gd` (looks);
+numbers in hits.cfg `[kick]`, `[finish]`, `[finish.<move>]`, `[hazard]`,
+`[hazard.<kind>]`. Everything is game.clock, game.rng and arithmetic, so
+co-op and online play it the same (`net_check`, brawl_check's snapshot).
+
+- **The boot.** USE with one of the county's hands in front (within `reach`
+  past his edge, `cone` of the aim, the same floor, in sight) is a kick, before
+  anything else USE does (`game.gd interact()`); with nobody there USE is as
+  before. The boot lands `land` later: `damage`, `stun`, `daze` (open to a
+  finisher) and a slide along the aim at `speed`, slowing by `drag`. Into a
+  wall faster than `slam_least` he takes `slam` a unit of speed; into another
+  hand that one slides on (`domino`); off a drop of more than `drop` he takes
+  `drop_damage` a cell; a kill throws the body by `kick` (corpses.gd KNOCK,
+  effects.cfg `[ragdoll] kick`: it crashes windows and fences like point-blank
+  buckshot). A boss slides `boss_share` as far and takes `boss_damage`. The
+  gun is down for `busy`. Running (faster than `door_speed`) at a plain shut
+  door (no key wanted, not secret, blast-only, controlled or a crouch hatch),
+  USE kicks it in: open at once, splinters, and whoever stands within
+  `door_reach` behind it is kicked back.
+- **Smashes.** FIRE with a thing held (features/carry.gd) and a hand at arm's
+  length (carry.cfg `[smash]`) breaks it over his head instead of throwing:
+  `hit` + `per_weight` x its weight (`smashed` in `[reaction]`), reeling and
+  dazed; a breakable piece breaks (a jug, a crate, a jar), a board (a rocker)
+  drops at his feet.
+- **Finishers.** USE, or a swing of the crowbar, sling blade or rip saw, at a
+  hand who is down to `low` of his health, reeling (`stun` at least
+  `stagger`) or dazed starts a move by the gun in hand (`pistol`, `long`,
+  `blade` lists; anything else, holstered too, is the boot's) picked by
+  game.rng: PISTOL WHIPPED or SAY AHH (a round in the mouth), BUTT STROKE or
+  BELLY FULL OF LEAD (a round), SKULL CRACKED or GUTTED, BOOT TO THE FACE or
+  PUNTED. A move that spends a round is left out with none loaded. The blow
+  lands `wind` later; the hands are busy `hold`. `end` "head_off" hits the
+  head just hard enough for the gore to take it (gore_extras.gd LIMB_HIT,
+  short of an overkill), "gib" takes him apart, "fall" drops him. Alone, the
+  world slows to `pace` for `slowmo` real seconds from the blow (the finishing
+  shot's own is held off meanwhile; never with two players, as finishers.gd).
+  The move's name is called on screen and Mundell says a `finisher` line
+  (barks.gd, voiced). Bosses are never finished.
+- **Hazards.** A man driven into one (only by a slide: a hand walking about
+  never is) dies the way it kills: the props named in `[hazard] images` (a
+  saw blade or the headrig, the wood chipper, the crushers: gib; the bug
+  zapper, the hot fence, the Mothership's beam emitters: shock and sparks; a
+  burn barrel: set alight (fire.gd); the well: down it, no body; the cattle
+  guard: his ankles); water a little ahead of him while he slides fast, if he
+  started dry (BayouBrains.wet_at: the creek, the bayou's deep water; he
+  floats); live hogs within `hog_reach` where his slide ends (they close in
+  and he is their slop 1.3 s later). A boss takes `boss_share` of his health
+  at most once in `boss_rest` and is never killed by one. Calls on screen and
+  a `hazard` line. Where they stand: [levels.md](levels.md#the-plans).
+- **Looks** (`brawl_looks.gd`, after feel.gd so it adds to the gun's place):
+  the kick is four cels `fx_boot_kick_0..3` (tools/art/build_boot_views.gd
+  from scripts/blender/boot_views.py: his brown work boot coming up sole
+  first, its tread to the man kicked, the stacked heel and the overalls' cuff
+  under it; `PLACES`
+  where each sits): chambered, out, the blow held on contact (the hit-stop),
+  back and away, drawn under the gun over the view's rows only, lit as the
+  gun is; the gun ducks out of its way. Each finisher moves and turns the gun
+  in hand along its own path (`PATHS`: the revolver cocked low and swung
+  across butt first, the long gun driven up stock first, the blade raised
+  and brought down or swung flat, a round pushed into his mouth or gut and
+  fired), holding still on contact while the slow motion stretches it:
+  `Player.weapon_turn` (looks, never carried) turns the gun cel about its
+  grip on the graphics-card canvas (`Canvas.gpu_texture_turned`; the
+  software canvas draws it unturned). Every blow jolts the view
+  (`feel.gd punch()`, SCREEN SHAKE scales it). The bug zapper's lantern
+  lights the ground about it violet (effects.cfg `[light.bug_zapper]`).
+- `tools/brawl_check.gd` (check_all, quick): the slide, the slam, the domino,
+  a healthy hand kicked not finished, a finisher of each class (and every
+  move by seed) with its slow motion from the blow, the crowbar's swing, the
+  setting off, co-op's second player finishing with no slow motion, each
+  hazard kind and a hand walking by one, the creek, the hogs, a boss kicked
+  not finished and taking only his share, the door kicked in, smashes, two
+  runs the same, a snapshot mid-slide played on tick for tick, and the boot's
+  cels and their places. `tools/brawl_frames.gd -- out=<dir>` (a window)
+  pictures each.
+
 ### The bowling lane's pins (second remaster)
 
 The Bowl-O-Rama's ten pins are rigid bodies in three dimensions
@@ -916,6 +1001,81 @@ once, none of it once had; secrets kept; the tally row; the shack's board;
 none of it off the campaign. `-- audit` prints the table and `map=<dir>`
 draws each chapter's guns against its way.
 
+### The hound (content pass 8)
+
+BLUE, Mundell's bluetick coonhound, comes along with each player in a
+campaign chapter played alone or in co-op (`HoundNose.on`: not the
+Crossroads, the range, a boss rematch, County Run or the versus modes:
+County Run's runs and its daily board are set for one man and his guns).
+HOUND DOG (PLAY page, `hound`, on) turns him off. A game reads `hound` from
+its options with 0 when it is missing, so an older replay plays without him,
+and the front end sets it to 0 when a tool or a view tour runs the game
+(`main.gd`), so every check and picture made before him is the same; a tool
+that wants him sets `main.options["hound"] = 1` (`bot_campaign.gd -- hound`
+walks the campaign with him). Play, carried and saved: `features/hound.gd`
+(a SIM feature, a `Dog` per player slot, its dice `game.rng`), what his
+nose finds `src/hound_nose.gd`, his looks and badge `src/hound_looks.gd`,
+numbers in `data/tuning/hound.cfg`.
+
+- **Heel.** Behind his player off to one side, out of their sights; a run
+  past `run_past`, round walls on the player's flow field; lost (far out of
+  sight, or no way through) for `lost_for` he turns up behind them. He walks
+  the level as a body of his own (an Enemy no list holds, moved with
+  `LevelData.move`, never carried: `SnapCodec.SKIP_FIELDS`). The hands do not
+  hunt him and the player's shots pass him.
+- **Nose.** Calm (no hand awake near the player) he bays at a secret door
+  not found yet from its open side (`HoundNose.door_front`) and at a gun his
+  player ain't got lying out (GunFinder: never one behind a secret, the door
+  gives that away), and points at a pickup his player cannot see; each place
+  once (`bayed`, saved), the nose resting `bay_rest`/`point_rest` after.
+- **Fight.** On his own he goes for a hand under `pin_below` of its health or
+  one right on top of his player; told (the whistle with the sights on one)
+  any hand he takes (`HoundNose.takes`: not a boss, nothing that flies or
+  swims). He bites (never for the last of its health: the kill is always a
+  player's) and under `pin_below` holds it down `pin_time`: stunned the whole
+  time, it cannot fight or walk, dragged half down (its fall's `die_1` held,
+  `Enemy.held_cel`, now and then its pain twist), turned to face his player
+  so it leans back along their line of sight and their shots land on what
+  they see (its hit cylinder never moves). The hands within `kick_reach`, the held one
+  too, kick at him (`kick_rate`, the kick shown as the hand's attack frame);
+  blasts hurt him. A held hand finished counts on the tally (BLUE: FETCHED,
+  HELD) and gets a GOOD BOY.
+- **Fetch.** Told, the pickup the sights are on (ammo or food, never keys,
+  quest pieces, guns or dynamite); on his own every `fetch_every` or so,
+  food when his player is hurt, rounds for the gun in hand when it runs low.
+  He takes it out of `game.pickups`, carries it (saved) and drops it at his
+  player's feet with `add_pickup` (a new uid), where they take it as ever.
+- **Down.** Hurt to nothing he lies whining; a player holding USE beside him
+  for `revive_time` gets him up, USE with a pork rind in the pocket at once
+  (`hound.use`, `hound.prompt`, from `game_use.gd`), and after `get_up` he
+  gets up himself: he never dies.
+- **The whistle.** WHISTLE FOR BLUE (G; the pad's share button; a tap on his
+  badge): `act(["hound"])` -> `Game.hound_call()`; online and for bots
+  `Controls.item == Game.HOUND_CALL` (96, past the pockets, so the wire and
+  the replay rows are unchanged). Sights on a hand SIC 'EM, on a pickup
+  FETCH, else STAY (he sits) and again COME; Mundell says it in his voice
+  (the `hound_*` barks, mundell_lines.json).
+- **Looks.** His model (`scripts/blender/actors_hound.py`, scene
+  `scenes/actors/hound.tscn`) drawn through a stand-in (`ModeBodies.stand_in`,
+  key `hound<slot>`) posed by `hound.frame()`: the walk `w0..w4` and the
+  gallop `r0..r4` run on his gait (`ActorView._time`), sit, bark, bay, bite,
+  pin and pin2 (the worrying shake), fetch (what he carries drawn in his
+  jaws), point, sniff, pain, down and whine. The badge in the view's bottom
+  left (`HoundLooks.badge`, from `draw_view`): his head
+  (`hound_face_0/1/2/down`), BLUE or what he is up to, five health ticks.
+
+`tools/hound_check.gd` (HOUND CHECK OK, in check_all) holds it: heel, catch
+up and the lost jump; none with it off, in County Run, a versus map, the
+range, the Crossroads or a deathmatch; the bay at a secret door and at new
+iron, the point at a hidden pickup; a hand held stunned and never killed by
+him, kicks, finished by the player; a told SIC biting a whole hand down; no
+boss; a fetch dropped and taken; down, held USE, a rind, getting up himself;
+STAY, COME, the replay op and the controls' whistle; saves; co-op's two
+hounds and their own whistles; two games in lockstep with him about, a
+snapshot onto a fresh game running on the same; his art, the stand-in and
+the badge. `-- play=<level>` lets the campaign bot play two minutes with him
+and prints what he did.
+
 ### Walls break too
 
 `features/wall_breaks.gd`, breakables.cfg `[windows]` and `[fence.<tile>]`.
@@ -974,6 +1134,14 @@ draws each chapter's guns against its way.
   whole, so no save version; no map changed, so no layout).
   `tools/plank_check.gd` (check_all, quick too) holds it; railings, stairs
   and decks (geometry pieces) do not break yet.
+- **In layers** (content pass 8): a window's first round under
+  `[windows] crack_most` cracks its glass (`<material>_crk`, a lit one's
+  `_lck`: `wall_break_art.gd`, laid by height like `_win`), the next shoots
+  it out; a blast, a body or a big round shoots it out at once. Cracked is
+  saved (the feature's `cracked` list). A breakable sign (`sign=true`) with
+  a `<sign>_crk` picture (`build_break_art.gd`) that a round under
+  `[all] crack_most` would break cracks first (`Piece.cracked`, carried; a
+  client's picture put right in `sprites()`) and goes on the next.
 - A swapped tile (`LevelData.set_wall_tile`: a window shot out, a fence shot
   about) adds the piece's start to `LevelData.retiled`; the 3D view builds
   only the chunks round it again (`LevelMesh.build_static(base, only)`, a few
@@ -1086,6 +1254,92 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   the idle cost; `tools/physics_frames.gd -- only=break` pictures the
   barrel, window, fence, picnic table and hazard drums
   (`docs/godot3d/features/C/`, before and after).
+
+### The big breaks (content pass 8)
+
+`features/set_pieces.gd` (SIM_FEATURES and FACT_FEATURES, saved),
+`src/set_piece_shape.gd` (what each is made of), `src/set_piece_flow.gd` (the
+gas and the flood), `src/set_piece_mesh.gd` (their pieces as wreck-layer
+cuts); numbers in `data/tuning/set_pieces.cfg`; a level lists its own in
+`"set_pieces"` ([levels.md](levels.md#the-big-breaks)). Three kinds, none on
+the versus maps or the hub (`[all] never`):
+
+- **A barn or hay shed** (`barn`): posts down both long sides, top plates, a
+  ridge, tin sheets on two slopes and plank walls on the sides its spec
+  names (the front stays open). Each post and wall panel is a part with hp;
+  standing, the posts and walls are LevelData volumes (in the way of bodies,
+  sight and shots; the paths shut round them, `FlowField.close`). Two posts
+  out (`posts_out`), or the frame (`frame` hp) spent by blasts
+  (`blast_frame`), rams (`ram_frame`) or fire in its footprint
+  (`burn_frame`, `burn_part`), and it creaks (`warn`): dust sifts, the call
+  goes up (`call`), the county's hands round it run (`flee`, their
+  `retreat`). Then it comes down in its own pieces: the tin drops and slides
+  the way it leans, the walls go over on their bottom edges, posts and
+  plates fall, each a little apart in time (game.rng). A wall panel shot
+  about shows its tile's `_hit` boards; shot through it goes over on its
+  own and the way through it opens (its volume dropped, the paths
+  reopened). A shed falls only the square ways its spec's `falls` allows,
+  the nearest to its lean.
+- **A water tower** (`tower`): four legs braced both ways, a deck, a stave
+  tank with iron hoops and a tin cap. Two legs out on one side (or three, or
+  the frame gone) and it goes over that way about its feet
+  (`topple_time`); the tank, hoops, cap and deck burst where the tank meets
+  the ground (the frame comes apart and its legs and braces drop flat,
+  scattered) and the water floods the street (`set_piece_flow.gd`).
+- **A fuel line** (`fuel`): a pipe along the ground through its `points` and
+  hit boxes at its `pumps` (the level's own pump props). A pump or a length
+  of pipe holed leaks: gas runs along the line both ways from the hole
+  (`leak_speed`) and lies `gas_life`. Fire touching any gas cell (fire.gd's
+  burning cells, a blast near) lights it and the fire runs along the line a
+  cell every `run_step`, each cell `fire.ignite()`d for `gas_burn` and
+  flaring `flare` into whatever breakable stands on it (a propane tank at
+  the end goes up, and its blast lights the rest).
+- **Debris matters.** Each piece that lands hurts whoever is under it by
+  what it is (`crush_*`: players pinned `pin` seconds as a hog's charge
+  knocks them, `Player.knocked`; hands held `pin_enemy` and hurt
+  `enemy_crush` times as much, credited to the nearest player, so a hand
+  lured under a shed dies) and breaks the breakables under it (hay bales; a
+  propane tank goes up). What lies higher than `low` over its floor (and
+  not overhead) is cover: a volume in the way, never laid over anybody and
+  never shutting anyone in.
+- **The flood**: the cells round where the tank struck, by a walk that
+  favours the way it fell and keeps to the ground's level (no walls, rubble,
+  steps or water), `flood` at most, cheapest first; its front rolls out at
+  `flood_speed`, puts out fire (`fire.douse`), washes the gas away and
+  shoves whoever it meets ahead of it (`wash`; a player knocked
+  `wash_knock`, a hand floundering `wash_stun`), stands `flood_life` and
+  drains in `drain` (water marks, `mark_flood_*`).
+- **Play, exactly the same everywhere.** Every falling piece has a move
+  (`HINGE` about a line, or `DROP` by gravity to its rest) worked out once
+  when it goes; where it is is a sum of its move and game.clock
+  (`pose()`), so nothing steps a body. The state is plain values (the
+  pieces' hp, states, moves; the volumes added and dropped; the floods),
+  carried (`NET_GUARDED` by `net_version`) and saved; restore() puts the
+  volumes right on a load or a client (save version 9). The shapes, the
+  trails and the looks are made from the level on every machine
+  (`SnapCodec.SKIP_FIELDS`).
+- **Hits**: `game_combat.gd` asks `ray()` in `hitscan` (a nearer breakable
+  wins), `touch()` for a shot in flight and `blast()` in `_blast_shoves`;
+  `vehicles.gd _bump` rams (`touch`/`strike` at the bump).
+- **Drawn** by the wreck layer: each part's key
+  (`t:<tile>@0,0|spbox:...`, `sptank`, `sphoops`, `spcone`) is cut by
+  `SetPieceMesh` with the level's own tile by the metre; what stands (and,
+  once nothing moves, what lies) is merged into one mesh a tile
+  (`WreckCuts.put`: a few nodes, each holding its shader slots), what moves
+  is drawn piece by piece; set piece parts are drawn out to `WreckLayer3D.FAR`.
+  `wreckage.gd` (looks) watches the parts' states: a tank burst throws its
+  staves, hoops, cap, deck and painted name as real pieces; a barn's
+  landings throw chips only (`game.burst`), and a breakable broken inside a
+  barn come down (`rubble_at`) throws no real pieces: pieces wedged among
+  the rubble's volumes cost the wreck physics 15 to 25 ms a tick.
+- **Sounds**: `collapse_creak`, `collapse_crash`, `tower_groan`,
+  `tower_burst`, `gas_leak`, `gas_whoosh`, `plank_crack` (ElevenLabs, pass 8).
+- **Cost**: asleep (no tick) while nothing moves, leaks, floods or burns;
+  awake its tick walks only its own few pieces. Measured in pass 8: see
+  [checks.md](checks.md#benchmarks).
+- `tools/set_piece_check.gd` (SET PIECE CHECK OK, check_all) holds it;
+  `tools/set_piece_frames.gd -- out=<dir>` pictures each one standing,
+  going and down in a window.
 
 ### The shared physics core (engine pass 6)
 
@@ -1335,7 +1589,9 @@ chapel path at Hickston. Only the campaign and co-op have them
   its `lamps` on (`effects.cfg [light.vehicle_lamp]`, a pool on the ground
   ahead of each, through `view_lights.gd`, and an `fx_flare` glow on the
   lamp) and its `radio` playing (the jukebox's loop through the radio
-  channel, `radio_volume`, within `radio_reach`; the jukebox wins);
+  channel, `radio_volume`, within `radio_reach`; the jukebox wins; KPSM's
+  DJ and scanner come from it when near, and taking it tunes it in: see
+  [audio.md](audio.md#the-county-radio-content-pass-8));
   the automap draws a little picture of it in the key's yellow
   (`VehicleFinder.ICONS`, and RIG, KEYS IN IT in the key); USE's prompt
   names it looked at from `spot_reach` ("AIRBOAT  /  KEYS IN IT"), only

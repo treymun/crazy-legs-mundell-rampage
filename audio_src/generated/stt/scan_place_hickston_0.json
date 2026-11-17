@@ -1,0 +1,35 @@
+{
+ "text": "Respond to Stanky's Bar and Grill",
+ "words": [
+  {
+   "text": "Respond",
+   "start": 0.06,
+   "end": 0.7
+  },
+  {
+   "text": "to",
+   "start": 0.74,
+   "end": 0.86
+  },
+  {
+   "text": "Stanky's",
+   "start": 0.96,
+   "end": 1.44
+  },
+  {
+   "text": "Bar",
+   "start": 1.56,
+   "end": 1.94
+  },
+  {
+   "text": "and",
+   "start": 2.12,
+   "end": 2.3
+  },
+  {
+   "text": "Grill",
+   "start": 2.4,
+   "end": 2.96
+  }
+ ]
+}

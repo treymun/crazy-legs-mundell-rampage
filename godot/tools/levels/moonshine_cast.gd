@@ -219,6 +219,23 @@ func set_pieces() -> void:
 		. triggers
 		. append(
 			{
+				"id": "doghouse",
+				"when": {"area": [13, 73, 16, 76]},
+				"do":
+				[
+					{
+						"message": "BLUE'S OLD DOGHOUSE. GRANNY RAISED THAT HOUND FROM A PUP.",
+						"for": 3.0
+					}
+				],
+			}
+		)
+	)
+	(
+		b
+		. triggers
+		. append(
+			{
 				"id": "blacktop",
 				"when": {"area": [64, 56, 67, 59]},
 				"do":

@@ -1,0 +1,70 @@
+{
+ "text": "Uh, the Moonshine Baron is out of business. Stock up while you can",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "the",
+   "start": 0.2,
+   "end": 0.24
+  },
+  {
+   "text": "Moonshine",
+   "start": 0.32,
+   "end": 0.92
+  },
+  {
+   "text": "Baron",
+   "start": 1.02,
+   "end": 1.32
+  },
+  {
+   "text": "is",
+   "start": 1.38,
+   "end": 1.5
+  },
+  {
+   "text": "out",
+   "start": 1.58,
+   "end": 1.7
+  },
+  {
+   "text": "of",
+   "start": 1.72,
+   "end": 1.82
+  },
+  {
+   "text": "business.",
+   "start": 1.86,
+   "end": 2.3
+  },
+  {
+   "text": "Stock",
+   "start": 2.38,
+   "end": 2.68
+  },
+  {
+   "text": "up",
+   "start": 2.76,
+   "end": 2.9
+  },
+  {
+   "text": "while",
+   "start": 2.94,
+   "end": 3.08
+  },
+  {
+   "text": "you",
+   "start": 3.16,
+   "end": 3.24
+  },
+  {
+   "text": "can",
+   "start": 3.32,
+   "end": 3.68
+  }
+ ]
+}

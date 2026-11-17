@@ -278,6 +278,11 @@ func _cap(game: Game) -> void:
 	var wreck = game.features["wreckage"]
 	var breaks = game.features["breakables"]
 	wreck.most = 48
+	# The breakables alone: a set piece brought down by them (a shed whose
+	# propane goes up) keeps throwing pieces for seconds (set_piece_check
+	# holds those). Kept by `sets` (its tick still runs), out of wreckage's sight.
+	var sets = game.features.get("set_pieces")
+	game.features.erase("set_pieces")
 	var top := 0
 	var busiest := 0.0
 	for i in breaks.pieces.size():
@@ -302,6 +307,8 @@ func _cap(game: Game) -> void:
 		"after the oldest shrink away, at most `most` lie about (%d)" % wreck.wrecks.size()
 	)
 	print("  ok   cap: at most %d at once, %d after" % [top, wreck.wrecks.size()])
+	if sets != null:
+		game.features["set_pieces"] = sets
 
 
 ## A save put back throws nothing; all asleep costs next to nothing.

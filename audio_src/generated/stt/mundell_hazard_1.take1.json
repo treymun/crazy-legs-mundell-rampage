@@ -1,0 +1,25 @@
+{
+ "text": "He had that comments",
+ "words": [
+  {
+   "text": "He",
+   "start": 0.2,
+   "end": 0.3
+  },
+  {
+   "text": "had",
+   "start": 0.34,
+   "end": 0.64
+  },
+  {
+   "text": "that",
+   "start": 0.7,
+   "end": 0.96
+  },
+  {
+   "text": "comments",
+   "start": 1.12,
+   "end": 1.94
+  }
+ ]
+}

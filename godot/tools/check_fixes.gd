@@ -369,8 +369,8 @@ func _parity(main: Control) -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 71 + KeyBindings.ACTIONS.size(),
-		"all 71 settings and every control's key are on a page"
+		seen.size() == 73 + KeyBindings.ACTIONS.size(),
+		"all 72 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true
@@ -1274,7 +1274,7 @@ func _mothership(main) -> void:
 ## comes back when the boss falls (features/fight_music.gd, Sound.BOSSES).
 func _boss_music(main) -> void:
 	print("\nBOSS MUSIC")
-	for id: String in ["hickston", "quarry", "bayou", "speedway"]:
+	for id: String in ["hickston", "quarry", "bayou", "speedway", "moonshine"]:
 		var g: Game = main.make_game(id)
 		g.configure({})
 		var foe: Enemy = g.finale if g.finale != null else g.boss

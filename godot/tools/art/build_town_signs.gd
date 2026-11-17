@@ -16,6 +16,7 @@
 ##   hogs_sign         the Hickston Hogs' board by their field
 ##   big_top_sign      RUDY'S BIG TOP over the fair's ring
 ##   saw_floor_sign    the mill's carriage track warning
+##   tower_hickston    HICKSTON whitewashed round the water tower's tank
 ## Seeded, so a rerun gives the same files. Then run tools/pack_assets.gd.
 extends SceneTree
 
@@ -55,6 +56,11 @@ func _init() -> void:
 		var sheet: Paint.Sheet = arenas[name]
 		sheet.save(out.path_join(name + ".png"))
 	made.merge(arenas)
+	# Hickston's water tower's name round its tank (content pass 8: the
+	# tower is a set piece, features/set_pieces.gd), after the rest.
+	var tower := tower_sign()
+	tower.save(out.path_join("tower_hickston.png"))
+	made["tower_hickston"] = tower
 	print("town signs: %d written to %s, corn to %s" % [made.size(), out, tiles])
 	quit()
 
@@ -355,4 +361,20 @@ func corn() -> Paint.Sheet:
 			var o := (y * 128 + x) * 4
 			for k in 3:
 				s.data[o + k] = int(s.data[o + k] * (.55 + y * .075))
+	return Paint.digitize(s)
+
+
+## HICKSTON painted round the water tower's tank: a whitewash band brushed
+## on over the staves (ragged at its ends, clear round it so the staves show),
+## the name in dark block letters, faded and chipped.
+func tower_sign() -> Paint.Sheet:
+	var s := Paint.Sheet.new(112, 22)
+	for y in range(2, 20):
+		var x0 := 2 + rng.randi() % 3
+		var x1 := 109 - rng.randi() % 3
+		for x in range(x0, x1):
+			var f := .92 + rng.randf() * .1
+			s.put(x, y, Color(.84 * f, .8 * f, .7 * f))
+	letters(s, "HICKSTON", 56, 4, 2, Color8(52, 36, 26))
+	weather(s, 50, 0)
 	return Paint.digitize(s)

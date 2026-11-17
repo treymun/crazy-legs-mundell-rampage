@@ -231,7 +231,9 @@ static func _backup(main, check: Callable) -> void:
 	var counts: Array = []
 	var saved := false
 	var full := true
-	for level_id: String in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway"]:
+	for level_id: String in [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine"
+	]:
 		for difficulty: int in [0, 3]:
 			var g := _fight(main, level_id, difficulty)
 			var e := boss_of(g)

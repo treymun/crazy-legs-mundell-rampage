@@ -46,7 +46,7 @@ func _summary(game: Game) -> Dictionary:
 			alive += 1
 	var retained: Array = game.retained.keys()
 	retained.sort()
-	return {
+	var out := {
 		"level": game.level.id,
 		"replay": game.replay,
 		"health": snappedf(game.player.health, .01),
@@ -57,6 +57,17 @@ func _summary(game: Game) -> Dictionary:
 		"alive": alive,
 		"retained": retained,
 	}
+	# The set pieces' parts brought down (features/set_pieces.gd, save
+	# version 9), when any are.
+	var sets: GameFeature = game.features.get("set_pieces")
+	if sets != null:
+		var down := 0
+		for st: Dictionary in sets.get("pieces"):
+			for o: Variant in st["out"]:
+				down += 1 if int(o) != 0 else 0
+		if down > 0:
+			out["down"] = down
+	return out
 
 
 func _play(game: Game, frames: int) -> void:
@@ -80,6 +91,26 @@ func _make(main) -> void:
 	main.start("hickston")
 	_play(main.game, 240)
 	made["hickston_fight"] = main.game
+
+	# Hickston with its orchard shed and its water tower brought down (save
+	# version 9 keeps what came down).
+	main.start("hickston")
+	var sets: GameFeature = main.game.features.get("set_pieces")
+	if sets != null:
+		var pieces: Array = sets.get("pieces")
+		for i in pieces.size():
+			var row: Dictionary = pieces[i]
+			var made_parts: Array = sets.get("shapes")[i]
+			var struck := 0
+			for k in made_parts.size():
+				var role := str(made_parts[k].role)
+				if (role == "post" or role == "leg") and struck < 2:
+					sets.call("strike", i * 1000 + k, 500.0, 0.0, 1.0)
+					struck += 1
+			if str(row["kind"]) == "fuel":
+				sets.call("strike", i * 1000, 100.0, 0.0, 1.0)
+	_play(main.game, 420)
+	made["hickston_wrecked"] = main.game
 
 	var finished: Game = main.make_game("hickston")
 	finished.finish_level("")

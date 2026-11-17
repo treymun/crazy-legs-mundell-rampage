@@ -1,0 +1,45 @@
+{
+ "text": "That's how we do it in the county",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.2,
+   "end": 0.44
+  },
+  {
+   "text": "how",
+   "start": 0.48,
+   "end": 0.66
+  },
+  {
+   "text": "we",
+   "start": 0.72,
+   "end": 0.82
+  },
+  {
+   "text": "do",
+   "start": 0.92,
+   "end": 1.06
+  },
+  {
+   "text": "it",
+   "start": 1.1,
+   "end": 1.18
+  },
+  {
+   "text": "in",
+   "start": 1.22,
+   "end": 1.3
+  },
+  {
+   "text": "the",
+   "start": 1.34,
+   "end": 1.44
+  },
+  {
+   "text": "county",
+   "start": 1.48,
+   "end": 1.94
+  }
+ ]
+}

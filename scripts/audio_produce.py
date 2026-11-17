@@ -156,6 +156,12 @@ DESIGNS = {
              "warble, comically officious and fussy. Close, dry studio recording.",
              "Attention, earthling. You are in violation of interstellar livestock regulations. Remain "
              "still for scanning. This will not hurt. That is a lie. It will hurt very much."),
+    # The county radio's late-night jock (content pass 8, src/radio_station.gd).
+    "dj": ("A gravel-voiced late-night country radio disc jockey in his sixties from rural Arkansas: a deep, "
+           "smoky, unhurried baritone drawl, warm, wry and a little worn from cigarettes and coffee, talking "
+           "close to the microphone on a small AM station after midnight. Close, dry studio recording.",
+           "Well, it's a quarter past two on KPSM, the Possum, and I'm still here. Pour yourself another cup, "
+           "lock up the chickens, and keep it between the ditches, Possum County. Here's one for the night owls."),
 }
 
 

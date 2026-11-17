@@ -74,7 +74,20 @@ fingerpost's arms and the beam pad's order: signs, not stations.
 in `assets/art/town_props.json` for the level builder's `town()`. Broken
 props come from `scripts/blender/props_broken.py` through the same tool
 (breakables, [gameplay.md](gameplay.md#things-break)). `no-render` reuses the
-last renders; `names=` picks some.
+last renders; `names=` picks some. `props_hazards.py` (content pass 8) is
+the county's hazards: `wood_chipper`, `bug_zapper`, `electric_fence`,
+`well`, `cattle_guard` (sprites, meshes and scenes like the rest).
+
+`tools/art/build_boot_views.gd` (runs `scripts/blender/boot_views.py`) cuts
+Mundell's kick in first person, four cels `fx_boot_kick_0..3`: a work boot
+modelled from hulls (lug sole and heel, stitched welt, toe cap, eyelets and
+crossed laces, tongue, collar) in his model's brown, coming up sole first
+from the bottom of his view (chevron lugs, a separate darker stacked heel,
+the toe up), with his overalls' turned-up cuff under the heel,
+lit by the gun views' three suns, graded as the gun cels; where each sits on
+the view goes to `assets/art/boot_views.json` (`brawl_looks.gd PLACES`, held
+the same by brawl_check). The game's view is the top 156 rows of the 200 it
+is rendered over: keep the boot above row 150.
 
 ### Enemies and bosses
 
@@ -228,6 +241,17 @@ a shop lamp falling in the saw floor's arena.
      glasses (her bare model's girdle plates too, which the 3D view does not
      draw). `features/boss_gear.gd` shoots them off; `tools/gear_fit.gd`
      prints where each sits for bosses.cfg. Added with a `rig-only` run.
+   - BLUE the hound (`actors_hound.py`, content pass 8) is a kind with its
+     own frames like the cow, built square for the model (`FOR_MODEL`):
+     every leg piece a fixed length posed by two-bone IK, so each is the
+     same part in every frame; his coat a ticked material sized to each part
+     (`_ticked`: a ball's coordinates are its unit sphere, a limb's metres).
+     His black hood, ears and saddle are matte (`_matte`: a glossy black
+     reads grey under the stage's rims). `hound_face` is his HUD badge's
+     head, near profile so the long muzzle and the black ear read at 27
+     pixels, cels only (`cels_only`: export_actors.py makes no model of it),
+     lit with the rims down and no road dirt (`_CLEAN`). `build_enemy_actors.gd --
+     kinds=hound,hound_face`, then the steps below for `hound`.
 2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
    [rig-only] [raw=<dir>]` grades and digitizes
    (`assets/art/actor3d_<kind>[_<look>].png`) and writes

@@ -1,0 +1,55 @@
+{
+ "text": "KPSM 1490 AM. Still here, still awake, still the Possum",
+ "words": [
+  {
+   "text": "KPSM",
+   "start": 0.1,
+   "end": 1.08
+  },
+  {
+   "text": "1490",
+   "start": 1.18,
+   "end": 2.18
+  },
+  {
+   "text": "AM.",
+   "start": 2.26,
+   "end": 2.68
+  },
+  {
+   "text": "Still",
+   "start": 2.8,
+   "end": 3.02
+  },
+  {
+   "text": "here,",
+   "start": 3.1,
+   "end": 3.38
+  },
+  {
+   "text": "still",
+   "start": 3.54,
+   "end": 3.76
+  },
+  {
+   "text": "awake,",
+   "start": 3.82,
+   "end": 4.22
+  },
+  {
+   "text": "still",
+   "start": 4.36,
+   "end": 4.66
+  },
+  {
+   "text": "the",
+   "start": 4.7,
+   "end": 4.8
+  },
+  {
+   "text": "Possum",
+   "start": 4.86,
+   "end": 5.34
+  }
+ ]
+}

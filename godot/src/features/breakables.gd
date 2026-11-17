@@ -78,6 +78,9 @@ class Piece:
 	## the others that stand on the same.
 	var base := PackedFloat32Array()
 	var shares: Array = []
+	## A sign shot once shows its cracked picture (<image>_crk) and goes on
+	## the next round (content pass 8: signs break in layers).
+	var cracked := false
 
 
 ## A bit of something broken, flying or lying where it landed.
@@ -120,6 +123,8 @@ var _resting: Array = []
 var _resting_dirty := false
 var _chip_next := 0.0
 var _crash_next := -1.0
+## The pieces' version the cracked signs' pictures were last put right at.
+var _crack_seen := -1
 ## Counts every change to a piece (hp, broken, moved, its board): a host's
 ## NetTrack looks through the lists in NET_GUARDED only when it moved, so
 ## anything that changes a piece bumps it (game_host.gd).
@@ -362,6 +367,8 @@ func strike(i: int, amount: float, ax: float, ay: float) -> void:
 	p.hp -= amount
 	net_version += 1
 	if p.hp <= 0.0:
+		if _cracks(p, amount):
+			return
 		_break(p, ax, ay, FUSE_SHOT)
 		return
 	var stuff := str(p.spec.get("stuff", "wood"))
@@ -577,6 +584,46 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 	game.disturb(p.x, p.y, 4.5, z)
 
 
+## A sign that would break on a round smaller than `crack_most` cracks
+## first: its cracked picture, a round's worth of hp back. True when it did.
+func _cracks(p: Piece, amount: float) -> bool:
+	var is_sign: bool = p.spec.get("sign", false)
+	var most: float = _cfg.get_value("all", "crack_most", 50.0)
+	if not is_sign or p.cracked or amount >= most or not game.art.has_art(p.image + "_crk"):
+		return false
+	p.cracked = true
+	p.hp = 1.0
+	_show_crack(p)
+	var z: float = game.world.stand(p) + p.z + p.height * .5
+	game.sound_at("sign_shot", p.x, p.y, .7)
+	game.burst(p.x, p.y, z, "wood", 3, .8)
+	return true
+
+
+## A cracked sign's picture where it hangs (a client's too, after a
+## snapshot: sprites() asks when the pieces changed).
+func _show_crack(p: Piece) -> void:
+	var crack := p.image + "_crk"
+	var shown := _shown(p)
+	if p.board != null:
+		p.board.image = crack
+	if p.sprite != null:
+		p.sprite.image = crack
+	if shown != null:
+		shown.image = crack
+
+
+func _sync_cracks() -> void:
+	_crack_seen = net_version
+	for p: Piece in pieces:
+		if p.cracked and not p.broken:
+			var board_image := (
+				p.board.image if p.board != null else p.sprite.image if p.sprite != null else ""
+			)
+			if board_image != p.image + "_crk":
+				_show_crack(p)
+
+
 ## The knock of a shot that does not break it yet.
 func _chip_cue(p: Piece) -> String:
 	if p.spec.has("chip"):
@@ -717,6 +764,8 @@ func _tick(dt: float) -> void:
 
 func sprites() -> Array:
 	var out: Array = []
+	if _crack_seen != net_version:
+		_sync_cracks()
 	if _resting_dirty:
 		_sort_resting()
 	for block: Array in _resting:

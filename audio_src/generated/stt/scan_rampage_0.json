@@ -1,0 +1,35 @@
+{
+ "text": "A man running hog wild, armed",
+ "words": [
+  {
+   "text": "A",
+   "start": 0.06,
+   "end": 0.12
+  },
+  {
+   "text": "man",
+   "start": 0.22,
+   "end": 0.52
+  },
+  {
+   "text": "running",
+   "start": 0.62,
+   "end": 0.9
+  },
+  {
+   "text": "hog",
+   "start": 1.02,
+   "end": 1.36
+  },
+  {
+   "text": "wild,",
+   "start": 1.42,
+   "end": 2.02
+  },
+  {
+   "text": "armed",
+   "start": 2.26,
+   "end": 2.84
+  }
+ ]
+}

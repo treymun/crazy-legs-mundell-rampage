@@ -22,6 +22,7 @@
 extends RefCounted
 
 const Climbs := preload("res://tools/levels/climbs.gd")
+const SetPieces := preload("res://tools/levels/set_piece_kit.gd")
 const Cast := preload("res://tools/levels/moonshine_cast.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const W := 128
@@ -118,8 +119,43 @@ func build(_b) -> Array:
 		str(creek): "creek", str(bridge): "creek", str(barn): "barn", str(cave): "room"
 	}
 	Climbs.moonshine(b)
+	set_pieces()
+	hazards()
 	woods_heights()
 	return [9.5, 92.5, -PI / 2]
+
+
+# ------------------------------------------------------------- set pieces
+
+
+## The big breaks (set_piece_kit.gd, features/set_pieces.gd): Granny's
+## tobacco curing shed south of the barn, hay hung and stacked in it, open to
+## the lane (it goes over east or west, off the barn's door); the revenue
+## camp's water tank by the cave (it goes over south or west across the
+## camp, flooding it, never into the bluff); and the camp's fuel line from
+## the drums by the generator round to a propane tank under the lights.
+func set_pieces() -> void:
+	SetPieces.barn(b, "curing-shed", 22.0, 89.4, 0, {"w": 8.0, "d": 4.6, "falls": [0, 2]})
+	SetPieces.plank_floor(b, 18, 87, 25, 91)
+	for spot: Array in [[18.6, 87.6], [19.5, 87.5], [24.6, 87.7], [25.4, 90.6], [21.0, 87.5]]:
+		b.town("range_hay_bale", spot[0], spot[1])
+	SetPieces.tower(b, "camp-tank", 104.5, 4.5, {"falls": [1, 2]})
+	SetPieces.fuel(
+		b,
+		"camp-line",
+		[[100.0, 4.4], [100.0, 6.6], [96.5, 6.6], [96.5, 11.5]],
+		[[99.5, 3.5], [100.5, 3.5]]
+	)
+	stand("propane_tank", 97.5, 11.5, .35)
+
+
+## What a brawl can use (features/brawl.gd): Granny's well in the yard, a
+## burn barrel at the camp, the bug zapper on the church's porch light.
+func hazards() -> void:
+	stand("well", 7.5, 75.5, .5)
+	stand("burn_barrel", 74.5, 11.5, .25, {"glow": true})
+	b.glow(74.5, 11.5, 3.0, .34)
+	b.town("bug_zapper", 50.5, 72.5, {"solid": .12, "glow": true})
 
 
 # ------------------------------------------------------------------ helpers
@@ -269,23 +305,22 @@ func granny_place() -> void:
 	# The yard: the outhouse, the water tower, the coop, the wash line, the
 	# woodpile, the dog's empty house, the truck that quit.
 	b.town("outhouse", 14.5, 91.5)
-	b.prop("water_tower", 29.5, 90.5)
 	b.town("chicken_coop", 2.5, 88.5, {"solid": .45})
 	b.town("laundry", 9.5, 76.5)
 	b.town("log_pile", 15.5, 80.5, {"solid": .45})
 	b.town("axe_stump", 14.5, 82.5, {"solid": .3})
 	b.town("doghouse", 14.5, 74.5, {"solid": .35})
-	b.car(23.5, 90.5, true, "tin")
+	b.car(30.5, 89.5, false, "tin")
 	b.town("tractor", 4.5, 92.5, {"solid": .45})
 	b.prop("mailbox", 12.4, 92.2)
-	b.town("burn_barrel", 17.5, 88.5, {"solid": .25, "glow": true})
-	b.glow(17.5, 88.5, 3.0, .34)
+	b.town("burn_barrel", 15.5, 85.5, {"solid": .25, "glow": true})
+	b.glow(15.5, 85.5, 3.0, .34)
 	thicket(1, 63, 3, 64)
 	thicket(26, 63, 34, 66)
 	thicket(32, 86, 34, 94)
 	b.prop("tree", 2.5, 75.5)
 	b.prop("tree_b", 33.5, 70.5)
-	b.prop("tree", 19.5, 92.5)
+	b.prop("tree", 27.5, 93.0)
 	lantern(9.6, 84.6)
 
 
@@ -785,7 +820,6 @@ func revenue_camp() -> void:
 	b.prop("barrel", 99.5, 3.5)
 	b.fuel_drums.append([100.5, 3.5])
 	b.prop("barrel", 100.5, 3.5)
-	b.prop("water_tower", 104.5, 3.5)
 	for p in [Vector2(78.5, 11.5), Vector2(102.5, 11.5)]:
 		stand("floodlight_tower", p.x, p.y, .25, {"glow": true})
 		b.glow(p.x, p.y, 8.0, .3)

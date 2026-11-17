@@ -1,0 +1,60 @@
+{
+ "text": "Gator Bayou Bait and Tackle. If it bites, they sell it",
+ "words": [
+  {
+   "text": "Gator",
+   "start": 0.1,
+   "end": 0.4
+  },
+  {
+   "text": "Bayou",
+   "start": 0.5,
+   "end": 0.94
+  },
+  {
+   "text": "Bait",
+   "start": 1.08,
+   "end": 1.34
+  },
+  {
+   "text": "and",
+   "start": 1.38,
+   "end": 1.46
+  },
+  {
+   "text": "Tackle.",
+   "start": 1.56,
+   "end": 2.02
+  },
+  {
+   "text": "If",
+   "start": 2.1,
+   "end": 2.18
+  },
+  {
+   "text": "it",
+   "start": 2.24,
+   "end": 2.34
+  },
+  {
+   "text": "bites,",
+   "start": 2.44,
+   "end": 2.76
+  },
+  {
+   "text": "they",
+   "start": 2.86,
+   "end": 3.04
+  },
+  {
+   "text": "sell",
+   "start": 3.1,
+   "end": 3.32
+  },
+  {
+   "text": "it",
+   "start": 3.38,
+   "end": 3.48
+  }
+ ]
+}

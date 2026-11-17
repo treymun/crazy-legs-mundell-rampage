@@ -1,0 +1,70 @@
+{
+ "text": "Caller says there's lights over the cornfield again. Ma'am, lock your cows up",
+ "words": [
+  {
+   "text": "Caller",
+   "start": 0.08,
+   "end": 0.4
+  },
+  {
+   "text": "says",
+   "start": 0.52,
+   "end": 0.86
+  },
+  {
+   "text": "there's",
+   "start": 0.9,
+   "end": 1.2
+  },
+  {
+   "text": "lights",
+   "start": 1.24,
+   "end": 1.64
+  },
+  {
+   "text": "over",
+   "start": 1.74,
+   "end": 1.88
+  },
+  {
+   "text": "the",
+   "start": 1.92,
+   "end": 2.0
+  },
+  {
+   "text": "cornfield",
+   "start": 2.06,
+   "end": 2.74
+  },
+  {
+   "text": "again.",
+   "start": 2.82,
+   "end": 3.26
+  },
+  {
+   "text": "Ma'am,",
+   "start": 3.48,
+   "end": 3.8
+  },
+  {
+   "text": "lock",
+   "start": 3.9,
+   "end": 4.14
+  },
+  {
+   "text": "your",
+   "start": 4.2,
+   "end": 4.28
+  },
+  {
+   "text": "cows",
+   "start": 4.38,
+   "end": 4.78
+  },
+  {
+   "text": "up",
+   "start": 4.9,
+   "end": 5.08
+  }
+ ]
+}

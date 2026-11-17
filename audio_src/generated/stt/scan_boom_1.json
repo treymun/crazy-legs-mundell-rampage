@@ -1,0 +1,30 @@
+{
+ "text": "Caller says something blew up",
+ "words": [
+  {
+   "text": "Caller",
+   "start": 0.18,
+   "end": 0.42
+  },
+  {
+   "text": "says",
+   "start": 0.52,
+   "end": 0.68
+  },
+  {
+   "text": "something",
+   "start": 0.74,
+   "end": 1.0
+  },
+  {
+   "text": "blew",
+   "start": 1.06,
+   "end": 1.26
+  },
+  {
+   "text": "up",
+   "start": 1.4,
+   "end": 1.7
+  }
+ ]
+}

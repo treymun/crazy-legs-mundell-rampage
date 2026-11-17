@@ -329,9 +329,63 @@ func hands(p: Player, fire: bool, alt: bool) -> bool:
 	if game.clock - t.taken_at < .25:
 		return true
 	if fire:
-		_let_go(i, p, true)
+		if not _smash(i, p):
+			_let_go(i, p, true)
 	elif alt:
 		_let_go(i, p, false)
+	return true
+
+
+## FIRE with one of the county's hands at arm's length in front: the thing
+## is broken over his head instead of thrown ([smash]: a chair, a jug, a
+## crate), and he is left reeling, open to a finisher (features/brawl.gd).
+## A thing that never breaks drops at his feet. True when it was.
+func _smash(i: int, p: Player) -> bool:
+	var brawl: Object = game.features.get("brawl")
+	if brawl == null:
+		return false
+	var found: Variant = brawl.call("target", p, _num("smash", "reach"), _num("smash", "cone"))
+	if found == null:
+		return false
+	var e: Enemy = found
+	var t: Thing = things[i]
+	var aim := p.view_angle()
+	var base: float = game.world.stand(e) + e.z
+	game.hit_point = Vector3(e.x, e.y, base + e.height * e.variant * .9)
+	game.hit_from = Vector2(p.x, p.y)
+	e.hurt(
+		_num("smash", "hit") + _num("smash", "per_weight") * t.weight,
+		game,
+		false,
+		false,
+		null,
+		"smashed"
+	)
+	if e.alive:
+		e.stun = maxf(e.stun, _num("smash", "stun"))
+		e.windup = 0.0
+		brawl.call("daze", e)
+	game.sound_at(str(_spec(t.image).get("cue", "impact_wood")), e.x, e.y, 1.0)
+	game.sound_at("brawl_punch", e.x, e.y, .8)
+	t.x = e.x - cos(aim) * (e.radius + .1)
+	t.y = e.y - sin(aim) * (e.radius + .1)
+	t.z = base + e.height * .8
+	p.armory.holstered = false
+	p.armory.switch = .3
+	p.armory.cooldown = maxf(p.armory.cooldown, .35)
+	if t.piece >= 0 and _bk != null:
+		var piece: Breakables.Piece = _bk.pieces[t.piece]
+		t.state = GONE
+		t.holder = -1
+		_bk.strike(t.piece, piece.hp + 1.0, cos(aim), sin(aim))
+		_changed()
+		return true
+	t.vx = cos(aim) * .6
+	t.vy = sin(aim) * .6
+	t.vz = .4
+	_fly(t, p.slot, 0, -sin(aim), cos(aim))
+	t.last_hit = e.uid
+	_changed()
 	return true
 
 

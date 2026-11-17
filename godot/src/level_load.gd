@@ -515,6 +515,8 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 	var laps: Variant = j.get("lap_cars", {})
 	lv.lap_cars = laps if laps is Dictionary else {}
 	lv.vehicles = j.get("vehicles", []) if j.get("vehicles", []) is Array else []
+	var breaks: Variant = j.get("set_pieces", [])
+	lv.set_pieces = breaks if breaks is Array else []
 	var runs: Variant = j.get("vehicle_runs", [])
 	lv.vehicle_runs = runs if runs is Array else []
 	var lines: Variant = j.get("vehicle_lines", {})

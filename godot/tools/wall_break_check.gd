@@ -21,7 +21,9 @@ const LEVELS := [
 	"range"
 ]
 ## Levels that have to have windows, and fence cells that open.
-const WINDOWS_IN := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "range"]
+const WINDOWS_IN := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "range"
+]
 const FENCES_IN := ["hickston", "fair", "range"]
 
 

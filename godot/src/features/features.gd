@@ -25,17 +25,20 @@ const ALL := [
 	preload("res://src/features/mothership.gd"),
 	preload("res://src/features/corpses.gd"),
 	preload("res://src/features/finishers.gd"),
+	preload("res://src/features/brawl.gd"),
 	preload("res://src/features/breakables.gd"),
 	preload("res://src/features/wall_breaks.gd"),
 	preload("res://src/features/carry.gd"),
 	preload("res://src/features/fire.gd"),
 	preload("res://src/features/stills.gd"),
+	preload("res://src/features/set_pieces.gd"),
 	preload("res://src/features/wreckage.gd"),
 	preload("res://src/features/water.gd"),
 	preload("res://src/features/impacts.gd"),
 	preload("res://src/features/dust.gd"),
 	preload("res://src/features/gun_fx.gd"),
 	preload("res://src/features/feel.gd"),
+	preload("res://src/features/brawl_looks.gd"),
 	preload("res://src/features/soundscape.gd"),
 	preload("res://src/features/boss_voices.gd"),
 	preload("res://src/features/enemy_barks.gd"),
@@ -56,6 +59,8 @@ const ALL := [
 	preload("res://src/features/trophy_shack.gd"),
 	preload("res://src/features/kill_feed.gd"),
 	preload("res://src/features/new_iron.gd"),
+	preload("res://src/features/radio.gd"),
+	preload("res://src/features/hound.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES
@@ -76,6 +81,7 @@ const LOOKS := [
 	"dust",
 	"gun_fx",
 	"feel",
+	"brawl_looks",
 	"soundscape",
 	"boss_voices",
 	"enemy_barks",
@@ -84,6 +90,7 @@ const LOOKS := [
 	"wreckage",
 	"kill_feed",
 	"new_iron",
+	"radio",
 ]
 
 

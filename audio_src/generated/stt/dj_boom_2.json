@@ -1,0 +1,50 @@
+{
+ "text": "Another explosion, Possum County. Fire department says please stop",
+ "words": [
+  {
+   "text": "Another",
+   "start": 0.08,
+   "end": 0.34
+  },
+  {
+   "text": "explosion,",
+   "start": 0.38,
+   "end": 0.96
+  },
+  {
+   "text": "Possum",
+   "start": 1.06,
+   "end": 1.4
+  },
+  {
+   "text": "County.",
+   "start": 1.54,
+   "end": 1.82
+  },
+  {
+   "text": "Fire",
+   "start": 1.92,
+   "end": 2.14
+  },
+  {
+   "text": "department",
+   "start": 2.18,
+   "end": 2.68
+  },
+  {
+   "text": "says",
+   "start": 2.8,
+   "end": 3.0
+  },
+  {
+   "text": "please",
+   "start": 3.1,
+   "end": 3.4
+  },
+  {
+   "text": "stop",
+   "start": 3.5,
+   "end": 3.9
+  }
+ ]
+}

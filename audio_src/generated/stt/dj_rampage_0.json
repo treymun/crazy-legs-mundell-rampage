@@ -1,0 +1,55 @@
+{
+ "text": "Scanners lit up like Christmas. Somebody's on a tear tonight",
+ "words": [
+  {
+   "text": "Scanners",
+   "start": 0.1,
+   "end": 0.56
+  },
+  {
+   "text": "lit",
+   "start": 0.66,
+   "end": 0.82
+  },
+  {
+   "text": "up",
+   "start": 0.9,
+   "end": 1.04
+  },
+  {
+   "text": "like",
+   "start": 1.08,
+   "end": 1.32
+  },
+  {
+   "text": "Christmas.",
+   "start": 1.36,
+   "end": 1.84
+  },
+  {
+   "text": "Somebody's",
+   "start": 1.92,
+   "end": 2.38
+  },
+  {
+   "text": "on",
+   "start": 2.44,
+   "end": 2.54
+  },
+  {
+   "text": "a",
+   "start": 2.6,
+   "end": 2.68
+  },
+  {
+   "text": "tear",
+   "start": 2.74,
+   "end": 2.96
+  },
+  {
+   "text": "tonight",
+   "start": 3.0,
+   "end": 3.34
+  }
+ ]
+}

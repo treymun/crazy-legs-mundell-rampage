@@ -6,6 +6,7 @@ extends GameWorld
 
 const BreakablesFeature := preload("res://src/features/breakables.gd")
 const WallBreaksFeature := preload("res://src/features/wall_breaks.gd")
+const SetPieces := preload("res://src/features/set_pieces.gd")
 const CorpsesFeature := preload("res://src/features/corpses.gd")
 
 
@@ -144,11 +145,22 @@ func hitscan(
 		):
 			scenery = prop
 			near = d
+	# A barn's post, a tower's leg, a fuel line (features/set_pieces.gd): struck
+	# unless a breakable stands nearer.
+	var sets: SetPieces = features.get("set_pieces")
+	var set_hit := -1
+	if sets != null and sets.ray(p.x, p.y, p.eye, ax, ay, slope, near):
+		near = sets.ray_d
+		set_hit = sets.ray_hit
 	var pieces: BreakablesFeature = features.get("breakables")
 	if pieces != null and pieces.ray(p.x, p.y, p.eye, ax, ay, slope, near, spread) >= 0:
 		near = pieces.ray_d
 		_traced(ax, ay, slope, near, "thing")
 		pieces.strike(pieces.ray_piece, amount, ax, ay)
+		return true
+	if set_hit >= 0:
+		_traced(ax, ay, slope, near, "thing")
+		sets.strike(set_hit, amount, ax, ay)
 		return true
 	if scenery != null:
 		_traced(ax, ay, slope, near, "thing")
@@ -586,6 +598,9 @@ func _blast_shoves(
 	var breaks: WallBreaksFeature = features.get("wall_breaks")
 	if breaks != null:
 		breaks.blast(x, y, z, radius, strength, energy)
+	var sets: SetPieces = features.get("set_pieces")
+	if sets != null:
+		sets.blast(x, y, z, radius, strength, energy)
 	events.blast_shoved.emit(x, y, radius * 1.4, power)
 	var bodies: CorpsesFeature = features.get("corpses")
 	if bodies != null:
@@ -833,6 +848,10 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 		var drum_at: Vector2 = drum
 		drum_hit(drum_at, 25)
 		return false
+	var sets: SetPieces = features.get("set_pieces")
+	var set_hit: int = -1 if sets == null else sets.touch(x, y, z, .05)
+	if set_hit >= 0 and shot.kind != "bowling":
+		sets.strike(set_hit, float(maxi(shot.damage, 25)), shot.vx, shot.vy)
 	var pieces: BreakablesFeature = features.get("breakables")
 	var piece: int = -1 if pieces == null else pieces.touch(x, y, z, .22)
 	if piece >= 0:

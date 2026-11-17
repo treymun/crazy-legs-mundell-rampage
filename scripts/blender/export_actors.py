@@ -816,6 +816,8 @@ def run():
         if kind not in ACTORS:
             print("ACTOR %s: not a kind" % kind)
             continue
+        if ACTORS[kind][1].get("cels_only"):
+            continue
         export(kind, meta)
         json.dump(meta, open(meta_path, "w"), indent=1, sort_keys=True)
 

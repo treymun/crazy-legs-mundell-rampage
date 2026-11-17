@@ -1,0 +1,25 @@
+{
+ "text": "All units, all units",
+ "words": [
+  {
+   "text": "All",
+   "start": 0.28,
+   "end": 0.44
+  },
+  {
+   "text": "units,",
+   "start": 0.64,
+   "end": 0.98
+  },
+  {
+   "text": "all",
+   "start": 1.16,
+   "end": 1.32
+  },
+  {
+   "text": "units",
+   "start": 1.5,
+   "end": 1.88
+  }
+ ]
+}

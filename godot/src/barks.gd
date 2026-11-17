@@ -96,12 +96,35 @@ const LINES := {
 		"TIME TO CLEAN HOUSE.",
 		"SOMEBODY'S FIXIN' TO GET LEARNED."
 	],
+	"finisher":
+	[
+		"NIGHT NIGHT, BUBBA.",
+		"THAT'S HOW WE DO IT IN THE COUNTY.",
+		"STAY DOWN, YA VARMINTS.",
+		"SHOULDA RUN, BOY.",
+		"LIGHTS OUT, COUSIN."
+	],
+	"hazard":
+	[
+		"WELL, THAT'S ONE WAY TO GO.",
+		"HE WAS ASKIN' FER THAT.",
+		"MAMA SAID WATCH YER STEP, SON.",
+		"COUNTY CLEANS UP AFTER ITSELF.",
+		"THAT'S WHAT THE SIGN WAS FOR."
+	],
 	"new_iron":
 	[
 		"SMELLS LIKE GUN OIL ROUND HERE...",
 		"SOMETHIN' SHINY CLOSE BY. NEW IRON.",
 		"GUN'S CLOSE. I CAN SMELL IT."
 	],
+	# To BLUE, his coonhound (features/hound.gd).
+	"hound_sic": ["SIC 'EM, BLUE!", "GIT 'EM, BOY!"],
+	"hound_fetch": ["GO FETCH, BLUE."],
+	"hound_stay": ["STAY, BLUE."],
+	"hound_come": ["BLUE! HERE, BOY!"],
+	"hound_good": ["GOOD BOY, BLUE.", "THAT'S MY DOG."],
+	"hound_up": ["HANG ON, BLUE. I GOTCHA."],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -120,7 +143,15 @@ const COOLDOWN := {
 	"key": 4.0,
 	"headshot": 7.0,
 	"start": 60.0,
-	"new_iron": 4.0
+	"new_iron": 4.0,
+	"finisher": 5.0,
+	"hazard": 4.0,
+	"hound_sic": 1.5,
+	"hound_fetch": 1.5,
+	"hound_stay": 1.5,
+	"hound_come": 1.5,
+	"hound_good": 9.0,
+	"hound_up": 2.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

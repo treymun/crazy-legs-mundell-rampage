@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 9
+const VERSION := 10
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"

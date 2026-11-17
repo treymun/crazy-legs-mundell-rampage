@@ -1,0 +1,45 @@
+{
+ "text": "I respond to Copperhead Ridge, the Hooten place",
+ "words": [
+  {
+   "text": "I",
+   "start": 0.08,
+   "end": 0.16
+  },
+  {
+   "text": "respond",
+   "start": 0.24,
+   "end": 1.14
+  },
+  {
+   "text": "to",
+   "start": 1.22,
+   "end": 1.58
+  },
+  {
+   "text": "Copperhead",
+   "start": 1.64,
+   "end": 2.18
+  },
+  {
+   "text": "Ridge,",
+   "start": 2.28,
+   "end": 2.8
+  },
+  {
+   "text": "the",
+   "start": 2.98,
+   "end": 3.06
+  },
+  {
+   "text": "Hooten",
+   "start": 3.12,
+   "end": 3.48
+  },
+  {
+   "text": "place",
+   "start": 3.58,
+   "end": 4.14
+  }
+ ]
+}

@@ -12,6 +12,7 @@ extends RefCounted
 
 const Climb := preload("res://tools/levels/climb_kit.gd")
 const Climbs := preload("res://tools/levels/climbs.gd")
+const SetPieces := preload("res://tools/levels/set_piece_kit.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
@@ -43,7 +44,7 @@ func make() -> Builder:
 		"ending": '"NO REFUNDS AFTER THE ABDUCTION."',
 		"score": "fair_score",
 		"ambience": "fair",
-		"layout": 5,
+		"layout": 7,
 		"sky": "fair_sky",
 		"control_name": "CONCESSION AND BACKSTAGE PA",
 		"objective_side_tasks": ["bell"],
@@ -88,8 +89,10 @@ func build(_b) -> Array:
 	cast()
 	detail()
 	polish()
+	hazards()
 	new_iron()
 	Climbs.fair(b)
+	SetPieces.fair(b)
 	return [64.5, 81.5, -PI / 2]
 
 
@@ -1003,3 +1006,15 @@ func polish() -> void:
 			}
 		)
 	)
+
+
+## The county's hazards a man can be booted into (content pass 8,
+## src/features/brawl.gd and src/brawl_hazards.gd): two bug zappers on the
+## midway, a burn barrel, a hot wire (and the creek). Each stands in the open
+## where the chapter's hands fight; layout 7 with pass 8's set pieces.
+func hazards() -> void:
+	b.town("bug_zapper", 58.5, 39.5, {"solid": .12, "glow": true})
+	b.town("bug_zapper", 104.5, 55.5, {"solid": .12, "glow": true})
+	b.town("burn_barrel", 118.5, 52.5, {"solid": .28, "glow": true})
+	b.volume(90.5, 62.38, 92.5, 62.62, 1.2)
+	b.town("electric_fence", 91.5, 62.5, {"plane": 0.0})

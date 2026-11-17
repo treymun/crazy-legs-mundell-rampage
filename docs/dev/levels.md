@@ -38,6 +38,17 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
 | `pumpngo_plan.gd`, `pineacres_plan.gd`, `landing_plan.gd` | the 2v2 maps |
 | `county_hickston_plan.gd`, `county_quarry_plan.gd`, `county_bayou_plan.gd` (+ `county_kit.gd`) | the County Run maps ([county_run.md](county_run.md#the-maps)) |
 
+The county's hazards (content pass 8,
+[gameplay.md](gameplay.md#dirty-fighting-content-pass-8)) stand in the open
+where hands fight, each plan's `hazards()` (Hickston's in `hickston_cast.gd`):
+Hickston a well, a bug zapper, a cattle guard, a hot wire (and the hog pen,
+the creek); the fair two zappers, a burn barrel, a hot wire; the sawmill two
+wood chippers and a burn barrel (and its saws); the quarry a hot wire, a burn
+barrel, a cattle guard (and its crushers and saw); the bayou two zappers and a
+burn barrel (and the deep water); the speedway has its burn barrels and car
+crusher, the Mothership its beam emitters and hogs. A hot wire's run is a
+`volume()` its model shows. Layouts went up one for the five changed chapters.
+
 ### Placing things
 
 - **Every prop is placed by hand**: nothing scatters things to fill ground
@@ -92,6 +103,28 @@ sign, the king's boys, the CHANNEL RUN) and `speedway_plan.gd heat_race()`
 the oval can be driven all the way round). A run's gates must lie on what
 its vehicle runs on and be reachable in order; `tools/vehicle_set_check.gd`
 drives each one to the end.
+
+### The big breaks
+
+A plan's meta `"set_pieces"` lists its barns, water towers and fuel lines
+(features/set_pieces.gd; level_builder writes it only when there are any):
+`{"kind": "barn"|"tower"|"fuel", "id", "x", "y", "turn" (quarter turns),
+"falls" (the square ways it may go over: 0 east, 1 south, 2 west, 3
+north)}` and a kind's own (`w`, `d`, `eave`, `wall_tile`, `roof_tile`;
+a fuel line's `points` and `pumps`). `tools/levels/set_piece_kit.gd` adds
+them (`barn()`, `tower()`, `fuel()`) and each chapter's are its
+`hickston()`, `fair()`, `sawmill()`, `speedway()`, called at the end of the
+plan's build(). Content pass 8 put in: Hickston's water tower (moved from
+the creek's corner to the county road at Main Street), the orchard's hay
+shed (the orchard's two south rows of trees made way) and the GAS-N-GUT's
+fuel line to a propane tank by the side door (layout 7); the fair's hay
+shed in the parking field (layout 6); the sawmill's lumber shed in the
+yard (layout 7); the speedway truck stop's water tower and its fuel
+island's line to the gas cans by the big tank (layout 5). Each stands off
+the only way to anything the chapter needs and falls only away from walls,
+hedges and parked things; `tools/set_piece_check.gd` brings them all down
+every way they may fall and walks to every station, key and exit again.
+The chapter the CHAPTER track builds puts its own through the same kit.
 
 ### The guns along the way
 
@@ -166,11 +199,17 @@ camp and the still cave.
   the barn (`Level.vehicle_lines`, over vehicles.cfg `spotted`).
 - Keys and secrets: the brass key in Skeeter's trailer opens the barn's tack
   room; the smokehouse, the pulpit and the sinkhole hide stashes.
-- Hooks for the other pass-8 tracks (nothing built for them here): the tobacco
-  barn and the farm's and camp's water towers, the camp's generator and fuel
-  drums (destruction, fuel fires); Granny's empty doghouse by the porch (the dog
-  companion); the revenue radio, the checkpoint booth and the cruisers (the CB
-  radio).
+- The other pass-8 systems: set pieces (`set_piece_kit.gd` via the plan's
+  `set_pieces()`): Granny's tobacco curing shed south of the barn (falls east
+  or west, off the barn's door), the revenue camp's water tank by the cave
+  (south or west across the camp) and the camp's fuel line from the drums to
+  a propane tank under the lights (`set_piece_check` WANT); hazards for a brawl
+  (`hazards()`): Granny's well, a burn barrel at the camp and the farm's, a bug
+  zapper on the church's porch; the radio: Dub's line on the Revenue Man's fall
+  (`dj.boss_revenue_man`) and the scanner's place (`scanner.place_moonshine`) in
+  `radio_lines.json`; the hound: a line at Blue's old doghouse by Granny's porch.
+- Saves: save version 10 is the Moonshine Run's step (after the set pieces'
+  9): a version 9 campaign save at the Mothership gets the run in its history.
 - `tools/moonshine_check.gd` (MOONSHINE CHECK OK, in check_all) holds it.
 
 ### Places to climb

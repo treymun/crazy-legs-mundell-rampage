@@ -1,0 +1,30 @@
+{
+ "text": "Somebody wake up the deputy",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.08,
+   "end": 0.52
+  },
+  {
+   "text": "wake",
+   "start": 0.62,
+   "end": 0.86
+  },
+  {
+   "text": "up",
+   "start": 0.94,
+   "end": 1.06
+  },
+  {
+   "text": "the",
+   "start": 1.12,
+   "end": 1.18
+  },
+  {
+   "text": "deputy",
+   "start": 1.28,
+   "end": 1.94
+  }
+ ]
+}

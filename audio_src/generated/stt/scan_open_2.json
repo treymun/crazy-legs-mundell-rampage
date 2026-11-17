@@ -1,0 +1,35 @@
+{
+ "text": "Uh, any unit in the area",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "any",
+   "start": 0.26,
+   "end": 0.44
+  },
+  {
+   "text": "unit",
+   "start": 0.6,
+   "end": 0.88
+  },
+  {
+   "text": "in",
+   "start": 1.04,
+   "end": 1.12
+  },
+  {
+   "text": "the",
+   "start": 1.18,
+   "end": 1.28
+  },
+  {
+   "text": "area",
+   "start": 1.4,
+   "end": 1.86
+  }
+ ]
+}

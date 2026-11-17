@@ -315,6 +315,9 @@ var tactical := {}
 ## many, how fast, the station that stops them.
 var lap_cars := {}
 var vehicles: Array = []  # to drive (features/vehicles.gd): [kind, x, y, heading]
+## Barns, water towers and fuel lines that come down (features/set_pieces.gd):
+## a dictionary each ({"kind", "id", "x", "y", "turn", the kind's own}).
+var set_pieces: Array = []
 ## Set pieces run in them (features/vehicle_runs.gd): a dictionary each.
 var vehicle_runs: Array = []
 ## A level's own words for a vehicle first seen (kind -> line), over its

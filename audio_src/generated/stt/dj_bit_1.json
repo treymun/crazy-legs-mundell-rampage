@@ -1,0 +1,65 @@
+{
+ "text": "Well, lost one prize cow, answers to Bessie. Reward is a casserole",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "lost",
+   "start": 0.26,
+   "end": 0.56
+  },
+  {
+   "text": "one",
+   "start": 0.68,
+   "end": 0.86
+  },
+  {
+   "text": "prize",
+   "start": 0.98,
+   "end": 1.4
+  },
+  {
+   "text": "cow,",
+   "start": 1.5,
+   "end": 1.82
+  },
+  {
+   "text": "answers",
+   "start": 2.04,
+   "end": 2.42
+  },
+  {
+   "text": "to",
+   "start": 2.46,
+   "end": 2.56
+  },
+  {
+   "text": "Bessie.",
+   "start": 2.6,
+   "end": 2.94
+  },
+  {
+   "text": "Reward",
+   "start": 3.02,
+   "end": 3.44
+  },
+  {
+   "text": "is",
+   "start": 3.5,
+   "end": 3.6
+  },
+  {
+   "text": "a",
+   "start": 3.68,
+   "end": 3.76
+  },
+  {
+   "text": "casserole",
+   "start": 3.82,
+   "end": 4.48
+  }
+ ]
+}
