@@ -223,7 +223,8 @@ func open_hub(origin: Game = null, message := "") -> void:
 	hub.player.y = float(hub.level.spawn[1])
 	hub.player.angle = float(hub.level.spawn[2])
 	hub.district = int(hub.world.area[hub.world.cell(hub.player.x, hub.player.y)])
-	hub.message(message if message != "" else "COUNTY CROSSROADS. FACE A GATE AND PRESS E.", 4.5)
+	var hint := "COUNTY CROSSROADS. FACE A GATE AND PRESS %s." % use_button()
+	hub.message(message if message != "" else hint, 4.5)
 	play(hub)
 
 

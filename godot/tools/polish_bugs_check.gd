@@ -14,7 +14,8 @@
 ##   frame and the rest of the twister's pull skipped (the swamp waves of the
 ##   bayou's arena too).
 ## - The blackout's word names the FLASHLIGHT key as bound (and none on a pad
-##   or a touch screen); the breaker's prompt names the USE button.
+##   or a touch screen); the breaker's prompt and the Crossroads' objective
+##   and greeting name the USE button (they said E whatever it was).
 extends RefCounted
 
 const STEP := 1.0 / 60.0
@@ -121,6 +122,21 @@ static func _words(main: Control, check: Callable) -> void:
 	var padded: String = main.torch_button()
 	main.options = options
 	check.call(keyed == "K" and padded == "", "the front end names the key, none on a pad")
+	var hub: Game = main.make_game("hub")
+	hub.in_hub = true
+	hub.use_key = "E"
+	var plain := GameObjective.objective(hub)
+	hub.use_key = "Y"
+	check.call(
+		plain == "FACE A GATE AND PRESS E OR SPACE" and GameObjective.objective(hub).ends_with("PRESS Y"),
+		"the Crossroads' objective names the USE button (%s)" % GameObjective.objective(hub)
+	)
+	main.input_device = "pad"
+	main.open_hub(null)
+	main.input_device = "keys"
+	check.call(
+		main.game.notice.ends_with("PRESS Y."), "and its greeting (%s)" % main.game.notice
+	)
 
 
 static func _coop_shove(main: Control, check: Callable) -> void:
