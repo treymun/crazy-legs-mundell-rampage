@@ -62,7 +62,7 @@ static func start(ev: CountyEvents) -> bool:
 	ev.raid_still = -1
 	var pieces: Breakables = g.features.get("breakables")
 	if pieces != null:
-		var best := 45.0
+		var best := n(ev, "still_far")
 		for i in pieces.pieces.size():
 			var piece: Breakables.Piece = pieces.pieces[i]
 			if piece.broken or not STILLS.has(piece.image):
@@ -89,7 +89,10 @@ static func start(ev: CountyEvents) -> bool:
 	var r: float = def.get("radius", .25)
 	for k in count:
 		var at := from
-		for reach: float in [0.0, .9, 1.4, 2.0, 2.6]:
+		# The first on the spot, the rest round it (all on one point before:
+		# a knot of bodies that hardly moved).
+		var rings: Array = [0.0, .9, 1.4, 2.0, 2.6] if k == 0 else [.9, 1.4, 2.0, 2.6]
+		for reach: float in rings:
 			var a := k * 2.4 + reach
 			var q := from + Vector2.from_angle(a) * reach
 			if not g.world.blocked(q.x, q.y, r + .06) and not g.world.deep_at(q.x, q.y):
@@ -107,26 +110,37 @@ static func start(ev: CountyEvents) -> bool:
 	return true
 
 
-## Where the county's hands gather (three or more near one another, not
-## awake yet, out of the player's way), or INF.
+## Where the county's hands gather, out of the player's way: the hand with
+## the most of them near it (one alone if need be), up or asleep, or INF.
+## Asleep counts: most of a chapter's hands are, and `alive` says no for
+## them, which left a raid nowhere to go but a still close by (it started
+## in the hickston alone).
 static func _gathering(ev: CountyEvents, p: Player) -> Vector2:
 	var g := ev.game
-	var best := 1
+	# The most hands near one another wins; one alone will do.
+	var best := -1
 	var spot := Vector2.INF
+	var far := CountyEvents.span("raid", "gather_far")
 	for e: Enemy in g.enemies:
-		if not local(ev, e) or e.alerted:
+		if not _gathers(ev, e) or e.alerted:
 			continue
 		var d := Vector2(e.x - p.x, e.y - p.y).length()
-		if d < 10.0 or d > 40.0 or not ev.far_from_bosses(e.x, e.y):
+		if d < far.x or d > far.y or not ev.far_from_bosses(e.x, e.y):
 			continue
 		var near := 0
 		for o: Enemy in g.enemies:
-			if o != e and local(ev, o) and Vector2(o.x - e.x, o.y - e.y).length() < 6.0:
+			if o != e and _gathers(ev, o) and Vector2(o.x - e.x, o.y - e.y).length() < 6.0:
 				near += 1
 		if near > best:
 			best = near
 			spot = Vector2(e.x, e.y)
 	return spot
+
+
+## Whether hand `e` counts towards a gathering: one of the county's, up or
+## asleep.
+static func _gathers(ev: CountyEvents, e: Enemy) -> bool:
+	return e.hp > 0.0 and e.tactical() and not Enemy.BOSS_TITLES.has(e.kind) and not raider(ev, e)
 
 
 ## An open spot `come_from` away from `spot`, out of every player's sight,
@@ -137,7 +151,8 @@ static func _way_in(ev: CountyEvents, p: Player, spot: Vector2) -> Vector2:
 	var span := CountyEvents.span("raid", "come_from")
 	var base := g.rng.random() * TAU
 	var ground := w.elevation(spot.x, spot.y)
-	for ring: float in [span.x, (span.x + span.y) * .5, span.y]:
+	# The rings from `come_from`, then nearer and further when none is open.
+	for ring: float in [span.x, (span.x + span.y) * .5, span.y, span.x * .7, span.y * 1.3]:
 		for k in 16:
 			var q := spot + Vector2.from_angle(base + k * TAU / 16.0) * ring
 			if q.x < 2.0 or q.y < 2.0 or q.x > w.width - 2.0 or q.y > w.height - 2.0:

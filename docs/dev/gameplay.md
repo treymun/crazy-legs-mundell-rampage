@@ -1024,6 +1024,10 @@ walks the campaign with him). Play, carried and saved: `features/hound.gd`
 nose finds `src/hound_nose.gd`, his looks and badge `src/hound_looks.gd`,
 numbers in `data/tuning/hound.cfg`.
 
+- **Vehicles.** One coming at him faster than `ride_from` within `ride_reach`
+  ahead: he jumps aside at `ride_hop` (a bark, never hurt); one on him shoves
+  him out of its hull (`_clear_of_rides`, deterministic). His player at the
+  wheel: he heels `heel` past the vehicle's tail.
 - **Heel.** Behind his player off to one side, out of their sights; a run
   past `run_past`, round walls on the player's flow field; lost (far out of
   sight, or no way through) for `lost_for` he turns up behind them. He walks
@@ -1056,8 +1060,9 @@ numbers in `data/tuning/hound.cfg`.
   for `revive_time` gets him up, USE with a pork rind in the pocket at once
   (`hound.use`, `hound.prompt`, from `game_use.gd`), and after `get_up` he
   gets up himself: he never dies.
-- **The whistle.** WHISTLE FOR BLUE (G; the pad's share button; a tap on his
-  badge): `act(["hound"])` -> `Game.hound_call()`; online and for bots
+- **The whistle.** WHISTLE FOR BLUE (G; the pad's BACK held
+  `PAD_WHISTLE_HOLD`, a tap is the map on its release, or its share button;
+  the touch WHISTLE button, shown with BLUE along, or a tap on his badge): `act(["hound"])` -> `Game.hound_call()`; online and for bots
   `Controls.item == Game.HOUND_CALL` (96, past the pockets, so the wire and
   the replay rows are unchanged). Sights on a hand SIC 'EM, on a pickup
   FETCH, else STAY (he sits) and again COME; Mundell says it in his voice
@@ -1213,9 +1218,12 @@ of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
   its frames `0`, the gallop `r0..r4`, `down`) through a stand-in
   (`ModeBodies.stand_in`, `hog<i>`), the gallop on their gait. Dust behind
   them, squeals, `hog_stampede` hooves on the event bed.
-- **The raid.** A still standing (`EventRaid.STILLS`) within 45 cells of a
-  player, else the county's hands where three or more gather asleep; the
-  squad (`count`, `count_hard` on HARD and up) comes in out of every
+- **The raid.** A still standing (`EventRaid.STILLS`) within `still_far` of
+  a player, else the hand with most of the county's others near it, up or
+  asleep (`gather_far` off; one alone will do; it counted only hands awake
+  until polish pass 9, so it started on the hickston alone), the way in
+  tried on two more rings if `come_from`'s are shut; the squad set down
+  round its way in (it stood on one point before); the squad (`count`, `count_hard` on HARD and up) comes in out of every
   player's sight `come_from` away where the player's flow field reaches.
   The squad is the first of `kinds` the game has: a `revenuer` kind when one
   is made (the hook), else the yard and shield deputies. They join the
@@ -1235,8 +1243,9 @@ of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
   windows' and signs' glow out) and the lamp props, street lamps and
   floodlights give no light (`view_lights.gd`); fires and lanterns burn on.
   Every player has a flashlight, on: L (KEYS page `flashlight`; the word
-  names the bound key, `game.torch_key`, none with a pad or touch, which have
-  no button for it yet; online and
+  names the bound key, `game.torch_key`: R3 on a pad, which works it while
+  there is one and runs otherwise, and the touch LIGHT button, shown while
+  there is one, `TouchControls.offer`; online and
   for bots `Controls.item == Game.TORCH`, 97; replay op `torch`) switches
   it. Its battery (`battery` seconds) runs down while it shines, flickers
   under `flicker`, dies; off, it gets `rest` a second back. Its beam is a

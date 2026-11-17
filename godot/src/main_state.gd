@@ -37,10 +37,11 @@ const PAD_ROWS := [
 	["A / B", "JUMP / CROUCH"],
 	["X / Y", "RELOAD / USE"],
 	["BUMPERS", "PREVIOUS / NEXT WEAPON"],
-	["STICK CLICK", "RUN"],
+	["L3 / R3 STICK CLICK", "RUN / FLASHLIGHT"],
 	["D-PAD UP LEFT RIGHT", "RINDS / BEER / MOONSHINE"],
 	["D-PAD DOWN", "USE THE PICKED ITEM"],
 	["START / BACK", "PAUSE / MAP"],
+	["HOLD BACK", "WHISTLE FOR BLUE"],
 ]
 const TOUCH_ROWS := [
 	["LEFT THUMB STICK", "MOVE"],
@@ -50,6 +51,7 @@ const TOUCH_ROWS := [
 	["NEXT", "NEXT WEAPON"],
 	["JUMP / DUCK", "JUMP / CROUCH"],
 	["RIND BEER SHINE", "EAT OR DRINK"],
+	["LIGHT / WHISTLE", "FLASHLIGHT / CALL BLUE"],
 	["MENU", "PAUSE"],
 	["TAP A MENU ROW", "SELECT IT"],
 ]
@@ -338,6 +340,12 @@ var touch_down := false
 ## its next repeat.
 var pad_dir := Vector2i.ZERO
 var pad_repeat := 0.0
+## The pad's BACK in play: how long it has been held (-1 up) and whether the
+## hold already whistled for BLUE (a tap opens the map on its release).
+var pad_back_held := -1.0
+var pad_back_fired := false
+## Seconds BACK is held before it whistles instead of opening the map.
+const PAD_WHISTLE_HOLD := .4
 ## True while key() handles a held key's repeat (keyboard or pad), not a press.
 var key_echo := false
 
@@ -867,8 +875,8 @@ func _pad_bindings() -> Array:
 			[JOY_BUTTON_LEFT_SHOULDER, KEY_SEMICOLON],
 			[JOY_BUTTON_RIGHT_SHOULDER, KEY_APOSTROPHE],
 			[JOY_BUTTON_START, KEY_ESCAPE],
-			[JOY_BUTTON_BACK, KEY_TAB],
-			# The pad's share or capture button whistles for BLUE.
+			# BACK: a tap the map, held the whistle (main_input.gd _pad_back).
+			# The pad's share or capture button whistles for BLUE too.
 			[JOY_BUTTON_MISC1, KEY_G],
 			# With the map open, up and down zoom it instead.
 			[JOY_BUTTON_DPAD_UP, KEY_PAGEUP if game.map else KEY_C],
@@ -1039,13 +1047,32 @@ func use_button() -> String:
 	return KeyBindings.key_name(use_key)
 
 
-## The FLASHLIGHT key as the blackout names it: the bound key, "" on a touch
-## screen or a controller (neither has one).
+## The FLASHLIGHT key as the blackout names it: the bound key, R3 (the right
+## stick's click) on a controller, the LIGHT button on a touch screen.
 func torch_button() -> String:
-	if input_device == "touch" or input_device == "pad":
-		return ""
+	if input_device == "touch":
+		return "LIGHT"
+	if input_device == "pad":
+		return "R3"
 	var torch_key: int = options.get(KeyBindings.option_key("flashlight"), KEY_L)
 	return KeyBindings.key_name(torch_key)
+
+
+## Whether this machine's player has a flashlight now (a blackout): R3 and
+## the touch LIGHT button work it then.
+func has_torch() -> bool:
+	if game == null or state != "play":
+		return false
+	var ev: CountyEvents = game.features.get("events")
+	return ev != null and not ev.torch_of(game.local_player).is_empty()
+
+
+## Whether this machine's player has BLUE along: the touch WHISTLE button.
+func hound_along() -> bool:
+	if game == null or state != "play":
+		return false
+	var hound: Game.HoundScript = game.features.get("hound")
+	return hound != null and hound.dog_of(game.local_player) != null
 
 
 ## The rematch board's and result's line on how to drive them.
@@ -1291,7 +1318,7 @@ func _pin_hud() -> void:
 	if touch != null and touch.showing:
 		var picture := viewport_rect()
 		var k := 320.0 / maxf(1.0, picture.size.x)
-		for b: Array in touch.buttons:
+		for b: Array in touch.shown_buttons():
 			var middle: Vector2 = b[1]
 			var radius: float = b[2]
 			var at := (middle - picture.position) * k

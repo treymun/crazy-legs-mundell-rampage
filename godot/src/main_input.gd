@@ -855,6 +855,8 @@ func read_pad(dt: float) -> Dictionary:
 		grab(true)  # Y on the pause screen: PHOTO MODE
 		return idle
 	var before := state
+	if state == "play" and game != null:
+		_pad_play_extras(device, pressed, dt)
 	for pair: Array in _pad_bindings():
 		var button: int = pair[0]
 		var bound: int = pair[1]
@@ -889,13 +891,39 @@ func read_pad(dt: float) -> Dictionary:
 		"run":
 		(
 			Input.is_joy_button_pressed(device, JOY_BUTTON_LEFT_STICK)
-			or Input.is_joy_button_pressed(device, JOY_BUTTON_RIGHT_STICK)
+			or (Input.is_joy_button_pressed(device, JOY_BUTTON_RIGHT_STICK) and not has_torch())
 		),
 		"fire": trigger_right > 0.5,
 		"alt": trigger_left > 0.5,
 		"jump": Input.is_joy_button_pressed(device, JOY_BUTTON_A),
 		"crouch": Input.is_joy_button_pressed(device, JOY_BUTTON_B)
 	}
+
+
+## The pad's buttons in play beyond _pad_bindings: R3 works the flashlight
+## while there is one (else it runs, as L3); BACK tapped opens the map on its
+## release, held PAD_WHISTLE_HOLD it whistles for BLUE instead.
+func _pad_play_extras(device: int, pressed: Dictionary, dt: float) -> void:
+	if game.showing_tally or game.defeated():
+		pad_back_held = -1.0
+		return
+	if pressed.has(JOY_BUTTON_RIGHT_STICK) and has_torch():
+		key(KEY_L)
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_BACK):
+		if pressed.has(JOY_BUTTON_BACK):
+			pad_back_held = 0.0
+			pad_back_fired = false
+		elif pad_back_held >= 0.0:
+			pad_back_held += dt
+		else:
+			return  # held since before play: wait for a fresh press
+		if pad_back_held >= PAD_WHISTLE_HOLD and not pad_back_fired:
+			pad_back_fired = true
+			key(KEY_G)
+	elif pad_back_held >= 0.0:
+		if not pad_back_fired:
+			key(KEY_TAB)
+		pad_back_held = -1.0
 
 
 ## The D-pad and the left stick on the menus: a push moves the cursor once,
@@ -958,7 +986,7 @@ func _touch_actions() -> void:
 			photo.next_filter(self, 1)
 		if touch.consume("use"):
 			photo.bare = not photo.bare
-		for role: String in ["rinds", "beer", "shine", "map", "photo"]:
+		for role: String in ["rinds", "beer", "shine", "map", "photo", "torch", "whistle"]:
 			touch.consume(role)
 		touch.consume_tap()
 		return
@@ -979,6 +1007,10 @@ func _touch_actions() -> void:
 			key(bound)
 	if touch.consume("map"):
 		game.map = not game.map
+	if touch.consume("torch"):
+		key(KEY_L)  # the flashlight, while there is one
+	if touch.consume("whistle"):
+		key(KEY_G)  # WHISTLE FOR BLUE
 	# With CROUCH set to TOGGLE the DUCK button flips the latch, like the Z key.
 	if _option_on("crouch") and touch.crouch and not duck_held:
 		crouch_latched = not crouch_latched
