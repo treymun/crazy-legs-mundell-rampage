@@ -163,6 +163,18 @@ func gpu_texture(made: Texture2D, x: int, y: int, tw: int, th: int, alpha := 255
 	)
 
 
+## gpu_texture turned by `turn` radians about `pivot` (from its top left):
+## the gun swung by a finisher (features/brawl_looks.gd, Player.weapon_turn).
+func gpu_texture_turned(
+	made: Texture2D, x: int, y: int, tw: int, th: int, turn: float, pivot: Vector2
+) -> void:
+	RenderingServer.canvas_item_add_set_transform(_item, Transform2D(turn, Vector2(x, y) + pivot))
+	RenderingServer.canvas_item_add_texture_rect(
+		_item, Rect2(-pivot.x, -pivot.y, tw, th), made.get_rid(), false, Color(1, 1, 1, 1)
+	)
+	RenderingServer.canvas_item_add_set_transform(_item, Transform2D.IDENTITY)
+
+
 static func _glyph_texture(char: String, mini: bool, sx: int, height: int) -> Array:
 	var key := (char.unicode_at(0) << 16) | (int(mini) << 15) | (sx << 8) | height
 	var kept: Variant = _glyphs.get(key)

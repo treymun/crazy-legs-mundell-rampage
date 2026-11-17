@@ -45,9 +45,18 @@ func _run() -> void:
 		await _kick()
 	if _want("door"):
 		await _door()
-	for gun: String in ["revolver", "shotgun", "crowbar", "tnt"]:
-		if _want("finish_" + gun):
-			await _finish(gun)
+	for row: Array in [
+		["revolver", "whip"],
+		["revolver", "mouth"],
+		["shotgun", "butt"],
+		["shotgun", "belly"],
+		["crowbar", "skull"],
+		["slingblade", "gut"],
+		["tnt", "stomp"],
+		["tnt", "punt"],
+	]:
+		if _want("finish_" + str(row[1])):
+			await _finish(row[0], row[1])
 	var spots := [
 		["chipper", "sawmill", Vector2(82.5, 69.5)],
 		["chipper_west", "sawmill", Vector2(23.5, 40.5)],
@@ -164,14 +173,10 @@ func _kick() -> void:
 	_hand(g, "billy", way[1], way[2] + PI)
 	_ticks(g, .1)
 	_ticks(g, STEP, true)
-	_ticks(g, .05)
-	await _snap("kick_0_boot_up")
-	_ticks(g, .07)
-	await _snap("kick_1_boot_lands")
-	_ticks(g, .2)
-	await _snap("kick_2_flying_back")
-	_ticks(g, .6)
-	await _snap("kick_3_down_dazed")
+	# A strip through the kick: chambered, out, the blow, back, away, him.
+	for k in 8:
+		_ticks(g, .05)
+		await _snap("kick_%d" % k)
 
 
 func _door() -> void:
@@ -207,10 +212,10 @@ func _door() -> void:
 			return
 
 
-func _finish(gun_name: String) -> void:
+func _finish(gun_name: String, want: String) -> void:
 	var g := _level("hickston")
 	var at := Vector2(60.5, 44.5)
-	var way := _approach(g, at + Vector2(3.0, 0.0), .7)
+	var way := _approach(g, at + Vector2(3.0, 0.0), 1.0)
 	if way.is_empty():
 		return
 	var p := g.player
@@ -226,16 +231,17 @@ func _finish(gun_name: String) -> void:
 	_ticks(g, .3)
 	_ticks(g, STEP, true)
 	var b: Brawl = g.features["brawl"]
-	var move: String = b.last_moves.get(p.slot, ["?"])[0]
-	# Real seconds: the clock runs slow now (game.slowmo).
-	_ticks(g, .08)
-	await _snap("finish_%s_%s_0_wind" % [gun_name, move])
-	_ticks(g, .1)
-	await _snap("finish_%s_%s_1_blow" % [gun_name, move])
-	_ticks(g, .5)
-	await _snap("finish_%s_%s_2_after" % [gun_name, move])
-	_ticks(g, 1.2)
-	await _snap("finish_%s_%s_3_down" % [gun_name, move])
+	# This move, whichever game.rng picked (the frames show each).
+	var move := want
+	if not b.moves.is_empty():
+		b.moves[b.moves.size() - 1][2] = want
+		b.last_moves[p.slot][0] = want
+	# A strip in real time: the wind at full speed, the blow, the hit-stop
+	# and the follow through in the slow motion, him down.
+	var waits := [.04, .04, .04, .04, .08, .12, .2, .3, 1.0]
+	for k in waits.size():
+		_ticks(g, waits[k])
+		await _snap("finish_%s_%d" % [move, k])
 
 
 func _hazard(kind: String, level_id: String, spot: Vector2) -> void:

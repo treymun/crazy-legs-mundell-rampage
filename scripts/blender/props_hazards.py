@@ -52,30 +52,37 @@ def wood_chipper():
 
 def bug_zapper():
     post = mat(*WOOD, grime=.6)
-    cage = mat(60, 62, 64, metal=.7, rough=.4, grime=.6)
-    # A cedar post and the arm it hangs from.
+    tin = mat(84, 82, 76, metal=.6, rough=.5, grime=.5)
+    # The hot grid glows too: a fine violet mesh round the tubes.
+    grid = mat(120, 96, 230, emit=.7, metal=.4, rough=.4, grime=0)
+    glow = mat(104, 72, 255, emit=2.6, grime=0)
+    # A cedar post and the arm the lantern hangs from.
     box(.12, .12, 2.0, (0, 0, 1.0), post)
-    box(.5, .08, .08, (.22, 0, 1.9), post)
-    cyl(.012, .14, (.42, 0, 1.8), cage, seg=6)
-    # The lantern: a pressed-tin cap and floor, the glowing violet tubes
-    # inside a wire grid.
-    cyl(.18, .06, (.42, 0, 1.7), mat(70, 70, 66, metal=.6, rough=.5, grime=.5), seg=16, top=.08)
-    cyl(.16, .04, (.42, 0, 1.22), mat(70, 70, 66, metal=.6, rough=.5, grime=.5), seg=16)
-    for k in range(3):
-        a = k / 3 * math.tau
-        cyl(.022, .4, (.42 + math.cos(a) * .06, math.sin(a) * .06, 1.45),
-            mat(140, 100, 255, emit=2.2, grime=0), seg=8)
-    for k in range(12):
-        a = k / 12 * math.tau
-        cyl(.006, .44, (.42 + math.cos(a) * .15, math.sin(a) * .15, 1.45), cage, seg=4)
-    for z in (1.28, 1.45, 1.62):
-        cyl(.15, .01, (.42, 0, z), cage, seg=16)
-    # Bugs fried on the tray, a cord down the post to a box.
-    for k in range(5):
-        ball(.012, (.36 + k * .03, -.05 + (k % 2) * .08, 1.25), mat(20, 18, 14, grime=.1))
+    box(.6, .09, .09, (.26, 0, 1.92), post)
+    cyl(.014, .14, (.5, 0, 1.82), tin, seg=6)
+    # The lantern, big enough to read: a pressed-tin hood and catch tray,
+    # four bright violet tubes inside a glowing wire grid.
+    cyl(.3, .1, (.5, 0, 1.72), tin, seg=20, top=.12)
+    cyl(.26, .05, (.5, 0, 1.06), tin, seg=20)
+    cyl(.27, .02, (.5, 0, 1.03), mat(40, 36, 30, grime=.2), seg=20)
+    for k in range(4):
+        a = k / 4 * math.tau + .4
+        cyl(.04, .58, (.5 + math.cos(a) * .1, math.sin(a) * .1, 1.38), glow, seg=10)
+    for k in range(18):
+        a = k / 18 * math.tau
+        cyl(.007, .62, (.5 + math.cos(a) * .24, math.sin(a) * .24, 1.38), grid, seg=4)
+    for z in (1.12, 1.26, 1.4, 1.54, 1.66):
+        cyl(.24, .012, (.5, 0, z), grid, seg=20)
+    # Fried bugs heaped on the tray, a moth stuck to the grid, the cord down
+    # the post to its plug box.
+    for k in range(9):
+        a = k * 2.4
+        ball(.016, (.5 + math.cos(a) * (.05 + k * .015), math.sin(a) * (.05 + k * .015), 1.09),
+             mat(26, 22, 16, grime=.1), (1.4, 1, .6))
+    ball(.03, (.5, -.25, 1.48), mat(150, 130, 100, grime=.3), (1.6, .3, 1))
     cyl(.01, 1.1, (.06, -.07, 1.0), mat(20, 20, 20), (0, 0, 0), seg=4)
     box(.14, .08, .18, (0, -.1, .5), mat(160, 154, 140, metal=.3, grime=.7))
-    return 1.2, 2.2
+    return 1.4, 2.2
 
 
 def electric_fence():

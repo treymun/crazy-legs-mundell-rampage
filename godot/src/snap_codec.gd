@@ -36,7 +36,7 @@ const VIEW_CLASSES := [
 ## tuning, its lookups over the level's walls).
 const SKIP_FIELDS := {
 	"Enemy": ["alive", "z"],
-	"Player": ["voice", "weapon_lag"],
+	"Player": ["voice", "weapon_lag", "weapon_turn"],
 	"Weapons.Armory": ["boxes"],
 	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
 	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty"],
