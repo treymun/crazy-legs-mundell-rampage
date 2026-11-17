@@ -27,6 +27,10 @@ extends RefCounted
 const UNIT_U := 1.0
 const UNIT_V := 1.28
 const EDGE := .5 / 128.0
+## A painted band's back: how far inside its face, and the picture's row it
+## shows (plain paint above the letters: build_town_signs.gd tower_sign).
+const BACK := .04
+const PLAIN_V := 2.5 / 22.0
 
 
 static func cut(recipe: String, args: PackedFloat32Array) -> Array:
@@ -225,8 +229,10 @@ static func _arc(r: float, w: float, h: float, n: int) -> WreckCuts.Part:
 		var p0 := Vector3(cos(a0) * r, sin(a0) * r, 0.0)
 		var p1 := Vector3(cos(a1) * r, sin(a1) * r, 0.0)
 		var nrm := Vector3(cos((a0 + a1) * .5), sin((a0 + a1) * .5), 0.0)
-		var u0 := float(i) / n
-		var u1 := float(i + 1) / n
+		# The picture's left at the curve's far end, so it reads left to
+		# right seen from outside.
+		var u0 := 1.0 - float(i) / n
+		var u1 := 1.0 - float(i + 1) / n
 		WreckCuts._quad(
 			part,
 			p0 + Vector3(0, 0, -h * .5),
@@ -235,5 +241,18 @@ static func _arc(r: float, w: float, h: float, n: int) -> WreckCuts.Part:
 			p0 + Vector3(0, 0, h * .5),
 			nrm,
 			[Vector2(u0, 1.0), Vector2(u1, 1.0), Vector2(u1, 0.0), Vector2(u0, 0.0)]
+		)
+		# Its back a hair inside: plain paint (a row of the picture above the
+		# letters), so from behind (the band flying, lying face down) no
+		# lettering shows through backwards.
+		var back := (r - BACK) / r
+		WreckCuts._quad(
+			part,
+			p1 * back + Vector3(0, 0, -h * .5),
+			p0 * back + Vector3(0, 0, -h * .5),
+			p0 * back + Vector3(0, 0, h * .5),
+			p1 * back + Vector3(0, 0, h * .5),
+			-nrm,
+			[Vector2(u1, PLAIN_V), Vector2(u0, PLAIN_V), Vector2(u0, PLAIN_V), Vector2(u1, PLAIN_V)]
 		)
 	return part
