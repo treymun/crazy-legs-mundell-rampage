@@ -37,7 +37,9 @@ const STEP := 1.0 / 60.0
 ## Raised from 80 in content pass 8 (radio, dog, events: assets every chapter uses),
 ## then to 87 for the chapter openers (Hickston's lines and sting stay in the
 ## first download: its opener plays before any chapter pack can arrive).
-const FIRST_BUDGET_MB := 87.0
+## Lowered to 75 in pass 9: 71.8 with the lighter copy's WebP pictures and
+## Vorbis lines and the chapters' ambience in their packs (86.5 before).
+const FIRST_BUDGET_MB := 75.0
 const PACK_BUDGET_MB := 20.0
 const WEB_PRESETS := ["Web", "Web Lite"]
 const LIGHT_PRESETS := ["Web", "Web Lite", "Android"]

@@ -67,11 +67,14 @@ func _run() -> void:
 	)
 	var specks := 0
 	for node: Node3D in warmed:
-		if node.global_transform.basis.get_scale().x < .01:
+		var away := node.global_position.distance_to(view.camera.global_position)
+		# Small and well off: under a pixel (it showed at a thousandth of its
+		# size just past the near plane).
+		if node.global_transform.basis.get_scale().x <= WorldView3D.SPECK * 1.01 and away > 20.0:
 			specks += 1
 	_check(
 		specks == warmed.size() and specks + shown.size() == hidden.size(),
-		"each a speck (%d of %d)" % [specks, warmed.size()]
+		"each a speck well off (%d of %d)" % [specks, warmed.size()]
 	)
 	var put_out := warmed.keys()
 	for i in WorldView3D.WARM_FRAMES + 1:

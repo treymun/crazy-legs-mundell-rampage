@@ -160,7 +160,26 @@ rules are in [multiplayer.md](multiplayer.md#the-multiplayer-menus).
 - The keys stay the rules on zoned and keyed screens; buttons on button
   screens.
 - `tools/menu_touch_check.gd` (MENU TOUCH OK; check_all, CI) taps through the
-  menus as touch events.
+  menus as touch events, and in play the junk bench's board, the USE button
+  held and a tap over a chapter's opener.
+
+### Touch in play (polish pass 9)
+
+What each v3.6.0 screen and feature takes from a finger (`src/touch_controls.gd`,
+`main_input.gd _touch_actions`):
+
+| What | By touch |
+| --- | --- |
+| The junk bench's board | USE at the bench opens it; a tag tapped buys it, a tap off it (or USE, or MENU) shuts it; the stick picks and FIRE buys, as the keys do |
+| Finishers, the boot, a door kicked in | the USE button (USE's own) |
+| Holding USE: a partner's revive, BLUE got up, a 5v5 plant or defuse | the USE button held down (`state()["hold"]` -> `Controls.hold`; before pass 9 a finger could not hold USE at all) |
+| The county radio | nothing to press: it plays and captions by itself |
+| BLUE's commands | a tap on his badge whistles (SIC 'EM, FETCH, STAY, COME by what the sights are on) |
+| County events | USE throws a blackout's main breaker; the twister, the hogs and a raid ask for nothing but moving |
+| A chapter's opener, the KILL CAM | a tap anywhere skips it |
+| The 5v5 store, County Run's cards and end | their own taps (`TacticalScreens.tap`, `CountyInput.tap`) |
+
+Not checked by hand: none of it has been tried on a real phone.
 
 ## Menu text
 

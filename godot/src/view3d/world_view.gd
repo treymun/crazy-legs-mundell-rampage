@@ -92,6 +92,8 @@ var _twister_materials: Array[ShaderMaterial] = []
 ## The warm-up (warm_up): frames of a new level left to draw what is still
 ## hidden, and what was put out for it (node -> [its transform, shown]).
 const WARM_FRAMES := 2
+const SPECK := .0001
+const SPECK_AWAY := 40.0
 var _warm := 0
 var _warmed := {}
 ## SHADOWS: what the strong lights and the sky throw (view_shadows.gd).
@@ -271,8 +273,8 @@ func _init(assets: Assets) -> void:
 ## What a level may show later that costs a hitch the first time (a model
 ## loaded and its texture made, its ragdoll rig found): the county events'
 ## hogs and raiders, the level's vehicles' seat views, the props it stands.
-## Made now, at the
-## level's first frame, behind the chapter's opener or the load.
+## Made now, at the level's first frame, behind the chapter's opener or the
+## load.
 func _warm_models(game: Game) -> void:
 	_track_live(props.warm(game.level))
 	if game.features.get("events") != null:
@@ -296,8 +298,10 @@ func _warm_models(game: Game) -> void:
 ## drawn). The next frame puts them back as they were (_unwarm).
 func warm_up() -> void:
 	var front := camera.global_transform
+	# Well off and a ten-thousandth of its size: the twister's 30-cell funnel
+	# is then 0.003 of a cell 40 cells away, under a pixel at any HD.
 	var speck := Transform3D(
-		front.basis.scaled(Vector3.ONE * .001), front * Vector3(0.0, 0.0, -NEAR * 4.0)
+		front.basis.scaled(Vector3.ONE * SPECK), front * Vector3(0.0, 0.0, -SPECK_AWAY)
 	)
 	var hidden: Array[Node3D] = []
 	hidden.append_array(_twister)
@@ -321,7 +325,7 @@ func _unwarm() -> void:
 	_warmed.clear()
 
 
-## Whether warm_up still has frames to draw (tools/view3d_check.gd).
+## Whether warm_up still has frames to draw (tools/warm_check.gd).
 func warming() -> bool:
 	return _warm > 0
 

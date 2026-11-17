@@ -52,7 +52,8 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `radio_check` | RADIO CHECK OK | yes | the county radio: every line of `radio_lines.json` in the bank with a caption of two lines at most, a gap between songs opens with an ID and ends on the way back, news first (a boss's fall before the rest), lines dealt without coming round soon, the scanner's calls and their spacing, three deaths make news, CUSSIN'/CLEAN/OFF for Dub's crude lines, the RADIO setting, a boss fight holds it and a boss's line hushes it, anyone talking ducks it and Dub over the music ducks the music, a vehicle tuned in, a chapter's events reach the station and its lines are captioned, game.rng untouched ([audio.md](audio.md#the-county-radio-content-pass-8)) |
 | `audio_qa_check` | AUDIO QA OK | yes | the sound's wiring and finish (pass 9): every cue the game names in a literal is made, every finished cue starts and ends at silence and every loop runs into its start, every CLEAN copy within 2 dB of its cussing take, play's hold on the music stacks with Dub's and a jukebox's and goes with play, no hand says a line twice running; the full measurement is `scripts/audio_qa.py --check` (lint) ([audio.md](audio.md#audio-qa-pass-9)) |
 | `voice_check` | VOICE CHECK OK | yes | every spoken line in the audio manifest is mastered from its transcript, has its CLEAN copy (cuss lines) and loads from the packed bank at 0.3 to 6 s; every caption the game shows for a line (bosses, hands, tough guys, Maw, the fair PA, Mundell, the cuss pack, the county radio) is the text it was made from; every recording, transcript and kept take is booked in the ledger, which adds up to the account's drop ([audio.md](audio.md#voices)) |
-| `pack_check` | PACK CHECK OK | | the browser build's split ([the browser packs](#the-browser-packs)): the name rule, every picture and cue in its home file, no level's data naming another chapter's assets, each level played 12 s by the bot asking only for the first download's and its own chapter's pictures and cues, the export presets' lists (`fix` rewrites the chapters' models), the lighter copy when built (`lite` requires it), the budgets; `build=<dir>` also reads an exported index.pck and every pack |
+| `pack_check` | PACK CHECK OK | | the browser build's split ([the browser packs](#the-browser-packs)): the name rule, every picture and cue in its home file, no level's data naming another chapter's assets, each level played 12 s by the bot asking only for the first download's and its own chapter's pictures and cues (and drawing no picture the art does not have), the export presets' lists (`fix` rewrites the chapters' models), the lighter copy when built (`lite` requires it: every picture opens, WebP or deflated; every cue in its file, a spoken line's Vorbis as long as its QOA, the rest the same bytes), the budgets; `build=<dir>` also reads an exported index.pck and every pack |
+| `warm_check` | WARM CHECK OK | yes | the hitches the 3D view takes out of play ([view3d.md](view3d.md#the-warm-up-polish-pass-9)): a level's first frames draw every hidden piece (twister, storm wall, rain, seat views) as a speck and then put each back; the level's props, the events' hogs and raiders and its vehicles' seat views made at its first frame; every speck kind `game.burst` throws by name has its picture |
 | `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below), in six parts side by side |
 | `physics_check` | PHYSICS OK | yes | gibs, brass, chunks and bodies dropped on decks, ramps and stairs and thrown at walls rest on a surface, never inside anything; the loose-things features on a loft ([gameplay.md](gameplay.md#loose-things-on-the-real-3d-shape-v300-remaster)); ragdolls lie on decks, treads, ramps and past a rail and sleep, no model sunk past 1 cm, one body on another, slow-mo finishers start on the last kill and never with company (`physics_ragdolls.gd`); loose things settle with no snap; nothing thrown fast passes a thin wall; water splashes, sinks and drifts (`physics_water.gd`); the shared physics core: the exact solver the same to the bit as the pins' old one, the grid, boxes stacking and waking what lies on them, a body on a wreck piece and a board on a body (`physics_core.gd`, [gameplay.md](gameplay.md#the-shared-physics-core-engine-pass-6)) |
 | `live_props_check` | LIVE PROPS OK | yes | things taken up, held, thrown (a hand hurt and shoved, a propane tank breaking and going up, jugs spilling shine, a brute heaving a tank), set down and saved; fire spreading over hay, never onto stone or dirt, burning out, the same twice, sooner in rain; a still spraying and going up; a snapshot carrying a throw and a fire on tick for tick; all of it off with LIVE PROPS AND FIRE off ([gameplay.md](gameplay.md#picking-things-up-fire-that-spreads-the-stills)) |
@@ -76,7 +77,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `bot_campaign` | CAMPAIGN WALKTHROUGH OK | | the bot plays the campaign through (slow) |
 | `net_showdown_check` | NET SHOWDOWN OK | | online 5v5, host plus three clients, lobby to lobby (`lag= loss= seconds=`) |
 | `net_server_check` | NET SERVER OK | | an always-open lobby with no host player |
-| `menu_touch_check` | MENU TOUCH OK | yes | taps through every menu, the 5v5 store, the County Run screens as touch events |
+| `menu_touch_check` | MENU TOUCH OK | yes | taps through every menu, the 5v5 store, the County Run screens as touch events; in play the junk bench's board (a tag bought, a tap off it), the USE button held (`Controls.hold`) and a tap skipping an opener ([ui.md](ui.md#touch-in-play-polish-pass-9)) |
 | `opener_check` | OPENER CHECK OK | yes | the chapter openers: every chapter's shots inside its map, card, tagline, boss cel and cues, the narrator's two lines STT-matched and in the bank; the OPENERS setting (FIRST TIME once, ALWAYS, OFF), never the hub, COUNTY RUN, a retry or a loaded save; a key or click skips it, it ends by itself, play's snapshot and clock unchanged in every chapter, two seconds of play after it the same as without; every opener draws its key moments ([view3d.md](view3d.md#the-chapter-openers-content-pass-8)) |
 | `camera_check` | CAMERA CHECK OK | yes | the QUALITY tiers (pick, presets, AUTO's meter, physics steps); the HUD's Control boxes compose to `HUD.draw`'s bar pixel for pixel (campaign, 5v5, County Run, full and MINIMAL); PHOTO MODE in and out, flying, the player in view, a filter, a picture saved; the KILL CAM noted, sampled, replayed with stand-ins and skipped; play's snapshot unchanged by either; the view polish (`view_polish_check.gd`): SHADOWS' pairs and blobs, marks on a prop's model (holes, scorch, char, kept and handed on), the storm wall's curtains and ring |
 | `hud_layout_check` | HUD LAYOUT OK | yes | the HUD's layout ([ui.md](ui.md#the-huds-layout)): crowded moments (campaign, SMALL TEXT, MINIMAL, driving with a run, the lap, co-op watching and reviving, a boss, versus, the fair, COUNTY RUN, 5v5) drawn headless with each piece's ink measured: no two touch, all inside the margins, each expected piece there; the layout's rules; the status bar's meter captions fit their wells |
@@ -280,6 +281,14 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   means, the view's parts, what is on screen, the shader instance slots held
   and the memory (static, textures, buffers, video). Give it a scratch
   `APPDATA` with an options.json to pick a QUALITY tier.
+- **The first-time hitches**, in a window: `tools/hitch_bench.gd -- [only=a,b]
+  [frames=90]` times the frame something is drawn or made for the first time
+  and the big moments that come once: turn (a 180 at Hickston's spawn), the
+  twister, rain, a wreck, getting in the mower (cab), a barn and the water
+  tower coming down, the hogs' stampede, a finisher. Each prints the first
+  frame, the worst, p99 and median, and the first frame's tick, render and
+  view parts over 2 ms. Give each run a new empty scratch `APPDATA` (a cold
+  shader cache, as the browser always has).
 - **The worst ticks:** `tools/tick_spikes.gd -- [level=hickston] [players=1] [ticks=7200] [runs=3] [top=20]` plays net_bench's bot game `runs` times (play is exact: the same tick does the same work), keeps each tick at its least (the PC's own hiccups left out) and prints the worst ticks with their costliest features and event listeners (the rest is "core"), then what the ticks over three times the median spent past the usual by part.
 - **The tick, by listener:** `tools/tick_profile.gd -- 300 [levels=a,b]`
   times each feature's tick (`tick_with`, sleeping ones skipped) and the
@@ -347,6 +356,22 @@ exported builds, 2026-11-16, pass 7):
 | Web Lite first visit (iPhone, iPad) | 133.9 MB | 77.1 MB |
 | APK (estimated from its pack, against the 221 MB 3.4.0 APK) | 221 MB | about 192 MB |
 
+Polish pass 9 (2026-11-17, `b483fdc9` against the web track, the exported
+Web build, gzipped at level 6 as Pages sends it):
+
+| | before | after |
+| --- | --- | --- |
+| first download's packed files (pack_check, the lighter copy) | 86.5 MB | 71.8 MB |
+| index.pck as exported | 90.8 MB | 76.0 MB |
+| first visit (wasm, index.pck, js), gzipped | 90.2 MB | 76.6 MB |
+| ... and Hickston's music | 96.6 MB | 82.9 MB |
+| everything, all eight chapter packs, gzipped | 204.1 MB | 181.1 MB |
+| headless Chrome, 20 Mbit/s and the CPU slowed 4x: index.pck in / the title up (two runs) | 56.6, 56.2 / 105.7, 86.6 s | 50.4, 50.2 / 83.3, 81.2 s |
+| headless Chrome `--view-bench=60` (SwiftShader, CPU not slowed): all chapters, two runs | 26.8, 24.5 ms | 28.9, 25.5 ms |
+
+The frame times are the same within the noise (the PC was busy; SwiftShader
+draws on the CPU); the load is quicker by the bytes.
+
 - **The split.** `index.pck` holds the title, Hickston, the hub, the range
   and the versus maps. Each other chapter's own files are a pack of their
   own (`tools/make_packs.gd`, `chapter_<id>-<hash>.pck`, 13 to 18 MB):
@@ -371,14 +396,29 @@ exported builds, 2026-11-16, pass 7):
   textures over 512 texels a side halved (the bosses and the seat views; at
   the 320x200 view a boss looks the same: 276 pixels of a 1280x800 frame
   moved), the music re-encoded at Vorbis q3 (about 100 kbps, two thirds of
-  the bytes, the same samples). The desktop builds leave it out and never
-  read it; `--lite-assets` reads it on a desktop to look at it.
+  the bytes, the same samples). Since pass 9 every picture is kept as
+  lossless WebP where that is smaller (4,537 of 5,158: the art 76.2 -> 59.5
+  MB, the very same pixels, and no slower to open than the deflated ones),
+  and the sound bank has a lighter copy too (`lite/sfx*.bin`,
+  `lite/sfx_index.json`): the 814 spoken lines (the audio manifest's
+  "voice" family) as mono Ogg Vorbis q1 (about 40 kbps against the QOA's
+  70) with their stream headers kept once at the front of `sfx.bin` (the
+  same for every line, 3.4 KB each: `Assets.cue` puts them back), the rest
+  the QOA it was (22.3 -> 14.7 MB). A line opens in about 0.2 ms on this
+  desktop. The desktop builds leave the lighter copy out and never read it;
+  `--lite-assets` reads it on a desktop to look and listen.
+- **Ambience by chapter.** The beds only one chapter plays
+  (`Assets.CHAPTER_AMBIENCE`: amb_fair..., amb_mill..., amb_quarry...,
+  amb_bayou..., amb_ridge, amb_mothership) come with that chapter's pack.
 - **The check.** `tools/pack_check.gd` (above); CI's browser job runs it on
   the export with `lite build=build/web`. Budgets: the first download's
-  packed files 87 MB (86.1 at pass 8's openers), a chapter pack 20 MB (17.8).
-- **Not cut:** the sound effects stay QOA in every build (Vorbis would save
-  about half of the 13 MB but the bank's cues are WAV streams everywhere in
-  `sound.gd`); the engine's wasm (10 MB gzipped) is the stock template.
+  packed files 75 MB (71.8 at pass 9; 87 before it), a chapter pack 20 MB
+  (16.4).
+- **Not cut:** the sound effects other than the spoken lines stay QOA (short
+  cues, loops that must meet their start); the models' imported scenes
+  (about 23 MB of the first download: mesh compression or fewer LODs would
+  change how they look); the engine's wasm (10 MB gzipped) is the stock
+  template.
 - **Trying it:** export Web, `make_packs.gd -- <dir>`, serve the folder with
   COOP/COEP headers and open `index.html` with `GODOT_CONFIG` args
   `["--", "--play-at=fair"]`: the menu says `TOWING THE FAIRGROUNDS IN...`

@@ -729,6 +729,38 @@ Rules that keep it cheap, none of which changes a picture:
   small (`WreckLayer3D.SPARE` 8 spare pieces, the actor pool above). A next
   step would give unmarked parts a material without the mark slots.
 
+## The warm-up (polish pass 9)
+
+gl_compatibility compiles a shader the first time something draws with it,
+and a model's first instance and texture cost several milliseconds. On a
+desktop or phone the compiled shaders are kept after the first run; the
+browser keeps none, so it pays every time. What the view does about it at a
+level's first frame (the frame that already builds the level, behind the
+load or the chapter's opener):
+
+- `_warm_models`: makes now what the level may show later: the props it
+  stands (its billboards and props: each scene loaded and instanced once,
+  its texture made, `PropLayer3D.warm`), the county events' hogs and raiders
+  (`ActorLayer3D.warm`), its vehicles' seat views, hidden (`CabLayer3D.warm`).
+- `warm_up`: for `WARM_FRAMES` (2) frames, everything hidden till something
+  calls for it (the twister, County Run's storm wall, the rain, the seat
+  views) is drawn as a speck 40 cells ahead (`SPECK_AWAY`), a ten-thousandth
+  of its size (`SPECK`); `_unwarm` puts each back at the next frame's
+  start. Nothing shows: the speck covers no pixel (a first try, a
+  thousandth of the size just past the near plane, showed three pixels in
+  the middle of the 320x156 view).
+
+Measured with `tools/hitch_bench.gd` (desktop, cold shader cache, medians of
+three runs, 2026-11-17; the PC busy, so the settled frames ran 11 to 18 ms):
+a turn round at Hickston's spawn 106 -> 35 ms; getting in the mower
+171 -> 48; the twister's first frame 44 -> 23 (619 in a first run); a barn
+coming down 36 -> 21; the hogs 87 -> 67. Hickston's first frame costs about
+0.37 s more the first time (the props), nothing the second.
+`tools/warm_check.gd` holds it. Still to do: the hogs' first frame (about
+40 ms outside the tick and the view's frame: the GPU side), getting in a
+vehicle (the view's setup, 15 to 20 ms), a whole yard of props coming into
+view at once (each a new instance; props are not pooled, above).
+
 ## User folder
 
 The 3D build uses its own user folder ("Crazy Legs Mundell Rampage 3D"), so it
