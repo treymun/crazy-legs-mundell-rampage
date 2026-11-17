@@ -62,6 +62,10 @@ func _init() -> void:
 		"moonshine_keep_out": keep_out(),
 		"moonshine_road_closed": road_closed(),
 		"fx_tear_gas": fx_tear_gas(),
+		# Polish pass 9: the blacktop's two pull-offs (drawn last, so the
+		# dice of every sign above come out as they were).
+		"moonshine_peaches": peaches(),
+		"moonshine_buzzard": buzzard(),
 	}
 	for name: String in signs:
 		var sheet: Paint.Sheet = signs[name]
@@ -589,6 +593,29 @@ func road_closed() -> Paint.Sheet:
 	letters(s, "BY ORDER", 40, 16, 1, Color8(168, 30, 24), false)
 	letters(s, "U.S. REVENUE", 40, 25, 1, Color8(30, 40, 90), false)
 	weather(s, 40, 4)
+	return Paint.digitize(s)
+
+
+## Cletus's stand at the blacktop's west pull-off, hand painted.
+func peaches() -> Paint.Sheet:
+	var s := planks(112, 66, Color(.44, .32, .2), 11)
+	brushed(s, "PEACHES", 56, 4, 2, Color8(246, 168, 60))
+	brushed(s, "NO SHINE", 56, 24, 2, Color8(232, 228, 214))
+	brushed(s, "HONEST", 56, 45, 2, Color8(224, 52, 36))
+	weather(s, 80, 5)
+	return Paint.digitize(s)
+
+
+## The speed trap at the east pull-off: the state's tin, the county's joke.
+func buzzard() -> Paint.Sheet:
+	var s := tin(100, 54, Color(.88, .88, .84))
+	frame(s, Color8(24, 24, 24))
+	letters(s, "SPEED CHECKED", 50, 5, 1, Color8(20, 20, 20), false)
+	letters(s, "BY", 50, 15, 1, Color8(20, 20, 20), false)
+	letters(s, "BUZZARD", 50, 26, 2, Color8(150, 30, 24), false)
+	for k in 7:
+		Paint.point(s, 16 + k * 11, 47 + k % 2, Color8(20, 18, 16))
+	weather(s, 40, 9)
 	return Paint.digitize(s)
 
 

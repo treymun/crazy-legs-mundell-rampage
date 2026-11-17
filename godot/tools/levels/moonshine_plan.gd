@@ -73,7 +73,7 @@ func make() -> Builder:
 		"ending": '"GRANNY SAYS THE TAX IS PAID IN FULL."',
 		"score": "moonshine_score",
 		"ambience": "ridge",
-		"layout": 1,
+		"layout": 2,
 		"sky": "moonshine_sky",
 		"control_name": "THE RUN: SHINE, RADIO, BELL",
 		"extraction": {"x": 99.5, "y": 10.6, "label": "HAUL THE LAST JAR HOME", "shutdown": "cave"},
@@ -105,6 +105,7 @@ func build(_b) -> Array:
 	the_backroad()
 	little_bethel()
 	the_blacktop()
+	pull_offs()
 	buzzard_knob()
 	deer_camp()
 	snake_holler()
@@ -545,6 +546,61 @@ func the_blacktop() -> void:
 		b.prop("utilitypole", p.x, p.y)
 	b.board("moonshine_county_line", 103.94, 47.0, .8, {"z": .7, "plane": -PI / 2})
 	b.board("moonshine_speed_sign", 22.06, 47.0, .7, {"z": .9, "plane": PI / 2})
+
+
+## The blacktop's north leg was a long walk of trees and asphalt between the
+## knob and the checkpoint (the way back from the radio): two pull-offs cut
+## into the woods on its north side give it something on the way (polish
+## pass 9, layout 2; tools/pacing_report.gd measures the quiet). West,
+## Cletus's fruit stand that sells no shine, honest, two agents seizing it;
+## east, a speed trap, a cruiser tucked in under the state's sign and the
+## county's opinion of it. Off the cruisers' lane and off the run's way.
+func pull_offs() -> void:
+	# Cletus's stand: the counter against the trees, the sign over it.
+	open(52, 33, 59, 35, "dirt", blacktop)
+	desk(53.2, 33.25, 57.8, 33.9, .78, "wood")
+	b.board("moonshine_peaches", 55.5, 33.06, .78, {"z": 1.05, "plane": 0.0})
+	b.board("moonshine_seized_tag", 56.9, 33.92, .32, {"z": .3, "plane": 0.0, "hung": true})
+	b.town("jug_stack", 54.2, 33.55, {"z": .78, "scale": .7})
+	b.town("cooler", 58.5, 34.5)
+	b.crate_stack(58.5, 33.5, .8)
+	lantern(52.5, 33.5, 3.6)
+	b.enemy("revenooer", 54.5, 34.8, "stand-a")
+	b.enemy("revenooer", 57.5, 35.3, "stand-b")
+	b.partners.append(["stand-a", "stand-b", 1])
+	b.pickup("moonshine", 56.5, 34.4)
+	b.pickup("rinds", 53.0, 35.2)
+	b.exchanges.append(
+		{
+			"id": "stand-talk",
+			"x": 55.5,
+			"y": 35.0,
+			"stop_at": "",
+			"lines": ["AGENT: SIGN SAYS PEACHES.", "OTHER: THESE PEACHES IS NINETY PROOF."]
+		}
+	)
+	# The speed trap: the cruiser nosed in under the sign, flares out.
+	open(72, 33, 80, 35, "gravel", blacktop)
+	parked("cruiser", 77.0, 34.2, true)
+	b.board("moonshine_buzzard", 73.5, 33.06, .7, {"z": 1.0, "plane": 0.0})
+	b.town("road_flare", 72.5, 35.5)
+	b.glow(72.5, 35.5, 2.6, .28)
+	b.town("road_flare", 79.6, 35.5)
+	b.glow(79.6, 35.5, 2.2, .24)
+	b.town("camp_chairs", 73.5, 33.5)
+	b.enemy("revenooer", 74.0, 34.6, "trap-a")
+	b.enemy("still_buster", 79.5, 33.6, "trap-b")
+	b.pickup("bullets", 73.2, 35.2)
+	b.pickup("shells", 79.5, 34.8)
+	b.exchanges.append(
+		{
+			"id": "trap-talk",
+			"x": 76.0,
+			"y": 35.5,
+			"stop_at": "",
+			"lines": ["AGENT: CLOCKED ONE AT NINETY.", "OTHER: THAT WAS A BUZZARD, EARL."]
+		}
+	)
 
 
 ## The patrol's line, a lane in from the loop's outer edge.

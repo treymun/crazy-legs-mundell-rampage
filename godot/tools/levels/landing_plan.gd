@@ -35,7 +35,7 @@ func make() -> Builder:
 		"intro": "CATFISH LANDING. TWO A SIDE. B TO BUY.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 1,
+		"layout": 2,
 		"sky": "sky",
 		"area_sounds": {},
 		"tactical":
@@ -98,6 +98,7 @@ func build(_b) -> Array:
 	shop()
 	dock()
 	east()
+	arena_loot()
 	return [5.5, 5.0, 0.0]
 
 
@@ -190,3 +191,20 @@ func east() -> void:
 	b.label("A", 30, 22)
 	b.label("OFFICE", 32, 9)
 	b.label("ICE ROW", 23, 3)
+
+
+## What lies about for DEATHMATCH and TEAM DEATHMATCH (polish pass 9): a
+## versus map had nothing to pick up, so a match was the starting kit and
+## no way to heal. Rounds, rinds and a beer down each lane, one heavier gun
+## at each end, both sides alike. The 5v5 rounds clear the pickups
+## (tactical_mode.gd), so they change nothing there.
+func arena_loot() -> void:
+	for p in [
+		["shells", 4.5, 20.5],
+		["bullets", 17.5, 14.5],
+		["rinds", 14.5, 25.5],
+		["rinds", 25.5, 15.5],
+		["beer", 30.5, 14.5],
+		["dynamite", 28.5, 23.5],
+	]:
+		b.pickup(String(p[0]), float(p[1]), float(p[2]))

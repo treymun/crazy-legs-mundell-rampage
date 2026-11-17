@@ -98,7 +98,8 @@ posse, critters).
 - Every hit lands at `Modes.PVP_SCALE` (.5) of what it does to a hand, your own
   blast too. A kill is a frag, a fall to the world or your own blast takes one
   off; back 3 s later at the spawn point farthest from everyone up, full
-  health, the kit again. Pickups come back 20 s after they are taken.
+  health, the kit again. Pickups come back 20 s after they are taken; the
+  versus maps lay theirs out in their plans' `arena_loot()` (polish pass 9).
 - The frag limit (10) or the time limit (300 s) ends the match: `game.won`
   (play stops) and the results screen in the tally's county-fair look
   (`ModeScreens.results`, from `hud.gd intermission`; ENTER another round, ESC

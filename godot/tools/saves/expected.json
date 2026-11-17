@@ -66,8 +66,8 @@
 		"replay": false,
 		"reserve": 30.0,
 		"retained": [],
-		"x": 64.913,
-		"y": 80.137
+		"x": 64.5,
+		"y": 81.5
 	},
 	"v10_speedway_replay.json": {
 		"alive": 59.0,
@@ -77,8 +77,8 @@
 		"replay": true,
 		"reserve": 162.0,
 		"retained": [],
-		"x": 13.006,
-		"y": 98.389
+		"x": 12.0,
+		"y": 100.5
 	},
 	"v11_fair_carrying_hickston.json": {
 		"alive": 48,
@@ -117,7 +117,7 @@
 		"y": 73.356
 	},
 	"v11_moonshine_replay.json": {
-		"alive": 45,
+		"alive": 49,
 		"health": 100.0,
 		"kills": 0,
 		"level": "moonshine",
@@ -126,6 +126,17 @@
 		"retained": [],
 		"x": 10.506,
 		"y": 90.389
+	},
+	"v11_moonshine_replay_layout1.json": {
+		"alive": 49.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "moonshine",
+		"replay": true,
+		"reserve": 159.0,
+		"retained": [],
+		"x": 9.5,
+		"y": 92.5
 	},
 	"v11_mothership_replay.json": {
 		"alive": 78,
@@ -161,6 +172,18 @@
 		"x": 64.913,
 		"y": 80.137
 	},
+	"v11_sawmill_slot_layout8.json": {
+		"alive": 44.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"label": "OLD SLOT",
+		"level": "sawmill",
+		"replay": false,
+		"reserve": 30.0,
+		"retained": [],
+		"x": 64.5,
+		"y": 81.5
+	},
 	"v11_speedway_replay.json": {
 		"alive": 59,
 		"health": 100.0,
@@ -171,6 +194,17 @@
 		"retained": [],
 		"x": 13.006,
 		"y": 98.389
+	},
+	"v11_speedway_replay_layout5.json": {
+		"alive": 59.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "speedway",
+		"replay": true,
+		"reserve": 162.0,
+		"retained": [],
+		"x": 12.0,
+		"y": 100.5
 	},
 	"v4_fair_carrying_hickston.json": {
 		"alive": 48.0,
@@ -844,8 +878,8 @@
 		"replay": false,
 		"reserve": 30.0,
 		"retained": [],
-		"x": 64.913,
-		"y": 80.137
+		"x": 64.5,
+		"y": 81.5
 	},
 	"v9_sawmill_slot_layout7.json": {
 		"alive": 44.0,
@@ -867,7 +901,7 @@
 		"replay": true,
 		"reserve": 162.0,
 		"retained": [],
-		"x": 13.006,
-		"y": 98.389
+		"x": 12.0,
+		"y": 100.5
 	}
 }
