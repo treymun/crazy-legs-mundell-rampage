@@ -45370,6 +45370,194 @@
    },
    "validation": "ok"
   },
+  "timber_snap": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/timber_snap.mp3",
+   "prompt": "A thick old wooden barn post snapping in two under a falling roof: one deep sharp crack, splintering fibres, the top half thudding away.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/timber_snap.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "tail_trimmed_s": 0.407,
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.593,
+    "peak_db": -0.8,
+    "loud_db": -14.3,
+    "dc": 0.0035,
+    "onset_ms": 0.0,
+    "centroid_hz": 4202,
+    "end_db": -152.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "collapse_tin": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/collapse_tin.mp3",
+   "prompt": "Rusty corrugated tin roof sheets sliding off a collapsed barn and clattering down onto broken timber and dirt: loose rattling, scraping and banging tin.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/collapse_tin.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 220,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.54,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0002,
+    "onset_ms": 0.8,
+    "centroid_hz": 1621,
+    "end_db": -166.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "collapse_rumble": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/collapse_rumble.mp3",
+   "prompt": "A heavy plank barn wall slamming flat onto dry dirt: a deep wooden thud and a dusty whump, loose boards rattling and settling after.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/collapse_rumble.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-10.5 dB (set for this cue)",
+    "keep_seconds": 1.4
+   },
+   "measured": {
+    "seconds": 1.36,
+    "peak_db": -0.8,
+    "loud_db": -7.8,
+    "dc": 0.0021,
+    "onset_ms": 0.0,
+    "centroid_hz": 118,
+    "end_db": -144.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hoop_ring": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hoop_ring.mp3",
+   "prompt": "Iron hoops springing off a burst wooden water tank and clanging down on a dirt street: two ringing metallic clangs and a rattle.",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/hoop_ring.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-10.5 dB (set for this cue)",
+    "keep_seconds": 1.3
+   },
+   "measured": {
+    "seconds": 1.28,
+    "peak_db": -1.4,
+    "loud_db": -10.5,
+    "dc": 0.0,
+    "onset_ms": 23.9,
+    "centroid_hz": 381,
+    "end_db": -162.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "pipe_burst": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/pipe_burst.mp3",
+   "prompt": "A steel fuel pipe bursting in a gasoline fire: a sharp metallic bang and a deep whoomp of flame.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/pipe_burst.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "tail_trimmed_s": 0.557,
+    "keep_seconds": 1.2
+   },
+   "measured": {
+    "seconds": 0.643,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0054,
+    "onset_ms": 0.0,
+    "centroid_hz": 236,
+    "end_db": -144.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "tornado_siren": {
    "purpose": "new cue",
    "refs": [],
@@ -62250,6 +62438,11 @@
   "gas_leak",
   "gas_whoosh",
   "plank_crack",
+  "timber_snap",
+  "collapse_tin",
+  "collapse_rumble",
+  "hoop_ring",
+  "pipe_burst",
   "tornado_siren",
   "tornado_roar",
   "hog_stampede",

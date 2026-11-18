@@ -192,6 +192,9 @@
   "teat_gun": {
    "quiet for family:report": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
   },
+  "timber_snap": {
+   "quiet for family:scene": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
   "torch_click": {
    "quiet for family:equip": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
   },

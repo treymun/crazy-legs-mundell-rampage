@@ -122,6 +122,9 @@ var _shots: Array = []
 var _walked := {}
 var _wake_at := 0
 var _models: PropModels
+## The big breaks coming apart in their own pieces (src/set_piece_wreck.gd):
+## null where the level has none.
+var ruin: SetPieceWreck
 
 
 func id() -> String:
@@ -149,6 +152,10 @@ func attach() -> void:
 	dense = cfg.get_value("pieces", "dense", 500.0)
 	physics = WreckPhysics.new(game.world)
 	_models = PropModels.new(game.art)
+	var sets: SetPiecesFeature = game.features.get("set_pieces")
+	if sets != null and not sets.pieces.is_empty():
+		ruin = SetPieceWreck.new(game)
+		ruin.blasts = _blasts
 	_sync()
 	# What the level can break is cut in its first frames (WreckCuts.pump,
 	# a model's on a worker), not while it loads nor in a fight (a big model
@@ -198,6 +205,17 @@ func _sync() -> void:
 			var outs: Array = st["out"]
 			for k in outs.size():
 				_set_out["%d:%d" % [i, k]] = outs[k]
+	if ruin != null:
+		ruin.sync()
+
+
+## Gone with its game: the set pieces' workers waited for, nothing pointing
+## back at the game.
+func detach() -> void:
+	if ruin != null:
+		ruin.close()
+		ruin = null
+	super()
 
 
 func restore(_state: Dictionary) -> void:
@@ -228,6 +246,8 @@ func _tick(dt: float) -> void:
 		var at := physics.knock_at
 		if Water.splash_if(game, at.x, at.y, at.z, clampf(physics.knock_hard * .25, .5, 1.4)):
 			_splash_next = game.clock + .15
+	if ruin != null and ruin.busy():
+		ruin.tick(dt)
 	_in_water(dt)
 	_glass_lands()
 	_unstick()
@@ -272,12 +292,16 @@ func _watch() -> void:
 	var sets: SetPiecesFeature = game.features.get("set_pieces")
 	if sets != null and sets.net_version != _set_version:
 		_set_version = sets.net_version
+		if ruin != null:
+			ruin.watch(sets)
 		_watch_sets(sets)
 
 
-## A set piece's tank burst throws its staves, hoops, cap, deck and name
-## (the barns' pieces throw only chips: game.burst, cheap; real splinters
-## wedged among their rubble cost the wreck physics milliseconds a tick).
+## A set piece's tank burst throws its staves (those not torn out in the fall
+## already), its cap and its name as real pieces; its hoops, its deck and the
+## barns come apart in SetPieceWreck's own scripted pieces (real pieces
+## wedged among the rubble's volumes cost the wreck physics milliseconds a
+## tick).
 func _watch_sets(sets: SetPiecesFeature) -> void:
 	for i in sets.pieces.size():
 		var st: Dictionary = sets.pieces[i]
@@ -297,11 +321,19 @@ func _watch_sets(sets: SetPiecesFeature) -> void:
 			var c: Vector3 = at[0]
 			var q: Quaternion = at[1]
 			if now == SetPiecesFeature.GONE and part.tank:
+				if ruin != null and part.role in ["hoop", "deck"]:
+					continue
 				var src := {"key": part.key, "origin": c, "basis": Basis(q), "size": 1.0}
+				var only: Array = []
+				if ruin != null and part.role == "tank":
+					var gone := ruin.flown(i, k)
+					for n in WreckCuts.parts(game.art, part.key).size():
+						if not gone.has(n):
+							only.append(n)
 				# Burst where it struck the ground, along its fall.
 				var way := Vector3(lean.x, lean.y, 0.0).normalized()
 				var hit := [c - way * .4, (way + Vector3(0.0, 0.0, .5)).normalized(), 6.0, "break"]
-				_throw(src, Vector3(lean.x, lean.y, 2.2), 1.0, 99, "", [], "wood", [hit])
+				_throw(src, Vector3(lean.x, lean.y, 2.2), 1.0, 99, "", only, "wood", [hit])
 
 
 func _exploded(x: float, y: float, z: float, _energy: bool) -> void:
@@ -557,7 +589,12 @@ func _throw(
 		# A barrel's hoops are iron whatever its staves are.
 		var made_of := "iron" if part.form == "ring" and stuff == "wood" else stuff
 		var b := physics.add(
-			at, Quaternion(turn * part.basis), part.half * size, made_of, part.form, _groups
+			at,
+			Quaternion((turn * part.basis).orthonormalized()),
+			part.half * size,
+			made_of,
+			part.form,
+			_groups
 		)
 		reach = maxf(reach, at.distance_to(mid) + b.reach)
 		var w := Wreck.new()
@@ -982,6 +1019,8 @@ func sprites() -> Array:
 	var out: Array = []
 	if not on:
 		return out
+	if ruin != null:
+		ruin.sprites(out)
 	for w: Wreck in wrecks:
 		var b := w.body
 		if not game.in_view(b.p.x, b.p.y, b.reach + .3):

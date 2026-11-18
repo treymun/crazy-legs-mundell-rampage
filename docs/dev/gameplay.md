@@ -1986,19 +1986,100 @@ the versus maps or the hub (`[all] never`):
   once nothing moves, what lies) is merged into one mesh a tile
   (`WreckCuts.put`: a few nodes, each holding its shader slots), what moves
   is drawn piece by piece; set piece parts are drawn out to `WreckLayer3D.FAR`.
-  `wreckage.gd` (looks) watches the parts' states: a tank burst throws its
-  staves, hoops, cap, deck and painted name as real pieces; a barn's
-  landings throw chips only (`game.burst`), and a breakable broken inside a
-  barn come down (`rubble_at`) throws no real pieces: pieces wedged among
-  the rubble's volumes cost the wreck physics 15 to 25 ms a tick.
+  Once a part creaks, falls or bursts it is drawn in its own pieces instead
+  (below, "Coming apart"); a tank burst throws its staves (those not torn out
+  in the fall), cap and painted name as real pieces (`wreckage.gd`), and a
+  breakable broken inside a barn come down (`rubble_at`) throws no real
+  pieces: pieces wedged among the rubble's volumes cost the wreck physics 15
+  to 25 ms a tick.
 - **Sounds**: `collapse_creak`, `collapse_crash`, `tower_groan`,
-  `tower_burst`, `gas_leak`, `gas_whoosh`, `plank_crack` (ElevenLabs, pass 8).
+  `tower_burst`, `gas_leak`, `gas_whoosh`, `plank_crack` (ElevenLabs, pass 8);
+  `timber_snap`, `collapse_tin`, `collapse_rumble`, `hoop_ring`, `pipe_burst`
+  (pass 11, played by the looks below).
 - **Cost**: asleep (no tick) while nothing moves, leaks, floods or burns;
   awake its tick walks only its own few pieces. Measured in pass 8: see
   [checks.md](checks.md#benchmarks).
 - `tools/set_piece_check.gd` (SET PIECE CHECK OK, check_all) holds it;
   `tools/set_piece_frames.gd -- out=<dir>` pictures each one standing,
-  going and down in a window.
+  going and down in a window (`bench` times the frames instead).
+
+#### Coming apart (destruction pass 11)
+
+`src/set_piece_wreck.gd` (`SetPieceWreck`, owned by `wreckage.gd`: looks
+only, its own dice, never carried or saved), with `src/set_piece_bits.gd`
+(its pure parts, which a worker runs) and `src/set_piece_fx.gd` (the dust,
+water, flares, splinters, shake and sounds). Play still moves each part whole
+(the HINGE and DROP above; its volumes, crush and cover are exact as before);
+the looks draw each part in its own pieces that ride its pose and then break
+away, so a barn no longer swings down in whole flat walls and roof slopes:
+
+- **The pieces** are `SetPieceMesh` `spsplit` cuts of the part's box (each
+  piece shows the very part of the tile it showed in the whole box, so they
+  read as the part until they part): a wall in runs of one to three boards,
+  each snapped once or twice on a jagged line (a splinter point or a notch);
+  the tin in separate sheets torn across; a post, a plate, the ridge, a leg, a
+  brace, a pipe snapped along its length on splintered ends; the deck in
+  planks. A hickston barn is about 130 pieces (`detail`; a phone or LOW
+  `detail_low`).
+- **When each goes**: a share of its part's move (`early`, more where it was
+  weak) breaks away in the fall: a post's top snaps off, the ridge and plates
+  break and fold, sheets of tin tumble off, boards peel off a wall going over,
+  a tower's legs on the leaning side snap. The rest come apart where the part
+  lands: most jump and drop back into their own place in the part as it
+  lies, knocked askew and onto whatever came down there first (so the pile
+  keeps play's layers, and its cover is where its pieces are); `scatter` of
+  them are thrown off onto the pile, `propped` of those left leaning on it.
+  A post's foot stays standing, snapped. Every flight is worked out once when
+  the piece goes (ballistic to the pile's height, a hop and a slide to rest;
+  the tin skates further, the way it fell). The pile is a height map of what
+  came down before (`CELL`), so later pieces lie on earlier ones. Nothing is
+  stepped, nothing asks the level but the ground's height, and no piece ever
+  meets the rubble volumes.
+- **The creak**: the frame sways more and more toward its fall (`sway`: play's
+  standing mesh turned, `sway_turn`), dust and chaff sift off the eaves,
+  boards pop off the walls. Meanwhile every part's pieces are cut, with
+  their schedule (`SetPieceBits.schedule`) and their riding group's mesh, on
+  a worker (a barn is tens of milliseconds of GDScript); a part is drawn
+  whole until its cut is in, and nothing of a set piece breaks away while
+  any of its cuts is out, so the pile builds in the same order however quick
+  the worker was. Without threads (the lite browser build) it cuts at once.
+- **Landing**: each part throws splinters, hay (embers if it burned) and low
+  billows of dust (`fx_barndust`, hard edged) that roll out along the ground;
+  everything down throws a ring of them round the footprint. The view shakes
+  by how near this machine's player is (`shake_reach`; play no longer shakes
+  it).
+- **A tower**: its legs snap, its tank tears open in the fall (the staves
+  facing the ground burst out with a gush), its hoops spring off in bent bands
+  (`sphooparc`) that land on the ground, its deck splinters, and the burst
+  throws a fan of water (`fx_gush`). The flood's front breaks as it rolls
+  (`Flow.looks`: `fx_gush` along the cells it has just reached).
+- **A fuel line**: gas spurts from each hole while it leaks (`fx_gasjet`); a
+  flare runs along the line with the fire (`fx_boom` where a cell has just
+  lit), and each length of pipe bursts into pieces where the fire reaches it.
+- **Never the same twice**: the dice are seeded by play's own record of how
+  it came down (when it creaked, each part's hp left: which posts were shot
+  out and how hard the walls were shot, the lean), so a client and a save see
+  the same pile and the same fall lies the same, piece for piece. What
+  brought it down weakens the parts near it (`_weakness`: hp spent, a post or
+  leg out near it, a blast near, fire): more pieces there, breaking away
+  sooner and harder, thrown away from the blast.
+- **A save or a snapshot** put on (`sync()`): what is down lies in its pieces
+  at once, nothing thrown.
+- **Drawn**: the pieces of a part that ride it to the ground together are one
+  mesh (`spgroup`) until the first of them goes; the rest are each a sprite
+  (`~<spsplit key>#<n>`); pieces at rest are merged on a worker into a mesh a
+  tile (`sprest`), `MERGE_AT` at a time and the last when all of it lies
+  still. Dust and gushes are pooled sprites blended as a blast's smoke (hard
+  edged), flares glowing (at most `puffs`, fewer on a phone); splinters and
+  hay are looks specks (at most `specks`).
+- **Cost**: see the pass 11 numbers in [checks.md](checks.md#benchmarks).
+- `set_piece_check` holds it: the barn in more than three pieces a part and
+  within its budget, every post snapped, every piece on the ground or the
+  pile, merged once still, the same fall twice the same; brought down by the
+  other posts, by a blast or at another time it lies otherwise; a save put
+  back shows the pile; a tower's legs snapped, tank torn, hoops in bands on
+  the ground, deck splintered. `set_piece_frames.gd` pictures it; v3.8.0 against
+  pass 11 side by side in `docs/godot3d/destruction/COLLAPSE/`.
 
 ### The shared physics core (engine pass 6)
 

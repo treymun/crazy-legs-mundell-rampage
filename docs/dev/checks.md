@@ -89,6 +89,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `wall_looks_check` | WALL LOOKS CHECK OK | yes | plank walls (the fair): a round knocks out the plank it struck round where it struck, the next breaks it further, a light pellet only wears it, two cells struck in different places differ, buckshot tears several planks, a blast tears out those facing it, a hole goes with its plank, the view's rows decode as the shader reads them, a client makes the knocks up, play is the same without the looks, gone through it bursts along the shot; windows (Hickston): the crack web lies where the round struck, shot out it throws shards cut fresh (struck elsewhere: different), they break again landing into glints, a blast shows `_bst` and throws the frame; a pane's cut covers it, small near the hole; each material's hole its own picture and size ([gameplay.md](gameplay.md#how-walls-look-taking-a-beating-destruction-pass-11-walls)) |
 | `wreck_motion_check` | WRECK MOTION OK | yes | how wreck pieces move (pass 11): a ring of staves left standing goes over, a hoop rolls on its rim and wobbles down flat, a can rolls, a lid spins down, glass skids short, a tin sheet flutters, a shot knocks a lying board at its hit point (spinning it by the side struck), a blast throws near pieces harder, a player, a hand and a vehicle kick pieces, one barrel shot on its left and its right comes apart differently (and the same twice alike), glass cracks, knock sounds stay under their cap, a heap rests with nothing inside anything ([gameplay.md](gameplay.md#how-the-pieces-move-pass-11)) |
 | `blast_check` | BLAST CHECK OK | yes | every blast look throws what it should (its fire, lobes, column, scraps, dust ring, crater); what blew picks the look; four sticks in a row look four ways; water throws a column and no crater, the hay loft no crater, a wall throws the fire off it; a chain keeps each fireball under the cap; the stock car wrecked throws its own parts away from the blast, leaves a charring hulk and burns, hurt it smokes; play the same whatever the looks' dice ([gameplay.md](gameplay.md#blasts-and-wrecks-destruction-pass-11)) |
+| `set_piece_check` | SET PIECE CHECK OK | no | each chapter's set pieces stand; a barn with two posts shot out creaks, its hand runs, it comes down, hurts and pins the player under it and lies as cover; a wall panel shot about shows its boards out and shot through opens the way; the mower rammed into a post takes it out; dynamite in the hay brings the shed down; a water tower's two legs out on a side: it goes over that way, its tank bursts and floods the street, puts out the fire there and shoves a hand; a holed fuel line leaks gas its length, fire runs it and the propane at its end goes up; the same breaks twice match; a snapshot and a save carry it with its cover; with every set piece down every way it may fall every station, key and exit is still reached; idle costs next to nothing; and how they come apart (looks): a barn in pieces of itself within its budget, its posts snapped, every piece on the ground or the pile, merged once still, the same fall the same and another fall (other posts, a blast, another time) otherwise, a save showing the pile; a tower's legs snapped, tank torn, hoops in bands on the ground, deck splintered ([gameplay.md](gameplay.md#the-big-breaks-content-pass-8)) |
 | `wreck_check` | WRECK CHECK OK | yes | every kind of breakable with `pieces`, windows and fence cells on the chapters, a County Run map and the hub throw real pieces that all come to rest on a floor, never inside anything; none on the versus maps; the cap holds; a save put back throws nothing; asleep costs next to nothing ([gameplay.md](gameplay.md#in-real-pieces-of-themselves)) |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
 | `level_edit_check` | LEVEL EDIT OK | yes | level editing keeps the walls right |
@@ -331,6 +332,30 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   again (warm), the 3D level mesh's whole build, the wreck cutting alone
   (since the load pass not part of the load: it runs on a worker in the
   level's first frames).
+
+### Measured in pass 11, the big breaks coming apart (COLLAPSE, 2026-11-18)
+
+v3.8.0 (`deffaa87`) against the COLLAPSE branch, back to back, three pairs,
+medians (the PC was shared with the other tracks' runs; the cleanest round).
+`hitch_bench.gd -- only=barn,tower frames=240` (vsync off, a fresh scratch
+`APPDATA` each run): the 4 s from the strike that brings Hickston's barn or
+water tower down.
+
+| What | v3.8.0 | pass 11 |
+| --- | --- | --- |
+| barn: median / p99 / worst frame | 3.72 / 10.34 / 12.97 ms | 4.30 / 11.23 / 13.66 ms |
+| tower: median / p99 / worst frame | 3.48 / 11.87 / 15.61 ms | 3.79 / 8.08 / 16.62 ms |
+
+Headless, the tick and the set pieces' and wreckage's `sprites()` over the six
+seconds after each of the seven set pieces is brought down (three pairs):
+tick median 0.48 to 0.56 ms, sprites 0.025 to 0.077 ms, worst tick the same
+(about 12 ms, play's own landing work). The worst frame stays within +10 %;
+the median while a barn comes down is about +0.5 ms (+15 %), for those
+seconds only, spent on the pieces drawn on their own as they land, the dust
+and the splinters (the cut, which was a 33 ms spike when done at once, runs
+on a worker in the creak; a part's riding pieces are one mesh until they go;
+merges run on a worker). Once it lies still the ruin is a few merged meshes,
+as before.
 
 ### Measured in pass 10, the 3D view's draw (PERFGPU, 2026-11-17)
 
