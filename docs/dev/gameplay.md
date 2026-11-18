@@ -675,9 +675,9 @@ for something that can be up on one; use `floor_under(x, y, z)` or
 - **How it flops is looks** (`src/ragdoll.gd`, driven by the 3D view's
   `ActorView`, its own dice): fifteen balls (`view3d/ragdoll_rig.gd`: hips,
   shoulders, belly, back, head, elbows, hands, knees, feet) held by links
-  (the torso rigid, each limb half a stick, knees fold only forwards and
-  elbows only back, ranges for the neck and hips, no limb in the torso),
-  Verlet steps of 1/60 s, three passes, friction on the floor, asleep (no
+  (the torso rigid, each limb half a stick, knees fold only forwards,
+  ranges for the neck and hips, no limb in the torso), Verlet steps of
+  1/60 s, four passes, friction on the floor, asleep (no
   steps at all) once still for `SLEEP_AFTER` (or a wreck piece near it
   stirs). The level's questions are the shared core's (`PhysCore`: plain
   floor, walls, rails, each ball's floor kept in `Floors`), and it lies on
@@ -689,21 +689,73 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   (`_plain`) skips the wall tests. It follows play's body: that body's move
   is given to every ball each step (and not kept as their speed), the torso
   is pulled back within `SLACK` of it, and while the body is up (thrown,
-  floating) the torso is carried at its height. The kill's throw (effects.cfg
-  `[ragdoll]`, by `killed_by`; "head" for a head shot, "shotgun_near" at arm's
-  length) sends the shoulders, hips and feet along the shot at their own
-  speeds (a shotgun throws it back over its heels, a head shot buckles the
-  knees and drops it). `budget` caps every ragdoll's steps in a frame.
+  floating) the torso is carried at its height. The kill strikes it where the
+  hit landed (pass 11, below). `budget` caps every ragdoll's steps in a frame.
 - **Which bodies**: every kind whose labelled parts stand on two legs gets a
   rig (`RagdollRig.ok`). Bosses keep their scripted falls (their falls are
-  set pieces), and fit.json `"ragdoll": false` keeps big Billy's (his thigh
-  part swings up through his belly), the millhand's (his saw stands up
-  off him) and, since polish pass 9's re-bake, the tin guard's (his door of
-  a shield propped his ragdoll a metre up); kinds without legs (gator, crawler, drone saucers, the derby
+  set pieces); kinds without legs (gator, crawler, drone saucers, the derby
   champ's truck, the swamp king's boat, the Maw, lanterns, valve rats,
-  boilerbacks) as ever. RAGDOLLS (a setting, `View.ragdolls`) off brings the
-  old falls back. Lost limbs stay off (`Gore.lost`), the parts the dead body
-  loses (the gun) shrink away as the fall starts.
+  boilerbacks, hogs, the cow, the hound) as ever. Since pass 11 big Billy,
+  the millhand and the tin guard have rigs again (fit.json no longer says
+  `"ragdoll": false` for them): the parts the dead body loses (the gun, the
+  saw, the shield) are left out of the limbs' shape (`_build`, and
+  `tools/rig_reference.gd` alike; their hands had sat at the gun's muzzle, a
+  shoulder on the saw), and a limb with nothing of its own left takes the
+  other side's mirrored (`_mirror_limbs`). RAGDOLLS (a setting,
+  `View.ragdolls`) off brings the old falls back. Lost limbs stay off
+  (`Gore.lost`).
+- **Pass 11: falls that look heavy, grounded and each their own** (looks only;
+  `src/ragdoll.gd`, `view3d/ragdoll_rig.gd`, `view3d/actor_view.gd`). Found
+  with `tools/death_frames.gd -- audit` (`tools/death_rows.gd`: kinds, guns,
+  zones and places, ten moments a row; `docs/godot3d/destruction/RAGDOLL/`
+  before and after):
+  - Knees folded backwards and elbows the wrong way before: map space is the
+    model's mirrored (y and z swapped), so "ahead" is across x up. Knees now
+    fold forwards only (a knee lying on the floor is left be); elbows bend any
+    way (the shoulder turns the arm).
+  - Each ball has its weight (`WEIGHTS`: torso and hips lead) and the links
+    are put right by it, four passes and once more after the floor's lifts.
+  - The muscles hold the pose it died in (`_muscles`, `HOLD`) and go slack
+    over the death's `fade` (zone row, dealt by its dice); a lying body's ease
+    (knees a touch bent, hips straight, arms by its side) pulls a heap out
+    flat between `EASE_FROM` and `EASE_TO`. Nothing dead stands, kneels or
+    sits up (`_slump`): an upright torso goes over the way it leans and the
+    kill sent it, a kneeling leg slides out, a body head down and hips up
+    goes over. Each thigh stays within its hip's reach (`HIP_*`, as links:
+    no thigh up through the belly, as big Billy's was).
+  - The kill strikes where the hit landed (`knock` -> `strike(at, dir,
+    strength)`, an impulse at a point): the head for a head shot, the near
+    arm's elbow, the near leg's knee (that leg goes out from under it), the
+    chest or belly else; a blast the ball nearest it, up and away. effects.cfg
+    `[ragdoll]` rows are `[hit, carry, lift, buckle, spin]` by gun and
+    `zone_<zone>` rows add to them. No ball is sent faster than `STRIKE_MOST`.
+  - The hand-over: started from the pose last drawn (its flinch and all),
+    fitted to its links with no speed given (`fit`), moving on at the speed
+    the living body was going (`ActorView._track`, `drift`), and drawn eased
+    from the animation's last pose over `HANDOVER` (.12 s). It is drawn part
+    way between its last two steps (`shown`, `alpha`): smooth in slow motion.
+  - Friction slides a fast ball (`SLIDE_DRAG`) rather than pivoting the body
+    on stuck boots; a body mostly down loses what is left of its motion
+    (`LYING_KEEP`) and lies still on a tremble of `SLEEP_LYING` after
+    `SLEEP_LYING_FROM`. Play's body's move goes whole to the torso and DRAG
+    of it to a limb on the floor; the torso's pull back to it is no speed of
+    its own and never carried into a wall (that stuck balls in stair risers).
+    A ball found inside something is lifted onto a tread within `STEP_UP`, or
+    pushed out of a rail's bar to play's body's side. Bodies of another level
+    are never met.
+  - Gear let go of (`RagdollRig.gear_bones`): the lost parts that sit by a
+    hand, joined into pieces (two at most), fall as a rigid triangle of
+    three balls from the box of their parts (`bone_lo`/`bone_hi`, baked),
+    instead of shrinking away; the tin guard's shield and the millhand's saw
+    lie beside them. A body-labelled hand rides its forearm (`bone_ride`),
+    and a limb modelled as one piece bends nowhere (`stiff`, turned by its
+    whole triangle).
+  - Cost: a step costs about twice what it did (190 to 210 us against 96 to
+    108, twenty bodies, headless) but bodies come to rest sooner (all twenty
+    asleep in 482 steps of frame against more than 600; 3,600 steps against
+    8,800 in all); `budget` still caps a frame. County Run's horde frame
+    median 7.52 / 7.52 ms against 7.29 / 7.16 at v3.8.0 (actors 0.95 against
+    0.83 ms).
 - **Slow-mo finishers** (`features/finishers.gd`, play): the kill of an
   alerted hand that leaves nobody of the county's hands within hits.cfg
   `[finisher] reach` (and none alerted within twice that) sets
@@ -722,7 +774,13 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   seconds); thrown hard at the loft's rail a body goes over and lies below,
   softly it stays up; the last of two kills starts the slow motion (the
   first not), it eases to `pace` and ends; never with the setting off, two
-  players or on a host. `tools/death_frames.gd` pictures falls in a window
+  players or on a host; and pass 11's falls (`_falls`, Billy and the tin
+  guard, three kills from two ways): no ball moved at the hand-over, no rigid
+  link longer or shorter than `STRETCH` at rest (`STRETCH_HIT` for a frame as
+  it lands), knees forwards, thighs within the hip's stops, at rest by
+  `REST_BY` and no step after, the same kill from two ways two bodies, buckshot
+  at arm's length throws it further than a head shot. `tools/death_frames.gd`
+  pictures falls in a window
   (every tick drawn; `classic` for the scripted falls). Pictures:
   `docs/godot3d/features/a/`.
 

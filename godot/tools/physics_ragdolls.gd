@@ -22,6 +22,15 @@ const DOWN_HIGH := .5
 ## No part of a ragdoll at rest deeper in the floor than this (map units): the
 ## model's own shape is kept out of it (RagdollRig.hull), not only its balls.
 const SINK := .01
+## Pass 11's falls (_falls): a rigid link held within this share of its
+## length, and the body still within REST_BY seconds.
+const STRETCH := .1
+const STRETCH_LET := .02
+## (For a frame or two as it lands hard a link may give this much.)
+const STRETCH_HIT := .35
+## At rest by then (Ragdoll.MOST_AWAKE lays the last tremble still).
+const REST_BY := Ragdoll.MOST_AWAKE + .1
+const R := preload("res://src/view3d/ragdoll_rig.gd")
 
 var check: SceneTree
 var rig: RagdollRig
@@ -87,6 +96,7 @@ func run(main: Node, levels: Array) -> void:
 	_rails(main)
 	_stacked(ground)
 	_first_seen(ground)
+	_falls(ground)
 
 
 ## A body dropped onto one lying still lies across it (no ball through the
@@ -96,21 +106,28 @@ func _stacked(game: Game) -> void:
 	var e := _body(game, at)
 	var floor_z := e.floor_z
 	var size := .5
-	var under := Ragdoll.made(rig, _xf(at, floor_z, 0.0, size), rig.points)
-	var dice := RandomNumberGenerator.new()
-	# A knock that leaves it on its back: on its side a body is a ridge that
-	# anything dropped on rolls off (half the knocks do, a few millimetres of
-	# rig deciding which: seed 5 did till polish pass 9's re-baked billy).
-	dice.seed = 1
-	e.killed_by = "rifle"
-	e.killed_from = at - Vector2(1.0, 0.0)
-	under.knock(e, dice)
-	under.settle(game.world, 900)
+	# A knock that leaves it on its back (on its side a body is a ridge that
+	# anything dropped on rolls off): the first of a few deaths' dice that does.
+	var under: Ragdoll = null
+	for seed in range(1, 16):
+		under = Ragdoll.made(rig, _xf(at, floor_z, 0.0, size), rig.points)
+		var dice := RandomNumberGenerator.new()
+		dice.seed = seed
+		e.killed_by = "rifle"
+		e.killed_from = at - Vector2(1.0, 0.0)
+		e.last_zone = ""
+		under.knock(e, dice)
+		under.settle(game.world, 900)
+		var hips := (under.pos[0] + under.pos[1]) * .5
+		var up := (under.pos[2] + under.pos[3]) * .5 - hips
+		var across := (under.pos[3] - under.pos[2]) + (under.pos[1] - under.pos[0])
+		if across.cross(up).normalized().z > .6:
+			break
 	var was := under.pos.duplicate()
 	# Dropped over where the knock left it (not where it stood).
 	var lain := under.middle()
 	var top := Ragdoll.made(
-		rig, _xf(Vector2(lain.x, lain.y), floor_z + .45, 1.6, size), rig.down_points
+		rig, _xf(Vector2(lain.x, lain.y), floor_z + .3, 1.6, size), rig.down_points
 	)
 	Ragdoll.others = [under, top]
 	for _k in 900:
@@ -131,7 +148,15 @@ func _stacked(game: Game) -> void:
 		moved = maxf(moved, was[j].distance_to(under.pos[j]))
 	_check(not top.awake and not under.awake, "a body dropped on another: both come to rest")
 	_check(through < .02, "it lies across the other, not through it (%.3f in)" % through)
-	_check(top.middle().z > under.middle().z + .05, "it lies on top of it")
+	# Some of it rests on the other (a ball of it on one of the other's, above
+	# it): a body may slide half off a round one, never lie beside it untouched.
+	var resting := 0
+	for i in top.pos.size():
+		for j in under.pos.size():
+			var gap := top.pos[i].distance_to(under.pos[j]) - top.radius[i] - under.radius[j]
+			if gap < .02 and top.pos[i].z > under.pos[j].z:
+				resting += 1
+	_check(resting > 0, "it rests on it (%d of its balls on the other's)" % resting)
 	_check(
 		under.lies_on(game.world, TOL) and moved < .3,
 		"the one under (knocked %.2f) still lies on the floor" % moved
@@ -142,6 +167,162 @@ func _stacked(game: Game) -> void:
 			% through
 		)
 	)
+
+
+## Pass 11's falls on open ground, on Billy's rig and the tin guard's (his
+## shield let go of): the hand-over from the pose it died in gives no ball a
+## jump; through a shotgun's throw no rigid link stretches or shrinks past
+## STRETCH of its length; at rest every knee is folded forwards (never back
+## past KNEE_PAST), no thigh is up through the belly (the hip's stops held),
+## and it lies still within REST_BY seconds, no jitter after; the same kill
+## from two other ways leaves two different bodies; a head shot drops it
+## where it stood, buckshot at arm's length throws it further.
+func _falls(game: Game) -> void:
+	var at := Vector2(30.5, 30.5)
+	for kind: String in ["billy", "tin_guard"]:
+		var r: RagdollRig = RagdollRig._built.get(kind)
+		if r == null or not r.ok:
+			_check(false, "%s has a rig to fall with" % kind)
+			continue
+		var faults := PackedStringArray()
+		var ends: Array = []
+		var drops := {}
+		var rests: Array = []
+		for way: float in [0.0, 2.1]:
+			for how: String in ["revolver", "head", "shotgun_near"]:
+				var e := _body(game, at)
+				e.killed_by = "shotgun" if how == "shotgun_near" else "revolver"
+				e.last_zone = "head" if how == "head" else "body"
+				var far := 1.0 if how == "shotgun_near" else 3.0
+				e.killed_from = at - Vector2.from_angle(way) * far
+				var doll := Ragdoll.made(r, _xf(at, e.floor_z, .3, .9), r.standing())
+				var before := doll.pos.duplicate()
+				doll.fit()
+				var jump := 0.0
+				for i in R.POINTS:
+					jump = maxf(jump, before[i].distance_to(doll.pos[i]))
+				var dice := RandomNumberGenerator.new()
+				dice.seed = 11
+				doll.knock(e, dice)
+				var stretch := 0.0
+				var worst := ""
+				var t := 0.0
+				while doll.awake and t < REST_BY + .5:
+					doll.step(game.world)
+					t += Ragdoll.STEP
+					for k in doll.la.size():
+						if doll.lmin[k] == doll.lmax[k] and doll.lmin[k] > 0.0:
+							var d := doll.pos[doll.la[k]].distance_to(doll.pos[doll.lb[k]])
+							# (A share of the length, a few centimetres let be: a
+							# small piece of gear's 3 cm side is no limb.)
+							var st := maxf(0.0, absf(d - doll.lmin[k]) - STRETCH_LET) / doll.lmin[k]
+							if st > stretch:
+								stretch = st
+								worst = "%d-%d at %.2f s" % [doll.la[k], doll.lb[k], t]
+				var name := "%s %s from %.1f" % [kind, how, way]
+				if jump > .02:
+					faults.append("%s: the hand-over moved a ball %.3f" % [name, jump])
+				if stretch > STRETCH_HIT:
+					faults.append(
+						"%s: a rigid link stretched %.0f%% (%s)" % [name, stretch * 100.0, worst]
+					)
+				var lying := 0.0
+				for k in doll.la.size():
+					if doll.lmin[k] == doll.lmax[k] and doll.lmin[k] > 0.0:
+						var d := doll.pos[doll.la[k]].distance_to(doll.pos[doll.lb[k]])
+						var ly := maxf(0.0, absf(d - doll.lmin[k]) - STRETCH_LET) / doll.lmin[k]
+						if ly > lying:
+							lying = ly
+							worst = "%d-%d" % [doll.la[k], doll.lb[k]]
+				if lying > STRETCH:
+					faults.append(
+						"%s: a rigid link lies stretched %.0f%% (%s)" % [name, lying * 100.0, worst]
+					)
+				if doll.awake or t > REST_BY:
+					faults.append("%s: still moving after %.1f s" % [name, t])
+				rests.append(t)
+				var knee := _knees_back(doll)
+				if knee != "":
+					faults.append("%s: %s" % [name, knee])
+				var steps := doll.steps
+				for _k in 60:
+					doll.advance(game.world, DT)
+				if doll.steps != steps:
+					faults.append("%s: stirred lying still" % name)
+				var mid := doll.middle()
+				ends.append([how, way, doll.pos.duplicate()])
+				drops[name] = Vector2(mid.x - at.x, mid.y - at.y).length()
+		for how: String in ["revolver", "head", "shotgun_near"]:
+			var a: PackedVector3Array = []
+			var b: PackedVector3Array = []
+			for row: Array in ends:
+				if row[0] == how:
+					if a.is_empty():
+						a = row[2]
+					else:
+						b = row[2]
+			# The same kill from another way: not the same body turned round.
+			if _shape_gap(a, b) < .05:
+				faults.append(
+					"%s %s: both ways lie the same (%.3f)" % [kind, how, _shape_gap(a, b)]
+				)
+		var head: float = drops["%s head from 0.0" % kind]
+		var near: float = drops["%s shotgun_near from 0.0" % kind]
+		if not near > head:
+			faults.append(
+				"%s: buckshot at arm's length throws it no further than a head shot" % kind
+			)
+		for f in faults:
+			_check(false, f)
+		if faults.is_empty():
+			_ok(
+				(
+					(
+						"%s's falls: no jump at the hand-over, links held, knees forwards,"
+						+ " at rest in %.1f to %.1f s, two ways two bodies"
+					)
+					% [kind, rests.min(), rests.max()]
+				)
+			)
+
+
+## "" when every knee folds forwards (no further behind straight than its
+## stop), else what is wrong.
+func _knees_back(doll: Ragdoll) -> String:
+	var hips := (doll.pos[R.HIP_L] + doll.pos[R.HIP_R]) * .5
+	var up := (doll.pos[R.SH_L] + doll.pos[R.SH_R]) * .5 - hips
+	var across := (doll.pos[R.SH_R] - doll.pos[R.SH_L]) + (doll.pos[R.HIP_R] - doll.pos[R.HIP_L])
+	var ahead := across.cross(up).normalized()
+	for leg: Array in [[R.HIP_L, R.KNEE_L, R.FOOT_L], [R.HIP_R, R.KNEE_R, R.FOOT_R]]:
+		var a: int = leg[0]
+		var m: int = leg[1]
+		var b: int = leg[2]
+		var off := doll.pos[m] - (doll.pos[a] + doll.pos[b]) * .5
+		var most := doll.pos[a].distance_to(doll.pos[b]) * (Ragdoll.KNEE_PAST + .03)
+		if off.dot(ahead) < -most:
+			return "a knee folds backwards (%.3f)" % off.dot(ahead)
+	for k in doll.la.size():
+		if (
+			doll.lmax[k] == INF
+			and doll.lb[k] in [R.BACK, R.BELLY]
+			and doll.la[k] in [R.KNEE_L, R.KNEE_R]
+		):
+			var d := doll.pos[doll.la[k]].distance_to(doll.pos[doll.lb[k]])
+			if d < doll.lmin[k] * .9:
+				return "a thigh is past the hip's stop (%.3f of %.3f)" % [d, doll.lmin[k]]
+	return ""
+
+
+## How unlike two bodies lie, whatever way round: the largest difference in
+## the distances between their balls (0 for the same shape turned or moved).
+static func _shape_gap(a: PackedVector3Array, b: PackedVector3Array) -> float:
+	if a.size() != b.size() or a.is_empty():
+		return 0.0
+	var most := 0.0
+	for i in R.POINTS:
+		for j in range(i + 1, R.POINTS):
+			most = maxf(most, absf(a[i].distance_to(a[j]) - b[i].distance_to(b[j])))
+	return most
 
 
 ## A body first seen long dead starts from the model's body at rest, takes a
@@ -201,6 +382,7 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 	var top := -INF
 	var top_seg := -1
 	var low := INF
+	var low_bone := -1
 	for m: Node in view.find_children("*", "MeshInstance3D", true, false):
 		var mesh := m as MeshInstance3D
 		var arrays := mesh.mesh.surface_get_arrays(0)
@@ -215,10 +397,16 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 			var pose := skel.get_bone_global_pose(bone)
 			if pose.basis.get_scale().x < .2:
 				continue
+			if r.bone_gear[bone] >= 0:
+				# Gear let go of (the gun, the shield) lies on its own balls;
+				# a corner of its box may dip a little (_falls holds it down).
+				continue
 			var y := (pose * (mesh.skin.get_bind_pose(bind) * verts[v])).y - floor_y
 			if y > top:
 				top_seg = r.bone_seg[bone]
 			top = maxf(top, y)
+			if y < low:
+				low_bone = bone
 			low = minf(low, y)
 	if doll.awake:
 		return "%s: its ragdoll is still moving" % kind
@@ -227,7 +415,10 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 			"%s: a part (of segment %d) lies %.2f up (standing %.2f)" % [kind, top_seg, top, height]
 		)
 	if low < -SINK / size:
-		return "%s: a part sinks %.3f into the floor" % [kind, -low * size]
+		return (
+			"%s: a part sinks %.3f into the floor (bone %d, gear %d, ride %d)"
+			% [kind, -low * size, low_bone, r.bone_gear[low_bone], r.bone_ride[low_bone]]
+		)
 	return ""
 
 

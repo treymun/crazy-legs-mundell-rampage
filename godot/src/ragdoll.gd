@@ -2,16 +2,25 @@
 ## one per body it shows; play's body, features/corpses.gd, says where the
 ## body is and the ragdoll follows it).
 ##
-## Thirteen balls (RagdollRig: hips, shoulders, head, elbows, hands, knees,
-## feet) held together by links: the torso's four corners rigid, each limb
-## half a rigid stick, ranges for the neck, the elbows, the knees and the hips
-## (a knee folds no further than about 130 degrees and only forwards, an
-## elbow only backwards), and no limb inside the torso, the head or the other
-## leg. Solved by position steps (Verlet: each ball keeps the move it made
+## Fifteen balls (RagdollRig: hips, shoulders, belly, back, head, elbows,
+## hands, knees, feet; two more for each piece of gear it lets go of, the gun
+## or the saw falling on its own) held together by links: the torso rigid,
+## each limb half a rigid stick, ranges for the neck, the elbows, the knees
+## and the hips (a knee folds no further than about 130 degrees, only
+## forwards and never sideways; a thigh swings forwards and out within a
+## hip's reach, never up through the belly or far behind; an elbow only
+## backwards), and no limb inside the torso, the head or the other leg. Each
+## ball has its weight (the hips and the torso lead, the hands and feet
+## follow), and for the first fraction of a second the muscles still hold the
+## pose it died in, going slack (`tone`); a little of a lying body's ease
+## (knees a touch bent, hips straight) pulls a heap out flat for a while
+## after. Solved by position steps (Verlet: each ball keeps the move it made
 ## last step, gravity added; then the links are put right a few passes), a
 ## few small steps a frame, like the bowling pins' solver
 ## (range_pin_physics.gd) in spirit: contacts by sphere, friction on the
-## floor, and asleep (no cost at all) once nothing moves.
+## floor, and asleep (no cost at all) once nothing moves. The kill strikes it
+## where the hit landed (`strike`: an impulse at a point, along a way, of a
+## strength), by the gun and the zone (`knock`).
 ##
 ## The world is the level's real shape, as Tumble sees it: each ball lands on
 ## the highest floor under it (a deck, a stair tread, a ramp, a counter top,
@@ -32,10 +41,19 @@ const GRAVITY := 9.4
 ## Each step's move kept in the air, and the slide kept on the floor.
 const AIR := .992
 const GRIP := .4
-const PASSES := 3
+## A sliding ball's loss to friction (map units a second a second).
+const SLIDE_DRAG := 7.0
+## Each step's move kept by every ball of a body with half its balls or more
+## on the floor.
+const LYING_KEEP := .8
+const PASSES := 4
 ## Asleep once no ball moves more than SLEEP_MOVE a step for SLEEP_AFTER
 ## seconds, or after MOST_AWAKE seconds whatever (a jitter never costs for ever).
 const SLEEP_MOVE := .0008
+const SLEEP_LYING := .004
+## (only once it has been dead this long: a leg balanced up or a heap going
+## over moves slowly at first and must not be laid still in the act).
+const SLEEP_LYING_FROM := 2.0
 const SLEEP_AFTER := .5
 const MOST_AWAKE := 8.0
 ## The torso's middle may lag play's body by this much before it is pulled.
@@ -48,6 +66,9 @@ const HULL_SLACK := .002
 ## A ball on a floor steeper than this (its fall a unit across) is pulled
 ## down it by the rest of the slope's share of gravity.
 const SLIDE_FROM := .25
+## A ball found inside something is lifted onto a top at most this far over
+## it (a stair's tread over the boot in its riser).
+const STEP_UP := .3
 ## Striking a body lying still faster than this (a step) wakes it.
 const WAKE_HIT := .02
 ## Each of the rig's segments' balls (RagdollRig.ENDS order): the torso's
@@ -55,6 +76,53 @@ const WAKE_HIT := .02
 const SEG_BALLS := [
 	[0, 1, 2, 3, 13, 14], [4], [2, 5], [5, 6], [3, 7], [7, 8], [0, 9], [9, 10], [1, 11], [11, 12]
 ]
+## Each ball's weight (RagdollRig order: hips, shoulders, head, elbows,
+## hands, knees, feet, belly, back): the torso and hips lead, a hand or a foot
+## is pulled along; gear past them weighs GEAR_WEIGHT a ball.
+const WEIGHTS := [1.4, 1.4, 1.2, 1.2, .9, .6, .45, .6, .45, .9, .6, .9, .6, 1.4, 1.4]
+const GEAR_WEIGHT := .6
+## The muscles hold the pose it died in this hard at first (a share of the
+## error put right each pass), going slack over the death's `fade` seconds;
+## a lying body's ease pulls this hard, from EASE_FROM to EASE_TO seconds
+## (gone after: it never keeps a body stirring).
+const HOLD := .3
+const EASE := .035
+const EASE_FROM := .5
+const EASE_TO := 3.0
+## How far round a struck point the strike reaches (model units: a hit on the
+## head moves the head, the neck and a little of the shoulders).
+const STRIKE_REACH := .22
+const STRIKE_MOST := 4.0
+## The most a piece of gear moves (map units a second).
+const GEAR_FAST := 4.5
+const GEAR_WALL := .07
+## A knee may be this share of the leg's length behind straight.
+const KNEE_PAST := .05
+## Nothing dead stands or sits up (_slump): a straight leg under an upright
+## body folds at the knee, and a torso more upright than SLUMP_UP goes over
+## the way it leans (the kill's way when it leans no way), at up to
+## SLUMP_PULL map units a second a second, for SLUMP_FOR seconds.
+const SLUMP_UP := .55
+## Head this far down from its hips (the torso's fall) it lies out flat; a
+## thigh this near straight down under a torso not upright is kneeling.
+const HEADLONG := .2
+const KNEELING := .75
+const SLUMP_PULL := 12.0
+const KNEE_GIVE := 4.0
+const SLUMP_FOR := 4.0
+## A thigh's swing within the hip's reach (radians from straight down, the
+## body standing): forwards up to HIP_UP, behind HIP_BACK; its spread out of
+## the body's middle HIP_OUT, across the other leg HIP_IN. Held as links (the
+## knee no nearer the back, the belly or the other hip than at those turns,
+## no further from the other hip): they push the torso back as much as the
+## leg, so they never set a body turning of themselves.
+const HIP_UP := 1.9
+const HIP_BACK := .45
+const HIP_OUT := .8
+const HIP_IN := .2
+## Play's body's move is given whole to the torso and to a limb up in the
+## air; a limb on the floor takes this share of it and is dragged the rest.
+const DRAG := .8
 
 const R := preload("res://src/view3d/ragdoll_rig.gd")
 const Corpses := preload("res://src/features/corpses.gd")
@@ -83,8 +151,30 @@ var body := Vector3.INF
 var carry := -INF
 var _left := 0.0
 var _torso_r := .1
+## How near the torso's middle each limb ball may come (_links).
+var _inside := PackedFloat32Array()
+## Each ball's 1/weight (WEIGHTS), and where each was before the last step
+## (the view draws part way from there to `pos`: smooth in slow motion).
+var inv_mass := PackedFloat32Array()
+var prev := PackedVector3Array()
+## Soft links: points a and b, the distance the muscles hold (the pose it
+## died in) and a lying body's ease's (-1: none).
+var sa := PackedInt32Array()
+var sb := PackedInt32Array()
+var s_hold := PackedFloat32Array()
+var s_ease := PackedFloat32Array()
+## Seconds the muscles take to go slack (the death's own; `knock` sets it).
+var fade := .18
+## Which balls touched a floor last step (a limb on the floor is dragged).
+var _touch := PackedByteArray()
+## The way the kill sent it (flat, map): a dead body upright with nothing to
+## lean it goes over this way (_slump).
+var _fall_way := Vector3.ZERO
 ## Play's body's move, given on the next step.
 var _shove := Vector3.ZERO
+## The torso's pull back toward play's body (SLACK), given whole to every
+## ball (it puts right a lag, it is no move of the body's own).
+var _nudge := Vector3.ZERO
 ## Each ball's floor (kept while it stays put) and roof this step.
 var _fl := PhysCore.Floors.new()
 var _roofs := PackedFloat32Array()
@@ -117,8 +207,9 @@ static func to_map(xf: Transform3D, p: Vector3) -> Vector3:
 	return Vector3(g.x, g.z, g.y)
 
 
-## A ragdoll for a body hung on `rig`, its points at `model` (model space)
-## under the model's transform `xf`.
+## A ragdoll for a body hung on `rig`, its points at `model` (model space;
+## the gear's sticks after the rig's points, else as it stood) under the
+## model's transform `xf`.
 static func made(rig: RagdollRig, xf: Transform3D, model: PackedVector3Array) -> Ragdoll:
 	var doll := Ragdoll.new()
 	var scale := xf.basis.get_scale().x
@@ -129,61 +220,178 @@ static func made(rig: RagdollRig, xf: Transform3D, model: PackedVector3Array) ->
 		at.append(to_map(xf, model[i]))
 		rest.append(rig.points[i] * scale)
 		radii.append(rig.radii[i] * scale)
+	for g in rig.gear_bones.size():
+		for k in RagdollRig.GEAR_BALLS:
+			var i := R.POINTS + g * RagdollRig.GEAR_BALLS + k
+			var p := model[i] if model.size() > i else rig.gear_ends[i - R.POINTS]
+			at.append(to_map(xf, p))
+			rest.append(rig.gear_ends[i - R.POINTS] * scale)
+			radii.append(rig.gear_radius[g] * scale)
 	doll.size = scale
 	doll.rig = rig
 	doll.start(at, radii, rest)
 	return doll
 
 
-## The kill's throw (effects.cfg [ragdoll]): the shoulders and head, the
-## hips and the feet sent along the shot (from where it came to the body),
-## the knees forwards and all of it up, each ball a little differently by
-## `dice` (looks only).
+## The kill (effects.cfg [ragdoll]): struck where the hit landed (the zone
+## Enemy.last_zone names, on the side toward the shot) along the shot by the
+## gun's `hit`, the whole body carried along it (`carry`) and up (`lift`),
+## the knees given (`buckle`) and the body turned about itself (`spin`, a
+## way of the death's own); the zone adds to it (zone_<zone>: the hit's
+## share, buckle and spin added, and how quick the muscles go). Each ball a
+## little differently, all by `dice` (looks only): no two deaths alike.
 func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 	var from := e.killed_from
 	var how := e.killed_by
-	if (how == "blast" or how == "energy") and e.blast_at != Vector2.INF:
+	var blast := (how == "blast" or how == "energy") and e.blast_at != Vector2.INF
+	if blast:
 		from = e.blast_at
 	var away := Vector2(e.x, e.y) - from
 	var key := how
 	if how == "shotgun" and away.length() < Corpses.POINT_BLANK:
 		key = "shotgun_near"
-	elif e.last_zone == "head" and how != "blast" and how != "energy":
-		key = "head"
 	var row: Array = Effects.RAGDOLL.get(
-		key, Effects.RAGDOLL.get("default", [1.0, .4, 0.0, .6, 0.0])
+		key, Effects.RAGDOLL.get("default", [1.4, .5, 0.0, .6, .4])
 	)
-	var top: float = row[0]
-	var hips: float = row[1]
-	var feet: float = row[2]
-	var buckle: float = row[3]
-	var lift: float = row[4]
+	var zone := e.last_zone if e.last_zone != "" and not blast else "body"
+	var by: Array = Effects.RAGDOLL.get("zone_" + zone, [1.0, 0.0, 0.0, .18])
 	var spread: float = Effects.RAGDOLL.get("spread", .3)
-	var side: float = Effects.RAGDOLL.get("side", .35)
+	var hit: float = row[0]
+	var carry: float = row[1]
+	var lift: float = row[2]
+	var buckle: float = row[3]
+	var spin: float = row[4]
+	var share: float = by[0]
+	var more_buckle: float = by[1]
+	var more_spin: float = by[2]
+	var slack: float = by[3]
+	hit *= share
+	buckle += more_buckle
+	spin += more_spin
+	fade = slack * dice.randf_range(.7, 1.4)
 	if away.length() < .01:
 		away = Vector2.from_angle(e.angle + PI)
 	away = away.normalized()
 	var dir := Vector3(away.x, away.y, 0.0)
-	var cross := Vector3(-away.y, away.x, 0.0)
-	var ahead := Vector3(cos(e.angle), sin(e.angle), 0.0)
-	var lean := dice.randf_range(-side, side)
+	_fall_way = dir
+	# The side toward the shot: its arm or leg is the one struck.
+	var right := pos[R.SH_R] - pos[R.SH_L] + pos[R.HIP_R] - pos[R.HIP_L]
+	right.z = 0.0
+	var facing := -right.normalized().dot(dir)
+	var on_right := facing > .25 or (absf(facing) <= .25 and dice.randf() < .5)
+	var at := middle()
+	match zone:
+		"head":
+			at = pos[R.HEAD]
+		"arms":
+			at = pos[R.ELBOW_R if on_right else R.ELBOW_L]
+		"legs":
+			var knee := R.KNEE_R if on_right else R.KNEE_L
+			at = pos[knee].lerp(pos[R.HIP_R if on_right else R.HIP_L], dice.randf_range(0.0, .5))
+		_:
+			# The chest or the belly, a little toward the struck side.
+			var sh := (pos[R.SH_L] + pos[R.SH_R]) * .5
+			at = (pos[R.BELLY] + pos[R.BACK]) * .5
+			at = at.lerp(sh, dice.randf_range(.1, .8))
+			at += (pos[R.SH_R] - pos[R.SH_L]) * dice.randf_range(-.25, .25)
+	if blast:
+		# From under and beside it: the ball nearest the blast takes it.
+		var near := 0
+		var blast_at := Vector3(from.x, from.y, pos[R.FOOT_L].z)
+		for i in R.POINTS:
+			if pos[i].distance_squared_to(blast_at) < pos[near].distance_squared_to(blast_at):
+				near = i
+		at = pos[near]
+		dir = (dir + Vector3(0.0, 0.0, .6)).normalized()
+	var wobble := Vector3(
+		dice.randf_range(-.3, .3), dice.randf_range(-.3, .3), dice.randf_range(-.15, .2)
+	)
+	strike(at, (dir + wobble * spread).normalized(), hit)
+	# (Map space is the model's mirrored, y and z swapped: ahead is right x up.)
+	var ahead := Vector3(right.y, -right.x, 0.0).normalized()
+	var turn := spin * (1.0 if dice.randf() < .5 else -1.0) * dice.randf_range(.5, 1.3)
+	var mid := middle()
 	for i in pos.size():
-		var speed := hips
-		if i == R.SH_L or i == R.SH_R or i == R.HEAD or (i >= R.ELBOW_L and i <= R.HAND_R):
-			speed = top
-		elif i == R.FOOT_L or i == R.FOOT_R:
-			speed = feet
-		elif i == R.KNEE_L or i == R.KNEE_R:
-			speed = (hips + feet) * .5
-		var v := dir * speed * (1.0 + dice.randf_range(-spread, spread))
-		v += cross * speed * lean
+		var v := dir * carry * (1.0 + dice.randf_range(-spread, spread))
 		v.z += lift * (1.0 + dice.randf_range(-spread, spread))
+		# About itself: a turn round the upright through its middle.
+		var off := pos[i] - mid
+		v += Vector3(-off.y, off.x, 0.0) * turn
 		if i == R.KNEE_L or i == R.KNEE_R:
-			v += ahead * buckle * (1.0 + dice.randf_range(-spread, spread))
-			v.z -= buckle * .3
-		elif i <= R.HEAD:
-			v.z -= buckle * .5
-		push(i, v)
+			var own := 1.0
+			if zone == "legs":
+				# The struck leg goes out from under it, the other folds.
+				own = 1.6 if (i == R.KNEE_R) == on_right else .7
+			v += ahead * buckle * own * (1.0 + dice.randf_range(-spread, spread))
+			v.z -= buckle * .4 * own
+		elif i <= R.HEAD or i == R.BELLY or i == R.BACK:
+			v.z -= buckle * .45
+		add_speed(i, v)
+
+
+## An impulse at map point `at` along `dir` of `strength` (the speed it gives
+## a ball weighing 1 or less there, a heavier one less): the balls near the
+## point take it by how near (STRIKE_REACH); the links carry it on to the
+## rest, so the part struck moves first and drags the torso, the torso struck
+## moves the whole body. No ball is sent faster than STRIKE_MOST (a light
+## hand flung at 30 went through walls). Looks only: a shot, a blast, a piece.
+func strike(at: Vector3, dir: Vector3, strength: float) -> void:
+	var reach := STRIKE_REACH * size
+	for i in pos.size():
+		var d2 := pos[i].distance_squared_to(at) / (reach * reach)
+		if d2 > 6.0:
+			continue
+		var v := dir * strength * exp(-d2) * minf(inv_mass[i], 1.0)
+		add_speed(i, v.limit_length(STRIKE_MOST))
+	wake()
+
+
+## Every ball moving at `v` (the body was walking or running when it died:
+## it falls on with it).
+func drift(v: Vector3) -> void:
+	for i in pos.size():
+		add_speed(i, v)
+
+
+## The share of its speed a piece of gear keeps this step (1 unless its
+## fastest ball goes over GEAR_FAST), for its ball i.
+func _gear_slow(i: int) -> float:
+	var first := R.POINTS + (i - R.POINTS) / RagdollRig.GEAR_BALLS * RagdollRig.GEAR_BALLS
+	var most := 0.0
+	for k in range(first, mini(first + RagdollRig.GEAR_BALLS, pos.size())):
+		most = maxf(most, pos[k].distance_to(old[k]) * AIR)
+	return minf(1.0, GEAR_FAST * STEP / most) if most > 1e-9 else 1.0
+
+
+## Give ball i this much more velocity (map units a second).
+func add_speed(i: int, v: Vector3) -> void:
+	old[i] -= v * STEP
+
+
+## Where ball i is drawn: `alpha` of the way from where it was before the
+## last step to where it is (the time left over past the last step).
+func shown(i: int, alpha: float) -> Vector3:
+	return prev[i].lerp(pos[i], alpha) if awake else pos[i]
+
+
+## The time left over past the last step, as a share of a step.
+func alpha() -> float:
+	return clampf(_left / STEP, 0.0, 1.0)
+
+
+## Put its links right where it starts (the pose the animation left need not
+## hold exactly to them) without giving any ball a speed for it.
+func fit(passes := 8) -> void:
+	var before := pos.duplicate()
+	for _k in passes:
+		_links()
+		_hinges()
+	for i in pos.size():
+		old[i] += pos[i] - before[i]
+		prev[i] = pos[i]
+	# What it holds now is what the muscles hold.
+	for k in sa.size():
+		s_hold[k] = pos[sa[k]].distance_to(pos[sb[k]])
 
 
 ## Let it fall still at once (a body first seen long after it died): up to
@@ -216,12 +424,25 @@ func settle(world: LevelData, most := 240, rest := false) -> void:
 func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector3Array) -> void:
 	pos = at.duplicate()
 	old = at.duplicate()
+	prev = at.duplicate()
 	radius = radii.duplicate()
 	_torso_r = radius[R.HIP_L]
+	var rest_mid := (rest[R.HIP_L] + rest[R.HIP_R] + rest[R.SH_L] + rest[R.SH_R]) * .25
+	_inside.resize(pos.size())
+	for i in pos.size():
+		_inside[i] = minf(_torso_r + radius[i], rest[i].distance_to(rest_mid) * .95)
+	inv_mass.resize(pos.size())
+	for i in pos.size():
+		var weight: float = WEIGHTS[i] if i < R.POINTS else GEAR_WEIGHT
+		inv_mass[i] = 1.0 / weight
 	la.clear()
 	lb.clear()
 	lmin.clear()
 	lmax.clear()
+	sa.clear()
+	sb.clear()
+	s_hold.clear()
+	s_ease.clear()
 	var corners: Array[int] = [R.HIP_L, R.HIP_R, R.SH_L, R.SH_R]
 	for i in 4:
 		for k in range(i + 1, 4):
@@ -247,7 +468,33 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 		_rigid(rest, a, m)
 		_rigid(rest, m, b)
 		var reach := rest[a].distance_to(rest[m]) + rest[m].distance_to(rest[b])
-		_link(a, b, reach * fold, reach)
+		if _stiff(a):
+			# One piece to its end (a whole arm modelled bent): no bend at all.
+			_rigid(rest, a, b)
+		else:
+			_link(a, b, reach * fold, reach)
+	# Each thigh within its hip's reach (HIP_*), as links.
+	for leg: Array in [[R.HIP_L, R.KNEE_L, R.HIP_R, 1.0], [R.HIP_R, R.KNEE_R, R.HIP_L, -1.0]]:
+		var hip: int = leg[0]
+		var knee: int = leg[1]
+		var other: int = leg[2]
+		var side: float = leg[3]
+		var t := rest[knee] - rest[hip]
+		var back := rest[hip] + Basis(Vector3.RIGHT, HIP_BACK) * t
+		var bent := rest[hip] + Basis(Vector3.RIGHT, -HIP_UP) * t
+		var wide := rest[hip] + Basis(Vector3.BACK, side * HIP_OUT) * t
+		var narrow := rest[hip] + Basis(Vector3.BACK, -side * HIP_IN) * t
+		var now_back := rest[knee].distance_to(rest[R.BACK])
+		var now_belly := rest[knee].distance_to(rest[R.BELLY])
+		var now_other := rest[knee].distance_to(rest[other])
+		_link(knee, R.BACK, minf(back.distance_to(rest[R.BACK]), now_back), INF)
+		_link(knee, R.BELLY, minf(bent.distance_to(rest[R.BELLY]), now_belly), INF)
+		_link(
+			knee,
+			other,
+			minf(narrow.distance_to(rest[other]), now_other),
+			maxf(wide.distance_to(rest[other]), now_other)
+		)
 	# The hips fold no further than a deep crouch.
 	_range(rest, R.SH_L, R.FOOT_L, .42, 1.2)
 	_range(rest, R.SH_R, R.FOOT_R, .42, 1.2)
@@ -264,11 +511,57 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 	]:
 		var a: int = pair[0]
 		var b: int = pair[1]
-		_link(a, b, (radius[a] + radius[b]) * .9, INF)
+		# (No nearer than they stand, at most: hands on a gun stand together.)
+		_link(a, b, minf((radius[a] + radius[b]) * .9, rest[a].distance_to(rest[b]) * .95), INF)
+	# Each piece of gear: a rigid stick of its own, loose of the body.
+	for k in range(R.POINTS, pos.size() - 2, RagdollRig.GEAR_BALLS):
+		_rigid(rest, k, k + 1)
+		_rigid(rest, k + 1, k + 2)
+		_rigid(rest, k, k + 2)
+	# The muscles: across each knee, elbow and hip, the knees apart. A lying
+	# body's ease: the knees a touch bent, the hips straight, the knees no
+	# wider than standing.
+	for leg: Array in [
+		[R.HIP_L, R.KNEE_L, R.FOOT_L, R.SH_L], [R.HIP_R, R.KNEE_R, R.FOOT_R, R.SH_R]
+	]:
+		var hip: int = leg[0]
+		var knee: int = leg[1]
+		var foot: int = leg[2]
+		var sh: int = leg[3]
+		var reach := rest[hip].distance_to(rest[knee]) + rest[knee].distance_to(rest[foot])
+		if not _stiff(hip):
+			_soft(hip, foot, reach * .95)
+		_soft(sh, knee, rest[sh].distance_to(rest[knee]) * .97)
+	for arm: Array in [[R.SH_L, R.ELBOW_L, R.HAND_L], [R.SH_R, R.ELBOW_R, R.HAND_R]]:
+		var sh: int = arm[0]
+		var elbow: int = arm[1]
+		var hand: int = arm[2]
+		var hip := R.HIP_L if sh == R.SH_L else R.HIP_R
+		var reach := rest[sh].distance_to(rest[elbow]) + rest[elbow].distance_to(rest[hand])
+		# An arm lying by its side, a little bent (not left stuck up).
+		if not _stiff(sh):
+			_soft(sh, hand, reach * .9)
+		_soft(hip, elbow, rest[hip].distance_to(rest[elbow]) * 1.1)
+	_soft(R.KNEE_L, R.KNEE_R, rest[R.KNEE_L].distance_to(rest[R.KNEE_R]))
+	_soft(R.HEAD, R.BELLY, -1.0)
 	awake = true
 	still = 0.0
 	age = 0.0
 	_left = 0.0
+
+
+## Whether the limb from point `root` (a shoulder or a hip) is one piece to
+## its end (RagdollRig.stiff).
+func _stiff(root: int) -> bool:
+	var limb := [R.SH_L, R.SH_R, R.HIP_L, R.HIP_R].find(root)
+	return rig != null and limb >= 0 and limb < rig.stiff.size() and rig.stiff[limb] == 1
+
+
+func _soft(a: int, b: int, ease: float) -> void:
+	sa.append(a)
+	sb.append(b)
+	s_hold.append(pos[a].distance_to(pos[b]))
+	s_ease.append(ease)
 
 
 func _rigid(rest: PackedVector3Array, a: int, b: int) -> void:
@@ -331,7 +624,7 @@ func follow(at: Vector3, up: float, dt: float) -> void:
 	var far := off.length()
 	if far > SLACK:
 		var k := (far - SLACK) / far * minf(1.0, dt * PULL)
-		shift(Vector3(off.x * k, off.y * k, 0.0))
+		_nudge += Vector3(off.x * k, off.y * k, 0.0)
 
 
 ## Step for dt seconds (in STEP steps, at most MOST_STEPS). Returns the steps.
@@ -356,13 +649,39 @@ func step(world: LevelData) -> void:
 	age += STEP
 	var g := GRAVITY * STEP * STEP
 	var count := pos.size()
+	if prev.size() != count:
+		prev.resize(count)
+	if _touch.size() != count:
+		_touch.resize(count)
+	# Play's body's move: whole to the torso and the head and to any limb up
+	# in the air, DRAG of it to a limb on the floor (dragged the rest by the
+	# links: a body slid along trails its arms and legs, not skates).
+	var carried := PackedVector3Array()
+	carried.resize(count)
+	var slows := PackedFloat32Array()
+	for k in range(R.POINTS, count, RagdollRig.GEAR_BALLS):
+		slows.append(_gear_slow(k))
 	for i in count:
 		var p := pos[i]
+		prev[i] = p
 		var v := (p - old[i]) * AIR
+		if i >= R.POINTS:
+			# Gear let go of: never so fast it could skip a plank (its three
+			# balls slowed alike, or the piece would be bent out of shape).
+			v *= slows[(i - R.POINTS) / RagdollRig.GEAR_BALLS]
 		old[i] = p
-		pos[i] = p + v + _shove - Vector3(0.0, 0.0, g)
-	var shoved := _shove
+		var share := 1.0
+		if _touch[i] and (i >= R.ELBOW_L and i <= R.FOOT_R or i >= R.POINTS):
+			share = DRAG
+		carried[i] = _shove * share + _nudge
+		pos[i] = p + v + carried[i] - Vector3(0.0, 0.0, g)
 	_shove = Vector3.ZERO
+	_nudge = Vector3.ZERO
+	var tone := HOLD * exp(-age / maxf(fade, .02))
+	var ease := 0.0
+	var lying := _slump(tone)
+	if lying and age > EASE_FROM and age < EASE_TO:
+		ease = EASE * minf(1.0, (EASE_TO - age) / (EASE_TO - EASE_FROM) * 2.0)
 	level = world
 	if _roofs.size() != count:
 		_roofs.resize(count)
@@ -395,6 +714,7 @@ func step(world: LevelData) -> void:
 	var touching := PackedByteArray()
 	touching.resize(count)
 	for _pass in PASSES:
+		_muscles(tone, ease)
 		_links()
 		_hinges()
 		for i in count:
@@ -403,36 +723,64 @@ func step(world: LevelData) -> void:
 	_on_bodies(touching)
 	_on_boxes(world, touching)
 	_hull_floor(touching)
+	# The floor's and the shape's lifts put right on the links once more (a
+	# body landing hard had a limb stretched for a frame or two), then the
+	# floor and the wreck pieces kept again.
+	_links()
+	for i in count:
+		if _floor(i, floors[i], _roofs[i]):
+			touching[i] = 1
+	_on_boxes(world, touching)
 	if not plain:
 		# Last, nothing ends the step inside a wall, a slab's side or a rail
 		# (the links may have pulled a ball in).
 		for i in count:
 			_walls(world, i)
 			_floor(i, floors[i], _roofs[i])
-	# Play's body's move carried the balls along; it is not theirs to keep
-	# going with (each frame brings its own), as far as they made it.
-	var reach := shoved.length()
-	if reach > 1e-6:
-		var way := shoved / reach
-		for i in count:
-			var k := clampf((pos[i] - old[i]).dot(way) / reach, 0.0, 1.0)
-			old[i] += shoved * k
-	# Friction: a ball on the floor slides less far; on a ramp steeper than
-	# SLIDE_FROM it is pulled down it a little past what friction holds.
+	# Play's body's move (and the torso's pull back to it) carried the balls
+	# along; it is not theirs to keep going with (each frame brings its own),
+	# as far as they made it (a wall in the way kept them back).
+	for i in count:
+		var c := carried[i]
+		var reach := c.length()
+		if reach > 1e-6:
+			var k := clampf((pos[i] - old[i]).dot(c / reach) / reach, 0.0, 1.0)
+			old[i] += c * k
+	# Friction: a ball on the floor slides, losing up to SLIDE_DRAG of its
+	# speed a second a second (a body knocked off its feet slides out from
+	# under itself rather than pivoting on stuck boots), and slow it stops
+	# (GRIP); on a ramp steeper than SLIDE_FROM it is pulled down it a little
+	# past what friction holds.
+	var drag := SLIDE_DRAG * STEP * STEP
 	for i in count:
 		if touching[i]:
 			var p := pos[i]
 			var o := old[i]
-			old[i] = Vector3(p.x - (p.x - o.x) * GRIP, p.y - (p.y - o.y) * GRIP, o.z)
+			var run := Vector2(p.x - o.x, p.y - o.y)
+			var speed := run.length()
+			var keep := GRIP if speed < drag / (1.0 - GRIP) else 1.0 - drag / speed
+			old[i] = Vector3(p.x - run.x * keep, p.y - run.y * keep, o.z)
 			var fall := _slopes[i]
 			var steep := fall.length()
 			if steep > SLIDE_FROM:
 				var pull := fall / steep * (steep - SLIDE_FROM) * GRAVITY * STEP * STEP
 				old[i] -= Vector3(pull.x, pull.y, 0.0)
+	# Mostly down on the floor: what is left of its motion dies away (a body
+	# lying settles; the joints' stops and the floor never keep it trembling).
+	var down := 0
+	for i in count:
+		_touch[i] = touching[i]
+		down += touching[i]
+	if down * 2 >= count:
+		for i in count:
+			old[i] = pos[i] - (pos[i] - old[i]) * LYING_KEEP
 	var most := 0.0
 	for i in count:
 		most = maxf(most, pos[i].distance_squared_to(old[i]))
-	if most < SLEEP_MOVE * SLEEP_MOVE:
+	# Lying (half its balls on the floor) a tremble of a few millimetres a
+	# step is rest too (the model's shape against the floor rocks a ball).
+	var calm := SLEEP_LYING if down * 2 >= count and age > SLEEP_LYING_FROM else SLEEP_MOVE
+	if most < calm * calm:
 		still += STEP
 	else:
 		still = 0.0
@@ -455,8 +803,17 @@ func _lay(world: LevelData, plain: bool, touching: PackedByteArray) -> void:
 			pos[i] = Vector3(p.x, p.y, maxf(p.z, under + r))
 	for _k in 2:
 		_hull_floor(touching)
+		# (The links held again after the lifts, the floor kept: it never lies
+		# with a limb pulled long.)
+		_links()
+		if not plain:
+			for i in pos.size():
+				_walls(world, i)
+				pos[i] = Vector3(pos[i].x, pos[i].y, maxf(pos[i].z, _fl.floor[i] + radius[i]))
 	for i in pos.size():
 		old[i] = pos[i]
+		if i < prev.size():
+			prev[i] = pos[i]
 
 
 ## Other bodies (others) near: a ball inside one of theirs is pushed out of it
@@ -472,7 +829,8 @@ func _on_bodies(touching: PackedByteArray) -> void:
 		return
 	for item: Variant in others:
 		var o: Ragdoll = item
-		if o == self or o.pos.size() != pos.size():
+		if o == self or o.pos.is_empty() or o.level != level:
+			# (A body of another level, kept by the view, is no body here.)
 			continue
 		var om := o.middle()
 		var reach := extent + o.extent
@@ -681,42 +1039,154 @@ func _links() -> void:
 		var want := clampf(d, lmin[k], lmax[k])
 		if want == d:
 			continue
-		var fix := gap * ((d - want) / d * .5)
-		pos[a] += fix
-		pos[b] -= fix
-	# No limb inside the torso (a ball round its middle, as thick as it is).
+		# Put right by weight: the lighter end moves the more.
+		var wa := inv_mass[a]
+		var wb := inv_mass[b]
+		var fix := gap * ((d - want) / (d * (wa + wb)))
+		pos[a] += fix * wa
+		pos[b] -= fix * wb
+	# No limb inside the torso (a ball round its middle, as thick as it is,
+	# or as near as the limb stands: a hand on a gun at the belly).
 	var mid := middle()
 	for i in range(R.ELBOW_L, R.FOOT_R + 1):
 		var off := pos[i] - mid
 		var d := off.length()
-		var least := _torso_r + radius[i]
+		var least := _inside[i]
 		if d < least and d > 1e-6:
 			pos[i] = mid + off * (least / d)
 
 
-## Knees bend only forwards, elbows only back.
+## Nothing dead stands or sits up: once the muscles are going (`tone` under
+## half of HOLD) a leg straight under an upright torso is folded at the knee
+## and an upright torso pulled over the way it leans (SLUMP_*), its hips a
+## little the other way. True when the torso lies (a lying body's ease may
+## pull it out flat).
+func _slump(tone: float) -> bool:
+	var hips := (pos[R.HIP_L] + pos[R.HIP_R]) * .5
+	var up := (pos[R.SH_L] + pos[R.SH_R]) * .5 - hips
+	var tall := up.length()
+	if tall < 1e-5:
+		return true
+	up /= tall
+	if tone > HOLD * .5 or age > SLUMP_FOR:
+		return up.z < SLUMP_UP
+	if up.z < SLUMP_UP:
+		# On its knees (a thigh straight down under the hips, the torso not
+		# upright): that knee slides out away from the head, the hips follow
+		# it down (it lies out on its face, not kneeling face down for good).
+		var head_way := Vector3(up.x, up.y, 0.0)
+		if head_way.length_squared() > .01:
+			head_way = head_way.normalized()
+			var give := SLUMP_PULL * STEP * STEP
+			for leg: Array in [[R.HIP_L, R.KNEE_L, R.FOOT_L], [R.HIP_R, R.KNEE_R, R.FOOT_R]]:
+				var hip: int = leg[0]
+				var knee: int = leg[1]
+				var foot: int = leg[2]
+				var thigh := pos[knee] - pos[hip]
+				if thigh.z < -thigh.length() * KNEELING:
+					old[knee] += head_way * give
+					old[foot] += head_way * give
+					old[hip] += Vector3(0.0, 0.0, give * .5)
+	if up.z < -HEADLONG:
+		# Head down, hips up (on folded legs, or stood on its shoulders): the
+		# hips go over the way the legs lie (the kill's way if they lie no
+		# way) and the knees slide out (it lies out flat).
+		var knees := (pos[R.KNEE_L] + pos[R.KNEE_R]) * .5 - hips
+		var tip := Vector3(knees.x - up.x * tall, knees.y - up.y * tall, 0.0)
+		if tip.length_squared() < 1e-4:
+			tip = _fall_way if _fall_way != Vector3.ZERO else Vector3(1.0, 0.0, 0.0)
+		tip = tip.normalized()
+		var push := (
+			SLUMP_PULL * minf(1.0, (-up.z - HEADLONG) / (1.0 - HEADLONG) * 2.0) * STEP * STEP
+		)
+		for i: int in [R.HIP_L, R.HIP_R, R.BELLY, R.BACK, R.KNEE_L, R.KNEE_R, R.FOOT_L, R.FOOT_R]:
+			old[i] -= tip * push
+		return true
+	if up.z < SLUMP_UP:
+		return true
+	# Over the way it leans, the kill's way more (a body shot from the front
+	# goes over backwards though it leaned in to walk).
+	var lean := Vector3(up.x, up.y, 0.0) + _fall_way * .5
+	if lean.length_squared() < .0025:
+		lean = Vector3(1.0, 0.0, 0.0)
+	lean = lean.normalized()
+	var pull := SLUMP_PULL * minf(1.0, (up.z - SLUMP_UP) / (1.0 - SLUMP_UP) * 2.0) * STEP * STEP
+	for i: int in [R.SH_L, R.SH_R, R.HEAD]:
+		old[i] -= lean * pull
+	for i: int in [R.HIP_L, R.HIP_R]:
+		old[i] += lean * pull * .3
+	# A leg straight down under it gives at the knee (forwards, its hinge).
+	var across := (pos[R.SH_R] - pos[R.SH_L]) + (pos[R.HIP_R] - pos[R.HIP_L])
+	# (Map space is the model's mirrored, y and z swapped: ahead is across x
+	# up; up x across, as this had it before pass 11, folded the knees back.)
+	var ahead := across.cross(up)
+	if ahead.length_squared() > 1e-8:
+		ahead = ahead.normalized()
+		for leg: Array in [[R.HIP_L, R.KNEE_L, R.FOOT_L], [R.HIP_R, R.KNEE_R, R.FOOT_R]]:
+			var hip: int = leg[0]
+			var knee: int = leg[1]
+			var foot: int = leg[2]
+			var run := pos[hip] - pos[foot]
+			var off := (pos[knee] - (pos[hip] + pos[foot]) * .5).dot(ahead)
+			if run.z > run.length() * .7 and off < run.length() * .2:
+				old[knee] -= (ahead * .8 + Vector3(0.0, 0.0, -.2)) * KNEE_GIVE * STEP * STEP
+	return false
+
+
+## The muscles (`tone`: the pose it died in, going slack) and a lying body's
+## ease (`ease`), each a share of the error put right.
+func _muscles(tone: float, ease: float) -> void:
+	if tone < .002 and ease <= 0.0:
+		return
+	for k in sa.size():
+		var target := s_hold[k]
+		var share := tone
+		if ease > 0.0 and s_ease[k] > 0.0:
+			target = (s_hold[k] * tone + s_ease[k] * ease) / maxf(tone + ease, 1e-6)
+			share = tone + ease
+		if share < .002:
+			continue
+		var a := sa[k]
+		var b := sb[k]
+		var gap := pos[b] - pos[a]
+		var d := gap.length()
+		if d < 1e-6:
+			continue
+		var wa := inv_mass[a]
+		var wb := inv_mass[b]
+		var fix := gap * ((d - target) / (d * (wa + wb)) * minf(share, 1.0))
+		pos[a] += fix * wa
+		pos[b] -= fix * wb
+
+
+## Knees bend only forwards.
 func _hinges() -> void:
 	var hips := (pos[R.HIP_L] + pos[R.HIP_R]) * .5
 	var up := (pos[R.SH_L] + pos[R.SH_R]) * .5 - hips
 	var across := (pos[R.SH_R] - pos[R.SH_L]) + (pos[R.HIP_R] - pos[R.HIP_L])
-	var ahead := up.cross(across)
+	# (Map space is the model's mirrored, y and z swapped: ahead is across x
+	# up; up x across, as this had it before pass 11, folded the knees back.)
+	var ahead := across.cross(up)
 	if ahead.length_squared() < 1e-8:
 		return
 	ahead = ahead.normalized()
-	for joint: Array in [
-		[R.HIP_L, R.KNEE_L, R.FOOT_L, 1.0],
-		[R.HIP_R, R.KNEE_R, R.FOOT_R, 1.0],
-		[R.SH_L, R.ELBOW_L, R.HAND_L, -1.0],
-		[R.SH_R, R.ELBOW_R, R.HAND_R, -1.0]
-	]:
+	for joint: Array in [[R.HIP_L, R.KNEE_L, R.FOOT_L], [R.HIP_R, R.KNEE_R, R.FOOT_R]]:
 		var a: int = joint[0]
 		var m: int = joint[1]
 		var b: int = joint[2]
-		var way: float = joint[3]
 		var off := pos[m] - (pos[a] + pos[b]) * .5
-		var k := off.dot(ahead) * way
-		if k < 0.0:
-			pos[m] -= ahead * (k * way)
+		# A leg near straight may be a touch past it (a straight leg lying on
+		# its face would else be pushed into the floor, and back, for ever).
+		var most := pos[a].distance_to(pos[b]) * KNEE_PAST
+		var k := off.dot(ahead)
+		if k < -most:
+			var fix := -ahead * (k + most)
+			# Never down into the floor it lies on (the floor and the knee
+			# pushed it back and forth for ever): a knee down stays.
+			if not (fix.z < 0.0 and m < _touch.size() and _touch[m]):
+				pos[m] += fix
+	# (Elbows bend any way: the shoulder turns the arm, and a plane taken from
+	# the torso pushed a lying arm into the floor and back for ever.)
 
 
 ## Ball i stays out of walls, slabs' sides and rails: a move that would put it
@@ -725,6 +1195,10 @@ func _walls(world: LevelData, i: int) -> void:
 	var p := pos[i]
 	var o := old[i]
 	var r := radius[i]
+	if i >= R.POINTS:
+		# Gear is kept a little further off walls than it is thick (a thin
+		# gun's balls slipped into a stair's riser and stuck there).
+		r = maxf(r, GEAR_WALL)
 	# Play's body went over this rail: the ball is lifted over its top bar
 	# rather than held behind it (the body goes over head first, the legs
 	# dragged across after).
@@ -745,7 +1219,32 @@ func _walls(world: LevelData, i: int) -> void:
 				p.x += n.x * (want - to_ball)
 				p.y += n.y * (want - to_ball)
 		pos[i] = p
-	if not _solid(world, p, r) or _solid(world, o, r * .5):
+	if not _solid(world, p, r):
+		return
+	if rail != null and body != Vector3.INF and _solid(world, o, r * .5):
+		# Stuck in a rail's bar on play's body's side: out to that side of it.
+		var run := Vector2(rail.bx - rail.ax, rail.by - rail.ay).normalized()
+		var side := Vector2(-run.y, run.x)
+		var to_body := side.dot(Vector2(body.x - rail.ax, body.y - rail.ay))
+		var to_ball := side.dot(Vector2(p.x - rail.ax, p.y - rail.ay))
+		var reach := r * .8 + rail.half + .005
+		var want := reach if to_body >= 0.0 else -reach
+		if absf(to_ball) < reach:
+			pos[i] = Vector3(p.x + side.x * (want - to_ball), p.y + side.y * (want - to_ball), p.z)
+			old[i] = Vector3(pos[i].x, pos[i].y, o.z)
+		return
+	if _solid(world, o, r * .5) and rail == null:
+		# In something already (a boot pushed into a stair's riser): up onto
+		# the top just over it when there is one within a step, else as it is.
+		var top := Tumble.floor_at(world, p.x, p.y, p.z + r + STEP_UP, r * .6)
+		var lift := top + r
+		if (
+			lift > p.z
+			and lift - p.z < STEP_UP + r
+			and not _solid(world, Vector3(p.x, p.y, lift), r * .5)
+		):
+			pos[i] = Vector3(p.x, p.y, lift)
+			old[i] = Vector3(o.x, o.y, lift)
 		return
 	if not _solid(world, Vector3(p.x, o.y, p.z), r):
 		pos[i] = Vector3(p.x, o.y, p.z)
@@ -791,7 +1290,7 @@ func _floor(i: int, under: float, roof: float) -> bool:
 	var p := pos[i]
 	var r := radius[i]
 	var low := under + r
-	if carry > -INF and (i <= R.SH_R or i >= R.BELLY):
+	if carry > -INF and (i <= R.SH_R or i == R.BELLY or i == R.BACK):
 		low = maxf(low, carry + r * .5)
 	var on := p.z <= low
 	if on:

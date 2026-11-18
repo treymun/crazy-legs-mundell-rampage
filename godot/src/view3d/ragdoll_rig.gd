@@ -59,7 +59,7 @@ const THICKEST := .22
 ## actors.json labels or keys than the kind has now, is not used (the rig is
 ## found again); tools/load_check.gd holds every file to the rig found anew.
 const BAKED := "res://assets3d/actors/%s.rig"
-const BAKED_FORMAT := 1
+const BAKED_FORMAT := 3
 ## Labels that must all have parts for a rig.
 const LIMBS := ["body", "head", "arm_l", "arm_r", "leg_l", "leg_r"]
 ## The hull's fine ways: the points of a cube's faces FINE steps from its
@@ -67,6 +67,8 @@ const LIMBS := ["body", "head", "arm_l", "arm_r", "leg_l", "leg_r"]
 ## goes in the bucket of each of ways() within BUCKET_EDGE of its nearest.
 const FINE := 3
 const BUCKET_EDGE := .15
+## Balls to a piece of gear the dead body lets go of (gear_bones).
+const GEAR_BALLS := 3
 
 var ok := false
 ## Where each point is at the key "0", model space (y up), and how big a ball
@@ -85,14 +87,41 @@ var rest_frames: Array[Transform3D] = []
 ## The points as the model's own body at rest ("down") has them (a tool's
 ## pose to drop from).
 var down_points := PackedVector3Array()
-## The points lying on the back on the floor (_lie_down).
+## The points lying on the back on the floor (_lie_down), and the gear's
+## balls beside it.
 var lying_points := PackedVector3Array()
+var gear_lying := PackedVector3Array()
 ## Each segment's outermost points in its rest frame (model units), in a
 ## bucket for each of ways() (Array[PackedVector3Array] each), and how far
 ## the furthest reaches from the frame's origin (_hull).
 var hull: Array[Array] = []
 var hull_reach := PackedFloat32Array()
 var _rest_inv: Array[Basis] = []
+## What the dead body lets go of (the gun, the saw, the shield; pass 11):
+## each a cluster of the parts the dead body loses that sits by a hand, and
+## falls as a rigid triangle of three balls of its own (Ragdoll: POINTS +
+## GEAR_BALLS g and the next two: its two ends and a third across it, so a
+## shield or a saw comes to lie flat) instead of shrinking away. Per piece:
+## its bones, its balls at the standing key (model space), their radius.
+var gear_bones: Array[PackedInt32Array] = []
+var gear_ends := PackedVector3Array()
+var gear_radius := PackedFloat32Array()
+## Each piece's box's eight corners at the standing key (model space).
+var gear_corners := PackedVector3Array()
+## Each bone's part's box at the standing key (model space: its vertices'
+## least and most), for the gear's size (baked).
+var bone_lo := PackedVector3Array()
+var bone_hi := PackedVector3Array()
+## Each bone's piece of gear (-1: none).
+var bone_gear := PackedInt32Array()
+## The segment each bone is posed with (bone_seg, but a hand the model
+## labels "body", holding the gun before it, rides its forearm: lying on its
+## back a body held its empty hands up off its chest; _find_gear).
+var bone_ride := PackedInt32Array()
+## Each limb (left arm, right arm, left leg, right leg) that is one part to
+## its end (a whole arm modelled as one piece, bent as it stands): it does
+## not bend at its elbow or knee (1), else 0 (_find_gear).
+var stiff := PackedByteArray()
 
 static var _built := {}
 ## How many rigs this process found from their models' vertices (_build),
@@ -144,7 +173,7 @@ static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 	if not whole is Array:
 		return null
 	var row: Array = whole
-	if row.size() != 9 or row[0] != BAKED_FORMAT or row[1] != info_key(info):
+	if row.size() != 11 or row[0] != BAKED_FORMAT or row[1] != info_key(info):
 		return null
 	var rig := RagdollRig.new()
 	if not row[2]:
@@ -166,6 +195,8 @@ static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 	rig.bone_seg = row[5]
 	rig.anchors = row[6]
 	rig.hull_reach = row[8]
+	rig.bone_lo = row[9]
+	rig.bone_hi = row[10]
 	for buckets: Array in row[7]:
 		var typed: Array[PackedVector3Array] = []
 		for bucket: PackedVector3Array in buckets:
@@ -180,6 +211,7 @@ static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 	for f: Transform3D in rig.rest_frames:
 		rig._rest_inv.append(f.basis.inverse())
 	rig.down_points = rig.points_from(dead)
+	rig._find_gear()
 	rig._lie_down()
 	rig.ok = true
 	return rig
@@ -190,9 +222,9 @@ static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 func to_baked(info: Dictionary) -> PackedByteArray:
 	var row: Array = [BAKED_FORMAT, info_key(info), ok]
 	if ok:
-		row.append_array([points, radii, bone_seg, anchors, hull, hull_reach])
+		row.append_array([points, radii, bone_seg, anchors, hull, hull_reach, bone_lo, bone_hi])
 	else:
-		row.append_array([null, null, null, null, null, null])
+		row.append_array([null, null, null, null, null, null, null, null])
 	var raw := var_to_bytes(row)
 	var out := PackedByteArray()
 	out.resize(4)
@@ -230,6 +262,8 @@ func _build(view: Node, info: Dictionary) -> void:
 	var part_n := PackedInt32Array()
 	part_mid.resize(bones)
 	part_n.resize(bones)
+	bone_lo.resize(bones)
+	bone_hi.resize(bones)
 	# A third of the vertices and their parts, for how thick each limb is.
 	var every := PackedVector3Array()
 	var every_bone := PackedInt32Array()
@@ -287,10 +321,19 @@ func _build(view: Node, info: Dictionary) -> void:
 					continue
 				var at := bone_rest[bone] * (bind_pose[bind] * verts[v])
 				part_mid[bone] += at
+				if part_n[bone] == 0:
+					bone_lo[bone] = at
+					bone_hi[bone] = at
+				else:
+					bone_lo[bone] = bone_lo[bone].min(at)
+					bone_hi[bone] = bone_hi[bone].max(at)
 				part_n[bone] += 1
 				all_at.append(at)
 				all_bone.append(bone)
-				all_label.append(bone_label[bone])
+				# A part the dead body loses (the gun, the saw, the shield) is no
+				# part of the limbs' shape (pass 11: a hand at a gun's muzzle, a
+				# shoulder on the saw).
+				all_label.append(bone_label[bone] if dead_scale[bone].x >= .2 else -1)
 				if v % 3 == 0:
 					every.append(at)
 					every_bone.append(bone)
@@ -304,6 +347,7 @@ func _build(view: Node, info: Dictionary) -> void:
 				cloud.append(all_at[k])
 		if not cloud.is_empty():
 			clouds[label_names[l]] = cloud
+	_mirror_limbs(clouds)
 	for label: String in LIMBS:
 		var cloud: PackedVector3Array = clouds.get(label, PackedVector3Array())
 		if cloud.size() < 8:
@@ -342,8 +386,203 @@ func _build(view: Node, info: Dictionary) -> void:
 		_rest_inv.append(f.basis.inverse())
 	_hull(all_at, all_bone)
 	down_points = points_from(dead)
+	_find_gear()
 	_lie_down()
 	ok = true
+
+
+## The pieces the dead body lets go of (gear_bones): the parts it loses
+## (dead_scale) that show standing, joined where they lie within a tenth of
+## its height of one another, kept when the cluster's middle is nearer a hand
+## or an elbow than the head, a knee or a foot (a cigarette or a boot's
+## second toe still shrinks away); the two biggest. Found from the poses,
+## never baked.
+func _find_gear() -> void:
+	var height := maxf(.3, points[HEAD].y - (points[FOOT_L].y + points[FOOT_R].y) * .5)
+	var lost := PackedInt32Array()
+	for i in bone_rest.size():
+		if dead_scale[i].x < .2 and bone_rest[i].basis.get_scale().x >= .2:
+			lost.append(i)
+	bone_ride = bone_seg.duplicate()
+	var hips := (points[HIP_L] + points[HIP_R]) * .5
+	var neck := (points[SH_L] + points[SH_R]) * .5
+	var core := maxf(radii[BELLY], radii[HIP_L])
+	for i in bone_seg.size():
+		if bone_seg[i] != TORSO or dead_scale[i].x < .2:
+			continue
+		var o := bone_rest[i].origin
+		var spine := o.distance_to(Geometry3D.get_closest_point_to_segment(o, hips, neck))
+		var best := -1
+		var best_d := INF
+		for seg in range(2, 6):
+			var a := points[ENDS[seg][0]]
+			var b := points[ENDS[seg][1]]
+			var d := o.distance_to(Geometry3D.get_closest_point_to_segment(o, a, b))
+			if d < best_d:
+				best_d = d
+				best = seg
+		# (Only a small part: a hand, a cuff; never a plate of the chest.)
+		var small := i < bone_lo.size() and (bone_hi[i] - bone_lo[i]).length() < height * .12
+		if small and best_d < height * .16 and best_d < spine - core * .6:
+			bone_ride[i] = best
+	# A limb half with no part of its own shown on the dead body: the limb is
+	# one piece and bends nowhere.
+	var shown := PackedInt32Array()
+	shown.resize(ENDS.size())
+	for i in bone_seg.size():
+		if dead_scale[i].x >= .2 and bone_rest[i].basis.get_scale().x >= .2:
+			shown[bone_ride[i]] += 1
+	stiff = PackedByteArray()
+	for limb in 4:
+		var upper := 2 + limb * 2
+		var one := shown[upper] == 0 or shown[upper + 1] == 0
+		# A part of the upper half reaching well past the elbow (a whole arm
+		# modelled bent as one piece): the limb bends nowhere either.
+		var half := points[ENDS[upper][0]].distance_to(points[ENDS[upper][1]])
+		if upper < hull_reach.size() and hull_reach[upper] > half * 1.45:
+			one = true
+		stiff.append(1 if one else 0)
+	bone_gear = PackedInt32Array()
+	bone_gear.resize(bone_rest.size())
+	bone_gear.fill(-1)
+	gear_bones.clear()
+	gear_ends = PackedVector3Array()
+	gear_radius = PackedFloat32Array()
+	gear_corners = PackedVector3Array()
+	# Clusters by single link (a part within `join` of any part of one is in it).
+	var join := height * .1
+	var cluster := PackedInt32Array()
+	cluster.resize(lost.size())
+	cluster.fill(-1)
+	var clusters: Array[PackedInt32Array] = []
+	for k in lost.size():
+		if cluster[k] >= 0:
+			continue
+		var group := PackedInt32Array([k])
+		cluster[k] = clusters.size()
+		var at := 0
+		while at < group.size():
+			var o := bone_rest[lost[group[at]]].origin
+			for m in lost.size():
+				if cluster[m] < 0 and bone_rest[lost[m]].origin.distance_to(o) < join:
+					cluster[m] = clusters.size()
+					group.append(m)
+			at += 1
+		clusters.append(group)
+	clusters.sort_custom(
+		func(a: PackedInt32Array, b: PackedInt32Array) -> bool: return a.size() > b.size()
+	)
+	for group: PackedInt32Array in clusters:
+		if gear_bones.size() >= 2:
+			break
+		var mid := Vector3.ZERO
+		for k in group:
+			mid += bone_rest[lost[k]].origin
+		mid /= float(group.size())
+		var held := INF
+		var other := INF
+		for i: int in [HAND_L, HAND_R, ELBOW_L, ELBOW_R]:
+			held = minf(held, points[i].distance_to(mid))
+		for i: int in [HEAD, KNEE_L, KNEE_R, FOOT_L, FOOT_R]:
+			other = minf(other, points[i].distance_to(mid))
+		if held >= other:
+			continue
+		# Its balls from its parts' boxes' corners, along its own ways (the
+		# longest, the next, the thinnest: a gun held slanting is long and
+		# thin all the same): the two ends of its length, a third out along
+		# its width (a shield's far edge), each as thick as it is thin.
+		var corners := PackedVector3Array()
+		for k in group:
+			var bone := lost[k]
+			if bone < bone_lo.size() and bone_lo[bone] != bone_hi[bone]:
+				for c in 8:
+					corners.append(
+						Vector3(
+							bone_hi[bone].x if c & 1 else bone_lo[bone].x,
+							bone_hi[bone].y if c & 2 else bone_lo[bone].y,
+							bone_hi[bone].z if c & 4 else bone_lo[bone].z
+						)
+					)
+		if corners.is_empty():
+			continue
+		var axes := _axes(corners)
+		var lo := Vector3.INF
+		var hi := -Vector3.INF
+		for p in corners:
+			var q := Vector3(p.dot(axes[0]), p.dot(axes[1]), p.dot(axes[2]))
+			lo = lo.min(q)
+			hi = hi.max(q)
+		var r := clampf((hi.z - lo.z) * .5 + .005, height * .02, height * .2)
+		var centre := (lo + hi) * .5
+		var a := axes[0] * minf(lo.x + r, centre.x) + axes[1] * (lo.y + r) + axes[2] * centre.z
+		var b := axes[0] * maxf(hi.x - r, centre.x) + axes[1] * (lo.y + r) + axes[2] * centre.z
+		var c := axes[0] * centre.x + axes[1] * maxf(hi.y - r, lo.y + r * 3.0) + axes[2] * centre.z
+		var bones := PackedInt32Array()
+		for k in group:
+			bones.append(lost[k])
+			bone_gear[lost[k]] = gear_bones.size()
+		gear_bones.append(bones)
+		gear_ends.append_array([a, b, c])
+		gear_radius.append(r)
+		for k in 8:
+			gear_corners.append(
+				(
+					axes[0] * (hi.x if k & 1 else lo.x)
+					+ axes[1] * (hi.y if k & 2 else lo.y)
+					+ axes[2] * (hi.z if k & 4 else lo.z)
+				)
+			)
+
+
+## The three ways a cloud of points lies along (unit, at right angles): the
+## longest first, the thinnest last (a few rounds of the power method on its
+## spread).
+static func _axes(cloud: PackedVector3Array) -> Array[Vector3]:
+	var mean := Vector3.ZERO
+	for p in cloud:
+		mean += p
+	mean /= float(cloud.size())
+	var cx := Vector3.ZERO
+	var cy := Vector3.ZERO
+	var cz := Vector3.ZERO
+	for p in cloud:
+		var d := p - mean
+		cx += d * d.x
+		cy += d * d.y
+		cz += d * d.z
+	var spread := Basis(cx, cy, cz)
+	var first := Vector3(1.0, .7, .3)
+	for _k in 24:
+		var next := spread * first
+		if next.length_squared() < 1e-12:
+			break
+		first = next.normalized()
+	var second := first.cross(Vector3.UP if absf(first.y) < .9 else Vector3.RIGHT).normalized()
+	for _k in 24:
+		var next := spread * second
+		next -= first * next.dot(first)
+		if next.length_squared() < 1e-12:
+			break
+		second = next.normalized()
+	return [first, second, first.cross(second).normalized()]
+
+
+## The gear's sticks where the bones' poses `poses` put them (model space).
+func gear_from(poses: Array[Transform3D]) -> PackedVector3Array:
+	var out := PackedVector3Array()
+	for g in gear_bones.size():
+		var bone := gear_bones[g][0]
+		var m := Transform3D.IDENTITY
+		if bone < poses.size():
+			var now := poses[bone]
+			var rest := bone_rest[bone]
+			m = (
+				Transform3D(now.basis.orthonormalized(), now.origin)
+				* Transform3D(rest.basis.orthonormalized(), rest.origin).affine_inverse()
+			)
+		for k in GEAR_BALLS:
+			out.append(m * gear_ends[g * GEAR_BALLS + k])
+	return out
 
 
 ## The points lying on the back on the floor (y 0), the torso's middle over
@@ -360,6 +599,19 @@ func _lie_down() -> void:
 		low = minf(low, p.y - radii[i])
 	for i in POINTS:
 		lying_points[i] = lying_points[i] - Vector3(0.0, low, 0.0)
+	# The gear beside it on the floor, as it was held turned with the body.
+	gear_lying = PackedVector3Array()
+	for g in gear_bones.size():
+		for k in GEAR_BALLS:
+			var p := turn * (gear_ends[g * GEAR_BALLS + k] - mid) - Vector3(0.0, low, 0.0)
+			gear_lying.append(Vector3(p.x, gear_radius[g], p.z))
+
+
+## The points lying on the back (lying_points), the gear beside it after.
+func lying() -> PackedVector3Array:
+	var out := lying_points.duplicate()
+	out.append_array(gear_lying)
+	return out
 
 
 ## Each segment's outermost points (its parts' convex hull, a part the dead
@@ -577,6 +829,23 @@ func _points(clouds: Dictionary) -> bool:
 	)
 
 
+## A limb with (almost) nothing of its own left once the dead body's lost
+## parts are left out (the millhand's arm on his saw, the tin guard's behind
+## his shield) takes the other side's, mirrored across the body (pass 11).
+static func _mirror_limbs(clouds: Dictionary) -> void:
+	for pair: Array in [
+		["arm_l", "arm_r"], ["arm_r", "arm_l"], ["leg_l", "leg_r"], ["leg_r", "leg_l"]
+	]:
+		var own: PackedVector3Array = clouds.get(pair[0], PackedVector3Array())
+		var other: PackedVector3Array = clouds.get(pair[1], PackedVector3Array())
+		if own.size() >= 8 or other.size() < 8:
+			continue
+		var mirrored := PackedVector3Array()
+		for p in other:
+			mirrored.append(Vector3(-p.x, p.y, p.z))
+		clouds[pair[0]] = mirrored
+
+
 static func _box(cloud: PackedVector3Array) -> AABB:
 	var out := AABB(cloud[0], Vector3.ZERO)
 	for p in cloud:
@@ -665,7 +934,36 @@ func frames_of(at: PackedVector3Array) -> Array[Transform3D]:
 		var now := at[end_i] - start
 		var arc := _arc(was, now)
 		out[s] = Transform3D(arc * base * rest_frames[s].basis, start)
+		var limb := (s - 2) / 2
+		if s >= 2 and s % 2 == 0 and limb < stiff.size() and stiff[limb] == 1:
+			# One piece bent as it stands: turned whole by its elbow and its
+			# hand (or knee and foot), so the bent end never swings round.
+			var root: int = ENDS[s][0]
+			var tip: int = ENDS[s + 1][1]
+			var whole := _triangle(points, at, root, end_i, tip)
+			if whole != Basis():
+				out[s] = Transform3D(whole * rest_frames[s].basis, start)
 	return out
+
+
+## The turn carrying the triangle of points a, b, c at rest (`rest`) onto
+## where they are (`at`); the identity when either is too thin to say.
+static func _triangle(
+	rest: PackedVector3Array, at: PackedVector3Array, a: int, b: int, c: int
+) -> Basis:
+	var e0 := rest[b] - rest[a]
+	var n0 := e0.cross(rest[c] - rest[a])
+	var e1 := at[b] - at[a]
+	var n1 := e1.cross(at[c] - at[a])
+	if n0.length_squared() < 1e-8 or n1.length_squared() < 1e-8:
+		return Basis()
+	e0 = e0.normalized()
+	n0 = n0.normalized()
+	e1 = e1.normalized()
+	n1 = n1.normalized()
+	var from := Basis(e0, n0, e0.cross(n0))
+	var to := Basis(e1, n1, e1.cross(n1))
+	return to * from.transposed()
 
 
 ## Where segment s starts: the neck for the head, else its first point.
@@ -698,10 +996,31 @@ func pose(skeleton: Skeleton3D, at: PackedVector3Array, dead: bool) -> void:
 	var moves: Array[Transform3D] = []
 	for s in ENDS.size():
 		moves.append(now[s] * rest_frames[s].affine_inverse())
+	# The gear let go of: each piece turned as its three balls (`at` past
+	# POINTS) are from how they stood.
+	var held: Array[Transform3D] = []
+	for g in gear_bones.size():
+		var k := POINTS + g * GEAR_BALLS
+		if at.size() < k + GEAR_BALLS:
+			break
+		var at3 := PackedVector3Array([at[k], at[k + 1], at[k + 2]])
+		var was := PackedVector3Array(
+			[
+				gear_ends[g * GEAR_BALLS],
+				gear_ends[g * GEAR_BALLS + 1],
+				gear_ends[g * GEAR_BALLS + 2]
+			]
+		)
+		var turn := _triangle(was, at3, 0, 1, 2)
+		held.append(Transform3D(turn, at[k] - turn * was[0]))
 	for i in bone_seg.size():
-		var p := moves[bone_seg[i]] * bone_rest[i]
+		var g := bone_gear[i] if i < bone_gear.size() else -1
+		var seg := bone_ride[i] if i < bone_ride.size() else bone_seg[i]
+		var p := moves[seg] * bone_rest[i]
+		if g >= 0 and g < held.size():
+			p = held[g] * bone_rest[i]
 		var size := bone_rest[i].basis.get_scale()
-		if dead and dead_scale[i].x < .2:
+		if dead and dead_scale[i].x < .2 and g < 0:
 			size = Vector3(.001, .001, .001)
 		skeleton.set_bone_pose_position(i, p.origin)
 		skeleton.set_bone_pose_rotation(i, p.basis.get_rotation_quaternion())
@@ -709,12 +1028,22 @@ func pose(skeleton: Skeleton3D, at: PackedVector3Array, dead: bool) -> void:
 
 
 ## The points where the model's current pose (whatever it last showed) puts
-## them, model space: each rides its segment's biggest part.
+## them, model space: each rides its segment's biggest part; then the gear's
+## sticks (gear_from).
 func posed_points(skeleton: Skeleton3D) -> PackedVector3Array:
 	var poses: Array[Transform3D] = []
 	for i in skeleton.get_bone_count():
 		poses.append(skeleton.get_bone_pose(i))
-	return points_from(poses)
+	var out := points_from(poses)
+	out.append_array(gear_from(poses))
+	return out
+
+
+## The points standing (the key "0"), the gear in hand.
+func standing() -> PackedVector3Array:
+	var out := points.duplicate()
+	out.append_array(gear_ends)
+	return out
 
 
 ## The points where the bones' poses `poses` put them, model space.

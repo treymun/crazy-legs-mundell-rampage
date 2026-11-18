@@ -165,6 +165,10 @@ func _build(view: Node, info: Dictionary) -> void:
 					continue
 				var at := bone_rest[bone] * (skin.get_bind_pose(bind) * verts[v])
 				var label: String = labels.get(skeleton.get_bone_name(bone), "body")
+				# (Pass 11: a part the dead body loses, the gun, the saw, the
+				# shield, is no part of the limbs' shape.)
+				if dead_scale[bone].x < .2:
+					label = "lost"
 				if not clouds.has(label):
 					clouds[label] = PackedVector3Array()
 				var cloud: PackedVector3Array = clouds[label]
@@ -177,6 +181,7 @@ func _build(view: Node, info: Dictionary) -> void:
 				if v % 3 == 0:
 					every.append(at)
 					every_bone.append(bone)
+	_mirror_limbs(clouds)
 	for label: String in LIMBS:
 		var cloud: PackedVector3Array = clouds.get(label, PackedVector3Array())
 		if cloud.size() < 8:
@@ -432,6 +437,23 @@ func _points(clouds: Dictionary) -> bool:
 		and points[SH_L].distance_to(points[SH_R]) > height * .06
 		and points[HIP_L].distance_to(points[HIP_R]) > height * .02
 	)
+
+
+## A limb with (almost) nothing of its own left once the dead body's lost
+## parts are left out (the millhand's arm on his saw, the tin guard's behind
+## his shield) takes the other side's, mirrored across the body (pass 11).
+static func _mirror_limbs(clouds: Dictionary) -> void:
+	for pair: Array in [
+		["arm_l", "arm_r"], ["arm_r", "arm_l"], ["leg_l", "leg_r"], ["leg_r", "leg_l"]
+	]:
+		var own: PackedVector3Array = clouds.get(pair[0], PackedVector3Array())
+		var other: PackedVector3Array = clouds.get(pair[1], PackedVector3Array())
+		if own.size() >= 8 or other.size() < 8:
+			continue
+		var mirrored := PackedVector3Array()
+		for p in other:
+			mirrored.append(Vector3(-p.x, p.y, p.z))
+		clouds[pair[0]] = mirrored
 
 
 static func _box(cloud: PackedVector3Array) -> AABB:

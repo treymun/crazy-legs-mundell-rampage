@@ -9,9 +9,13 @@
 ##
 ## places: buckshot at arm's length down the feed store's loft stairs and over the
 ## hay loft's rail instead. classic: the scripted falls (RAGDOLLS off).
+## audit [rows=a,b]: tools/death_rows.gd's rows instead (a kind, a gun, where
+## it struck and where it stood; one strip of ten moments a row).
 ##
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
+
+const DeathRows := preload("res://tools/death_rows.gd")
 
 const AFTER := [3, 8, 16, 30, 60, 120]
 ## Kinds `places` pictures (the first on the level), each with a ragdoll.
@@ -81,6 +85,21 @@ func _run() -> void:
 			"rail"
 		)
 		print("death frames written to ", out)
+		main.queue_free()
+		await process_frame
+		quit()
+		return
+	if OS.get_cmdline_user_args().has("audit"):
+		var only := ""
+		for arg in OS.get_cmdline_user_args():
+			if String(arg).begins_with("rows="):
+				only = String(arg).substr(5)
+		var wanted := Array(only.split(",", false))
+		for row: Array in DeathRows.ROWS:
+			var name: String = row[0]
+			if wanted.is_empty() or wanted.any(func(w: String) -> bool: return name.contains(w)):
+				await DeathRows.new(self).run(row)
+		print("death rows written to ", out)
 		main.queue_free()
 		await process_frame
 		quit()
