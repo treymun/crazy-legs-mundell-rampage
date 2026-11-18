@@ -46,6 +46,10 @@ const SETTLED := .005
 const GRID := 1.0
 ## No turning at all (a body asleep, to the fast solver).
 const STILL := Basis(Vector3.ZERO, Vector3.ZERO, Vector3.ZERO)
+## way_out: the most furniture a cell may list and still be summed by which
+## of it holds a probe, and the room for those sums.
+const HELD_MOST := 24
+const HELD_KINDS := 1 << 24
 const WAYS: Array[Vector3] = [
 	Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, -1, 0)
 ]
@@ -680,6 +684,8 @@ static func in_wall(world: LevelData, at: Vector3) -> bool:
 static func solid(world: LevelData, at: Vector3) -> bool:
 	if in_wall(world, at):
 		return true
+	if empty_cell(world, at.x, at.y):
+		return world.ground[int(at.y) * world.width + int(at.x)] > at.z + LEDGE
 	return _in_something(world, at)
 
 
@@ -694,29 +700,121 @@ static func _in_something(world: LevelData, at: Vector3) -> bool:
 	return world.blocked(at.x, at.y, 0.0, at.z)
 
 
+## Whether the open cell under (x, y) (not a wall: the caller knows) holds
+## nothing now but its ground: no piece of the geometry, no furniture or
+## door listed there (the lists as they are: broken furniture is gone from
+## them though index_cells still marks the cell), no pane that could meet a
+## point in it, no locked gate. There a point's floor is the cell's ground
+## and blocked() finds nothing (round 2 of pass 10: the wreck pieces lie
+## where the breakables stood).
+static func empty_cell(world: LevelData, x: float, y: float) -> bool:
+	if not world.locked_gates.is_empty():
+		return false
+	var ix := int(x)
+	var iy := int(y)
+	var c := iy * world.width + ix
+	if world.geo != null and world.geo.cells[c] != 0:
+		return false
+	if not world.pane_tiles.is_empty():
+		if world.pane_cells.size() != world.width * world.height or world.pane_cells[c] != 0:
+			return false
+	if world.index_cells.size() == world.width * world.height and world.index_cells[c] == 0:
+		return true
+	var key := Vector2i(ix, iy)
+	var fixtures: Array = world.near_fixtures.get(key, LevelData.NOTHING)
+	if not fixtures.is_empty():
+		return false
+	var doors: Array = world.near_doors.get(key, LevelData.NOTHING)
+	return doors.is_empty()
+
+
+## The floor under a point (Tumble.floor_at), the cell's ground in an empty
+## open cell (empty_cell) without asking the level.
+static func floor_under(world: LevelData, x: float, y: float, z: float) -> float:
+	if (
+		x >= 0.0
+		and y >= 0.0
+		and x < world.width
+		and y < world.height
+		and world.solid[int(y) * world.width + int(x)] < 0
+		and empty_cell(world, x, y)
+	):
+		return world.ground[int(y) * world.width + int(x)]
+	return Tumble.floor_at(world, x, y, z)
+
+
 ## The shortest way out of a wall, furniture or a step's side, along x or y
-## (ZERO when none is near). (A probe in a wall cell is passed over here, as
-## solid() would answer it: most of them, for a point deep in a wall.)
+## (ZERO when none is near). Every probe is at the point's height, so a
+## probe's answer is its cell's and which of the furniture listed there
+## holds it (_in_something reads nothing else there): worked out once for
+## each such pair (a point deep in furniture asked eighty probes, most of
+## them for nothing). A cell with a piece of the geometry, a door, a pane
+## near or a locked gate is asked probe by probe as ever.
 static func way_out(world: LevelData, at: Vector3) -> Vector3:
 	var w := world.width
 	var hgt := world.height
 	var cells := world.solid
+	var plain_world := (
+		world.locked_gates.is_empty()
+		and (world.pane_tiles.is_empty() or world.pane_cells.size() == w * hgt)
+	)
+	# Per cell: its furniture list (null: asked probe by probe); per cell and
+	# furniture held, the answer (1 solid, 0 clear).
+	var lists := {}
+	var answers := {}
 	var s := WALL_STEP
 	while s <= WALL_REACH:
 		for dir: Vector3 in WAYS:
 			var probe := at + dir * s
-			if (
-				probe.x < 0.0
-				or probe.y < 0.0
-				or probe.x >= w
-				or probe.y >= hgt
-				or cells[int(probe.y) * w + int(probe.x)] >= 0
-			):
+			if probe.x < 0.0 or probe.y < 0.0 or probe.x >= w or probe.y >= hgt:
 				continue
-			if not _in_something(world, probe):
+			var ix := int(probe.x)
+			var iy := int(probe.y)
+			var c := iy * w + ix
+			if cells[c] >= 0:
+				continue
+			if not lists.has(c):
+				lists[c] = _held_list(world, plain_world, ix, iy, c)
+			var listed: Variant = lists[c]
+			if listed == null:
+				if not _in_something(world, probe):
+					return dir * s
+				continue
+			var fixtures: Array = listed
+			var held := 0
+			for k in fixtures.size():
+				var f: PackedFloat32Array = fixtures[k]
+				if f[0] < probe.x and probe.x < f[2] and f[1] < probe.y and probe.y < f[3]:
+					held |= 1 << k
+			var key := c * HELD_KINDS + held
+			var answer: int = answers.get(key, -1)
+			if answer < 0:
+				answer = 1 if _in_something(world, probe) else 0
+				answers[key] = answer
+			if answer == 0:
 				return dir * s
 		s += WALL_STEP
 	return Vector3.ZERO
+
+
+## The furniture listed under open cell (ix, iy) when a point's solid() there
+## is its ground's and that furniture's alone (no geometry, door, pane or
+## gate in the way); null when not (or more than HELD_MOST listed).
+static func _held_list(world: LevelData, plain_world: bool, ix: int, iy: int, c: int) -> Variant:
+	if not plain_world:
+		return null
+	if world.geo != null and world.geo.cells[c] != 0:
+		return null
+	if not world.pane_tiles.is_empty() and world.pane_cells[c] != 0:
+		return null
+	var key := Vector2i(ix, iy)
+	var doors: Array = world.near_doors.get(key, LevelData.NOTHING)
+	if not doors.is_empty():
+		return null
+	var fixtures: Array = world.near_fixtures.get(key, LevelData.NOTHING)
+	if fixtures.size() > HELD_MOST:
+		return null
+	return fixtures
 
 
 ## Whether a ball of radius r at p is in a wall, furniture, a slab's side or
