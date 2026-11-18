@@ -9,7 +9,8 @@ extends Node3D
 
 ## The prop's name (meshes.json, town_<name> sprites, mesh_<name> texture).
 @export var prop := ""
-## The material its parts draw with (setup()).
+## Its model's material (setup()); each part draws with a copy of its own
+## (OwnMaterial: its tone and marks are the copy's numbers).
 var material: ShaderMaterial
 
 var _meshes: Array[MeshInstance3D] = []
@@ -25,7 +26,7 @@ func setup(p_material: ShaderMaterial, reach: float) -> void:
 	material = p_material
 	for child in find_children("*", "MeshInstance3D", true, false):
 		var mesh := child as MeshInstance3D
-		mesh.material_override = material
+		OwnMaterial.give(mesh, material)
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mesh.visibility_range_end = reach
 		_meshes.append(mesh)
@@ -72,7 +73,7 @@ func _light(c: int, level: LevelData) -> void:
 	if level.tints.size() >= 3:
 		tone = Color(level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c])
 	for mesh in _meshes:
-		mesh.set_instance_shader_parameter("tone", tone)
+		OwnMaterial.put(mesh, "tone", tone)
 
 
 ## Lit again by its cell's light and tint now (shown again after it was out

@@ -6,13 +6,13 @@
 // mark0..mark5: xyz where, in the mesh's own space; w its kind and size,
 // kind * 10 + radius (own units): kind 1 a bullet hole, 2 a scorch; 0 none.
 // char_k: how burnt it is (0 to 1).
-instance uniform vec4 mark0 = vec4(0.0);
-instance uniform vec4 mark1 = vec4(0.0);
-instance uniform vec4 mark2 = vec4(0.0);
-instance uniform vec4 mark3 = vec4(0.0);
-instance uniform vec4 mark4 = vec4(0.0);
-instance uniform vec4 mark5 = vec4(0.0);
-instance uniform float char_k = 0.0;
+uniform vec4 mark0 = vec4(0.0);
+uniform vec4 mark1 = vec4(0.0);
+uniform vec4 mark2 = vec4(0.0);
+uniform vec4 mark3 = vec4(0.0);
+uniform vec4 mark4 = vec4(0.0);
+uniform vec4 mark5 = vec4(0.0);
+uniform float char_k = 0.0;
 
 varying vec3 own_p;
 

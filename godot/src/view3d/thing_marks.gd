@@ -239,18 +239,16 @@ static func _char_to(mesh: MeshInstance3D, k: float) -> void:
 	var had: float = mesh.get_meta("char", 0.0)
 	if k > had + .001:
 		mesh.set_meta("char", k)
-		mesh.set_instance_shader_parameter("char_k", k)
+		OwnMaterial.put(mesh, "char_k", k)
 
 
 ## Hand a part's marks and char to its shader.
 static func apply(mesh: MeshInstance3D) -> void:
 	var marks: PackedVector4Array = mesh.get_meta("marks", PackedVector4Array())
 	for i in MOST:
-		mesh.set_instance_shader_parameter(
-			"mark%d" % i, marks[i] if i < marks.size() else Vector4.ZERO
-		)
+		OwnMaterial.put(mesh, "mark%d" % i, marks[i] if i < marks.size() else Vector4.ZERO)
 	var burnt: float = mesh.get_meta("char", 0.0)
-	mesh.set_instance_shader_parameter("char_k", burnt)
+	OwnMaterial.put(mesh, "char_k", burnt)
 
 
 ## A part with no marks and no char (a wreck piece's node handed on).

@@ -285,6 +285,12 @@ for what feeds them.
   type, in `WorldView3D.GLOBALS`), a list a row of `view_data`; never a
   material's own uniform handed to every material each frame
   ([below](#keeping-the-frame-cheap-track-r-before-v330)).
+- **No instance uniforms in a view3d shader.** A model part's own numbers
+  (its tone, marks, char, a hit's wash, its look, how fallen, a seat view
+  part's fade) are its own material's uniforms (`OwnMaterial.give` copies
+  its model's material, `OwnMaterial.put` sets one). On WebGL and many phones
+  the instance buffer has room for 60 parts and busy scenes hold 80 to 90:
+  the parts past it drew black (below). `view_perf_check` fails on one.
 - **Nothing in the view changes play.** It reads the level, camera and sprite
   list and changes nothing; a host game draws nothing at all.
 - **Guns in hand stay 2D cels** over the 3D view (`weapons.gd`), drawn on the
@@ -585,11 +591,15 @@ The pipeline is in [art.md](art.md#actors).
 - `tools/check_shader.gd` counts textures (SHADER OK).
 - `tools/view_perf_check.gd` holds the frame cheap (VIEW PERF CHECK OK): the
   global uniforms against `project.godot` and the shaders, no uniform
-  arrays, no frame number handed to a material; turning round Hickston's
-  spawn with its hands awake, the later turns make no prop or model again,
-  nothing past where it shows gets one, the instance buffer stays in its
-  room; and the view's `frame()` (headless, its lower quartile) under 1.2
-  times a yardstick of plain GDScript timed beside it (0.4 to 0.7 here).
+  arrays or instance uniforms, no frame number handed to a material; turning
+  round Hickston's spawn with its hands awake, the later turns make no prop
+  or model again, nothing past where it shows gets one, the parts with
+  instance uniforms stay in WebGL's room with margin; and the view's
+  `frame()` (headless, its lower quartile) under 1.5 times a yardstick of
+  plain GDScript timed beside it (0.4 to 1.1 here, the PC busy or not).
+- `tools/stress_bench.gd -- check` (STRESS CHECK OK): the busy scenes
+  (wreck48, arena, county) built headless with a 3D view made by hand, each
+  frame's parts with instance uniforms held to WebGL's buffer (above).
 - `tools/compare_3d.gd` holds a window tour's pictures against
   `tools/pictures_3d/` ([checks.md](checks.md#picture-references)).
 - `tools/compare_sheet.gd` makes side-by-side sheets of two tours (the 3D
@@ -764,17 +774,14 @@ Rules that keep it cheap, none of which changes a picture:
   chapter's pack may arrive later in the browser).
 - **Models out of view are parked, not made again** (pass 10). A body
   leaving the view hides its `ActorView` under its own id
-  (`ActorLayer3D._parked`, at most `PARK` 24); coming back it gets that model
+  (`ActorLayer3D._parked`, at most `PARK` 32); coming back it gets that model
   again, a new body the oldest parked one of its kind, and either is posed
   afresh (`ActorView.revive`, as a model just made). Props the same: a prop
   leaving the view is hidden under its key (`PropLayer3D._parked`, at most
-  `PARK` 64) and shown again as it was, its marks on it, lit by its cell's
+  `PARK` 160) and shown again as it was, its marks on it, lit by its cell's
   light now (`PropView.light_again`); one let go of keeps its marks by key
-  (`_kept`) as before. A hidden part still holds its block of the shader
-  instance buffer (below), so both park only in the room left
-  (`WorldView3D._park_room`: actors first, a model costing about ten times a
-  prop to make). The view-bench's turn made 1.6 models and 7.5 props a frame
-  before; `view_perf_check` holds a second turn round Hickston to none.
+  (`_kept`) as before. The view-bench's turn made 1.6 models and 7.5 props a
+  frame before; `view_perf_check` holds a second turn round Hickston to none.
 - **Nothing is made or posed past where it shows.** A model's parts end at
   its `visibility_range_end` (`ActorView.REACH` 32 cells; a prop 32, 51 when
   tall), but the game lists bodies to 54 cells ahead and sprites to 51: a
@@ -795,18 +802,22 @@ Rules that keep it cheap, none of which changes a picture:
   (20) every third. A change of action (aim, fire, pain, a fall) is posed at
   once; every body still moves every frame.
 - **The frame's numbers are global uniforms** (pass 10). The eye, angle,
-  horizon, clock, weather, fog, storm and the rest (`WorldView3D.GLOBALS`,
-  declared `global uniform` in `view_light.gdshaderinc`, `world_body` and
-  `storm_wall`, registered in `project.godot [shader_globals]`) are set once
-  a frame with `RenderingServer.global_shader_parameter_set`; the frame's
+  horizon, clock, weather, fog, storm and the rest, and the view's textures
+  (tiles, cells, tile info, sky, mirror, `view_data`; all read with
+  `texelFetch`, as a global sampler takes no filter hint), are
+  `WorldView3D.GLOBALS`, declared `global uniform` in
+  `view_light.gdshaderinc`, `world_body` and `storm_wall` and registered in
+  `project.godot [shader_globals]`, set when they change with
+  `RenderingServer.global_shader_parameter_set`; the frame's
   lists (the lights' places, colours and flags, the wading rings, the moving
   tiles, SHADOWS' pairs and blobs, the flowing floors) are rows of one small
   RGBA32F texture, `view_data` (`view_row()`; a light's flags as two 16-bit
   halves, as a float holds them exactly), uploaded once a frame when a row
   changed. So no material changes from frame to frame: before, `_share`
   handed seven or so changed numbers to each of the 80-odd materials drawn
-  lately (`_track_live`, still used for the textures a material is given
-  once), and the renderer rebuilt each one's uniforms: 0.5 to 0.9 ms a frame.
+  lately (`_track_live`, gone), and the renderer rebuilt each one's
+  uniforms: 0.5 to 0.9 ms a frame. No layer's material is handed a view
+  number at all, so each part can have its own (below).
   SHADOWS' counts stay the floors', walls' and marks' own uniforms (a body
   would shadow itself). A new per-frame number goes in all three places
   (the shader, `project.godot`, `GLOBALS`); `view_perf_check` holds them
@@ -828,22 +839,30 @@ Rules that keep it cheap, none of which changes a picture:
   wall against 59 for the whole level, desktop). Anything else that changes
   the walls (the 5v5 cover standing again) still rebuilds all.
   `view3d_check` holds the chunks to what a whole build makes.
-- **Shader instance numbers are a budget.** Every model part with instance
-  uniforms (props, wreck pieces, actors, seat views), shown or hidden, holds
-  a block of 16 vec4 slots of one global buffer whatever its shader uses
-  (Godot's fixed block; measured in pass 10: 256 parts filled 4096 slots,
-  with prop.gdshader's 8 numbers or cab.gdshader's 2), after the 44 global
-  uniforms: 4096 slots on this desktop, room for
-  `WorldView3D.INSTANCE_PARTS` 250 parts; 1024 where a uniform block holds
-  16 KB (WebGL2's minimum, many phones), room for `INSTANCE_PARTS_SMALL` 60.
-  Past it Godot prints "Too many instances using shader instance variables"
-  and those parts draw black. Before pass 10 the slots were counted as the
-  numbers used (8 a prop, 4 an actor), and the heavy stress scenes' 500 to
-  800 "slots" were in fact 60 to 110 parts: over 60 on a small buffer (not
-  checked on a phone or in the browser). `stress_bench` prints `instance
-  parts` held; the parks above keep `INSTANCE_SPARE` (40) parts free. A next
-  step would give unmarked parts no instance uniforms at all (the tone from
-  the cell texture, marks only on the parts marked).
+- **No instance uniforms: every model part has a material of its own**
+  (pass 10, `OwnMaterial`). Godot keeps instance uniforms in one global
+  buffer, after the global uniforms (one slot each, 44 here), a block of 16
+  vec4 slots for every part drawn with such a shader, shown or hidden,
+  whatever the shader uses (measured: 256 parts filled 4096 slots, with
+  prop.gdshader's 8 numbers or cab.gdshader's 2). This desktop has 4096
+  slots, room for about 250 parts; where a uniform block holds 16 KB
+  (WebGL2's least, many phones) 1024, room for 60. Busy scenes hold 45 to 90
+  model parts (stress_bench: arena 45, county 87, wreck48 88): forced to a
+  1024-slot buffer (`rendering/limits/global_shader_variables/buffer_size`
+  in an `override.cfg`), v3.7.0's way printed "Too many instances using
+  shader instance variables" 81 times and drew wreck48's pieces solid black;
+  now none, and all 147 tour pictures came out the same as with the big
+  buffer (`docs/godot3d/optimize/P10/wreck48_1024_before.png`, `_after`). Each part's material is a copy of its model's (props, wreck pieces
+  as their source changes, actors, gear shot off, seat views); it takes no
+  slot, is never touched from frame to frame (the frame's numbers are
+  global, above) and changes only when the part's own numbers do. The
+  check: `view_perf_check` fails on an instance uniform in a view3d shader,
+  and `stress_bench -- check` (in check_all) builds wreck48, arena and
+  county headless and holds the parts with instance uniforms under
+  `INSTANCE_ROOM_SMALL` (60) less `INSTANCE_MARGIN` (20) and the slots under
+  1024 with the same margin, every frame. Not run on a phone or in the
+  browser itself (the desktop's Compatibility renderer with the small
+  buffer stands in).
 
 ## The warm-up (polish pass 9)
 

@@ -16,15 +16,15 @@ uniform sampler2D look_hurt : filter_nearest, repeat_disable;
 uniform sampler2D look_p2 : filter_nearest, repeat_disable;
 uniform sampler2D look_p3 : filter_nearest, repeat_disable;
 // The area's tint (rgb) and the cell's light (a).
-instance uniform vec4 tone = vec4(1.0);
+uniform vec4 tone = vec4(1.0);
 // A tough guy's tint (rgb) and the hit wash (a).
-instance uniform vec4 wash = vec4(1.0, 1.0, 1.0, 0.0);
+uniform vec4 wash = vec4(1.0, 1.0, 1.0, 0.0);
 // 0 plain, 1 hurt, 2 a boss's second phase, 3 its third.
-instance uniform int look = 0;
+uniform int look = 0;
 // How far down the body is (0 standing, 1 at rest on the ground): the cels of
 // a fall and a body lying face up were lit squarely by the stage's key, a
 // fifth brighter than a standing cel, and a body seen edge on keeps its colour.
-instance uniform float fallen = 0.0;
+uniform float fallen = 0.0;
 // The looks were baked with the dusk stage's light (the front cel's): only a
 // turn's shade is added, so a side or back seen keeps some modelling.
 uniform bool baked_light = false;

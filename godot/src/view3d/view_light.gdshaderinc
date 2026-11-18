@@ -4,11 +4,15 @@
 // wet sheen, the lightning). Points are in MAP terms: (x east, y south, z up),
 // which is Godot's (x, z, y). Colours are 0-255.
 //
-// The frame's numbers are global uniforms (project.godot [shader_globals],
-// set once a frame by world_view.gd _share) and its lists rows of view_data
-// (view_row), so no material changes from one frame to the next: handing
-// each of the view's ~80 materials the frame's numbers cost more than 0.5 ms
-// a frame (pass 10). A material's own numbers stay plain uniforms.
+// The frame's numbers and the view's textures are global uniforms
+// (project.godot [shader_globals], set by world_view.gd _share) and its lists
+// rows of view_data (view_row), so no material changes from one frame to the
+// next: handing each of the view's ~80 materials the frame's numbers cost
+// more than 0.5 ms a frame (pass 10). Every texture is read with texelFetch
+// (a global sampler takes no filter hint). A material's own numbers stay
+// plain uniforms; no view3d shader has instance uniforms (each model part
+// has a material of its own instead: the instance buffer fits 60 parts on
+// WebGL and many phones).
 
 global uniform bool effects_on;
 global uniform vec3 eye;
@@ -17,7 +21,7 @@ global uniform int light_count;
 // RGBA32F: the lights' places and reaches, colours and strengths, flags (low
 // and high 16 bits), the wading rings, the moving tiles, SHADOWS' pairs and
 // blobs, the flowing floors (x, y their tiles, z, w their shifts).
-uniform sampler2D view_data : filter_nearest, repeat_disable;
+global uniform sampler2D view_data;
 const int ROW_LIGHT_POS = 0;
 const int ROW_LIGHT_COL = 1;
 const int ROW_LIGHT_FLAGS = 2;
@@ -52,10 +56,10 @@ global uniform float motion;
 global uniform float anim_time;
 global uniform int anim_count;
 // The cells: r the area's tint index (unused here), g 255 under the open sky.
-uniform sampler2D cells_tex : filter_nearest, repeat_disable;
+global uniform sampler2D cells_tex;
 global uniform ivec2 map_size;
 // One texel a tile: r water, g relief (signed, 128 flat), b puddles.
-uniform sampler2D tile_info_tex : filter_nearest, repeat_disable;
+global uniform sampler2D tile_info_tex;
 // The mirror (one level's washroom): its line x = mirror_x. The camera that
 // draws the reflection (world_view.gd) sees the layer MIRROR_LAYER, and in
 // its pass nothing on the far side of the mirror, nor the mirror, is drawn.
@@ -64,7 +68,7 @@ global uniform float mirror_x;
 const uint MIRROR_LAYER = 524288u;
 // The sky (sky_at) and what it needs of the camera: the view's size, the
 // focal length and the horizon row (view pixels), the view angle.
-uniform sampler2D sky_tex : filter_nearest, repeat_disable;
+global uniform sampler2D sky_tex;
 global uniform float view_angle;
 global uniform float horizon;
 global uniform float focal;

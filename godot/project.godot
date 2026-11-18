@@ -69,7 +69,8 @@ enabled=PackedStringArray("res://addons/clmr_levels/plugin.cfg", "res://addons/c
 [shader_globals]
 
 ; The 3D view's numbers of the frame (src/view3d/view_light.gdshaderinc,
-; world_view.gd _share), set once a frame instead of on every material.
+; world_view.gd _share), set once a frame instead of on every material, and
+; its textures (read with texelFetch).
 
 anim_count={
 "type": "int",
@@ -246,4 +247,28 @@ wet={
 wind_now={
 "type": "vec3",
 "value": Vector3(0.0, 0.0, 1.0)
+}
+cells_tex={
+"type": "sampler2D",
+"value": ""
+}
+mirror_tex={
+"type": "sampler2D",
+"value": ""
+}
+sky_tex={
+"type": "sampler2D",
+"value": ""
+}
+tile_info_tex={
+"type": "sampler2D",
+"value": ""
+}
+tiles={
+"type": "sampler2DArray",
+"value": ""
+}
+view_data={
+"type": "sampler2D",
+"value": ""
 }

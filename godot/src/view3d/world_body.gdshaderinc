@@ -7,12 +7,12 @@
 
 // The tiles with their mip levels (view_tiles.gd): read with texelFetch at
 // the level tile_lod picks, so the sampler's filter is never used.
-uniform sampler2DArray tiles : filter_nearest_mipmap, repeat_disable;
+global uniform sampler2DArray tiles;
 global uniform float flash;
 // True in the moments the liquor tube dips (render_surfaces.gd flicker).
 global uniform bool liquor_flicker;
 // The reflection the mirror shows (world_view.gd's mirror camera's picture).
-uniform sampler2D mirror_tex : filter_nearest, repeat_disable;
+global uniform sampler2D mirror_tex;
 
 const int KIND_GLOW = 1;
 const int KIND_FLICKER = 2;

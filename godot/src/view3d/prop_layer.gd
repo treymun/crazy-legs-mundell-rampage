@@ -13,12 +13,11 @@ const PICTURE_TURN := PropModels.PICTURE_TURN
 ## again may be from where it went and keep its marks (cells).
 const KEEP := 48
 const REMADE := 1.6
-## Props gone out of view are kept hidden (parked) by key, at most PARK and
-## `park_most` (the view's room in the shader instance buffer: a hidden part
-## keeps its slot), and shown again as they were when they come back: making
-## them again (scene, look, light) cost 7 or 8 props a frame while the
-## view-bench turned (2026-11-17).
-const PARK := 64
+## Props gone out of view are kept hidden (parked) by key, at most
+## `park_most` (PARK), and shown again as they were when they come back:
+## making them again (scene, look, light) cost 7 or 8 props a frame while
+## the view-bench turned (2026-11-17).
+const PARK := 160
 ## A prop further from the eye (map x, y) than its reach (PropView.setup:
 ## its parts' visibility_range_end, to their middle) and half its own
 ## breadth and BEYOND more is not stood at all: it would not show. The game
@@ -55,32 +54,9 @@ func shown() -> Array:
 	return _shown.values()
 
 
-## The model parts the layer holds, shown and parked (each a slot in the
-## shader instance buffer).
-func held() -> int:
-	var n := 0
-	for node: PropView in _shown.values():
-		n += node.meshes().size()
-	for node: PropView in _parked.values():
-		n += node.meshes().size()
-	return n
-
-
 ## How many props are parked (out of view, kept hidden).
 func parked() -> int:
 	return _parked.size()
-
-
-## The materials the props shown now draw with (each once).
-func live_materials() -> Array[ShaderMaterial]:
-	var seen := {}
-	var out: Array[ShaderMaterial] = []
-	for node: PropView in _shown.values():
-		var m := node.material
-		if m != null and not seen.has(m):
-			seen[m] = true
-			out.append(m)
-	return out
 
 
 ## Every material the layer has made (the view shares its numbers with them).

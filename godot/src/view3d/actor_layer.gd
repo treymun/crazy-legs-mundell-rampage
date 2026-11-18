@@ -8,14 +8,13 @@ extends Node3D
 ## Ragdolls kept for bodies out of sight (the oldest let go first).
 const KEEP_DOLLS := 64
 ## Models kept hidden (parked) when their body leaves the view, by body, at
-## most PARK and `park_most` (the view's room in the shader instance buffer:
-## a hidden model keeps its slot): a model made from its scene costs a few
+## most `park_most` (PARK): a model made from its scene costs a few
 ## tenths of a millisecond, and bodies leave and come back into view all the
 ## time as the player turns (the view-bench made 1.6 a frame with the old
 ## pool of three a kind). A body coming back gets its own model, a new one
 ## the oldest parked model of its kind, else a new one; either is posed
 ## afresh (ActorView.revive), as a model just made.
-const PARK := 24
+const PARK := 32
 ## A living body further than ActorView.REACH and this from the eye (map
 ## x, y) is not posed or given a model at all: its model would not show
 ## (its parts end there, measured to their middle, which is nearer its feet
@@ -90,24 +89,6 @@ func held() -> int:
 ## How many models are parked (their bodies out of view).
 func parked() -> int:
 	return _parked.size()
-
-
-## The materials the models shown now draw with (bodies, gear shot off,
-## the player in the mirror; each once).
-func live_materials() -> Array[ShaderMaterial]:
-	var kinds := {}
-	for view: ActorView in _shown.values():
-		kinds[view.kind] = true
-	if _mirrored != null:
-		kinds[_mirrored.kind] = true
-	var out: Array[ShaderMaterial] = []
-	for kind: String in kinds:
-		out.append(models.material(kind))
-	for node: MeshInstance3D in _pieces.values():
-		var m := node.material_override as ShaderMaterial
-		if m != null and not out.has(m):
-			out.append(m)
-	return out
 
 
 ## The model kind an enemy is drawn with ("" when none).
@@ -263,7 +244,7 @@ func show_gear(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			var had := models.materials().size()
 			node = MeshInstance3D.new()
 			node.mesh = made[0]
-			node.material_override = models.material(kind)
+			OwnMaterial.give(node, models.material(kind))
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			node.visibility_range_end = 32.0
 			if models.materials().size() > had:
@@ -285,8 +266,8 @@ func show_gear(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 		var tone := Color(1, 1, 1, level.light[c])
 		if level.tints.size() >= 3:
 			tone = Color(level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c])
-		node.set_instance_shader_parameter("tone", tone)
-		node.set_instance_shader_parameter("look", e.boss_phase if e.boss_phase >= 2 else 0)
+		OwnMaterial.put(node, "tone", tone)
+		OwnMaterial.put(node, "look", e.boss_phase if e.boss_phase >= 2 else 0)
 	for key: String in _pieces.keys():
 		if not seen.has(key):
 			var old: MeshInstance3D = _pieces[key]

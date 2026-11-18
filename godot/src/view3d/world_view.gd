@@ -77,13 +77,15 @@ var _params := {}
 ## frame.
 const PICTURE_MODEL := -1
 var _picture_kinds := {}
-## The frame's numbers the shaders take as global uniforms (project.godot
-## [shader_globals]), as last set: one call a number, no material touched.
-## Every other _share number (the textures) goes to the materials.
+## The frame's numbers and the view's textures, which the shaders take as
+## global uniforms (project.godot [shader_globals]), as last set: one call a
+## number, no material touched. A model part's own numbers are its own
+## material's (OwnMaterial).
 const GLOBALS := {
 	"anim_count": true,
 	"anim_time": true,
 	"blackout": true,
+	"cells_tex": true,
 	"effects_on": true,
 	"eye": true,
 	"flash": true,
@@ -103,6 +105,7 @@ const GLOBALS := {
 	"liquor_flicker": true,
 	"map_size": true,
 	"mirror_on": true,
+	"mirror_tex": true,
 	"mirror_x": true,
 	"moon_rim": true,
 	"motion": true,
@@ -115,12 +118,16 @@ const GLOBALS := {
 	"shadow_ly": true,
 	"shadow_still": true,
 	"sky_drift": true,
+	"sky_tex": true,
 	"storm_base": true,
 	"storm_k": true,
 	"storm_r": true,
 	"storm_rich": true,
 	"storm_ring": true,
+	"tile_info_tex": true,
+	"tiles": true,
 	"view_angle": true,
+	"view_data": true,
 	"view_size": true,
 	"water_drift": true,
 	"wet": true,
@@ -147,9 +154,6 @@ var _data_dirty := false
 ## SHADOWS' numbers as last handed to the floors, walls and marks.
 var _received := {}
 var _materials: Array[ShaderMaterial] = []
-## The layers' materials met so far (_track_live): each handed the view's
-## material numbers (the textures) once, and again when one changes.
-var _known := {}
 ## The level's flowing floors' first two tiles and speeds, and the moving
 ## tiles' rows (_uniforms), worked out when the level or its tiles change.
 var _flows_of: LevelData
@@ -192,17 +196,17 @@ const PART_NAMES: Array[String] = [
 	"uniforms"
 ]
 var parts_us := PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-## The shader instance buffer: every model part drawn with instance uniforms
-## (props, wreck pieces, actors, seat views) holds a block of 16 of its vec4
-## slots, shown or hidden (Godot's fixed block, whatever the shader uses;
-## measured, pass 10), after the global uniforms' 44: 4096 slots on a desktop
-## are INSTANCE_PARTS parts, 1024 where a uniform block holds 16 KB (WebGL2's
-## least, many phones) INSTANCE_PARTS_SMALL. Past it the parts draw black. The layers park what
-## left the view (hidden, shown again when it comes back) only in the room
-## left after what is shown and INSTANCE_SPARE more.
-const INSTANCE_PARTS := 250
-const INSTANCE_PARTS_SMALL := 60
-const INSTANCE_SPARE := 40
+## The shader instance buffer where a uniform block holds 16 KB (WebGL2's
+## least, many phones): 1024 vec4 slots for the global uniforms (one each)
+## and, after them, a block of 16 for every model part drawn with a shader
+## that has instance uniforms, shown or hidden (Godot's fixed block, whatever
+## the shader uses; measured, pass 10). Past it parts draw black. No view3d
+## shader has instance uniforms since pass 10 (OwnMaterial);
+## tools/view_perf_check.gd and stress_bench.gd's check hold the busy scenes
+## under INSTANCE_ROOM_SMALL parts with INSTANCE_MARGIN to spare.
+const INSTANCE_SLOTS_SMALL := 1024
+const INSTANCE_ROOM_SMALL := 60
+const INSTANCE_MARGIN := 20
 var _mirror_view: SubViewport
 var _mirror_camera: Camera3D
 
@@ -369,7 +373,7 @@ func _init(assets: Assets) -> void:
 ## Made now, at the level's first frame, behind the chapter's opener or the
 ## load.
 func _warm_models(game: Game) -> void:
-	_track_live(props.warm(game.level))
+	props.warm(game.level)
 	if game.features.get("events") != null:
 		actors.warm(["hog", EventRaid.squad_kind()])
 	var rides: VehiclesFeature = game.features.get("vehicles")
@@ -379,7 +383,7 @@ func _warm_models(game: Game) -> void:
 			var seat := VehicleDrive.spec(ride.kind).cab
 			if seat != "" and not seat in seats:
 				seats.append(seat)
-		_track_live(cab.warm(seats))
+		cab.warm(seats)
 
 
 ## The view's first frames of a level draw, a speck in front of the eye, all
@@ -423,26 +427,36 @@ func warming() -> bool:
 	return _warm > 0
 
 
-## How many model parts with instance uniforms this machine has room for.
-static func instance_parts() -> int:
-	if OS.has_feature("web") or OS.has_feature("mobile"):
-		return INSTANCE_PARTS_SMALL
-	return INSTANCE_PARTS
+## The model parts under `root` (shown or hidden) drawn with a shader that
+## has instance uniforms: each holds a block of the shader instance buffer.
+## (Tools and checks; none since pass 10.)
+static func instance_uniform_parts(root: Node) -> int:
+	var n := 0
+	var asked := {}
+	for node: Node in root.find_children("*", "GeometryInstance3D", true, false):
+		var part := node as GeometryInstance3D
+		var m := part.material_override as ShaderMaterial
+		if m == null or m.shader == null:
+			continue
+		var has: Variant = asked.get(m.shader)
+		if has == null:
+			has = _has_instance_uniforms(m.shader.code, 0)
+			asked[m.shader] = has
+		n += 1 if has else 0
+	return n
 
 
-## The model parts with instance uniforms the view holds now.
-func instance_held() -> int:
-	return props.held() + wrecks.held() + actors.held()
-
-
-## How many props and actors out of view may stay parked in the room left:
-## actors first (a model costs a few tenths of a millisecond to make, a prop
-## a few hundredths), never past the room.
-func _park_room() -> void:
-	var room := instance_parts() - INSTANCE_SPARE - instance_held()
-	actors.park_most = clampi(actors.parked() + room, 0, ActorLayer3D.PARK)
-	room -= actors.park_most - actors.parked()
-	props.park_most = clampi(props.parked() + room, 0, PropLayer3D.PARK)
+## Whether shader code (with its includes) declares an instance uniform.
+static func _has_instance_uniforms(code: String, depth: int) -> bool:
+	if RegEx.create_from_string("(?m)^\\s*instance\\s+uniform").search(code) != null:
+		return true
+	if depth > 4:
+		return false
+	for found in RegEx.create_from_string('(?m)^\\s*#include\\s+"([^"]+)"').search_all(code):
+		var inner := FileAccess.get_file_as_string(found.get_string(1))
+		if _has_instance_uniforms(inner, depth + 1):
+			return true
+	return false
 
 
 func texture() -> ViewportTexture:
@@ -468,8 +482,7 @@ func shared(name: String) -> Variant:
 
 
 ## Set a shader number when it changed: a global uniform (GLOBALS) once, or
-## else (the textures) on the view's own materials and every layer's met so
-## far (_track_live).
+## else on the view's own materials (the layers' copies never take one).
 func _share(name: String, value: Variant) -> void:
 	if GLOBALS.has(name):
 		var was: Variant = _globals.get(name)
@@ -484,19 +497,6 @@ func _share(name: String, value: Variant) -> void:
 	_params[name] = value
 	for m: ShaderMaterial in _materials:
 		m.set_shader_parameter(name, value)
-	for m: ShaderMaterial in _known:
-		m.set_shader_parameter(name, value)
-
-
-## The props', wrecks' and actors' materials drawn this frame: one not met
-## before is handed the view's material numbers. (Until pass 10 the frame's
-## numbers went to every material drawn lately, each frame: `_live`.)
-func _track_live(materials: Array[ShaderMaterial]) -> void:
-	for m in materials:
-		if not _known.has(m):
-			_known[m] = true
-			for key: String in _params:
-				m.set_shader_parameter(key, _params[key])
 
 
 ## Row `row` of view_data from `values` (as many as fit), when it changed.
@@ -626,13 +626,12 @@ func frame(game: Game) -> void:
 				slabbed.append(s)
 			else:
 				pictures.append(item)
-	_park_room()
 	var t1 := Time.get_ticks_usec()
 	_shadows.collect(game, acting, modelled, wrecked, Vector3(x, y, z), props.models)
 	var t2 := Time.get_ticks_usec()
-	var fresh := props.show_props(modelled, level, Vector3(x, y, z))
+	props.show_props(modelled, level, Vector3(x, y, z))
 	var t3 := Time.get_ticks_usec()
-	fresh.append_array(wrecks.show_wrecks(wrecked, level))
+	wrecks.show_wrecks(wrecked, level)
 	var t4 := Time.get_ticks_usec()
 	_thing_marks.update(game, props, wrecks)
 	var t5 := Time.get_ticks_usec()
@@ -641,32 +640,22 @@ func frame(game: Game) -> void:
 	ActorView.lod_eye = Vector3(x, y, z)
 	ActorView.lod_high = ActorView.LOD_HIGH * r.focal / View.FOCAL
 	ActorView.lod_low = r.detail == 1
-	fresh.append_array(
-		actors.show_actors(
-			acting, level, game.clock, game.gore_fx.lost, gear_lost, Vector3(x, y, z)
-		)
-	)
-	fresh.append_array(actors.show_gear(gear, level))
+	actors.show_actors(acting, level, game.clock, game.gore_fx.lost, gear_lost, Vector3(x, y, z))
+	actors.show_gear(gear, level)
 	var t6 := Time.get_ticks_usec()
 	# The player in the mirror: their model when they have one, else their picture.
 	var reflection: View.Sprite = null
 	if mirror:
 		reflection = view.get("reflection")
-	fresh.append_array(actors.show_reflection(reflection, level, game.clock, LAYER_REFLECTION))
+	actors.show_reflection(reflection, level, game.clock, LAYER_REFLECTION)
 	var seat_view: Dictionary = eye.get("cab", {})
-	fresh.append_array(cab.show_cab(seat_view, Vector3(x, y, z), level))
+	cab.show_cab(seat_view, Vector3(x, y, z), level)
 	if (
 		reflection != null
 		and reflection.who is Enemy
 		and actors.kind_of(reflection.who as Enemy) != ""
 	):
 		reflection = null
-	# What the layers draw with this frame (the ones made now among them).
-	fresh.append_array(props.live_materials())
-	fresh.append_array(wrecks.live_materials())
-	fresh.append_array(actors.live_materials())
-	fresh.append_array(cab.live_materials())
-	_track_live(fresh)
 	var t7 := Time.get_ticks_usec()
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
 	var t8 := Time.get_ticks_usec()
