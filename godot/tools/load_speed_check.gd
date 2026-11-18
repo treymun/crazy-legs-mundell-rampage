@@ -7,7 +7,8 @@
 ## - the cues made in code (Assets.MADE_CUES), packed by pack_assets.gd
 ##   (made_cues.bin), are the samples made at once;
 ## - the title's warm-up (WorldView3D.warm_title) draws every view3d shader
-##   but the sky's (which draws itself) and takes its pieces away;
+##   but the sky's (which draws itself) and takes its pieces away, and a
+##   level started before it is done takes them away too;
 ## - each chapter's load (start() and the view's first frame) finds no rig
 ##   from vertices, leaves no model asked of the loader untaken, and keeps
 ##   within its time budget; no model's looks are kept as pixels beside the
@@ -79,6 +80,7 @@ func _run() -> void:
 	var view := WorldView3D.new(main.art)
 	main.add_child(view)
 	_title(view)
+	_cut_short()
 	await _loads(view)
 	_done()
 
@@ -168,6 +170,23 @@ func _title(view: WorldView3D) -> void:
 		calls > 10 and calls < 100 and view.get("_stage_left").is_empty(),
 		"the title's warm-up puts out a piece a call and is done (%d calls)" % calls
 	)
+
+
+## A level started before the title's warm-up is done takes its pieces away.
+func _cut_short() -> void:
+	var view := WorldView3D.new(main.art)
+	main.add_child(view)
+	for i in 3:
+		view.warm_title()
+	main.start("hickston")
+	var g: Game = main.game
+	g.draw(Canvas.new(), 0, true)
+	view.frame(g)
+	_check(
+		view.get("_stage") == null and view.get("_stage_left").is_empty(),
+		"a level started mid warm-up takes the warm-up's pieces away"
+	)
+	view.free()
 
 
 ## Each chapter loaded twice over (start() and the view's first frame).

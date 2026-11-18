@@ -4,7 +4,12 @@
 ## the 3D view's level mesh (LevelMesh.build_static, what a window builds on
 ## the level's first frame and again whenever a wall opens), and the wreck
 ## pieces' cutting alone with their caches empty (WreckCuts: since the load
-## pass it runs on a worker in the level's first frames, not in the load).
+## pass it runs on a worker in the level's first frames, not in the load),
+## and the 3D view's first frame of the level on a new view (headless: the
+## level's mesh, its models loaded and made, its enemies' ragdoll rigs, its
+## props' and pickups' looks; the rigs' and pictures' caches emptied as on a
+## first visit;
+## without a window its models load on the main thread, as before pass 10).
 ##
 ##   godot --headless --path godot --script res://tools/load_bench.gd [-- levels=a,b] [rounds=3]
 ##
@@ -58,12 +63,14 @@ func _run() -> void:
 		"ASSETS    %.1f ms (Assets, HUD, Sound made)" % [(Time.get_ticks_usec() - t_start) / 1000.0]
 	)
 	var options := SessionStore.settings("")
-	var totals := [0.0, 0.0, 0.0, 0.0]
+	var totals := [0.0, 0.0, 0.0, 0.0, 0.0]
+	var canvas := Canvas.new()
 	for level: String in levels:
 		var cold: Array = []
 		var warm: Array = []
 		var mesh: Array = []
 		var cuts: Array = []
+		var views: Array = []
 		for r in rounds:
 			# Cold: the wreck pieces' and nav graphs' caches empty, as on a
 			# level's first visit (warm: played again, a retry or a load).
@@ -88,6 +95,17 @@ func _run() -> void:
 			for key: String in keys:
 				WreckCuts.parts(assets, key)
 			var t5 := Time.get_ticks_usec()
+			# The view's first frame, on a new view with no rigs found yet.
+			RagdollRig._built.clear()
+			assets._art_cache.clear()
+			var view := WorldView3D.new(assets)
+			root.add_child(view)
+			game.draw(canvas, 0, true)
+			var t6 := Time.get_ticks_usec()
+			view.frame(game)
+			var t7 := Time.get_ticks_usec()
+			view.free()
+			views.append((t7 - t6) / 1000.0)
 			cold.append((t1 - t0) / 1000.0)
 			warm.append((t2 - t1) / 1000.0)
 			mesh.append((t3 - t2) / 1000.0)
@@ -95,7 +113,10 @@ func _run() -> void:
 			if r == rounds - 1:
 				print(
 					(
-						"%-16s cold %7.1f  warm %7.1f  mesh %6.1f (%d chunks)  cuts %6.1f (%d kinds) ms"
+						(
+							"%-16s cold %7.1f  warm %7.1f  mesh %6.1f (%d chunks)  cuts %6.1f"
+							+ " (%d kinds)  view %6.1f ms"
+						)
 						% [
 							level,
 							_median(cold),
@@ -103,7 +124,8 @@ func _run() -> void:
 							_median(mesh),
 							parts.size(),
 							_median(cuts),
-							keys.size()
+							keys.size(),
+							_median(views)
 						]
 					)
 				)
@@ -111,10 +133,11 @@ func _run() -> void:
 		totals[1] += _median(warm)
 		totals[2] += _median(mesh)
 		totals[3] += _median(cuts)
+		totals[4] += _median(views)
 	print(
 		(
-			"TOTAL            cold %7.1f  warm %7.1f  mesh %6.1f  cuts %6.1f ms"
-			% [totals[0], totals[1], totals[2], totals[3]]
+			"TOTAL            cold %7.1f  warm %7.1f  mesh %6.1f  cuts %6.1f  view %6.1f ms"
+			% [totals[0], totals[1], totals[2], totals[3], totals[4]]
 		)
 	)
 	quit()

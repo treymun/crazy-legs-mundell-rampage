@@ -363,6 +363,7 @@ func warm_title() -> bool:
 		return true
 	if _stage_left.is_empty():
 		_stage.queue_free()
+		_stage = null
 		viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 		return false
 	var make: Callable = _stage_left.pop_front()
@@ -516,6 +517,13 @@ func frame(game: Game) -> void:
 		return
 	var t0 := Time.get_ticks_usec()
 	_unwarm()
+	if _stage != null:
+		# A level started before the title's warm-up was done: its pieces go
+		# (what it had not compiled compiles as the level draws).
+		_stage.queue_free()
+		_stage = null
+		_stage_left.clear()
+		_stage_items.clear()
 	var r: View = game.view
 	var level: LevelData = game.level
 	var vw: int = r.vw
