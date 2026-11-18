@@ -854,7 +854,9 @@ func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 	if pieces != null:
 		var bits: int = f.spec.get("bits", 9)
 		pieces.scatter(at.x, at.y, z, stuff, bits, ax, ay)
-	game.burst(at.x, at.y, z, "chips", 10, 1.4)
+	# Its dice spent as ever, its specks left out: the boards bursting out
+	# (features/wall_looks.gd) read better than a cloud of chips.
+	game.burst(at.x, at.y, z, "chips", 10, 1.4, false)
 	var heard: float = f.spec.get("heard", 5.0)
 	game.disturb(at.x, at.y, heard, z)
 

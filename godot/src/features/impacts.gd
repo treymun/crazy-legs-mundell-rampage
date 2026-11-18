@@ -27,13 +27,13 @@ const THING_KEEP := 24
 ## Each material's hole: how many pictures it has (fx_hole_<kind>_N:
 ## tools/art/wall_mark_art.gd) and how big it lies on the wall (half its side).
 const HOLE_LOOKS := {
-	"fx_hole_wood": [3, .085],
-	"fx_hole_brick": [3, .095],
-	"fx_hole_tin": [2, .07],
-	"fx_hole_stone": [2, .075],
+	"fx_hole_wood": [3, .12],
+	"fx_hole_brick": [3, .14],
+	"fx_hole_tin": [2, .1],
+	"fx_hole_stone": [2, .1],
 }
 ## A blast's chunks out of the wall round its scorch: how many at most.
-const BLAST_CHUNKS := 3
+const BLAST_CHUNKS := 4
 
 var dice := RandomNumberGenerator.new()
 var _pellets := 0
@@ -365,7 +365,8 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 
 
 ## A blast's chunks knocked out of the wall in its scorch: big holes of the
-## wall's own material (splintered planks, brick craters), a few, near it.
+## wall's own material (splintered planks, brick craters), two to four, big,
+## in its upper half.
 func _chunks(scorch: View.WallMark, hit_d: float) -> void:
 	if not game.bullet_marks or hit_d > 1.1:
 		return
@@ -373,16 +374,20 @@ func _chunks(scorch: View.WallMark, hit_d: float) -> void:
 	var hole := Materials.hole(kind)
 	if hole == "" or kind == "glass":
 		return
-	for _k in dice.randi_range(1, BLAST_CHUNKS):
+	var floor_z: float = game.world.floor_under(scorch.x, scorch.y, scorch.z)
+	for _k in dice.randi_range(2, BLAST_CHUNKS):
 		var mark := View.WallMark.new()
-		var along := dice.randf_range(-.6, .6) * scorch.radius
+		var along := dice.randf_range(-.7, .7) * scorch.radius
 		mark.x = scorch.x + scorch.ux * along
 		mark.y = scorch.y + scorch.uy * along
-		mark.z = scorch.z + dice.randf_range(-.5, .5) * scorch.radius
 		mark.ux = scorch.ux
 		mark.uy = scorch.uy
 		mark.image = hole
-		mark.radius = dice.randf_range(.1, .14) * (1.2 - hit_d * .4)
+		mark.radius = dice.randf_range(.17, .24) * (1.2 - hit_d * .4)
+		# In the scorch's upper half, clear of the floor: where it is seen.
+		mark.z = maxf(
+			scorch.z + dice.randf_range(.2, 1.1) * scorch.radius, floor_z + mark.radius + .25
+		)
 		mark.material = scorch.material
 		mark.tile = scorch.tile
 		game.wall_marks.append(mark)

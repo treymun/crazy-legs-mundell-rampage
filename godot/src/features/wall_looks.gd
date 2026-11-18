@@ -394,7 +394,7 @@ func _board(pl: Planks, j: int, a: int, b: int) -> void:
 	if fx != null:
 		# Splinters back off the face it was struck on, a puff of dust.
 		var near := line - n * side * .53
-		for _k in 3 if pl.how == WallBreaks.SHOT else 5:
+		for _k in 2 if pl.how == WallBreaks.SHOT else 3:
 			var v: Vector3 = (
 				fx.scatter(1.4, 1.2) - Vector3(n.x, n.y, 0.0) * side * dice.randf_range(.6, 1.8)
 			)
@@ -474,13 +474,8 @@ func fence_staged(f: WallBreaks.Fence, _was: int) -> void:
 		for r: Array in ranges:
 			var a: int = r[0]
 			var b: int = r[1]
-			var parts: Array = []
-			if b - a >= 7 and dice.randf() < .7:
-				var cut := dice.randi_range(a + 3, b - 3)
-				parts = _lengths(pl, a, cut) + _lengths(pl, cut, b)
-			elif b > a:
-				parts = _lengths(pl, a, b)
-			for piece: Vector2i in parts:
+			# Whole lengths where they can (a board reads; a stick of it less).
+			for piece: Vector2i in _lengths(pl, a, b):
 				bits.append(PackedInt32Array([j, piece.x, piece.y]))
 	# The longest fly as boards; the rest go as splinters.
 	bits.sort_custom(_longer)
