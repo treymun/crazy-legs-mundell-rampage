@@ -56,24 +56,6 @@ const GREET := 11
 const TREAT := 12
 const GROWL := 13
 const RIDE := 14
-## His words on the badge for what he is up to.
-const WORDS := [
-	"",
-	"STAY",
-	"SIC",
-	"HELD",
-	"FETCH",
-	"FETCH",
-	"BAYIN'",
-	"POINT",
-	"DOWN",
-	"HOWLIN'",
-	"SKEERED",
-	"",
-	"",
-	"GROWLIN'",
-	"RIDIN'"
-]
 ## What he is up to while he goes with his player (state FOLLOW): at heel,
 ## ranging out, nosing about where he ranged, circling back, running to
 ## catch up, stepping out of a player's sights, trailing behind (sulking),
@@ -130,6 +112,9 @@ class Dog:
 	var lost := 0.0
 	var revive := 0.0
 	var down_at := -1.0
+	## When he last got up from down (his looks play the getting up and
+	## the shake after it from here).
+	var up_at := -10.0
 	var next_sniff := 0.0
 	var next_fetch := 0.0
 	var next_nose := 0.0
@@ -615,7 +600,7 @@ func _heel(d: Dog, p: Player, gap: float, back: float, dt: float) -> void:
 	if to_spot > .3:
 		var pace := n("run") if gap > n("run_past") else n("trot")
 		if d.mood == SULK:
-			pace = n("walk")
+			pace = n("sulk_pace")
 		var moved := head(d, p, spot, pace, dt)
 		if gap > 2.0 and moved < pace * dt * .2 and d.path.is_empty():
 			d.side = -d.side  # that side is shut: the other
@@ -728,7 +713,8 @@ func stride(d: Dog, heading: float, length: float, dt: float) -> float:
 		d.stall = maxf(d.stall, .01)  # not an inch: caught on something?
 	if moved > .0005:
 		d.pace = moved / maxf(dt, .0001)
-		d.gait += moved * (3.4 if d.pace > 4.0 else 6.5)
+		# Radians a cell, changing where his looks go from trot to gallop.
+		d.gait += moved * (3.4 if d.pace > HoundLooks.GALLOP_FROM else 6.5)
 		d.angle = HoundLegs.turn(d.angle, took, dt * 10.0)
 	return moved
 
@@ -1169,6 +1155,7 @@ func _lying(d: Dog, dt: float) -> void:
 ## when he got up himself).
 func _up(d: Dog, health: float, helper: Player) -> void:
 	revives += 1
+	d.up_at = game.clock
 	d.health = health
 	d.hurt_at = game.clock
 	d.rest_until = game.clock + n("rest_after_fight")
@@ -1206,8 +1193,8 @@ func prompt(p: Player) -> String:
 		return ""
 	var have: int = p.inventory.get("rinds", 0)
 	if have > 0:
-		return "%s: FEED BLUE A RIND" % game.use_key
-	return "HOLD %s: GET BLUE UP" % game.use_key
+		return "BLUE'S DOWN - %s: FEED HIM A RIND" % game.use_key
+	return "BLUE'S DOWN - HOLD %s" % game.use_key
 
 
 func _down_near(p: Player) -> Dog:
@@ -1336,90 +1323,27 @@ func _tell(p: Player, text: String) -> void:
 # ----------------------------------------------------------------- looks
 
 
-## The frame his model shows (scripts/blender/actors_hound.py).
+## The frame his model shows (actors.json "hound"; HoundLooks.pose).
 func frame(d: Dog) -> String:
-	var now := game.clock
-	if d.state == DOWN:
-		return "down" if now - d.down_at < 1.6 or fmod(now - d.down_at, 6.0) < 1.2 else "whine"
-	if now - d.hurt_at < .35:
-		return "pain"
-	if d.pace > 4.0:
-		return "r0"
-	if d.pace > .3:
-		return "w0"
-	match d.state:
-		STAY, RIDE:
-			return "sit"
-		PIN:
-			return "pin" if fmod(now, .5) < .25 else "pin2"
-		SIC:
-			return "bite" if now - (d.bite_at - n("bite_every")) < .25 else "bark"
-		BAY:
-			return "bay" if d.bark_at >= d.since else "sniff"
-		POINT:
-			return "point" if d.bark_at >= d.since else "sniff"
-		CARRY:
-			return "fetch"
-		HOWL:
-			return "bay"
-		GROWL:
-			return "bark"
-		COWER:
-			return "whine"
-	if d.item != "":
-		return "fetch"
-	if now - d.bark_at < .3:
-		return "bark"
-	if d.state == FOLLOW and d.job == NOSING:
-		return "sniff"
-	if d.slot < game.players.size():
-		var p: Player = game.players[d.slot]
-		if p.health <= 0:
-			return "whine"
-	return "0" if fmod(now + d.slot * .37, 1.1) < .55 else "wag"
+	var now: String = HoundLooks.pose(self, d)[0]
+	return now
 
 
 func sprites() -> Array:
-	var out: Array = []
 	if not on:
-		return out
-	for d: Dog in dogs:
-		if d.slot >= game.players.size() or game.players[d.slot].away:
-			continue
-		if not game.in_view(d.x, d.y, 1.2):
-			continue
-		var f := frame(d)
-		# Holding a hand, his body is drawn set back from it (looks only): at
-		# the hold's gap his reared-up head and paws stood inside its chest.
-		var back := HoundLooks.PIN_BACK if d.state == PIN else 0.0
-		var bx := d.x - cos(d.angle) * back
-		var by := d.y - sin(d.angle) * back
-		out.append(HoundLooks.body(game, d.slot, bx, by, d.floor_z, d.angle, d.gait, f, d.flash))
-		if d.item != "":
-			out.append(HoundLooks.carried(game, d.item, d.x, d.y, d.floor_z, d.angle))
-	return out
+		return []
+	return HoundLooks.sprites(self)
 
 
 ## BLUE's badge keeps the view's bottom left corner (ui/hud/hud_layout.gd).
 func hud_fixed(layout: HudLayout) -> void:
-	if on and game.local_player != null and dog_of(game.local_player) != null:
-		layout.take("badge", HoundLooks.rect())
+	HoundLooks.lay_fixed(self, layout)
+
+
+## GETTIN' BLUE UP while a hand is on him.
+func hud_flow(layout: HudLayout) -> void:
+	HoundLooks.lay_flow(self, layout)
 
 
 func draw_view(c: Canvas) -> void:
-	if not on or game.local_player == null:
-		return
-	var d := dog_of(game.local_player)
-	if d == null:
-		return
-	HudLayout.begin(c, "badge")
-	var face := "0"
-	if d.state == DOWN:
-		face = "down"
-	elif game.clock - d.hurt_at < 1.0 or d.health < n("health") * .3:
-		face = "2"
-	elif d.state == SIC or d.state == PIN or d.state == BAY or d.state == POINT:
-		face = "1"
-	var word: String = WORDS[d.state]
-	HoundLooks.badge(game, c, d.health / n("health"), face, word, d.state == DOWN)
-	HudLayout.end(c)
+	HoundLooks.draw(self, c)

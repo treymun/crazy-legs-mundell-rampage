@@ -21,7 +21,7 @@
 	"foreman": {"light": 1.06},
 	"gas_man": {"light": 1.08},
 	"hog": {"light": 1.25, "ragdoll": false, "flat": 1.0},
-	"hound": {"light": 1.1, "ragdoll": false, "flat": 1.0},
+	"hound": {"light": 0.96, "ragdoll": false, "flat": 1.0, "blend": 0.2},
 	"jerry": {"light": 1.15},
 	"maw": {"light": 1.12, "down_cel": true},
 	"maw_bare": {"light": 1.12, "down_cel": true},
