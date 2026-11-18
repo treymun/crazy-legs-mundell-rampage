@@ -111,6 +111,23 @@ static func lies(g: Game, entry: Array) -> float:
 	return entry[4] if entry.size() > 4 else g.world.elevation(x, y)
 
 
+## Weapons.NAMES as a set (pickup names asked of it every frame), made again
+## when the list is another or its length changed (a tuning reload).
+static var _guns := {}
+static var _guns_of: Array = []
+static var _guns_count := -1
+
+
+static func _is_gun(item: String) -> bool:
+	if not is_same(_guns_of, Weapons.NAMES) or _guns_count != Weapons.NAMES.size():
+		_guns_of = Weapons.NAMES
+		_guns_count = Weapons.NAMES.size()
+		_guns.clear()
+		for name: Variant in Weapons.NAMES:
+			_guns[str(name)] = true
+	return _guns.has(item)
+
+
 ## Whether (x, y) lies in a secret room not found yet (a hidden room behind a
 ## secret door still shut): a gun there neither shines nor goes on the map
 ## (Mundell can still smell it).
@@ -147,7 +164,7 @@ static func looked_at(g: Game, p: Player, far: float, facing: float) -> int:
 		if absf(x - p.x) > far or absf(y - p.y) > far:
 			continue
 		var item := str(entry[0])
-		if not Weapons.NAMES.has(item):
+		if not _is_gun(item):
 			continue
 		var to := Vector2(x - p.x, y - p.y)
 		var d := to.length()
@@ -180,15 +197,13 @@ static func shines(g: Game, out: Array) -> void:
 	var armory := g.local_player.armory
 	var size := tuned("shine_size")
 	for entry: Array in g.pickups:
-		# (In view asked first: the cheapest, and most pickups are not.)
+		# (A gun at all asked first: most pickups are not.)
+		var item := str(entry[0])
+		if not _is_gun(item):
+			continue
 		var x: float = entry[1]
 		var y: float = entry[2]
-		if not g.in_view(x, y, 1.0):
-			continue
-		var item := str(entry[0])
-		if not Weapons.NAMES.has(item):
-			continue
-		if not unclaimed(item, armory) or in_secret(g, x, y):
+		if not g.in_view(x, y, 1.0) or not unclaimed(item, armory) or in_secret(g, x, y):
 			continue
 		var beat := fmod(g.clock * .7 + x * .37 + y * .71, 1.6)
 		var frame := 1 if beat < .1 or (beat >= .2 and beat < .3) else 2 if beat < .2 else 0
@@ -210,7 +225,7 @@ static func lights(g: Game, p: Player) -> Array:
 		if absf(x - p.x) > 12.0 or absf(y - p.y) > 12.0:
 			continue
 		var item := str(entry[0])
-		if not Weapons.NAMES.has(item):
+		if not _is_gun(item):
 			continue
 		if not unclaimed(item, armory) or in_secret(g, x, y):
 			continue
@@ -228,7 +243,7 @@ static func draw_map(c: Canvas, map: GameAutomap, g: Game, seen: Dictionary) -> 
 	var armory := g.local_player.armory
 	for entry: Array in g.pickups:
 		var item := str(entry[0])
-		if not Weapons.NAMES.has(item) or not unclaimed(item, armory):
+		if not _is_gun(item) or not unclaimed(item, armory):
 			continue
 		var x: float = entry[1]
 		var y: float = entry[2]

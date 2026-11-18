@@ -71,21 +71,9 @@ static func load_tuning() -> void:
 ## waiting enemy changes nothing in a snapshot's delta.
 func step(e: Enemy, wdt: float, game: GameState) -> float:
 	look(game)
-	# (Worked out in the enemy's own method, Enemy.lod_step: its own fields
-	# are read there at half the cost of reading them from here.)
+	# (Worked out in the enemy's own methods, Enemy.lod_step and _lod_calm:
+	# its own fields are read there at half the cost of reading them here.)
 	return e.lod_step(self, wdt, game.clock)
-
-
-## Whether `e` may think less often now: far from every player who is up,
-## out of their sight lines' way, and nothing going on. `full` false asks
-## only what others change (a player's place, an alarm, a shot heard, a hit,
-## a critter's scare, the squad's calls): the rest only changes on its own
-## ticks, and a far calm one cannot start a wind-up, a volley or a climb.
-## (Enemy.lod_calm.)
-func calm(e: Enemy, game: GameState, full := true) -> bool:
-	if game.clock != _eyes_clock or game.players.size() != _eyes_players:
-		_look(game)
-	return e.lod_calm(self, game.clock, full)
 
 
 ## This tick's players for lod_step (worked out again when the clock or the

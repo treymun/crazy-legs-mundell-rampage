@@ -620,15 +620,15 @@ func retreat_from(game: GameWorld, px: float, py: float) -> void:
 
 ## EnemyLod.step for this enemy (src/enemy_lod.gd): the step to tick it
 ## with this tick, 0 while far and calm it waits. Written here, on its own
-## fields, for speed (a tick asks it of every enemy).
+## fields and in one function, for speed (a tick asks it of every enemy).
 func lod_step(lod: EnemyLod, wdt: float, clock: float) -> float:
 	if not (hp > 0.0) or dormant or brain == "bessie":
 		# (Enemy.tick does nothing for these.)
 		return wdt
-	# While it waits only what others can change is asked again (lod_calm's
-	# `full` false); the rest on the tick after each of its own.
+	# While it waits only what others can change is asked again (`full`
+	# false); the rest on the tick after each of its own.
 	var full := lod_since < 0.0 or clock - lod_since <= wdt * 1.5
-	if not EnemyLod.ON or not lod_calm(lod, clock, full):
+	if not EnemyLod.ON or not _lod_calm(lod, clock, full):
 		lod.thought += 1
 		if lod_since < 0.0:
 			return wdt
@@ -654,8 +654,12 @@ func lod_step(lod: EnemyLod, wdt: float, clock: float) -> float:
 	return since
 
 
-## EnemyLod.calm for this enemy (`lod` holds this tick's players).
-func lod_calm(lod: EnemyLod, clock: float, full: bool) -> bool:
+## Whether it may think less often now (EnemyLod's rules): far from every
+## player who is up (`lod` holds this tick's), out of their sight lines'
+## way, and nothing going on. `full` false asks only what others change (a
+## player's place, an alarm, a shot heard, a hit, a critter's scare, the
+## squad's calls): the rest only changes on its own ticks.
+func _lod_calm(lod: EnemyLod, clock: float, full: bool) -> bool:
 	var eyes := lod.eyes
 	var far2 := lod.far2
 	var view2 := lod.view2
