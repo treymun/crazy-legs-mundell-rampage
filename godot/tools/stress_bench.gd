@@ -56,8 +56,8 @@ const TICK_YARDS := {
 	"idle": 1.6,
 	"strike": 1.5,
 	"wreck48": 13.0,
-	"fire": 2.4,
-	"arena": 2.6,
+	"fire": 2.0,
+	"arena": 2.2,
 	"fivev5": 6.0,
 	"county": 7.0
 }
@@ -174,6 +174,7 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 	most_parts = 0
 	var start := _counts(g, extra)
 	var whole := PackedFloat64Array()
+	var each_tick := PackedFloat64Array()
 	var ticks := 0
 	var renders := 0
 	var last := Time.get_ticks_usec()
@@ -186,6 +187,7 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 		await process_frame
 		var now := Time.get_ticks_usec()
 		ticks += tick_us
+		each_tick.append(tick_us / 1000.0)
 		renders += t2 - t1
 		if hashing:
 			_fold(g, i)
@@ -221,7 +223,10 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 		hashes.clear()
 	if checking:
 		_hold(name)
-		_hold_tick(name, ticks / 1000.0 / n)
+		# The lower quartile of its frames' ticks: the scene's own work, what a
+		# busy machine (check_all's other rows) adds now and then left out.
+		each_tick.sort()
+		_hold_tick(name, each_tick[each_tick.size() / 4])
 	if shots != "" and DisplayServer.get_name() != "headless":
 		DirAccess.make_dir_recursive_absolute(shots)
 		root.get_texture().get_image().save_png(shots.path_join(name + ".png"))
@@ -338,7 +343,7 @@ func _hold(name: String) -> void:
 	)
 
 
-## check: the scene's tick (the mean over its frames) inside its budget in
+## check: the scene's tick (the lower quartile of its frames') inside its budget in
 ## TICK_YARDS, counted in yardsticks (a fixed piece of GDScript work timed
 ## here, so a slow or busy machine slows both alike; pass 10, PERFCPU).
 func _hold_tick(name: String, tick_ms: float) -> void:
