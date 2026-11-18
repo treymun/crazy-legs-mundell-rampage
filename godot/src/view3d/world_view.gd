@@ -433,6 +433,7 @@ func warm_up() -> void:
 	hidden.append_array(_rain)
 	hidden.append_array(cab.hidden_roots())
 	hidden.append_array(actors.warm_roots())
+	hidden.append_array(wrecks.warm_roots())
 	for node: Node3D in hidden:
 		if node.visible or _warmed.has(node):
 			continue
@@ -491,8 +492,9 @@ func _title_pieces() -> Array[Callable]:
 	var out: Array[Callable] = []
 	for m in plain:
 		out.append(_title_quad.bind(m))
+	out.append(wrecks.title_piece)
 	var many: Array[ShaderMaterial] = sprites.materials()
-	many.append_array([slabs.material, solids.material])
+	many.append_array([slabs.material, solids.material, wrecks.fine_material()])
 	for m in many:
 		out.append(_title_many.bind(m))
 	return out

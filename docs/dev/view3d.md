@@ -251,7 +251,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | slabs | `SlabLayer3D`, `SlabModels`, `slab.gdshader` | pickups, loose things (brass, gibs, bits) and range targets as pixel slabs (MultiMesh per mesh) |
 | solids | `SolidLayer3D`, `solid.gdshader` | sprites with `solid` set (bowling pins, the bowling ball) as real meshes turned by their own `turn` |
 | props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props (`PropModels.facing`: which way one stands) |
-| wrecks | `WreckLayer3D`, `wreck.gdshader` | broken scenery's real pieces (sprites with `solid` "~<key>#<piece>", cut by `src/wreck_cuts.gd`: [gameplay.md](gameplay.md#in-real-pieces-of-themselves)) |
+| wrecks | `WreckLayer3D`, `wreck.gdshader`, `wreck_fine.gdshader` | broken scenery's real pieces (sprites with `solid` "~<key>#<piece>", cut by `src/wreck_cuts.gd` and `src/wreck_fracture.gd`; cut faces drawn raw by their stuff from vertex colours) and the fine debris (one MultiMesh, the sprite "~~fine"; warmed by `warm_up`): [gameplay.md](gameplay.md#in-real-pieces-of-themselves) |
 | shadows | `ViewShadows` (`view_shadows.gd`), `view_light.gdshaderinc` | SHADOWS: what moves throws chunky shadows from the strong lights and a blob from the sky ([below](#shadows)) |
 | thing marks | `ThingMarks` (`thing_marks.gd`), `thing_marks.gdshaderinc` | holes, scorch and char on props, vehicles and wreck pieces ([below](#marks-on-modelled-things)) |
 | storm | `storm_wall.gdshader`, `world_view.gd _storm` | County Run's storm front: two curtains round the ring, the ground and the world outside it ([below](#county-runs-storm-front)) |

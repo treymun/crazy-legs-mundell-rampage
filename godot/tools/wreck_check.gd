@@ -11,7 +11,13 @@
 ## and that nothing breaks into pieces on the 5v5 and 2v2 maps. Then the cap:
 ## many breaks at once never leave more than `most` pieces once the oldest
 ## have shrunk away; a save put back throws nothing; and a tick with every
-## piece asleep costs next to nothing.
+## piece asleep costs next to nothing. And the breaks themselves (pass 11):
+## two breaks of a kind struck the same way come apart differently; the side
+## struck matters (the pieces go away from it, the fracture's origin is on
+## it); buckshot at arm's length throws harder than a revolver round; every
+## piece names its stuff and shape and has raw cut faces; a break throws fine
+## debris, never more than its cap; a shot that does not break a thing
+## chips it.
 extends SceneTree
 
 const DT := 1.0 / 60.0
@@ -56,6 +62,8 @@ func _run() -> void:
 	for id: String in VERSUS:
 		var g := _game(main, id)
 		_check(not g.features["wreckage"].on, "%s: no pieces on a versus map" % id)
+	print("\nBREAKS DIFFER")
+	_breaks(_game(main, "hickston"))
 	print("\nCAP, SAVES, COST")
 	_cap(_game(main, "hickston"))
 	_saves(_game(main, "hickston"))
@@ -170,8 +178,8 @@ func _level(game: Game) -> void:
 			shown += 1
 			print(
 				(
-					"       still moving: %s#%d at %s v %s w %s"
-					% [w.key, w.index, w.body.p, w.body.v, w.body.w]
+					"       still moving: %s#%d at %s v %s w %s awake %.1f s"
+					% [w.key, w.index, w.body.p, w.body.v, w.body.w, w.body.awake_for]
 				)
 			)
 	var worst := 0.0
@@ -361,3 +369,140 @@ func _saves(game: Game) -> void:
 	var idle := (Time.get_ticks_usec() - t0) / 120.0
 	_check(idle < 150.0, "a tick with %d pieces asleep costs %.0f us" % [wreck.wrecks.size(), idle])
 	print("  ok   %d pieces asleep: %.0f us a tick" % [wreck.wrecks.size(), idle])
+
+
+## A breakable of `image` on the game's level, whole, or null.
+func _piece_of(game: Game, image: String):
+	for p in game.features["breakables"].pieces:
+		if p.image == image and not p.broken:
+			return p
+	return null
+
+
+## The pieces one break of `p` throws when struck at its side `side` (a
+## unit way across the map) with `force`: [variant, turn, [middles], mean
+## speed, mean way]. The pieces are taken away again after.
+func _strike(wreck, p, side: Vector3, force: float) -> Array:
+	var src: Dictionary = wreck._source(p)
+	var hit = wreck.Impact.new()
+	var foot: float = wreck.game.world.stand(p) + p.z
+	hit.at = Vector3(p.x, p.y, foot + p.height * .5) + side * p.radius * .8
+	hit.way = -side
+	hit.force = force
+	hit.kind = "shot"
+	var before: int = wreck.wrecks.size()
+	wreck._burst_apart(src, hit, [], wreck.per_break, 1.0)
+	var middles: Array = []
+	var speed := 0.0
+	var way := Vector3.ZERO
+	var made: Array = wreck.wrecks.slice(before)
+	for w in made:
+		middles.append(w.body.p)
+		speed += w.body.v.length()
+		way += w.body.v
+	for w in made:
+		wreck._drop(w)
+	var n := maxf(1.0, made.size())
+	return [wreck.last_variant, wreck.last_turn, middles, speed / n, way / n]
+
+
+func _breaks(game: Game) -> void:
+	var wreck = game.features["wreckage"]
+	wreck.most = 1000
+	var forms := ["board", "stave", "ring", "disc", "shard", "sheet", "clump", "chunk"]
+	for image: String in ["prop_barrel", "prop_crate", "town_propane_tank", "town_range_hay_bale"]:
+		var p = _piece_of(game, image)
+		if p == null:
+			_check(false, "hickston has a whole %s" % image)
+			continue
+		# Every variant cut (as the level's first frames would).
+		var key: String = wreck._source(p)["key"]
+		for v in WreckCuts.variants(key):
+			WreckCuts.parts(game.art, key if v == 0 else "%s^%d" % [key, v])
+		var west := Vector3(-1, 0, 0)
+		var a := _strike(wreck, p, west, 1.0)
+		var b := _strike(wreck, p, west, 1.0)
+		var same: bool = a[0] == b[0] and absf(float(a[1]) - float(b[1])) < .01
+		var am: Array = a[2]
+		var bm: Array = b[2]
+		if same and am.size() == bm.size():
+			for i in am.size():
+				if (am[i] as Vector3).distance_to(bm[i]) > .01:
+					same = false
+					break
+		elif am.size() != bm.size():
+			same = false
+		_check(not same, "%s: two breaks struck the same way differ (%s, %s)" % [image, a[0], b[0]])
+		# Struck from the west the pieces go east, from the east west.
+		var east := _strike(wreck, p, Vector3(1, 0, 0), 1.0)
+		var wa: Vector3 = a[4]
+		var ea: Vector3 = east[4]
+		_check(
+			wa.x > .3 and ea.x < -.3,
+			"%s: pieces go away from the side struck (%.2f, %.2f)" % [image, wa.x, ea.x]
+		)
+		# The fracture's origin is on the side struck (a round thing's turned
+		# to it).
+		var src: Dictionary = wreck._source(p)
+		var turn: Basis = src["basis"]
+		var o: Vector3 = WreckCuts.origin(east[0])
+		o = Basis(Vector3(0, 0, 1), float(east[1])) * o
+		var world_o: Vector3 = turn * o
+		_check(
+			world_o.x > 0.0,
+			"%s: the fracture starts on the side struck (%.2f)" % [image, world_o.x]
+		)
+		var soft := _strike(wreck, p, west, .4)
+		var hard := _strike(wreck, p, west, 1.3)
+		_check(
+			float(hard[3]) > float(soft[3]) * 1.3,
+			(
+				"%s: buckshot at arm's length throws harder than a revolver round (%.2f, %.2f)"
+				% [image, hard[3], soft[3]]
+			)
+		)
+		var parts: Array = WreckCuts.parts(game.art, a[0])
+		var named := true
+		var raw := false
+		for part in parts:
+			named = named and part.material != "" and forms.has(part.form)
+			for c: Color in part.colors:
+				if c.a < .5:
+					raw = true
+					break
+		_check(named, "%s: every piece names its stuff and shape" % image)
+		_check(raw, "%s: its pieces have raw cut faces" % image)
+		print("  ok   %-22s %s vs %s, %d pieces" % [image, a[0], b[0], am.size()])
+	# A real break throws fine debris, capped.
+	var p = _piece_of(game, "prop_crate")
+	if p != null:
+		var i: int = game.features["breakables"].pieces.find(p)
+		game.features["breakables"].strike(i, 9999.0, 1.0, 0.0)
+		_ticks(game, 1)
+		_check(not wreck.debris.bits.is_empty(), "a break throws fine debris")
+	var cap: int = wreck.debris.most
+	for k in 40:
+		var q = _piece_of(game, "prop_barrel")
+		if q == null:
+			break
+		var j: int = game.features["breakables"].pieces.find(q)
+		game.features["breakables"].strike(j, 9999.0, 1.0, 0.0)
+		_ticks(game, 1)
+	_check(
+		wreck.debris.bits.size() <= cap,
+		"the fine debris never passes its cap (%d of %d)" % [wreck.debris.bits.size(), cap]
+	)
+	# A shot that does not break it chips it.
+	var whole = _piece_of(game, "town_outhouse")
+	if whole != null:
+		var had: int = wreck.debris.bits.size()
+		wreck.debris.bits.clear()
+		var at := Vector3(whole.x - .3, whole.y, game.world.stand(whole) + .8)
+		game.events.traced.emit(at, "thing")
+		game.features["breakables"].strike(
+			game.features["breakables"].pieces.find(whole), 1.0, 1.0, 0.0
+		)
+		_check(
+			not wreck.debris.bits.is_empty(), "a shot that does not break it chips it (%d)" % had
+		)
+	print("  ok   fine debris %d (cap %d)" % [wreck.debris.bits.size(), cap])

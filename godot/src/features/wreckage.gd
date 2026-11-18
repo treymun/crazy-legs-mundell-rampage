@@ -1,10 +1,17 @@
 ## Broken scenery in real pieces of itself: a crate shot apart throws its
-## boards, a barrel its staves, lids and hoops, a picnic table its top's planks
-## and its legs, the outhouse its walls and roof, a jug its shards, a sign a
-## splinter or two of its paint; a window's glass comes out in panes and a
+## boards snapped on a slant, a barrel its curved staves, split heads and
+## sprung hoops, a picnic table its top's planks and its legs, the outhouse
+## its walls and roof, a jug or a jar its shards, tin its torn sheets, hay
+## its flakes, a sign its splinters; a window's glass comes out in panes and a
 ## stockyard fence's boards and rails fly. Each piece is cut from the thing's
-## own look (wreck_cuts.gd: its model's triangles with its baked texture, or
-## its picture), flies as a rigid box (wreck_physics.gd, on the shared core
+## own look (wreck_cuts.gd, wreck_fracture.gd: its model's triangles with its
+## baked texture, or its picture; its cut faces drawn raw by what it is made
+## of), each kind in several seeded variants: a break takes the one whose
+## fracture is nearest where it was struck (a barrel's turned to face the
+## hit), never the one that kind broke as last. Fine debris flies with them
+## (wreck_debris.gd, features/wreck_burst.gd: splinters, shards, straw, never
+## the solver), dust puffs up and a shot that does not break a thing chips
+## it. Each piece flies as a rigid box (wreck_physics.gd, on the shared core
 ## phys_core.gd), bounces, slides, piles on the others and on bodies lying
 ## about (ragdolls, which lie on the pieces in turn) and stays where it comes
 ## to rest. How it flies comes from the hit that broke
@@ -22,7 +29,8 @@
 ## many lie about at most (the oldest shrink away first; fewer on a phone) and
 ## on which maps none fly; each breakable's `pieces` says how it comes apart.
 ## Pieces asleep cost nothing; the 3D view draws them (view3d/wreck_layer.gd)
-## from the sprites this hands it (View.Sprite.solid "~<key>#<piece>").
+## from the sprites this hands it (View.Sprite.solid "~<key>#<piece>", and
+## "~~fine" for the debris).
 extends GameFeature
 
 const Breakables := preload("res://src/features/breakables.gd")
@@ -52,8 +60,12 @@ const BLAST_PUSH := 7.0
 ## How fast a break's pieces part from its middle (times the stuff's burst).
 const PART := 1.1
 ## A walker kicks a piece within its radius plus this, under its knees.
+## Wakings where it lies before a restless piece is laid down (_restless).
+const WAKES := 6
 const KICK_REACH := .12
 const KNEES := .45
+## A breakable's fine debris, dust, second sound and chips.
+const BreakDebris := preload("res://src/features/wreck_burst.gd")
 
 
 ## One piece lying about or flying.
@@ -86,6 +98,23 @@ class Wreck:
 	## The settle cue a wall piece was thrown with (wall_looks: a shard broken
 	## again keeps its glass); sounds otherwise come from the body's stuff.
 	var clink := ""
+	## Asleep when last looked at, and how often it has woken since it was
+	## thrown or last knocked (_restless).
+	var asleep := false
+	var wakes := 0
+
+
+## How a thing was struck when it broke: where (map), which way the push
+## goes, how hard (about .4 a revolver round, 1.3 buckshot at arm's length,
+## up to 1.8 a blast near), and the blast's middle when a blast did it.
+## `kind` is "shot", "blast" or "knock" (a thrown thing, a car, a swing).
+class Impact:
+	var at := Vector3.ZERO
+	var way := Vector3(1, 0, 0)
+	var force := .7
+	var kind := "knock"
+	var blast := false
+	var from := Vector3.ZERO
 
 
 var physics: WreckPhysics
@@ -95,6 +124,8 @@ var on := false
 ## Pieces lying about at most (the oldest shrink away when more come), the
 ## small steps a tick, how long one takes to shrink away, how heavy a piece is.
 var most := 48
+## Pieces one breakable's break throws at most (the biggest).
+var per_break := 18
 var steps := 2
 var fade := .5
 var dense := 500.0
@@ -125,6 +156,17 @@ var _models: PropModels
 ## The big breaks coming apart in their own pieces (src/set_piece_wreck.gd):
 ## null where the level has none.
 var ruin: SetPieceWreck
+## The fine debris (wreck_debris.gd) and what makes it (wreck_burst.gd).
+var debris := WreckDebris.new()
+var burst: BreakDebris
+## The last breakable's break: how it was struck, the variant it broke as and
+## how far that was turned (tools/wreck_check.gd reads them).
+var last_impact: Impact = null
+var last_variant := ""
+var last_turn := 0.0
+## The variant each kind broke as last (never twice running).
+var _last_variant := {}
+var _fine_sprite := View.Sprite.new(-999.0, -999.0, "", 1.0, -999.0)
 
 
 func id() -> String:
@@ -147,11 +189,16 @@ func attach() -> void:
 	)
 	var few := phone or Quality.level() == Quality.LOW
 	most = cfg.get_value("pieces", "most_phone" if few else "most", 48)
+	per_break = cfg.get_value("pieces", "per_break_phone" if few else "per_break", 18)
+	debris.most = cfg.get_value("pieces", "fine_most_phone" if few else "fine_most", 80)
 	steps = cfg.get_value("pieces", "steps", 2)
 	fade = cfg.get_value("pieces", "fade", .5)
 	dense = cfg.get_value("pieces", "dense", 500.0)
 	physics = WreckPhysics.new(game.world)
 	_models = PropModels.new(game.art)
+	burst = BreakDebris.new(game, debris, dice)
+	_fine_sprite.solid = WreckLayer3D.FINE
+	_fine_sprite.who = debris
 	var sets: SetPiecesFeature = game.features.get("set_pieces")
 	if sets != null and not sets.pieces.is_empty():
 		ruin = SetPieceWreck.new(game)
@@ -172,6 +219,7 @@ func attach() -> void:
 	game.events.exploded.connect(_exploded)
 	game.events.blast_shoved.connect(_shoved)
 	game.events.traced.connect(_traced)
+	game.events.prop_struck.connect(_struck)
 
 
 ## What is broken now is not thrown (a save, a snapshot put on, the start).
@@ -224,6 +272,7 @@ func restore(_state: Dictionary) -> void:
 	for w: Wreck in wrecks:
 		physics.remove(w.body)
 	wrecks.clear()
+	debris.bits.clear()
 	_sync()
 
 
@@ -248,6 +297,9 @@ func _tick(dt: float) -> void:
 			_splash_next = game.clock + .15
 	if ruin != null and ruin.busy():
 		ruin.tick(dt)
+	if not debris.bits.is_empty():
+		debris.step(game.world, dt)
+	_restless()
 	_in_water(dt)
 	_glass_lands()
 	_unstick()
@@ -382,6 +434,7 @@ func _source(p: Breakables.Piece) -> Dictionary:
 	var recipe := str(p.spec.get("pieces", ""))
 	if recipe == "":
 		return {}
+	var stuff := str(p.spec.get("stuff", "wood"))
 	var foot := Vector3(p.x, p.y, game.world.stand(p) + p.z)
 	var plane := NAN
 	var face := NAN
@@ -394,7 +447,7 @@ func _source(p: Breakables.Piece) -> Dictionary:
 	if name != "" and not recipe.begins_with("planks"):
 		var turn := PropModels.facing(game.world, p.x, p.y, plane, face)
 		return {
-			"key": "m:%s|%s" % [name, recipe],
+			"key": "m:%s|%s~%s" % [name, recipe, stuff],
 			"origin": foot,
 			"basis": Basis(Vector3(0.0, 0.0, 1.0), -turn),
 			"size": _models.scale_of(name, p.height),
@@ -406,7 +459,7 @@ func _source(p: Breakables.Piece) -> Dictionary:
 		var a := eye.angle if eye != null else 0.0
 		axis = Vector3(-sin(a), cos(a), 0.0)
 	return {
-		"key": "p:%s|%s" % [p.image, recipe],
+		"key": "p:%s|%s~%s" % [p.image, recipe, stuff],
 		"origin": foot,
 		"basis": _frame(axis),
 		"size": p.height,
@@ -431,11 +484,231 @@ func _break_piece(p: Breakables.Piece) -> void:
 		return
 	var knock := _knock(p.x, p.y)
 	var is_sign: bool = p.spec.get("sign", false)
-	var count: int = p.spec.get("pieces_most", 3 if is_sign else 99)
-	var stuff := str(p.spec.get("stuff", "wood"))
+	var count: int = p.spec.get("pieces_most", 4 if is_sign else per_break)
 	var foot: Vector3 = src["origin"]
 	var hits := _hits_for(foot, p.radius, p.height, knock)
-	_throw(src, knock, .6 if is_sign else 1.0, count, "", [], stuff, hits)
+	var hit := _impact_of(p, hits)
+	last_impact = hit
+	src["stuff"] = str(p.spec.get("stuff", "wood"))
+	_burst_apart(src, hit, hits, mini(count, per_break), .7 if is_sign else 1.0)
+	burst.broke(p, hit, _material(p))
+
+
+## What a breakable's pieces are made of (breakables.cfg `stuff`, as the
+## cut's raw faces name it).
+func _material(p: Breakables.Piece) -> String:
+	return WreckFracture.material_of(str(p.spec.get("stuff", "wood")))
+
+
+## How a breakable was struck, from the hits that broke it (_hits_for): where
+## (the pellets' mean, the side facing a blast), which way, how hard (their
+## strengths together over BREAK_PUSH: about .4 a revolver round, 1.3 buckshot
+## at arm's length, up to 1.8 a blast near), else (a thrown thing, a car, a
+## swing, a client's mirror) its side facing this machine's player, .7.
+## Picks the variant and throws the debris; the pieces themselves are
+## knocked by `hits` (WreckPhysics.impact).
+func _impact_of(p: Breakables.Piece, hits: Array, along := Vector3.ZERO) -> Impact:
+	var hit := Impact.new()
+	var foot: float = game.world.stand(p) + p.z
+	var mid := Vector3(p.x, p.y, foot + p.height * .5)
+	var first: Array = hits[0] if not hits.is_empty() else []
+	if not first.is_empty() and str(first[3]) == "blast":
+		var b: Vector3 = first[0]
+		var away := mid - b
+		away.z = maxf(away.z, .15)
+		var flat := Vector3(away.x, away.y, 0.0).normalized()
+		hit.blast = true
+		hit.kind = "blast"
+		hit.from = b
+		hit.way = away.normalized()
+		hit.at = mid - flat * p.radius * .8
+		hit.at.z = clampf(b.z, foot + p.height * .15, foot + p.height * .85)
+		hit.force = 1.8 * clampf(1.15 - Vector2(away.x, away.y).length() / BLAST_NEAR, .45, 1.0)
+		return hit
+	if not hits.is_empty():
+		var at := Vector3.ZERO
+		var way := Vector3.ZERO
+		var total := 0.0
+		for row: Array in hits:
+			var a: Vector3 = row[0]
+			var w: Vector3 = row[1]
+			var strength: float = row[2]
+			at += a
+			way += w
+			total += strength
+		hit.at = at / hits.size()
+		hit.way = way.normalized() if way.length() > .01 else Vector3(1, 0, 0)
+		hit.kind = "shot"
+		hit.force = clampf(total / BREAK_PUSH, .3, 1.6)
+		return hit
+	var eye := game.local_player if game.local_player != null else game.player
+	var toward := Vector3(along.x, along.y, 0.0)
+	if toward.length() < .01 and eye != null:
+		toward = Vector3(p.x - eye.x, p.y - eye.y, 0.0)
+	if toward.length() < .01:
+		toward = Vector3(1, 0, 0)
+	hit.way = toward.normalized()
+	hit.at = mid - hit.way * p.radius * .8
+	hit.force = .7
+	return hit
+
+
+## A shot that did not break a thing knocks chips off where it struck.
+func _struck(image: String, x: float, y: float, _z: float, ax: float, ay: float) -> void:
+	var pieces: Breakables = game.features.get("breakables")
+	if pieces == null or burst == null:
+		return
+	for p: Breakables.Piece in pieces.pieces:
+		if p.image != image or absf(p.x - x) > .001 or absf(p.y - y) > .001:
+			continue
+		var foot := Vector3(p.x, p.y, game.world.stand(p) + p.z)
+		var along := Vector3(ax, ay, 0.0)
+		var hit := _impact_of(p, _hits_for(foot, p.radius, p.height, along), along)
+		burst.chips(p, hit, _material(p))
+		return
+
+
+## The variant of `key` a hit at `local` (in its source's frame) breaks as,
+## and how far it is turned about its upright (a round thing turns its
+## origin to the hit): [variant key, turn]. Variants not cut yet are passed
+## over while any is (a key is cut there and then only when none is).
+func _variant(key: String, local: Vector3) -> Array:
+	var count := WreckCuts.variants(key)
+	var ready: Array[int] = []
+	for v in count:
+		var named := key if v == 0 else "%s^%d" % [key, v]
+		if WreckCuts.has(named):
+			ready.append(v)
+	if ready.is_empty():
+		ready.append(0)
+	elif ready.size() < count and not OS.has_feature("threads"):
+		# No worker (the lite browser build): each break of a kind cuts the
+		# next variant there and then, till it has them all (WreckCuts.LITE).
+		ready.append(ready.size())
+	var round := WreckCuts.round_about(key)
+	var scored: Array = []
+	for v: int in ready:
+		var named := key if v == 0 else "%s^%d" % [key, v]
+		WreckCuts.parts(game.art, named)
+		var o := WreckCuts.origin(named)
+		# Round its sides first, its height a third as much.
+		var d := Vector2(o.x - local.x, o.y - local.y).length() + absf(o.z - local.z) * .35
+		if round:
+			d = absf(o.z - local.z) + dice.randf() * .2
+		scored.append([d, v, named, o])
+	scored.sort_custom(_nearer)
+	# The nearest two or three, never the one this kind broke as last time
+	# (two barrels shot alike still come apart differently).
+	var near := scored.slice(0, 3)
+	var last: int = _last_variant.get(key, -1)
+	if near.size() > 1:
+		for k in near.size():
+			var row: Array = near[k]
+			var v: int = row[1]
+			if v == last:
+				near.remove_at(k)
+				break
+	var pick: Array = near[0]
+	if near.size() > 1 and dice.randf() < .4:
+		pick = near[1]
+	_last_variant[key] = pick[1]
+	var turn := 0.0
+	if round:
+		var o: Vector3 = pick[3]
+		turn = atan2(local.y, local.x) - atan2(o.y, o.x)
+	return [pick[2], turn]
+
+
+static func _nearer(a: Array, b: Array) -> bool:
+	var da: float = a[0]
+	var db: float = b[0]
+	return da < db
+
+
+## A broken thing's pieces: the variant whose fracture is nearest the hit
+## (turned to it when round), up to `count` of them (the biggest), each a body
+## of the physics made of the thing's stuff (a hoop iron) in its cut's form
+## (_throw's way), parted from the middle and knocked by `hits` (the pellets
+## that broke it, the blast: WreckPhysics.impact), or with none by `hit`.
+func _burst_apart(src: Dictionary, hit: Impact, hits: Array, count: int, power: float) -> void:
+	var origin: Vector3 = src["origin"]
+	var turn: Basis = src["basis"]
+	var size: float = src["size"]
+	var stuff := str(src.get("stuff", "wood"))
+	var local := turn.transposed() * (hit.at - origin) / maxf(size, .01)
+	var picked := _variant(str(src["key"]), local)
+	var key: String = picked[0]
+	last_variant = key
+	var about: float = picked[1]
+	last_turn = about
+	var spin_about := Basis(Vector3(0, 0, 1), about)
+	var parts := WreckCuts.parts(game.art, key)
+	if parts.is_empty() or count <= 0:
+		return
+	var chosen: Array = range(parts.size())
+	if chosen.size() > count:
+		# The biggest go: the smallest are left to the fine debris.
+		chosen.sort_custom(
+			func(a: int, b: int) -> bool:
+				var pa: WreckCuts.Part = parts[a]
+				var pb: WreckCuts.Part = parts[b]
+				return pa.half.x * pa.half.y * pa.half.z > pb.half.x * pb.half.y * pb.half.z
+		)
+		chosen = chosen.slice(0, count)
+	var mid := Vector3.ZERO
+	for i: int in chosen:
+		var part: WreckCuts.Part = parts[i]
+		mid += part.centre
+	mid = origin + turn * (spin_about * (mid / maxf(1.0, chosen.size())) * size)
+	_groups += 1
+	for i: int in chosen:
+		var part: WreckCuts.Part = parts[i]
+		var at := origin + turn * (spin_about * part.centre * size)
+		var q := Quaternion((turn * spin_about * part.basis).orthonormalized())
+		if physics.solid(at) or _walled(at, q, part.half * size):
+			continue
+		var made_of := part.material if part.material == "iron" else stuff
+		var b := physics.add(at, q, part.half * size, made_of, part.form, _groups)
+		var w := Wreck.new()
+		w.body = b
+		w.key = key
+		w.index = i
+		w.size = size
+		w.sinks = WreckPhysics.stuff_of(made_of).sinks
+		w.sprite = View.Sprite.new(b.p.x, b.p.y, "", 1.0, b.p.z)
+		w.sprite.solid = "~%s#%d" % [key, i]
+		wrecks.append(w)
+	physics.burst(_groups, mid, PART * power, dice)
+	var knocks := hits
+	if knocks.is_empty():
+		if hit.blast:
+			knocks = [[hit.from, Vector3.ZERO, BLAST_PUSH * hit.force / 1.8, "blast"]]
+		else:
+			knocks = [[hit.at, hit.way, BREAK_PUSH * hit.force / .7, "break"]]
+	for row: Array in knocks:
+		var at: Vector3 = row[0]
+		var way: Vector3 = row[1]
+		var strength: float = row[2]
+		physics.impact(at, way, strength * power, str(row[3]), _groups, dice)
+	_cap()
+
+
+## Whether a piece would start with more than two of its corners in a wall
+## or furniture (a long bench by a fence): left out, never pushed out of it.
+func _walled(at: Vector3, q: Quaternion, half: Vector3) -> bool:
+	var turn := Basis(q)
+	var inside := 0
+	for k in 8:
+		var c := Vector3(
+			half.x * (1.0 if k & 1 else -1.0),
+			half.y * (1.0 if k & 2 else -1.0),
+			half.z * (1.0 if k & 4 else -1.0)
+		)
+		if physics.solid(at + turn * c):
+			inside += 1
+			if inside > 2:
+				return true
+	return false
 
 
 func _break_window(walls: WallBreaks, face: WallBreaks.WindowFace) -> void:
@@ -693,6 +966,8 @@ func _glass_lands() -> void:
 					o.wedged = false
 					o.body.wake()
 			looks.shatter(w)
+
+
 ## The hits that broke a thing standing at `foot` (its radius and height):
 ## the shots of the last SHOT_TIME whose ends struck within its reach (each
 ## pellet where it struck: [at, way, strength, "break"]), else a blast just
@@ -756,6 +1031,7 @@ func _traced(end: Vector3, _struck: String) -> void:
 	for w: Wreck in wrecks:
 		if w.body == b:
 			w.wedged = false
+			w.wakes = 0
 			if w.fading >= 0.0:
 				return
 	var push := minf(
@@ -806,6 +1082,8 @@ func _sounds() -> void:
 		var strength := clampf(b.hit / made.loud, .12, 1.0) * .6
 		var rate := clampf(.32 / maxf(b.reach, .05), .8, 1.35) * dice.randf_range(.94, 1.06)
 		game.sound_at(cue, b.p.x, b.p.y, strength, rate)
+
+
 ## Throw pieces `only` of a cut another feature made (a vehicle's parts:
 ## src/vehicle_wreck_looks.gd), as _throw does, when pieces fly here.
 func throw_cut(src: Dictionary, knock: Vector3, power: float, only: Array) -> void:
@@ -888,6 +1166,29 @@ func _in_water(dt: float) -> void:
 			b.q = was_q
 
 
+## A piece woken again and again where it lies (a pile of curved staves
+## that will not settle, each waking the next) lies down once it has woken
+## more than WAKES times since it was thrown or knocked, slow enough; one
+## laid down still half in something shrinks away.
+func _restless() -> void:
+	for w: Wreck in wrecks:
+		var b := w.body
+		if not b.awake:
+			w.asleep = true
+			continue
+		if w.asleep:
+			w.asleep = false
+			w.wakes += 1
+		if w.wakes > WAKES and b.v.length() < .3 and b.w.length() < 1.0 and w.fading < 0.0:
+			b.awake = false
+			b.v = Vector3.ZERO
+			b.w = Vector3.ZERO
+			# Laid down half in something (it was still being pushed out):
+			# it shrinks away instead.
+			if physics.inside(b) > .03:
+				w.fading = game.clock
+
+
 ## A piece gone to sleep wedged where nothing fits (WreckPhysics: stuck)
 ## shrinks away.
 func _unstick() -> void:
@@ -929,6 +1230,7 @@ func _shoved(x: float, y: float, reach: float, power: float) -> void:
 	for w: Wreck in wrecks:
 		if absf(w.body.p.x - x) < reach and absf(w.body.p.y - y) < reach:
 			w.wedged = false
+			w.wakes = 0
 	physics.impact(Vector3(x, y, z), Vector3.ZERO, power * 1.6, "blast", -1, dice)
 
 
@@ -1009,6 +1311,7 @@ func _walker(
 			continue
 		var at := Vector3(x, y, b.p.z) + Vector3(off.x, off.y, 0.0).normalized() * radius
 		w.wedged = false
+		w.wakes = 0
 		physics.impact(at, way, push, kind, -1, dice, b)
 
 
@@ -1034,4 +1337,6 @@ func sprites() -> Array:
 			k *= clampf(1.0 - (game.clock - w.fading) / maxf(.01, fade), 0.0, 1.0)
 		s.turn = Basis(b.q) * w.shape * Basis.from_scale(Vector3.ONE * k)
 		out.append(s)
+	if not debris.bits.is_empty():
+		out.append(_fine_sprite)
 	return out
