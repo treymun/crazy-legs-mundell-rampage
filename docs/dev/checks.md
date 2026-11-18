@@ -329,6 +329,30 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   (since the load pass not part of the load: it runs on a worker in the
   level's first frames).
 
+### Measured in pass 11, the big breaks coming apart (COLLAPSE, 2026-11-18)
+
+v3.8.0 (`deffaa87`) against the COLLAPSE branch, back to back, three pairs,
+medians (the PC was shared with the other tracks' runs; the cleanest round).
+`hitch_bench.gd -- only=barn,tower frames=240` (vsync off, a fresh scratch
+`APPDATA` each run): the 4 s from the strike that brings Hickston's barn or
+water tower down.
+
+| What | v3.8.0 | pass 11 |
+| --- | --- | --- |
+| barn: median / p99 / worst frame | 3.72 / 10.34 / 12.97 ms | 4.30 / 11.23 / 13.66 ms |
+| tower: median / p99 / worst frame | 3.48 / 11.87 / 15.61 ms | 3.79 / 8.08 / 16.62 ms |
+
+Headless, the tick and the set pieces' and wreckage's `sprites()` over the six
+seconds after each of the seven set pieces is brought down (three pairs):
+tick median 0.48 to 0.56 ms, sprites 0.025 to 0.077 ms, worst tick the same
+(about 12 ms, play's own landing work). The worst frame stays within +10 %;
+the median while a barn comes down is about +0.5 ms (+15 %), for those
+seconds only, spent on the pieces drawn on their own as they land, the dust
+and the splinters (the cut, which was a 33 ms spike when done at once, runs
+on a worker in the creak; a part's riding pieces are one mesh until they go;
+merges run on a worker). Once it lies still the ruin is a few merged meshes,
+as before.
+
 ### Measured in pass 10, the 3D view's draw (PERFGPU, 2026-11-17)
 
 Desktop, 1280x800 window, scratch `APPDATA`, v3.7.0 (`4972aec9`) against
