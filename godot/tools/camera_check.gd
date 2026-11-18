@@ -385,8 +385,8 @@ func _kill_cam() -> void:
 	_boss_fall()
 
 
-## BOSSES (the default): sampled only while a boss is up, its fall shown once
-## the fall's slow motion is over.
+## BOSSES (the default): no replay at all now; a boss's fall is the boss
+## ending's (src/boss_ending.gd, tools/boss_end_check.gd), shown live.
 func _boss_fall() -> void:
 	main.start("hickston")
 	main.state = "play"
@@ -396,8 +396,6 @@ func _boss_fall() -> void:
 	var still := Game.Controls.new()
 	for e: Enemy in g.enemies:
 		e.dormant = true
-	_frames(g, 30, still)
-	_check(cam.moments.is_empty(), "BOSSES samples nothing with no boss up")
 	var kind := ""
 	for k: String in Enemy.BOSS_TITLES:
 		if kind == "" and Enemy.DEFS.has(k):
@@ -407,20 +405,20 @@ func _boss_fall() -> void:
 	g.enemy_ids.append("check-boss")
 	boss.alerted = true
 	_frames(g, 45, still)
-	_check(cam.moments.size() >= 4, "and samples while a boss (%s) is up" % kind)
+	_check(cam.moments.is_empty(), "BOSSES samples nothing, a boss (%s) up or not" % kind)
 	boss.hurt(9999999.0, g)
-	_check(not cam.pending.is_empty(), "the boss's fall is noted")
-	var slow := g.slowmo > 0.0
-	var waited := 0
-	while not cam.ready(main) and waited < 1200:
-		_frames(g, 1, still)
-		waited += 1
-	_check(
-		cam.ready(main) and g.slowmo <= 0.0,
-		"shown once its slow motion (%s) is over (%d frames on)" % [slow, waited]
-	)
-	_check(cam.start(main), "the boss's replay starts")
-	cam.stop(main)
+	_check(cam.pending.is_empty(), "a boss's fall is left to the boss ending, not replayed")
+	main.options["kill_cam"] = KillCam.AREAS
+	main.apply_options()
+	var other := Enemy.new(kind, p.x + cos(p.angle) * 4.0, p.y + sin(p.angle) * 4.0, 0.0)
+	g.enemies.append(other)
+	g.enemy_ids.append("check-boss-2")
+	other.alerted = true
+	_frames(g, 45, still)
+	other.hurt(9999999.0, g)
+	_check(cam.pending.is_empty(), "nor with BOSSES AND AREAS")
+	main.options["kill_cam"] = KillCam.BOSSES
+	main.apply_options()
 
 
 func _frames(g: Game, n: int, held: Game.Controls) -> void:

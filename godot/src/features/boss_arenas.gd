@@ -173,6 +173,17 @@ func drop(
 	drops.append([kind, x, y, game.clock + fuse, fuse, radius, damage, cause])
 
 
+## The boss fell (features/boss_fight.gd): its throws still coming down
+## (copper rain, dynamite, curlers, rocks), its burning slicks and the
+## core's pulses go with it. Play: no dice.
+func stand_down(e: Enemy) -> void:
+	if e != boss:
+		return
+	drops.clear()
+	slicks.clear()
+	pulses.clear()
+
+
 func _tick(_dt: float) -> void:
 	if boss == null:
 		return

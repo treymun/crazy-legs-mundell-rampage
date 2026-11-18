@@ -51,6 +51,13 @@ static var NO_RING: Array = BossData.get_value("boss_fight", "no_ring")
 ## Names for the tally where a chapter has two.
 static var SHORT: Dictionary = BossData.get_value("boss_fight", "short")
 static var SPECK_CAP: int = BossData.get_value("boss_fight", "speck_cap")
+## The fall's slow motion at its slowest (eased in and out as a finisher's).
+static var SLOWMO_PACE: float = BossData.get_value("boss_fight", "slowmo_pace")
+## Seconds the hands near a fallen boss stand stunned, and how near.
+static var AWE: float = BossData.get_value("boss_fight", "awe")
+static var AWE_REACH: float = BossData.get_value("boss_fight", "awe_reach")
+## Seconds after the fall the body lands: dust thrown round it, a jolt.
+static var LANDS: float = BossData.get_value("boss_fight", "lands")
 
 ## The level's bosses.
 var bosses: Array = []
@@ -59,6 +66,8 @@ var met := {}
 var down := {}
 ## A winding-up boss's instance id -> Vector2(its wind-up's length, last seen).
 var windups := {}
+## Fallen bosses whose body has yet to land (looks: the dust beat).
+var landing: Array = []
 var dice := RandomNumberGenerator.new()
 
 
@@ -124,6 +133,8 @@ func tally_rows() -> Array:
 
 
 func _tick(_dt: float) -> void:
+	if not landing.is_empty():
+		_landings()
 	for e: Enemy in bosses:
 		var key := e.get_instance_id()
 		if e.windup > 0.0 and e.alive:
@@ -293,15 +304,68 @@ func _killed(e: Enemy) -> void:
 	if met.has(e.kind) and not down.has(e.kind):
 		var met_at: float = met[e.kind]
 		down[e.kind] = maxf(0.0, game.clock - met_at)
+	# The slow motion eases in and out (game_state.gd slow_pace), as a
+	# finishing shot's does: before, it held at SLOWMO_PACE and snapped back.
 	game.slowmo = maxf(game.slowmo, SLOWMO)
+	game.slowmo_for = game.slowmo
+	game.slowmo_pace = SLOWMO_PACE
+	stand_down(e)
 	_blast(e)
 	_loot(e)
+	landing.append(e)
 	if e != game.finale and e != game.jerry:
 		# The chapter's last boss and Jerry have their stings (game_world.gd).
 		game.sound.play("crowd_cheer", .8)
 	BossKit.moves(e.kind).dying(e, game)
 	var took: float = down.get(e.kind, 0.0)
 	game.events.boss_down.emit(e, took)
+
+
+## The fight is over where it fell: the boss's and its hands' shots still in
+## the air and the arena's hazards go (features/boss_arena.gd,
+## boss_arenas.gd stand_down), and every hand near it (in its room, or within
+## AWE_REACH) stands stunned AWE seconds, gawping, while the fall plays out.
+## Play: no dice, the same in every game and on every machine.
+func stand_down(e: Enemy) -> void:
+	var kept: Array = []
+	for shot: GameState.Shot in game.shots:
+		if not shot.enemy:
+			kept.append(shot)
+	game.shots = kept
+	game.hazards.clear()
+	for id: String in ["boss_arena", "boss_arenas"]:
+		var arena: GameFeature = game.features.get(id)
+		if arena != null and arena.has_method("stand_down"):
+			arena.call("stand_down", e)
+	var locked := not BossFight.lock_of(game, e.kind).is_empty()
+	for o: Enemy in game.enemies:
+		if o == e or not o.alive or not o.hostile or BossKit.is_boss(o):
+			continue
+		var near := Vector2(o.x - e.x, o.y - e.y).length() < AWE_REACH
+		if not near and not (locked and BossFight.in_room(game, e.kind, o.x, o.y)):
+			continue
+		o.stun = maxf(o.stun, AWE)
+		o.windup = 0.0
+		o.aim_mark = null
+		o.cooldown = maxf(o.cooldown, AWE)
+
+
+## Looks: the body landing LANDS seconds after its fall (the boss's own fall
+## drawn by its model): a ring of dust and chips round it, and a jolt.
+func _landings() -> void:
+	var still: Array = []
+	for e: Enemy in landing:
+		if game.clock - e.died_at < LANDS:
+			still.append(e)
+			continue
+		var floor_z: float = game.world.stand(e)
+		var wide := e.radius + e.height * e.variant * .25
+		for k in 14:
+			var a := k * TAU / 14.0
+			sparks(e.x + cos(a) * wide, e.y + sin(a) * wide, floor_z + .1, "dust", 2, 1.4)
+		sparks(e.x, e.y, floor_z + .3, "chips", 8, 1.8)
+		game.shake = minf(1.0, game.shake + .45)
+	landing = still
 
 
 ## Looks only: chunks, sparks and dust thrown wide, what lies near thrown again.

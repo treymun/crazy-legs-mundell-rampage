@@ -455,9 +455,10 @@ func finish_rematch() -> void:
 
 ## Each frame in play: a rematch whose boss fell a moment ago ends.
 func watch_rematch() -> void:
-	if state == "play" and in_rematch():
+	if state == "play" and in_rematch() and not boss_end.playing:
 		var fight: BossRematchFeature = game.features["boss_rematch"]
-		if fight.finished():
+		# The boss's fall shown to its black ends it at once.
+		if fight.finished() or (fight.fell >= 0.0 and boss_end.ended_game == game):
 			finish_rematch()
 
 

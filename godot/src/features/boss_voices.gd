@@ -191,11 +191,12 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = 4471
-	for wired: Array in [["boss_intro", _intro], ["boss_phase", _phase], ["boss_down", _down]]:
-		var signal_name := str(wired[0])
-		var handler: Callable = wired[1]
-		if game.has_signal(signal_name):
-			game.connect(signal_name, handler)
+	# On the event hub: these looked for the signals on the game itself, which
+	# has none since GameEvents, so no entrance, worried line or last word was
+	# ever said (pass 10, found with the boss endings).
+	game.events.boss_intro.connect(_intro)
+	game.events.boss_phase.connect(_phase)
+	game.events.boss_down.connect(_down)
 	game.events.player_hurt.connect(_hurt)
 	game.events.boss_enraged.connect(_enraged)
 	tick_with(_tick)

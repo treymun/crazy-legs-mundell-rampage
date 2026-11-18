@@ -174,6 +174,8 @@ var cpu_canvas := false
 var hud_layer: HudLayer
 var photo := PhotoMode.new()
 var kill_cam := KillCam.new()
+## A boss's fall shown as a cinematic (boss_ending.gd).
+var boss_end := BossEnding.new()
 ## The chapter openers (opener.gd): the cinematic before a chapter's first tick.
 var opener := ChapterOpener.new()
 ## QUALITY (core/quality.gd): the tier AUTO measured on this machine (-1 not
@@ -600,7 +602,9 @@ func release_games() -> int:
 		if each is NetPlay:
 			var link: NetPlay = each
 			kept.append(link.match_game())
-	kept.append_array([kill_cam.game, photo.game, hud.shown_game if hud != null else null])
+	kept.append_array(
+		[kill_cam.game, boss_end.game, photo.game, hud.shown_game if hud != null else null]
+	)
 	kept.append_array([opener.game, opener.pending])
 	return games.sweep(kept)
 
@@ -743,6 +747,7 @@ func apply_options() -> void:
 	hud.minimal = hud_mode == 1
 	var kill_mode: int = options.get("kill_cam", KillCam.BOSSES)
 	kill_cam.mode = kill_mode
+	boss_end.mode = kill_mode
 	var opener_mode: int = options.get("openers", ChapterOpener.FIRST_TIME)
 	opener.mode = opener_mode
 	var quality: int = options.get("quality", 0)
@@ -1257,7 +1262,9 @@ func render() -> void:
 		game.view3d = game.layered
 		var crosshair: int = options["crosshair"]
 		_pin_hud()
-		if kill_cam.playing:
+		if boss_end.playing:
+			boss_end.draw(self)  # a boss's fall from its own camera, no HUD
+		elif kill_cam.playing:
 			kill_cam.draw(self)  # the replay from its own camera, no HUD
 		elif opener.playing:
 			opener.draw(self)  # a chapter's opener: its own camera, no HUD

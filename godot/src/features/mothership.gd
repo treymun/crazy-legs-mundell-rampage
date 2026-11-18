@@ -604,6 +604,7 @@ func _killed(enemy: Enemy) -> void:
 	game.sound.sting(cue("end"))
 	rings.clear()
 	cracks.clear()
+	pins.clear()
 	# The pods' crew drop where they stand, the ship's power going with her.
 	for i in range(game.enemy_ids.size(), game.enemies.size()):
 		var e: Enemy = game.enemies[i]

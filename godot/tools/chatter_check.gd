@@ -378,8 +378,11 @@ static func _turns(main, check: Callable) -> void:
 	ear.played.clear()
 	variants._says(tough)
 	check.call(
-		ear.played == ["bark_tough_earl"] and g.caption == variants.TOUGH_SAYS["tough_earl"],
-		"a tough guy says his piece, captioned %s" % [ear.played]
+		(
+			ear.played == ["hush", "bark_tough_earl"]
+			and g.caption == variants.TOUGH_SAYS["tough_earl"]
+		),
+		"a tough guy says his piece, cutting in, captioned %s" % [ear.played]
 	)
 	g.chatter = CussLines.OFF
 	ear.played.clear()

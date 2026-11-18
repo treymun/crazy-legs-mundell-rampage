@@ -104,15 +104,19 @@ browser build downloads it (`JavaScriptBridge.download_buffer`); headless it
 is the software canvas's view rows. ESC, P or MENU leaves.
 
 **KILL CAM** (`src/kill_cam.gd`; PLAY page `kill_cam`: OFF, BOSSES (the
-default), BOSSES AND AREAS; never online or with more than one player):
+default), BOSSES AND AREAS; never online or with more than one player). Since
+pass 10 a boss's fall is not replayed: BOSSES and up show it live as the boss
+ending ([bosses.md](bosses.md#the-boss-ending-pass-10)); the replay framed a
+giant from a hand's distance (inside Maw, inside the King's fan cage), ran
+time backwards and cut in and out hard.
 
-- While play runs it samples `game.view_frame` `rate` times a second of game
-  clock, `keep` seconds of it: copies of the moving sprites (the level's
-  fixed sprites are taken as they stand when it plays) and each body's pose
-  (kind, heading, gait, height, when it died). In BOSSES it samples only while
-  a boss is up and awake. It listens to `enemy_killed` and only notes a kill:
-  a boss, or (BOSSES AND AREAS) the last of `fight` kills in `fight_time`
-  seconds with no foe awake within `area` cells.
+- With BOSSES AND AREAS, while play runs it samples `game.view_frame` `rate`
+  times a second of game clock, `keep` seconds of it: copies of the moving
+  sprites (the level's fixed sprites are taken as they stand when it plays)
+  and each body's pose (kind, heading, gait, height, when it died). It
+  listens to `enemy_killed` and only notes a kill: the last of `fight` kills
+  in `fight_time` seconds with no foe awake within `area` cells, never a
+  boss.
 - It starts once `game.slowmo`, `hitstop` and `boss_hold` are all over and
   `delay` more seconds have played: a finishing shot's slow motion that uses
   `game.slowmo` runs first, then the replay.
@@ -124,8 +128,8 @@ default), BOSSES AND AREAS; never online or with more than one player):
   black bars carry KILL CAM and how to skip. Any key, click, tap or pad
   button skips it. Lost limbs are not shown in the replay.
 - Cost (measured in a 1280x800 window while firing, 2026-11-15): one sample
-  0.35 to 0.6 ms, taken every other frame at 60 fps (BOSSES only while a boss
-  is up and alerted); the HUD's Controls 0.03 ms a frame over the old bar.
+  0.35 to 0.6 ms, taken every other frame at 60 fps (BOSSES AND AREAS only);
+  the HUD's Controls 0.03 ms a frame over the old bar.
 
 ## The chapter openers (content pass 8)
 
