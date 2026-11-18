@@ -168,8 +168,6 @@ const REPORT_GAIN := {
 ## played twice running): BLUE's, whose barks in turn ran a fixed round.
 const SHUFFLED := "hound_"
 const VARIANTS := {
-	# BLUE, the hound (features/hound.gd, hound_voice.gd; scripts/audio_spec.py
-	# "the hound"): dealt at random, never the take just played (SHUFFLED).
 	"hound_bark":
 	["hound_bark", "hound_bark_alt", "hound_bark_alt2", "hound_bark_alt3", "hound_bark_alt4"],
 	"hound_bay": ["hound_bay", "hound_bay_alt", "hound_bay_alt2"],
@@ -660,8 +658,7 @@ var _game_music := 1.0
 var _opener_hold := 1.0
 var _opener_aim := 1.0
 var _duck_voice := false
-## The room's ambience as a share of its level (OPENER_AMB under an opener),
-## and the sting's (sting()).
+## The ambience's and the sting's share of their level (OPENER_AMB, sting()).
 var _amb_share := 1.0
 var _sting_share := 1.0
 var _preview_left := 0.0
@@ -674,8 +671,7 @@ var score_lift := 1.0
 
 var _amb_target := [0.0, 0.0]
 var _amb_rate := [0.0, 0.0]
-## The dice for each effect's own pitch and level (PITCH_SPREAD), and for
-## the takes of a SHUFFLED set.
+## The dice for each effect's pitch and level (PITCH_SPREAD) and SHUFFLED takes.
 var _dice := ShuffleRng.new(3001)
 var _take_dice := ShuffleRng.new(3011)
 ## The pitch play_at_rate() asks of the cue it starts (1 otherwise).
@@ -1369,9 +1365,8 @@ func opener_music(cue: String) -> void:
 	_sting.player.stream_paused = false
 
 
-## A chapter opener's bed (opener_mix.gd): score `context` from the top of
-## `song`, held at `hold` and ducked under the voice channel. False when the
-## song is not here (the opener falls back on its sting).
+## A chapter opener's bed (opener_mix.gd): score `context` from the top of `song`,
+## held at `hold`, ducked under the voice. False when it is not here (the sting).
 func opener_bed(context: String, song: String, hold: float) -> bool:
 	if score_player == null or song == "" or assets.track(song) == null:
 		return false
@@ -1423,9 +1418,8 @@ func toggle_music() -> void:
 const DJ_GAIN := .72
 const RADIO_DUCK := .32
 const MUSIC_UNDER_DJ := .42
-## Under a chapter opener's spoken lines (the voice channel) the music sits at
-## VOICE_DUCK, going down at DUCK_DOWN a second (about a tenth of a second)
-## and back at DUCK_UP.
+## Under an opener's spoken lines the music sits at VOICE_DUCK, going down at
+## DUCK_DOWN a second (about a tenth of a second) and back at DUCK_UP.
 const VOICE_DUCK := .5
 const DUCK_DOWN := 6.0
 const DUCK_UP := 2.5
