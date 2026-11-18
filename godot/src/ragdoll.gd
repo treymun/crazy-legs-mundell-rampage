@@ -46,7 +46,7 @@ const SLIDE_DRAG := 7.0
 ## Each step's move kept by every ball of a body with half its balls or more
 ## on the floor.
 const LYING_KEEP := .8
-const PASSES := 3
+const PASSES := 4
 ## Asleep once no ball moves more than SLEEP_MOVE a step for SLEEP_AFTER
 ## seconds, or after MOST_AWAKE seconds whatever (a jitter never costs for ever).
 const SLEEP_MOVE := .0008
@@ -79,8 +79,8 @@ const SEG_BALLS := [
 ## Each ball's weight (RagdollRig order: hips, shoulders, head, elbows,
 ## hands, knees, feet, belly, back): the torso and hips lead, a hand or a foot
 ## is pulled along; gear past them weighs GEAR_WEIGHT a ball.
-const WEIGHTS := [1.6, 1.6, 1.3, 1.3, .9, .45, .3, .45, .3, .8, .45, .8, .45, 1.6, 1.6]
-const GEAR_WEIGHT := .35
+const WEIGHTS := [1.4, 1.4, 1.2, 1.2, .9, .6, .45, .6, .45, .9, .6, .9, .6, 1.4, 1.4]
+const GEAR_WEIGHT := .6
 ## The muscles hold the pose it died in this hard at first (a share of the
 ## error put right each pass), going slack over the death's `fade` seconds;
 ## a lying body's ease pulls this hard, from EASE_FROM to EASE_TO seconds
@@ -151,6 +151,8 @@ var body := Vector3.INF
 var carry := -INF
 var _left := 0.0
 var _torso_r := .1
+## How near the torso's middle each limb ball may come (_links).
+var _inside := PackedFloat32Array()
 ## Each ball's 1/weight (WEIGHTS), and where each was before the last step
 ## (the view draws part way from there to `pos`: smooth in slow motion).
 var inv_mass := PackedFloat32Array()
@@ -298,7 +300,7 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 			if pos[i].distance_squared_to(blast_at) < pos[near].distance_squared_to(blast_at):
 				near = i
 		at = pos[near]
-		dir = (dir + Vector3(0.0, 0.0, .9)).normalized()
+		dir = (dir + Vector3(0.0, 0.0, .6)).normalized()
 	var wobble := Vector3(dice.randf_range(-.3, .3), dice.randf_range(-.3, .3), dice.randf_range(-.15, .2))
 	strike(at, (dir + wobble * spread).normalized(), hit)
 	# (Map space is the model's mirrored, y and z swapped: ahead is right x up.)
@@ -345,6 +347,16 @@ func strike(at: Vector3, dir: Vector3, strength: float) -> void:
 func drift(v: Vector3) -> void:
 	for i in pos.size():
 		add_speed(i, v)
+
+
+## The share of its speed a piece of gear keeps this step (1 unless its
+## fastest ball goes over GEAR_FAST), for its ball i.
+func _gear_slow(i: int) -> float:
+	var first := R.POINTS + (i - R.POINTS) / RagdollRig.GEAR_BALLS * RagdollRig.GEAR_BALLS
+	var most := 0.0
+	for k in range(first, mini(first + RagdollRig.GEAR_BALLS, pos.size())):
+		most = maxf(most, pos[k].distance_to(old[k]) * AIR)
+	return minf(1.0, GEAR_FAST * STEP / most) if most > 1e-9 else 1.0
 
 
 ## Give ball i this much more velocity (map units a second).
@@ -411,10 +423,14 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 	prev = at.duplicate()
 	radius = radii.duplicate()
 	_torso_r = radius[R.HIP_L]
+	var rest_mid := (rest[R.HIP_L] + rest[R.HIP_R] + rest[R.SH_L] + rest[R.SH_R]) * .25
+	_inside.resize(pos.size())
+	for i in pos.size():
+		_inside[i] = minf(_torso_r + radius[i], rest[i].distance_to(rest_mid) * .95)
 	inv_mass.resize(pos.size())
 	for i in pos.size():
 		var weight: float = WEIGHTS[i] if i < R.POINTS else GEAR_WEIGHT
-		inv_mass[i] = 1.0 / weight if OS.get_environment("NOMASS") == "" else 1.0
+		inv_mass[i] = 1.0 / weight
 	la.clear()
 	lb.clear()
 	lmin.clear()
@@ -491,7 +507,8 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 	]:
 		var a: int = pair[0]
 		var b: int = pair[1]
-		_link(a, b, (radius[a] + radius[b]) * .9, INF)
+		# (No nearer than they stand, at most: hands on a gun stand together.)
+		_link(a, b, minf((radius[a] + radius[b]) * .9, rest[a].distance_to(rest[b]) * .95), INF)
 	# Each piece of gear: a rigid stick of its own, loose of the body.
 	for k in range(R.POINTS, pos.size() - 2, RagdollRig.GEAR_BALLS):
 		_rigid(rest, k, k + 1)
@@ -635,13 +652,17 @@ func step(world: LevelData) -> void:
 	# links: a body slid along trails its arms and legs, not skates).
 	var carried := PackedVector3Array()
 	carried.resize(count)
+	var slows := PackedFloat32Array()
+	for k in range(R.POINTS, count, RagdollRig.GEAR_BALLS):
+		slows.append(_gear_slow(k))
 	for i in count:
 		var p := pos[i]
 		prev[i] = p
 		var v := (p - old[i]) * AIR
 		if i >= R.POINTS:
-			# Gear let go of: never so fast it could skip a plank.
-			v = v.limit_length(GEAR_FAST * STEP)
+			# Gear let go of: never so fast it could skip a plank (its three
+			# balls slowed alike, or the piece would be bent out of shape).
+			v *= slows[(i - R.POINTS) / RagdollRig.GEAR_BALLS]
 		old[i] = p
 		var share := 1.0
 		if _touch[i] and (i >= R.ELBOW_L and i <= R.FOOT_R or i >= R.POINTS):
@@ -652,7 +673,7 @@ func step(world: LevelData) -> void:
 	_nudge = Vector3.ZERO
 	var tone := HOLD * exp(-age / maxf(fade, .02))
 	var ease := 0.0
-	var lying := _slump(tone) if OS.get_environment("NOSLUMP") == "" else true
+	var lying := _slump(tone)
 	if lying and age > EASE_FROM and age < EASE_TO:
 		ease = EASE * minf(1.0, (EASE_TO - age) / (EASE_TO - EASE_FROM) * 2.0)
 	level = world
@@ -687,8 +708,7 @@ func step(world: LevelData) -> void:
 	var touching := PackedByteArray()
 	touching.resize(count)
 	for _pass in PASSES:
-		if OS.get_environment("NOMUS") == "":
-			_muscles(tone, ease)
+		_muscles(tone, ease)
 		_links()
 		_hinges()
 		for i in count:
@@ -697,6 +717,14 @@ func step(world: LevelData) -> void:
 	_on_bodies(touching)
 	_on_boxes(world, touching)
 	_hull_floor(touching)
+	# The floor's and the shape's lifts put right on the links once more (a
+	# body landing hard had a limb stretched for a frame or two), then the
+	# floor and the wreck pieces kept again.
+	_links()
+	for i in count:
+		if _floor(i, floors[i], _roofs[i]):
+			touching[i] = 1
+	_on_boxes(world, touching)
 	if not plain:
 		# Last, nothing ends the step inside a wall, a slab's side or a rail
 		# (the links may have pulled a ball in).
@@ -769,6 +797,13 @@ func _lay(world: LevelData, plain: bool, touching: PackedByteArray) -> void:
 			pos[i] = Vector3(p.x, p.y, maxf(p.z, under + r))
 	for _k in 2:
 		_hull_floor(touching)
+		# (The links held again after the lifts, the floor kept: it never lies
+		# with a limb pulled long.)
+		_links()
+		if not plain:
+			for i in pos.size():
+				_walls(world, i)
+				pos[i] = Vector3(pos[i].x, pos[i].y, maxf(pos[i].z, _fl.floor[i] + radius[i]))
 	for i in pos.size():
 		old[i] = pos[i]
 		if i < prev.size():
@@ -1004,12 +1039,13 @@ func _links() -> void:
 		var fix := gap * ((d - want) / (d * (wa + wb)))
 		pos[a] += fix * wa
 		pos[b] -= fix * wb
-	# No limb inside the torso (a ball round its middle, as thick as it is).
+	# No limb inside the torso (a ball round its middle, as thick as it is,
+	# or as near as the limb stands: a hand on a gun at the belly).
 	var mid := middle()
 	for i in range(R.ELBOW_L, R.FOOT_R + 1):
 		var off := pos[i] - mid
 		var d := off.length()
-		var least := _torso_r + radius[i]
+		var least := _inside[i]
 		if d < least and d > 1e-6:
 			pos[i] = mid + off * (least / d)
 
@@ -1134,7 +1170,11 @@ func _hinges() -> void:
 		var most := pos[a].distance_to(pos[b]) * KNEE_PAST
 		var k := off.dot(ahead)
 		if k < -most:
-			pos[m] -= ahead * (k + most)
+			var fix := -ahead * (k + most)
+			# Never down into the floor it lies on (the floor and the knee
+			# pushed it back and forth for ever): a knee down stays.
+			if not (fix.z < 0.0 and m < _touch.size() and _touch[m]):
+				pos[m] += fix
 	# (Elbows bend any way: the shoulder turns the arm, and a plane taken from
 	# the torso pushed a lying arm into the floor and back for ever.)
 
@@ -1171,7 +1211,19 @@ func _walls(world: LevelData, i: int) -> void:
 		pos[i] = p
 	if not _solid(world, p, r):
 		return
-	if _solid(world, o, r * .5):
+	if rail != null and body != Vector3.INF and _solid(world, o, r * .5):
+		# Stuck in a rail's bar on play's body's side: out to that side of it.
+		var run := Vector2(rail.bx - rail.ax, rail.by - rail.ay).normalized()
+		var side := Vector2(-run.y, run.x)
+		var to_body := side.dot(Vector2(body.x - rail.ax, body.y - rail.ay))
+		var to_ball := side.dot(Vector2(p.x - rail.ax, p.y - rail.ay))
+		var reach := r * .8 + rail.half + .005
+		var want := reach if to_body >= 0.0 else -reach
+		if absf(to_ball) < reach:
+			pos[i] = Vector3(p.x + side.x * (want - to_ball), p.y + side.y * (want - to_ball), p.z)
+			old[i] = Vector3(pos[i].x, pos[i].y, o.z)
+		return
+	if _solid(world, o, r * .5) and rail == null:
 		# In something already (a boot pushed into a stair's riser): up onto
 		# the top just over it when there is one within a step, else as it is.
 		var top := Tumble.floor_at(world, p.x, p.y, p.z + r + STEP_UP, r * .6)

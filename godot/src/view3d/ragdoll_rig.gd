@@ -104,6 +104,8 @@ var _rest_inv: Array[Basis] = []
 var gear_bones: Array[PackedInt32Array] = []
 var gear_ends := PackedVector3Array()
 var gear_radius := PackedFloat32Array()
+## Each piece's box's eight corners at the standing key (model space).
+var gear_corners := PackedVector3Array()
 ## Each bone's part's box at the standing key (model space: its vertices'
 ## least and most), for the gear's size (baked).
 var bone_lo := PackedVector3Array()
@@ -417,7 +419,9 @@ func _find_gear() -> void:
 			if d < best_d:
 				best_d = d
 				best = seg
-		if best_d < height * .16 and best_d < spine - core * .6:
+		# (Only a small part: a hand, a cuff; never a plate of the chest.)
+		var small := i < bone_lo.size() and (bone_hi[i] - bone_lo[i]).length() < height * .12
+		if small and best_d < height * .16 and best_d < spine - core * .6:
 			bone_ride[i] = best
 	# A limb half with no part of its own shown on the dead body: the limb is
 	# one piece and bends nowhere.
@@ -442,6 +446,7 @@ func _find_gear() -> void:
 	gear_bones.clear()
 	gear_ends = PackedVector3Array()
 	gear_radius = PackedFloat32Array()
+	gear_corners = PackedVector3Array()
 	# Clusters by single link (a part within `join` of any part of one is in it).
 	var join := height * .1
 	var cluster := PackedInt32Array()
@@ -464,7 +469,7 @@ func _find_gear() -> void:
 		clusters.append(group)
 	clusters.sort_custom(func(a: PackedInt32Array, b: PackedInt32Array) -> bool: return a.size() > b.size())
 	for group: PackedInt32Array in clusters:
-		if gear_bones.size() >= 2 or OS.get_environment("NOGEAR") != "":
+		if gear_bones.size() >= 2:
 			break
 		var mid := Vector3.ZERO
 		for k in group:
@@ -503,11 +508,13 @@ func _find_gear() -> void:
 			var q := Vector3(p.dot(axes[0]), p.dot(axes[1]), p.dot(axes[2]))
 			lo = lo.min(q)
 			hi = hi.max(q)
-		var r := clampf((hi.z - lo.z) * .5, height * .02, height * .06)
-		var mid := (lo + hi) * .5
-		var a := axes[0] * minf(lo.x + r, mid.x) + axes[1] * (lo.y + r) + axes[2] * mid.z
-		var b := axes[0] * maxf(hi.x - r, mid.x) + axes[1] * (lo.y + r) + axes[2] * mid.z
-		var c := axes[0] * mid.x + axes[1] * maxf(hi.y - r, lo.y + r * 3.0) + axes[2] * mid.z
+		var r := clampf((hi.z - lo.z) * .5 + .005, height * .02, height * .2)
+		var centre := (lo + hi) * .5
+		var a := axes[0] * minf(lo.x + r, centre.x) + axes[1] * (lo.y + r) + axes[2] * centre.z
+		var b := axes[0] * maxf(hi.x - r, centre.x) + axes[1] * (lo.y + r) + axes[2] * centre.z
+		var c := (
+			axes[0] * centre.x + axes[1] * maxf(hi.y - r, lo.y + r * 3.0) + axes[2] * centre.z
+		)
 		var bones := PackedInt32Array()
 		for k in group:
 			bones.append(lost[k])
@@ -515,6 +522,14 @@ func _find_gear() -> void:
 		gear_bones.append(bones)
 		gear_ends.append_array([a, b, c])
 		gear_radius.append(r)
+		for k in 8:
+			gear_corners.append(
+				(
+					axes[0] * (hi.x if k & 1 else lo.x)
+					+ axes[1] * (hi.y if k & 2 else lo.y)
+					+ axes[2] * (hi.z if k & 4 else lo.z)
+				)
+			)
 
 
 ## The three ways a cloud of points lies along (unit, at right angles): the
