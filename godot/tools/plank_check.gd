@@ -257,6 +257,8 @@ func _case(main, id: String, tile: String, kind: String) -> void:
 	var worst := 0.0
 	var floating := 0
 	for piece in wreck.wrecks:
+		if piece.fading >= 0.0:
+			continue  # shrinking away (wedged where nothing fits), as wreck_check
 		var d: float = wreck.physics.inside(piece.body)
 		if d > TOL:
 			print("       inside %.3f: %s at %s" % [d, piece.key, piece.body.p])

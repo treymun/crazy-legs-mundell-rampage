@@ -246,6 +246,8 @@ func _level(game: Game) -> void:
 	var leaning := 0
 	for w in wreck.wrecks:
 		var b: WreckPhysics.Body = w.body
+		if w.fading >= 0.0:
+			continue  # shrinking away (wedged where nothing fits)
 		b.turn = Basis(b.q)
 		if WreckPhysics.standing(b):
 			if b.propped:

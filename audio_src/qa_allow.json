@@ -203,6 +203,9 @@
   },
   "weapon_pickup": {
    "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "wreck_tin": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .6 or less (features/wreckage.gd) into the -0.8 dB master limiter"
   }
  }
 }

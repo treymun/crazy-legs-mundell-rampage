@@ -700,8 +700,12 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   its narrow foot, within `TIP_FROM` of upright) with nothing leaning it (no
   contact steeper than `PROP_N`, none holding it above its middle) is set
   turning about its foot's edge on the side it leans, just fast enough to go
-  over (`TIP_KICK`, harder each try, every `TIP_EVERY` for `TIP_MOST`); it
-  never sleeps standing meanwhile. Chunks of bulky things may stand.
+  over (`TIP_KICK`, harder each try, every `TIP_EVERY` for `TIP_MOST`, the
+  other way after two tries); it never sleeps standing meanwhile. Since pass
+  11 a piece leaning only on another piece that itself stands on its end is
+  not held (`Body.leans`, `upright`): a ring of staves left standing goes
+  over; a wall or a lying piece still props it, and one asleep standing whose
+  prop went (`topples()`) is woken. Chunks of bulky things may stand.
 - **Water reacts** (`features/water.gd`): `splash(x, y, z, size)` rings,
   gun_fx's water crest and drops (`gun_fx.splash`) and a splash heard (one a
   `SPLASH_GAP`); `Water.splash_if(game, ...)` is how anything landing asks
@@ -1698,6 +1702,88 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   the idle cost; `tools/physics_frames.gd -- only=break` pictures the
   barrel, window, fence, picnic table and hazard drums
   (`docs/godot3d/features/C/`, before and after).
+
+### How the pieces move (pass 11)
+
+`src/wreck_physics.gd`, `src/wreck_stuff.gd` (the stuff and form table and
+the knocks' push), `data/tuning/wreck.cfg`, `src/features/wreckage.gd`
+(looks only: own dice, never carried or saved; play's tumble.gd, corpses,
+carry and the bowling pins' exact solver are untouched).
+
+- **The API the breaks call** (BREAKS, WALLS, BLASTS; RAGDOLL uses
+  `push_for`): `add(at, q, size, stuff, form, group)` puts a piece in, made
+  of `stuff` (breakables.cfg's names: wood, tin, steel/iron, glass, clay,
+  straw, stuffing, cloth, plastic, rubber, goo, char...; unknown is wood) in
+  `form` ("board", "stave", "ring", "disc", "can", "shard", "chunk",
+  "sheet", "clump"; "" a plain box), still until knocked.
+  `impact(at, way, strength, kind, group, dice)` knocks pieces from a hit:
+  each piece (of `group`, or all) is pushed at its own point nearest the
+  hit, so an off-centre hit spins it, by how near that point is (half at
+  the kind's `reach`), along the hit, out from it and up by the kind's
+  shares (`[impact.shot|break|blast|kick|ram]`); a shot's strength is an
+  impulse (light pieces fly, heavy ones nudge), the others a speed (heavy
+  pieces somewhat less); a blast behind cover pushes `hidden` as hard.
+  `push_for(kind, at, way, strength, point, middle, seen, dice)` is that
+  push for any point (a ragdoll's ball as well). `burst(group, mid, speed,
+  dice)` parts a break's pieces from its middle by the stuff's `burst`.
+  `ray(from, to)` finds the piece a shot enters. After each step `cracked`
+  lists pieces knocked harder than their stuff's `crack` (for the breaks to
+  split), each body's `hit` its hardest knock. `WreckCuts.Part.form` names
+  today's cuts' forms (staves, lids as discs, hoops as rings, boards,
+  shards); a barrel's hoops are iron.
+- **A break comes apart from its hit**: wreckage keeps the shots of the last
+  `SHOT_TIME` (`traced`: from the shooter's eye to where each pellet ended)
+  and a break throws its pieces apart (`burst`) and then knocks them from
+  each pellet that struck it (`_hits_for`; many pellets are many smaller
+  knocks), else from the blast just gone off near it, else from its near
+  side along the old knock. Struck on its left it flies right; the same
+  break twice from the same hit is alike (the feature's dice).
+- **Material and form**: the stuff gives weight, bounce, grip, the spin and
+  slide lost a second on the floor; the form scales those (wreck.cfg).
+  Discs, rings and cans are round: their touching points are the lowest,
+  highest and two side points of each rim, worked out each step
+  (`Body.rims`), so they roll on their edge; their spin keeps its momentum
+  as they turn (`_turn_round`: a coin leaning over curves and wobbles); a
+  round one rolling slower than `ROLL_UP` is leaned `WOBBLE` every
+  `TIP_EVERY` and goes over like a spun coin; moments are a disc's, a
+  ring's or a cylinder's. A sheet in the air is held back across its face
+  (`drag`, `_flutter`): it falls slower and rocks. Shards grip and stop
+  short, hay hardly bounces. Corners sweep: a spinning piece's contact
+  margin counts its spin, a corner swept deep under a floor its middle is
+  over is still that floor (`DEEP_FLOOR`), and a point in a wall cell is
+  never let under that cell's ground. A piece going to sleep still in
+  something at both ends (a board across a gap narrower than it) is turned
+  about upright (`TURNS`) or laid flat until it fits; where nothing fits it
+  is `stuck` and wreckage shrinks it away.
+- **Knocks**: a shot (any player's hitscan, `traced`) passing into a lying
+  piece knocks it at the entry point by the gun's damage (`[knock]
+  shot_push`); a blast (`blast_shoved`) knocks from where it went off by
+  distance, less behind cover; players, the county's hands, BLUE and the
+  vehicles walking or driving through pieces kick them at their edge along
+  their way, harder the faster (`_kick`: walkers near the pieces only, their
+  speed from where they stood last tick). Fence boards shot off are knocked
+  back toward the shot (not through the fence) and a broken-through cell's
+  boards out across the fence's line.
+- **Sounds**: the two hardest knocks a step are heard by the stuff's `cue`
+  (`cue_hard` past half its `loud`), louder the harder, higher for small
+  pieces, at most `sounds_most` a second and one a piece in `gap`; a metal
+  hoop or lid wobbling down rings (`spin_cue`). The cues are `wreck_*`
+  (audio_spec.py, pass 11; wood and tin have other takes, `alts`).
+- **Cost** (`tools/wreck_bench.gd`, which also counts the work, the same
+  on a busy machine): against v3.8.0 hickston's wreck48 takes about the same
+  awake piece-steps (5,500 to 5,570 over 5 s) and about 13 % more contacts
+  (19,000 to 16,800: the throws are flatter, more pieces slide), all asleep
+  in 4.9 s (4.3); breaking every breakable on hickston at once the same.
+  Timed back to back on a busy desktop the means were within the noise
+  (wreck48 1.9 to 2.0 ms, every 1.6 to 1.4 ms a tick, medians of three);
+  the throw tick costs more (the knocks and parting: a few ms for a hundred
+  pieces). The impacts' numbers are read once (`WreckStuff.kind_of`), a
+  break's knocks walk only its own pieces (newest first), and a piece
+  leaning in a pile on chunks that merely stand (`SLENDER`) is held, so piles
+  do not keep jiggling.
+- `tools/wreck_motion_check.gd` (check_all, quick) holds all of it;
+  `tools/wreck_motion_frames.gd` pictures it (`bare` leaves out what stays
+  standing where a thing broke); `docs/godot3d/destruction/PHYSICS/`.
 
 ### The big breaks (content pass 8)
 

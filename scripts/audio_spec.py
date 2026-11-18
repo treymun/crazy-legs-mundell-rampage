@@ -907,6 +907,21 @@ add("impact",
     pierce_plank=N("A rifle bullet punching clean through a plank wall: a splintering crack and wood chips spraying out the far side.", .5, style="impact"),
     glass_settle=N("Small chips of broken window glass falling and settling on a wooden floor: a light tinkling scatter.", .8, style="scene"),
     )
+# Pass 11: the knocks of broken things' pieces landing and tumbling, by what
+# they are made of (data/tuning/wreck.cfg [stuff.*] cue; features/wreckage.gd
+# plays them by how hard, higher for small pieces).
+add("impact",
+    wreck_wood=N("A single loose wooden board dropped flat onto hard packed dirt: one hollow dry wooden clack.", .5, style="impact"),
+    wreck_wood_alt=N("A short broken barrel stave tumbling end over end on hard ground: two quick hollow wooden knocks.", .6, style="impact"),
+    wreck_wood_alt2=N("A small splintered plank landing on dirt and old boards: a light dry wooden tock.", .5, .45, style="impact"),
+    wreck_tin=N("A torn scrap of sheet tin dropped onto gravel: a thin bright tinny clank and a short rattle.", .6, style="impact"),
+    wreck_tin_alt=N("A dented tin can bouncing once on hard ground: a hollow tinny clonk.", .5, style="impact"),
+    wreck_iron=N("A heavy iron barrel hoop dropped flat on hard ground: one dull ringing metallic clang.", .7, style="impact"),
+    wreck_hoop_spin=N("An iron barrel hoop rolling and wobbling down flat on a hard floor like a spun coin: a ringing metallic whirr that speeds up and stops with a clatter.", 1.6, style="impact"),
+    wreck_clay=N("A shard of broken clay crockery dropped on hard ground: a dull ceramic clink.", .5, .45, style="impact"),
+    wreck_glass=N("A single shard of window glass dropped on boards: one sharp glassy tink.", .5, .4, style="impact"),
+    wreck_hay=N("A loose clump of hay dropped onto dirt: a soft dry rustling thump.", .5, style="impact"),
+    )
 add("player",
     land_thump=N("A man in heavy work boots landing from a jump onto dirt: one solid boot thump with a little grunt of breath.", .5, .4, style="foot"),
     blow_grunt=N("A tough redneck man takes a light punch and grunts once, short and annoyed.", .5, .4, style="vox"),

@@ -71,6 +71,9 @@ godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://too
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/night_frames.gd -- out=<dir> [only=moonshine,dark] [per=4]   # how well enemies and pickups read, each chapter and a blackout (mean |dL*|)
 godot --headless --path godot --script res://tools/art/build_event_art.gd   # the events' small pictures (the hands' lantern)
 godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
+godot --headless --path godot --script res://tools/wreck_motion_check.gd   # WRECK MOTION OK (how the pieces roll, tip, knock and sound)
+godot --headless --path godot --script res://tools/wreck_bench.gd -- runs=3   # the pieces' own cost a tick (wreck48, every breakable on hickston)
+godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/wreck_motion_frames.gd -- out=<dir> [only=barrel,crate,mash,heap,toys] [bare]   # pieces flying and lying, in a window
 godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHECK OK (the fast level load the same as the old one; levels=a,b)
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
 godot --headless --path godot --script res://tools/wall_looks_check.gd   # WALL LOOKS CHECK OK (planks knocked out, windows' webs and shards, holes)

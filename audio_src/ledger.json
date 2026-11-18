@@ -45556,14 +45556,344 @@
    "bytes": 97845
   },
   {
-   "id": "reconcile@2026-11-17T22:05:05",
+   "id": "sfx/wreck_wood_alt#1",
+   "kind": "sfx",
+   "name": "wreck_wood_alt",
+   "params": {
+    "text": "A short broken barrel stave tumbling end over end on hard ground: two quick hollow wooden knocks. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "edcd5cc2d491",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-18T07:13:26",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_wood_alt.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/wreck_wood#1",
+   "kind": "sfx",
+   "name": "wreck_wood",
+   "params": {
+    "text": "A single loose wooden board dropped flat onto hard packed dirt: one hollow dry wooden clack. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "38ab04c4d2bd",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-18T07:13:26",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_wood.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/wreck_wood_alt2#1",
+   "kind": "sfx",
+   "name": "wreck_wood_alt2",
+   "params": {
+    "text": "A small splintered plank landing on dirt and old boards: a light dry wooden tock. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.45,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4bd41b9d647f",
+   "reserved": 23,
+   "status": "failed",
+   "started": "2026-11-18T07:13:26",
+   "actual": 6,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.45.'}}"
+  },
+  {
+   "id": "sfx/wreck_tin#1",
+   "kind": "sfx",
+   "name": "wreck_tin",
+   "params": {
+    "text": "A torn scrap of sheet tin dropped onto gravel: a thin bright tinny clank and a short rattle. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c996398fc561",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-18T07:13:26",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_tin.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/wreck_tin_alt#1",
+   "kind": "sfx",
+   "name": "wreck_tin_alt",
+   "params": {
+    "text": "A dented tin can bouncing once on hard ground: a hollow tinny clonk. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "cacb5a684758",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-18T07:13:27",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_tin_alt.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/wreck_iron#1",
+   "kind": "sfx",
+   "name": "wreck_iron",
+   "params": {
+    "text": "A heavy iron barrel hoop dropped flat on hard ground: one dull ringing metallic clang. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d50c4b7364e9",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-18T07:13:28",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_iron.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/wreck_hoop_spin#1",
+   "kind": "sfx",
+   "name": "wreck_hoop_spin",
+   "params": {
+    "text": "An iron barrel hoop rolling and wobbling down flat on a hard floor like a spun coin: a ringing metallic whirr that speeds up and stops with a clatter. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ba4813f24e94",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-18T07:13:28",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_hoop_spin.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/wreck_clay#1",
+   "kind": "sfx",
+   "name": "wreck_clay",
+   "params": {
+    "text": "A shard of broken clay crockery dropped on hard ground: a dull ceramic clink. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.45,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e80378c2f3db",
+   "reserved": 23,
+   "status": "failed",
+   "started": "2026-11-18T07:13:28",
+   "actual": 6,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.45.'}}"
+  },
+  {
+   "id": "sfx/wreck_glass#1",
+   "kind": "sfx",
+   "name": "wreck_glass",
+   "params": {
+    "text": "A single shard of window glass dropped on boards: one sharp glassy tink. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9854c7afb19f",
+   "reserved": 21,
+   "status": "failed",
+   "started": "2026-11-18T07:13:29",
+   "actual": 5,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.4.'}}"
+  },
+  {
+   "id": "sfx/wreck_hay#1",
+   "kind": "sfx",
+   "name": "wreck_hay",
+   "params": {
+    "text": "A loose clump of hay dropped onto dirt: a soft dry rustling thump. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6bf6428773c2",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-18T07:13:29",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_hay.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/wreck_wood_alt2#2",
+   "kind": "sfx",
+   "name": "wreck_wood_alt2",
+   "params": {
+    "text": "A small splintered plank landing on dirt and old boards: a light dry wooden tock. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.45,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4bd41b9d647f",
+   "reserved": 23,
+   "status": "failed",
+   "started": "2026-11-18T07:14:56",
+   "actual": 6,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.45.'}}"
+  },
+  {
+   "id": "sfx/wreck_clay#2",
+   "kind": "sfx",
+   "name": "wreck_clay",
+   "params": {
+    "text": "A shard of broken clay crockery dropped on hard ground: a dull ceramic clink. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.45,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e80378c2f3db",
+   "reserved": 23,
+   "status": "failed",
+   "started": "2026-11-18T07:14:57",
+   "actual": 6,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.45.'}}"
+  },
+  {
+   "id": "sfx/wreck_glass#2",
+   "kind": "sfx",
+   "name": "wreck_glass",
+   "params": {
+    "text": "A single shard of window glass dropped on boards: one sharp glassy tink. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9854c7afb19f",
+   "reserved": 21,
+   "status": "failed",
+   "started": "2026-11-18T07:14:57",
+   "actual": 5,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.4.'}}"
+  },
+  {
+   "id": "sfx/wreck_wood_alt2#3",
+   "kind": "sfx",
+   "name": "wreck_wood_alt2",
+   "params": {
+    "text": "A small splintered plank landing on dirt and old boards: a light dry wooden tock. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "10971af282d2",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-18T07:17:41",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_wood_alt2.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/wreck_clay#3",
+   "kind": "sfx",
+   "name": "wreck_clay",
+   "params": {
+    "text": "A shard of broken clay crockery dropped on hard ground: a dull ceramic clink. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b190cdb60ea5",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-18T07:17:42",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_clay.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/wreck_glass#3",
+   "kind": "sfx",
+   "name": "wreck_glass",
+   "params": {
+    "text": "A single shard of window glass dropped on boards: one sharp glassy tink. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "3bb5bbf7edbd",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-18T07:17:45",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_glass.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "reconcile@2026-11-18T07:18:49",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -29385,
+   "actual": -29356,
    "basis": "account",
-   "balance_after": 83562
+   "balance_after": 83711
   }
  ],
  "anchor": {
@@ -45571,7 +45901,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-17T22:05:05",
-  "account_drop": 78839
+  "when": "2026-11-18T07:18:49",
+  "account_drop": 78988
  }
 }

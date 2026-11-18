@@ -55,6 +55,9 @@ class Part:
 	var centre := Vector3.ZERO
 	var basis := Basis.IDENTITY
 	var half := Vector3(.05, .05, .05)
+	## Its form for the physics (WreckPhysics.add: "stave", "disc", "ring",
+	## "board", "shard"...; "" a plain box).
+	var form := ""
 	## Its faces about its middle in its own axes, three corners a triangle.
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
@@ -441,11 +444,12 @@ static func _staves(
 					"planes": [[n0, n0.dot(centre)], [n1, n1.dot(centre)]],
 					"basis": Basis(Vector3(sin(am), -cos(am), 0.0), r, Vector3(0.0, 0.0, 1.0)),
 					"shell": r,
+					"form": "stave",
 				}
 			)
 		)
-	cells.append({"group": 1, "planes": []})
-	cells.append({"group": 2, "planes": []})
+	cells.append({"group": 1, "planes": [], "form": "disc"})
+	cells.append({"group": 2, "planes": [], "form": "disc"})
 	for band: Vector2 in [Vector2(.18, .26), Vector2(.74, .82)]:
 		(
 			cells
@@ -454,6 +458,7 @@ static func _staves(
 					"group": 0,
 					"planes": _slab(2, low + tall * band.x, low + tall * band.y),
 					"out": 1.06,
+					"form": "ring",
 					"axis": centre,
 				}
 			)
@@ -627,6 +632,7 @@ static func _swell(piece: Soup, cell: Dictionary, by: float) -> void:
 static func _part(piece: Soup, cell: Dictionary, shell: bool) -> Part:
 	var part := Part.new()
 	part.basis = cell.get("basis", Basis.IDENTITY)
+	part.form = str(cell.get("form", ""))
 	var inverse := part.basis.transposed()
 	var faces := piece
 	if shell:
@@ -763,6 +769,7 @@ static func _cut_tile(source: String, recipe: String, args: PackedFloat32Array) 
 ## edges the picture's edge texels.
 static func board(rect: Rect2, tex: Rect2, thick: float, texels: Vector2) -> Part:
 	var part := Part.new()
+	part.form = "board"
 	var hx := rect.size.x * .5
 	var hz := rect.size.y * .5
 	var hy := maxf(thick * .5, THIN)
@@ -894,6 +901,7 @@ static func _shards(w: float, args: PackedFloat32Array) -> Array:
 ## One triangle of glass (corners as [share across, height]) as a thin prism.
 static func _shard(tri: Array, w: float, u0: float, u1: float, z0: float, z1: float) -> Part:
 	var part := Part.new()
+	part.form = "shard"
 	var pts: Array = []
 	var lo := Vector2(INF, INF)
 	var hi := -lo
