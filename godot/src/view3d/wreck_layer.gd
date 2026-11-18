@@ -76,6 +76,12 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 			node.visible = true
 			ThingMarks.clear(node)
 		seen[s] = true
+		if s.hurt > 0.0:
+			# A vehicle's hulk chars as it burns (src/vehicle_wreck_looks.gd).
+			ThingMarks._char_to(node, s.hurt)
+		elif s.solid.contains("|vw#"):
+			# A part blown off a vehicle comes off scorched.
+			ThingMarks._char_to(node, VehicleWreckLooks.PART_CHAR)
 		node.transform = Transform3D(SolidLayer3D.godot_basis(s.turn), Vector3(s.x, s.z, s.y))
 		var cell := level.cell(
 			clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01)

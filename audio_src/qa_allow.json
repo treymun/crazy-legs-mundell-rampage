@@ -206,6 +206,12 @@
   },
   "wreck_tin": {
    "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .6 or less (features/wreckage.gd) into the -0.8 dB master limiter"
+  },
+  "blast_debris": {
+   "quiet for family:impact": "a patter of small falling bits, no one big hit: quiet on purpose under the blast it follows (destruction pass 11, played at .75 half a second after it)"
+  },
+  "wreck_crash": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
   }
  }
 }

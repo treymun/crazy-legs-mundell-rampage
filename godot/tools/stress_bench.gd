@@ -11,6 +11,8 @@
 ##            wreck pieces flying, the player looking at them
 ##   fire     hickston's hay set alight and spreading wide, looking at it
 ##            (live_props_frames.gd)
+##   chain6   six blasts going up a few ticks apart in hickston's yard (dynamite
+##            and fuel in turn), timed from the first through the smoke
 ##   arena    maw's arena in the third phase, its wreck steps flung, held at
 ##            the fight's spot looking at the boss (arena_frames_late.gd bench)
 ##   fivev5   a 5v5 bomb round on grainyard, ten bots fighting mid-round, the
@@ -50,13 +52,14 @@ extends SceneTree
 
 const STEP := 1.0 / 60.0
 const SIM := 1.0 / 120.0
-const SCENARIOS := ["idle", "strike", "wreck48", "fire", "arena", "fivev5", "county"]
+const SCENARIOS := ["idle", "strike", "wreck48", "fire", "chain6", "arena", "fivev5", "county"]
 ## check: each scene's tick budget, in yardsticks (_hold_tick).
 const TICK_YARDS := {
 	"idle": 1.6,
 	"strike": 1.5,
 	"wreck48": 13.0,
 	"fire": 2.0,
+	"chain6": 3.0,
 	"arena": 2.2,
 	"fivev5": 6.0,
 	"county": 7.0
@@ -626,6 +629,57 @@ func _fire() -> String:
 	await _time(
 		"fire", g, _plain, func(_g: Game) -> String: return "cells burning %d" % fire.burning.size()
 	)
+	return ""
+
+
+## Six blasts going up 9 ticks apart in hickston's yard, five or six cells off.
+func _chain6() -> String:
+	var g := _level("hickston")
+	var w := g.world
+	var stand := Vector2.INF
+	var way := Vector2.ZERO
+	for cy in range(3, w.height - 3, 2):
+		for cx in range(3, w.width - 3, 2):
+			if stand != Vector2.INF:
+				break
+			for dir: Vector2 in [Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0), Vector2(0, -1)]:
+				var at := Vector2(cx + .5, cy + .5)
+				var ok := true
+				for k in range(0, 8):
+					var q := at + dir * k
+					for side: int in [-1, 0, 1]:
+						var c: Vector2 = q + dir.orthogonal() * side
+						if c.x < 1 or c.y < 1 or c.x >= w.width - 1 or c.y >= w.height - 1:
+							ok = false
+						elif w.solid[int(c.y) * w.width + int(c.x)] >= 0:
+							ok = false
+						elif absf(w.elevation(c.x, c.y) - w.elevation(at.x, at.y)) > .05:
+							ok = false
+				if ok:
+					stand = at
+					way = dir
+					break
+	if stand == Vector2.INF:
+		return "no open yard on hickston"
+	var ahead := stand + way * 5.5
+	_stand(g, stand, ahead.x, ahead.y, w.elevation(ahead.x, ahead.y) + .9)
+	await _settle(g, 10, _plain)
+	var count := [0]
+	var step := func(game: Game) -> int:
+		var t0 := Time.get_ticks_usec()
+		var k: int = count[0]
+		count[0] = k + 1
+		if k % 9 == 0 and k < 54:
+			var n := k / 9
+			var b := stand + way * (4.6 + n * .3) + way.orthogonal() * ((n % 3) - 1) * 1.1
+			var shot := Game.Shot.new(
+				b.x, b.y, w.elevation(b.x, b.y) + .15, 0, 0, 0, "fuel" if n % 2 else "tnt"
+			)
+			shot.owner = -1
+			game.explode(shot)
+		game.tick(STEP, Game.Controls.new())
+		return Time.get_ticks_usec() - t0
+	await _time("chain6", g, step)
 	return ""
 
 

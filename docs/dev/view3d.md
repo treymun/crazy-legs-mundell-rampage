@@ -245,7 +245,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | world shaders | `world.gdshader`, `world_glass.gdshader`, `world_body.gdshaderinc` | solid vs see-through variants of one body via `#define` |
 | light include | `view_light.gdshaderinc` | lights, fog, grade, rain, wet, water rings, relief, anim lights, mirror clip, `photo_grade`, `to_output` |
 | sky | `sky.gdshader` | the sky behind the eye's camera (`sky_at`: looking well up, past the panorama's top row, it fades into the top's mean colour, `ZENITH_FADE`, instead of smearing that row) |
-| sprites | `sprite.gdshader`, `sprite_clear.gdshader`, `sprite_body.gdshaderinc`, `SpriteLayer3D` | camera-facing MultiMesh billboards |
+| sprites | `sprite.gdshader`, `sprite_clear.gdshader`, `sprite_body.gdshaderinc`, `SpriteLayer3D` | camera-facing MultiMesh billboards; a translucent one (smoke, dust) takes only the brightness of its area's tint, not its hue (pass 11) |
 | marks | `mark.gdshader` | wall and ground decals |
 | rain | `rain.gdshader` | three camera-hung layers |
 | slabs | `SlabLayer3D`, `SlabModels`, `slab.gdshader` | pickups, loose things (brass, gibs, bits) and range targets as pixel slabs (MultiMesh per mesh) |
@@ -702,7 +702,10 @@ hurt `CHAR_HURT`. `PropLayer3D` keeps the marks of props gone out of view
 (`KEEP`, by key) and hands a gone prop's marks to one of its model made again
 within `REMADE` cells (a car stood again at its next place, a thrown thing
 landing, a breakable showing its struck picture); at most `MOST_MARKED` (64)
-parts carry marks. Looks only. Pictures: `docs/godot3d/polish/L/marks_*.png`.
+parts carry marks. A wreck piece whose sprite has a `hurt` is charred to it
+(a vehicle's hulk as it burns, `src/vehicle_wreck_looks.gd`), and a part
+blown off a vehicle (`|vw#`) comes scorched. Looks only. Pictures:
+`docs/godot3d/polish/L/marks_*.png`.
 
 A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
 `wet`, `lightning`, `actors` (to show the 3D models), `cels` (true: enemies

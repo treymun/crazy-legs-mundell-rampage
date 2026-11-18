@@ -45886,14 +45886,88 @@
    "bytes": 13208
   },
   {
-   "id": "reconcile@2026-11-18T07:18:49",
-   "kind": "reconcile",
-   "name": "",
-   "reserved": 0,
+   "id": "sfx/wreck_pop#1",
+   "kind": "sfx",
+   "name": "wreck_pop",
+   "params": {
+    "text": "A burning wrecked car: one sharp pop as a tire bursts in the flames, a small whump of fuel and crackling. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e967296c9902",
+   "reserved": 45,
    "status": "settled",
-   "actual": -29356,
-   "basis": "account",
-   "balance_after": 83711
+   "started": "2026-11-18T07:19:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_pop.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/blast_debris#1",
+   "kind": "sfx",
+   "name": "blast_debris",
+   "params": {
+    "text": "Debris raining down in a dirt yard after an explosion: clods of dirt, splinters of wood and scraps of tin pattering and clattering down, thinning out. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "df31349dbf22",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-18T07:19:37",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/blast_debris.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/fuel_whoomp#1",
+   "kind": "sfx",
+   "name": "fuel_whoomp",
+   "params": {
+    "text": "A drum of gasoline going up: a deep rushing whoomp as a fireball rolls up into the sky, a low roar swelling and dying away. Punchy, chunky, slightly crunchy 1990s game explosion with weight and a short tail. No music.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b513188ec008",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-18T07:19:37",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fuel_whoomp.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/wreck_crash#1",
+   "kind": "sfx",
+   "name": "wreck_crash",
+   "params": {
+    "text": "A stock car blown apart by its own gas tank: a heavy metal crunch, its windows shattering, a hubcap ringing away and sheet tin clanging down. Punchy, chunky, slightly crunchy 1990s game explosion with weight and a short tail. No music.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5a698021e1a0",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-18T07:19:37",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wreck_crash.mp3",
+   "bytes": 54586
   }
  ],
  "anchor": {

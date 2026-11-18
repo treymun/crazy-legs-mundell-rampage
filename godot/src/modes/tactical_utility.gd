@@ -113,6 +113,10 @@ static func _firebomb(
 			return  # thrown into smoke it only fizzles
 	game.burst(x, y, z, "spark", 24, 2.2)
 	st.fires.append([x, y, game.clock + FIRE_LIFE, game.clock, int(shot.slot)])
+	# How it bursts with LIGHTS AND GLOW (features/gun_fx.gd, looks only).
+	var fx: GameFeature = game.features.get("gun_fx")
+	if fx != null:
+		fx.call("firebomb", x, y, z)
 
 
 ## The sound of its thrower's best gun (the decoy's voice).

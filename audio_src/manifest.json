@@ -60360,6 +60360,159 @@
     "problems": []
    },
    "validation": "ok"
+  },
+  "fuel_whoomp": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/fuel_whoomp.mp3",
+   "prompt": "A drum of gasoline going up: a deep rushing whoomp as a fireball rolls up into the sky, a low roar swelling and dying away.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/fuel_whoomp.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.6
+   },
+   "measured": {
+    "seconds": 1.6,
+    "peak_db": -0.8,
+    "loud_db": -1.8,
+    "dc": 0.0036,
+    "onset_ms": 0.0,
+    "centroid_hz": 112,
+    "end_db": -143.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "wreck_crash": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/wreck_crash.mp3",
+   "prompt": "A stock car blown apart by its own gas tank: a heavy metal crunch, its windows shattering, a hubcap ringing away and sheet tin clanging down.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/wreck_crash.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -2.8,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 4159,
+    "end_db": -153.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "blast_debris": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/blast_debris.mp3",
+   "prompt": "Debris raining down in a dirt yard after an explosion: clods of dirt, splinters of wood and scraps of tin pattering and clattering down, thinning out.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/blast_debris.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "lead_trimmed_ms": 376,
+    "level": "-5.0 dB (new cue)",
+    "tail_trimmed_s": 0.375,
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 1.378,
+    "peak_db": -0.8,
+    "loud_db": -16.4,
+    "dc": 0.0001,
+    "onset_ms": 5.9,
+    "centroid_hz": 4847,
+    "end_db": -147.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "wreck_pop": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/wreck_pop.mp3",
+   "prompt": "A burning wrecked car: one sharp pop as a tire bursts in the flames, a small whump of fuel and crackling.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/wreck_pop.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "lead_trimmed_ms": 19,
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.98,
+    "peak_db": -0.8,
+    "loud_db": -6.9,
+    "dc": 0.0019,
+    "onset_ms": 4.1,
+    "centroid_hz": 226,
+    "end_db": -149.6,
+    "problems": []
+   },
+   "validation": "ok"
   }
  },
  "music": {
@@ -62243,6 +62396,10 @@
   "opener_speedway_hit",
   "opener_moonshine_hit",
   "opener_mothership_hit",
-  "opener_hickston_truck"
+  "opener_hickston_truck",
+  "fuel_whoomp",
+  "wreck_crash",
+  "blast_debris",
+  "wreck_pop"
  ]
 }

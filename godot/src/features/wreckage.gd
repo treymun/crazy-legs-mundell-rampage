@@ -769,6 +769,11 @@ func _sounds() -> void:
 		var strength := clampf(b.hit / made.loud, .12, 1.0) * .6
 		var rate := clampf(.32 / maxf(b.reach, .05), .8, 1.35) * dice.randf_range(.94, 1.06)
 		game.sound_at(cue, b.p.x, b.p.y, strength, rate)
+## Throw pieces `only` of a cut another feature made (a vehicle's parts:
+## src/vehicle_wreck_looks.gd), as _throw does, when pieces fly here.
+func throw_cut(src: Dictionary, knock: Vector3, power: float, only: Array) -> void:
+	if on:
+		_throw(src, knock, power, only.size(), "debris_settle", only, "tin")
 
 
 ## More than `most`: the oldest begin to shrink away; far more, they go now.
