@@ -4,7 +4,8 @@
 ##                  USE's prompt, being got up with its bar, getting up, the
 ##                  shake, lying at STAY), hound_pin and hound_pin_side, and
 ##                  hound_behind and hound_behind_down (his marker over a
-##                  wall, red when he is down)
+##                  wall, red when he is down), hound_size_40 and _26 (his
+##                  size beside a co-op partner's Mundell)
 ## Each lands in out=<dir> as <name>.png; only=<a,b> takes some of them
 ## (only=poses all of POSES).
 ##
@@ -22,7 +23,7 @@ const POSES := [
 	["front", "hickston", 0, 0.0, {}],
 	["sit", "hickston", 1, 0.9, {}],
 	["rest", "hickston", 1, 0.9, {"since": 12.0}],
-	["bay", "fair", 6, 1.3, {}],
+	["bay", "fair", 6, 1.3, {"far": 2.0, "pitch": -40.0}],
 	["point", "sawmill", 7, 1.2, {"look": 1.3}],
 	["carry", "hickston", 5, 0.5, {}],
 	["down", "hickston", 8, 1.5, {"down": 3.0, "far": 2.4, "pitch": -40.0, "rinds": 0}],
@@ -128,6 +129,8 @@ func _run() -> void:
 		await _pin()
 	if _wanted("behind"):
 		await _behind()
+	if _wanted("size"):
+		await _size()
 	print("hound frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -168,6 +171,56 @@ func _level(level_id: String) -> Game:
 func _ticks(g: Game, n: int) -> void:
 	for i in n:
 		g.tick(1.0 / 60.0, Game.Controls.new())
+
+
+## His size: BLUE beside Mundell (a co-op partner's model) and a hand (a
+## Billy), side on, from a few cells off and from close by.
+func _size() -> void:
+	main.options["hound"] = 1
+	var g: Game = main.make_game("hickston")
+	main.game = g
+	main.state = "play"
+	var options := SessionStore.defaults()
+	options["hound"] = 1
+	g.configure(options)
+	Modes.setup(g, Modes.COOP, 2, {})
+	g.cheats.god = true
+	g.lessons = false
+	g.barks.enabled = false
+	g.spawn_grace = 99.0
+	_ticks(g, 4)
+	var a: Player = g.players[0]
+	var b: Player = g.players[1]
+	var foe: Enemy = null
+	for e: Enemy in g.enemies:
+		e.dormant = true
+		if foe == null and e.hostile and HoundNose.takes(e) and e.tactical():
+			foe = e
+	var h = g.features["hound"]
+	var d = h.dogs[0]
+	for d2 in h.dogs:
+		if d2 != d:
+			d2.x = -100.0
+	g.clock = 13.0
+	for far: float in [4.0, 2.6]:
+		var ahead := Vector2(cos(a.angle), sin(a.angle))
+		var side := Vector2(-ahead.y, ahead.x)
+		var mid := Vector2(a.x, a.y) + ahead * far
+		Modes.place(g, b, mid.x, mid.y, a.angle + PI * .5)
+		d.x = mid.x + side.x * .8
+		d.y = mid.y + side.y * .8
+		d.floor_z = g.world.floor_under(d.x, d.y, g.world.stand(a) + .4)
+		d.angle = a.angle + PI * .5
+		d.state = 0
+		if foe != null:
+			foe.x = mid.x - side.x * .9
+			foe.y = mid.y - side.y * .9
+			foe.floor_z = g.world.floor_under(foe.x, foe.y, g.world.stand(a) + .4)
+			foe.angle = a.angle - PI * .5
+		a.pitch = -4.0
+		g.armory.holstered = true
+		g.armory.lower = 1.0
+		await _snap("hound_size_%d" % roundi(far * 10.0))
 
 
 ## BLUE behind a wall from the player: his marker over him.

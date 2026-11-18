@@ -73,6 +73,12 @@ const HOUND_POSES := ["0", "sit", "sniff", "point", "bark", "bay", "pain", "fetc
 ## little under.
 const HOUND_MIN := 180.0
 const HOUND_HEAD_MIN := 240.0
+## His size against Mundell (a co-op partner's model as the world draws
+## it): a bluetick's shoulder is about .37 of a man's height and the top of
+## his head about .46 (HoundLooks.SIZE). Before the size fix he was drawn
+## .69 and .85: near the man's height.
+const HOUND_SHOULDER := [.33, .41]
+const HOUND_HEAD_TOP := [.41, .52]
 
 var failures: Array[String] = []
 var passes := 0
@@ -432,6 +438,7 @@ func _motion(models: ActorModels, assets: Assets) -> void:
 		_check(flipped == 0, "fall: a boss's set piece fall mirrored")
 		boss_view.queue_free()
 	_hound_motion(models, level)
+	_hound_size(models)
 	_check(game.rng.state == rng_before, "looks: the actors' motion drew on game.rng")
 	# Specks: never under SPECK_PX_MIN of the view's pixels far off, nor over
 	# SPECK_PX_MAX right in front; their own size between.
@@ -523,6 +530,100 @@ func _hound_motion(models: ActorModels, level: LevelData) -> void:
 		"hound: sat to lying not blended over his own blend"
 	)
 	view.queue_free()
+
+
+## BLUE's drawn shoulder and head top standing (his idle's first key, his
+## model's skinned vertices: the trunk's top over the withers, the head's
+## highest) against Mundell's drawn height.
+func _hound_size(models: ActorModels) -> void:
+	if not models.kinds.has("hound") or not models.kinds.has("mundell"):
+		_check(false, "hound size: no hound or no Mundell model")
+		return
+	var view := models.scene("hound").instantiate() as ActorView
+	root.add_child(view)
+	view.setup(models)
+	var player := view.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	var at: float = models.key_time("hound", "i0")
+	player.seek(at, true)
+	var labels: Dictionary = models.kinds["hound"].get("labels", {})
+	var heads: Array[Vector3] = []
+	var bodies: Array[Vector3] = []
+	for child in view.find_children("*", "MeshInstance3D", true, false):
+		var mi := child as MeshInstance3D
+		var skeleton := mi.get_node_or_null(mi.skeleton) as Skeleton3D
+		if mi.mesh == null or mi.skin == null or skeleton == null:
+			continue
+		var place := Transform3D.IDENTITY
+		var node: Node = skeleton
+		while node != null and node != view:
+			if node is Node3D:
+				place = (node as Node3D).transform * place
+			node = node.get_parent()
+		for surface in mi.mesh.get_surface_count():
+			var arrays := mi.mesh.surface_get_arrays(surface)
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+			var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+			var per := bones.size() / maxi(1, verts.size())
+			for i in verts.size():
+				var p := Vector3.ZERO
+				var most := -1.0
+				var label := "body"
+				for k in per:
+					var w := weights[i * per + k]
+					if w <= 0.0:
+						continue
+					var bind := bones[i * per + k]
+					var bone := mi.skin.get_bind_bone(bind)
+					if bone < 0:
+						bone = skeleton.find_bone(mi.skin.get_bind_name(bind))
+					var pose := skeleton.get_bone_global_pose(bone) * mi.skin.get_bind_pose(bind)
+					p += (pose * verts[i]) * w
+					if w > most:
+						most = w
+						label = str(labels.get(skeleton.get_bone_name(bone), "body"))
+				p = place * p
+				if label == "head":
+					heads.append(p)
+				else:
+					bodies.append(p)
+	view.queue_free()
+	if heads.is_empty() or bodies.is_empty():
+		_check(false, "hound size: no head or body measured")
+		return
+	# His forward: from his middle toward his head, on the ground.
+	var mid := Vector3.ZERO
+	for p in heads:
+		mid += p
+	mid /= heads.size()
+	var forward := Vector3(mid.x, 0.0, mid.z).normalized()
+	var top := 0.0
+	for p in heads:
+		top = maxf(top, p.y)
+	var shoulder := 0.0
+	for p in bodies:
+		var along := p.dot(forward)
+		if along > .12 and along < .24:
+			shoulder = maxf(shoulder, p.y)
+	var mundell: Dictionary = models.kinds["mundell"]
+	var canvas: Array = mundell.get("canvas", [1.0, 1.87])
+	var man: float = float(mundell["height"]) * ModeScreens.PARTNER_HEIGHT / float(canvas[1])
+	var drawn_shoulder := shoulder * HoundLooks.SIZE / man
+	var drawn_top := top * HoundLooks.SIZE / man
+	print(
+		(
+			"  hound: shoulder %.3f, head %.3f of his model; drawn %.2f and %.2f of Mundell (%.2f)"
+			% [shoulder, top, drawn_shoulder, drawn_top, man]
+		)
+	)
+	_check(
+		drawn_shoulder >= HOUND_SHOULDER[0] and drawn_shoulder <= HOUND_SHOULDER[1],
+		"hound: shoulder %.2f of Mundell's height (a hound's %s)" % [drawn_shoulder, HOUND_SHOULDER]
+	)
+	_check(
+		drawn_top >= HOUND_HEAD_TOP[0] and drawn_top <= HOUND_HEAD_TOP[1],
+		"hound: head top %.2f of Mundell's height (a hound's %s)" % [drawn_top, HOUND_HEAD_TOP]
+	)
 
 
 func _pose(skeleton: Skeleton3D) -> Array:
