@@ -14,11 +14,11 @@ uniform sampler2D baked : filter_nearest, repeat_disable;
 // How much nearer than its size it is drawn (cab_layer.gd SHRINK).
 uniform float shrink = 0.1;
 // The area's tint (rgb) and the cell's light (a), where the driver sits.
-instance uniform vec4 tone = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 tone = vec4(1.0, 1.0, 1.0, 1.0);
 // How much of a part shows (cab_layer.gd: the airboat's prop fading into
 // its spinning disc): below 1, an ordered stipple of its pixels is left
 // out, as a 1997 game showed a blur, the world showing through.
-instance uniform float opacity = 1.0;
+uniform float opacity = 1.0;
 // Up close the stepped light would burn pale paint white: no nearer than
 // this (cells) for the light.
 const float LIGHT_NEAR = 2.5;

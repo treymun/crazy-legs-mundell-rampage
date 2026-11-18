@@ -58,7 +58,8 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | Check | Passes with | In quick | What it holds |
 | --- | --- | --- | --- |
 | `check_shader` | SHADER OK | yes | texture counts: `display.gdshader` at most 9 (incl. TEXTURE), each view3d shader with its includes at most 10 |
-| `view_perf_check` | VIEW PERF CHECK OK | yes | the 3D view's frame stays cheap (pass 10): its global uniforms match `project.godot` and the shaders, no view3d shader keeps a uniform array, no frame number goes to a material; two to four turns round Hickston's spawn with its hands awake make no prop or model again after the first, nothing past where it shows gets a model, the shader instance buffer stays in its room; `frame()`'s lower quartile under 1.2 times a yardstick of plain GDScript |
+| `view_perf_check` | VIEW PERF CHECK OK | yes | the 3D view's frame stays cheap (pass 10): its global uniforms match `project.godot` and the shaders, no view3d shader keeps a uniform array, no frame number goes to a material; two to four turns round Hickston's spawn with its hands awake make no prop or model again after the first, nothing past where it shows gets a model, no view3d shader has instance uniforms and the parts with them stay in WebGL's room with margin; `frame()`'s lower quartile under 1.5 times a yardstick of plain GDScript |
+| `stress_bench` (`check`) | STRESS CHECK OK | no | the busy scenes (wreck48, arena, county) built headless with a 3D view made by hand: every frame's model parts with instance uniforms under WebGL's room (60) less 20, and the global uniforms and their blocks under its 1024 slots with the same margin (none since pass 10: each part has its own material) |
 | `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads (a station's with both looks, every quest picture modelled); every slab (pickups, loose things, range targets) builds at its picture's size; no fallen body's part stays up at `down` (fit.json `down_high` for the cow's raised legs); the hanging lamp is the shop_lamp model and a tipped cow rolls on her hooves (`ActorView.tipped`) |
 | `actor_check` | ACTOR CHECK OK | yes | the actors' models (polish pass 9): every actors.json kind's glb, scene and looks (square, a power of two), keys numbered once each, bone labels, canvas; fit.json names only models and numbers ActorModels reads; every kind has the frames the game asks for (walk with its closing `w4`, fall, hurt set, a boss's recover, a critter's -1/0/1); texels a metre over each body and head at least `TEXEL_MIN`/`HEAD_MIN` (`report` prints them), the hound's at least `HOUND_MIN`/`HOUND_HEAD_MIN`; the hound's fourteen motions and ten poses (pass 10), each motion's keys in a row, played on the gait, a one-shot ending on its last key, his own fit.json blend, and his drawn size (shoulder .33-.41 and head top .41-.52 of Mundell's drawn height, measured on his skinned model); ActorView's looks-only motion: pose blends, no blend between walk beats, hit flinches by zone with their own dice and still after `FLINCH`, idle breath, mirrored scripted falls (never a boss), game.rng untouched; specks between `View.SPECK_PX_MIN` and `SPECK_PX_MAX` pixels; a partner on the riding mower shows Mundell's `sit` ([view3d.md](view3d.md#actors)) |
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
@@ -302,10 +303,12 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   arena (Maw's third phase, the arena coming apart), fivev5 (ten bots in a
   grainyard round) and county (County Run at 12 minutes, the storm closing,
   38 hands) and prints each one's frame median, p99 and max, tick and render
-  means, the view's parts, what is on screen, the shader instance parts held
-  (and the props and models parked out of view)
-  and the memory (static, textures, buffers, video). Give it a scratch
-  `APPDATA` with an options.json to pick a QUALITY tier.
+  means, the view's parts, what is on screen, the model parts drawn (and
+  those with instance uniforms, and the props and models parked out of
+  view) and the memory (static, textures, buffers, video); `shots=<dir>`
+  saves each scene's last window picture. Give it a scratch `APPDATA` with
+  an options.json to pick a QUALITY tier. `check` runs headless (in
+  check_all, above).
 - **The first-time hitches**, in a window: `tools/hitch_bench.gd -- [only=a,b]
   [frames=90]` times the frame something is drawn or made for the first time
   and the big moments that come once: turn (a 180 at Hickston's spawn), the

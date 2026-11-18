@@ -17,7 +17,7 @@ uniform sampler2D baked : filter_nearest, repeat_disable;
 uniform float sway_k = 0.0;
 uniform vec2 sway_size = vec2(1.0, 1.0);
 // The area's tint (rgb) and the cell's light (a).
-instance uniform vec4 tone = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 tone = vec4(1.0, 1.0, 1.0, 1.0);
 
 varying vec3 map_p;
 varying vec3 map_n;

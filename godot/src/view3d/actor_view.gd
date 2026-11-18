@@ -117,7 +117,7 @@ func setup(p_models: ActorModels) -> bool:
 	for child in find_children("*", "", true, false):
 		if child is MeshInstance3D:
 			var mesh := child as MeshInstance3D
-			mesh.material_override = material
+			OwnMaterial.give(mesh, material)
 			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mesh.visibility_range_end = REACH
 			_meshes.append(mesh)
@@ -342,10 +342,10 @@ func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: floa
 		return
 	_shaded = now
 	for mesh in _meshes:
-		mesh.set_instance_shader_parameter("tone", tone)
-		mesh.set_instance_shader_parameter("wash", wash)
-		mesh.set_instance_shader_parameter("look", look)
-		mesh.set_instance_shader_parameter("fallen", down)
+		OwnMaterial.put(mesh, "tone", tone)
+		OwnMaterial.put(mesh, "wash", wash)
+		OwnMaterial.put(mesh, "look", look)
+		OwnMaterial.put(mesh, "fallen", down)
 
 
 ## Draw on these render layers only (the mirror's reflection: WorldView3D

@@ -15,15 +15,16 @@
 ## - The view's frame() on the later turns (headless, no drawing: the
 ##   GDScript side alone; its lower quartile) stays under FRAME_RATIO times
 ##   a yardstick of plain GDScript work timed beside it, so a slower machine
-##   is held to the same share: 0.4 to 0.7 of it here (2026-11-17), v3.7.0
+##   is held to the same share: 0.4 to 1.1 of it here (2026-11-18, the PC
+##   busy or not), v3.7.0
 ##   0.8 to 0.9 (its median, with a prop or model made every few frames,
-##   1.9). The steady frame growing to about twice fails; the props and
+##   1.9). The steady frame growing to two or three times fails; the props and
 ##   models made again are held above.
 ##
 ## Prints VIEW PERF CHECK OK.
 extends SceneTree
 
-const FRAME_RATIO := 1.2
+const FRAME_RATIO := 1.5
 const STEPS := 42
 ## The first lap stands the props and models; the rest are timed.
 const LAPS := 4
@@ -63,6 +64,8 @@ func _globals() -> void:
 	var global_re := RegEx.create_from_string("(?m)^global uniform (\\w+) (\\w+);")
 	var plain_re := RegEx.create_from_string("(?m)^uniform (\\w+) (\\w+)")
 	var array_re := RegEx.create_from_string("(?m)^uniform \\w+ (\\w+)\\s*\\[")
+	var instance_re := RegEx.create_from_string("(?m)^\\s*instance\\s+uniform\\s+\\w+\\s+(\\w+)")
+	var instanced: Array[String] = []
 	var folder := "res://src/view3d/"
 	for file: String in DirAccess.get_files_at(folder):
 		if not (file.ends_with(".gdshader") or file.ends_with(".gdshaderinc")):
@@ -75,6 +78,8 @@ func _globals() -> void:
 				own_uniforms.append("%s %s" % [file, m.get_string(2)])
 		for m in array_re.search_all(code):
 			arrays.append("%s %s" % [file, m.get_string(1)])
+		for m in instance_re.search_all(code):
+			instanced.append("%s %s" % [file, m.get_string(1)])
 	var missing: Array[String] = []
 	for name: String in declared:
 		var key := "shader_globals/" + name
@@ -97,6 +102,10 @@ func _globals() -> void:
 	_check(own_uniforms.is_empty(), "none of them a material's own uniform %s" % [own_uniforms])
 	_check(
 		arrays.is_empty(), "no uniform arrays: the frame's lists are view_data's rows %s" % [arrays]
+	)
+	_check(
+		instanced.is_empty(),
+		"no instance uniforms: a part's own numbers are its own material's %s" % [instanced]
 	)
 
 
@@ -132,7 +141,8 @@ func _turns() -> void:
 			if lap >= 1:
 				times.append((Time.get_ticks_usec() - t0) / 1000.0)
 			await process_frame
-			if view.instance_held() > WorldView3D.instance_parts():
+			var parts := WorldView3D.instance_uniform_parts(view)
+			if parts > WorldView3D.INSTANCE_ROOM_SMALL - WorldView3D.INSTANCE_MARGIN:
 				over += 1
 			beyond += _beyond(view, Vector2(p.x, p.y))
 		if lap == 0:
@@ -148,7 +158,13 @@ func _turns() -> void:
 	_check(again_props == 0, "the later turns make no prop again (%d)" % again_props)
 	_check(again_models == 0, "nor any model (%d)" % again_models)
 	_check(beyond == 0, "nothing given a model past where it shows (%d)" % beyond)
-	_check(over == 0, "the shader instance buffer never over its room (%d frames)" % over)
+	_check(
+		over == 0,
+		(
+			"the parts with instance uniforms always in WebGL's room, with margin (%d frames over)"
+			% over
+		)
+	)
 	_check(
 		view.world_material.get_shader_parameter("eye") == null and view.shared("eye") != null,
 		"the frame's numbers are not handed to the materials"

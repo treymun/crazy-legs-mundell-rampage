@@ -12,7 +12,7 @@ render_mode unshaded, cull_disabled, shadows_disabled, fog_disabled;
 
 uniform sampler2D baked : filter_nearest, repeat_disable;
 // The area's tint (rgb) and the cell's light (a).
-instance uniform vec4 tone = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 tone = vec4(1.0, 1.0, 1.0, 1.0);
 
 varying vec3 map_p;
 varying vec3 map_n;

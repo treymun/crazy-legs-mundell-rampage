@@ -10,9 +10,8 @@ extends Node3D
 
 ## As far ahead as props are drawn.
 const REACH := 32.0
-## Spare nodes kept at most: a hidden node keeps its eight shader instance
-## numbers (the global buffer holds 4096, 1024 on many phones and in WebGL),
-## and a scene of 48 pieces left 48 spares holding them after they went.
+## Spare nodes kept at most (each keeps its own material, OwnMaterial: a
+## scene of 48 pieces would leave 48 spares after they went).
 const SPARE := 8
 ## How far off a set piece's parts are still drawn.
 const FAR := 90.0
@@ -34,27 +33,9 @@ func _init(assets: Assets) -> void:
 	_shader = load("res://src/view3d/wreck.gdshader")
 
 
-## The parts the layer holds, shown and spare (each a slot in the shader
-## instance buffer).
-func held() -> int:
-	return _shown.size() + _spare.size()
-
-
 ## The pieces shown now (what shots and fire mark: thing_marks.gd).
 func shown() -> Array:
 	return _shown.values()
-
-
-## The materials the pieces shown now draw with (each once).
-func live_materials() -> Array[ShaderMaterial]:
-	var seen := {}
-	var out: Array[ShaderMaterial] = []
-	for node: MeshInstance3D in _shown.values():
-		var m := node.material_override as ShaderMaterial
-		if m != null and not seen.has(m):
-			seen[m] = true
-			out.append(m)
-	return out
 
 
 static func takes(s: View.Sprite) -> bool:
@@ -84,7 +65,9 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 			if _materials.size() > had:
 				fresh.append(material)
 			node.mesh = mesh
-			node.material_override = material
+			if node.get_meta("source", "") != source:
+				node.set_meta("source", source)
+				OwnMaterial.give(node, material)
 			# A set piece's parts (a barn, a water tower: src/set_piece_mesh.gd)
 			# stand big and are seen from far off.
 			node.visibility_range_end = FAR if s.solid.contains("|sp") else REACH
@@ -99,9 +82,7 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 		)
 		if node.get_meta("cell", -1) != cell:
 			node.set_meta("cell", cell)
-			node.set_instance_shader_parameter(
-				"tone", SpriteLayer3D.tone_at(level, s.x, s.y, false)
-			)
+			OwnMaterial.put(node, "tone", SpriteLayer3D.tone_at(level, s.x, s.y, false))
 	for s: View.Sprite in _shown.keys():
 		if not seen.has(s):
 			var idle: MeshInstance3D = _shown[s]

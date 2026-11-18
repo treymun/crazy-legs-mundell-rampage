@@ -20,6 +20,17 @@
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/stress_bench.gd -- [only=strike,fire] [frames=240]
+##       [shots=<dir>]
+##   godot --headless --path godot --script res://tools/stress_bench.gd -- check
+##       [only=wreck48,arena,county] [frames=40]
+##
+## shots= saves the window's picture at the end of each scenario
+## (<dir>/<name>.png). check (headless, in check_all) builds the scenes with a
+## 3D view made by hand and holds each, over its frames, to the shader
+## instance buffer of WebGL and many phones (WorldView3D.INSTANCE_SLOTS_SMALL:
+## the global uniforms and 16 slots a model part with instance uniforms,
+## under INSTANCE_ROOM_SMALL parts with INSTANCE_MARGIN to spare); prints
+## STRESS CHECK OK.
 ##
 ## Prints per scenario: STRESS <name> frame median/p99/max, the tick's and
 ## render()'s means; the 3D view's parts (WorldView3D.PART_NAMES, ms a frame);
@@ -41,6 +52,13 @@ const CountyBot := preload("res://tools/county_bot.gd")
 var main
 var frames := 240
 var only: Array = []
+var shots := ""
+## check: headless, the view made by hand, the instance buffer held.
+var checking := false
+var hand_view: WorldView3D
+var failed := false
+## The most model parts with instance uniforms seen in this scenario's frames.
+var most_parts := 0
 
 
 func _init() -> void:
@@ -54,6 +72,14 @@ func _run() -> void:
 			only = Array(a.substr(5).split(",", false))
 		elif a.begins_with("frames="):
 			frames = maxi(10, int(a.substr(7)))
+		elif a.begins_with("shots="):
+			shots = a.substr(6)
+		elif a == "check":
+			checking = true
+			if only.is_empty():
+				only = ["wreck48", "arena", "county"]
+	if checking and not " ".join(OS.get_cmdline_user_args()).contains("frames="):
+		frames = 40
 	CountyRecords.folder_override = OS.get_cache_dir().path_join("clmr-stress-bench")
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
@@ -71,9 +97,11 @@ func _run() -> void:
 		main.game = null
 		await process_frame
 	print("STRESS DONE")
+	if checking:
+		print("STRESS CHECK FAILED" if failed else "STRESS CHECK OK")
 	main.queue_free()
 	await process_frame
-	quit()
+	quit(1 if checking and failed else 0)
 
 
 # ------------------------------------------------------------------ timing
@@ -91,7 +119,27 @@ func _settle(g: Game, n: int, step: Callable) -> void:
 	for i in n:
 		step.call(g)
 		main.render()
+		_by_hand()
 		await process_frame
+
+
+## check: headless the game draws no 3D view; one made by hand draws the frame
+## the game just listed, and its model parts with instance uniforms are counted.
+func _by_hand() -> void:
+	if not checking or main.world_view != null or main.game == null:
+		return
+	if hand_view == null:
+		hand_view = WorldView3D.new(main.game.art)
+		main.add_child(hand_view)
+	hand_view.frame(main.game)
+	most_parts = maxi(most_parts, WorldView3D.instance_uniform_parts(hand_view))
+
+
+## The view drawing now (the game's own in a window, else the one by hand).
+func _view() -> WorldView3D:
+	if main.world_view != null:
+		return main.world_view
+	return hand_view
 
 
 ## Times `frames` frames of `step` (one frame's game, returning its tick's
@@ -100,6 +148,7 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 	var view = main.world_view
 	if view != null:
 		view.parts_us.fill(0)
+	most_parts = 0
 	var start := _counts(g, extra)
 	var whole := PackedFloat64Array()
 	var ticks := 0
@@ -110,6 +159,7 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 		var t1 := Time.get_ticks_usec()
 		main.render()
 		var t2 := Time.get_ticks_usec()
+		_by_hand()
 		await process_frame
 		var now := Time.get_ticks_usec()
 		ticks += tick_us
@@ -141,6 +191,11 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 		for k in WorldView3D.PART_NAMES.size():
 			row += "  %s %.2f" % [WorldView3D.PART_NAMES[k], view.parts_us[k] / 1000.0 / n]
 		print(row)
+	if checking:
+		_hold(name)
+	if shots != "" and DisplayServer.get_name() != "headless":
+		DirAccess.make_dir_recursive_absolute(shots)
+		root.get_texture().get_image().save_png(shots.path_join(name + ".png"))
 	print("STRESS %-8s start  %s" % [name, start])
 	print("STRESS %-8s end    %s" % [name, _counts(g, extra)])
 	print(
@@ -178,10 +233,11 @@ func _counts(g: Game, extra: Callable) -> String:
 	var props := -1
 	var actors := -1
 	var shown_wrecks := -1
-	if main.world_view != null:
-		props = main.world_view.props.shown().size()
-		actors = main.world_view.actors._shown.size()
-		shown_wrecks = main.world_view.wrecks.shown().size()
+	var drawing := _view()
+	if drawing != null:
+		props = drawing.props.shown().size()
+		actors = drawing.actors.get("_shown").size()
+		shown_wrecks = drawing.wrecks.shown().size()
 	var text := (
 		(
 			"wreck pieces %d (awake %d, drawn %d)  enemies alive %d of %d  sprites %d"
@@ -189,13 +245,13 @@ func _counts(g: Game, extra: Callable) -> String:
 		)
 		% [pieces, awake, shown_wrecks, alive, g.enemies.size(), sprites.size(), props, actors]
 	)
-	if main.world_view != null:
-		var view: WorldView3D = main.world_view
+	var view := _view()
+	if view != null:
 		text += (
-			"  instance parts %d of %d (parked props %d, models %d)"
+			"  model parts %d (with instance uniforms %d; parked props %d, models %d)"
 			% [
 				_slots(view),
-				WorldView3D.instance_parts(),
+				WorldView3D.instance_uniform_parts(view),
 				view.props.parked(),
 				view.actors.parked()
 			]
@@ -205,11 +261,42 @@ func _counts(g: Game, extra: Callable) -> String:
 	return text
 
 
-## The model parts that hold a block of the shader instance buffer (16 of
-## its vec4 slots each, shown or hidden, whatever the shader uses: room for
-## WorldView3D.instance_parts(), 250 here, 60 where a uniform block holds
-## 16 KB, as on many phones and in WebGL): props, wreck pieces, actors and
-## the seat views, every part with instance uniforms.
+## check: the scenario's frames held to the small instance buffer: the global
+## uniforms (one slot each) and 16 slots a model part with instance uniforms.
+func _hold(name: String) -> void:
+	var globals := 0
+	for key: String in WorldView3D.GLOBALS:
+		var setting: Dictionary = ProjectSettings.get_setting("shader_globals/" + key, {})
+		if not str(setting.get("type", "")).begins_with("sampler"):
+			globals += 1
+	var room := WorldView3D.INSTANCE_ROOM_SMALL - WorldView3D.INSTANCE_MARGIN
+	var slots := globals + 16 * most_parts
+	var ok := (
+		most_parts <= room
+		and slots <= WorldView3D.INSTANCE_SLOTS_SMALL - 16 * WorldView3D.INSTANCE_MARGIN
+	)
+	failed = failed or not ok
+	print(
+		(
+			(
+				"STRESS %-8s %s instance buffer: at most %d parts with instance uniforms (room %d),"
+				+ " %d of %d slots with the %d global uniforms"
+			)
+			% [
+				name,
+				"ok  " if ok else "FAIL",
+				most_parts,
+				room,
+				slots,
+				WorldView3D.INSTANCE_SLOTS_SMALL,
+				globals
+			]
+		)
+	)
+
+
+## The model parts drawn (props, wreck pieces, actors and the seat views;
+## each held a block of the shader instance buffer until pass 10).
 func _slots(view: Node) -> int:
 	var total := 0
 	for node: Node in view.find_children("*", "MeshInstance3D", true, false):

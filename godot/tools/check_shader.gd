@@ -17,9 +17,13 @@ const LIMIT := 9
 const LIMIT_3D := 10
 const SHADERS_3D := "res://src/view3d/"
 
-var _sampler := RegEx.create_from_string(
-	"(?m)^\\s*uniform\\s+(?:sampler2D|sampler2DArray|sampler3D|usampler2D|isampler2D)\\s+(\\w+)"
+## A sampler uniform, a global one too (the 3D view's textures).
+const SAMPLER := (
+	"(?m)^\\s*(?:global\\s+)?uniform\\s+"
+	+ "(?:sampler2D|sampler2DArray|sampler3D|usampler2D|isampler2D)\\s+(\\w+)"
 )
+
+var _sampler := RegEx.create_from_string(SAMPLER)
 var _include := RegEx.create_from_string('(?m)^\\s*#include\\s+"([^"]+)"')
 
 

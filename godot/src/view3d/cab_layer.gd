@@ -112,15 +112,6 @@ func hidden_roots() -> Array[Node3D]:
 	return out
 
 
-## The material the cab shown now draws with (none when none is shown).
-func live_materials() -> Array[ShaderMaterial]:
-	var out: Array[ShaderMaterial] = []
-	if _shown != "":
-		var m: ShaderMaterial = _materials[_shown]
-		out.append(m)
-	return out
-
-
 ## Show the frame's `cab` (VehicleCab.dress: model, turn, lift, parts, and
 ## `fade`: how much of a part shows, 0..1, stippled) seen
 ## from the eye at map `eye`, or none when it is empty. Returns the material
@@ -175,7 +166,7 @@ func show_cab(cab: Dictionary, eye: Vector3, level: LevelData) -> Array[ShaderMa
 			# A part fading out or in (the airboat's prop and its blur).
 			var shows: float = fades[part]
 			node.visible = shows > .01
-			node.set_instance_shader_parameter("opacity", shows)
+			OwnMaterial.put(node, "opacity", shows)
 	_light(level, eye)
 	return fresh
 
@@ -203,7 +194,7 @@ func _make(model: String) -> ShaderMaterial:
 			var source := found as MeshInstance3D
 			var node := MeshInstance3D.new()
 			node.mesh = source.mesh
-			node.material_override = m
+			OwnMaterial.give(node, m)
 			node.layers = LAYER
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			root.add_child(node)
@@ -228,4 +219,4 @@ func _light(level: LevelData, eye: Vector3) -> void:
 		tone = Color(level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c])
 	var parts: Dictionary = _parts[_shown]
 	for node: MeshInstance3D in parts.values():
-		node.set_instance_shader_parameter("tone", tone)
+		OwnMaterial.put(node, "tone", tone)
