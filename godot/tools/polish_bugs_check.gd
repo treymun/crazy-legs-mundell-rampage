@@ -352,7 +352,9 @@ static func _car_at_hound(main: Control) -> Dictionary:
 	var s := VehicleDrive.spec(v.kind)
 	var d: Object = dogs[0]
 	# His heel spot with his player at the wheel: past the car's tail.
-	var spot: Vector2 = hound.call("_heel_spot", d, g.player)
+	var back: float = hound.call("n", "heel")
+	var radius: float = hound.call("n", "radius")
+	var spot := HoundLegs.heel_spot(g, d, g.player, back, radius)
 	var rel := spot - Vector2(v.x, v.y)
 	out["heel"] = -rel.dot(Vector2(cos(v.h), sin(v.h))) - s.length * .5
 	# Told to stay, right on the car's line ahead of it.
