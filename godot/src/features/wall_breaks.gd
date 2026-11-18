@@ -4,9 +4,14 @@
 ## A window is a wall piece showing a window tile (<material>_win or _lit, the
 ## trailers' trailer_window): a shot into its glass, or a blast near it, swaps
 ## its picture for <material>_brk (tools/art/wall_break_art.gd: the room dark
-## behind teeth of glass, so a lit one goes dark), throws glass and plays the
-## window cue. It stays a wall. A fence cell is a solid cell of a tile with a
-## [fence.<tile>] section in data/tuning/breakables.cfg: shots and blasts take
+## behind teeth of glass, so a lit one goes dark; a blast's <material>_bst,
+## its frame torn out too), throws glass and plays the window cue. It stays a
+## wall. A light round only shows it cracked, its glass held in its frame
+## (`cracked`), until the next round, a blast or a body: play had it broken
+## at the first all the same. How it looks is features/wall_looks.gd's, told
+## where and how each window and fence cell was struck. A fence cell is a
+## solid cell of a tile with a [fence.<tile>] section in
+## data/tuning/breakables.cfg: shots and blasts take
 ## its hp, at `damaged` of it its faces show the `hit` tile (boards out), and at
 ## none it opens (LevelData.open_cell): floor for bodies, sight and shots, both
 ## flow fields reopen it, the cells beside it show their own face toward it and
@@ -45,6 +50,11 @@ const NONE := 0
 const HOLE := 1
 ## crash()'s answer when the fence it hit broke through (the body goes on).
 const OPENED := 2
+## How a wall was struck, for its looks (features/wall_looks.gd): a round, a
+## blast, a body thrown into it.
+const SHOT := 0
+const BLAST := 1
+const BODY := 2
 ## Where the glass is on a window face: across it (as a share of its length),
 ## and up it, by world height for a tile laid by height (RenderState's
 ## WINDOW_SILL to WINDOW_HEAD) or as shares of the piece's height down from
@@ -60,9 +70,13 @@ class WindowFace:
 	var edge := Vector4.ZERO
 	var whole := 0
 	var shot := 0
-	## Shot once it cracks first (<material>_crk, a lit one's _lck; -1 none).
-	var crack := -1
+	## Broken but still in its frame, cracked (a light round's: the glass
+	## shows its web, features/wall_looks.gd, until the next round, a blast or
+	## a body shoots it out). Play is the same either way: it broke.
 	var cracked := false
+	## Shot out by a blast: <material>_bst (its frame torn out too; -1 none).
+	var blast := -1
+	var blasted := false
 	var low := 0.0
 	var high := 0.0
 	var broken := false
@@ -158,7 +172,7 @@ static func _section(cfg: ConfigFile, name: String) -> Dictionary:
 func _find_windows() -> void:
 	var world: LevelData = game.world
 	var shot_of := {}
-	var crack_of := {}
+	var blast_of := {}
 	for i in world.tile_names.size():
 		var name := String(world.tile_names[i])
 		for tail: String in ["_window", "_win", "_lit"]:
@@ -167,7 +181,7 @@ func _find_windows() -> void:
 				var broken := world.tile_id(base + "_brk")
 				if broken >= 0:
 					shot_of[i] = broken
-				crack_of[i] = world.tile_id(base + ("_lck" if tail == "_lit" else "_crk"))
+				blast_of[i] = world.tile_id(base + "_bst")
 				break
 	var stride := LevelData.WALL_STRIDE
 	for i in world.wall_count:
@@ -188,7 +202,7 @@ func _find_windows() -> void:
 			continue
 		face.whole = tile
 		face.shot = shot_of[tile]
-		face.crack = crack_of.get(tile, -1)
+		face.blast = blast_of.get(tile, -1)
 		var bottom: float = world.walls[o + 6]
 		var top: float = world.walls[o + 7]
 		if (
@@ -586,17 +600,19 @@ func strike(x: float, y: float, z: float, ax: float, ay: float, amount: float) -
 			continue
 		if z < face.low or z > face.high:
 			continue
+		if not face.broken or face.cracked:
+			_tell_window(face, Vector3(p.x + ax * t, p.y + ay * t, z), ax, ay, amount, SHOT)
 		if not face.broken:
-			# Layers: a first round cracks the glass, the next shoots it out
-			# (a load of buckshot or a big round does both at once).
-			if face.crack >= 0 and not face.cracked and amount < win.get("crack_most", 50.0):
-				_crack_window(face, false)
-			else:
-				_break_window(face, false)
+			# Play as ever: the first round breaks it (bits, specks, heard).
+			# Looks: a light one leaves the glass cracked in its frame.
+			var crack_most: float = win.get("crack_most", 50.0)
+			_break_window(face, false, false, amount < crack_most)
+		elif face.cracked:
+			_shoot_out(face, false)
 		return HOLE
 	var f: Fence = fences.get(cell)
 	if f != null:
-		_knock(f, amount, ax, ay)
+		_knock(f, amount, ax, ay, Vector3(x, y, z), SHOT)
 	return NONE
 
 
@@ -622,13 +638,17 @@ func crash(x: float, y: float, z: float, ax: float, ay: float, amount: float) ->
 			continue
 		if z < face.low - .5 or z > face.high + .3:
 			continue
+		if not face.broken or face.cracked:
+			_tell_window(face, Vector3(near.x, near.y, z), ax, ay, amount, BODY)
 		if not face.broken:
 			_break_window(face, false)
+		elif face.cracked:
+			_shoot_out(face, false)
 		return HOLE
 	var f: Fence = fences.get(cell)
 	if f == null or f.stage == 2:
 		return NONE
-	_knock(f, amount, ax, ay)
+	_knock(f, amount, ax, ay, Vector3(x + ax * .35, y + ay * .35, z), BODY)
 	return OPENED if f.stage == 2 else HOLE
 
 
@@ -652,7 +672,7 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 	var world: LevelData = game.world
 	var reach: float = win.get("blast_reach", 2.4)
 	for face: WindowFace in windows:
-		if face.broken:
+		if face.broken and not face.cracked:
 			continue
 		var mid := face.middle()
 		if absf(mid.x - x) > reach + .5 or absf(mid.y - y) > reach + .5:
@@ -666,7 +686,12 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 			near.distance_to(Vector2(x, y)) < reach
 			and world.visible(x, y, front.x, front.y, z, glass)
 		):
-			_break_window(face, false)
+			var away := (near - Vector2(x, y)).normalized()
+			_tell_window(face, Vector3(x, y, z), away.x, away.y, strength, BLAST)
+			if face.broken:
+				_shoot_out(face, true)
+			else:
+				_break_window(face, false, true)
 	for f: Fence in fences.values():
 		if f.stage == 2:
 			continue
@@ -684,46 +709,30 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 		if not world.visible(x, y, front.x, front.y, z, minf(z, f.top * .5)):
 			continue
 		var away := (centre - Vector2(x, y)).normalized()
-		_knock(f, strength * (1.0 - d / (radius + .3)) * (.5 if energy else 1.0), away.x, away.y)
+		var power := strength * (1.0 - d / (radius + .3)) * (.5 if energy else 1.0)
+		_knock(f, power, away.x, away.y, Vector3(x, y, z), BLAST)
 
 
 # ------------------------------------------------------------------ breaking
 
 
-## Shot once: the glass cracks from the hole and stays in its frame.
-func _crack_window(face: WindowFace, quiet: bool) -> void:
-	face.cracked = true
-	net_version += 1
-	var world: LevelData = game.world
-	for i in world.walls_on(face.edge.x, face.edge.y, face.edge.z, face.edge.w):
-		if int(world.walls[i * LevelData.WALL_STRIDE + 4]) == face.whole:
-			world.set_wall_tile(i, face.crack)
-	if quiet:
-		return
-	var n := face.normal()
-	var at := face.middle() + n * .1
-	var z := (face.low + face.high) * .5
-	game.burst(at.x, at.y, z, "glass", 4, 1.0)
-	game.sound_at(str(win.get("crack_cue", "glass_settle")), at.x, at.y, .7)
-	var heard: float = win.get("heard", 6.8)
-	game.disturb(at.x, at.y, heard * .5, z)
-
-
-func _break_window(face: WindowFace, quiet: bool) -> void:
+## Broken (by a blast its frame torn out too: <material>_bst; `held`: its
+## glass left cracked in its frame, its tile as it was, wall_looks.gd's web
+## over it). What play sees is the same either way.
+func _break_window(face: WindowFace, quiet: bool, blasted := false, held := false) -> void:
 	face.broken = true
+	face.blasted = blasted and face.blast >= 0
+	face.cracked = held and not face.blasted
 	net_version += 1
-	var world: LevelData = game.world
-	for i in world.walls_on(face.edge.x, face.edge.y, face.edge.z, face.edge.w):
-		var now := int(world.walls[i * LevelData.WALL_STRIDE + 4])
-		if now == face.whole or (face.crack >= 0 and now == face.crack):
-			world.set_wall_tile(i, face.shot)
+	if not face.cracked:
+		_retile(face, face.blast if face.blasted else face.shot)
 	if quiet:
 		return
 	var n := face.normal()
 	var at := face.middle() + n * .14
 	var z := (face.low + face.high) * .5
 	_drop_marks(face.middle(), n, face.low, face.high)
-	_noise(win, at, z)
+	_noise(win, at, z, face.cracked)
 	var pieces: Breakables = game.features.get("breakables")
 	if pieces != null:
 		var bits: int = win.get("bits", 7)
@@ -734,15 +743,45 @@ func _break_window(face: WindowFace, quiet: bool) -> void:
 	game.disturb(at.x, at.y, heard, z)
 
 
+## A cracked window's glass shot out of its frame (the next round, a blast:
+## its frame too, a body): only its picture and its sound; play had it
+## broken already, so no dice, nobody hears more.
+func _shoot_out(face: WindowFace, blasted: bool) -> void:
+	face.cracked = false
+	face.blasted = blasted and face.blast >= 0
+	net_version += 1
+	_retile(face, face.blast if face.blasted else face.shot)
+	var n := face.normal()
+	_drop_marks(face.middle(), n, face.low, face.high)
+	var at := face.middle() + n * .14
+	game.sound_at(str(win.get("cue", "glass_break")), at.x, at.y, .9)
+
+
+## A window face's pieces (whole, or as broken before) show `tile`.
+func _retile(face: WindowFace, tile: int) -> void:
+	var world: LevelData = game.world
+	for i in world.walls_on(face.edge.x, face.edge.y, face.edge.z, face.edge.w):
+		var now := int(world.walls[i * LevelData.WALL_STRIDE + 4])
+		if now == face.whole or now == face.shot or now == face.blast:
+			world.set_wall_tile(i, tile)
+
+
 ## A fence cell takes `amount`: shot about past `damaged` of its hp, broken
-## through at none (if it may open; else it holds, shot about).
-func _knock(f: Fence, amount: float, ax: float, ay: float) -> void:
+## through at none (if it may open; else it holds, shot about). Where it was
+## struck (`at`) and how (SHOT, BLAST, BODY) go to its looks only.
+func _knock(
+	f: Fence, amount: float, ax: float, ay: float, at := Vector3(-1, -1, -1), how := SHOT
+) -> void:
 	if f.stage == 2 or amount <= 0.0:
 		return
 	net_version += 1
+	var was := f.hp
 	f.hp -= amount
 	if not f.opens:
 		f.hp = maxf(f.hp, 1.0)
+	var looks: WallLooks = game.features.get("wall_looks")
+	if looks != null and at.x >= 0.0:
+		looks.fence_struck(f, at, Vector2(ax, ay), was - f.hp, how)
 	var damaged: float = f.spec.get("damaged", .6)
 	if f.stage == 0 and f.hp <= f.most * damaged:
 		_shoot_about(f, false, ax, ay)
@@ -820,9 +859,14 @@ func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 	game.disturb(at.x, at.y, heard, z)
 
 
-## The picture standing in a gap: a cell wide, from the ground, one a side.
+## The picture standing in a gap: a cell wide, from the ground, one a side;
+## one of its stumps' pictures (<broken>, _1, _2: tools/art/wall_break_art.gd)
+## by the cell, so gaps side by side are not alike.
 func _stand_gap(f: Fence) -> void:
 	var image := str(f.spec.get("broken", ""))
+	var pick := posmod(f.cell.x * 7 + f.cell.y * 13, 3)
+	if pick > 0 and game.art.has_art("%s_%d" % [image, pick]):
+		image = "%s_%d" % [image, pick]
 	var art: Dictionary = game.art.art(image)
 	var art_h: float = art["h"]
 	var art_w: float = art["w"]
@@ -858,11 +902,25 @@ func _front(f: Fence, ax: float, ay: float) -> Vector2:
 	return centre + Vector2(back.x * .3, signf(back.y) * .62)
 
 
+## Where and how a window was struck, for its looks (features/wall_looks.gd:
+## its cracks from that point, its glass flying from it).
+func _tell_window(
+	face: WindowFace, at: Vector3, ax: float, ay: float, amount: float, how: int
+) -> void:
+	var looks: WallLooks = game.features.get("wall_looks")
+	if looks != null:
+		looks.window_struck(face, at, Vector2(ax, ay), amount, how)
+
+
 ## A break's sounds (a row breaking at once is one crash).
-func _noise(spec: Dictionary, at: Vector2, _z: float) -> void:
+func _noise(spec: Dictionary, at: Vector2, _z: float, crack := false) -> void:
 	if game.clock < _crash_next:
 		return
 	_crash_next = game.clock + .05
+	if crack:
+		# Glass cracked in its frame: its crack, not its crash.
+		game.sound_at(str(spec.get("crack_cue", "glass_settle")), at.x, at.y, .7)
+		return
 	game.sound_at(str(spec.get("cue", "glass_break")), at.x, at.y, .9)
 	if spec.has("cue2"):
 		game.sound_at(str(spec["cue2"]), at.x, at.y, .6)
@@ -902,6 +960,8 @@ func sprites() -> Array:
 func forget() -> void:
 	for face: WindowFace in windows:
 		face.broken = false
+		face.blasted = false
+		face.cracked = false
 	for f: Fence in fences.values():
 		f.hp = f.most
 		f.stage = 0
@@ -912,10 +972,13 @@ func forget() -> void:
 func save() -> Dictionary:
 	var shot: Array = []
 	var cracked: Array = []
+	var blasted: Array = []
 	for face: WindowFace in windows:
 		if face.broken:
 			shot.append([face.edge.x, face.edge.y, face.edge.z, face.edge.w])
-		elif face.cracked:
+			if face.blasted:
+				blasted.append([face.edge.x, face.edge.y, face.edge.z, face.edge.w])
+		if face.cracked:
 			cracked.append([face.edge.x, face.edge.y, face.edge.z, face.edge.w])
 	var knocked: Array = []
 	var w: int = game.world.width
@@ -930,6 +993,8 @@ func save() -> Dictionary:
 	var out := {"windows": shot, "fences": knocked}
 	if not cracked.is_empty():
 		out["cracked"] = cracked
+	if not blasted.is_empty():
+		out["blasted"] = blasted
 	return out
 
 
@@ -937,6 +1002,17 @@ func restore(state: Dictionary) -> void:
 	var by_edge := {}
 	for face: WindowFace in windows:
 		by_edge[face.edge] = face
+	# Torn out by a blast (save version 12): shown so when it is put back.
+	var torn := {}
+	for item: Variant in state.get("blasted", []):
+		if item is Array:
+			var edge: Array = item
+			if edge.size() == 4:
+				var ex: float = edge[0]
+				var ey: float = edge[1]
+				var fx: float = edge[2]
+				var fy: float = edge[3]
+				torn[Vector4(ex, ey, fx, fy)] = true
 	for item: Variant in state.get("windows", []):
 		if not (item is Array):
 			continue
@@ -949,7 +1025,7 @@ func restore(state: Dictionary) -> void:
 		var by: float = row[3]
 		var face: WindowFace = by_edge.get(Vector4(ax, ay, bx, by))
 		if face != null and not face.broken:
-			_break_window(face, true)
+			_break_window(face, true, torn.has(face.edge))
 	for item: Variant in state.get("cracked", []):
 		if not (item is Array):
 			continue
@@ -961,8 +1037,11 @@ func restore(state: Dictionary) -> void:
 		var dx: float = row[2]
 		var dy: float = row[3]
 		var face: WindowFace = by_edge.get(Vector4(cx, cy, dx, dy))
-		if face != null and not face.broken and not face.cracked and face.crack >= 0:
-			_crack_window(face, true)
+		# Broken but held cracked in its frame (a save of pass 11 on; one of
+		# an older build named only whole windows here, and none ever were).
+		if face != null and face.broken and not face.blasted and not face.cracked:
+			face.cracked = true
+			_retile(face, face.whole)
 	for item: Variant in state.get("fences", []):
 		if not (item is Array):
 			continue

@@ -31,6 +31,13 @@ const int ROW_SHADOW_A = 5;
 const int ROW_SHADOW_B = 6;
 const int ROW_BLOBS = 7;
 const int ROW_FLOW = 8;
+// The plank walls shot about (features/wall_looks.gd view_rows): rows 9 and
+// 11 their cells (x, y, ground, height; x of -1 ends the list), 10 and 12
+// their planks (world_body.gdshaderinc plank_damage).
+const int ROW_PLANK0 = 9;
+const int ROW_PLANK1 = 10;
+const int ROW_PLANK2 = 11;
+const int ROW_PLANK3 = 12;
 // A blackout (features/county_events.gd): the share of the light gone, before
 // the lights (a flashlight's beam, a lantern) add theirs.
 global uniform float blackout;

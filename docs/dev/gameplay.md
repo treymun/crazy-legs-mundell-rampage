@@ -1507,19 +1507,32 @@ of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
   end, and the chunks they were and are in build again through `retiled`).
   Shot about, the cell's own boards and the boards of a plank wall on its
   other face (`inside` tiles with a `<tile>_hit`) show `<tile>_hit`
-  (`tools/art/wall_break_art.gd`: the planks knocked out to the dark behind;
-  a TILED wall's `_hit` repeats as the wall does, `level_mesh.gd`), never a
-  gable above the roof. Its planks fly as `planks:5,3` (wreckage) and the
-  stumps stand in the gap (`<tile>_gap`). Nothing new is saved or carried:
+  (`tools/art/wall_break_art.gd`; a TILED wall's `_hit` repeats as the wall
+  does, `level_mesh.gd`), never a gable above the roof. Near the eye the
+  planks are knocked out of the wall for real where the rounds struck
+  (`features/wall_looks.gd`, below); `_hit` is the far-off look (its gaps
+  the far side's boards in shadow, never black). The stumps stand in the gap
+  (`<tile>_gap`, `_gap_1`, `_gap_2`: picked by the cell, each broken at its
+  own heights). Nothing new is saved or carried:
   the fence cells' hp and stage were already (a save without them restores
   whole, so no save version; no map changed, so no layout).
   `tools/plank_check.gd` (check_all, quick too) holds it; railings, stairs
   and decks (geometry pieces) do not break yet.
-- **In layers** (content pass 8): a window's first round under
-  `[windows] crack_most` cracks its glass (`<material>_crk`, a lit one's
-  `_lck`: `wall_break_art.gd`, laid by height like `_win`), the next shoots
-  it out; a blast, a body or a big round shoots it out at once. Cracked is
-  saved (the feature's `cracked` list). A breakable sign (`sign=true`) with
+- **In layers** (content pass 8, remade in pass 11): content pass 8 meant a
+  window's first round to crack it (`<material>_crk`), but those tiles were
+  never in the game's tile list (`data/index.json`), so every window went at
+  its first round, and play is kept so: the first round breaks it (its bits,
+  its specks, heard at `heard`, `broken`). A round under `[windows]
+  crack_most` only shows it held in its frame (`WindowFace.cracked`: its
+  tile as it was, the crack web laid where it struck by `wall_looks.gd`);
+  the next round, a blast or a body shoots the glass out (`_shoot_out`: its
+  picture and its sound only, no dice spent, nobody hears more). A blast
+  shoots a window out to `<material>_bst` (its frame torn out too, the wall
+  round it sooted: `wall_break_art.gd _blasted`, laid by height like `_brk`,
+  its material its wall's; `WindowFace.blasted`). Both are saved (the
+  feature's `cracked` and `blasted` lists; a save without them puts the
+  window back shot out, `_brk`), so no save version (a feature's block takes
+  new keys). A breakable sign (`sign=true`) with
   a `<sign>_crk` picture (`build_break_art.gd`) that a round under
   `[all] crack_most` would break cracks first (`Piece.cracked`, carried; a
   client's picture put right in `sprites()`) and goes on the next.
@@ -1528,6 +1541,57 @@ of static functions on it: `src/event_twister.gd`, `event_herd.gd`,
   only the chunks round it again (`LevelMesh.build_static(base, only)`, a few
   milliseconds; the whole level is 70 to 150). Before this the 3D view kept
   showing the whole window.
+
+### How walls look taking a beating (destruction pass 11, WALLS)
+
+`features/wall_looks.gd` (LOOKS_FEATURES: own dice, never carried or
+saved). `wall_breaks.gd` tells it where and how each fence cell and window
+was struck (`fence_struck`, `window_struck`: SHOT, BLAST, BODY) as it
+happens; a client or a save put on only sees the fences' hp and makes the
+knocks it did not see up from it (seeded by the cell). Nothing in play
+reads it (`wall_looks_check`: the same hp, stage, walls and flow without it).
+
+- **Planks.** Each fence cell keeps, for each of its eight planks (an
+  eighth of the cell along the fence, in world terms so both faces agree),
+  the stretch knocked out `[lo, hi)` in sixteenths of the cell's height. A
+  round (a share p of the cell's hp) wears the plank it struck `5p`; past
+  .8 a chunk `.05 + .3p` either side of where it struck goes; the next
+  round there widens it, past six sixteenths the shorter end lets go,
+  past eleven (or enough wear) all of it. A heavy round (p >= .4) wears the
+  plank beside it too. So a revolver knocks a chunk out each round, a load
+  of buckshot (each pellet light) tears ragged chunks across a few planks,
+  a blast tears out the planks facing it round its height (the nearest
+  whole, ragged), a body breaks them from the ground up.
+- **What flies.** Every stretch knocked out flies as that piece of plank
+  (its tile's column, `t:<tile>@1,1|planks:8,1` drawn stretched to its
+  length: `Wreck.shape`) out the far side along the shot, turning, with
+  splinters (weapon_fx) back toward the gun and `pierce_plank`. Gone
+  through, what is left over the stumps breaks at fresh heights and bursts
+  out along the shot (away from a blast, harder), `pieces_most` of them as
+  boards, and a stockyard's rails go in halves.
+- **Drawn.** `view_rows()` hands the 3D view the 32 cells nearest the eye
+  (rows 9 to 12 of `view_data`); the world shader cuts their planks out of
+  the faces along the fence (`world_body.gdshaderinc plank_damage`, kind
+  `KIND_PLANKS` for `LevelMesh.PLANK_TILES` and their `_hit`): what is
+  behind shows (the yard, the room, the far rail), the ends broken in teeth
+  with a pale splintered edge, a plank's side by a gap shadowed, the
+  stockyard's posts and rails kept. A hole on a stretch knocked out goes
+  with it. No retiling: only the rows change.
+- **Windows.** A window held cracked shows its crack web (`fx_glass_web_N`,
+  as big as the glass round that spot allows) as a wall mark where the round
+  struck (a made-up spot where nobody saw it). Shot out,
+  the pane is cut fresh round where it was struck (`cut_pane`: 7 to 10 rays
+  from the hole, two wobbling rings, no piece over `SHARD_MOST`): the
+  pieces in the inner ring and any past `[windows] shards_most` (14, 6 on a
+  phone) are thrown as glints (`glints`), the rest as shards (one template
+  triangle of `fx_shard_glass`, half its texels clear, drawn through a shape
+  to each triangle) flying from the hole by the round's force (a blast's
+  harder, all over the pane). A shard landing hard breaks again: a big one
+  in two, a small one into glints lying where it fell (`shatter`,
+  `glass_settle`). A blast throws the frame's sticks too.
+- `tools/wall_looks_check.gd` (check_all, quick too) holds it;
+  `tools/walls_frames.gd` pictures it (before and after:
+  `docs/godot3d/destruction/WALLS/`).
 
 ### In real pieces of themselves
 
@@ -1545,10 +1609,9 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   bear, balloons, mailboxes, propane, gas cans, hay), `table:n` (the picnic
   table: its top in planks, its legs and benches below), `planks:c,r,t` (a
   picture: the yard's `prop_barrel` in staves, `prop_crate` in boards, a
-  sign's paint, `pieces_most` 3). Windows (`[windows] pieces`, `shards:n`)
-  throw their glass in panes of two shards; a stockyard fence cell
-  (`fence:n,v...`) throws `pieces_shot` boards off the side it was shot from
-  when shot about and its boards and rails when it breaks through.
+  sign's paint, `pieces_most` 3). Windows and fence cells are cut fresh
+  each break by `features/wall_looks.gd` (above; `[windows] pieces` and a
+  fence's `fence:n,v...` are only what wreckage.gd would throw without it).
 - **The pieces are the thing's own look.** `WreckCuts.parts(key)` cuts a
   prop's baked model (assets3d/props, its first mesh) with real clipping
   (each triangle cut by the cell's planes; a shell gets an inside face set in
@@ -1783,7 +1846,13 @@ physics, so play's users stay the same on every machine.
 - `features/impacts.gd` throws the chips and keeps the marks: holes, floor
   pocks, wall scorches, blood running down from `gore.walls`, each to a cap
   and a life from effects.cfg `[debris]`, the oldest fading first
-  (`Assets.faded_art`, alpha-scaled copies). Features add wall marks through
+  (`Assets.faded_art`, alpha-scaled copies). Each new hole takes one of its
+  material's own pictures and size (`HOLE_LOOKS`, pass 11,
+  `tools/art/wall_mark_art.gd`): a splintered hole in planks (.17 across), a
+  crater with a chunk out in brick (.19), a torn dent in tin (.14), a pock in
+  stone (.15), each with its dust puff (tin's too now). A blast against a
+  wall knocks one to three big holes of the wall's material out round its
+  scorch (`_chunks`). Features add wall marks through
   `wall_marks()`. It also keeps the latest marking shots and blasts in
   `thing_hits` (looks only) for the 3D view to hole, scorch and char props,
   vehicles and wreck pieces ([view3d.md](view3d.md#marks-on-modelled-things)).

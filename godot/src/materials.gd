@@ -159,8 +159,9 @@ static func of_name(name: String) -> String:
 	if cached != null:
 		return cached
 	var base := name
-	# A window shot out (_brk) and planks shot about (_hit) are their base too.
-	for tail: String in ["_win", "_lit", "_window", "_brk", "_hit"]:
+	# A window shot out (_brk, by a blast _bst) and planks shot about (_hit)
+	# are their base too.
+	for tail: String in ["_win", "_lit", "_window", "_brk", "_bst", "_hit"]:
 		if base.ends_with(tail) and base != "trailer_window":
 			base = base.substr(0, base.length() - tail.length())
 	if base.begins_with("detail_wall_"):

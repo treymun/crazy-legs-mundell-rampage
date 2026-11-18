@@ -347,6 +347,7 @@ const LOOKS_FEATURES := [
 	"boss_checkpoint",
 	"trophy_shack",
 	"wreckage",
+	"wall_looks",
 	"kill_feed",
 	"new_iron",
 	"radio",

@@ -240,7 +240,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | Piece | File | What it does |
 | --- | --- | --- |
 | `WorldView3D` | `world_view.gd` | the SubViewport, camera, sky, layers; rebuilds the level mesh when `walls_version` or `light_version` moves |
-| `LevelMesh` | `level_mesh.gd` | walls, floors, caps and slopes in 16x16 chunks; per-vertex CUSTOM0 tint + light, CUSTOM1 tile/kind; `build_static(base, only)` builds only some chunks (a wall piece retiled: `LevelData.retiled`) |
+| `LevelMesh` | `level_mesh.gd` | walls, floors, caps and slopes in 16x16 chunks; per-vertex CUSTOM0 tint + light, CUSTOM1 tile/kind; `build_static(base, only)` builds only some chunks (a wall piece retiled: `LevelData.retiled`); plank walls (`PLANK_TILES` and their `_hit`) are `KIND_PLANKS`, their second number the whole tile (-1 less it for the stockyard's, whose posts and rails stay), so the shader can knock their planks out ([below](#plank-walls-shot-about-pass-11)) |
 | `ViewTiles` | `view_tiles.gd` | the tiles as a Texture2DArray, plus a row of tile info (water, relief, puddles) |
 | world shaders | `world.gdshader`, `world_glass.gdshader`, `world_body.gdshaderinc` | solid vs see-through variants of one body via `#define` |
 | light include | `view_light.gdshaderinc` | lights, fog, grade, rain, wet, water rings, relief, anim lights, mirror clip, `photo_grade`, `to_output` |
@@ -712,6 +712,25 @@ drawn as their old cels instead, for old-against-new sheets), `motion`
 `contrast` (a floor: the view is drawn again without its `actors` and
 `compare_3d.gd` holds how well they read, [checks.md](checks.md#picture-references)). A tour or bench
 keeps drawing when its window loses the focus.
+
+### Plank walls shot about (pass 11)
+
+A fence cell's planks knocked out (`features/wall_looks.gd`,
+[gameplay.md](gameplay.md#how-walls-look-taking-a-beating-destruction-pass-11-walls))
+are cut out of the wall in the world shader, not by retiling:
+`world_view.gd` puts `WallLooks.view_rows()` in rows 9 to 12 of `view_data`
+(`ROW_PLANK0`..`3`: the 32 cells nearest the eye, `[x, y, ground, height]`
+with a negative height for a fence along y, a cell's x of -1 ending the
+list, and its planks as three words of eight bits, `lo | (hi - 1) << 4`).
+`plank_damage` (`world_body.gdshaderinc`) finds a `KIND_PLANKS` face's cell
+(one texel fetch when nothing is shot about, at most 33), only on faces
+along the fence and on a cell's edge, takes the plank from the world
+position (an eighth of the cell) and the height in sixteenths, and
+discards what is knocked out (what is behind shows), breaks the ends in
+teeth (`plank_teeth`) with a pale edge and shades a plank's side beside a
+gap; the stockyard's posts and rails stay. A cell not listed draws its
+tile as before (`_hit` far off). Nothing changes with nothing shot about,
+so the picture references hold.
 
 ## Night and surfaces (polish pass 9)
 

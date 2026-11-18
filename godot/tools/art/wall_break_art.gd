@@ -10,6 +10,7 @@
 extends RefCounted
 
 const Paint := preload("res://tools/art/paint.gd")
+const MarkArt := preload("res://tools/art/wall_mark_art.gd")
 
 ## Each window tile: its broken tile, the glass inside its frame [x0, y0, x1,
 ## y1] (inclusive), the upright muntin's columns and the rail's rows (-1: none).
@@ -60,7 +61,11 @@ static func build(tiles: String, art: String) -> int:
 		_shot_out(whole, row[1], row[2], row[3], name).save(
 			tiles.path_join(String(row[0]) + ".png")
 		)
-		count += 1
+		# Shot out by a blast: its frame torn out too (<material>_bst).
+		_blasted(whole, row[1], name).save(
+			tiles.path_join(String(row[0]).trim_suffix("_brk") + "_bst.png")
+		)
+		count += 2
 		# Shot once: the glass cracked from the hole, still in its frame
 		# (<material>_crk; a lit window's <material>_lck, still lit).
 		var base := String(row[0]).trim_suffix("_brk")
@@ -73,7 +78,8 @@ static func build(tiles: String, art: String) -> int:
 			count += 1
 	var fence := Paint.Sheet.load_png(source.path_join("stockyard.png"))
 	_fence_hit(fence).save(tiles.path_join("stockyard_hit.png"))
-	_fence_gap(fence).save(art.path_join("stockyard_gap.png"))
+	for k in 3:
+		_fence_gap(fence, true, "stockyard_gap", k).save(art.path_join(_gap_name("stockyard", k)))
 	# The 5v5 maps' boarded cover (data/tuning/breakables.cfg [fence.cover_boards]):
 	# the same planks gone grey, a fresh pine brace nailed across, so a
 	# player can tell what will shoot through from what will not.
@@ -84,8 +90,16 @@ static func build(tiles: String, art: String) -> int:
 	for name: String in PLANK_WALLS:
 		var wall := Paint.Sheet.load_png(source.path_join(name + ".png"))
 		_fence_hit(wall, PLANKS, [], name + "_hit").save(tiles.path_join(name + "_hit.png"))
-		_fence_gap(wall, false, name + "_gap").save(art.path_join(name + "_gap.png"))
-	return count + 5 + PLANK_WALLS.size() * 2
+		for k in 3:
+			_fence_gap(wall, false, name + "_gap", k).save(art.path_join(_gap_name(name, k)))
+	count += MarkArt.build(art)
+	return count + 7 + PLANK_WALLS.size() * 4
+
+
+## A gap's picture: <tile>_gap, then _gap_1 and _gap_2 (wall_breaks.gd picks
+## one by the cell).
+static func _gap_name(tile: String, k: int) -> String:
+	return "%s_gap%s.png" % [tile, "" if k == 0 else "_%d" % k]
 
 
 ## The plank fence boarded up: its boards weathered grey, and two fresh pine
@@ -202,6 +216,76 @@ static func _cracked(whole: Paint.Sheet, glass: Array, name: String) -> Paint.Sh
 	return Paint.digitize(s, 0.0)
 
 
+## A window shot out by a blast: the glass, its muntins and most of its
+## frame gone, the room behind dark, the opening torn ragged past where the
+## frame was, a stub of the sill and of the frame at a corner, splinters pale
+## at every break, the wall round it sooted (fading out before the window
+## band's edge, so a band laid over a wall shows no line).
+static func _blasted(whole: Paint.Sheet, glass: Array, name: String) -> Paint.Sheet:
+	var s := whole.duplicate_sheet()
+	var dice := _dice(name + "_bst")
+	var x0: int = glass[0] - 5
+	var y0: int = glass[1] - 5
+	var x1: int = glass[2] + 5
+	var y1: int = glass[3] + 5
+	var hole := Paint.Sheet.new(128, 128)
+	var pts := PackedVector2Array()
+	var corners: Array[Vector2] = [
+		Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)
+	]
+	for k in 4:
+		var a := corners[k]
+		var b := corners[(k + 1) % 4]
+		var out := (b - a).normalized().orthogonal() * -1.0
+		var steps := int(a.distance_to(b) / 4.0)
+		for i in steps:
+			var p := a.lerp(b, float(i) / steps)
+			pts.append(p + out * dice.randf_range(-2.0, 3.5))
+	Paint.polygon(hole, pts, Color.WHITE)
+	# The sill's stub along the bottom on one side, a frame stub at a corner.
+	var left := dice.randf() < .5
+	var stub := Rect2(x0 if left else x1 - 22, y1 - 4, 22, 5)
+	var post := Rect2(x1 - 5 if left else x0, y0, 5, dice.randi_range(10, 20))
+	var lo_v := 28
+	var hi_v := 96
+	for y in 128:
+		for x in 128:
+			var o := (y * 128 + x) * 4
+			var p := Vector2(x + .5, y + .5)
+			var kept := stub.has_point(p) or post.has_point(p)
+			if hole.alpha_at(x, y) > 0 and not kept:
+				s.put(x, y, _dark(clampf(float(y - y0) / (y1 - y0), 0.0, 1.0), dice))
+				continue
+			# Soot round the opening, dithered, fading out toward the band's
+			# edges (rows lo_v and hi_v on a repeating wall).
+			var d := maxf(maxf(x0 - p.x, p.x - x1), maxf(y0 - p.y, p.y - y1))
+			var fade := clampf(minf(y - lo_v, hi_v - y) / 8.0, 0.0, 1.0)
+			var soot := clampf(1.0 - d / 15.0, 0.0, 1.0) * .85 * fade
+			if kept:
+				soot = .25
+			if soot > 0.0 and ((x + y) % 2 == 0 or soot > .45):
+				var k := 1.0 - soot
+				s.put(x, y, Paint.rgb(s.data[o] * k, s.data[o + 1] * k, s.data[o + 2] * k))
+	# Splinters pale on the broken edges.
+	for y in range(1, 127):
+		for x in range(1, 127):
+			if hole.alpha_at(x, y) > 0:
+				continue
+			var near_hole := (
+				hole.alpha_at(x + 1, y) > 0
+				or hole.alpha_at(x - 1, y) > 0
+				or hole.alpha_at(x, y + 1) > 0
+				or hole.alpha_at(x, y - 1) > 0
+			)
+			if near_hole and dice.randf() < .45:
+				s.put(x, y, Paint.rgb(212, 180, 132))
+	for r: Rect2 in [stub, post]:
+		for k in 3:
+			var x := int(r.position.x + dice.randf_range(0.0, r.size.x))
+			s.put(x, int(r.end.y), Paint.rgb(214, 184, 136))
+	return Paint.digitize(s, 0.0)
+
+
 ## The dark of a room seen through a hole, at row t (0 top, 1 bottom) of it.
 static func _dark(t: float, dice: RandomNumberGenerator) -> Color:
 	var c := Vector3(13, 10, 10).lerp(Vector3(30, 22, 18), t)
@@ -302,9 +386,9 @@ static func _shot_out(
 	return s
 
 
-## The plank fence shot about: boards knocked out (the dark behind showing
-## between the rails), one broken off at the top, one at the bottom, one
-## split, splinters pale at every break, and holes.
+## The plank fence shot about: boards knocked out (the far side's boards in
+## shadow showing between the rails), one broken off at the top, one at the
+## bottom, one split, splinters pale at every break, and holes.
 static func _fence_hit(
 	whole: Paint.Sheet, boards := BOARDS, rails := RAILS, seed := "stockyard_hit"
 ) -> Paint.Sheet:
@@ -346,7 +430,19 @@ static func _fence_hit(
 			on_rail = on_rail or (y >= int(r[0]) and y <= int(r[1]))
 		for x in 128:
 			if cut.alpha_at(x, y) > 0 and not on_rail:
-				s.put(x, y, _dark(y / 127.0, dice))
+				# The far side's boards seen through, in the cell's shadow (the
+				# view cuts the planks out for real near the eye: wall_looks.gd;
+				# this is the far-off look), never a black stripe.
+				var o := (y * 128 + 127 - x) * 4
+				s.put(
+					x,
+					y,
+					Paint.rgb(
+						whole.data[o] * .4 + 6,
+						whole.data[o + 1] * .4 + 6,
+						whole.data[o + 2] * .42 + 9
+					)
+				)
 	# Splinters where a board tore across (pale), its long sides in shadow.
 	for y in 128:
 		for x in 128:
@@ -381,12 +477,17 @@ static func _fence_hit(
 
 
 ## What stands in a fence cell broken through, 64 x 52 (a cell wide and .8
-## tall): stumps across the bottom, a board left standing at each side, the
-## middle rail snapped and hanging from the left, a board hanging off it.
-static func _fence_gap(whole: Paint.Sheet, rails := true, seed := "stockyard_gap") -> Paint.Sheet:
+## tall): stumps across the bottom, a board left standing at each side broken
+## off high, the stockyard's middle rail snapped and hanging, a board hanging
+## off it. Variant k (0 to 2: <tile>_gap, _gap_1, _gap_2) breaks every stump
+## and board at its own height and slant, so gaps side by side differ; each
+## stump is splintered to a point or two, its broken top pale.
+static func _fence_gap(
+	whole: Paint.Sheet, rails := true, seed := "stockyard_gap", k := 0
+) -> Paint.Sheet:
 	var w := 64
 	var h := 52
-	var dice := _dice(seed)
+	var dice := _dice(seed if k == 0 else "%s_%d" % [seed, k])
 	var full := Paint.Sheet.new(w, h)
 	# The fence's own planks, the lower rows of its tile, half size.
 	for y in h:
@@ -395,72 +496,43 @@ static func _fence_gap(whole: Paint.Sheet, rails := true, seed := "stockyard_gap
 			full.put(x, y, Color8(whole.data[o], whole.data[o + 1], whole.data[o + 2]))
 	var keep := Paint.Sheet.new(w, h)
 	var white := Color.WHITE
-	# A board each side, broken off high on the left, lower on the right.
-	Paint.polygon(
-		keep,
-		PackedVector2Array(
-			[
-				Vector2(0, 3),
-				Vector2(4, 1),
-				Vector2(6, 5),
-				Vector2(9, 2),
-				Vector2(9, h),
-				Vector2(0, h)
-			]
-		),
-		white
-	)
-	Paint.polygon(
-		keep,
-		PackedVector2Array(
-			[Vector2(9, 22), Vector2(11, 17), Vector2(13, 24), Vector2(13, h), Vector2(9, h)]
-		),
-		white
-	)
-	Paint.polygon(
-		keep,
-		PackedVector2Array(
-			[
-				Vector2(54, 9),
-				Vector2(57, 13),
-				Vector2(60, 7),
-				Vector2(64, 10),
-				Vector2(64, h),
-				Vector2(54, h)
-			]
-		),
-		white
-	)
-	Paint.polygon(
-		keep,
-		PackedVector2Array(
-			[Vector2(50, 30), Vector2(52, 26), Vector2(54, 31), Vector2(54, h), Vector2(50, h)]
-		),
-		white
-	)
-	# Stumps between them, each its own height, splintered to a point or two.
-	var x := 13
-	while x < 50:
-		var wide := 4 if dice.randf() < .7 else 5
-		var top := h - dice.randi_range(4, 15)
-		Paint.polygon(
-			keep,
-			PackedVector2Array(
-				[
-					Vector2(x, top + dice.randi_range(0, 3)),
-					Vector2(x + wide * .5, top - dice.randi_range(0, 4)),
-					Vector2(x + wide, top + dice.randi_range(0, 3)),
-					Vector2(x + wide, h),
-					Vector2(x, h)
-				]
-			),
-			white
-		)
-		x += wide + (1 if dice.randf() < .3 else 0)
+	# A board each side, broken off high, its top torn in a few teeth.
+	for side in 2:
+		var x0 := 0.0 if side == 0 else w - 9.0 - dice.randf_range(0.0, 3.0)
+		var x1 := x0 + 9.0 + dice.randf_range(0.0, 3.0)
+		if side == 0:
+			x1 = 9.0 + dice.randf_range(0.0, 3.0)
+		var top := dice.randf_range(1.0, 14.0)
+		var pts := PackedVector2Array([Vector2(x0, h)])
+		var teeth := dice.randi_range(2, 4)
+		for t in teeth + 1:
+			var x := lerpf(x0, x1, float(t) / teeth)
+			pts.append(Vector2(x, top + (dice.randf_range(0.0, 6.0) if t % 2 == 1 else 0.0)))
+		pts.append(Vector2(x1, h))
+		Paint.polygon(keep, pts, white)
+	# Stumps between them, each its own height, splintered to a point or two,
+	# some leaning off the break.
+	var x := 12.0 + dice.randf_range(0.0, 2.0)
+	while x < w - 13.0:
+		var wide := dice.randf_range(3.5, 5.5)
+		var top := h - dice.randf_range(3.0, 22.0 if dice.randf() < .3 else 14.0)
+		var lean := dice.randf_range(-2.0, 2.0)
+		var pts := PackedVector2Array([Vector2(x, h)])
+		pts.append(Vector2(x + lean * .3, top + dice.randf_range(0.0, 4.0)))
+		pts.append(Vector2(x + wide * .35 + lean, top - dice.randf_range(0.0, 5.0)))
+		if dice.randf() < .5:
+			pts.append(Vector2(x + wide * .6 + lean, top + dice.randf_range(1.0, 4.0)))
+			pts.append(Vector2(x + wide * .8 + lean, top - dice.randf_range(0.0, 3.0)))
+		pts.append(Vector2(x + wide + lean * .3, top + dice.randf_range(0.0, 4.0)))
+		pts.append(Vector2(x + wide, h))
+		Paint.polygon(keep, pts, white)
+		x += wide + (1.0 if dice.randf() < .3 else 0.0)
 	# The lower rail: kept each side, gone in the middle.
+	var cut_l := dice.randi_range(14, 20)
+	var cut_r := dice.randi_range(42, 50)
 	for y in range(37, 44 if rails else 37):
 		for xx in range(0, w):
-			if xx < 17 or xx > 45:
+			if xx < cut_l or xx > cut_r:
 				keep.put(xx, y, white)
 	var out := Paint.Sheet.new(w, h)
 	for y in h:
@@ -470,20 +542,26 @@ static func _fence_gap(whole: Paint.Sheet, rails := true, seed := "stockyard_gap
 				out.put(xx, y, Color8(full.data[o], full.data[o + 1], full.data[o + 2]))
 	if rails:
 		_hanging(out)
-	# Every broken edge pale with splinters, the rest of the outline dark.
+	# Every broken edge pale with splinters (most on the tops), the rest of
+	# the outline dark.
 	var edge := out.duplicate_sheet()
 	for y in h:
 		for xx in w:
 			if out.alpha_at(xx, y) == 0:
 				continue
-			var open := 0
-			for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, -1)]:
+			var open_side := 0
+			var open_top := y > 0 and out.alpha_at(xx, y - 1) == 0
+			for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0)]:
 				var q := Vector2i(xx, y) + d
-				if q.x >= 0 and q.x < w and q.y >= 0 and out.alpha_at(q.x, q.y) == 0:
-					open += 1
-			if open > 0:
-				var c := Paint.rgb(214, 186, 140) if dice.randf() < .4 else Paint.rgb(48, 38, 30)
+				if q.x >= 0 and q.x < w and out.alpha_at(q.x, q.y) == 0:
+					open_side += 1
+			if open_top:
+				var c := Paint.rgb(222, 194, 146) if dice.randf() < .7 else Paint.rgb(176, 146, 104)
 				edge.put(xx, y, c)
+				if y + 1 < h and dice.randf() < .4:
+					edge.put(xx, y + 1, Paint.rgb(196, 166, 120))
+			elif open_side > 0:
+				edge.put(xx, y, Paint.rgb(48, 38, 30))
 	return Paint.digitize(edge, 4.0)
 
 

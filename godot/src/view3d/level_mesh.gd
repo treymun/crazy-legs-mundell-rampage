@@ -20,6 +20,18 @@ const KIND_SHADOW := 3
 const KIND_MESH := 4
 const KIND_GLAZING := 5
 const KIND_MIRROR := 6
+## A plank wall or fence that can be shot about (features/wall_looks.gd): its
+## knocked-out planks are cut out of it in the shader (plank_damage). The
+## second number is its whole tile, or for the stockyard's (its posts and
+## rails stay) less than 0: -1 - the whole tile.
+const KIND_PLANKS := 7
+const PLANK_TILES := {
+	"wood": false,
+	"barn": false,
+	"bayou_shack": false,
+	"detail_wall_feed_pen_boards": false,
+	"stockyard": true,
+}
 const KIND_FLOOR := 8
 const KIND_ROOF := 9
 ## Slab edges (LevelGeometry.slab_edges) keep these materials stretched over
@@ -86,6 +98,8 @@ var _tile_hub_wall := -1
 var _tile_hub_screen := -1
 var _hub := false
 var _edge_stretched := {}
+## Plank tiles (and their _hit) -> the second number their faces carry.
+var _planks := {}
 ## chunk key -> [opaque Part, glazing Part]
 var _chunks := {}
 ## build_static(only): the chunks being built again (empty: all of them);
@@ -112,6 +126,7 @@ func _init(p_level: LevelData) -> void:
 			tile_name.ends_with("_win")
 			or tile_name.ends_with("_lit")
 			or tile_name.ends_with("_brk")
+			or tile_name.ends_with("_bst")
 		):
 			var plain := tile_name.substr(0, tile_name.length() - 4)
 			if LevelTiles.TILED.has(plain) and level.tile_id(plain) >= 0:
@@ -125,6 +140,15 @@ func _init(p_level: LevelData) -> void:
 	_tile_hub_wall = level.tile_id("hub_service_wall")
 	_tile_hub_screen = level.tile_id("hub_screen")
 	_hub = level.id == "hub"
+	for tile_name: String in PLANK_TILES:
+		var whole := level.tile_id(tile_name)
+		if whole < 0:
+			continue
+		var posts: bool = PLANK_TILES[tile_name]
+		_planks[whole] = -1 - whole if posts else whole
+		var hit := level.tile_id(tile_name + "_hit")
+		if hit >= 0:
+			_planks[hit] = _planks[whole]
 	for tile_name: String in EDGE_STRETCHED:
 		if level.tile_id(tile_name) >= 0:
 			_edge_stretched[level.tile_id(tile_name)] = true
@@ -277,10 +301,14 @@ func add_walls(rows: PackedFloat32Array) -> void:
 			kind = KIND_SHADOW
 		elif _hub and tile == _tile_hub_screen:
 			kind = KIND_MESH
-		var plain := kind == KIND_WALL
+		elif _planks.has(tile):
+			kind = KIND_PLANKS
+		var plain := kind == KIND_WALL or kind == KIND_PLANKS
 		var mode := int(tile_mode[tile]) if plain and tile >= 0 and tile < tile_mode.size() else 0
 		var along := length * 128.0 if mode != 0 else 128.0
 		var base := tile_base[tile] if mode == 2 else tile
+		if kind == KIND_PLANKS:
+			base = _planks[tile]
 		var u_a := 0.0
 		if (
 			plain

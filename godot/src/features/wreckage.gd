@@ -59,6 +59,15 @@ class Wreck:
 	## 1 floating, 2 sinking.
 	var sinks := false
 	var floats := -1
+	## Drawn through this shape about its middle (a shard cut fresh, a plank
+	## broken to its length: features/wall_looks.gd), turned by its body.
+	var shape := Basis.IDENTITY
+	## Glass that breaks again where it lands (_glass_lands): its triangle
+	## (three corners in its own x, z about its middle), how many times it has
+	## broken, and how fast it was falling last tick.
+	var tri := PackedVector2Array()
+	var breaks := 0
+	var fell := 0.0
 
 
 var physics: WreckPhysics
@@ -200,6 +209,7 @@ func _tick(dt: float) -> void:
 		if Water.splash_if(game, at.x, at.y, at.z, clampf(physics.knock_hard * .25, .5, 1.4)):
 			_splash_next = game.clock + .15
 	_in_water(dt)
+	_glass_lands()
 	_shrink(dt)
 	_kick()
 	if not wrecks.is_empty():
@@ -371,6 +381,10 @@ func _break_piece(p: Breakables.Piece) -> void:
 
 
 func _break_window(walls: WallBreaks, face: WallBreaks.WindowFace) -> void:
+	# Its glass cut fresh from where it was struck, when it leaves its frame
+	# (features/wall_looks.gd watches the windows itself).
+	if game.features.get("wall_looks") != null:
+		return
 	var recipe := str(walls.win.get("pieces", ""))
 	if recipe == "":
 		return
@@ -400,6 +414,12 @@ func _break_window(walls: WallBreaks, face: WallBreaks.WindowFace) -> void:
 ## A fence cell shot about (a board or two off the side it was shot from) or
 ## broken through (its boards and rails out where it stood).
 func _knock_fence(f: WallBreaks.Fence, was: int) -> void:
+	# Its boards go as they were shot out, and burst out along the shot or
+	# the blast when it goes through (features/wall_looks.gd).
+	var looks: WallLooks = game.features.get("wall_looks")
+	if looks != null:
+		looks.fence_staged(f, was)
+		return
 	var recipe := str(f.spec.get("pieces", ""))
 	if recipe == "":
 		return
@@ -512,6 +532,82 @@ func _throw(
 		wrecks.append(w)
 		physics.bodies.append(b)
 	_cap()
+
+
+## One piece of `key` (its `index`th part) thrown on its own: at `at` turned
+## `q`, drawn through `shape` (its part's faces about its middle; a template
+## triangle or board stretched to what was cut this time), its box `half`,
+## going `v`, spinning `w`. Glass (`tri` its corners) breaks again landing.
+## A new break's pieces pass through one another a moment (new_group()).
+func throw_shaped(
+	key: String,
+	index: int,
+	at: Vector3,
+	q: Quaternion,
+	shape: Basis,
+	half: Vector3,
+	v: Vector3,
+	w: Vector3,
+	clink: String,
+	tri := PackedVector2Array()
+) -> Wreck:
+	if not on or physics.solid(at):
+		return null
+	var b := WreckPhysics.Body.new()
+	b.q = q
+	b.p = at
+	b.shape(half, dense)
+	b.v = v
+	b.w = w
+	b.group = _groups
+	b.born = physics.clock
+	var wreck := Wreck.new()
+	wreck.body = b
+	wreck.key = key
+	wreck.index = index
+	wreck.clink = clink
+	wreck.shape = shape
+	wreck.tri = tri
+	wreck.sinks = clink == "glass_settle"
+	wreck.fell = v.z
+	wreck.sprite = View.Sprite.new(b.p.x, b.p.y, "", 1.0, b.p.z)
+	wreck.sprite.solid = "~%s#%d" % [key, index]
+	wrecks.append(wreck)
+	physics.bodies.append(b)
+	_cap()
+	return wreck
+
+
+## The next pieces thrown are a break of their own.
+func new_group() -> void:
+	_groups += 1
+
+
+## Shards of glass (Wreck.tri) that hit the floor or a wall hard break again:
+## a big one in two or three, a small one (or one broken twice) into glints
+## that lie where it fell (features/wall_looks.gd shatter()).
+func _glass_lands() -> void:
+	var landed: Array = []
+	for w: Wreck in wrecks:
+		if w.tri.is_empty() or w.fading >= 0.0:
+			continue
+		var vz := w.body.v.z
+		var was := w.fell
+		w.fell = vz
+		if (was < -1.6 and vz > was * .35) or (not w.body.awake and w.breaks == 0):
+			landed.append(w)
+	if landed.is_empty():
+		return
+	var looks: WallLooks = game.features.get("wall_looks")
+	for w: Wreck in landed:
+		if looks != null and wrecks.has(w):
+			_drop(w)
+			# Whatever lay on it or against it is let go too.
+			for o: Wreck in wrecks:
+				if o.body.p.distance_to(w.body.p) < o.body.reach + w.body.reach + .1:
+					o.wedged = false
+					o.body.wake()
+			looks.shatter(w)
 
 
 ## More than `most`: the oldest begin to shrink away; far more, they go now.
@@ -665,6 +761,6 @@ func sprites() -> Array:
 		var k := w.size
 		if w.fading >= 0.0:
 			k *= clampf(1.0 - (game.clock - w.fading) / maxf(.01, fade), 0.0, 1.0)
-		s.turn = Basis(b.q) * Basis.from_scale(Vector3.ONE * k)
+		s.turn = Basis(b.q) * w.shape * Basis.from_scale(Vector3.ONE * k)
 		out.append(s)
 	return out

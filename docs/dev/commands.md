@@ -73,6 +73,8 @@ godot --headless --path godot --script res://tools/art/build_event_art.gd   # th
 godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
 godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHECK OK (the fast level load the same as the old one; levels=a,b)
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
+godot --headless --path godot --script res://tools/wall_looks_check.gd   # WALL LOOKS CHECK OK (planks knocked out, windows' webs and shards, holes)
+godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/walls_frames.gd -- out=<dir> [only=window|window_blast|fence|buckshot|fence_blast|holes]
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/warm_check.gd      # WARM CHECK OK (the view's warm-up)

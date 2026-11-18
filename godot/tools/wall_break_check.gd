@@ -1,7 +1,8 @@
 ## Checks of the walls that break (features/wall_breaks.gd), run by
 ## tools/break_check.gd: every chapter has windows that shoot out and the
-## ones with plank fences have cells that break through; a shot into a
-## Hickston storefront's glass shoots it out and it stays a wall; a fair fence
+## ones with plank fences have cells that break through; a first shot into a
+## Hickston storefront's glass breaks it, its glass held cracked, the next shoots
+## the glass out, it stays a wall; a blast tears out its frame too (_bst); a fair fence
 ## cell shot about and then through is floor to bodies, sight, shots and both
 ## flow fields, its faces gone and its neighbours' showing; a blast does both;
 ## a save keeps it all; and no set of fence cells that may open joins ground
@@ -184,7 +185,15 @@ static func _window_shot(main, check: Callable) -> void:
 	g.hitscan(to.angle(), (1.34 - p.eye) / to.length(), 36.0, 20.0, 0.0)
 	var held: bool = not face.broken
 	to = mid - Vector2(p.x, p.y)
+	# The first round breaks it, as play always had it (its bits fly, it is
+	# heard), but holds its glass in its frame, cracked (pass 11: its web where
+	# it struck); the next shoots the glass out.
 	var bits_before: int = g.features["breakables"].bits.size()
+	g.hitscan(to.angle(), (1.34 - p.eye) / to.length(), 36.0, 20.0, 0.0)
+	check.call(
+		face.broken and face.cracked and _tiles_on(g, face.edge).has(face.whole),
+		"the first round breaks it, its glass held cracked in its frame"
+	)
 	g.hitscan(to.angle(), (1.34 - p.eye) / to.length(), 36.0, 20.0, 0.0)
 	var cell: Vector2i = face.cell
 	check.call(
@@ -198,7 +207,7 @@ static func _window_shot(main, check: Callable) -> void:
 		),
 		(
 			(
-				"a shot into a Hickston storefront's glass shoots it out (%s), glass flies, "
+				"the next shoots it out (%s), glass flies, "
 				+ "it stays a wall; the brick beside it does not"
 			)
 			% g.world.tile_names[face.shot]
@@ -366,6 +375,10 @@ static func _blasts(main, check: Callable) -> void:
 		face.broken and fence[0].stage == 2,
 		"dynamite shoots out the window it goes off by and takes the fence cell through"
 	)
+	check.call(
+		face.blasted and _tiles_on(g, face.edge).has(face.blast),
+		"its frame torn out with it (%s)" % g.world.tile_names[maxi(face.blast, 0)]
+	)
 	# A save keeps both, with the same walls (a chapter's save: Hickston).
 	var c: Vector2i = fence[0].cell
 	var cell := c.y * g.world.width + c.x
@@ -379,7 +392,8 @@ static func _blasts(main, check: Callable) -> void:
 			and back.flow.passable(cell)
 			and _pieces(back.world) == _pieces(g.world)
 			and back.features["wall_breaks"].fences[c].stage == 2
-			and _tiles_on(back, face.edge).has(face.shot)
+			and _tiles_on(back, face.edge).has(face.blast)
+			and back.features["wall_breaks"].windows[wb.windows.find(face)].blasted
 		)
 	check.call(
 		kept,

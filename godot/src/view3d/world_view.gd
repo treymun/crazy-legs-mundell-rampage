@@ -137,7 +137,7 @@ var _globals := {}
 ## The frame's lists (view_light.gdshaderinc view_row): ROWS rows of DATA_W
 ## RGBA32F texels in view_data, uploaded once a frame when one changed.
 const DATA_W := 16
-const ROWS := 9
+const ROWS := 13
 const ROW_LIGHT_POS := 0
 const ROW_LIGHT_COL := 1
 const ROW_LIGHT_FLAGS := 2
@@ -147,6 +147,9 @@ const ROW_SHADOW_A := 5
 const ROW_SHADOW_B := 6
 const ROW_BLOBS := 7
 const ROW_FLOW := 8
+## The plank walls shot about (features/wall_looks.gd view_rows): cells and
+## their planks, two rows of each.
+const ROW_PLANK0 := 9
 var _data := PackedFloat32Array()
 var _data_image: Image
 var _data_tex: ImageTexture
@@ -368,6 +371,9 @@ func _init(assets: Assets) -> void:
 	_share("tiles", tiles.tiles)
 	_share("tile_info_tex", tiles.info)
 	_data.resize(DATA_W * ROWS * 4)
+	for k in DATA_W * 2:
+		# No plank wall shot about yet (a cell's x of -1 ends the list).
+		_data[((ROW_PLANK0 + (k / DATA_W) * 2) * DATA_W + k % DATA_W) * 4] = -1.0
 	_data_image = Image.create_from_data(
 		DATA_W, ROWS, false, Image.FORMAT_RGBAF, _data.to_byte_array()
 	)
@@ -685,6 +691,11 @@ func frame(game: Game) -> void:
 		props.models.request(props.level_models(level))
 		actors.request(game.enemies, _event_kinds(game))
 	_build(level, at_hub)
+	var looks: WallLooks = game.features.get("wall_looks")
+	var planks := looks.view_rows(x, y) if looks != null else WallLooks.blank_rows()
+	for k in 4:
+		var row: PackedVector4Array = planks[k]
+		_row(ROW_PLANK0 + k, row)
 	if level != _rigged:
 		_rigged = level
 		actors.prepare(game.enemies)

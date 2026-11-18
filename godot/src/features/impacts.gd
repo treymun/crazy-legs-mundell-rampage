@@ -24,6 +24,16 @@ const RUN_FRAMES := 6
 const PELLET_BITS := 5
 ## How many marking shots and blasts are kept for the 3D view (thing_hits).
 const THING_KEEP := 24
+## Each material's hole: how many pictures it has (fx_hole_<kind>_N:
+## tools/art/wall_mark_art.gd) and how big it lies on the wall (half its side).
+const HOLE_LOOKS := {
+	"fx_hole_wood": [3, .085],
+	"fx_hole_brick": [3, .095],
+	"fx_hole_tin": [2, .07],
+	"fx_hole_stone": [2, .075],
+}
+## A blast's chunks out of the wall round its scorch: how many at most.
+const BLAST_CHUNKS := 3
 
 var dice := RandomNumberGenerator.new()
 var _pellets := 0
@@ -130,6 +140,9 @@ func _chips(at: Vector3, kind: String, out: Vector3, gun: int) -> void:
 			if gun != Weapons.RIVETER:
 				var count: int = {"tin": 4, "steel": 6, "mesh": 2}[kind]
 				fx.sparks(at, count, 2.4)
+			if kind == "tin":
+				# Rust and dust knocked off the sheet.
+				_puff(at, out, .06, .45)
 		"wood", "timber":
 			for _k in 3:
 				var v: Vector3 = fx.scatter(1.5, 1.6) + out * 1.3
@@ -251,6 +264,7 @@ func _adopt_holes() -> void:
 		var key: int = mark.get_instance_id()
 		if _holes.has(key):
 			break
+		_look_of(mark)
 		_holes[key] = [mark.image, game.clock, -1.0]
 	if _holes.size() > marks.size() + 24:
 		# Some went without us (the game's own safety cap): forget them.
@@ -260,6 +274,25 @@ func _adopt_holes() -> void:
 			if _holes.has(key):
 				live[key] = _holes[key]
 		_holes = live
+
+
+## A new hole's own picture of its material (one of a few, by this machine's
+## dice) and its size: a splintered hole in a plank, a crater with a chunk
+## out in brick, a torn dent in tin, a pock in stone. A blast's chunks keep
+## the size they were given.
+func _look_of(mark: View.WallMark) -> void:
+	var looks: Variant = HOLE_LOOKS.get(mark.image)
+	if looks == null:
+		return
+	var row: Array = looks
+	var count: int = row[0]
+	var picture := "%s_%d" % [mark.image, dice.randi_range(0, count - 1)]
+	if not game.art.has_art(picture):
+		return
+	mark.image = picture
+	if mark.radius < .07:
+		var size: float = row[1]
+		mark.radius = size * dice.randf_range(.88, 1.12)
 
 
 ## A pock in the floor where a round went into it.
@@ -328,6 +361,32 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 		mark.radius = dice.randf_range(.42, .58) * (1.2 - hit_d * .3)
 		mark.z = maxf(at_z, floor_z + mark.radius * .8)
 		scorches.append([mark, picture, game.clock, -1.0])
+		_chunks(mark, hit_d)
+
+
+## A blast's chunks knocked out of the wall in its scorch: big holes of the
+## wall's own material (splintered planks, brick craters), a few, near it.
+func _chunks(scorch: View.WallMark, hit_d: float) -> void:
+	if not game.bullet_marks or hit_d > 1.1:
+		return
+	var kind := Materials.of_tile(game.world, scorch.tile) if scorch.tile >= 0 else "stone"
+	var hole := Materials.hole(kind)
+	if hole == "" or kind == "glass":
+		return
+	for _k in dice.randi_range(1, BLAST_CHUNKS):
+		var mark := View.WallMark.new()
+		var along := dice.randf_range(-.6, .6) * scorch.radius
+		mark.x = scorch.x + scorch.ux * along
+		mark.y = scorch.y + scorch.uy * along
+		mark.z = scorch.z + dice.randf_range(-.5, .5) * scorch.radius
+		mark.ux = scorch.ux
+		mark.uy = scorch.uy
+		mark.image = hole
+		mark.radius = dice.randf_range(.1, .14) * (1.2 - hit_d * .4)
+		mark.material = scorch.material
+		mark.tile = scorch.tile
+		game.wall_marks.append(mark)
+	_adopt_holes()
 
 
 func _tick(_dt: float) -> void:

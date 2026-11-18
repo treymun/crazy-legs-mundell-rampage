@@ -19,6 +19,7 @@ const int KIND_FLICKER = 2;
 const int KIND_SHADOW = 3;
 const int KIND_MESH = 4;
 const int KIND_MIRROR = 6;
+const int KIND_PLANKS = 7;
 const int KIND_FLOOR = 8;
 const int KIND_ROOF = 9;
 
@@ -43,6 +44,110 @@ bool mesh_hole(int pu, int pv) {
 		&& !(pv > 95 && pu < 42 + pv / 5)
 		&& (pu + pv) % 17 >= 2
 		&& (pu - pv + 144) % 18 >= 2;
+}
+
+// Plank j's stretch knocked out [lo, hi) in sixteenths (lo >= hi: none),
+// from a cell's three words (features/wall_looks.gd Planks.words).
+vec2 plank_band(vec4 words, int j) {
+	float word = j < 3 ? words.x : (j < 6 ? words.y : words.z);
+	int b = (int(word + 0.5) >> ((j - (j / 3) * 3) * 8)) & 255;
+	return vec2(float(b & 15), float((b >> 4) + 1));
+}
+
+// How far a broken plank's end stands into its gap at texel column x (in
+// sixteenths of the cell's height): teeth a few texels apart, each its own
+// height, by the plank (seed).
+float plank_teeth(float x, float seed) {
+	float period = 4.0 + floor(hash12(vec2(seed, 1.7)) * 4.0);
+	float shift = x + hash12(vec2(seed, 9.1)) * period;
+	float tri = abs(fract(shift / period) * 2.0 - 1.0);
+	return tri * (0.35 + 1.1 * hash12(vec2(seed, floor(shift / period))));
+}
+
+// A plank wall shot about (KIND_PLANKS; features/wall_looks.gd hands the
+// view the cells nearest the eye, view_rows): -2 not one of them (drawn as
+// its tile), -1 knocked out here (what is behind shows), 0 drawn as its
+// whole tile, 1 a splintered end (pale), 2 a plank's side beside a gap
+// (shadowed). Each plank is an eighth of the cell along the fence, its
+// knocked-out stretch in sixteenths of the cell's height, its ends broken
+// jagged by the texel column. Only on the faces along the fence, on a cell's
+// edge (an end of the run or a gap's side keeps its boards); the stockyard's
+// posts and rails stay (posts).
+int plank_damage(vec3 p, vec3 n, int pv, bool posts) {
+	if (view_row(ROW_PLANK0, 0).x < 0.0) {
+		return -2;
+	}
+	bool face_x = abs(n.y) > 0.5;
+	float across = face_x ? p.y : p.x;
+	if (abs(across - floor(across + 0.5)) > 0.01) {
+		return -2;
+	}
+	vec2 ca = floor(p.xy + n.xy * 0.02);
+	vec2 cb = floor(p.xy - n.xy * 0.02);
+	int found = -1;
+	vec4 e = vec4(0.0);
+	for (int i = 0; i < 32; i++) {
+		e = view_row(i < 16 ? ROW_PLANK0 : ROW_PLANK2, i & 15);
+		if (e.x < 0.0) {
+			break;
+		}
+		if (e.xy == ca || e.xy == cb) {
+			found = i;
+			break;
+		}
+	}
+	if (found < 0 || (e.w > 0.0) != face_x) {
+		return -2;
+	}
+	vec4 words = view_row(found < 16 ? ROW_PLANK1 : ROW_PLANK3, found & 15);
+	float span = abs(e.w);
+	int xi = clamp(int(floor(((face_x ? p.x : p.y) - (face_x ? e.x : e.y)) * 128.0)), 0, 127);
+	int j = xi >> 4;
+	float h = (p.z - e.z) / span * 16.0;
+	if (posts && (xi < 5 || xi > 122 || (pv >= 21 && pv <= 32) || (pv >= 57 && pv <= 68) || (pv >= 99 && pv <= 110))) {
+		return 0;
+	}
+	vec2 band = plank_band(words, j);
+	float row = 16.0 / span / 100.0;
+	if (band.y > band.x) {
+		// The ends broken in teeth (plank_teeth) pointing into the gap; a
+		// tooth's top and its sides where it stands past the one beside it
+		// pale (raw wood), so each break reads as one splintered line.
+		float seed = e.x * 7.13 + e.y * 3.71 + float(j) * 1.37;
+		float x = float(xi);
+		float lo = band.x <= 0.0 ? -1.0 : band.x + plank_teeth(x, seed);
+		float hi = band.y >= 16.0 ? 16.0 : band.y - plank_teeth(x, seed + 31.7);
+		if (h > lo && h < hi) {
+			return -1;
+		}
+		float edge = 2.2 * row;
+		if (band.x > 0.0 && h <= lo) {
+			float side = min(band.x + plank_teeth(x - 1.0, seed), band.x + plank_teeth(x + 1.0, seed));
+			if (h > lo - edge || h > side) {
+				return 1;
+			}
+		}
+		if (band.y < 16.0 && h >= hi) {
+			float side = max(band.y - plank_teeth(x - 1.0, seed + 31.7), band.y - plank_teeth(x + 1.0, seed + 31.7));
+			if (h < hi + edge || h < side) {
+				return 1;
+			}
+		}
+	}
+	int in_plank = xi & 15;
+	if (in_plank <= 1 && j > 0) {
+		vec2 left = plank_band(words, j - 1);
+		if (left.y > left.x && h > left.x + 0.5 && h < left.y - 0.5) {
+			return 2;
+		}
+	}
+	if (in_plank >= 14 && j < 7) {
+		vec2 right = plank_band(words, j + 1);
+		if (right.y > right.x && h > right.x + 0.5 && h < right.y - 0.5) {
+			return 2;
+		}
+	}
+	return 0;
 }
 
 // The tile's mip level for a texel footprint (texels a view pixel, from the
@@ -120,6 +225,7 @@ void fragment() {
 	bool floor_ = kind >= KIND_FLOOR;
 	bool overhead = kind == KIND_ROOF;
 	vec4 info = vec4(0.0);
+	int planks = -2;
 	if (floor_) {
 		pu = int(map_p.x * 128.0) & 127;
 		pv = int(map_p.y * 128.0) & 127;
@@ -162,6 +268,18 @@ void fragment() {
 		if (kind == KIND_MESH && mesh_hole(pu, pv)) {
 			discard;
 		}
+		if (kind == KIND_PLANKS) {
+			// Its whole tile, less than 0 (-1 - it) for the stockyard's.
+			bool posts = c1.y < -0.5;
+			int whole = posts ? int(-c1.y + 0.5) - 1 : int(c1.y + 0.5);
+			planks = plank_damage(map_p, map_n, pv, posts);
+			if (planks == -1) {
+				discard;
+			}
+			if (planks >= 0) {
+				tile = whole;
+			}
+		}
 		lit = stepped_light(c0.a + flash, t);
 		tu = normalize(vec3(-map_n.y, map_n.x, 0.0)) * (facing ? -1.0 : 1.0);
 		tv = vec3(0.0, 0.0, -1.0);
@@ -183,6 +301,12 @@ void fragment() {
 	int lod = floor_ ? tile_lod(floor_dx, floor_dy) : tile_lod(wall_dx, wall_dy);
 	vec4 fetched = texelFetch(tiles, ivec3(pu >> lod, pv >> lod, tile), lod);
 	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
+	if (planks == 1) {
+		// A plank's broken end: pale raw wood, the splinters catching light.
+		texel = floor(vec3(206.0, 176.0, 130.0) * (0.82 + 0.3 * hash12(vec2(float(pu), float(pv)))));
+	} else if (planks == 2) {
+		texel = floor(texel * 0.55);
+	}
 	if (kind == KIND_GLOW || kind == KIND_FLICKER) {
 		bool dips = kind == KIND_FLICKER && liquor_flicker;
 		if (texel.r > 156.0 || texel.g > 156.0 || texel.b > 156.0) {
