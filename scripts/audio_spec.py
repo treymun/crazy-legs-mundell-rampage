@@ -1560,3 +1560,41 @@ add("sting",
     sting_open_mothership=N("Spooky B-movie cowpunk: a wailing theremin answering a twangy tremolo guitar riff, "
                             "slap bass creeping, clanking metal backbeat." + _OPENER_TAIL, 8.0, style="sting"),
     )
+
+# ------------------------------------------------- pass 10: the openers' sound
+# Under each opener the chapter's own song is the bed (src/opener_mix.gd); these
+# are the spot sounds over it: a whoosh at each cut and at the landing, the
+# low swell of the boss's reveal, each chapter's title card landing in its own
+# style (openers.json "hit", timed by its "hit_lead"), and Hickston's far truck.
+STYLE["cine"] = ("A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, "
+                 "no music, no voice.")
+add("scene",
+    opener_whoosh=G("A soft airy whoosh as a camera swoops past: a rush of dusty evening wind rising smoothly "
+                    "and falling away, low and round, no whistle.", 1.6, 1.4, "cine"),
+    opener_whoosh_alt=G("A smooth low swoosh of air as something big glides by: a soft rising rush of wind that "
+                        "fades out gently, warm and breathy.", 1.6, 1.4, "cine"),
+    opener_reveal=G("A deep ominous rumbling swell like far-off thunder rolling closer, ending on one heavy low "
+                    "boom that rings out, dark and menacing.", 3.0, 2.8, "cine"),
+    )
+add("impact",
+    opener_hickston_hit=G("A heavy weathered wooden sign dropped on two ropes slams to a stop: a quick rope zip, "
+                          "one big hollow wooden thunk, a creak of rope as it swings.", 1.6, 1.6, "cine"),
+    opener_fair_hit=G("A carnival marquee sign slams down and its rows of light bulbs buzz on: one heavy metal "
+                      "clunk, an electric buzz flickering up, a tinny bell ding.", 1.6, 1.6, "cine"),
+    opener_sawmill_hit=G("A thick wet lumber plank sign crashes down on chains: a chain rattle, one heavy wooden "
+                         "slam, a faint saw blade ringing after.", 1.6, 1.6, "cine"),
+    opener_quarry_hit=G("A rusty sheet-tin sign bangs down on chains: one loud clanging metal hit, a rattling tin "
+                        "shiver and a short hiss of steam.", 1.6, 1.6, "cine"),
+    opener_bayou_hit=G("A waterlogged wooden sign slaps down onto a swamp dock: one heavy wet wooden thud and a "
+                       "splash of muddy water.", 1.6, 1.6, "cine"),
+    opener_speedway_hit=G("A dirt-track scoreboard sign slams on: one heavy metal clunk, its light bulbs buzzing "
+                          "on, a big V8 engine revving once nearby.", 1.6, 1.6, "cine"),
+    opener_moonshine_hit=G("A dented tin road sign bangs down at night: one metal clang and rattle, and glass "
+                           "moonshine jugs clinking together.", 1.6, 1.6, "cine"),
+    opener_mothership_hit=G("A 1950s B-movie flying saucer title: a rising electronic warble swooshes in and lands "
+                            "on one deep metallic whomp.", 1.6, 1.6, "cine", level=-8.5),
+    )
+add("distant",
+    opener_hickston_truck=G("An old pickup truck rumbling past far away on a gravel country road at dusk, its "
+                            "engine fading out into the distance.", 4.0, 3.8, "far"),
+    )

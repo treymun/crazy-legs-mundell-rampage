@@ -131,7 +131,7 @@ default), BOSSES AND AREAS; never online or with more than one player):
 
 `src/opener.gd` (`ChapterOpener`, the front end's `opener`) and
 `src/opener_art.gd` (`OpenerArt`): before a campaign chapter's first tick a
-short cinematic of 14 to 16 s, like a 1990s cutscene. PLAY page `openers`:
+short cinematic of 15 to 17.5 s, like a 1990s cutscene. PLAY page `openers`:
 FIRST TIME (the default; the chapters seen are kept in
 `user://openers_seen.json`, not the settings), ALWAYS, OFF.
 
@@ -147,21 +147,46 @@ FIRST TIME (the default; the chapters seen are kept in
   chapter under way has missed its start anyway.
 - **How.** The front end does not tick the game while it plays (as PHOTO
   MODE and the KILL CAM); each frame `game.eye_override` is set to the
-  opener's camera only for `game.draw` (no gun, sights or HUD; Mundell stands
-  at the start), then cleared, and the variants' draw-time cache of who holds
+  opener's camera only for `game.draw` (no gun, sights or HUD; Mundell is
+  left out of the flight and shown only as the camera comes down behind him),
+  then cleared, and the variants' draw-time cache of who holds
   a car door (`CACHES`) is put back, so the game starts exactly as it would
   have (`opener_check` compares snapshots, and two seconds of play after it
   with play without one). Any key, click, tap or pad button skips it
-  (`main_input.gd`); the click is blocked from firing; the iris opens on play.
+  (`main_input.gd`); the click is blocked from firing; the iris opens on play
+  after a skip, none after a landing (the picture is already the player's).
 - **What.** Authored per chapter in `data/tuning/openers.json`: three shots
-  (`secs`, `from`/`to` the camera's [x, y, z], `look`/`look_to` the point it
-  watches; eased half way, so it never stops), the card style (`plank`,
+  (`secs`, `path` the camera's [x, y, z] keys, `look` the keys of what it
+  watches; the older `from`/`to`, `look`/`look_to` pairs still read; `amb`,
+  `spots` its sounds), the card style (`plank`,
   `swamp`, `tin`, `marquee`, `checker`, `saucer`: `OpenerArt.STYLES`) and
   tagline, the boss (`cel`, `light`: cone, glow, door, moon, headlights,
   flasher; its colour, growl, sting, line and caption) and the narrator's two
   lines. The title is `Campaign.title_of`, CHAPTER <N> from the campaign's
-  order. Shots look best low (z 1 to 3.5) and close to a sign or building:
-  from high up the levels read as a flat murky plane.
+  order. Shots look best low (z 1 to 3.5) and a few cells from a sign or
+  building, never right at it: from high up the levels read as a flat murky
+  plane. The card covers the view's top half from 1.7 to 6.8 s: frame what
+  the narrator names in the lower half then.
+- **The camera** (pass 10, `src/opener_camera.gd`, `OpenerCamera`). Each
+  shot's path and look are centripetal Catmull-Rom curves through their keys,
+  flown at an even speed along their length (arc-length table) that eases from
+  a share of the cruise at the ends (`ease`, default .55; the first shot
+  starts from .2); the look runs a little ahead (`LEAD`); the camera leans
+  into turns (`BANK`, at most `BANK_MAX` 2.3 degrees: `world_view.gd` rolls the
+  camera by the eye's `roll`, 0 everywhere else) and is lifted smoothly over
+  any ground or wall top it would skim. After the last shot it drifts to a
+  stop (`DRIFT`) while the boss is shown; as the boss's line ends a dip cuts to
+  the landing (`LAND` 1.5 s): from a clear spot a little behind and above the
+  player (several tried, each flight checked) down into his eye, heading and
+  horizon, the dark lifting and the bars drawing back, so play starts from
+  the same picture. `clear_at` is the rule `opener_camera_check` holds every
+  sample to: never in a wall, roof, deck, door, prop (a picture's reach is
+  half its width: a tree's crown) or the ground, nor skimming them. Pass 10
+  measured the v3.7.0 paths by the same rule: six of eight hit or skimmed
+  walls, props, roofs or doors for 0.3 to 6 s, and every one jolted (a
+  velocity change of 9 to 26 cells/s^2 as the boss part began); the
+  frames showed the flights starting against Mundell's back, flying through
+  a cornfield, a tent wall and a wooden barn, and ending pressed to a wall.
 - **The frame.** Black bars (rows 0-13 and 142 on, "ANY KEY SKIPS"), a dip to
   black at each cut, the card dropped in on ropes with a bounce (the B-movie
   title rushes in from big instead), the tagline typed out under it, then
@@ -171,14 +196,19 @@ FIRST TIME (the default; the chapters seen are kept in
   (VOICE CAPTIONS). Pictures are made once per opener as Images, from the
   game's own letters (three times the body font where the title fits, else
   twice) and cels; their dice are seeded by the chapter's name.
-- **Sound.** The chapter's score is held (`Sound.opener_music`) while its
-  `sting_open_<chapter>` plays; the narrator's first line at 0.55 s on the
-  voice channel, his second as the boss is shown, then the boss's growl and
-  its boss sting, and its line; the schedule follows the lines' own lengths.
+- **Sound** (pass 10, `src/opener_mix.gd`; [audio.md](audio.md#the-openers-sound-pass-10)).
+  The chapter's own song from its top is the bed under the whole opener and
+  goes on into play; the narrator's first line at 0.55 s on the voice
+  channel, his second as the boss is shown, then the boss's growl and its
+  boss sting, and its line .75 s after the growl; the schedule follows the
+  lines' own lengths. Without the song (a browser pack still coming) the
+  pass 8 sting plays and the score is held (`Sound.opener_music`).
 - **Tools.** `--opener=<chapter>` plays the chapter with its opener whatever
   the setting (`--opener-data=<file>` from a draft of the file);
   `--opener-out=<dir>` also saves each key moment's window picture
-  (`<chapter>_shot<k>.png`, `_card`, `_boss`, `_growl`, `_line`) and quits.
+  (`<chapter>_shot<k>.png`, `_card`, `_boss`, `_growl`, `_line`, `_land`) and
+  quits; with `--opener-strip=<n>` it saves n frames evenly over the flight
+  and three of the landing instead (`<chapter>_f<k>_<seconds>.png`).
 
 ## How a frame gets drawn
 

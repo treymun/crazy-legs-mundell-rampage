@@ -45304,14 +45304,266 @@
    "bytes": 20732
   },
   {
-   "id": "reconcile@2026-11-17T19:50:04",
+   "id": "sfx/opener_hickston_hit#1",
+   "kind": "sfx",
+   "name": "opener_hickston_hit",
+   "params": {
+    "text": "A heavy weathered wooden sign dropped on two ropes slams to a stop: a quick rope zip, one big hollow wooden thunk, a creak of rope as it swings. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9fca83669c2a",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:43:59",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_hickston_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_whoosh_alt#1",
+   "kind": "sfx",
+   "name": "opener_whoosh_alt",
+   "params": {
+    "text": "A smooth low swoosh of air as something big glides by: a soft rising rush of wind that fades out gently, warm and breathy. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "34b5dd91eefd",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:43:59",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_whoosh_alt.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_reveal#1",
+   "kind": "sfx",
+   "name": "opener_reveal",
+   "params": {
+    "text": "A deep ominous rumbling swell like far-off thunder rolling closer, ending on one heavy low boom that rings out, dark and menacing. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 3.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a4b94a8eaf6e",
+   "reserved": 125,
+   "status": "settled",
+   "started": "2026-11-17T21:43:59",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_reveal.mp3",
+   "bytes": 73394
+  },
+  {
+   "id": "sfx/opener_whoosh#1",
+   "kind": "sfx",
+   "name": "opener_whoosh",
+   "params": {
+    "text": "A soft airy whoosh as a camera swoops past: a rush of dusty evening wind rising smoothly and falling away, low and round, no whistle. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c5f3b5ce9083",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:43:59",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_whoosh.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_fair_hit#1",
+   "kind": "sfx",
+   "name": "opener_fair_hit",
+   "params": {
+    "text": "A carnival marquee sign slams down and its rows of light bulbs buzz on: one heavy metal clunk, an electric buzz flickering up, a tinny bell ding. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "62f075b84ed8",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:44:01",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_fair_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_sawmill_hit#1",
+   "kind": "sfx",
+   "name": "opener_sawmill_hit",
+   "params": {
+    "text": "A thick wet lumber plank sign crashes down on chains: a chain rattle, one heavy wooden slam, a faint saw blade ringing after. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0371bd3930fd",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:44:01",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_sawmill_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_quarry_hit#1",
+   "kind": "sfx",
+   "name": "opener_quarry_hit",
+   "params": {
+    "text": "A rusty sheet-tin sign bangs down on chains: one loud clanging metal hit, a rattling tin shiver and a short hiss of steam. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "dcd73431cf78",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:44:02",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_quarry_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_bayou_hit#1",
+   "kind": "sfx",
+   "name": "opener_bayou_hit",
+   "params": {
+    "text": "A waterlogged wooden sign slaps down onto a swamp dock: one heavy wet wooden thud and a splash of muddy water. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b4161e0ec003",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:44:02",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_bayou_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_speedway_hit#1",
+   "kind": "sfx",
+   "name": "opener_speedway_hit",
+   "params": {
+    "text": "A dirt-track scoreboard sign slams on: one heavy metal clunk, its light bulbs buzzing on, a big V8 engine revving once nearby. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5da22ae40435",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:44:04",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_speedway_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_moonshine_hit#1",
+   "kind": "sfx",
+   "name": "opener_moonshine_hit",
+   "params": {
+    "text": "A dented tin road sign bangs down at night: one metal clang and rattle, and glass moonshine jugs clinking together. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "dcce44605a80",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:44:04",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_moonshine_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_mothership_hit#1",
+   "kind": "sfx",
+   "name": "opener_mothership_hit",
+   "params": {
+    "text": "A 1950s B-movie flying saucer title: a rising electronic warble swooshes in and lands on one deep metallic whomp. A single clean sound effect for a 1990s PC game's chapter cutscene, full and close, no music, no voice.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d1758c02581e",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-17T21:44:04",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_mothership_hit.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/opener_hickston_truck#1",
+   "kind": "sfx",
+   "name": "opener_hickston_truck",
+   "params": {
+    "text": "An old pickup truck rumbling past far away on a gravel country road at dusk, its engine fading out into the distance. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 4.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e0be788a5e2b",
+   "reserved": 165,
+   "status": "settled",
+   "started": "2026-11-17T21:44:04",
+   "actual": 45,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/opener_hickston_truck.mp3",
+   "bytes": 97845
+  },
+  {
+   "id": "reconcile@2026-11-17T22:05:05",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -29373,
+   "actual": -29385,
    "basis": "account",
-   "balance_after": 83305
+   "balance_after": 83562
   }
  ],
  "anchor": {
@@ -45319,7 +45571,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-17T19:50:04",
-  "account_drop": 78582
+  "when": "2026-11-17T22:05:05",
+  "account_drop": 78839
  }
 }

@@ -1,16 +1,19 @@
 {
-	"_about": "The chapter openers (src/opener.gd): a short cinematic before each campaign chapter's first tick, the camera flown over the level, a title card, the boss in silhouette, an old storyteller reading two lines (ElevenLabs voice \"narrator\", an original character) and a music sting. Looks only. Read by scripts/audio_spec.py (the lines) and the game. Cues: narr_<chapter>_<n> (the lines), sting_open_<chapter> (the music). Shots: from/to are where the camera flies [x, y, z] (cells; z the height, the ground about 0, roofs 2 to 3), look/look_to the point it watches, secs how long; the camera eases between them. title: when the card drops (s) and how long it hangs; boss: the cel (art name), the light behind it, its growl, its sting and its line.",
+	"_about": "The chapter openers (src/opener.gd): a short cinematic before each campaign chapter's first tick, the camera flown over the level, a title card, the boss in silhouette, an old storyteller reading two lines (ElevenLabs voice \"narrator\", an original character), and the camera brought down into the player's eyes as play starts. Looks only. Read by scripts/audio_spec.py (the lines) and the game. Cues: narr_<chapter>_<n> (the lines), opener_<chapter>_hit (the card's hit; hit_lead: seconds into it of the hit), sting_open_<chapter> (the music when the chapter's song is not there). Shots (src/opener_camera.gd): path is where the camera flies and look what it watches, each a list of [x, y, z] keys (cells; z the height, the ground about 0, roofs 2 to 3) it passes smoothly through, at an even speed easing in and out (ease: the speed at the start and end, a share of the cruise), the gaze a little ahead; secs how long; amb the ambience under it (amb_<amb>, else the chapter's amb, else the level's own); spots [seconds into the shot, cue, volume, pan] its own sounds. title: when the card drops (s); boss: the cel (art name), the light behind it, its growl, its sting and its line. mix (src/opener_mix.gd): the bed's hold at its moments (a share of MUSIC VOLUME: start, the card landing, between, the reveal, the dip under the boss's sting, the landing; play's level at the end), the whooshes at the cuts, the reveal's swell, the boss sting's, the hits' and far-off sounds' volumes.",
 	"number_words": ["ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN"],
+	"mix": {"bed": {"start": 0.6, "card": 1.0, "between": 0.85, "reveal": 1.2, "dip": 0.35, "land": 0.7}, "whoosh": ["opener_whoosh", "opener_whoosh_alt"], "whoosh_gain": 0.45, "whoosh_lead": 0.1, "reveal": "opener_reveal", "reveal_gain": 0.8, "reveal_lead": 0.4, "hit_gain": 0.6, "sting_gain": 0.6, "spot_reach": 16, "spot_gain": 0.55},
 	"chapters": {
 		"hickston": {
 			"tagline": "SOMEBODY STOLE THE WRONG COW.",
 			"card": "plank",
 			"lines": ["Hickston was a quiet town. Till the sky stole a cow.", "And the new sheriff ain't from around here."],
 			"boss": {"cel": "boss_0", "light": "cone", "color": [150, 255, 170], "growl": "sheriff_rage", "sting": "shakedown_intro", "line": "boss_sheriff_taunt_3", "say": "You have the right to remain squishy."},
+			"hit": "opener_hickston_hit",
+			"hit_lead": 0.04,
 			"shots": [
-				{"secs": 3.0, "from": [6, 73, 1.3], "to": [10, 67, 2.6], "look": [16, 62, 1.4], "look_to": [22, 56, 1.2]},
-				{"secs": 2.8, "from": [30, 67, 1.6], "to": [44, 66, 2.2], "look": [36, 60, 1.6], "look_to": [50, 57, 1.4]},
-				{"secs": 3.0, "from": [128, 30, 1.6], "to": [130.5, 24, 2.4], "look": [130.5, 17, 1.9], "look_to": [130.5, 16, 1.9]}
+				{"secs": 3.0, "path": [[10.4, 74.6, 2.1], [12.8, 70.8, 2.5], [15, 67, 3.1]], "look": [[16, 64, 1.5], [22, 57, 1.4], [30, 50, 1.3]], "amb": "yard", "spots": [[0.1, "opener_hickston_truck", 0.45, -0.5]]},
+				{"secs": 2.8, "path": [[14.6, 29.6, 2.8], [16, 26.4, 2.7], [17.4, 23.8, 2.5]], "look": [[18.5, 20.5, 0.8], [19.5, 19.5, 0.7], [19, 18.5, 0.8]], "amb": "yard", "spots": [[1.2, "cow_moo", 0.6, 0.0]]},
+				{"secs": 3.0, "path": [[124, 32, 3.4], [127, 25.5, 3.8], [129.5, 19.5, 4.3], [131, 16.5, 4.1]], "look": [[130, 17, 1.8], [132, 12, 1.2], [133, 10, 1.0]], "amb": "yard", "spots": [[0.6, "distant_crow", 0.5, 0.4]]}
 			]
 		},
 		"fair": {
@@ -18,10 +21,12 @@
 			"card": "marquee",
 			"lines": ["Possum County Fair. Fried pickles and crooked games.", "And the man runnin' the show? He's got your ticket."],
 			"boss": {"cel": "rudy_0", "light": "cone", "color": [255, 236, 190], "growl": "rudy_rage", "sting": "rudy_intro", "line": "boss_rudy_intro", "say": "Step right up and lose, sucker!"},
+			"hit": "opener_fair_hit",
+			"hit_lead": 0.01,
 			"shots": [
-				{"secs": 3.0, "from": [64, 84, 1.2], "to": [64, 78, 2.2], "look": [64, 70, 2.2], "look_to": [64, 64, 2.0]},
-				{"secs": 2.8, "from": [62, 66, 1.8], "to": [63, 56, 2.4], "look": [64, 44, 1.6], "look_to": [64, 36, 1.8]},
-				{"secs": 3.0, "from": [64.5, 27, 2.0], "to": [64.5, 20, 2.6], "look": [64.5, 10, 2.0], "look_to": [64.5, 10, 2.2]}
+				{"secs": 3.0, "path": [[66.5, 83, 1.3], [65.6, 79.5, 2.2], [64.8, 76.5, 3.2]], "look": [[64, 70, 2.6], [64, 62, 2.2], [64, 52, 1.8]], "spots": [[0.6, "crowd_cheer", 0.35, 0.0]]},
+				{"secs": 2.8, "path": [[62, 64, 2.0], [63.5, 57, 2.3], [64, 50, 2.5]], "look": [[67, 58, 1.3], [69, 52, 1.3], [64, 44, 1.6]]},
+				{"secs": 3.0, "path": [[64.5, 24.5, 2.2], [64.5, 20.5, 2.4], [64.5, 17, 2.5]], "look": [[64.5, 10, 2.0], [64.5, 9, 2.1]]}
 			]
 		},
 		"sawmill": {
@@ -29,10 +34,12 @@
 			"card": "plank",
 			"lines": ["Out at Blackwater the rain don't quit. Neither do the saws.", "And the foreman don't believe in lunch breaks."],
 			"boss": {"cel": "foreman_0", "light": "door", "color": [255, 170, 80], "growl": "foreman_rage", "sting": "foreman_intro", "line": "boss_foreman_intro", "say": "You're on the clock, slacker."},
+			"hit": "opener_sawmill_hit",
+			"hit_lead": 0.01,
 			"shots": [
-				{"secs": 3.0, "from": [64, 80, 1.1], "to": [64, 77, 1.6], "look": [64, 72.5, 1.3], "look_to": [64, 70, 1.5]},
-				{"secs": 2.8, "from": [40, 50, 1.2], "to": [52, 44, 1.6], "look": [64, 38, 0.8], "look_to": [70, 32, 1.0]},
-				{"secs": 3.0, "from": [64, 40, 2.4], "to": [64, 31, 3.0], "look": [64.5, 17, 1.8], "look_to": [64.5, 15, 2.0]}
+				{"secs": 3.0, "path": [[66.5, 81.5, 1.2], [65.6, 79.2, 2.0], [64.8, 77, 2.9]], "look": [[64, 70, 2.4], [64, 62, 1.6], [64, 52, 1.2]]},
+				{"secs": 2.8, "path": [[40, 58, 1.6], [46, 52.5, 1.9], [52, 48, 2.2]], "look": [[48, 46, 0.8], [56, 42, 1.0], [62, 34, 1.8]]},
+				{"secs": 3.0, "path": [[65.4, 49, 2.4], [65, 42, 2.5], [64.5, 36, 2.5]], "look": [[64, 30, 1.8], [64, 28.5, 1.7]]}
 			]
 		},
 		"quarry": {
@@ -40,10 +47,12 @@
 			"card": "tin",
 			"lines": ["They quit cuttin' rock at Stillwater. Now they cook shine.", "The Copper Baron owns every drop. He don't share."],
 			"boss": {"cel": "baron_0", "light": "glow", "color": [255, 140, 50], "growl": "baron_rage", "sting": "baron_intro", "line": "boss_baron_intro", "say": "Nobody drinks my shine for free."},
+			"hit": "opener_quarry_hit",
+			"hit_lead": 0.01,
 			"shots": [
-				{"secs": 3.0, "from": [67, 83, 1.3], "to": [67, 79, 2.2], "look": [65, 70, 1.2], "look_to": [62, 64, 1.2]},
-				{"secs": 2.8, "from": [46, 52, 2.0], "to": [56, 48, 2.8], "look": [64.5, 38, 1.5], "look_to": [70, 38, 1.5]},
-				{"secs": 3.0, "from": [64, 22, 1.8], "to": [64, 16, 2.4], "look": [64, 7, 2.0], "look_to": [64, 7, 2.2]}
+				{"secs": 3.0, "path": [[66, 78, 1.3], [65.2, 72.5, 2.9], [64.3, 68.5, 4.2], [63.2, 63.5, 4.3]], "look": [[60, 56, 1.5], [55, 49, 1.2], [50, 46, 1.2]]},
+				{"secs": 2.8, "path": [[44, 27.6, 1.8], [52, 27.4, 1.9], [60, 27.2, 2.0]], "look": [[50, 24, 1.2], [60, 23.5, 1.2], [70, 24, 1.2]], "spots": [[0.5, "still_bubble", 0.5, 0.3]]},
+				{"secs": 3.0, "path": [[64, 18.6, 2.4], [64, 16, 2.6], [64, 13.5, 2.7]], "look": [[64, 8, 2.0], [64, 7.5, 2.1]]}
 			]
 		},
 		"bayou": {
@@ -51,10 +60,12 @@
 			"card": "swamp",
 			"lines": ["Past the county line, the road quits and the bayou starts.", "And the Swamp King's gators ain't missed a meal yet."],
 			"boss": {"cel": "swamp_king_0", "light": "moon", "color": [220, 235, 170], "growl": "swamp_king_rage", "sting": "swamp_king_intro", "line": "boss_swamp_king_intro", "say": "Who's on my water?"},
+			"hit": "opener_bayou_hit",
+			"hit_lead": 0.03,
 			"shots": [
-				{"secs": 3.0, "from": [64, 90, 1.2], "to": [63, 82, 1.8], "look": [63.5, 70, 1.2], "look_to": [63.5, 64, 1.2]},
-				{"secs": 2.8, "from": [78, 60, 1.4], "to": [82, 55, 2.0], "look": [88, 54, 1.4], "look_to": [94, 58, 1.2]},
-				{"secs": 3.0, "from": [104, 46, 1.6], "to": [104, 40, 2.4], "look": [104.5, 36, 1.7], "look_to": [102, 30, 1.6]}
+				{"secs": 3.0, "path": [[61, 87, 1.1], [62, 82.5, 1.8], [63, 78, 2.6]], "look": [[63, 73, 1.2], [64, 66, 1.0], [64, 60, 1.0]]},
+				{"secs": 2.8, "path": [[57, 76, 1.4], [51, 74, 1.6], [45, 72, 1.8]], "look": [[50, 72, 0.8], [42, 68, 0.8], [36, 64, 1.0]], "spots": [[0.4, "distant_bayou_frogs", 0.6, -0.4]]},
+				{"secs": 3.0, "path": [[102.6, 45.5, 1.8], [102.8, 41.8, 2.2], [102, 37.8, 2.5]], "look": [[104, 36, 1.6], [101, 29, 1.2], [98, 23, 1.0]], "spots": [[1.0, "distant_bayou_airboat", 0.5, 0.3]]}
 			]
 		},
 		"speedway": {
@@ -62,10 +73,12 @@
 			"card": "marquee",
 			"lines": ["Race night at Buzzard Bend. Dirt, diesel and bad ideas.", "Bumper Boggs ain't lost a derby in forty-seven tries."],
 			"boss": {"cel": "derby_champ_0", "light": "headlights", "color": [255, 248, 210], "growl": "derby_champ_rage", "sting": "derby_champ_intro", "line": "boss_boggs_intro", "say": "Buckle up, sunshine!"},
+			"hit": "opener_speedway_hit",
+			"hit_lead": 0.03,
 			"shots": [
-				{"secs": 3.0, "from": [24, 82, 1.4], "to": [20, 78, 2.2], "look": [14, 76.5, 1.7], "look_to": [14, 74, 1.8]},
-				{"secs": 2.8, "from": [58, 69, 1.6], "to": [66, 67, 2.6], "look": [76, 60, 0.8], "look_to": [86, 54, 0.8]},
-				{"secs": 3.0, "from": [78, 62, 3.4], "to": [83, 58, 4.2], "look": [89.5, 52.5, 0.8], "look_to": [89.5, 52.5, 0.8]}
+				{"secs": 3.0, "path": [[60, 82, 6.4], [65, 78.5, 6.6], [70, 75.5, 6.7]], "look": [[68, 56, 1.0], [74, 48, 1.0], [80, 44, 1.0]], "spots": [[0.5, "crowd_cheer", 0.45, 0.0]]},
+				{"secs": 2.8, "path": [[60, 64.2, 1.5], [68, 64.1, 1.7], [74, 63.95, 1.9], [78.5, 63, 2.0]], "look": [[66, 57, 1.0], [80, 55, 1.0], [92, 53, 1.0]], "spots": [[0.6, "lap_car_pass", 0.55, 0.5]]},
+				{"secs": 3.0, "path": [[77, 44.5, 2.9], [79.6, 47, 2.5], [81.2, 49.4, 2.2]], "look": [[81.5, 53.5, 0.7], [82, 54.2, 0.8]], "spots": [[0.4, "distant_derby_engine", 0.5, 0.0]]}
 			]
 		},
 		"moonshine": {
@@ -73,10 +86,12 @@
 			"card": "tin",
 			"lines": ["Up on Copperhead Ridge, Granny's got a load to run.", "And the revenue man's waitin' at the county line."],
 			"boss": {"cel": "revenue_man_0", "light": "flasher", "color": [255, 60, 50], "color_b": [70, 110, 255], "growl": "revenue_man_rage", "sting": "revenue_man_intro", "line": "boss_revenue_man_taunt_0", "say": "You have the right to remain thirsty."},
+			"hit": "opener_moonshine_hit",
+			"hit_lead": 0.01,
 			"shots": [
-				{"secs": 3.0, "from": [30, 77.5, 1.3], "to": [34, 77.5, 1.7], "look": [42, 77.5, 0.9], "look_to": [46, 76, 0.9]},
-				{"secs": 2.8, "from": [54, 74, 1.4], "to": [58, 73, 2.0], "look": [61, 66, 0.8], "look_to": [62, 62, 0.8]},
-				{"secs": 3.0, "from": [94, 39.5, 1.1], "to": [94, 36.5, 1.8], "look": [94, 30, 1.3], "look_to": [94, 26, 1.3]}
+				{"secs": 3.0, "path": [[13, 92.5, 1.6], [11.5, 87.5, 2.1], [10.5, 83, 2.6]], "look": [[9, 76, 1.4], [8, 72, 1.4], [8, 70, 1.6]], "spots": [[0.5, "distant_dog", 0.5, -0.4]]},
+				{"secs": 2.8, "path": [[38, 78.5, 1.6], [45, 78, 1.9], [52, 77.5, 2.2]], "look": [[52, 77, 1.2], [62, 76, 1.2], [72, 75, 1.2]]},
+				{"secs": 3.0, "path": [[94, 39.6, 1.3], [94, 38, 1.6], [94, 36.4, 1.9]], "look": [[94, 30, 1.3], [94, 27, 1.3]], "spots": [[0.3, "cruiser_siren", 0.25, 0.2]]}
 			]
 		},
 		"mothership": {
@@ -84,10 +99,12 @@
 			"card": "saucer",
 			"lines": ["Remember that saucer over Hickston? Its mama came lookin'.", "Maw Glorb. Curlers, a housecoat, and a ray gun."],
 			"boss": {"cel": "maw_0", "light": "cone", "color": [120, 255, 120], "growl": "maw_rage", "sting": "maw_intro", "line": "boss_maw_intro", "say": "Who tracked mud on my clean deck?"},
+			"hit": "opener_mothership_hit",
+			"hit_lead": 0.05,
 			"shots": [
-				{"secs": 3.0, "from": [60, 88, 1.4], "to": [60, 82, 2.2], "look": [59, 72, 2.6], "look_to": [60, 70, 2.6]},
-				{"secs": 2.8, "from": [79, 55, 1.4], "to": [78.6, 50, 1.8], "look": [68, 53, 1.2], "look_to": [68, 48, 1.2]},
-				{"secs": 3.0, "from": [58, 38, 1.8], "to": [59, 44, 2.4], "look": [60.5, 58.5, 2.0], "look_to": [60.5, 58.5, 2.0]}
+				{"secs": 3.0, "path": [[69.5, 90, 1.4], [68.8, 86, 1.8], [68, 82, 2.2]], "look": [[64, 83, 2.4], [65, 79, 2.0], [70, 75, 1.6]], "spots": [[0.2, "beam_hum", 0.5, -0.3]]},
+				{"secs": 2.8, "path": [[56.5, 42.6, 2.6], [60, 42.2, 2.8], [64, 42.6, 3.0]], "look": [[60, 48, 2.0], [64, 50, 2.4], [66, 52, 2.4]]},
+				{"secs": 3.0, "path": [[61.8, 47.8, 2.7], [61.4, 50.8, 2.6], [61, 53.6, 2.4]], "look": [[60.5, 58.5, 1.5], [60.5, 58.5, 1.5]], "spots": [[0.2, "core_thrum", 0.45, 0.0]]}
 			]
 		}
 	}

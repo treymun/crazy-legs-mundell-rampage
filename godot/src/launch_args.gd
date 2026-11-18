@@ -30,6 +30,8 @@ static func parse_smoke(m: MainState) -> void:
 			ChapterOpener.data_path = text.substr(14)  # a draft of openers.json
 		elif text.begins_with("--opener-out="):
 			m.opener.shots_out = text.substr(13)  # its key frames saved, then quit
+		elif text.begins_with("--opener-strip="):
+			m.opener.strip = int(text.substr(15))  # (with --opener-out) evenly spaced frames
 		elif text.begins_with("--view-out="):
 			m.view_out = text.substr(11)
 		elif text.begins_with("--view-bench="):
