@@ -658,6 +658,10 @@ static func _nearer(a: Array, b: Array) -> bool:
 	return da < db
 
 
+## (Merging onto the shared solver: each piece goes in by WreckPhysics.add
+## from _add, and the throw is WreckPhysics.impact(hit.at, hit.way, its
+## strength from hit.force, hit.kind, the group, dice): _launch's numbers
+## are breakables.cfg [launch].)
 ## A broken thing's pieces thrown by the hit: the variant whose fracture is
 ## nearest the hit (turned to it when round), up to `count` pieces (the
 ## biggest), each thrown from where the hit struck, along it, harder near it
@@ -739,6 +743,10 @@ func _launch(b: WreckPhysics.Body, hit: Impact, mid: Vector3, f: float, size: fl
 		var out_near: float = launch["out_near"]
 		var up_far: float = launch["up_far"]
 		var up_near: float = launch["up_near"]
+		# Little comes back at the shooter: out from the middle toward them
+		# counts a third.
+		if out.dot(Vector3(hit.way.x, hit.way.y, 0.0)) < 0.0:
+			out *= .35
 		push = (
 			hit.way * f * (push_far + push_near * near) * dice.randf_range(.7, 1.2)
 			+ out * f * (out_far + out_near * near) * dice.randf_range(.6, 1.3)

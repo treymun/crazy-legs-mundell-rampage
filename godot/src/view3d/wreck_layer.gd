@@ -54,23 +54,41 @@ func _init(assets: Assets) -> void:
 ## its frame (a cold shader cache: the browser, a phone's first run).
 func warm_roots() -> Array[Node3D]:
 	if _warm_piece == null:
-		var cut := WreckCuts.Part.new()
-		cut.verts = PackedVector3Array([Vector3.ZERO, Vector3(1, 0, 0), Vector3(0, 0, 1)])
-		cut.normals = PackedVector3Array([Vector3(0, -1, 0), Vector3(0, -1, 0), Vector3(0, -1, 0)])
-		cut.uvs = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
-		cut.colors = PackedColorArray([Color(0, 1, 0, 0), Color(0, 1, 0, 0), Color(1, 1, 1, 1)])
-		cut.uv2s = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
-		_warm_piece = _node()
-		_warm_piece.mesh = _mesh_of(cut)
-		var m := ShaderMaterial.new()
-		m.shader = _shader
-		var white := Image.create(1, 1, false, Image.FORMAT_RGBA8)
-		white.fill(Color.WHITE)
-		m.set_shader_parameter("baked", ImageTexture.create_from_image(white))
-		_warm_piece.material_override = m
+		_warm_piece = title_piece()
+		_warm_piece.visibility_range_end = REACH
+		add_child(_warm_piece)
 		_warm_piece.visible = false
 		_show_fine(null, null)
 	return [_warm_piece, _fine]
+
+
+## A piece of one triangle with a cut face (the cut faces' vertex format),
+## drawn with the pieces' shader: the warm-ups' (warm_roots, the title's).
+func title_piece() -> MeshInstance3D:
+	var cut := WreckCuts.Part.new()
+	cut.verts = PackedVector3Array([Vector3.ZERO, Vector3(1, 0, 0), Vector3(0, 0, 1)])
+	cut.normals = PackedVector3Array([Vector3(0, -1, 0), Vector3(0, -1, 0), Vector3(0, -1, 0)])
+	cut.uvs = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+	cut.colors = PackedColorArray([Color(0, 1, 0, 0), Color(0, 1, 0, 0), Color(1, 1, 1, 1)])
+	cut.uv2s = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+	var node := MeshInstance3D.new()
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.mesh = _mesh_of(cut)
+	var m := ShaderMaterial.new()
+	m.shader = _shader
+	var white := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	white.fill(Color.WHITE)
+	m.set_shader_parameter("baked", ImageTexture.create_from_image(white))
+	node.material_override = m
+	return node
+
+
+## The fine debris' material (made once; the title's warm-up draws it).
+func fine_material() -> ShaderMaterial:
+	if _fine_material == null:
+		_fine_material = ShaderMaterial.new()
+		_fine_material.shader = load("res://src/view3d/wreck_fine.gdshader")
+	return _fine_material
 
 
 ## The pieces shown now (what shots and fire mark: thing_marks.gd).
@@ -234,9 +252,7 @@ func _show_fine(debris: WreckDebris, level: LevelData) -> bool:
 		mm.instance_count = FINE_MOST
 		mm.visible_instance_count = 0
 		_fine.multimesh = mm
-		_fine_material = ShaderMaterial.new()
-		_fine_material.shader = load("res://src/view3d/wreck_fine.gdshader")
-		_fine.material_override = _fine_material
+		_fine.material_override = fine_material()
 		# Its bits are anywhere about the level: never culled as one box.
 		_fine.custom_aabb = AABB(Vector3(-1000, -1000, -1000), Vector3(2000, 2000, 2000))
 		add_child(_fine)

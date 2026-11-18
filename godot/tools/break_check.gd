@@ -74,7 +74,7 @@ static func run(main, check: Callable) -> void:
 	for section in cfg.get_sections():
 		# The windows' broken pictures are tiles (wall_break_check.gd holds them).
 		# [pieces] is the debris cap; a `gone` one leaves no picture at all.
-		if section == "all" or section == "windows" or section == "pieces":
+		if section in ["all", "windows", "pieces", "launch"]:
 			continue
 		if cfg.get_value(section, "gone", false):
 			continue
