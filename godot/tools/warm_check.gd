@@ -51,6 +51,7 @@ func _run() -> void:
 		for node: Node3D in nodes:
 			hidden.append(node)
 	hidden.append_array(view.cab.hidden_roots())
+	hidden.append_array(view.wrecks.warm_roots())
 	var kept: Dictionary = view.actors.get("_warmed")
 	for model: Node3D in kept.values():
 		hidden.append(model)

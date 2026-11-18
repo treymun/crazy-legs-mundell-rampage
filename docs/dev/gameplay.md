@@ -1537,35 +1537,105 @@ saved or in anyone's way), `src/wreck_cuts.gd`, `src/wreck_physics.gd`,
 itself on the chapters, the County Run maps and the hub (none on the 5v5
 and 2v2 maps: breakables.cfg `[pieces] never`):
 
-- **What comes apart how** is each breakable's `pieces` (breakables.cfg):
-  `boards:n` (crates, coolers, the TNT and ammo crates, the alien crate, the
-  outhouse's walls and roof: each side of the model in n boards), `staves:n`
-  (the mash barrel and the hazard drum: staves round its axis, its lids, two
-  hoops, the rest in chunks), `grid:a,b,c` (jugs, jars, the cow tube, the
-  bear, balloons, mailboxes, propane, gas cans, hay), `table:n` (the picnic
-  table: its top in planks, its legs and benches below), `planks:c,r,t` (a
-  picture: the yard's `prop_barrel` in staves, `prop_crate` in boards, a
-  sign's paint, `pieces_most` 3). Windows (`[windows] pieces`, `shards:n`)
-  throw their glass in panes of two shards; a stockyard fence cell
-  (`fence:n,v...`) throws `pieces_shot` boards off the side it was shot from
-  when shot about and its boards and rails when it breaks through.
+- **What comes apart how** is each breakable's `pieces` (breakables.cfg),
+  cut by `src/wreck_fracture.gd` (destruction pass 11): `boards:n` (crates,
+  coolers, the TNT and ammo crates, the alien crate, the outhouse: each side
+  in n boards, a little uneven, each snapped across at one or two slanting
+  breaks, more near where it was struck), `staves:n` (the mash barrel and,
+  stood up from its picture, the yard's `prop_barrel`: curved staves round
+  its axis, some snapped on a slant, its heads split by chords into disc
+  pieces, its two hoops as real iron rings sprung open at a gap or broken
+  into two or three bent arcs, what stands in it or off it in chunks),
+  `table:n` (the picnic table's top in planks, its legs and benches in
+  splinters), `shatter:n` (jugs, jars, the cow tube, the nitro rack, the
+  flamingo, balloons: n shards, small and many near the hit), `tear:n` (tin:
+  propane, the hazard drum, gas cans, mailboxes: torn sheets curled out from
+  the inside and dented), `burst:n` (hay, the prize bear: solid clumps, a
+  bale's in flakes across its length), `splinter:n` (the pallet stack along
+  its grain; a painted sign's face in n splinters, its back raw wood),
+  `chunk:n` (camp chairs). `prop_crate` is a crate stood up from its picture
+  (`boards:3`). A cell of a fracture is a seed's: the nearest seed, distances
+  stretched along wood's grain (splinters come out long) or across hay's
+  length (flakes come out thin); a triangle whose corners, middle and edges'
+  middles share one seed lies in its cell whole, the rest are cut by the few
+  seeds they touch only (`_cells`), so a model of thousands of triangles cuts
+  in tens of milliseconds. Each piece's box is fitted to it (`fit`: its
+  spread's longest way along x, its thinnest through y), so a shard lies on
+  its face. Windows (`[windows] pieces`, `shards:n`) throw their glass in
+  panes of two shards; a stockyard fence cell (`fence:n,v...`) throws
+  `pieces_shot` boards off the side it was shot from when shot about and
+  its boards and rails when it breaks through (as before).
 - **The pieces are the thing's own look.** `WreckCuts.parts(key)` cuts a
-  prop's baked model (assets3d/props, its first mesh) with real clipping
-  (each triangle cut by the cell's planes; a shell gets an inside face set in
-  by `SHELL` so it has a thickness) and keeps its UVs, so a piece is drawn
-  with the prop's own baked texture; a picture or a tile becomes boxes with
-  that part of the picture on their faces. A key is cut once and kept for
-  the process. A level's breakables are not cut while it loads:
-  `attach` lists their keys (`WreckCuts.prepare`) and `WreckCuts.pump`, each
-  tick, cuts the next, a model's on a `WorkerThreadPool` task (its model read
-  on the main thread first; the worker only reads it), a picture's or a
-  tile's at once (a millisecond or two). The cow tube, 5,400 triangles, is
-  the slowest at about 80 to 120 ms; a level's all are cut within its first
-  second or two. A key asked for before its turn (something broke at once) is
-  cut there and then, or waited for if the worker has it. The lite browser
-  build has no threads: it cuts a key the first time something of it breaks.
-  Looks only: the pieces are the same whichever thread cuts them
-  (`load_check`).
+  prop's baked model (assets3d/props, its first mesh), or a barrel or crate
+  stood up from its picture, with real clipping and keeps its UVs, so a
+  piece is drawn with the prop's own baked texture; a tile becomes boxes
+  with that part of it on their faces. A key and each of its variants is cut
+  once and kept for the process. A level's breakables are not cut while it
+  loads: `attach` lists their keys (`WreckCuts.prepare`) and
+  `WreckCuts.pump`, each tick, cuts the next, a model's (or a stood-up
+  picture's) on a `WorkerThreadPool` task (its triangles made on the main
+  thread first; the worker only reads them), a sign's or a tile's at once
+  (a millisecond or two). The mash barrel, about 2,900 triangles, is the
+  slowest at about 100 to 160 ms a variant (its model read included); a
+  level's kinds each have one within its first second or two and all their
+  variants within a few more. A key asked for before its turn (something
+  broke at once) is cut there and then, or waited for if the worker has it;
+  a break otherwise uses only variants already cut. Looks only: the pieces
+  are the same whichever thread cuts them (`load_check`).
+- **Never the same twice.** A fractured key is cut in `WreckCuts.VARIANTS`
+  (6; a model of more than `HEAVY` triangles 3) variants, "<key>^k", each
+  with its own dice and its own fracture origin (`WreckFracture.origin`:
+  round its sides at heights that change with k), all on the worker in the
+  level's first frames (every kind's own first, then their variants). A
+  break takes one of the two or three whose origin is nearest where it was
+  struck, never the one that kind broke as last; a barrel's is turned about
+  its axis to face the hit (`WreckCuts.round_about`). Without threads (the
+  lite browser build) each break of a kind cuts its next variant there and
+  then, up to `LITE` (2; heavy models keep one).
+- **Thrown by the hit** (`wreckage.gd _impact`, `_launch`; numbers in
+  breakables.cfg `[launch]`): a blast gone off near it in the last
+  `BLAST_TIME` throws it all away from the blast; else the hitscan shots
+  that struck it this moment (`traced` "thing", their ends within its
+  radius in the last `SHOT_TIME`) say where and which way, their count how
+  hard (a revolver round about .4, buckshot at arm's length 1.3, less from
+  further off); else (a thrown thing, a car, a swing, a client's mirror) its
+  side facing this machine's player at middle height, .7. Each piece goes
+  along the push `push_far + push_near` times how near it is to the hit
+  (full within `near` of the thing's size), out from the middle, up, spun
+  by how far off its middle the push went (`lever`) plus `tumble`, at most
+  `speed_most` and `spin_most`. A revolver round chips it open (the far
+  side barely moves), buckshot blows it apart. One break throws at most
+  `per_break` pieces (24, `per_break_phone` 12; the biggest). A shot that
+  does not break a thing knocks chips off where it struck (`prop_struck`,
+  `wreck_burst.gd chips`; its hp untouched). The impact goes only through
+  `_burst_apart`/`_launch`, the bodies only through `_add` (each given its
+  `stuff` and `form` for the solver).
+- **Cut faces are raw** (wreck.gdshader): a piece's skin keeps the model's
+  UVs; its inside face (set in by its stuff's `THICK`; hay and stuffing as
+  solid lumps) and the rims joining it to the skin carry vertex colours
+  (alpha 0, red its stuff, green 1 a rim) and draw one texel of the piece's
+  own texture worked toward the stuff: fresh pale wood with fine grain on a
+  rim and its weathered back inside, a bright raw tin edge, clay's
+  terracotta body, a glass glint, straw, a cooler's white foam, iron with
+  rust specks, in hard 64ths of a cell. Nothing is smeared across a face.
+- **Fine debris** (`src/wreck_debris.gd`, `features/wreck_burst.gd`): with
+  the real pieces each break throws splinters, shards and glints, slivers,
+  straw and crumbs by its stuff (counts and sizes `BITS`, the thing's own
+  colours and the stuff's): points with a spin that fall, bounce off the
+  floor under them (asked when they have gone half a cell), stop at walls,
+  slide and lie, and shrink away after their life; never the solver. At
+  most `fine_most` (120, `fine_most_phone` 48); drawn as one MultiMesh by
+  the wreck layer (the sprite "~~fine", its `who` the debris), written again
+  only while some move. A dust puff (`features/dust.gd`) goes up off wood,
+  hay, clay and plastic, and a second sound by stuff and force plays under
+  the break's own cue (`LAYER`: `break_splinter`, `shard_rain`, `tin_tear`,
+  `straw_burst`, ElevenLabs pass 11). Landing clinks are by stuff too.
+- **Remains** (`scripts/blender/props_broken.py`): the yard barrel and the
+  mash barrel leave a low ragged stump of snapped staves in their bottom
+  hoop (`_stubs`), the jugs their feet in teeth, the crate a low ragged
+  back, the hay bale its slumped bottom flakes; their staged lying pieces
+  are mostly gone (the real pieces lie there now). Remains are play's
+  broken picture: the same every time.
 - **New breakables**: `town_picnic_table`, `town_camp_chairs` and
   `town_outhouse` break (`gone`: no broken picture, nothing stands where it
   was, its base opens the way as a crate's does; `never` on the versus maps).
@@ -1611,6 +1681,9 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   or a snapshot put on (`restore`) throws nothing. A break throws away from a
   blast that went off near it in the last `BLAST_TIME`, else along the line
   from this machine's player (looks only).
+- **Come to rest**: a piece gone to sleep more than `STUCK` (.03) into a
+  wall or a floor shrinks away rather than stay half in it; a thin one left
+  on its end with nothing leaning it is nudged over once (`_came_to_rest`).
 - **Cost**: `[pieces] most` (48, `most_phone` 20) lie about at most; past it
   the oldest shrink away in `fade` and stop moving. More than `CROWD` (20)
   awake takes one physics step a tick instead of `steps` (2). On the shared
@@ -1632,9 +1705,16 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   `pieces`, a few windows and fence cells on seven levels and checks pieces
   fly, all come to rest within 15 s on a floor within .03 and never inside
   anything, nothing on the versus maps, the cap, a save throws nothing and
-  the idle cost; `tools/physics_frames.gd -- only=break` pictures the
-  barrel, window, fence, picnic table and hazard drums
-  (`docs/godot3d/features/C/`, before and after).
+  the idle cost; and (pass 11, BREAKS DIFFER) two breaks of a barrel, a
+  crate, a propane tank and a hay bale struck the same way come apart
+  differently, pieces go away from the side struck and the fracture starts
+  on it, buckshot throws harder than a revolver round, every piece names
+  its stuff and shape and has raw cut faces, a break throws fine debris
+  under its cap and a shot that does not break chips. `tools/break_frames.gd`
+  (a window) pictures each kind shot the way play shoots it
+  (`docs/godot3d/destruction/BREAKS/`, before and after);
+  `tools/physics_frames.gd -- only=break` the barrel, window, fence, picnic
+  table and hazard drums (`docs/godot3d/features/C/`).
 
 ### The big breaks (content pass 8)
 

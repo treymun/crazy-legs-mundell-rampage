@@ -36,6 +36,31 @@ def _ring(r, heights, m, z0=0.0, thick=.045, lean=0.0, turn=0.0):
             (tilt, 0, math.degrees(a) + 90))
 
 
+def _stubs(r, heights, m, z0=0.0, thick=.045, lean=0.0, turn=0.0):
+    """Staves snapped off short round a ring of radius r: each a stub of its
+    own height (0 a gap) with a splintered tip, narrower, on one side of its
+    top, so the ring's edge is ragged, not cut level: what a barrel shot
+    apart leaves standing in its bottom hoop."""
+    n = len(heights)
+    w = r * math.tau / n * .9
+    for k, h in enumerate(heights):
+        if h <= 0:
+            continue
+        a = k / n * math.tau + turn
+        tilt = lean * (.6 + .4 * ((k * 7) % 5) / 4.0)
+        z_rot = math.degrees(a) + 90
+        box(w, thick, h, (math.cos(a) * r, math.sin(a) * r, z0 + h / 2), m, (tilt, 0, z_rot))
+        # The splinter: a third of the stave's width, up to as tall again.
+        tip = min(h * (.45 + .35 * ((k * 3) % 4) / 3.0), .1)
+        side = (-1 if k % 2 else 1) * w * .3
+        sx = math.cos(a) * r + math.cos(a + math.pi / 2) * side
+        sy = math.sin(a) * r + math.sin(a + math.pi / 2) * side
+        lift = z0 + h + tip / 2 - .01
+        out = math.sin(math.radians(tilt)) * (h + tip / 2)
+        box(w * .32, thick * .8, tip, (sx + math.cos(a) * out, sy + math.sin(a) * out, lift), m,
+            (tilt + 6, 0, z_rot + (8 if k % 2 else -8)))
+
+
 def _petals(r, z, n, length, out, m, width=None, skip=()):
     """Torn sheet metal curled out from a rim at height z: a drum or tank burst
     from inside. `out` is how far each leans out, in degrees."""
@@ -71,18 +96,18 @@ def _splinters(m, spots):
 
 # ------------------------------------------------------------ wood and straw
 def barrel_broken():
-    # prop_barrel staved in: the bottom head and hoop, the staves round it
-    # snapped off short, others lying where they fell, the top hoop down.
+    # prop_barrel staved in: the bottom head in its hoop, the staves round it
+    # snapped off low and ragged (the rest of it flies: the game's own
+    # pieces, features/wreckage.gd), a stave or two and splinters lying by.
     oak = mat(*BARREL_OAK, planks=10.0, grime=.55)
     pale = mat(176, 128, 82, grime=.35)
     hoop = mat(*HOOP, metal=.6, grime=.6)
     cyl(.33, .05, (0, 0, .025), oak, seg=20)
-    _ring(.31, [.42, .26, .55, 0, .3, .5, .18, 0, .46, .34, .58, .22, 0, .38, .5, .3], oak, lean=8)
-    cyl(.335, .05, (0, 0, .14), hoop, seg=20, top=.335)
-    for k, (x, y, a) in enumerate([(.55, -.1, 20), (-.5, .25, -35), (.2, -.55, 75), (-.3, -.5, 120)]):
-        _plank(.62 - k * .06, .1, (x, y, .025), oak, (0, 6 * (k % 2), a))
-    _hoop((.5, .3, .03), .3, mat(96, 90, 84, metal=.6, grime=.5), (10, 0, 30), t=.025)
-    _splinters(pale, [(.1, -.4), (-.42, -.1), (.35, .45), (-.1, .5)])
+    _stubs(.31, [.16, .07, .2, 0, .1, .18, .05, 0, .14, .09, .22, .06, 0, .12, .17, .08], oak, lean=14)
+    cyl(.335, .05, (0, 0, .1), hoop, seg=20, top=.335)
+    for k, (x, y, a) in enumerate([(.55, -.1, 20), (-.45, .35, -35)]):
+        _plank(.5 - k * .12, .1, (x, y, .025), oak, (0, 6 * (k % 2), a))
+    _splinters(pale, [(.1, -.45), (-.42, -.1), (.38, .42), (-.1, .52), (.5, .1)])
     return 1.7, .9
 
 
@@ -92,12 +117,13 @@ def crate_broken():
     wood = mat(*CRATE_WOOD, planks=7.0, grime=.55)
     pale = mat(170, 124, 80, grime=.35)
     box(.62, .62, .05, (0, 0, .025), wood)
-    for k, h in enumerate([.6, .44, .62, .3]):
+    for k, h in enumerate([.34, .16, .4, .1]):
         box(.15, .04, h, (-.23 + k * .155, .29, h / 2), wood)
-    for k, h in enumerate([.5, .22, .38]):
+        box(.05, .035, h * .5, (-.27 + k * .155 + (k % 2) * .08, .29, h + h * .25 - .01), wood,
+            (0, 8 - 16 * (k % 2), 0))
+    for k, h in enumerate([.26, .08, .18]):
         box(.04, .15, h, (-.29, -.15 + k * .16, h / 2), wood)
-    beam((-.25, .27, .08), (.05, .27, .4), .05, pale)
-    beam((.12, .26, .46), (.24, .26, .6), .05, pale)
+    beam((-.25, .27, .08), (.02, .27, .3), .05, pale)
     for k, (x, y, a) in enumerate([(.2, -.5, 15), (-.15, -.62, -20), (.55, -.15, 80), (.48, .3, 104), (-.6, -.3, 60)]):
         _plank(.58 - (k % 3) * .12, .15, (x, y, .02 + (k % 2) * .03), wood, (4 * (k % 2), 0, a))
     _splinters(pale, [(.0, -.3), (.32, -.38), (-.4, .1), (.4, .1)])
@@ -163,12 +189,16 @@ def range_hay_bale_broken():
     # A bale blown loose: a slumped heap, the twine snapped, wisps about.
     hay = mat(168, 128, 52, planks=30.0, grime=.55)
     loose = mat(196, 160, 84, grime=.4)
-    box(.9, .5, .3, (0, 0, .15), hay)
+    # What is left of the bale: its bottom flakes, slumped, the twine
+    # snapped, flakes slid off it at angles (no round lumps: hay comes away
+    # in flat flakes).
+    box(.9, .5, .16, (0, 0, .08), hay)
     for x in (-.25, .25):
-        box(.02, .52, .32, (x, 0, .15), mat(90, 70, 40))
-    for k, (x, y, r, s) in enumerate([(.15, .05, .36, (1.3, 1.0, .5)), (.5, -.25, .28, (1.2, 1, .55)),
-                                      (-.45, -.3, .26, (1.1, 1, .5))]):
-        ball(r, (x, y, .3 + r * s[2] * .3 if k == 0 else r * s[2] * .7), hay, s, (0, 0, k * 40), seg=10)
+        box(.02, .52, .17, (x, 0, .08), mat(90, 70, 40))
+    for k, (x, y, z, a, tilt) in enumerate([(.1, .02, .2, 8, 6), (-.3, -.05, .19, -12, -9),
+                                           (.55, -.25, .06, 40, 18), (-.5, .3, .05, 70, -14),
+                                           (.2, .42, .04, 100, 10)]):
+        box(.28, .46, .07, (x, y, z), hay, (tilt, 0, a))
     for k in range(9):
         a = k * .7
         box(.02, .26, .01, (math.cos(a) * (.55 + (k % 3) * .1), math.sin(a) * .5, .01), loose, (0, 0, k * 33))
@@ -184,8 +214,9 @@ def mash_barrel_broken():
     hoop = mat(56, 50, 46, metal=.6, grime=.6)
     mash = mat(190, 160, 84, rough=.6, grime=.35)
     cyl(.44, .05, (0, 0, .025), oak, seg=20)
-    _ring(.42, [.5, .7, .3, 0, .62, .45, .8, .2, 0, .55, .72, .4, .25, 0, .66, .5, .35, .6], oak, lean=10)
-    cyl(.45, .05, (0, 0, .12), hoop, seg=20)
+    _stubs(.42, [.2, .3, .1, 0, .26, .14, .34, .07, 0, .22, .3, .12, .08, 0, .28, .16, .1, .24], oak,
+           lean=14)
+    cyl(.45, .05, (0, 0, .11), hoop, seg=20)
     cyl(.8, .012, (-.1, -.35, .006), mash, seg=24)
     for k in range(5):
         ball(.05 + (k % 3) * .015, (-.4 + k * .17, -.55 + (k % 2) * .1, .03), mat(220, 204, 150, rough=.4, grime=.1))
@@ -201,8 +232,8 @@ def mash_barrel_broken():
 
 # ------------------------------------------------------------ glass and jugs
 def jug_stack_broken():
-    # The jug crate shot up: jug bottoms in the slats, shards about, one jug
-    # knocked over whole.
+    # The jug crate shot up: the jugs' feet in the slats in ragged teeth,
+    # shards about, one jug knocked over whole.
     crate = mat(*GREY_WOOD, planks=8.0, grime=.6)
     clay = mat(*JUG_CLAY, rough=.4, grime=.4)
     box(.9, .6, .3, (0, 0, .15), crate)
@@ -210,8 +241,10 @@ def jug_stack_broken():
         x, y = -.3 + (k % 3) * .3, -.13 + (k // 3) * .26
         if k == 4:
             continue
-        cyl(.12, .08 + (k % 3) * .04, (x, y, .34 + (k % 3) * .02), clay, seg=10)
-    _ring(.11, [.12, 0, .2, .08, .16, 0], clay, z0=.34, thick=.02, turn=.4)
+        # A jug's foot left in its slot, its broken side round it in teeth.
+        cyl(.12, .04, (x, y, .32), clay, seg=10)
+        teeth = [[.06, 0, .1, .04, .08, 0], [.03, .09, 0, .06, 0, .05], [.08, .03, .05, 0, .1, .02]][k % 3]
+        _stubs(.11, teeth, clay, z0=.32, thick=.02, lean=12, turn=k * .9)
     for k in range(8):
         a = k * .85
         box(.06, .05, .02, (math.cos(a) * (.5 + (k % 3) * .08), math.sin(a) * .42, .02), clay, (0, 0, k * 29))

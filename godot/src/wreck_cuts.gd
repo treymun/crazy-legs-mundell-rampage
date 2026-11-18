@@ -2,26 +2,28 @@
 ## throws them, view3d/wreck_layer.gd draws them): cut from the thing's own
 ## look, so a piece in the air is the part of it that was there.
 ##
-## A key names what is cut and how: "<source>|<recipe>". The source is
-## m:<model> (a prop's baked model, assets3d/props: its triangles cut up and
-## drawn with its own baked texture), p:<picture> (a board or a sprite's
-## picture: boxes with the picture on their faces) or t:<tile>@<w>,<h> (a wall
-## tile on a face w wide and h tall: a fence's planks, a window's glass). The
-## recipe (breakables.cfg `pieces`):
+## A key names what is cut and how: "<source>|<recipe>[~<stuff>][^<variant>]".
+## The source is m:<model> (a prop's baked model, assets3d/props: its
+## triangles cut up and drawn with its own baked texture), p:<picture> (a
+## board or a sprite's picture) or t:<tile>@<w>,<h> (a wall tile on a face w
+## wide and h tall: a fence's planks, a window's glass). The recipe
+## (breakables.cfg `pieces`): a model's are src/wreck_fracture.gd's (boards,
+## staves, table, shatter, tear, burst, splinter, chunk, grid); a picture's:
 ##
-##   boards:n         each side of a box-like model in n boards (crates, the
-##                    outhouse's walls and roof)
-##   staves:n[,x,y,r] a barrel's side in n staves round its upright axis (at
-##                    x, y with radius r; the model's middle otherwise), its
-##                    lids, two hoops; whatever stands off the barrel in chunks
-##   grid:a,b,c       a model in a by b by c chunks (jugs, jars, tin, a bear)
-##   table:n          a table's top in n planks, the legs and benches below in
-##                    four chunks
+##   staves:n         a barrel stood up from its picture (a round of staves
+##                    wearing the picture), then cut as a model's staves
+##   boards:n         a crate stood up from its picture, cut as a model's boards
+##   splinter:n[,t]   a painted board in n splinters along its grain, t thick
 ##   planks:c,r       a picture (or a tile) in c by r boards
 ##   fence:n,v...     a fence tile in n upright boards and a rail at each v
 ##                    (a share of the height down from its top)
 ##   shards:n,u0,u1,z0,z1  a window's glass (from u0 to u1 across the face,
 ##                    z0 to z1 up it) in n by n panes, each two triangles
+##
+## `stuff` is what the pieces are made of (breakables.cfg; how thick, how a
+## cut face is drawn: WreckFracture.MATERIALS). A fractured key comes in
+## `variants` (a model's on the worker, each with its own dice and its own
+## fracture origin: `origin`), "^k" naming one; the key alone is variant 0.
 ##
 ## Each piece is a Part: a box the physics tumbles (half sizes about its
 ## middle, its turn in the source's frame) and its faces about its middle in
@@ -34,19 +36,27 @@
 ## A level's breakables are not cut while it loads: prepare() lists their keys
 ## and pump() (each tick of the level's first frames) cuts them one at a time,
 ## a model's on a worker thread (looks only, the same pieces whichever thread
-## cuts them: tools/load_check.gd holds the two together). A key asked for
-## before its turn is cut there and then, as before. A build without threads
-## (the lite browser build) cuts a key the first time something of it breaks.
+## cuts them: tools/load_check.gd holds the two together), its variants after
+## it. A key asked for before its turn is cut there and then, as before. A
+## build without threads (the lite browser build) cuts a key the first time
+## something of it breaks, and keeps fewer variants (LITE).
 class_name WreckCuts
 extends RefCounted
 
 const PROPS := "res://assets3d/props"
-## How thick a cut shell is made (the inside face set in by this) and the
-## thinnest a piece's box may be (half).
-const SHELL := .03
+## The thinnest a piece's box may be (half).
 const THIN := .012
 ## A piece with less in it than this (the area of its faces) is dropped.
 const SMALL := .004
+## Fractured recipes, and how many variants each key is cut in: a model of
+## more than HEAVY triangles in fewer; without threads fewer still.
+const FRACTURED := [
+	"boards", "staves", "table", "shatter", "tear", "burst", "splinter", "chunk", "grid"
+]
+const VARIANTS := 6
+const VARIANTS_HEAVY := 3
+const HEAVY := 2500
+const LITE := 2
 
 
 ## One piece: its box and its faces.
@@ -59,6 +69,19 @@ class Part:
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
+	## Its cut faces (WreckFracture.finish): a colour a corner (alpha 0: drawn
+	## raw, red its material) and where it is in the piece; empty: all skin.
+	var colors := PackedColorArray()
+	var uv2s := PackedVector2Array()
+	## What it is made of and its shape, for the physics (wreck_physics.gd:
+	## board, stave, ring, disc, shard, sheet, clump, chunk).
+	var material := "wood"
+	var form := "chunk"
+	## Its corners and normals in Godot's axes (y up), made where it is cut
+	## (a worker's thread) so the view only hands them over; empty: the view
+	## swaps them itself.
+	var shown := PackedVector3Array()
+	var shown_n := PackedVector3Array()
 
 
 ## A soup of triangles being cut: corners, normals, texture places.
@@ -112,22 +135,92 @@ class Job:
 	var soup: Soup
 	var recipe := ""
 	var args := PackedFloat32Array()
+	var material := "wood"
+	var variant := 0
 	var out: Array = []
 	var task := -1
 
 	func run() -> void:
-		out = WreckCuts._cut_model(soup, recipe, args)
+		out = WreckCuts._cut_model(soup, recipe, args, material, variant)
+
+
+## A key read: its source, recipe name, numbers, stuff and variant, and the
+## key without its variant.
+class Named:
+	var base := ""
+	var source := ""
+	var recipe := ""
+	var args := PackedFloat32Array()
+	var material := "wood"
+	var variant := 0
 
 
 static var _cache := {}
 static var _soups := {}
+## Each source's bounds (fracture origins are round them).
+static var _boxes := {}
 ## Keys waiting to be cut (prepare()), and the model cut on a worker now.
 static var _waiting: Array[String] = []
 static var _job: Job = null
 
 
+## A key taken apart (see the top).
+static func named(key: String) -> Named:
+	var out := Named.new()
+	var base := key
+	var caret := key.rfind("^")
+	if caret > key.find("|"):
+		base = key.left(caret)
+		out.variant = key.substr(caret + 1).to_int()
+	out.base = base
+	var bar := base.find("|")
+	if bar < 0:
+		out.source = base
+		return out
+	out.source = base.left(bar)
+	var recipe := base.substr(bar + 1)
+	var tilde := recipe.find("~")
+	if tilde >= 0:
+		out.material = WreckFracture.material_of(recipe.substr(tilde + 1))
+		recipe = recipe.left(tilde)
+	out.recipe = recipe.get_slice(":", 0)
+	out.args = _numbers(recipe.get_slice(":", 1) if recipe.contains(":") else "")
+	return out
+
+
+## How many variants a key is cut in (1: it is not fractured).
+static func variants(key: String) -> int:
+	var k := named(key)
+	if not FRACTURED.has(k.recipe) or k.source.begins_with("t:"):
+		return 1
+	var heavy := false
+	if k.source.begins_with("m:"):
+		heavy = _model(k.source.substr(2)).size() / 3 > HEAVY
+	if not OS.has_feature("threads"):
+		return 1 if heavy else LITE
+	return VARIANTS_HEAVY if heavy else VARIANTS
+
+
+## Whether a key's pieces may be turned any way about its upright axis (a
+## barrel's: round, so a break turns its fracture origin to the hit).
+static func round_about(key: String) -> bool:
+	return named(key).recipe == "staves"
+
+
+## Where a key's variant breaks from (its fracture origin, in its source's
+## frame), once it has been cut.
+static func origin(key: String) -> Vector3:
+	var k := named(key)
+	var found: Variant = _boxes.get(k.source + "|" + k.recipe)
+	if found == null:
+		return Vector3.ZERO
+	var box: AABB = found
+	return WreckFracture.origin(box, k.variant)
+
+
 ## Lists keys to cut while the level's first frames run (pump()), none of it
-## now. Without threads nothing is listed: a key is cut when first asked for.
+## now; each key's variants follow it. Without threads nothing is listed: a
+## key is cut when first asked for.
 static func prepare(keys: Array) -> void:
 	if not OS.has_feature("threads"):
 		return
@@ -140,7 +233,8 @@ static func prepare(keys: Array) -> void:
 
 ## One step of the cutting prepare() listed: takes in a worker's finished cut,
 ## then starts the next model on a worker (its model read here) or cuts the
-## next picture or tile here (a millisecond or two). Cheap when nothing waits.
+## next picture or tile here (a millisecond or two). A key's variants are
+## listed last once its own is taken. Cheap when nothing waits.
 static func pump(assets: Assets) -> void:
 	if _job != null:
 		if not WorkerThreadPool.is_task_completed(_job.task):
@@ -150,24 +244,45 @@ static func pump(assets: Assets) -> void:
 		var key: String = _waiting.pop_front()
 		if _cache.has(key):
 			continue
-		var bar := key.find("|")
-		if not key.begins_with("m:") or bar < 0:
+		var k := named(key)
+		if k.variant == 0:
+			# Its variants after every key's own (each kind has one soon).
+			var more := variants(key)
+			for v in range(1, more):
+				var other := "%s^%d" % [k.base, v]
+				if not _cache.has(other) and not _waiting.has(other):
+					_waiting.append(other)
+		var soup := _worker_soup(assets, k)
+		if soup == null:
 			parts(assets, key)
 			return
-		var soup := _model(key.substr(2, bar - 2))
 		if soup.size() == 0:
 			_cache[key] = []
 			continue
 		soup.measure()
+		_boxes[k.source + "|" + k.recipe] = soup.bounds()
 		var job := Job.new()
-		var recipe := key.substr(bar + 1)
 		job.key = key
 		job.soup = soup
-		job.recipe = recipe.get_slice(":", 0)
-		job.args = _numbers(recipe.get_slice(":", 1) if recipe.contains(":") else "")
+		job.recipe = k.recipe
+		job.args = k.args
+		job.material = k.material
+		job.variant = k.variant
 		job.task = WorkerThreadPool.add_task(job.run, false, "wreck cuts")
 		_job = job
 		return
+
+
+## What a worker cuts for a key: a model's triangles, or a barrel's or a
+## crate's stood up from its picture (made here, a millisecond); null when
+## the key is cut here at once (a tile, a painted board, a set piece's).
+static func _worker_soup(assets: Assets, k: Named) -> Soup:
+	if k.source.begins_with("m:") and k.recipe != "":
+		return _model(k.source.substr(2))
+	if k.source.begins_with("p:") and (k.recipe == "staves" or k.recipe == "boards"):
+		var pic := _picture(assets, k.source.substr(2))
+		return Soup.new() if pic.is_empty() else _stood_up(pic, k.recipe)
+	return null
 
 
 ## Pieces made elsewhere kept under `key` (a set piece's standing parts
@@ -200,6 +315,7 @@ static func clear() -> void:
 	_waiting.clear()
 	_cache.clear()
 	_soups.clear()
+	_boxes.clear()
 
 
 ## The pieces a key cuts into (empty when there is nothing to cut).
@@ -214,20 +330,17 @@ static func parts(assets: Assets, key: String) -> Array:
 		return cut
 	_waiting.erase(key)
 	var out: Array = []
-	var bar := key.find("|")
-	if bar > 0:
-		var source := key.left(bar)
-		var recipe := key.substr(bar + 1)
-		var name := recipe.get_slice(":", 0)
-		var args := _numbers(recipe.get_slice(":", 1) if recipe.contains(":") else "")
-		if source.begins_with("m:"):
-			var soup := _model(source.substr(2))
+	var k := named(key)
+	if k.recipe != "":
+		if k.source.begins_with("m:"):
+			var soup := _model(k.source.substr(2))
 			if soup.size() > 0:
-				out = _cut_model(soup, name, args)
-		elif source.begins_with("p:"):
-			out = _cut_picture(assets, source.substr(2), name, args)
-		elif source.begins_with("t:"):
-			out = _cut_tile(source.substr(2), name, args)
+				_boxes[k.source + "|" + k.recipe] = soup.bounds()
+				out = _cut_model(soup, k.recipe, k.args, k.material, k.variant)
+		elif k.source.begins_with("p:"):
+			out = _cut_picture(assets, k)
+		elif k.source.begins_with("t:"):
+			out = _cut_tile(k.source.substr(2), k.recipe, k.args)
 	_cache[key] = out
 	return out
 
@@ -305,288 +418,23 @@ static func _read(mesh: Mesh, xf: Transform3D, soup: Soup) -> void:
 # ------------------------------------------------------------------ models
 
 
-## A model cut by a recipe.
-static func _cut_model(soup: Soup, recipe: String, args: PackedFloat32Array) -> Array:
-	var box := soup.bounds()
-	var tris := soup.size() / 3
-	# Which group each triangle falls in, and each group's cells (planes).
-	var group := PackedInt32Array()
-	group.resize(tris)
-	var cells: Array = []
-	match recipe:
-		"boards":
-			_boards(soup, box, maxi(1, int(_arg(args, 0, 3.0))), group, cells)
-		"staves":
-			_staves(soup, box, args, group, cells)
-		"table":
-			_table(soup, box, maxi(1, int(_arg(args, 0, 3.0))), group, cells)
-		_:
-			var counts := Vector3i(
-				maxi(1, int(_arg(args, 0, 2.0))),
-				maxi(1, int(_arg(args, 1, 2.0))),
-				maxi(1, int(_arg(args, 2, 2.0)))
-			)
-			_grid_cells(box, counts, 0, cells)
-	var out: Array = []
-	for cell: Dictionary in cells:
-		var piece := _clip_cell(soup, group, cell)
-		if piece.size() < 3 or _area(piece) < SMALL:
-			continue
-		var outward: float = cell.get("out", 0.0)
-		if outward > 0.0:
-			_swell(piece, cell, outward)
-		out.append(_part(piece, cell, true))
-	return out
+## A model cut by a recipe (src/wreck_fracture.gd): variant `k`, its pieces
+## of `material` (WreckFracture.MATERIALS).
+static func _cut_model(
+	soup: Soup, recipe: String, args: PackedFloat32Array, material: String, k: int
+) -> Array:
+	return WreckFracture.cut(soup, recipe, args, material, k)
 
 
-## Each triangle to the side of the box its middle is nearest; each side in n
-## boards (the walls across their height, the top and the bottom along their
-## longer way).
-static func _boards(soup: Soup, box: AABB, n: int, group: PackedInt32Array, cells: Array) -> void:
-	var lo := box.position
-	var hi := box.end
-	for t in group.size():
-		var c := (soup.p[t * 3] + soup.p[t * 3 + 1] + soup.p[t * 3 + 2]) / 3.0
-		var near := [c.x - lo.x, hi.x - c.x, c.y - lo.y, hi.y - c.y, c.z - lo.z, hi.z - c.z]
-		var best := 0
-		for k in 6:
-			var d: float = near[k]
-			var was: float = near[best]
-			if d < was:
-				best = k
-		group[t] = best
-	for side in 6:
-		var up := side >= 4
-		var axis := 2
-		if up:
-			axis = 0 if box.size.x >= box.size.y else 1
-		for k in n:
-			var a := lo[axis] + box.size[axis] * k / n
-			var b := lo[axis] + box.size[axis] * (k + 1) / n
-			(
-				cells
-				. append(
-					{
-						"group": side,
-						"planes": _slab(axis, a, b),
-						"shell":
-						[
-							Vector3(-1, 0, 0),
-							Vector3(1, 0, 0),
-							Vector3(0, -1, 0),
-							Vector3(0, 1, 0),
-							Vector3(0, 0, -1),
-							Vector3(0, 0, 1)
-						][side],
-					}
-				)
-			)
-
-
-## Planes keeping a ≤ p[axis] ≤ b.
-static func _slab(axis: int, a: float, b: float) -> Array:
+## Planes keeping a <= p[axis] <= b.
+static func slab(axis: int, a: float, b: float) -> Array:
 	var n := Vector3.ZERO
 	n[axis] = 1.0
 	return [[-n, -a], [n, b]]
 
 
-## A barrel: staves round its axis, its lids, two hoops, the rest in chunks.
-static func _staves(
-	soup: Soup, box: AABB, args: PackedFloat32Array, group: PackedInt32Array, cells: Array
-) -> void:
-	var n := maxi(3, int(_arg(args, 0, 8.0)))
-	var mid := box.get_center()
-	var axis := Vector2(_arg(args, 1, mid.x), _arg(args, 2, mid.y))
-	var radius := _arg(args, 3, minf(box.size.x, box.size.y) * .5)
-	# The barrel's own height: its side's triangles' reach up.
-	var low := INF
-	var high := -INF
-	for t in group.size():
-		var c := (soup.p[t * 3] + soup.p[t * 3 + 1] + soup.p[t * 3 + 2]) / 3.0
-		if Vector2(c.x, c.y).distance_to(axis) <= radius * 1.15:
-			low = minf(low, minf(soup.p[t * 3].z, minf(soup.p[t * 3 + 1].z, soup.p[t * 3 + 2].z)))
-			high = maxf(high, maxf(soup.p[t * 3].z, maxf(soup.p[t * 3 + 1].z, soup.p[t * 3 + 2].z)))
-	if low > high:
-		_grid_cells(box, Vector3i(2, 2, 2), 0, cells)
-		return
-	var tall := high - low
-	var others := false
-	for t in group.size():
-		var c := (soup.p[t * 3] + soup.p[t * 3 + 1] + soup.p[t * 3 + 2]) / 3.0
-		var nz := absf((soup.n[t * 3] + soup.n[t * 3 + 1] + soup.n[t * 3 + 2]).normalized().z)
-		if Vector2(c.x, c.y).distance_to(axis) > radius * 1.15 or c.z > high + .02:
-			group[t] = 3
-			others = true
-		elif nz > .7 and c.z > high - tall * .12:
-			group[t] = 1
-		elif nz > .7 and c.z < low + tall * .12:
-			group[t] = 2
-		else:
-			group[t] = 0
-	var centre := Vector3(axis.x, axis.y, 0.0)
-	for k in n:
-		var a0 := TAU * k / n
-		var a1 := TAU * (k + 1) / n
-		var d0 := Vector3(cos(a0), sin(a0), 0.0)
-		var d1 := Vector3(cos(a1), sin(a1), 0.0)
-		var n0 := Vector3(d0.y, -d0.x, 0.0)
-		var n1 := Vector3(-d1.y, d1.x, 0.0)
-		var am := (a0 + a1) * .5
-		var r := Vector3(cos(am), sin(am), 0.0)
-		(
-			cells
-			. append(
-				{
-					"group": 0,
-					"planes": [[n0, n0.dot(centre)], [n1, n1.dot(centre)]],
-					"basis": Basis(Vector3(sin(am), -cos(am), 0.0), r, Vector3(0.0, 0.0, 1.0)),
-					"shell": r,
-				}
-			)
-		)
-	cells.append({"group": 1, "planes": []})
-	cells.append({"group": 2, "planes": []})
-	for band: Vector2 in [Vector2(.18, .26), Vector2(.74, .82)]:
-		(
-			cells
-			. append(
-				{
-					"group": 0,
-					"planes": _slab(2, low + tall * band.x, low + tall * band.y),
-					"out": 1.06,
-					"axis": centre,
-				}
-			)
-		)
-	if others:
-		_grid_cells(box, Vector3i(2, 2, 1), 3, cells)
-
-
-## A table: the top in n planks along its longer way, what is below it in four.
-static func _table(soup: Soup, box: AABB, n: int, group: PackedInt32Array, cells: Array) -> void:
-	var top := box.end.z - maxf(.08, box.size.z * .12)
-	for t in group.size():
-		var c := (soup.p[t * 3] + soup.p[t * 3 + 1] + soup.p[t * 3 + 2]) / 3.0
-		group[t] = 1 if c.z > top else 0
-	var axis := 0 if box.size.x >= box.size.y else 1
-	var across := 1 - axis
-	for k in n:
-		var a := box.position[across] + box.size[across] * k / n
-		var b := box.position[across] + box.size[across] * (k + 1) / n
-		cells.append({"group": 1, "planes": _slab(across, a, b), "shell": Vector3(0, 0, 1)})
-	var low := AABB(box.position, Vector3(box.size.x, box.size.y, top - box.position.z))
-	_grid_cells(low, Vector3i(2, 2, 1), 0, cells)
-
-
-static func _grid_cells(box: AABB, counts: Vector3i, in_group: int, cells: Array) -> void:
-	for i in counts.x:
-		for j in counts.y:
-			for k in counts.z:
-				var planes: Array = []
-				var at := Vector3i(i, j, k)
-				for axis in 3:
-					var a := box.position[axis] + box.size[axis] * at[axis] / counts[axis]
-					var b := box.position[axis] + box.size[axis] * (at[axis] + 1) / counts[axis]
-					# The outermost cells reach past the box (nothing is lost).
-					if at[axis] == 0:
-						a -= 1.0
-					if at[axis] == counts[axis] - 1:
-						b += 1.0
-					planes.append_array(_slab(axis, a, b))
-				cells.append({"group": in_group, "planes": planes})
-
-
-## The triangles of `group` inside the cell's planes, cut where they cross.
-static func _clip_cell(soup: Soup, group: PackedInt32Array, cell: Dictionary) -> Soup:
-	var out := Soup.new()
-	var want: int = cell.get("group", 0)
-	var planes: Array = cell.get("planes", [])
-	var normals := PackedVector3Array()
-	var ds := PackedFloat32Array()
-	# The cell's box, from its planes along the axes (a wedge's are not).
-	var lo := Vector3(-INF, -INF, -INF)
-	var hi := Vector3(INF, INF, INF)
-	for plane: Array in planes:
-		var pn: Vector3 = plane[0]
-		var pd: float = plane[1]
-		normals.append(pn)
-		ds.append(pd)
-		for axis in 3:
-			if absf(pn[axis]) > .999:
-				if pn[axis] > 0.0:
-					hi[axis] = minf(hi[axis], pd)
-				else:
-					lo[axis] = maxf(lo[axis], -pd)
-	soup.measure()
-	for t in group.size():
-		if group[t] != want:
-			continue
-		var tlo := soup.lo[t]
-		var thi := soup.hi[t]
-		if (
-			thi.x < lo.x
-			or thi.y < lo.y
-			or thi.z < lo.z
-			or tlo.x > hi.x
-			or tlo.y > hi.y
-			or tlo.z > hi.z
-		):
-			continue
-		# Wholly inside every plane: as it is; wholly outside one: not here.
-		var a := soup.p[t * 3]
-		var b := soup.p[t * 3 + 1]
-		var c := soup.p[t * 3 + 2]
-		var inside := true
-		var outside := false
-		for k in normals.size():
-			var pn := normals[k]
-			var da := pn.dot(a) - ds[k]
-			var db := pn.dot(b) - ds[k]
-			var dc := pn.dot(c) - ds[k]
-			if da > 0.0 and db > 0.0 and dc > 0.0:
-				outside = true
-				break
-			if da > 0.0 or db > 0.0 or dc > 0.0:
-				inside = false
-		if outside:
-			continue
-		if inside:
-			for k in 3:
-				out.add(soup, t * 3 + k)
-			continue
-		var poly := Soup.new()
-		for k in 3:
-			poly.add(soup, t * 3 + k)
-		var whole := true
-		for plane: Array in planes:
-			var pn: Vector3 = plane[0]
-			var pd: float = plane[1]
-			var all_in := true
-			for q: Vector3 in poly.p:
-				if pn.dot(q) > pd:
-					all_in = false
-					break
-			if all_in:
-				continue
-			whole = false
-			poly = _clip(poly, pn, pd)
-			if poly.size() < 3:
-				break
-		if poly.size() < 3:
-			continue
-		if whole:
-			for k in 3:
-				out.add(poly, k)
-			continue
-		for k in range(1, poly.size() - 1):
-			out.add(poly, 0)
-			out.add(poly, k)
-			out.add(poly, k + 1)
-	return out
-
-
 ## A polygon cut by a plane: the part where n.p <= d.
-static func _clip(poly: Soup, pn: Vector3, pd: float) -> Soup:
+static func clip(poly: Soup, pn: Vector3, pd: float) -> Soup:
 	var out := Soup.new()
 	var count := poly.size()
 	for i in count:
@@ -605,7 +453,7 @@ static func _clip(poly: Soup, pn: Vector3, pd: float) -> Soup:
 	return out
 
 
-static func _area(soup: Soup) -> float:
+static func area(soup: Soup) -> float:
 	var total := 0.0
 	for t in soup.size() / 3:
 		total += (
@@ -614,76 +462,54 @@ static func _area(soup: Soup) -> float:
 	return total * .5
 
 
-## A hoop: the band of the side pushed out from the axis so it rides outside.
-static func _swell(piece: Soup, cell: Dictionary, by: float) -> void:
-	var c: Vector3 = cell.get("axis", Vector3.ZERO)
-	for i in piece.size():
-		var q := piece.p[i]
-		piece.p[i] = Vector3(c.x + (q.x - c.x) * by, c.y + (q.y - c.y) * by, q.z)
-
-
-## A Part from a cut soup: its own axes (the cell's), its middle, its box, and
-## (a shell) an inside face set in by SHELL so it has a thickness.
-static func _part(piece: Soup, cell: Dictionary, shell: bool) -> Part:
-	var part := Part.new()
-	part.basis = cell.get("basis", Basis.IDENTITY)
-	var inverse := part.basis.transposed()
-	var faces := piece
-	if shell:
-		faces = Soup.new()
-		var along: Variant = cell.get("shell")
-		for i in piece.size():
-			faces.add(piece, i)
-		for i in piece.size():
-			var into := -piece.n[i]
-			if along is Vector3:
-				var given: Vector3 = along
-				into = -given
-			faces.p.append(piece.p[i] + into * SHELL)
-			faces.n.append(-piece.n[i])
-			faces.uv.append(piece.uv[i])
-	var lo := Vector3(INF, INF, INF)
-	var hi := -lo
-	for q: Vector3 in faces.p:
-		var l := inverse * q
-		lo = Vector3(minf(lo.x, l.x), minf(lo.y, l.y), minf(lo.z, l.z))
-		hi = Vector3(maxf(hi.x, l.x), maxf(hi.y, l.y), maxf(hi.z, l.z))
-	var mid_local := (lo + hi) * .5
-	part.centre = part.basis * mid_local
-	var half := (hi - lo) * .5
-	part.half = Vector3(maxf(half.x, THIN), maxf(half.y, THIN), maxf(half.z, THIN))
-	for i in faces.size():
-		part.verts.append(inverse * faces.p[i] - mid_local)
-		part.normals.append(inverse * faces.n[i])
-		part.uvs.append(faces.uv[i])
-	return part
-
-
 # ------------------------------------------------------------- pictures, tiles
 
 
-## A picture cut in boards: [width, height] in its own pixels, its solid
-## bounds, and whether a pixel is solid.
-static func _cut_picture(
-	assets: Assets, image: String, recipe: String, args: PackedFloat32Array
-) -> Array:
+## A picture's solid pixels: [w, h, the solid bounds' lo and hi corners (its
+## pixels), the RGBA data], or [] when it is not there or all clear.
+static func _picture(assets: Assets, image: String) -> Array:
 	if not assets.has_art(image):
 		return []
 	var art := assets.art(image)
 	var w: int = art["w"]
 	var h: int = art["h"]
 	var data: PackedByteArray = art["data"]
-	var solid := PackedByteArray()
-	solid.resize(w * h)
 	var lo := Vector2i(w, h)
 	var hi := Vector2i(-1, -1)
 	for y in h:
 		for x in w:
 			if data[(y * w + x) * 4 + 3] > 100:
-				solid[y * w + x] = 1
 				lo = Vector2i(mini(lo.x, x), mini(lo.y, y))
 				hi = Vector2i(maxi(hi.x, x), maxi(hi.y, y))
 	if hi.x < 0:
+		return []
+	return [w, h, lo, hi, data]
+
+
+## A picture cut by a recipe: a barrel or a crate stood up from it and cut as
+## a model is, a painted board in splinters, or boards of it.
+static func _cut_picture(assets: Assets, k: Named) -> Array:
+	var image := k.source.substr(2)
+	var recipe := k.recipe
+	var args := k.args
+	if recipe.begins_with("sp") and recipe != "splinter":
+		# A set piece's painted band (src/set_piece_mesh.gd).
+		return SetPieceMesh.cut(recipe, args)
+	var pic := _picture(assets, image)
+	if pic.is_empty():
+		return []
+	var w: int = pic[0]
+	var h: int = pic[1]
+	var lo: Vector2i = pic[2]
+	var hi: Vector2i = pic[3]
+	var data: PackedByteArray = pic[4]
+	if recipe == "staves" or recipe == "boards":
+		var soup := _stood_up(pic, recipe)
+		_boxes[k.source + "|" + recipe] = soup.bounds()
+		return WreckFracture.cut(soup, recipe, args, k.material, k.variant)
+	if recipe == "splinter":
+		return _splinters(pic, k)
+	if recipe != "planks":
 		return []
 	# One unit: the picture's height (a sprite's height is its picture's).
 	var unit := 1.0 / h
@@ -693,11 +519,6 @@ static func _cut_picture(
 	var thick := _arg(args, 2, .05)
 	var out: Array = []
 	var span := hi - lo + Vector2i.ONE
-	if recipe.begins_with("sp"):
-		# A set piece's painted band (src/set_piece_mesh.gd).
-		return SetPieceMesh.cut(recipe, args)
-	if recipe != "planks":
-		return out
 	for c in cols:
 		for r in rows:
 			var x0 := lo.x + span.x * c / cols
@@ -709,7 +530,7 @@ static func _cut_picture(
 			var filled := 0
 			for y in range(y0, y1):
 				for x in range(x0, x1):
-					filled += solid[y * w + x]
+					filled += 1 if data[(y * w + x) * 4 + 3] > 100 else 0
 			if filled < (x1 - x0) * (y1 - y0) * .4:
 				continue
 			var rect := Rect2(
@@ -717,6 +538,245 @@ static func _cut_picture(
 			)
 			var tex := Rect2(float(x0) / w, float(y0) / h, float(x1 - x0) / w, float(y1 - y0) / h)
 			out.append(board(rect, tex, thick, Vector2(w, h)))
+	return out
+
+
+## A thing stood up from its picture, in picture heights (its foot's middle
+## at the origin, its front toward -y): `staves` a barrel (a round of 16
+## faces wearing the picture's columns as they face the eye, front and back
+## alike, and its heads), `boards` a crate (each side the picture, its lid the
+## top rows). Kept a picture.
+static func _stood_up(pic: Array, recipe: String) -> Soup:
+	var w: int = pic[0]
+	var h: int = pic[1]
+	var lo: Vector2i = pic[2]
+	var hi: Vector2i = pic[3]
+	var name := "%d,%d,%d,%d,%d,%d|%s" % [w, h, lo.x, lo.y, hi.x, hi.y, recipe]
+	var kept: Variant = _soups.get(name)
+	if kept != null:
+		var known: Soup = kept
+		return known
+	var unit := 1.0 / h
+	var cx := ((lo.x + hi.x + 1) * .5 - w * .5) * unit
+	var half := (hi.x - lo.x + 1) * .5 * unit
+	var z0 := (h - hi.y - 1) * unit
+	var z1 := (h - lo.y) * unit
+	var mid_col := (lo.x + hi.x + 1) * .5
+	var reach := (hi.x - lo.x + 1) * .5 - 1.5
+	var soup := Soup.new()
+	if recipe == "staves":
+		var segs := 16
+		var bands := 3
+		for i in segs:
+			for b in bands:
+				var za := lerpf(z0, z1, float(b) / bands)
+				var zb := lerpf(z0, z1, float(b + 1) / bands)
+				var corners: Array = []
+				for e: int in [i, i + 1]:
+					var a := TAU * e / segs
+					var p := Vector3(cx + sin(a) * half, -cos(a) * half, 0.0)
+					var u := (mid_col + sin(a) * reach) / w
+					corners.append([p, Vector3(sin(a), -cos(a), 0.0), u])
+				var c0: Array = corners[0]
+				var c1: Array = corners[1]
+				for row: Array in [[c0, za], [c1, za], [c1, zb], [c0, za], [c1, zb], [c0, zb]]:
+					var c: Array = row[0]
+					var z: float = row[1]
+					var at: Vector3 = c[0]
+					var normal: Vector3 = c[1]
+					var u: float = c[2]
+					soup.p.append(Vector3(at.x, at.y, z))
+					soup.n.append(normal)
+					soup.uv.append(Vector2(u, (h - z / unit) / h))
+		# The heads: a fan each, the colour at the picture's top and foot.
+		for top: bool in [true, false]:
+			var z := z1 if top else z0
+			var uv := Vector2(mid_col / w, (lo.y + 2.5 if top else hi.y - 2.5) / h)
+			for i in segs:
+				var a0 := TAU * i / segs
+				var a1 := TAU * (i + 1) / segs
+				var ring: Array[Vector3] = [
+					Vector3(cx, 0.0, z),
+					Vector3(cx + sin(a0) * half, -cos(a0) * half, z),
+					Vector3(cx + sin(a1) * half, -cos(a1) * half, z)
+				]
+				if not top:
+					ring = [ring[0], ring[2], ring[1]]
+				for q: Vector3 in ring:
+					soup.p.append(q)
+					soup.n.append(Vector3(0, 0, 1 if top else -1))
+					soup.uv.append(uv)
+	else:
+		# A crate: four sides wearing the picture below its lid rows, the lid
+		# those rows.
+		var lid := lo.y + (hi.y - lo.y) * .18
+		var u0 := (lo.x + 1.0) / w
+		var u1 := (hi.x) / float(w)
+		var v_lid := lid / h
+		var v_foot := (hi.y + .5) / h
+		for side in 4:
+			var turn := Basis(Vector3(0, 0, 1), side * PI * .5)
+			var n: Vector3 = turn * Vector3(0, -1, 0)
+			var a: Vector3 = turn * Vector3(-half, -half, 0.0) + Vector3(cx, 0, 0)
+			var b: Vector3 = turn * Vector3(half, -half, 0.0) + Vector3(cx, 0, 0)
+			_face(soup, a, b, z0, z1, n, [u0, u1, v_foot, v_lid])
+		var top := [
+			Vector3(cx - half, -half, z1),
+			Vector3(cx + half, -half, z1),
+			Vector3(cx + half, half, z1),
+			Vector3(cx - half, half, z1)
+		]
+		var tuv := [
+			Vector2(u0, v_lid),
+			Vector2(u1, v_lid),
+			Vector2(u1, (lo.y + 1.0) / h),
+			Vector2(u0, (lo.y + 1.0) / h)
+		]
+		for i: int in [0, 1, 2, 0, 2, 3]:
+			var corner: Vector3 = top[i]
+			var place: Vector2 = tuv[i]
+			soup.p.append(corner)
+			soup.n.append(Vector3(0, 0, 1))
+			soup.uv.append(place)
+		for i: int in [0, 2, 1, 0, 3, 2]:
+			var q: Vector3 = top[i]
+			soup.p.append(Vector3(q.x, q.y, z0))
+			soup.n.append(Vector3(0, 0, -1))
+			soup.uv.append(Vector2((u0 + u1) * .5, v_foot))
+	_soups[name] = soup
+	return soup
+
+
+## A side from a to b (along the ground) between heights z0 and z1, facing
+## n, wearing [u0, u1, v at z0, v at z1] of a picture; in two bands.
+static func _face(
+	soup: Soup, a: Vector3, b: Vector3, z0: float, z1: float, n: Vector3, uv: Array
+) -> void:
+	var u0: float = uv[0]
+	var u1: float = uv[1]
+	var vf: float = uv[2]
+	var vt: float = uv[3]
+	for band in 2:
+		var za := lerpf(z0, z1, band * .5)
+		var zb := lerpf(z0, z1, (band + 1) * .5)
+		var va := lerpf(vf, vt, band * .5)
+		var vb := lerpf(vf, vt, (band + 1) * .5)
+		var quad := [
+			[Vector3(a.x, a.y, za), Vector2(u0, va)],
+			[Vector3(b.x, b.y, za), Vector2(u1, va)],
+			[Vector3(b.x, b.y, zb), Vector2(u1, vb)],
+			[Vector3(a.x, a.y, zb), Vector2(u0, vb)]
+		]
+		for i: int in [0, 1, 2, 0, 2, 3]:
+			var c: Array = quad[i]
+			var corner: Vector3 = c[0]
+			var place: Vector2 = c[1]
+			soup.p.append(corner)
+			soup.n.append(n)
+			soup.uv.append(place)
+
+
+## A painted board in n splinters along its grain (across the picture): the
+## board's face cut into cells about seeds (stretched along the grain, small
+## near the variant's origin), each cell its front wearing the picture and
+## its back and edges raw wood (WreckFracture.finish).
+static func _splinters(pic: Array, k: Named) -> Array:
+	var w: int = pic[0]
+	var h: int = pic[1]
+	var lo: Vector2i = pic[2]
+	var hi: Vector2i = pic[3]
+	var data: PackedByteArray = pic[4]
+	var unit := 1.0 / h
+	var rect := Rect2(
+		(lo.x - w * .5) * unit,
+		(h - hi.y - 1) * unit,
+		(hi.x - lo.x + 1) * unit,
+		(hi.y - lo.y + 1) * unit
+	)
+	var box := AABB(
+		Vector3(rect.position.x, -.01, rect.position.y), Vector3(rect.size.x, .02, rect.size.y)
+	)
+	_boxes[k.source + "|" + k.recipe] = box
+	var at := WreckFracture.origin(box, k.variant)
+	var dice := RandomNumberGenerator.new()
+	dice.seed = hash(k.source) + 7919 * k.variant
+	var n := maxi(2, int(_arg(k.args, 0, 7.0)))
+	var sites := PackedVector2Array()
+	for i in n:
+		if i < n / 2:
+			sites.append(
+				Vector2(
+					clampf(
+						at.x + dice.randf_range(-.3, .3) * rect.size.x, rect.position.x, rect.end.x
+					),
+					clampf(
+						at.z + dice.randf_range(-.3, .3) * rect.size.y, rect.position.y, rect.end.y
+					)
+				)
+			)
+		else:
+			sites.append(
+				rect.position + Vector2(dice.randf() * rect.size.x, dice.randf() * rect.size.y)
+			)
+	# Along the grain (across) distances count a third.
+	var s := Vector2(.33, 1.0)
+	var out: Array = []
+	for i in sites.size():
+		var poly := PackedVector2Array(
+			[
+				rect.position,
+				Vector2(rect.end.x, rect.position.y),
+				rect.end,
+				Vector2(rect.position.x, rect.end.y)
+			]
+		)
+		for j in sites.size():
+			if j == i:
+				continue
+			var nn := (sites[j] - sites[i]) * s * s
+			var d := ((sites[j] * s).length_squared() - (sites[i] * s).length_squared()) * .5
+			poly = _clip2(poly, nn, d)
+			if poly.size() < 3:
+				break
+		if poly.size() < 3:
+			continue
+		var mid := Vector2.ZERO
+		for q: Vector2 in poly:
+			mid += q
+		mid /= poly.size()
+		var px := clampi(int(mid.x / unit + w * .5), 0, w - 1)
+		var py := clampi(int(h - mid.y / unit), 0, h - 1)
+		if data[(py * w + px) * 4 + 3] <= 100:
+			continue
+		var skin := Soup.new()
+		for t in range(1, poly.size() - 1):
+			for q: Vector2 in [poly[0], poly[t], poly[t + 1]]:
+				skin.p.append(Vector3(q.x, 0.0, q.y))
+				skin.n.append(Vector3(0, -1, 0))
+				skin.uv.append(Vector2((q.x / unit + w * .5) / w, (h - q.y / unit) / h))
+		if area(skin) < SMALL * .25:
+			continue
+		var along := Vector3(1, 0, 0) if rect.size.x >= rect.size.y else Vector3(0, 0, 1)
+		out.append(
+			WreckFracture.finish(
+				skin, WreckFracture.frame(along, Vector3(0, -1, 0)), "wood", "board"
+			)
+		)
+	return out
+
+
+## A 2D polygon cut by a line: the part where n.p <= d.
+static func _clip2(poly: PackedVector2Array, n: Vector2, d: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var da := n.dot(a) - d
+		var db := n.dot(b) - d
+		if da <= 0.0:
+			out.append(a)
+		if (da <= 0.0) != (db <= 0.0):
+			out.append(a.lerp(b, da / (da - db)))
 	return out
 
 

@@ -427,6 +427,7 @@ func warm_up() -> void:
 	hidden.append_array(_rain)
 	hidden.append_array(cab.hidden_roots())
 	hidden.append_array(actors.warm_roots())
+	hidden.append_array(wrecks.warm_roots())
 	for node: Node3D in hidden:
 		if node.visible or _warmed.has(node):
 			continue

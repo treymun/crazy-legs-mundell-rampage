@@ -36,8 +36,8 @@
 		1.95
 	],
 	"barrel_broken": [
-		1.62,
-		0.67
+		1.13,
+		0.39
 	],
 	"bathtub": [
 		1.44,
@@ -149,7 +149,7 @@
 	],
 	"crate_broken": [
 		1.72,
-		0.76
+		0.73
 	],
 	"crawfish_traps": [
 		1.28,
@@ -333,7 +333,7 @@
 	],
 	"jug_stack_broken": [
 		1.11,
-		0.64
+		0.58
 	],
 	"jukebox_rig": [
 		1.7,
@@ -389,7 +389,7 @@
 	],
 	"mash_barrel_broken": [
 		2.0,
-		1.02
+		0.79
 	],
 	"mine_cart": [
 		2.43,
@@ -809,7 +809,7 @@
 	],
 	"range_hay_bale_broken": [
 		1.5,
-		0.64
+		0.48
 	],
 	"range_lever": [
 		0.43,

@@ -1359,6 +1359,15 @@ add("scene",
     gas_whoosh=N("A trail of spilled gasoline catching fire: a quick rushing whoosh of flame racing along the ground.", 1.4, style="scene"),
     plank_crack=N("Weathered barn planks split by a shotgun blast: a sharp dry splintering crack and a board knocked loose.", .8, style="scene"),
     )
+# How breakables come apart by what they are made of (destruction pass 11,
+# godot/src/features/wreck_burst.gd LAYER): a second sound under a break's
+# own cue, its stuff's.
+add("scene",
+    break_splinter=N("An old oak barrel blown apart by a shotgun at close range: staves splintering with a loud dry crunch, wood pieces clattering down.", 1.0, style="scene"),
+    tin_tear=N("A thin tin mailbox torn open by a gunshot: a sharp metallic rip and crumple, then a tinny rattle.", .9, style="scene"),
+    shard_rain=N("A clay moonshine jug and glass shattered: shards raining down onto dirt and planks in a scattered tinkling patter.", 1.2, style="scene"),
+    straw_burst=N("A hay bale burst by a shotgun: a soft dry whump and loose straw rustling down.", 1.0, style="scene"),
+    )
 # The county events (content pass 8, godot/src/features/county_events.gd,
 # features/event_looks.gd): the civil defence siren and the twister's roar, a
 # herd of razorbacks stampeding and squealing, the revenue men's sirens, the
