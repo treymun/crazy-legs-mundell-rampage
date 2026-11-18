@@ -64,20 +64,8 @@ func materials() -> Array[ShaderMaterial]:
 ## first instance, its texture), and a turn towards a yard of them over
 ## 0.1 s (tools/hitch_bench.gd). Returns the materials made.
 func warm(level: LevelData) -> Array[ShaderMaterial]:
-	var pictures: Array[String] = []
-	for board: LevelData.Billboard in level.billboards:
-		pictures.append(board.image)
-	for spec: Array in level.props:
-		var row: Array = spec
-		if not row.is_empty():
-			pictures.append("prop_" + str(row[0]))
 	var fresh: Array[ShaderMaterial] = []
-	var done := {}
-	for picture in pictures:
-		var name := models.name_of(picture)
-		if name == "" or done.has(name):
-			continue
-		done[name] = true
+	for name in level_models(level):
 		var packed := models.scene(name)
 		if packed == null:
 			continue
@@ -105,6 +93,24 @@ func _material(name: String) -> ShaderMaterial:
 			m.set_shader_parameter("sway_size", Vector2(tall, wide))
 		_materials[name] = m
 	return m
+
+
+## The models of the props the level stands (its billboards and props), each
+## once.
+func level_models(level: LevelData) -> Array[String]:
+	var pictures: Array[String] = []
+	for board: LevelData.Billboard in level.billboards:
+		pictures.append(board.image)
+	for spec: Array in level.props:
+		var row: Array = spec
+		if not row.is_empty():
+			pictures.append("prop_" + str(row[0]))
+	var out: Array[String] = []
+	for picture in pictures:
+		var name := models.name_of(picture)
+		if name != "" and not name in out:
+			out.append(name)
+	return out
 
 
 ## Show these sprites (each with a mesh) and nothing else. Returns the

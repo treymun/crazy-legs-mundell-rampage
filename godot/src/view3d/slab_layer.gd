@@ -78,6 +78,15 @@ func takes(s: View.Sprite) -> bool:
 	return models.mesh(s.image) != null
 
 
+## Build now the meshes of the slab pictures among `images` (pass 10): a
+## pickup's was built the first frame it came into view, 1 to 5 ms each (a
+## turn at Hickston's spawn met eleven; tools/hitch_bench.gd).
+func warm(images: Array[String]) -> void:
+	for image in images:
+		if SlabModels.family(image) != SlabModels.NONE:
+			models.mesh(image)
+
+
 ## Show these sprites (each one `takes`) and no other slabs, seen from `cam`
 ## looking along `angle`; `everywhere` keeps the ones behind the eye (the
 ## mirror may show them). Call after SpriteLayer3D.show_sprites.

@@ -27,6 +27,8 @@ var _pieces: Dictionary = {}
 ## kind -> Array of hidden ActorViews ready for reuse (SPARE), how many
 var _spare: Dictionary = {}
 var _spares := 0
+## kind -> the hidden model warm() made for it.
+var _warmed: Dictionary = {}
 
 
 func _init(p_models: ActorModels) -> void:
@@ -40,15 +42,30 @@ func prepare(enemies: Array) -> void:
 	_dolls.clear()
 	for e: Enemy in enemies:
 		var kind := kind_of(e)
-		if kind == "" or Enemy.BOSS_TITLES.has(e.kind) or RagdollRig.has(kind):
+		if kind == "":
+			continue
+		# Every kind's scene taken from the loader now (request), a boss's too.
+		var packed := models.scene(kind)
+		if Enemy.BOSS_TITLES.has(e.kind) or RagdollRig.has(kind):
 			continue
 		var info: Dictionary = models.kinds[kind]
-		var packed := models.scene(kind)
 		if not info.get("ragdoll", true) or packed == null:
 			continue
 		var view := packed.instantiate()
 		RagdollRig.of(kind, view, info)
 		view.free()
+
+
+## Start loading, on the loader's threads, the models of the enemies' kinds
+## and of `later` (a county event's hogs and raiders): asked for at a level's
+## first frame before its mesh is built; prepare and warm take them.
+func request(enemies: Array, later: Array[String]) -> void:
+	var wanted: Array[String] = later.duplicate()
+	for e: Enemy in enemies:
+		var kind := kind_of(e)
+		if kind != "" and not kind in wanted:
+			wanted.append(kind)
+	models.request(wanted)
 
 
 ## Load the models of `kinds` that may come later (a county event's hogs and
@@ -62,12 +79,35 @@ func warm(kinds: Array) -> void:
 		var packed := models.scene(kind)
 		if packed == null:
 			continue
-		# The scene's first instance costs the most (as a prop's does).
-		var view := packed.instantiate()
 		var info: Dictionary = models.kinds[kind]
 		if not RagdollRig.has(kind) and info.get("ragdoll", true):
-			RagdollRig.of(kind, view, info)
-		view.free()
+			var probe := packed.instantiate()
+			RagdollRig.of(kind, probe, info)
+			probe.free()
+		# One made now and kept hidden for the first of them (pass 10): the
+		# view's warm-up draws it once (warm_roots), so the herd's first frame
+		# does not pay the model's first draw (hitch_bench's hogs: 35 -> 19
+		# ms; a second and third so made took off under a millisecond more).
+		var kept: Array = _spare.get(kind, [])
+		if kept.is_empty():
+			var fresh: Array[ShaderMaterial] = []
+			var view := _make(kind, fresh, false)
+			if view != null:
+				_retire(view)
+				_warmed[kind] = view
+
+
+## The hidden models warm() made, for the view's warm-up to draw once.
+func warm_roots() -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	for kind: String in _warmed:
+		var held: Variant = _warmed[kind]
+		if not is_instance_valid(held):
+			continue
+		var view: ActorView = held
+		if not view.visible:
+			out.append(view)
+	return out
 
 
 ## The materials the models shown now draw with (bodies, gear shot off,

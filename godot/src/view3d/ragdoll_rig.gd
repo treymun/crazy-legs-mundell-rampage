@@ -51,6 +51,15 @@ const PARENT := [-1, 0, 0, 2, 0, 4, 0, 6, 0, 8]
 const RIDES := [0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0]
 ## The biggest a limb's ball grows for its thickness (model units).
 const THICKEST := .22
+## Each kind's rig as found from its model is kept beside it
+## (assets3d/actors/<kind>.rig, tools/art/bake_rigs.gd; pass 10): finding it
+## took 35 to 100 ms a kind at a level's first frame (a vertex walk of 20 to
+## 40 thousand vertices and the hull's 218 ways), read back it takes a
+## fraction of a millisecond. A file of another format, or made from other
+## actors.json labels or keys than the kind has now, is not used (the rig is
+## found again); tools/load_check.gd holds every file to the rig found anew.
+const BAKED := "res://assets3d/actors/%s.rig"
+const BAKED_FORMAT := 1
 ## Labels that must all have parts for a rig.
 const LIMBS := ["body", "head", "arm_l", "arm_r", "leg_l", "leg_r"]
 ## The hull's fine ways: the points of a cube's faces FINE steps from its
@@ -86,7 +95,12 @@ var hull_reach := PackedFloat32Array()
 var _rest_inv: Array[Basis] = []
 
 static var _built := {}
+## How many rigs this process found from their models' vertices (_build),
+## not read back baked (tools/load_speed_check.gd holds a level's load to 0).
+static var found := 0
 static var _ways: Array[Vector3] = []
+static var _fine: Array[Vector3] = []
+static var _fine_near: Array[PackedInt32Array] = []
 
 
 ## Whether kind's rig has been found already.
@@ -99,13 +113,96 @@ static func has(kind: String) -> bool:
 static func of(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 	var cached: RagdollRig = _built.get(kind)
 	if cached == null:
-		cached = RagdollRig.new()
-		cached._build(view, info)
+		cached = baked(kind, view, info)
+		if cached == null:
+			cached = RagdollRig.new()
+			cached._build(view, info)
 		_built[kind] = cached
 	return cached
 
 
+## What of the actors.json entry the rig is found from: its standing and
+## dead keys and its parts' labels (a baked rig names it).
+static func info_key(info: Dictionary) -> String:
+	var frames: Dictionary = info.get("frames", {})
+	var labels: Dictionary = info.get("labels", {})
+	return var_to_str([frames.get("0"), frames.get("down"), labels]).md5_text()
+
+
+## The kind's baked rig (BAKED) put back on the model under `view`, or null
+## when there is none or it was made from other labels or keys.
+static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
+	var path := BAKED % kind
+	if not FileAccess.file_exists(path):
+		return null
+	var bytes := FileAccess.get_file_as_bytes(path)
+	if bytes.size() < 8:
+		return null
+	var whole: Variant = bytes_to_var(
+		bytes.slice(4).decompress(bytes.decode_u32(0), FileAccess.COMPRESSION_DEFLATE)
+	)
+	if not whole is Array:
+		return null
+	var row: Array = whole
+	if row.size() != 9 or row[0] != BAKED_FORMAT or row[1] != info_key(info):
+		return null
+	var rig := RagdollRig.new()
+	if not row[2]:
+		return rig
+	var skeletons := view.find_children("*", "Skeleton3D", true, false)
+	var players := view.find_children("*", "AnimationPlayer", true, false)
+	if skeletons.is_empty() or players.is_empty():
+		return null
+	var skeleton := skeletons[0] as Skeleton3D
+	var player := players[0] as AnimationPlayer
+	var anim := player.get_animation(player.get_animation_list()[0])
+	var frames: Dictionary = info.get("frames", {})
+	var stand_key: float = frames["0"]
+	var down_key: float = frames["down"]
+	# What the build found from the model's vertices, read back; the rest
+	# (the poses and what follows from them) made again as _build makes it.
+	rig.points = row[3]
+	rig.radii = row[4]
+	rig.bone_seg = row[5]
+	rig.anchors = row[6]
+	rig.hull_reach = row[8]
+	for buckets: Array in row[7]:
+		var typed: Array[PackedVector3Array] = []
+		for bucket: PackedVector3Array in buckets:
+			typed.append(bucket)
+		rig.hull.append(typed)
+	rig.bone_rest = _poses(anim, skeleton, stand_key * ActorModels.KEY_TIME)
+	var dead := _poses(anim, skeleton, down_key * ActorModels.KEY_TIME)
+	rig.dead_scale.resize(skeleton.get_bone_count())
+	for i in skeleton.get_bone_count():
+		rig.dead_scale[i] = dead[i].basis.get_scale()
+	rig.rest_frames = rig.frames_of(rig.points)
+	for f: Transform3D in rig.rest_frames:
+		rig._rest_inv.append(f.basis.inverse())
+	rig.down_points = rig.points_from(dead)
+	rig._lie_down()
+	rig.ok = true
+	return rig
+
+
+## The rig as BAKED keeps it (tools/art/bake_rigs.gd): deflated, behind its
+## size.
+func to_baked(info: Dictionary) -> PackedByteArray:
+	var row: Array = [BAKED_FORMAT, info_key(info), ok]
+	if ok:
+		row.append_array([points, radii, bone_seg, anchors, hull, hull_reach])
+	else:
+		row.append_array([null, null, null, null, null, null])
+	var raw := var_to_bytes(row)
+	var out := PackedByteArray()
+	out.resize(4)
+	out.encode_u32(0, raw.size())
+	out.append_array(raw.compress(FileAccess.COMPRESSION_DEFLATE))
+	return out
+
+
 func _build(view: Node, info: Dictionary) -> void:
+	found += 1
 	var skeletons := view.find_children("*", "Skeleton3D", true, false)
 	var meshes := view.find_children("*", "MeshInstance3D", true, false)
 	var players := view.find_children("*", "AnimationPlayer", true, false)
@@ -129,7 +226,6 @@ func _build(view: Node, info: Dictionary) -> void:
 	for i in bones:
 		dead_scale[i] = dead[i].basis.get_scale()
 	# Every vertex where the standing key puts it, by its part's label.
-	var clouds := {}
 	var part_mid: Array[Vector3] = []
 	var part_n := PackedInt32Array()
 	part_mid.resize(bones)
@@ -140,17 +236,34 @@ func _build(view: Node, info: Dictionary) -> void:
 	# All of them, for each segment's outermost points (_hull).
 	var all_at := PackedVector3Array()
 	var all_bone := PackedInt32Array()
+	# Each bone's label (by number) and whether it shows at the standing key,
+	# found once a bone rather than once a vertex (pass 10: a kind's rig took
+	# 35 to 100 ms at a level's first frame, most of it here and in _hull).
+	var label_names := PackedStringArray()
+	var bone_label := PackedInt32Array()
+	var bone_keep := PackedByteArray()
+	bone_label.resize(bones)
+	bone_keep.resize(bones)
+	for i in bones:
+		var name: String = labels.get(skeleton.get_bone_name(i), "body")
+		if not name in label_names:
+			label_names.append(name)
+		bone_label[i] = label_names.find(name)
+		bone_keep[i] = 0 if bone_rest[i].basis.get_scale().x < .2 else 1
+	var all_label := PackedInt32Array()
 	for m: Node in meshes:
 		var mesh := m as MeshInstance3D
 		if mesh.mesh == null or mesh.skin == null:
 			continue
 		var skin := mesh.skin
 		var bind_bone := PackedInt32Array()
+		var bind_pose: Array[Transform3D] = []
 		for b in skin.get_bind_count():
 			var bone := skin.get_bind_bone(b)
 			if bone < 0:
 				bone = skeleton.find_bone(skin.get_bind_name(b))
 			bind_bone.append(bone)
+			bind_pose.append(skin.get_bind_pose(b))
 		for surface in mesh.mesh.get_surface_count():
 			var arrays := mesh.mesh.surface_get_arrays(surface)
 			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
@@ -170,22 +283,27 @@ func _build(view: Node, info: Dictionary) -> void:
 				var bone := bind_bone[bind]
 				if bone < 0 or bone >= bones:
 					continue
-				if bone_rest[bone].basis.get_scale().x < .2:
+				if bone_keep[bone] == 0:
 					continue
-				var at := bone_rest[bone] * (skin.get_bind_pose(bind) * verts[v])
-				var label: String = labels.get(skeleton.get_bone_name(bone), "body")
-				if not clouds.has(label):
-					clouds[label] = PackedVector3Array()
-				var cloud: PackedVector3Array = clouds[label]
-				cloud.append(at)
-				clouds[label] = cloud
+				var at := bone_rest[bone] * (bind_pose[bind] * verts[v])
 				part_mid[bone] += at
 				part_n[bone] += 1
 				all_at.append(at)
 				all_bone.append(bone)
+				all_label.append(bone_label[bone])
 				if v % 3 == 0:
 					every.append(at)
 					every_bone.append(bone)
+	# Each label's cloud in the vertices' order, made in one pass (appending
+	# to an array held in a Dictionary copied it whole every time).
+	var clouds := {}
+	for l in label_names.size():
+		var cloud := PackedVector3Array()
+		for k in all_at.size():
+			if all_label[k] == l:
+				cloud.append(all_at[k])
+		if not cloud.is_empty():
+			clouds[label_names[l]] = cloud
 	for label: String in LIMBS:
 		var cloud: PackedVector3Array = clouds.get(label, PackedVector3Array())
 		if cloud.size() < 8:
@@ -261,12 +379,7 @@ func _hull(cloud_at: PackedVector3Array, cloud_bone: PackedInt32Array) -> void:
 		var s := bone_seg[bone]
 		local[s].append(rest_frames[s].affine_inverse() * cloud_at[k])
 	var coarse := ways()
-	var fine: Array[Vector3] = []
-	for x in range(-FINE, FINE + 1):
-		for y in range(-FINE, FINE + 1):
-			for z in range(-FINE, FINE + 1):
-				if maxi(absi(x), maxi(absi(y), absi(z))) == FINE:
-					fine.append(Vector3(x, y, z).normalized())
+	var fine := _fine_ways()
 	hull.clear()
 	hull_reach.clear()
 	for s in ENDS.size():
@@ -287,7 +400,8 @@ func _hull(cloud_at: PackedVector3Array, cloud_bone: PackedInt32Array) -> void:
 		for p in points:
 			reach = maxf(reach, p.length())
 		if not points.is_empty():
-			for way: Vector3 in fine:
+			for w in fine.size():
+				var way := fine[w]
 				var best := points[0]
 				var most := best.dot(way)
 				for p in points:
@@ -296,15 +410,35 @@ func _hull(cloud_at: PackedVector3Array, cloud_bone: PackedInt32Array) -> void:
 						most = d
 						best = p
 				# Into the bucket of each way near this one (a way between two
-				# buckets is looked for in either).
-				var near := -2.0
-				for c: Vector3 in coarse:
-					near = maxf(near, c.dot(way))
-				for c in coarse.size():
-					if coarse[c].dot(way) >= near - BUCKET_EDGE and not buckets[c].has(best):
+				# buckets is looked for in either: _fine_buckets).
+				for c: int in _fine_near[w]:
+					if not buckets[c].has(best):
 						buckets[c].append(best)
 		hull.append(buckets)
 		hull_reach.append(reach)
+
+
+## The hull's fine ways (FINE), found once; and for each, the buckets of
+## ways() it goes in (those within BUCKET_EDGE of its nearest), as _hull
+## used to work out again for every segment of every kind.
+static func _fine_ways() -> Array[Vector3]:
+	if _fine.is_empty():
+		var coarse := ways()
+		for x in range(-FINE, FINE + 1):
+			for y in range(-FINE, FINE + 1):
+				for z in range(-FINE, FINE + 1):
+					if maxi(absi(x), maxi(absi(y), absi(z))) == FINE:
+						_fine.append(Vector3(x, y, z).normalized())
+		for way: Vector3 in _fine:
+			var near := -2.0
+			for c: Vector3 in coarse:
+				near = maxf(near, c.dot(way))
+			var into := PackedInt32Array()
+			for c in coarse.size():
+				if coarse[c].dot(way) >= near - BUCKET_EDGE:
+					into.append(c)
+			_fine_near.append(into)
+	return _fine
 
 
 ## The 26 ways the hull's buckets look along (the cube's faces, edges and

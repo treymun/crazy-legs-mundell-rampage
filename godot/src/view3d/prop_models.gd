@@ -25,6 +25,8 @@ const PICTURES := {"prop_lamp": "shop_lamp"}
 var sizes: Dictionary = {}
 var _meshes: Dictionary = {}
 var _scenes: Dictionary = {}
+## name -> scene path asked for on the loader's threads (request), not yet taken.
+var _asked: Dictionary = {}
 var _textures: Dictionary = {}
 ## picture -> the model name its text stands for ("" none), and model name ->
 ## whether its scene exists: name_of runs for every sprite every frame, and
@@ -139,15 +141,34 @@ static func facing(level: LevelData, x0: float, y0: float, plane := NAN, face :=
 	return best
 
 
-## The prop's scene (a PropView), or null when it has none.
+## The prop's scene (a PropView), or null when it has none. One asked for
+## (request) is taken from the loader, waiting for it if it is not done.
 func scene(name: String) -> PackedScene:
 	var cached: Variant = _scenes.get(name)
 	if cached == null:
 		var path := SCENES.path_join(name + ".tscn")
-		cached = load(path) if ResourceLoader.exists(path) else null
+		if _asked.has(name):
+			_asked.erase(name)
+			cached = ResourceLoader.load_threaded_get(path)
+		else:
+			cached = load(path) if ResourceLoader.exists(path) else null
 		_scenes[name] = cached
 	var packed: PackedScene = cached
 	return packed
+
+
+## Start loading the scenes of `names` on the loader's threads (pass 10): a
+## level's first frame asks for its props' while it builds the level's mesh,
+## and scene() takes each when it is needed.
+func request(names: Array[String]) -> void:
+	for name in names:
+		if _scenes.has(name) or _asked.has(name):
+			continue
+		var path := SCENES.path_join(name + ".tscn")
+		if not ResourceLoader.exists(path):
+			continue
+		if ResourceLoader.load_threaded_request(path, "PackedScene") == OK:
+			_asked[name] = path
 
 
 func mesh(name: String) -> Mesh:

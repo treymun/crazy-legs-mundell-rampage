@@ -481,7 +481,8 @@ func _sizes() -> void:
 		later["res://" + model] = true
 	for folder: String in ["res://assets3d/actors", "res://assets3d/props", "res://assets3d/cabs"]:
 		for file in DirAccess.get_files_at(folder):
-			if file.get_extension() == "glb" and not later.has(folder.path_join(file)):
+			var ext := file.get_extension()
+			if (ext == "glb" or ext == "rig") and not later.has(folder.path_join(file)):
 				for part in Packs.imported_files(folder.path_join(file)):
 					first += _size(part)
 	print("  first download's packed files %.1f MB (budget %.0f)" % [first / 1e6, FIRST_BUDGET_MB])

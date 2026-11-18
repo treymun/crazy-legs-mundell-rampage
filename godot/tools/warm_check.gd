@@ -5,7 +5,8 @@
 ##   speck in front of the eye, and the frame after puts each back as it was;
 ## - the props the level stands, the county events' hogs and raiders and the
 ##   vehicles' seat views are made at the level's first frame, not when first
-##   seen;
+##   seen (one hog and one raider made and kept hidden, drawn as specks with
+##   the rest: pass 10);
 ## - every speck kind the game throws by name (game.burst) has its picture
 ##   (fx_<kind>): a missing one drew nothing and its warning cost 19 ms.
 ##
@@ -50,7 +51,14 @@ func _run() -> void:
 		for node: Node3D in nodes:
 			hidden.append(node)
 	hidden.append_array(view.cab.hidden_roots())
+	var kept: Dictionary = view.actors.get("_warmed")
+	for model: Node3D in kept.values():
+		hidden.append(model)
 	_check(not view.cab.hidden_roots().is_empty(), "hickston's mower seat view made at once")
+	_check(
+		kept.has("hog") and kept.size() == 2,
+		"a hog and a raider made hidden at once, for the first of each (pass 10)"
+	)
 	var warmed: Dictionary = view.get("_warmed")
 	# Each hidden piece is out (one already showing, the rain in a shower, is
 	# drawn anyway and left as it is).

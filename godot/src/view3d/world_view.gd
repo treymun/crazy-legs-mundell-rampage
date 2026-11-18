@@ -96,6 +96,13 @@ const SPECK := .0001
 const SPECK_AWAY := 40.0
 var _warm := 0
 var _warmed := {}
+## The title's warm-up (warm_title): what it draws and what it has still to
+## put out.
+var _stage: Node3D
+## The pickups' pictures warm_title builds slab meshes for, a few a call.
+var _stage_items: Array[String] = []
+var _headless := DisplayServer.get_name() == "headless"
+var _stage_left: Array[Callable] = []
 ## SHADOWS: what the strong lights and the sky throw (view_shadows.gd).
 var _shadows := ViewShadows.new()
 ## Holes, scorch and char on props, vehicles and wreck pieces (thing_marks.gd).
@@ -277,8 +284,13 @@ func _init(assets: Assets) -> void:
 ## load.
 func _warm_models(game: Game) -> void:
 	_track_live(props.warm(game.level))
-	if game.features.get("events") != null:
-		actors.warm(["hog", EventRaid.squad_kind()])
+	var items: Array[String] = []
+	for entry: Array in game.pickups:
+		var item := "item_" + str(entry[0])
+		if not item in items:
+			items.append(item)
+	slabs.warm(items)
+	actors.warm(_event_kinds(game))
 	var rides: VehiclesFeature = game.features.get("vehicles")
 	if rides != null:
 		var seats: Array[String] = []
@@ -287,6 +299,14 @@ func _warm_models(game: Game) -> void:
 			if seat != "" and not seat in seats:
 				seats.append(seat)
 		_track_live(cab.warm(seats))
+
+
+## The kinds a county event may bring (its hogs and raiders), none without
+## events.
+static func _event_kinds(game: Game) -> Array[String]:
+	if game.features.get("events") == null:
+		return []
+	return ["hog", EventRaid.squad_kind()]
 
 
 ## The view's first frames of a level draw, a speck in front of the eye, all
@@ -308,12 +328,92 @@ func warm_up() -> void:
 	hidden.append_array(_storm_walls)
 	hidden.append_array(_rain)
 	hidden.append_array(cab.hidden_roots())
+	hidden.append_array(actors.warm_roots())
 	for node: Node3D in hidden:
 		if node.visible or _warmed.has(node):
 			continue
 		_warmed[node] = [node.transform, node.visible]
 		node.global_transform = speck
 		node.visible = true
+
+
+## While a menu is up before the first level (pass 10): every shader the
+## view draws with compiled, one more each call, so the first level's first
+## frame compiles none. In the browser that frame took 10 s (SwiftShader;
+## render() 0.66 s of it); a desktop's first run pays it too, a phone's
+## likewise. Each call puts one more piece out in front of the camera (a
+## quad with that shader's material; four of them in MultiMeshes, as the
+## sprites, slabs and solids draw) and has the viewport draw once; the sky
+## draws itself; then every pickup's slab mesh is built, eight a call
+## (SlabLayer3D.warm). Nobody sees the viewport till play shows it, and the
+## last call takes the pieces away. False when it is done.
+func warm_title() -> bool:
+	if _stage == null:
+		_stage = Node3D.new()
+		_root.add_child(_stage)
+		_stage_left = _title_pieces()
+		for name: String in _assets.art_index:
+			if SlabModels.family(name) == SlabModels.PICKUP:
+				_stage_items.append(name)
+	if _stage_left.is_empty() and not _stage_items.is_empty():
+		# Then every pickup's slab (SlabLayer3D.warm), eight a call.
+		slabs.warm(_stage_items.slice(0, 8))
+		_stage_items = _stage_items.slice(8)
+		return true
+	if _stage_left.is_empty():
+		_stage.queue_free()
+		viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		return false
+	var make: Callable = _stage_left.pop_front()
+	var piece: Node3D = make.call()
+	piece.position = Vector3(0.0, -.5, -3.0)
+	_stage.add_child(piece)
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	return true
+
+
+## warm_title's pieces, each a Callable making one.
+func _title_pieces() -> Array[Callable]:
+	var plain: Array[ShaderMaterial] = [world_material, glass_material]
+	plain.append_array(_storm_materials)
+	plain.append_array(_twister_materials)
+	for sheet: MeshInstance3D in _rain:
+		plain.append(sheet.material_override as ShaderMaterial)
+	for shader: Shader in [props._shader, wrecks._shader, cab._shader, actors.models._shader]:
+		var m := ShaderMaterial.new()
+		m.shader = shader
+		plain.append(m)
+	var out: Array[Callable] = []
+	for m in plain:
+		out.append(_title_quad.bind(m))
+	var many: Array[ShaderMaterial] = sprites.materials()
+	many.append_array([slabs.material, solids.material])
+	for m in many:
+		out.append(_title_many.bind(m))
+	return out
+
+
+static func _title_quad(material: ShaderMaterial) -> Node3D:
+	var node := MeshInstance3D.new()
+	node.mesh = QuadMesh.new()
+	node.material_override = material
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return node
+
+
+static func _title_many(material: ShaderMaterial) -> Node3D:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.use_custom_data = true
+	mm.mesh = QuadMesh.new()
+	mm.instance_count = 1
+	mm.set_instance_transform(0, Transform3D.IDENTITY)
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = mm
+	node.material_override = material
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return node
 
 
 ## What warm_up put out, put back.
@@ -430,6 +530,12 @@ func frame(game: Game) -> void:
 	var z: float = eye["eye"]
 	var angle: float = eye["view_angle"]
 	var at_hub: bool = not level.road_and_hub.is_empty() and y > 33.0
+	if level != _rigged and not _headless:
+		# Its models load on the loader's threads while its mesh is built
+		# (pass 10); _warm_models then takes them. Not headless: the dummy
+		# renderer's meshes are not made safely from two threads at once.
+		props.models.request(props.level_models(level))
+		actors.request(game.enemies, _event_kinds(game))
 	_build(level, at_hub)
 	if level != _rigged:
 		_rigged = level

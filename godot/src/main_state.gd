@@ -225,6 +225,11 @@ const LAUNCH_CHECK_SECONDS := 4.0
 var view_tour := ""
 var view_out := ""
 var touring := false
+## The 3D view's warm-up under the title (warm_view): seconds a menu has been
+## up, and whether it is done.
+const TITLE_WARM_AFTER := .6
+var title_wait := 0.0
+var view_warmed := false
 ## --view-bench=<frames>: time whole frames in the real window, uncapped, with
 ## the view composed in software and then by the shader, and print both.
 var view_bench := 0
@@ -1339,6 +1344,30 @@ func _pin_hud() -> void:
 	hud.layout.pinned = pins
 
 
+func _make_world_view() -> void:
+	world_view = WorldView3D.new(art)
+	add_child(world_view)
+	palette_material.set_shader_parameter("view3d_tex", world_view.texture())
+
+
+## Before the first level, once a menu has been up TITLE_WARM_AFTER seconds:
+## the 3D view made (about 0.18 s on the desktop, which the first level's
+## load paid) and then its shaders compiled a piece a frame
+## (WorldView3D.warm_title; pass 10). Starting a level first leaves the rest
+## to its first frame, as before.
+func warm_view(delta: float) -> void:
+	if view_warmed or game != null or not gpu_ready or not canvas.gpu:
+		return
+	title_wait += delta
+	if title_wait < TITLE_WARM_AFTER:
+		return
+	if world_view == null:
+		_make_world_view()
+		world_view.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	elif not world_view.warm_title():
+		view_warmed = true
+
+
 ## Hand game.view_frame to the 3D view now (the KILL CAM's replay frames).
 func show_view() -> void:
 	_frame_3d()
@@ -1350,9 +1379,7 @@ func _frame_3d() -> void:
 	var on := game != null and game.view3d and not game.view_frame.is_empty()
 	if on:
 		if world_view == null:
-			world_view = WorldView3D.new(art)
-			add_child(world_view)
-			palette_material.set_shader_parameter("view3d_tex", world_view.texture())
+			_make_world_view()
 		world_view.frame(game)
 		palette_material.set_shader_parameter("view_mul", 2 if game.view.detail < 0 else 1)
 		palette_material.set_shader_parameter("view_div", 1 << maxi(game.view.detail, 0))

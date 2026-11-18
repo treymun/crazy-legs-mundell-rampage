@@ -111,13 +111,15 @@ static func pack_files(level_id: String) -> PackedStringArray:
 	return parts
 
 
-## The chapter's own models: its enemies' (assets3d/actors/<kind>.glb,
-## Assets.chapter_of) and its props' (assets3d/props/<name>.glb,
+## The chapter's own models: its enemies' (assets3d/actors/<kind>.glb and
+## its baked rig <kind>.rig, Assets.chapter_of) and its props' (assets3d/props/<name>.glb,
 ## tools/prop_homes.gd: `props` is its homes()).
 static func chapter_models(level_id: String, props: Dictionary) -> PackedStringArray:
 	var models := PackedStringArray()
 	for file in DirAccess.get_files_at(ACTORS):
-		if file.get_extension() == "glb" and AssetsLib.chapter_of(file.get_basename()) == level_id:
+		var ext := file.get_extension()
+		# A kind's model and its baked ragdoll rig (RagdollRig.BAKED).
+		if (ext == "glb" or ext == "rig") and AssetsLib.chapter_of(file.get_basename()) == level_id:
 			models.append(ACTORS.path_join(file))
 	var stem := AssetsLib.stem_of(level_id)
 	for file in DirAccess.get_files_at(PROPS):
@@ -128,8 +130,11 @@ static func chapter_models(level_id: String, props: Dictionary) -> PackedStringA
 
 
 ## A model's .import file and what its import wrote (.godot/imported), as an
-## export puts them in a pack.
+## export puts them in a pack; a file that is not imported (a baked rig) as
+## itself.
 static func imported_files(model: String) -> PackedStringArray:
+	if model.get_extension() != "glb":
+		return PackedStringArray([model])
 	var files := PackedStringArray([model + ".import"])
 	var config := ConfigFile.new()
 	if config.load(model + ".import") != OK:

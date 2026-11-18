@@ -76,6 +76,7 @@ const CHECKS := [
 	["net_errors_check", "NET ERRORS OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 	["load_check", "LOAD CHECK OK"],
+	["load_speed_check", "LOAD SPEED OK"],
 	["user_map_check", "USER MAP CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
@@ -163,6 +164,7 @@ const CI_SECONDS := {
 	"events_check": 60,
 	"replay_check": 45,
 	"load_check": 35,
+	"load_speed_check": 40,
 	"pack_check": 30,
 	"tune_check": 15,
 	"user_map_check": 20,

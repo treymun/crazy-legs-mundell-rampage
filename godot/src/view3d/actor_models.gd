@@ -16,6 +16,8 @@ const LOOKS: Array[String] = ["", "hurt", "p2", "p3"]
 ## numbers for the kind merged in.
 var kinds: Dictionary = {}
 var _scenes: Dictionary = {}
+## kind -> scene path asked for on the loader's threads (request), not yet taken.
+var _asked: Dictionary = {}
 var _has_scene: Dictionary = {}
 var _materials: Dictionary = {}
 ## "kind:gear" -> [ArrayMesh, middle] (gear_mesh)
@@ -67,15 +69,31 @@ func has(kind: String) -> bool:
 	return ok
 
 
-## The kind's scene (an ActorView), or null when it has none.
+## The kind's scene (an ActorView), or null when it has none. One asked for
+## (request) is taken from the loader, waiting for it if it is not done.
 func scene(kind: String) -> PackedScene:
 	var cached: Variant = _scenes.get(kind)
 	if cached == null:
 		var path := SCENES.path_join(kind + ".tscn")
-		cached = load(path) if ResourceLoader.exists(path) else null
+		if _asked.has(kind):
+			_asked.erase(kind)
+			cached = ResourceLoader.load_threaded_get(path)
+		else:
+			cached = load(path) if ResourceLoader.exists(path) else null
 		_scenes[kind] = cached
 	var packed: PackedScene = cached
 	return packed
+
+
+## Start loading the scenes of `wanted` kinds on the loader's threads (pass
+## 10; PropModels.request): a level's first frame asks for its enemies'.
+func request(wanted: Array[String]) -> void:
+	for kind in wanted:
+		if _scenes.has(kind) or _asked.has(kind) or not has(kind):
+			continue
+		var path := SCENES.path_join(kind + ".tscn")
+		if ResourceLoader.load_threaded_request(path, "PackedScene") == OK:
+			_asked[kind] = path
 
 
 ## The time in the action of frame `name` (null when the kind has none).

@@ -103,6 +103,12 @@ var sky_blob: PackedByteArray = PackedByteArray()
 var palette: PackedByteArray = PackedByteArray()
 var grain: PackedByteArray = PackedByteArray()
 
+## MADE_CUES' samples made on a worker (make_cues_soon): the task (-1 none
+## started, -2 waited for), the rate they were made at and name -> samples.
+static var _made_task := -1
+static var _made_rate := 0
+static var _made_raw: Dictionary = {}
+
 ## The last art index read, for code with no Assets at hand (BossLooks).
 static var shared_index: Dictionary = {}
 var art_index: Dictionary = {}
@@ -510,10 +516,47 @@ func has_cue(name: String) -> bool:
 	return sfx_index.has(name) or name in MADE_CUES
 
 
+## Starts making MADE_CUES' samples on a worker thread (once a process; the
+## front end calls it at boot): about a quarter of a second of GDScript on
+## the desktop that a level's first load used to wait for (Game.new asks for
+## them all). _made_cue waits for it the first time a cue is asked for.
+static func make_cues_soon(rate := 22050) -> void:
+	if _made_task != -1:
+		return
+	_made_rate = rate
+	_made_task = WorkerThreadPool.add_task(_make_all.bind(rate), false, "made cues")
+
+
+static func _make_all(rate: int) -> void:
+	var out := {}
+	for name: String in MADE_CUES:
+		out[name] = _synth(name, rate)
+	_made_raw = out
+
+
+## The made cue's samples: from the worker when it made them at this rate,
+## else made now.
+func _made_cue(name: String) -> AudioStreamWAV:
+	if _made_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_made_task)
+		_made_task = -2
+	var made: Variant = _made_raw.get(name) if _made_rate == sfx_rate else null
+	var data: PackedByteArray
+	if made is PackedByteArray:
+		data = made
+	else:
+		data = _synth(name, sfx_rate)
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sfx_rate
+	stream.data = data
+	return stream
+
+
 ## A short knock (a damped tone and a click), a cowbell clank (two inharmonic
 ## square-ish tones), rolling thunder (low noise swelling and fading), a brass
-## tink, or a rubber stamp's thud, as 16-bit samples.
-func _made_cue(name: String) -> AudioStreamWAV:
+## tink, or a rubber stamp's thud, as 16-bit samples at `rate`.
+static func _synth(name: String, rate: int) -> PackedByteArray:
 	var length: float = (
 		{
 			"kill_tick": .20,
@@ -529,13 +572,13 @@ func _made_cue(name: String) -> AudioStreamWAV:
 		}
 		. get(name, .045)
 	)
-	var frames := int(sfx_rate * length)
+	var frames := int(rate * length)
 	var raw := PackedByteArray()
 	raw.resize(frames * 2)
 	var low := 0.0
 	var lower := 0.0
 	for i in frames:
-		var t := float(i) / sfx_rate
+		var t := float(i) / rate
 		var v := 0.0
 		var hiss := fposmod(sin(i * 12.9898) * 43758.5453, 1.0) - .5
 		match name:
@@ -587,11 +630,7 @@ func _made_cue(name: String) -> AudioStreamWAV:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5
 		raw.encode_s16(i * 2, clampi(int(v * 32767.0), -32768, 32767))
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = sfx_rate
-	stream.data = raw
-	return stream
+	return raw
 
 
 ## COUNTY RUN's own cues: a bottle cap's clink for XP, a three-note banjo

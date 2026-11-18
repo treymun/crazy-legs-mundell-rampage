@@ -61,6 +61,7 @@ func _ready() -> void:
 	)
 
 	art = Assets.new()
+	Assets.make_cues_soon(art.sfx_rate)  # off the first level's load (assets.gd)
 	hud = HUD.new(art)
 	menu = Menu.new(art)
 	sound = Sound.new(art)
@@ -420,21 +421,55 @@ func _view_bench() -> void:
 	# which the frame time hides while the main thread is the slower side).
 	var rid := get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(rid, true)
+	# The title's warm-up first, as a player sitting at the title has it
+	# (main_state.gd warm_view), timed on its own.
+	var warm_began := Time.get_ticks_usec()
+	var warm_frames := 0
+	while not view_warmed and gpu_ready and canvas.gpu:
+		title_wait = TITLE_WARM_AFTER
+		warm_view(0.0)
+		warm_frames += 1
+		await get_tree().process_frame
+	print(
+		(
+			"TITLE     warm-up %.0f ms over %d frames"
+			% [(Time.get_ticks_usec() - warm_began) / 1000.0, warm_frames]
+		)
+	)
 	var totals := {"gpu": 0.0}
 	for level_id: String in [
 		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
 	]:
 		var line := "%-9s" % level_id
 		for mode: String in ["gpu"]:
+			# The level's load as a player waits for it: start() (the game
+			# made) and its first frame (the view built, warmed and drawn).
+			var load_began := Time.get_ticks_usec()
 			start(level_id)
+			var started := Time.get_ticks_usec()
 			Engine.max_fps = 0
 			var held := Game.Controls.new()
 			held.turn = .3
 			held.fire = true
 			for i in 20:
 				game.tick(1.0 / 60.0, held)
+				var drawn := Time.get_ticks_usec()
 				render()
+				var rendered := Time.get_ticks_usec()
 				await get_tree().process_frame
+				if i == 0:
+					print(
+						(
+							"%-9s  load %.0f ms: start %.0f, first frame %.0f (render() %.0f)"
+							% [
+								level_id,
+								(Time.get_ticks_usec() - load_began) / 1000.0,
+								(started - load_began) / 1000.0,
+								(Time.get_ticks_usec() - drawn) / 1000.0,
+								(rendered - drawn) / 1000.0
+							]
+						)
+					)
 			if world_view != null:
 				world_view.parts_us.fill(0)
 			var began := Time.get_ticks_usec()
@@ -603,6 +638,7 @@ func _process(delta: float) -> void:
 	if view_tour != "":
 		_view_tour()
 		return
+	warm_view(delta)
 	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
 		if state != "play":
 			menu_note = ""
