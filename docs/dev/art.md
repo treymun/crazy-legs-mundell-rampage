@@ -398,8 +398,11 @@ screen of dots): `fx_boom_<fire><shape>_N` (two fires, three shapes, 12
 frames: lobes of fire bulging out of a hot core and rolling up, the top
 cooling first, soot eating in, pockets of fire glowing through it at the
 end), `fx_soothot_N`, `fx_powder_N`, `fx_dirtpuff_N`, `fx_scrap_metal_N`,
-`fx_scrap_meat_N` (tumbling slabs: SlabModels LOOSE), `fx_geyser_N` and
-`mark_crater_N` (a burnt pit, a churned rim, soot streaks thrown out). Each gun has a flash style (STYLES; the 5v5 guns'
+`fx_scrap_meat_N` (tumbling slabs: SlabModels LOOSE), `fx_geyser_N`,
+`mark_crater_N` (a burnt pit, a churned rim, soot streaks thrown out) and
+the column's billows `fx_billow_<v>_N`, `fx_billowhot_<v>_N`,
+`fx_billowpowder_<v>_N` (lumps lit on top, a darker core, lighter lumpy
+edges, no outline; hot: lit orange from under). Each gun has a flash style (STYLES; the 5v5 guns'
 are hunter, mower, auto45, magnum, pump, smg, bar, marksman).
 
 `tools/blast_frames.gd` renders every kind of blast, where it went off, a

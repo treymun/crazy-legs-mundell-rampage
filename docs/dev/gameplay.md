@@ -107,7 +107,21 @@ damage, reach or shove (shots.cfg), and nothing is saved or carried.
   orange going to oily black), size and life, lobes, the column (soot or a
   keg's grey-white powder) and its mushroom cap, scraps (charred wood, torn
   tin, meat), clods, the dirt puffs of the dust ring, sparks, embers,
-  burning drops, the crater, the light and the view's kick.
+  burning drops, glass, the crater, the light and the view's kick.
+- **Fire, then smoke**: the fireball shows only its fire frames (`SHOWN`, a
+  bright core out fast, then lobes rolling up) over four fifths of its life;
+  the smoke is the column's billows (`fx_billow*`, three shapes, mirrored at
+  random: lumps lit on top, a darker core, lighter lumpy edges, no outline),
+  a stream of them rolling up off the fire one after another, three big ones
+  taking over where the fireball was as it goes, the cap's spreading at the
+  top; young ones are lit orange from under (`fx_billowhot`). Smoke and dust
+  (translucent sprites) take only the brightness of the area's tint
+  (`sprite_layer.gd`): a pond yard's green tint turned neutral smoke teal
+  and brown soot olive.
+- **The shine cocktail** (the 5v5 throwable; `modes/tactical_utility.gd`
+  calls `gun_fx.firebomb()` where its fire patch starts) bursts through its
+  look (`cocktail`): a fuel ball, the bottle's glass, burning shine, no
+  crater. Its fire patch is play, as before.
 - **No two alike**: each blast reseeds the layer's own dice from where and
   when it went (`burst`), so a replay looks the same and every blast its own:
   one of three fireball shapes (`fx_boom_<fire><shape>_N`, 12 frames),
@@ -143,7 +157,9 @@ damage, reach or shove (shots.cfg), and nothing is saved or carried.
   "Hurt and wrecked" under Vehicles.
 - Checks: `tools/blast_check.gd` (BLAST CHECK OK, check_all, quick too);
   `tools/blast_frames.gd -- out=<dir>` pictures every kind, a wall, the loft,
-  water, a chain, two side by side and each vehicle wrecked
+  water, a chain, two side by side, each vehicle wrecked, the fireball's arc
+  every 3 ticks (`arc_tnt`, `arc_fuel`) and the stock car's first second
+  wrecked from the side and from the front (`wreck_side`, `wreck_front`)
   (`docs/godot3d/destruction/BLASTS/`, before and after).
 
 ## The automap, canvas and sprites
@@ -1937,7 +1953,15 @@ chapel path at Hickston. Only the campaign and co-op have them
   fuel ball, sparks, `wreck_pop`) every second or two; then it smoulders
   `SMOULDER` seconds. With LIGHTS AND GLOW off the old smoke and flames
   (`_smoke`) stay. A wreck already wrecked when seen (a save, a snapshot)
-  shows its hulk whole and throws nothing.
+  shows its hulk whole and throws nothing. Each wreck rolls its own dice
+  (from where and when), so which parts go differs; a thrown part striking
+  the ground throws sparks and a puff of dirt (twice at most). Cost: each
+  kind on the level is cut on a worker as the level starts (`CutJob`, about
+  60 to 140 ms for the stock car on this busy desktop, `cut_ms`); the hulk
+  is built on a worker as it is wrecked (`HulkJob`; its model shows under
+  the fireball meanwhile), so the wreck's tick is about 10 ms headless
+  (blast_check prints both). The lite build without threads cuts there and
+  then.
 - **The speedway's lap timer**: the car on the lap cars' racing line counts
   the turn round its middle; a whole turn is a lap (LAP n, the time, the
   best); off the line by `LINE_REACH` it starts again. The time and best are

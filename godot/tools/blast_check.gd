@@ -47,6 +47,8 @@ func _run() -> void:
 	_where()
 	print("CHAIN")
 	_chain()
+	print("COCKTAIL")
+	_cocktail()
 	print("WRECK")
 	_wreck()
 	print("PLAY EXACT")
@@ -166,7 +168,9 @@ func _looks() -> void:
 		_check(int(c["craters"]) == 1, "%s: a crater in the yard" % kind)
 		_check(int(c.get("dust:dirtpuff", 0)) >= 1, "%s: dirt puffs rolling out" % kind)
 		var smoke := str(cfg.get_value("look." + name, "smoke", "soot"))
-		var column := int(c.get("soot:" + ("powder" if smoke == "powder" else "soothot"), 0))
+		var column := int(
+			c.get("soot:" + ("billowpowder" if smoke == "powder" else "billowhot"), 0)
+		)
 		_check(column >= 1, "%s: a column of %s" % [kind, smoke])
 		var scrap := str(cfg.get_value("look." + name, "scrap", ""))
 		var scraps: float = cfg.get_value("look." + name, "scraps", 0)
@@ -310,14 +314,24 @@ func _wreck() -> void:
 	var wreck: GameFeature = g.features["wreckage"]
 	var before: Array = wreck.get("wrecks")
 	var had := before.size()
-	_ticks(g, 5)
+	# Its parts are cut on a worker as the level starts: done before a wreck.
+	var waited := 0
+	while not VehicleWreckLooks._cells.has("car") and waited < 300:
+		_ticks(g, 1)
+		OS.delay_msec(5)
+		waited += 1
+	_check(VehicleWreckLooks._cells.has("car"), "the car's parts are cut on a worker at the start")
+	print("  the car's cut: %.1f ms on a worker" % VehicleWreckLooks.cut_ms)
 	v.hp = 40.0
 	var side := Vector2.from_angle(v.h + PI / 2.0)
 	var blast_at := Vector2(v.x, v.y) + side * (s.width * .5 + .5)
+	var t0 := Time.get_ticks_usec()
 	_boom(g, blast_at, "tnt")
+	_ticks(g, 1)
+	print("  the wreck's blast and its tick: %.1f ms" % ((Time.get_ticks_usec() - t0) / 1000.0))
 	_check(v.wreck >= 0.0, "the stick wrecks the car")
 	var fx: GameFeature = g.features["gun_fx"]
-	_ticks(g, 2)
+	_ticks(g, 1)
 	var parts := WreckCuts.parts(g.art, "m:stock_car|vw")
 	_check(
 		parts.size() == 8, "the car's model is cut into its eight loose parts (%d)" % parts.size()
@@ -332,7 +346,14 @@ func _wreck() -> void:
 		if Vector2(body.v.x, body.v.y).dot(-side) > 0.0:
 			away += 1
 	_check(away * 2 >= thrown, "they fly away from the blast (%d of %d)" % [away, thrown])
-	var hulk: Variant = fx.call("hulk", 0)
+	var hulk: Variant = null
+	for _k in 200:
+		# The hulk is built on a worker: its model shows until it is done.
+		hulk = fx.call("hulk", 0)
+		if hulk != null:
+			break
+		OS.delay_msec(5)
+		_ticks(g, 1)
 	_check(hulk != null, "a hulk stands where the car was")
 	if hulk != null:
 		var spr: View.Sprite = hulk
@@ -342,7 +363,7 @@ func _wreck() -> void:
 		_check(spr.hurt > .7, "the hulk chars as it burns (%.2f)" % spr.hurt)
 	var c := _census(g)
 	_check(
-		int(c.get("soot:soothot", 0)) + int(c.get("soot:soot", 0)) >= 3,
+		int(c.get("soot:billowhot", 0)) + int(c.get("soot:billow", 0)) >= 3,
 		"the wreck burns under a column of smoke"
 	)
 	# Badly hurt: smoke off the engine.
@@ -353,6 +374,20 @@ func _wreck() -> void:
 	_ticks(g, 60)
 	c = _census(g)
 	_check(int(c.get("soot:soot", 0)) >= 2, "a badly hurt car smokes from its engine")
+
+
+## A shine cocktail bursting (the 5v5 throwable): fuel fire, glass, burning
+## drops, no crater.
+func _cocktail() -> void:
+	var g := _game("hickston")
+	var at := _yard(g)
+	var fx: GameFeature = g.features["gun_fx"]
+	fx.call("firebomb", at.x, at.y, g.world.elevation(at.x, at.y) + .1)
+	var c := _census(g)
+	_check(str(c["fire"]) == "f" and int(c["main"]) == 1, "a cocktail bursts in a fuel fireball")
+	_check(int(c.get("glint:", 0)) >= 3, "a cocktail's glass flies")
+	_check(int(c.get("burning:", 0)) >= 3, "a cocktail splashes burning shine")
+	_check(int(c["craters"]) == 0, "a cocktail leaves no crater")
 
 
 ## Play does not hear the looks: the same blasts and a wreck with the looks'

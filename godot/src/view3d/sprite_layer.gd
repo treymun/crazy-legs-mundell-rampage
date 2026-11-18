@@ -288,6 +288,13 @@ func _row(
 	if tints.size() >= 3:
 		var ti := clampi(1 if s.glow else level.area[c], 0, maxi(0, tints.size() / 3 - 1)) * 3
 		tint = Color(tints[ti], tints[ti + 1], tints[ti + 2], light)
+		if s.translucent or s.image.begins_with("fx_billow"):
+			# Smoke and dust hang in the air (and a blast's billows, drawn
+			# solid): the area's hue (a pond yard's green) turned neutral greys
+			# teal and brown soot olive (destruction pass 11). They keep its
+			# brightness only.
+			var grey := (tint.r + tint.g + tint.b) / 3.0
+			tint = Color(grey, grey, grey, light)
 	var flags := (
 		(FLIP if s.flip else 0)
 		| (GLOW if s.glow else 0)

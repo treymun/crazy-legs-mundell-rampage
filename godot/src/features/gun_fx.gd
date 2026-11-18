@@ -35,6 +35,16 @@ const MAX_HITS := 20
 ## takes to burn through its frames.
 const BOOM_LIFE := 1.0
 const HIT_LIFE := .24
+## The billows' and scraps' picture names by shape (fx_billow_<v>_N).
+const BILLOW: Array[String] = ["fx_billow_0_", "fx_billow_1_", "fx_billow_2_"]
+const BILLOW_HOT: Array[String] = ["fx_billowhot_0_", "fx_billowhot_1_", "fx_billowhot_2_"]
+const BILLOW_POWDER: Array[String] = [
+	"fx_billowpowder_0_", "fx_billowpowder_1_", "fx_billowpowder_2_"
+]
+const SCRAP_METAL := "fx_scrap_metal_"
+const SCRAP_MEAT := "fx_scrap_meat_"
+## Sparks drawn a frame at most (draw_view: each a stroke on the canvas).
+const SPARKS_DRAWN := 48
 ## Seconds a burning drop lies burning once it lands.
 const DROP_BURN := 1.6
 ## Seconds a water column takes to rise and fall back.
@@ -58,6 +68,7 @@ const HIT_ART := {
 	"rubber": "dirt",
 }
 
+static var _names := {}
 var dice := RandomNumberGenerator.new()
 ## The bits in the air (FxBit). The helpers append to this same array, so it
 ## is changed in place, never swapped for another.
@@ -467,7 +478,7 @@ func _tick(dt: float) -> void:
 			"chunk":
 				bit.trail -= dt
 				if bit.trail <= 0.0 and bit.age < bit.life * .5:
-					bit.trail = .11
+					bit.trail = .14
 					var wisp := Bit.make(
 						"soot", Vector3(bit.x, bit.y, bit.z), Vector3(0, 0, .25), .75, .11
 					)
@@ -638,42 +649,45 @@ func sprites() -> Array:
 				continue
 			"soot", "smoke", "dust":
 				name = _smoke_art(bit, step)
-				translucent = true
+				# The column's billows are hard-edged and solid (drawn with the
+				# solid sprites: no blending, no overdraw); the rest blend.
+				translucent = not bit.look.begins_with("billow")
 			"ember":
-				name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
+				name = _nm("fx_ember_", int(bit.age * 9.0) % 2)
 				glow = true
 			"burning":
 				# A burning drop: an ember falling, a little flame once it lies.
 				if bit.rest:
-					name = "fx_flame_%d" % (int(bit.age * 12.0 + bit.x * 7.0) % 4)
+					name = _nm("fx_flame_", int(bit.age * 12.0 + bit.x * 7.0) % 4)
 					var left := bit.life - bit.age
 					bit.size = .2 * clampf(left / .5, .2, 1.0)
 				else:
-					name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
+					name = _nm("fx_ember_", int(bit.age * 9.0) % 2)
 				glow = true
 			"chunk":
 				var turn := 0 if bit.rest else int(bit.age * 16.0) % 4
 				if bit.look == "":
-					name = "fx_chunk_%d" % turn
+					name = _nm("fx_chunk_", turn)
 				else:
-					name = "fx_scrap_%s_%d" % [bit.look, turn]
+					name = _nm(SCRAP_METAL if bit.look == "metal" else SCRAP_MEAT, turn)
 			"splinter":
-				name = "fx_splinter_%d" % (0 if bit.rest else int(bit.age * 14.0) % 2)
+				name = _nm("fx_splinter_", 0 if bit.rest else int(bit.age * 14.0) % 2)
 			"grit_brick", "grit_stone":
 				name = "fx_" + bit.kind
 			"clod":
 				name = "fx_soil"
 			"chaff":
-				name = "fx_chaff_%d" % (int(bit.age * 6.0 + bit.size * 97.0) % 2)
+				name = _nm("fx_chaff_", int(bit.age * 6.0 + bit.size * 97.0) % 2)
 			"glint":
 				var flash := int(bit.age * 11.0 + bit.size * 131.0) % 5 == 0
-				name = "fx_glint_%d" % (1 if flash else 0)
+				name = _nm("fx_glint_", 1 if flash else 0)
 				glow = flash
 			"drop":
 				name = "fx_glint_0"
 		var s: View.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = glow
 		s.translucent = translucent
+		s.flip = bit.flip
 		if TUMBLES.has(bit.kind):
 			# The 3D view tumbles it in the air, by where it is (nothing kept),
 			# and lays it flat on the floor.
@@ -715,24 +729,41 @@ func sprites() -> Array:
 func _smoke_art(bit: Bit, step: float) -> String:
 	var frame := mini(3, int(step * 4.0))
 	match bit.look:
-		"soothot":
-			if bit.age < .7:
-				return "fx_soothot_%d" % mini(2, int(bit.age / .7 * 3.0))
-			return "fx_soot_%d" % frame
+		"billowhot":
+			# Lit from under while young, over the fire.
+			if bit.age < .8:
+				return _nm(BILLOW_HOT[bit.shape], mini(2, int(bit.age / .8 * 3.0)))
+			return _nm(BILLOW[bit.shape], frame)
+		"billow":
+			return _nm(BILLOW[bit.shape], frame)
+		"billowpowder":
+			return _nm(BILLOW_POWDER[bit.shape], frame)
 		"soot":
-			return "fx_soot_%d" % frame
-		"powder":
-			return "fx_powder_%d" % frame
+			return _nm("fx_soot_", frame)
 		"dirtpuff":
-			return "fx_dirtpuff_%d" % frame
+			return _nm("fx_dirtpuff_", frame)
 		"smoke":
-			return "fx_smoke_%d" % frame
+			return _nm("fx_smoke_", frame)
 	match bit.kind:
 		"soot":
-			return "fx_soot_%d" % frame
+			return _nm("fx_soot_", frame)
 		"smoke":
-			return "fx_smoke_%d" % frame
-	return "fx_puff_%d" % frame
+			return _nm("fx_smoke_", frame)
+	return _nm("fx_puff_", frame)
+
+
+## A picture's name `prefix` + `i`, made once (a list of two hundred bits a
+## frame formatted every name each time).
+static func _nm(prefix: String, i: int) -> String:
+	var known: Variant = _names.get(prefix)
+	if known == null:
+		var made := PackedStringArray()
+		for k in 16:
+			made.append(prefix + str(k))
+		_names[prefix] = made
+		known = made
+	var list: PackedStringArray = known
+	return list[i]
 
 
 func _geyser_sprites(out: Array) -> void:
@@ -776,10 +807,16 @@ func _boom_sprites(out: Array) -> void:
 		var age: float = row[2]
 		var scale: float = boom[4]
 		var life: float = boom[8]
-		var t := clampf(age / life, 0.0, .999)
-		var frame := mini(BlastLooks.FRAMES - 1, int(pow(t, .78) * BlastLooks.FRAMES))
-		# Out fast, then it stops growing and rolls up as it goes over to soot.
-		var size := (.7 + 1.25 * sqrt(minf(t, .6) / .6)) * scale
+		# Its fire burns through in the first four fifths of its life (the
+		# column's billows have taken over by then); the light lasts longer.
+		var t := age / (life * .8)
+		if t >= 1.0:
+			continue
+		# Its fire frames only: the smoke it goes over to is the column's
+		# billows (blast_looks.gd _column), not one flat disc.
+		var frame := mini(BlastLooks.SHOWN - 1, int(pow(t, .8) * BlastLooks.SHOWN))
+		# A bright core out fast, then the lobes roll up and out.
+		var size := (.95 + 1.45 * sqrt(minf(t, .5) / .5)) * scale
 		var bx: float = boom[0]
 		var by: float = boom[1]
 		var bz: float = boom[2]
@@ -788,8 +825,7 @@ func _boom_sprites(out: Array) -> void:
 		var shape: int = boom[7]
 		var picture := "fx_boom_%s%d_%d" % [str(boom[6]), shape, frame]
 		var ball: View.Sprite = game.pooled(bx, by, picture, size, z)
-		ball.glow = frame < 8
-		ball.translucent = frame >= 8
+		ball.glow = true
 		ball.flip = boom[9]
 		out.append(ball)
 		if age < .1 and not side:
@@ -823,10 +859,16 @@ func ground_marks() -> Array:
 func draw_view(c: Canvas) -> void:
 	if not Effects.rich:
 		return
-	# Sparks as short streaks along the way they fly, white-hot to orange.
-	for bit: Bit in bits:
+	# Sparks as short streaks along the way they fly, white-hot to orange
+	# (the newest SPARKS_DRAWN at most: each is a draw command).
+	var drawn := 0
+	for k in range(bits.size() - 1, -1, -1):
+		var bit: Bit = bits[k]
 		if bit.kind != "spark" or bit.age < 0.0:
 			continue
+		drawn += 1
+		if drawn > SPARKS_DRAWN:
+			break
 		var a: Vector3 = game.to_canvas(bit.x, bit.y, bit.z)
 		var b: Vector3 = game.to_canvas(
 			bit.x - bit.vx * .03, bit.y - bit.vy * .03, bit.z - bit.vz * .03
@@ -842,6 +884,13 @@ func draw_view(c: Canvas) -> void:
 			else Color8(255, 200, 96) if heat > .3 else Color8(232, 112, 36)
 		)
 		c.stroke(int(b.x), int(b.y), int(a.x), int(a.y), colour, 2 if a.z < 1.6 else 1)
+
+
+## A shine cocktail bursting (modes/tactical_utility.gd: its fire patch is
+## play; this is only how it bursts, through its blast look).
+func firebomb(x: float, y: float, z: float) -> void:
+	var look := blast_looks.look_of("shine_cocktail", x, y)
+	blast_looks.burst(x, y, z, look, blast_looks.place(x, y, z), 1.0)
 
 
 ## A wrecked vehicle's hulk (features/vehicles.gd sprites(); null: its model).

@@ -9,8 +9,9 @@
 ##                           rocket, energy, steam; two of each (v), three frames
 ##   fx_boom_<r><v>_<f>      a blast's fireball, 12 frames, two fires (r: d dynamite,
 ##                           f fuel) in three shapes (v): tools/art/blast_art.gd, with
-##                           fx_soothot_N, fx_powder_N, fx_dirtpuff_N, fx_scrap_<k>_N,
-##                           fx_geyser_N and mark_crater_N
+##                           fx_dirtpuff_N, fx_scrap_<k>_N,
+##                           fx_geyser_N, mark_crater_N and the column's billows
+##                           fx_billow<_|hot|powder>_<v>_N
 ##   fx_boomflash_N (2)      the white star of the moment it goes
 ##   fx_smokecloud_N (4)     a thrown smoke pot's billow: thick, grey, opaque
 ##   fx_flame_N (4)          a firebomb's flames licking up, four frames
@@ -110,16 +111,18 @@ func _init() -> void:
 		for v in 3:
 			for f in 12:
 				_save_flat(Blast.boom(ramp, v, f), "fx_boom_%s%d_%d" % [ramp, v, f])
-	for f in 3:
-		_save_flat(Blast.soot_hot(f), "fx_soothot_%d" % f)
 	for f in 4:
-		_save_flat(Blast.powder(f), "fx_powder_%d" % f)
 		_save_flat(Blast.dirt_puff(f), "fx_dirtpuff_%d" % f)
 		_save(Blast.scrap("metal", f), "fx_scrap_metal_%d" % f)
 		_save(Blast.scrap("meat", f), "fx_scrap_meat_%d" % f)
 		_save_flat(Blast.crater(f), "mark_crater_%d" % f)
 	for f in 5:
 		_save_flat(Blast.geyser(f), "fx_geyser_%d" % f)
+	for v in 3:
+		for f in 4:
+			_save_flat(Blast.soot_billow(v, f), "fx_billow_%d_%d" % [v, f])
+			_save_flat(Blast.hot_billow(v, f), "fx_billowhot_%d_%d" % [v, f])
+			_save_flat(Blast.powder_billow(v, f), "fx_billowpowder_%d_%d" % [v, f])
 	for f in 2:
 		_save(boom_flash(f), "fx_boomflash_%d" % f)
 	for f in 4:

@@ -88,6 +88,8 @@ const SMOULDER := 40.0
 
 ## Each kind's cut cells, made once: kind -> [Soup a cell, or null].
 static var _cells := {}
+## How long the last kind's cut took (ms; on a worker when pre-cut).
+static var cut_ms := 0.0
 
 var game: Game
 var dice: RandomNumberGenerator
@@ -99,6 +101,15 @@ var _state := {}
 ## The last blast near each ride: index -> [x, y, force, clock].
 var _hits := {}
 var _engine_next := {}
+var _own := RandomNumberGenerator.new()
+## The kinds on this level not cut yet, and the cut on a worker now.
+var _to_cut: Array = []
+var _job: CutJob = null
+var _job_name := ""
+## Parts thrown off a wreck, watched for their landing (sparks, dust):
+## [body, its last fall speed, landings left, when thrown].
+var _flying: Array = []
+var _listed := false
 
 
 func _init(g: Game, d: RandomNumberGenerator, bit_list: Array, boom_list: Array) -> void:
@@ -107,6 +118,56 @@ func _init(g: Game, d: RandomNumberGenerator, bit_list: Array, boom_list: Array)
 	bits = bit_list
 	booms = boom_list
 	_models = PropModels.new(g.art)
+
+
+## The kinds on this level to pre-cut (asked on the first tick: the vehicles
+## feature lists its rides as it attaches).
+func _list() -> void:
+	_listed = true
+	for item: Variant in _rides():
+		var v: VehicleDrive.Ride = item
+		if CUTS.has(v.kind) and not _cells.has(v.kind) and not _to_cut.has(v.kind):
+			_to_cut.append(v.kind)
+	if not OS.has_feature("threads"):
+		# The lite browser build: cut when the first one is wrecked.
+		_to_cut.clear()
+
+
+## One step of pre-cutting this level's kinds: a finished worker's cut kept,
+## the next model started on a worker (its model read here).
+func _precut() -> void:
+	if _job != null:
+		if not WorkerThreadPool.is_task_completed(_job.task):
+			return
+		WorkerThreadPool.wait_for_task_completion(_job.task)
+		_finish(_job, _job_name)
+		_job = null
+	while not _to_cut.is_empty():
+		var kind: String = _to_cut.pop_front()
+		if _cells.has(kind):
+			continue
+		var s := VehicleDrive.spec(kind)
+		var name := _models.name_of(s.picture)
+		if name == "":
+			continue
+		var soup := WreckCuts._model(name)
+		soup.measure()
+		_job = CutJob.new()
+		_job.kind = kind
+		_job.soup = soup
+		_job.nose = s.nose
+		_job_name = name
+		_job.task = WorkerThreadPool.add_task(_job.run, false, "vehicle cuts")
+		return
+
+
+## A wreck before its kind's cut is done: wait for the worker.
+func _settle() -> void:
+	if _job == null:
+		return
+	WorkerThreadPool.wait_for_task_completion(_job.task)
+	_finish(_job, _job_name)
+	_job = null
 
 
 func _rides() -> Array:
@@ -131,6 +192,8 @@ func blasted(x: float, y: float) -> void:
 	for i in rides.size():
 		var v: VehicleDrive.Ride = rides[i]
 		var d := Vector2(v.x - x, v.y - y).length()
+		if v.wreck == game.clock and d < .1:
+			continue  # its own tank going up: the blast that wrecked it stays
 		if d < reach + 2.0:
 			_hits[i] = [x, y, clampf(1.2 - d / (reach + 1.0), .2, 1.0), game.clock]
 
@@ -174,6 +237,12 @@ func struck(from: Vector3, end: Vector3) -> void:
 ## Every tick: wrecks newly seen come apart; the burning ones smoke and pop;
 ## the hurt ones smoke from the engine.
 func tick() -> void:
+	if not _listed:
+		_list()
+	if _job != null or not _to_cut.is_empty():
+		_precut()
+	if not _flying.is_empty():
+		_landings()
 	var rides := _rides()
 	for i in rides.size():
 		var v: VehicleDrive.Ride = rides[i]
@@ -187,6 +256,8 @@ func tick() -> void:
 		if st.is_empty():
 			st = _wrecked(i, v, s, game.clock - v.wreck < .5)
 			_state[i] = st
+		if st.has("job"):
+			_hulk_done(st)
 		_burning(i, v, s, st)
 
 
@@ -232,12 +303,28 @@ func _wrecked(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, fresh: bool) -
 	var name := _models.name_of(s.picture)
 	if cut.is_empty() or name == "":
 		return st
+	_settle()
 	var cells := _cut(v.kind, name, s.nose)
 	if cells.is_empty():
 		return st
 	if not fresh:
-		st["key"] = _hulk_key(v.kind, name, s.nose, 0)
+		_hulk_start(st, v.kind, name, s.nose, 0)
 		return st
+	# Its own dice, from where and when (and the layer's): no two wrecks alike.
+	var layer := dice
+	dice = _own
+	dice.seed = hash(
+		[snappedf(v.x, .001), snappedf(v.y, .001), snappedf(v.wreck, .001), layer.randi()]
+	)
+	_come_apart(i, v, s, st, name)
+	dice = layer
+	return st
+
+
+func _come_apart(
+	i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, st: Dictionary, name: String
+) -> void:
+	var cut: Dictionary = CUTS[v.kind]
 	var hit: Array = _hits.get(i, [v.x - cos(v.h + PI / 2.0), v.y - sin(v.h + PI / 2.0), .7, 0.0])
 	var hx: float = hit[0]
 	var hy: float = hit[1]
@@ -269,7 +356,7 @@ func _wrecked(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, fresh: bool) -
 			mask |= 1 << k
 			off.append(k)
 	st["mask"] = mask
-	st["key"] = _hulk_key(v.kind, name, s.nose, mask)
+	_hulk_start(st, v.kind, name, s.nose, mask)
 	# Sag where a wheel went: down toward the missing corners.
 	var roll := 0.0
 	var pitch := 0.0
@@ -282,7 +369,6 @@ func _wrecked(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, fresh: bool) -
 	_throw(v, s, name, off, Vector2(hx, hy), force)
 	_glass(v, s)
 	game.sound_at("wreck_crash", v.x, v.y, .82)
-	return st
 
 
 ## The model's map frame (its foot's middle at the origin): turned to its
@@ -323,8 +409,46 @@ func _throw(
 		if away.length() < .05:
 			away = Vector2.from_angle(dice.randf_range(0, TAU))
 		away = away.normalized()
-		var up := .9 + force * .5
-		wreck.call("throw_cut", src, Vector3(away.x, away.y, up), .5 + force * .45, [k])
+		var up := 1.3 + force * .7
+		var list: Array = wreck.get("wrecks")
+		var had := list.size()
+		wreck.call("throw_cut", src, Vector3(away.x, away.y, up), .75 + force * .55, [k])
+		list = wreck.get("wrecks")
+		if list.size() > had:
+			var piece: Object = list[list.size() - 1]
+			var body: WreckPhysics.Body = piece.get("body")
+			_flying.append([body, body.v.z, 2, game.clock])
+
+
+## A thrown part striking the ground (its fall stopped hard): sparks off
+## its tin and a puff of dust where it hit, twice at most.
+func _landings() -> void:
+	var kept: Array = []
+	for row: Array in _flying:
+		var body: WreckPhysics.Body = row[0]
+		var was: float = row[1]
+		var left: int = row[2]
+		var since: float = row[3]
+		var now := body.v.z
+		if was < -1.4 and now > was + 1.2:
+			left -= 1
+			var at := body.p
+			for _k in 5:
+				var dir := Vector2.from_angle(dice.randf_range(0, TAU))
+				var vel := Vector3(dir.x, dir.y, 0.0) * dice.randf_range(1.0, 2.6)
+				vel.z = dice.randf_range(.8, 2.2)
+				_bit("spark", at, vel, dice.randf_range(.2, .4), .03, 7.0)
+			var floor_z: float = game.world.floor_under(at.x, at.y, at.z + .2)
+			var dust := _bit(
+				"dust", Vector3(at.x, at.y, floor_z + .05), Vector3(0, 0, .25), 1.0, .22
+			)
+			dust.look = "dirtpuff"
+			dust.grow = .35
+		row[1] = now
+		row[2] = left
+		if left > 0 and game.clock - since < 4.0:
+			kept.append(row)
+	_flying = kept
 
 
 ## Its glass bursting out: glints flung from its middle at the cab's height.
@@ -361,7 +485,9 @@ func _burning(_i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, st: Dictionar
 		dice.randf_range(.32, .5) if burning else .2
 	)
 	puff.grow = .6 if burning else .35
-	puff.look = "soothot" if burning and dice.randf() < .4 else ("soot" if burning else "smoke")
+	puff.look = ("billowhot" if dice.randf() < .4 else "billow") if burning else "smoke"
+	puff.shape = dice.randi_range(0, 2)
+	puff.flip = dice.randf() < .5
 	if burning and dice.randf() < .3:
 		var ember := _bit(
 			"ember",
@@ -494,30 +620,71 @@ func hulk(i: int) -> View.Sprite:
 	return spr
 
 
-static func _hulk_key(kind: String, name: String, nose: float, mask: int) -> String:
+## The hulk without the parts that came off (`mask`), built on a worker
+## (tens of milliseconds for the car): its model shows meanwhile, under its
+## fireball. Kept as "m:<name>|vh<mask>".
+func _hulk_start(st: Dictionary, kind: String, name: String, nose: float, mask: int) -> void:
 	var key := "m:%s|vh%d" % [name, mask]
 	if WreckCuts.has(key):
-		return key
-	var cells: Array = _cells.get(kind, [])
-	var cut: Dictionary = CUTS[kind]
-	var parts: Dictionary = cut["parts"]
-	var off := {}
-	var names: Array = parts.keys()
-	for k in names.size():
-		if mask & (1 << k):
-			var row: Array = parts[names[k]]
-			for c: Array in row[1]:
-				off[_index(cut, c)] = true
-	var soup := WreckCuts.Soup.new()
-	for k in cells.size():
-		if off.has(k) or cells[k] == null:
-			continue
-		var piece: WreckCuts.Soup = cells[k]
-		for j in piece.size():
-			soup.add(piece, j)
-	var frame := Basis(Vector3(0, 0, 1), -nose)
-	WreckCuts.put(key, [WreckCuts._part(soup, {"basis": frame}, true)] if soup.size() >= 3 else [])
-	return key
+		st["key"] = key
+		return
+	var job := HulkJob.new()
+	job.cells = _cells.get(kind, [])
+	job.cut = CUTS[kind]
+	job.nose = nose
+	job.mask = mask
+	job.key = key
+	st["job"] = job
+	if OS.has_feature("threads"):
+		job.task = WorkerThreadPool.add_task(job.run, false, "vehicle hulk")
+	else:
+		job.run()
+
+
+## A hulk job done: kept, shown from now on.
+func _hulk_done(st: Dictionary) -> void:
+	var job: HulkJob = st.get("job")
+	if job == null:
+		return
+	if job.task >= 0:
+		if not WorkerThreadPool.is_task_completed(job.task):
+			return
+		WorkerThreadPool.wait_for_task_completion(job.task)
+	WreckCuts.put(job.key, job.out)
+	st["key"] = job.key
+	st.erase("job")
+
+
+## The hulk's faces: every cell of the cut but those of the parts gone, as one
+## piece. Reads only the cells (made before), so a worker may run it.
+class HulkJob:
+	var cells: Array = []
+	var cut := {}
+	var nose := 0.0
+	var mask := 0
+	var key := ""
+	var out: Array = []
+	var task := -1
+
+	func run() -> void:
+		var parts: Dictionary = cut["parts"]
+		var off := {}
+		var names: Array = parts.keys()
+		for k in names.size():
+			if mask & (1 << k):
+				var row: Array = parts[names[k]]
+				for c: Array in row[1]:
+					off[VehicleWreckLooks._index(cut, c)] = true
+		var soup := WreckCuts.Soup.new()
+		for k in cells.size():
+			if off.has(k) or cells[k] == null:
+				continue
+			var piece: WreckCuts.Soup = cells[k]
+			for j in piece.size():
+				soup.add(piece, j)
+		var frame := Basis(Vector3(0, 0, 1), -nose)
+		if soup.size() >= 3:
+			out = [WreckCuts._part(soup, {"basis": frame}, true)]
 
 
 static func _index(cut: Dictionary, c: Array) -> int:
@@ -533,74 +700,103 @@ static func _index(cut: Dictionary, c: Array) -> int:
 
 ## The model of `kind` cut in its grid (cells in its own frame, turned by
 ## `nose` in the model's), once; and its loose parts put as "m:<name>|vw".
+## Pre-cut on a worker when the level loads (precut()); cut here if a wreck
+## comes first.
 static func _cut(kind: String, name: String, nose: float) -> Array:
 	var known: Variant = _cells.get(kind)
 	if known != null:
 		var kept: Array = known
 		return kept
 	var soup := WreckCuts._model(name)
+	soup.measure()
+	var job := CutJob.new()
+	job.kind = kind
+	job.soup = soup
+	job.nose = nose
+	job.run()
+	_finish(job, name)
+	return job.cells
+
+
+## Keeps a finished cut (on the main thread: the static tables and WreckCuts).
+static func _finish(job: CutJob, name: String) -> void:
+	_cells[job.kind] = job.cells
+	WreckCuts.put("m:%s|vw" % name, job.loose)
+	cut_ms = job.ms
+
+
+## A kind's model cut in its grid: reads only its soup (measured before), so a
+## worker thread may run it.
+class CutJob:
+	var kind := ""
+	var soup: WreckCuts.Soup
+	var nose := 0.0
 	var cells: Array = []
-	if soup.size() < 3:
-		_cells[kind] = cells
-		return cells
-	var cut: Dictionary = CUTS[kind]
-	# The model's box in its own frame (x along its heading).
-	var own := Basis(Vector3(0, 0, 1), nose)
-	var lo := Vector3(INF, INF, INF)
-	var hi := -lo
-	for q: Vector3 in soup.p:
-		var l := own * q
-		lo = Vector3(minf(lo.x, l.x), minf(lo.y, l.y), minf(lo.z, l.z))
-		hi = Vector3(maxf(hi.x, l.x), maxf(hi.y, l.y), maxf(hi.z, l.z))
-	var back := own.transposed()
-	var group := PackedInt32Array()
-	group.resize(soup.size() / 3)
-	var xs: Array = cut["x"]
-	var ys: Array = cut["y"]
-	var zs: Array = cut["z"]
-	for ix in xs.size() - 1:
-		for iy in ys.size() - 1:
-			for iz in zs.size() - 1:
-				var planes: Array = []
-				var at := [ix, iy, iz]
-				var splits := [xs, ys, zs]
-				for axis in 3:
-					var list: Array = splits[axis]
-					var k: int = at[axis]
-					var from: float = list[k]
-					var to: float = list[k + 1]
-					var a := lo[axis] + (hi[axis] - lo[axis]) * from
-					var b := lo[axis] + (hi[axis] - lo[axis]) * to
-					if k == 0:
-						a -= 1.0
-					if k == list.size() - 2:
-						b += 1.0
-					var n := Vector3.ZERO
-					n[axis] = 1.0
-					planes.append([back * n, b])
-					planes.append([back * -n, -a])
-				var piece := WreckCuts._clip_cell(soup, group, {"group": 0, "planes": planes})
-				cells.append(piece if piece.size() >= 3 else null)
-	_cells[kind] = cells
-	# The loose parts, each its cells together, boxed in its own frame.
-	var parts: Dictionary = cut["parts"]
 	var loose: Array = []
-	for label: String in parts:
-		var row: Array = parts[label]
-		var joined := WreckCuts.Soup.new()
-		for c: Array in row[1]:
-			var piece: Variant = cells[_index(cut, c)]
-			if piece == null:
-				continue
-			var cell: WreckCuts.Soup = piece
-			for j in cell.size():
-				joined.add(cell, j)
-		if joined.size() < 3:
-			joined = WreckCuts.Soup.new()
-			for j in 3:
-				joined.p.append(Vector3(j * .01, 0, 0))
-				joined.n.append(Vector3.UP)
-				joined.uv.append(Vector2.ZERO)
-		loose.append(WreckCuts._part(joined, {"basis": back}, true))
-	WreckCuts.put("m:%s|vw" % name, loose)
-	return cells
+	var ms := 0.0
+	var task := -1
+
+	func run() -> void:
+		var started := Time.get_ticks_usec()
+		if soup.size() >= 3:
+			_grid()
+		ms = (Time.get_ticks_usec() - started) / 1000.0
+
+	func _grid() -> void:
+		var cut: Dictionary = CUTS[kind]
+		# The model's box in its own frame (x along its heading).
+		var own := Basis(Vector3(0, 0, 1), nose)
+		var lo := Vector3(INF, INF, INF)
+		var hi := -lo
+		for q: Vector3 in soup.p:
+			var l := own * q
+			lo = Vector3(minf(lo.x, l.x), minf(lo.y, l.y), minf(lo.z, l.z))
+			hi = Vector3(maxf(hi.x, l.x), maxf(hi.y, l.y), maxf(hi.z, l.z))
+		var back := own.transposed()
+		var group := PackedInt32Array()
+		group.resize(soup.size() / 3)
+		var xs: Array = cut["x"]
+		var ys: Array = cut["y"]
+		var zs: Array = cut["z"]
+		for ix in xs.size() - 1:
+			for iy in ys.size() - 1:
+				for iz in zs.size() - 1:
+					var planes: Array = []
+					var at := [ix, iy, iz]
+					var splits := [xs, ys, zs]
+					for axis in 3:
+						var list: Array = splits[axis]
+						var k: int = at[axis]
+						var from: float = list[k]
+						var to: float = list[k + 1]
+						var a := lo[axis] + (hi[axis] - lo[axis]) * from
+						var b := lo[axis] + (hi[axis] - lo[axis]) * to
+						if k == 0:
+							a -= 1.0
+						if k == list.size() - 2:
+							b += 1.0
+						var n := Vector3.ZERO
+						n[axis] = 1.0
+						planes.append([back * n, b])
+						planes.append([back * -n, -a])
+					var piece := WreckCuts._clip_cell(soup, group, {"group": 0, "planes": planes})
+					cells.append(piece if piece.size() >= 3 else null)
+		# The loose parts, each its cells together, boxed in its own frame.
+		var parts: Dictionary = cut["parts"]
+		for label: String in parts:
+			var row: Array = parts[label]
+			var joined := WreckCuts.Soup.new()
+			for c: Array in row[1]:
+				var piece: Variant = cells[VehicleWreckLooks._index(cut, c)]
+				if piece == null:
+					continue
+				var cell: WreckCuts.Soup = piece
+				for j in cell.size():
+					joined.add(cell, j)
+			if joined.size() < 3:
+				joined = WreckCuts.Soup.new()
+				for j in 3:
+					joined.p.append(Vector3(j * .01, 0, 0))
+					joined.n.append(Vector3.UP)
+					joined.uv.append(Vector2.ZERO)
+			loose.append(WreckCuts._part(joined, {"basis": back}, true))

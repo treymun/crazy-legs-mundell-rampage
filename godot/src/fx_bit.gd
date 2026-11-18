@@ -22,8 +22,12 @@ var trail := 0.0
 ## Its age when it came to rest (the 3D view settles it onto a face).
 var landed := -1.0
 ## A scrap's own picture set (fx_scrap_<it>_N, fx_chunk_N when ""), a smoke
-## puff's (soot, soothot, powder, dirtpuff): drawn by gun_fx.sprites().
+## puff's (billow, billowhot, billowpowder, soot, dirtpuff, smoke): drawn by
+## gun_fx.sprites().
 var look := ""
+## Which of a picture set's shapes it is (a billow's), and mirrored.
+var shape := 0
+var flip := false
 ## Which way a column's puff drifts out as it rises (a mushroom's cap), cells
 ## a second.
 var spread := Vector2.ZERO

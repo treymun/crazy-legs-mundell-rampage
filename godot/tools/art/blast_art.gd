@@ -4,8 +4,10 @@
 ##   fx_boom_<r><v>_<f>   a fireball, 12 frames: ramp d (dynamite, powder,
 ##                        propane: yellow-white) or f (fuel: deep orange going
 ##                        to oily black), three shapes v (their own lobes)
-##   fx_soothot_N (3)     a lump of the column's soot lit orange from under
-##   fx_powder_N (4)      a keg's black-powder smoke: thick, grey-white
+##   fx_billow_<v>_N, fx_billowhot_<v>_N, fx_billowpowder_<v>_N (3 x 4)
+##                        the column's billows: lumps lit on top, a darker
+##                        core, lighter lumpy edges (hot: lit orange from under;
+##                        powder: a keg's grey-white)
 ##   fx_dirtpuff_N (4)    the dirt a blast throws out along the ground
 ##   fx_scrap_<k>_N (4)   flung scraps, four turns: metal (a torn sheet), meat
 ##   fx_geyser_N (5)      the water a blast in water throws up
@@ -238,16 +240,6 @@ static func lump(
 	return s
 
 
-static func soot_hot(frame: int) -> Paint.Sheet:
-	return lump(32, 211, frame, SOOT, .7 - frame * .22, .96)
-
-
-static func powder(frame: int) -> Paint.Sheet:
-	var s := lump(40, 377, frame, POWDER, 0.0, .94)
-	rim(s, POWDER[0])
-	return s
-
-
 static func dirt_puff(frame: int) -> Paint.Sheet:
 	var s := lump(32, 433, frame, DIRT, 0.0, 1.0)
 	if frame < 2:
@@ -399,3 +391,67 @@ static func crater(k: int) -> Paint.Sheet:
 		if rng.randf() < .4:
 			s.put(px + 1, py, col)
 	return s
+
+
+## A billow of smoke, shape `v`, age `frame` 0..3: a cauliflower of lumps,
+## each lit on its top, darker in the core where they pile up, lighter and
+## lumpy at the edges; `under` lights the bottoms of the lumps orange (young
+## smoke over the fire). Old smoke opens holes and thins. No outline.
+static func billow(n: int, v: int, frame: int, tones: Array, under: float) -> Paint.Sheet:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7301 + v * 97 + frame * 11
+	var grow := 1.0 + frame * .1
+	var blobs: Array = [[0.0, .08, .42 * grow]]
+	for k in 7 + v:
+		var at := -PI / 2.0 + rng.randf_range(-1.9, 1.9) if k < 5 else rng.randf_range(-PI, PI)
+		var d := rng.randf_range(.26, .48) * grow
+		blobs.append([cos(at) * d, sin(at) * d * .85 + .05, rng.randf_range(.16, .3) * grow])
+	var grain := Paint.cloud(n, 911 + v * 31 + frame * 7, [4, 8, 16])
+	var s := Paint.Sheet.new(n, n)
+	var c := (n - 1) / 2.0
+	for y in n:
+		for x in n:
+			var dx := (x - c) / (n / 2.0)
+			var dy := (y - c) / (n / 2.0)
+			var inside := 0.0
+			var lit := 0.0
+			var bottom := 0.0
+			var core := 0.0
+			for k in blobs.size():
+				var b: Array = blobs[k]
+				var ex := (dx - float(b[0])) / float(b[2])
+				var ey := (dy - float(b[1])) / float(b[2])
+				var into := 1.0 - (ex * ex + ey * ey)
+				if k == 0:
+					core = into
+				if into > inside:
+					inside = into
+					lit = -ex * .45 - ey * .85
+					bottom = ey
+			if inside <= 0.0:
+				continue
+			var i := y * n + x
+			if frame >= 2 and grain[i] < (frame - 1) * .14 * (1.0 - inside):
+				continue
+			var depth := clampf(core, 0.0, 1.0)
+			var shade := .52 - depth * .26 + lit * .24 + (grain[i] - .5) * .25 + frame * .05
+			if inside < .14:
+				shade += .14
+			var col := step(tones, shade)
+			if under > 0.0 and bottom > .35 and grain[i] + bottom * .5 > 1.15 - under:
+				col = step(BOOM, .1 + bottom * .35 * under + grain[i] * .2)
+			col.a = 1.0 if frame < 3 else .84
+			s.put(x, y, col)
+	return s
+
+
+static func soot_billow(v: int, frame: int) -> Paint.Sheet:
+	return billow(40, v, frame, SOOT, 0.0)
+
+
+static func hot_billow(v: int, frame: int) -> Paint.Sheet:
+	return billow(40, v + 3, frame, SOOT, .75 - frame * .25)
+
+
+static func powder_billow(v: int, frame: int) -> Paint.Sheet:
+	return billow(40, v + 6, frame, POWDER, 0.0)

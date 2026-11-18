@@ -19,6 +19,8 @@ const PATH := "res://data/tuning/blast_looks.cfg"
 ## Fireball frames (fx_boom_<fire><shape>_N) and shapes.
 const FRAMES := 12
 const SHAPES := 3
+## The fireball frames drawn (its fire; the soot after is the column's).
+const SHOWN := 8
 ## Craters kept at most (the oldest fade first) and how long one stays.
 const CRATERS := 16
 const CRATERS_LOW := 8
@@ -265,7 +267,7 @@ func _burst(x: float, y: float, z: float, l: Dictionary, where: Dictionary, shar
 		var dir := Vector2.from_angle(dice.randf_range(0, TAU))
 		var v := Vector3(dir.x, dir.y, 0.0) * dice.randf_range(3.0, 8.0)
 		v.z = dice.randf_range(1.0, 6.0)
-		_bit("spark", at, v, dice.randf_range(.25, .6), .03, 6.0)
+		_bit("spark", at, v, dice.randf_range(.2, .45), .03, 6.0)
 	for _k in _count(l, "embers", share):
 		var dir := Vector2.from_angle(dice.randf_range(0, TAU))
 		var ember := _bit(
@@ -289,50 +291,72 @@ func _burst(x: float, y: float, z: float, l: Dictionary, where: Dictionary, shar
 			var v := Vector3(dir.x, dir.y, 0.0) * dice.randf_range(.4, 1.6)
 			v.z = dice.randf_range(3.0, 5.5)
 			_bit("drop", Vector3(x, y, floor_z + .1), v, 1.2, .035, 9.0)
+	for _k in _count(l, "glass", share):
+		var dir := Vector2.from_angle(dice.randf_range(0, TAU))
+		var v := Vector3(dir.x, dir.y, 0.0) * dice.randf_range(.8, 2.6)
+		v.z = dice.randf_range(1.0, 3.0)
+		_bit("glint", at, v, dice.randf_range(1.4, 2.6), .028, 9.0)
 	var crater: float = l["crater"]
 	if low and not wet and crater > 0.0:
 		_crater(x, y, z, floor_z, crater * dice.randf_range(.8, 1.2), deck)
 	_cap()
 
 
-## The column: soot (or powder, or steam over water) rolling up off the
-## fire, leaning on its own and with the wind; `cap` more go higher and
-## spread out at its top, a mushroom.
+## The column: billows of soot (a keg's grey-white powder smoke, steam over
+## water) rolling up off the fire one after another, overlapping, each
+## rising, slowing, growing and drifting on the wind, leaning its own way;
+## three big ones take over from the fireball as it goes to smoke, and `cap`
+## more go highest and spread out at the top, a mushroom. Young ones are lit
+## orange from under while the fire is beneath them.
 func _column(at: Vector3, l: Dictionary, count: int, cap: int, wet: bool) -> void:
 	var rise: float = l["rise"]
-	var smoke := "powder" if wet else str(l["smoke"])
-	var lean := Vector2.from_angle(dice.randf_range(0, TAU)) * dice.randf_range(.05, .25)
 	var ball: float = l["ball"]
+	var life: float = l["life"]
+	var powder := wet or str(l["smoke"]) == "powder"
+	var look_name := "billowpowder" if powder else "billowhot"
+	var lean := Vector2.from_angle(dice.randf_range(0, TAU)) * dice.randf_range(.05, .3)
 	for k in count:
 		var puff := _bit(
 			"soot",
-			(
-				at
-				+ (
-					Vector3(dice.randf_range(-.3, .3), dice.randf_range(-.3, .3), .15 + k * .12)
-					* ball
-				)
-			),
-			Vector3(lean.x, lean.y, dice.randf_range(.6, 1.1) * rise * (1.0 + k * .08)),
-			dice.randf_range(3.2, 4.8),
-			(.6 + k * .06) * ball
+			at + Vector3(dice.randf_range(-.25, .25), dice.randf_range(-.25, .25), .1) * ball,
+			Vector3(lean.x, lean.y, dice.randf_range(1.2, 1.7) * rise),
+			dice.randf_range(3.4, 5.0),
+			dice.randf_range(.45, .7) * ball
 		)
-		puff.age = -.25 - k * .07
-		puff.grow = .55
-		puff.look = smoke if smoke == "powder" else "soothot"
+		puff.age = -.15 - k * dice.randf_range(.07, .12)
+		puff.grow = dice.randf_range(.4, .65)
+		_billow(puff, look_name)
+	# The fireball's own smoke: big, dark, where it was, as it goes over.
+	for k in 2:
+		var puff := _bit(
+			"soot",
+			at + Vector3(dice.randf_range(-.3, .3), dice.randf_range(-.3, .3), .3 + k * .2) * ball,
+			Vector3(lean.x, lean.y, dice.randf_range(.7, 1.0) * rise),
+			dice.randf_range(3.6, 5.0),
+			dice.randf_range(.8, 1.05) * ball
+		)
+		puff.age = -life * dice.randf_range(.42, .55)
+		puff.grow = .5
+		_billow(puff, "billowpowder" if powder else "billow")
 	for k in cap:
 		var dir := Vector2.from_angle(k * TAU / maxf(1.0, cap) + dice.randf_range(-.4, .4))
 		var puff := _bit(
 			"soot",
 			at + Vector3(0, 0, .3 * ball),
-			Vector3(lean.x, lean.y, dice.randf_range(1.5, 1.95) * rise),
-			dice.randf_range(3.6, 5.2),
-			.8 * ball
+			Vector3(lean.x, lean.y, dice.randf_range(1.8, 2.3) * rise),
+			dice.randf_range(4.0, 5.6),
+			dice.randf_range(.75, .95) * ball
 		)
-		puff.age = -.35 - dice.randf_range(0.0, .15)
+		puff.age = -.4 - dice.randf_range(0.0, .3)
 		puff.grow = .7
-		puff.look = smoke if smoke == "powder" else "soothot"
+		_billow(puff, look_name)
 		puff.spread = dir * dice.randf_range(.45, .8) * ball
+
+
+func _billow(puff: Bit, look_name: String) -> void:
+	puff.look = look_name
+	puff.shape = dice.randi_range(0, 2)
+	puff.flip = dice.randf() < .5
 
 
 ## A crater with soot streaks thrown out (a scorch only off a deck: the

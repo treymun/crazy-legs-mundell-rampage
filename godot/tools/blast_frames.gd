@@ -75,6 +75,13 @@ func _run() -> void:
 			await _wreck(kind, str(RIDES[kind]))
 	if _wanted("hurt_car"):
 		await _hurt_car()
+	for kind: String in ["tnt", "fuel"]:
+		if _wanted("arc_" + kind):
+			await _arc(kind)
+	if _wanted("wreck_side"):
+		await _wreck_row("wreck_side", -PI / 2.0, 0.0)
+	if _wanted("wreck_front"):
+		await _wreck_row("wreck_front", 0.0, PI / 2.0)
 	print("blast frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -239,8 +246,67 @@ func _yard_blast(kind: String) -> void:
 	_stand(g, at.x, at.y, boom.x, boom.y, floor_z + .9)
 	_arm(g, Weapons.REVOLVER)
 	_ticks(g, 20)
-	_boom(g, boom, floor_z + .15, kind)
+	if kind == "shine_cocktail":
+		# The 5v5 throwable's burst (its fire patch is play, on those maps only).
+		g.features["gun_fx"].call("firebomb", boom.x, boom.y, floor_z + .1)
+	else:
+		_boom(g, boom, floor_z + .15, kind)
 	await _row(g, kind)
+
+
+## A blast's first half second, a frame every 3 ticks (the fireball's arc).
+func _arc(kind: String) -> void:
+	var g := _level("hickston")
+	var spot := _yard(g, 5.5)
+	if spot.is_empty():
+		return
+	var at: Vector2 = spot[0]
+	var boom: Vector2 = spot[1]
+	var floor_z := g.world.elevation(boom.x, boom.y)
+	_stand(g, at.x, at.y, boom.x, boom.y, floor_z + 1.0)
+	_arm(g, Weapons.REVOLVER)
+	_ticks(g, 20)
+	_boom(g, boom, floor_z + .15, kind)
+	await _snap("arc_%s_0" % kind)
+	for k in 10:
+		_ticks(g, 3)
+		await _snap("arc_%s_%d" % [kind, (k + 1) * 3])
+
+
+## The stock car wrecked by a stick `blast_at` radians off its nose, seen
+## from `seen_from` off it: a frame every 3 ticks for its first second.
+func _wreck_row(name: String, blast_at: float, seen_from: float) -> void:
+	var g := _level("speedway")
+	var rides = g.features["vehicles"]
+	if rides.rides.is_empty():
+		return
+	var v: VehicleDrive.Ride = rides.rides[0]
+	var s := VehicleDrive.spec("car")
+	_ticks(g, 30)
+	var stand := _view_spot(g, v.x, v.y, v.z, v.h + seen_from, [5.0, 5.8, 6.6])
+	if stand == Vector2.INF:
+		return
+	_stand(g, stand.x, stand.y, v.x, v.y, v.z + .5)
+	# The car a little left of the middle, clear of the gun.
+	g.player.angle += .14
+	g.player.floor_z = g.world.floor_under(stand.x, stand.y, v.z + 1.5)
+	g.player.eye = g.player.floor_z + .95
+	_arm(g, Weapons.REVOLVER)
+	_ticks(g, 4)
+	v.hp = 40.0
+	var reach := (s.length if absf(blast_at) < .1 else s.width) * .5 + .5
+	var b := Vector2(v.x, v.y) + Vector2.from_angle(v.h + blast_at) * reach
+	_boom(g, b, v.z + .3, "tnt")
+	await _snap("%s_0" % name)
+	var done := 0
+	for k in 20:
+		_ticks(g, 3)
+		done += 3
+		await _snap("%s_%d" % [name, done])
+	for k in [120, 300]:
+		_ticks(g, int(k) - done)
+		done = int(k)
+		await _snap("%s_%d" % [name, done])
 
 
 ## A breakable struck until it goes up, seen from five paces.

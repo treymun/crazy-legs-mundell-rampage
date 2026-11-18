@@ -245,7 +245,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | world shaders | `world.gdshader`, `world_glass.gdshader`, `world_body.gdshaderinc` | solid vs see-through variants of one body via `#define` |
 | light include | `view_light.gdshaderinc` | lights, fog, grade, rain, wet, water rings, relief, anim lights, mirror clip, `photo_grade`, `to_output` |
 | sky | `sky.gdshader` | the sky behind the eye's camera (`sky_at`: looking well up, past the panorama's top row, it fades into the top's mean colour, `ZENITH_FADE`, instead of smearing that row) |
-| sprites | `sprite.gdshader`, `sprite_clear.gdshader`, `sprite_body.gdshaderinc`, `SpriteLayer3D` | camera-facing MultiMesh billboards |
+| sprites | `sprite.gdshader`, `sprite_clear.gdshader`, `sprite_body.gdshaderinc`, `SpriteLayer3D` | camera-facing MultiMesh billboards; a translucent one (smoke, dust) takes only the brightness of its area's tint, not its hue (pass 11) |
 | marks | `mark.gdshader` | wall and ground decals |
 | rain | `rain.gdshader` | three camera-hung layers |
 | slabs | `SlabLayer3D`, `SlabModels`, `slab.gdshader` | pickups, loose things (brass, gibs, bits) and range targets as pixel slabs (MultiMesh per mesh) |
