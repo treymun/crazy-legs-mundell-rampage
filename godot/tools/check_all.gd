@@ -24,6 +24,7 @@ extends SceneTree
 const CHECKS := [
 	["check_shader", "SHADER OK"],
 	["view3d_check", "VIEW3D CHECK OK"],
+	["view_perf_check", "VIEW PERF CHECK OK"],
 	["actor_check", "ACTOR CHECK OK"],
 	["verify_assets", "ASSETS OK"],
 	["voice_check", "VOICE CHECK OK"],
@@ -86,6 +87,7 @@ const ALONE := ["net_lag"]
 const QUICK := [
 	"check_shader",
 	"view3d_check",
+	"view_perf_check",
 	"actor_check",
 	"verify_assets",
 	"voice_check",
@@ -158,6 +160,7 @@ const CI_SECONDS := {
 	"hound_check": 25,
 	"hound_walk_check": 100,
 	"actor_check": 20,
+	"view_perf_check": 15,
 	"bench_check": 12,
 	"gun_art_check": 6,
 	"events_check": 60,

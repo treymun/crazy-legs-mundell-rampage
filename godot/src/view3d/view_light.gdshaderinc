@@ -3,84 +3,96 @@
 // frame's lights with relief and pools, the level's grade and fog, the rain's
 // wet sheen, the lightning). Points are in MAP terms: (x east, y south, z up),
 // which is Godot's (x, z, y). Colours are 0-255.
+//
+// The frame's numbers are global uniforms (project.godot [shader_globals],
+// set once a frame by world_view.gd _share) and its lists rows of view_data
+// (view_row), so no material changes from one frame to the next: handing
+// each of the view's ~80 materials the frame's numbers cost more than 0.5 ms
+// a frame (pass 10). A material's own numbers stay plain uniforms.
 
-uniform bool effects_on = false;
-uniform vec3 eye = vec3(0.0);
-uniform int light_count = 0;
-uniform vec4 light_pos[16];
-uniform vec4 light_col[16];
-uniform int light_flags[16];
+global uniform bool effects_on;
+global uniform vec3 eye;
+global uniform int light_count;
+// The frame's lists (world_view.gd _rows), a row each of up to 16 texels of
+// RGBA32F: the lights' places and reaches, colours and strengths, flags (low
+// and high 16 bits), the wading rings, the moving tiles, SHADOWS' pairs and
+// blobs, the flowing floors (x, y their tiles, z, w their shifts).
+uniform sampler2D view_data : filter_nearest, repeat_disable;
+const int ROW_LIGHT_POS = 0;
+const int ROW_LIGHT_COL = 1;
+const int ROW_LIGHT_FLAGS = 2;
+const int ROW_RINGS = 3;
+const int ROW_ANIMS = 4;
+const int ROW_SHADOW_A = 5;
+const int ROW_SHADOW_B = 6;
+const int ROW_BLOBS = 7;
+const int ROW_FLOW = 8;
 // A blackout (features/county_events.gd): the share of the light gone, before
 // the lights (a flashlight's beam, a lantern) add theirs.
-uniform float blackout = 0.0;
+global uniform float blackout;
 // The moon's rim (world_view.gd _moon_rim): in the night chapter and a
 // blackout, what stands in the dark (the enemies' silhouette edges, a
 // pickup's outline) catches the sky's cool light, rgb its colour, a how
 // strong (0: none). Added past the fog's share, never darkened by a blackout.
-uniform vec4 moon_rim = vec4(0.0);
-uniform vec3 fog_color = vec3(0.0);
-uniform vec3 fog_range = vec3(1000.0, 2000.0, 0.0);
-uniform vec3 grade = vec3(1.0);
-uniform float lightning = 0.0;
-uniform vec2 flash_dir = vec2(0.6, -0.8);
-uniform float rain = 0.0;
-uniform float wet = 0.0;
+global uniform vec4 moon_rim;
+global uniform vec3 fog_color;
+global uniform vec3 fog_range;
+global uniform vec3 grade;
+global uniform float lightning;
+global uniform vec2 flash_dir;
+global uniform float rain;
+global uniform float wet;
 // The puddles' water (0 to 1: more and bigger the longer it rains) and the
 // wind (features/climate.gd): xy the way it blows (cells a second), z how
 // hard it gusts (1 calm).
-uniform float pool = 0.0;
-uniform vec3 wind_now = vec3(0.0, 0.0, 1.0);
-uniform float fog_banks = 0.0;
-uniform float motion = 1.0;
-uniform float anim_time = 0.0;
-uniform int anim_count = 0;
-uniform vec4 anims[8];
+global uniform float pool;
+global uniform vec3 wind_now;
+global uniform float fog_banks;
+global uniform float motion;
+global uniform float anim_time;
+global uniform int anim_count;
 // The cells: r the area's tint index (unused here), g 255 under the open sky.
 uniform sampler2D cells_tex : filter_nearest, repeat_disable;
-uniform ivec2 map_size = ivec2(1);
+global uniform ivec2 map_size;
 // One texel a tile: r water, g relief (signed, 128 flat), b puddles.
 uniform sampler2D tile_info_tex : filter_nearest, repeat_disable;
 // The mirror (one level's washroom): its line x = mirror_x. The camera that
 // draws the reflection (world_view.gd) sees the layer MIRROR_LAYER, and in
 // its pass nothing on the far side of the mirror, nor the mirror, is drawn.
-uniform bool mirror_on = false;
-uniform float mirror_x = 0.0;
+global uniform bool mirror_on;
+global uniform float mirror_x;
 const uint MIRROR_LAYER = 524288u;
 // The sky (sky_at) and what it needs of the camera: the view's size, the
 // focal length and the horizon row (view pixels), the view angle.
 uniform sampler2D sky_tex : filter_nearest, repeat_disable;
-uniform float view_angle = 0.0;
-uniform float horizon = 78.0;
-uniform float focal = 230.0;
-uniform vec2 view_size = vec2(320.0, 156.0);
-uniform float res_up = 1.0;
-uniform float sky_drift = 0.0;
+global uniform float view_angle;
+global uniform float horizon;
+global uniform float focal;
+global uniform vec2 view_size;
+global uniform float res_up;
+global uniform float sky_drift;
 // The rings bodies leave wading (features/water.gd): x, y, age, size.
-uniform int ring_count = 0;
-uniform vec4 rings[16];
+global uniform int ring_count;
 // The Crossroads' water tower shadow and runoff (render_state.gd hub_fx).
-uniform bool hub_fx = false;
-uniform int hub_runoff = -1;
-uniform int hub_patch = -1;
-uniform int hub_wall = -1;
-uniform bool shadow_still = false;
-uniform float shadow_gust = 0.0;
-uniform float shadow_lx = 1.15;
-uniform float shadow_ly = 0.73;
-uniform float water_drift = 0.0;
+global uniform bool hub_fx;
+global uniform int hub_runoff;
+global uniform int hub_patch;
+global uniform int hub_wall;
+global uniform bool shadow_still;
+global uniform float shadow_gust;
+global uniform float shadow_lx;
+global uniform float shadow_ly;
+global uniform float water_drift;
 // County Run's storm front (world_view.gd _storm): the ring's middle (xy), its
 // radius (z) and how hard it blows (w; 0: no storm). Outside it the world is
 // dimmer, and the eye's line fogs for as far as it runs through the storm.
-uniform vec4 storm_ring = vec4(0.0);
+global uniform vec4 storm_ring;
 // SHADOWS (view_shadows.gd): what the strong lights throw on the level's
 // floors and walls. Each pair is one body's segment from a (xyz) to b (xyz),
 // a.w its radius, b.w the light (an index into light_pos) it stands in. Each
 // blob is the sky's soft shadow under a body: x, y, the floor's z, radius.
 uniform int shadow_count = 0;
-uniform vec4 shadow_a[16];
-uniform vec4 shadow_b[16];
 uniform int blob_count = 0;
-uniform vec4 blobs[12];
 
 const float RELIEF_FAR = 10.0;
 const float RELIEF_K = 1.5;
@@ -89,6 +101,15 @@ const float POOL_REACH = 0.36;
 // Sky rows over which the panorama's top fades into its zenith (sky_at).
 const float ZENITH_FADE = 10.0;
 const vec3 SKY_LIGHT = vec3(-0.33, -0.42, 0.85);
+
+vec4 view_row(int row, int i) {
+	return texelFetch(view_data, ivec2(i, row), 0);
+}
+
+int light_flag(int i) {
+	vec4 f = view_row(ROW_LIGHT_FLAGS, i);
+	return int(f.x) | (int(f.y) << 16);
+}
 
 float hash12(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -147,7 +168,7 @@ vec3 sky_at(int column, float sy) {
 float wading_rings(vec2 at) {
 	float glint = 0.0;
 	for (int i = 0; i < ring_count; i++) {
-		vec4 r = rings[i];
+		vec4 r = view_row(ROW_RINGS, i);
 		float d = distance(at, r.xy);
 		float size = sqrt(r.w);
 		float radius = (0.06 + r.z * 0.62) * size;
@@ -295,7 +316,7 @@ float stepped_light(float light, float t) {
 // How lit a moving tile is this moment (1 for a tile that does not move).
 float anim_light(int tile) {
 	for (int i = 0; i < anim_count; i++) {
-		vec4 a = anims[i];
+		vec4 a = view_row(ROW_ANIMS, i);
 		if (int(a.x + 0.5) != tile) {
 			continue;
 		}
@@ -364,7 +385,7 @@ float blob_shadow(vec3 p, vec3 nf) {
 	float th = shadow_dither(q, nf);
 	float dark = 0.0;
 	for (int k = 0; k < blob_count; k++) {
-		vec4 b = blobs[k];
+		vec4 b = view_row(ROW_BLOBS, k);
 		if (abs(p.z - b.z) > 0.25) {
 			continue;
 		}
@@ -413,21 +434,22 @@ vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view, in
 		vec3 q = shadow_block(p, nf);
 		float th = shadow_dither(q, nf);
 		for (int k = 0; k < shadow_count; k++) {
-			int li = int(shadow_b[k].w + 0.5);
-			vec4 at = light_pos[li];
+			vec4 sb = view_row(ROW_SHADOW_B, k);
+			int li = int(sb.w + 0.5);
+			vec4 at = view_row(ROW_LIGHT_POS, li);
 			float near = 1.0 - distance(at.xyz, q) / at.w;
 			if (li >= light_count || near <= 0.0) {
 				continue;
 			}
-			if (shadow_cover(q, at.xyz, shadow_a[k], shadow_b[k].xyz) > th) {
+			if (shadow_cover(q, at.xyz, view_row(ROW_SHADOW_A, k), sb.xyz) > th) {
 				shade[li] = SHADOW_LEFT;
-				dim = min(dim, 1.0 - SHADOW_DIM * clamp(light_col[li].a * 1.6, 0.0, 1.0) * sqrt(near));
+				dim = min(dim, 1.0 - SHADOW_DIM * clamp(view_row(ROW_LIGHT_COL, li).a * 1.6, 0.0, 1.0) * sqrt(near));
 			}
 		}
 	}
 	vec3 sum = vec3(0.0);
 	for (int i = 0; i < light_count; i++) {
-		vec4 at = light_pos[i];
+		vec4 at = view_row(ROW_LIGHT_POS, i);
 		vec3 d = at.xyz - p;
 		float dist = length(d);
 		float reach = clamp(1.0 - dist / at.w, 0.0, 1.0);
@@ -437,7 +459,7 @@ vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view, in
 		vec3 l = d / max(dist, 0.001);
 		float fall = reach * reach;
 		float shine = reach;
-		int fl = light_flags[i];
+		int fl = light_flag(i);
 		if ((fl & 2) != 0) {
 			// A spot (a flashlight): its way and cone packed in its flags
 			// (event_dark.gd spot_flags). A hot middle, a ring, a soft edge,
@@ -458,11 +480,12 @@ vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view, in
 		if (gloss > 0.0) {
 			k += gloss * shine * pow(max(dot(nb, normalize(l + view)), 0.0), 24.0) * 2.2;
 		}
-		if (ground && (light_flags[i] & 1) != 0) {
+		if (ground && (fl & 1) != 0) {
 			float q = clamp(1.0 - length(d.xy) / (at.w * POOL_REACH), 0.0, 1.0);
 			k += floor(q * 3.0 + 0.999) / 3.0 * 0.85;
 		}
-		sum += light_col[i].rgb * light_col[i].a * k * (shadowed ? shade[i] : 1.0);
+		vec4 col = view_row(ROW_LIGHT_COL, i);
+		sum += col.rgb * col.a * k * (shadowed ? shade[i] : 1.0);
 	}
 	return sum + vec3(dim - 1.0);
 }
