@@ -441,6 +441,10 @@ func frame(game: Game) -> void:
 	# the view's middle still looks where the crosshair aims.
 	var wide: float = eye.get("wide", 1.0)
 	_place_camera(x, y, z, angle, horizon, r.focal, vh, wide)
+	var roll: float = eye.get("roll", 0.0)
+	if roll != 0.0:
+		# A chapter opener's camera leans into its turns (opener_camera.gd).
+		camera.transform.basis = camera.transform.basis * Basis(Vector3(0, 0, 1), -roll)
 	var mirror := not is_nan(level.mirror_x)
 	_mirror(mirror, level, x, y, z, angle, horizon, r.focal, Vector2i(vw, vh))
 	# Sprites whose picture has a mesh are stood up as props, enemies with a

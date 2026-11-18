@@ -233,11 +233,14 @@ func tile(name: String) -> int:
 ## (its baked looks) or boss_<kind>_... (its lines). One rule for every
 ## asset, so a new one finds its home without a list (tools/pack_check.gd
 ## holds the levels and the code to it). A chapter's opener (src/opener.gd)
-## keeps its lines and sting there too: narr_<chapter>_..., sting_open_<chapter>,
-## and so does its ambience (CHAPTER_AMBIENCE).
+## keeps its lines, sting and own sounds there too: narr_<chapter>_...,
+## sting_open_<chapter>, opener_<chapter>_..., and so does its ambience
+## (CHAPTER_AMBIENCE).
 static func chapter_of(name: String) -> String:
 	for level_id: String in CHAPTER_KINDS:
 		if name.begins_with("narr_%s_" % level_id) or name == "sting_open_" + level_id:
+			return level_id
+		if name.begins_with("opener_%s_" % level_id):
 			return level_id
 		var bed := "amb_%s" % CHAPTER_AMBIENCE.get(level_id, "-")
 		if name == bed or name.begins_with(bed + "_"):

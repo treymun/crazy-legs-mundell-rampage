@@ -76,7 +76,8 @@ godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST R
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/warm_check.gd      # WARM CHECK OK (the view's warm-up)
 godot --headless --path godot --script res://tools/opener_check.gd     # OPENER CHECK OK (the chapter openers)
-godot --path godot --audio-driver Dummy --resolution 1280x800 -- --opener=<chapter> [--opener-out=<dir>]   # a chapter's opener (its key frames saved)
+godot --headless --path godot --script res://tools/opener_camera_check.gd [-- report]   # OPENER CAMERA OK (the openers' camera)
+godot --path godot --audio-driver Dummy --resolution 1280x800 -- --opener=<chapter> [--opener-out=<dir> [--opener-strip=<n>]]   # a chapter's opener (its key frames, or n frames of its flight, saved)
 godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls, shadows, marks on props, storm wall)
 godot --headless --path godot --script res://tools/tune_check.gd       # TUNE CHECK OK (the console's tune set/get/reload/save, every overlay drawn headless, play unchanged)
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)

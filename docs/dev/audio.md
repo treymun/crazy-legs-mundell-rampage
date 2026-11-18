@@ -198,6 +198,62 @@ teaser reuses each boss's growl (`<kind>_rage`), entrance sting and a line
 of its own. About 2,280 credits at the ledger's expected rates (voice design
 537, lines 833, stings 712, transcripts 192). Not listened to.
 
+### The openers' sound (pass 10)
+
+The owner: the openers were "silent half the time". Measured on v3.7.0 (each
+opener rendered offline from its schedule at the default levels): 1.9 to
+3.65 s of dead air an opener (momentary loudness under -45 LUFS; longest 3.15
+s, the fair), and 5.4 to 8.0 s with no music at all (the 8 s sting gone by 7
+s, nothing till the boss's sting); the storyteller sat only 2 to 7 LU over
+the sting under his first line.
+
+- **The bed** (`src/opener_mix.gd`, numbers in openers.json `mix`): the
+  chapter's own song (the first of its score's tracks, or its `song`) from
+  its top, played by the score player as the chapter's score
+  (`Sound.opener_bed`, `ScorePlayer.cue_song`), so it is thematically the
+  chapter's and hands off with no gap and no second song: at the end its
+  hold is simply 1 and it goes on into play. Its hold (`set_opener_hold`, a
+  share of MUSIC VOLUME, multiplied into `_apply_music` with the other holds)
+  follows `mix.bed`: .6 at the start, a swell to 1 as the card lands, .85
+  between, 1.2 into the boss's reveal, a dip to .35 under the boss's own sting
+  (played at `sting_gain` .6 in an opener), .7 at the landing, 1 at the end.
+  The songs' quiet intros make it an underscore under the narrator, the band
+  coming in about the reveal. The pass 8 `sting_open_<chapter>` plays only
+  when the song is not there (a browser pack still coming).
+- **Ducking**: pass 9's music duck (`_music_duck`, `_radio_levels`): under an
+  opener the music, and the boss's sting, go down to `VOICE_DUCK` .5 while
+  the voice channel speaks (down at `DUCK_DOWN` 6 a second, about a tenth of
+  a second, back at `DUCK_UP` 2.5, Dub's old rate); the room's ambience sits
+  at `OPENER_AMB` .5 of its level (and the rain at half) until the opener
+  ends, then eases up over 1.3 s.
+- **Ambience and spots**: under each shot its `amb` (else the level's own,
+  else the yard); the level's rain where it rains; each of the level's
+  distant cues once as the flight passes nearest it, placed from the camera;
+  a shot's `spots` (Hickston's far truck and a cow, the speedway's crowd and
+  a passing car, the beam's hum and the core on the Mothership, a far
+  cruiser's siren at the Revenue Man's checkpoint...); a whoosh at each cut
+  and at the landing (`opener_whoosh`, `_alt`), a low swell into the reveal
+  (`opener_reveal`, its boom on the moment), and each card landing with its
+  own hit (`opener_<chapter>_hit`, timed by its `hit_lead`). Skipped, the
+  opener's own effects stop, the duck lets go and the bed rises to play's
+  level over 0.4 s.
+- **Packs**: `opener_<chapter>_...` cues go with the chapter's pack
+  (`Assets.chapter_of`); Hickston's (its hit, the truck), the whooshes and the
+  reveal are in the first download (about 0.3 MB of effects; the bed is a song
+  already there).
+- **Made** 2026-11-17: 12 effects (two whooshes, the reveal, eight hits, the
+  truck), each first take kept; 269 credits booked at expected rates (the
+  account's counter, shared with another track generating at the same time,
+  booked 502 more at reconcile). The Mothership's hit is levelled to -8.5 dB
+  (it sat 5.6 dB over the impacts); the quarry's tin hit keeps a 2.2 dBTP
+  between-sample peak (`qa_allow`).
+- **Measured after** (same rendering): no dead air in any opener, music under
+  every moment of every one (Hickston's song opens with 0.55 s near
+  silence, under the ambience), each storyteller line 9 to 21 LU over
+  everything under it and each boss line 10 to 17 LU. Not listened to: the
+  owner should hear whether the bed's swells feel right, whether the hits
+  suit the cards, and the hand-off as play starts.
+
 ## The county radio (content pass 8)
 
 KPSM, fourteen-ninety AM, the Possum: Dub Tillery, a gravel-voiced

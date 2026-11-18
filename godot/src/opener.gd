@@ -1,9 +1,11 @@
 ## The chapter openers (PLAY setting OPENERS: FIRST TIME, ALWAYS, OFF): before
 ## a campaign chapter's first tick a short cinematic, like a 1990s cutscene:
 ## the camera flies a few authored paths over the level as it stands (its own
-## sky and weather), the title card drops in the chapter's own style with a
-## tagline, and the boss is teased in silhouette against a light, growling a
-## line; an old storyteller reads two lines over it and a music sting plays.
+## sky and weather; opener_camera.gd), the title card drops in the chapter's
+## own style with a tagline, and the boss is teased in silhouette against a
+## light, growling a line; an old storyteller reads two lines over it, and
+## the camera comes down into the player's eyes as play begins. Under it all
+## the chapter's own song, the ambience and spot sounds (opener_mix.gd).
 ## Any key, button, click or tap skips it at once.
 ##
 ## Looks only. The front end does not tick the game while it plays (as PHOTO
@@ -32,12 +34,17 @@ const BAR_LOW := 142
 ## Seconds: the fade in from black, each cut's dip, the card's drop, swing
 ## and stay, the boss's part after the last shot, the fade out at the end.
 const FADE_IN := .55
-const DIP := .16
+const DIP := .2
 const DROP := .55
 const STAY := 4.6
 const LIFT := .45
 const BOSS_FADE := .7
-const END_FADE := .45
+## The landing starts this long before the boss's line ends; over its first
+## LIGHT seconds the dark and the boss go and the bars draw back after.
+const LAND_EARLY := .15
+const LIGHT := .5
+## The boss's line after his growl (the growl mostly over, the line heard clear).
+const LINE_AFTER := .75
 ## Where the card hangs (its top) and the tagline under it.
 const CARD_Y := 30
 const GAP_TAG := 6
@@ -61,6 +68,9 @@ var pending: Game = null
 ## frames' folder.
 var forced := ""
 var shots_out := ""
+## --opener-strip=<n>: with --opener-out, n frames evenly over the flight and
+## three of the landing instead of its key moments (the frame-strip sheets).
+var strip := 0
 ## Set by the death screen's retry: the chapter starts over without one.
 var retrying := false
 ## Chapters seen (FIRST TIME), kept in SEEN_FILE; the checks point it
@@ -70,14 +80,22 @@ var seen_path := SEEN_FILE
 var tools_write := false
 var _seen_loaded := false
 ## The schedule worked out at the start: shots' start times, the card's
-## drop, the boss's part, and the sounds (time, kind, cue) not yet played.
+## drop, the boss's part, the storyteller's lines, the landing, and the sounds
+## ([time, kind, cue, volume, pan]) not yet played.
 var _starts := PackedFloat32Array()
 var _shots_end := 0.0
 var _title_at := 0.0
-var _boss_at := 0.0
-var _growl_at := 0.0
-var _line_at := 0.0
+var boss_at := 0.0
+var growl_at := 0.0
+var line_at := 0.0
+var land_at := 0.0
+var _narr: PackedFloat32Array = PackedFloat32Array()
 var _cues: Array = []
+## The camera's flight and the sound's plan.
+var camera := OpenerCamera.new()
+var mix := OpenerMix.new()
+## Whether the bed is the chapter's song (else the old sting, the score held).
+var _bed := false
 var _caption := ""
 var _caption_from := 0.0
 var _caption_until := 0.0
@@ -214,45 +232,69 @@ func begin(m: MainState, target: Game) -> void:
 	_schedule(m)
 	_make_pictures(m)
 	m.sound.pause_world()
-	m.sound.opener_music(str(entry(chapter).get("sting", "sting_open_" + chapter)))
+	_bed = m.sound.opener_bed(target.level.score, mix.song, mix.bed_at(0.0))
+	if not _bed:
+		# The chapter's song is not here (a browser pack still coming): the
+		# pass 8 sting, the score held till the end.
+		mix.song = ""
+		m.sound.opener_music(str(entry(chapter).get("sting", "sting_open_" + chapter)))
 
 
-## The schedule from the shots and the lines' own lengths.
+## The schedule from the shots and the lines' own lengths, the camera's
+## flight and the sound's plan.
 func _schedule(m: MainState) -> void:
 	var e := entry(chapter)
+	camera.build(shots_of(chapter), game.world, game.props, m.art)
 	_starts = PackedFloat32Array()
-	var t := 0.0
-	for shot: Dictionary in shots_of(chapter):
-		_starts.append(t)
-		var secs: float = shot.get("secs", 3.0)
-		t += secs
-	_shots_end = maxf(t, 1.0)
+	for shot in camera.shots:
+		_starts.append(shot.start)
+	_shots_end = maxf(camera.shots_end, 1.0)
 	_title_at = e.get("title_at", 1.7)
 	var boss: Dictionary = e.get("boss", {})
 	var lines := lines_of(chapter)
-	_boss_at = _shots_end
-	var second := _seconds(m, "narr_%s_1" % chapter, 2.6) if lines.size() > 1 else 0.0
-	var narr_b := _boss_at + .3
-	_growl_at = narr_b + second + .05
-	_line_at = _growl_at + .5
-	var line_secs := _seconds(m, str(boss.get("line", "")), 1.8)
-	length = _line_at + line_secs + .65
-	_cues = [
-		[.55, "voice", "narr_%s_0" % chapter],
-		[_growl_at, "effect", str(boss.get("growl", ""))],
-		[_growl_at, "sting", str(boss.get("sting", ""))],
-		[_line_at, "voice", str(boss.get("line", ""))],
-	]
+	boss_at = _shots_end
+	var second := seconds(m, "narr_%s_1" % chapter, 2.6) if lines.size() > 1 else 0.0
+	_narr = PackedFloat32Array([.55])
 	if lines.size() > 1:
-		_cues.append([narr_b, "voice", "narr_%s_1" % chapter])
-	_cues.sort_custom(_sooner.bind(0))
+		_narr.append(boss_at + .3)
+	growl_at = boss_at + .3 + second + .05
+	line_at = growl_at + LINE_AFTER
+	var line_secs := seconds(m, str(boss.get("line", "")), 1.8)
+	land_at = line_at + line_secs - LAND_EARLY
+	length = land_at + OpenerCamera.LAND
+	camera.land(land_at, game.world, game.player.as_render_player())
+	mix.build(self, m)
+	_cues = mix.cues.duplicate()
 	_caption = ""
 	_boss_caption = false
 
 
-func _seconds(m: MainState, cue: String, otherwise: float) -> float:
+## A cue's length in seconds (`otherwise` when it is not in the bank).
+func seconds(m: MainState, cue: String, otherwise: float) -> float:
 	var stream := m.art.cue(cue) if cue != "" else null
 	return stream.get_length() if stream != null else otherwise
+
+
+## The schedule as opener_mix.gd reads it.
+func starts() -> PackedFloat32Array:
+	return _starts
+
+
+func title_land() -> float:
+	return _title_at + DROP
+
+
+func lines_count() -> int:
+	return _narr.size()
+
+
+func narr_at(n: int) -> float:
+	return _narr[n]
+
+
+func boss_sting() -> String:
+	var boss: Dictionary = entry(chapter).get("boss", {})
+	return str(boss.get("sting", ""))
 
 
 func _make_pictures(m: MainState) -> void:
@@ -293,8 +335,8 @@ func _make_pictures(m: MainState) -> void:
 # ------------------------------------------------------------------ playing
 
 
-## One frame: the clock runs, the sounds come in on time, and at the end
-## the game starts.
+## One frame: the clock runs, the sounds come in on time, the bed follows its
+## keys, and at the end (the camera in the player's eyes) the game starts.
 func frame(m: MainState, dt: float) -> void:
 	if not playing:
 		return
@@ -308,25 +350,38 @@ func frame(m: MainState, dt: float) -> void:
 		if when > at:
 			break
 		var cue: Array = _cues.pop_front()
-		_play(m, str(cue[1]), str(cue[2]))
+		_play(m, cue)
+	if _bed:
+		m.sound.set_opener_hold(mix.bed_at(at))
 	if at >= length:
-		stop(m)
+		stop(m, true)
 
 
-func _play(m: MainState, kind: String, cue: String) -> void:
+func _play(m: MainState, row: Array) -> void:
+	var kind := str(row[1])
+	var cue := str(row[2])
+	var volume: float = row[3]
+	var pan: float = row[4]
 	if cue == "":
 		return
 	match kind:
 		"voice":
-			var secs := m.sound.play_voice(cue, 1.0, 0.0)
+			var secs := m.sound.play_voice(cue, volume, pan)
 			_caption = _caption_for(cue)
 			_caption_from = at
 			_caption_until = at + secs + .35
 			_boss_caption = not cue.begins_with("narr_")
 		"effect":
-			m.sound.play(cue, .9)
+			m.sound.play(cue, volume, pan)
 		"sting":
-			m.sound.opener_music(cue)
+			if _bed:
+				m.sound.sting(cue, volume)
+			else:
+				m.sound.opener_music(cue)
+		"amb":
+			m.sound.set_room(cue)
+		"rain":
+			m.sound.set_bed(Sound.BED_RAIN, cue, volume)
 
 
 func _caption_for(cue: String) -> String:
@@ -338,9 +393,11 @@ func _caption_for(cue: String) -> String:
 	return '"%s"' % str(boss.get("say", ""))
 
 
-## Skipped or done: the music and voices hushed, the chapter's score let go,
-## the iris opens on play.
-func stop(m: MainState) -> void:
+## Skipped or done: the voices hushed, the bed let up to play's level (the
+## chapter's song goes on), the ambience left for play to take over. Skipped,
+## the opener's own effects stop and the iris opens on play; landed, the
+## picture is already the player's.
+func stop(m: MainState, landed := false) -> void:
 	if not playing:
 		return
 	playing = false
@@ -348,67 +405,31 @@ func stop(m: MainState) -> void:
 	if game != null:
 		game.eye_override = {}
 	m.sound.stop_voice()
+	var own := PackedStringArray()
+	if not landed:
+		for row: Array in mix.cues:
+			if str(row[1]) == "effect":
+				own.append(str(row[2]))
+	m.sound.end_opener(own)
 	m.sound.opener_music("")
 	m.mouse_rel = Vector2.ZERO
 	m.block_fire = true
-	m.screen_age = 0.0
+	m.screen_age = 1.0 if landed else 0.0
 	game = null
 
 
 # ------------------------------------------------------------------ camera
 
 
-## The camera's eye at `t`: along its shot, eased, looking at its point; after
-## the last shot it drifts on a little while the boss is shown.
+## The camera's eye at `t` (opener_camera.gd).
 func eye_at(t: float) -> Dictionary:
-	var shots := shots_of(chapter)
-	if shots.is_empty():
+	if camera.shots.is_empty():
 		var p := game.player
-		return {
-			"x": p.x,
-			"y": p.y,
-			"eye": 2.0,
-			"view_angle": p.angle,
-			"pitch": 0.0,
-			"bob": 0.0,
-			"sway": 0.0
-		}
-	var i := 0
-	for k in _starts.size():
-		if t >= _starts[k]:
-			i = k
-	var shot: Dictionary = shots[i]
-	var secs: float = shot.get("secs", 3.0)
-	var u := (t - _starts[i]) / maxf(.01, secs)
-	var eased := _ease(clampf(u, 0.0, 1.0))
-	if u > 1.0:
-		eased = 1.0 + (u - 1.0) * .18  # the boss's part: on along the last path, slowly
-	var from := _v3(shot.get("from", [0, 0, 2]))
-	var to := _v3(shot.get("to", shot.get("from", [0, 0, 2])))
-	var look_a := _v3(shot.get("look", [0, 0, 0]))
-	var look_b := _v3(shot.get("look_to", shot.get("look", [0, 0, 0])))
-	var pos := from.lerp(to, eased)
-	var look := look_a.lerp(look_b, clampf(eased, 0.0, 1.2))
-	var flat := Vector2(look.x - pos.x, look.y - pos.y)
-	var reach := maxf(.5, flat.length())
-	var pitch := -View.base_focal * (pos.z - look.z) / reach
-	return {
-		"x": pos.x,
-		"y": pos.y,
-		"eye": pos.z,
-		"view_angle": atan2(flat.y, flat.x),
-		"pitch": clampf(pitch, -120.0, 90.0),
-		"bob": 0.0,
-		"sway": 0.0,
-	}
+		return p.as_render_player()
+	return camera.eye(t, View.base_focal)
 
 
-## Half eased, half steady: the camera never quite stops.
-static func _ease(u: float) -> float:
-	return u * .45 + (u * u * (3.0 - 2.0 * u)) * .55
-
-
-static func _v3(v: Variant) -> Vector3:
+static func v3(v: Variant) -> Vector3:
 	var a: Array = v
 	var x: float = a[0]
 	var y: float = a[1]
@@ -420,7 +441,8 @@ static func _v3(v: Variant) -> Vector3:
 
 
 ## The opener's frame: the level from its camera (no gun, no HUD), black bars,
-## the card, the boss, the caption and how to skip.
+## the card, the boss, the caption and how to skip; landing, the bars draw
+## back and the picture is the player's own as play begins.
 func draw(m: MainState) -> void:
 	var g := m.game
 	var c := m.canvas
@@ -436,14 +458,19 @@ func draw(m: MainState) -> void:
 	if dark > 0.0:
 		_shade(c, 0, 0, View.WIDTH, View.VIEW, Color(0, 0, 0), dark)
 	_draw_boss(c)
-	c.fill_rect(0, 0, View.WIDTH, BAR_TOP, Color(0, 0, 0))
-	c.fill_rect(0, BAR_LOW, View.WIDTH, View.HEIGHT - BAR_LOW, Color(0, 0, 0))
+	var open := smoothstep(land_at + LIGHT, length, at)
+	var top := roundi(BAR_TOP * (1.0 - open))
+	var low := roundi(lerpf(BAR_LOW, View.HEIGHT, open))
+	if top > 0:
+		c.fill_rect(0, 0, View.WIDTH, top, Color(0, 0, 0))
+	if low < View.HEIGHT:
+		c.fill_rect(0, low, View.WIDTH, View.HEIGHT - low, Color(0, 0, 0))
 	_draw_card(c)
 	_draw_caption(c)
-	var skip := "TAP TO SKIP" if m.input_device == "touch" else "ANY KEY SKIPS"
-	HUD.text(c, skip, 312, 4, "mini", HUD.DIM, false, false, true)
+	if at < land_at:
+		var skip := "TAP TO SKIP" if m.input_device == "touch" else "ANY KEY SKIPS"
+		HUD.text(c, skip, 312, 4, "mini", HUD.DIM, false, false, true)
 	var fade := 1.0 - clampf(at / FADE_IN, 0.0, 1.0)
-	fade = maxf(fade, clampf((at - (length - END_FADE)) / END_FADE, 0.0, 1.0))
 	if fade > 0.0:
 		_shade(c, 0, 0, View.WIDTH, View.HEIGHT, Color(0, 0, 0), fade)
 
@@ -480,16 +507,19 @@ static func _put_caches(g: Game, kept: Dictionary) -> void:
 			f.set(key, row[key])
 
 
-## How dark the view is: a dip at each cut, and most of the way to black once
-## the boss is on.
+## How dark the view is: a dip at each cut and at the landing, most of the
+## way to black while the boss is on, and light again as the camera lands.
 func _darkness() -> float:
 	var dark := 0.0
-	for k in range(1, _starts.size()):
-		var off := absf(at - _starts[k])
+	var cuts := Array(_starts).slice(1)
+	cuts.append(land_at)
+	for cut: float in cuts:
+		var off := absf(at - cut)
 		if off < DIP:
 			dark = maxf(dark, 1.0 - off / DIP)
-	if at > _boss_at:
-		dark = maxf(dark, clampf((at - _boss_at) / BOSS_FADE, 0.0, 1.0) * .9)
+	if at > boss_at:
+		var shown := clampf((at - boss_at) / BOSS_FADE, 0.0, 1.0) * .9
+		dark = maxf(dark, shown * (1.0 - clampf((at - land_at) / LIGHT, 0.0, 1.0)))
 	return dark
 
 
@@ -583,12 +613,15 @@ func _draw_tagline(c: Canvas, y: int, t: float) -> void:
 ## The boss against his light: the light fades in, he looms a little nearer,
 ## and as he growls the light flares.
 func _draw_boss(c: Canvas) -> void:
-	var t := at - _boss_at - .15
+	var t := at - boss_at - .15
 	if t <= 0.0 or _boss_img == null:
 		return
-	var show := clampf(t / BOSS_FADE, 0.0, 1.0)
+	# Gone into the landing's dip.
+	var show := clampf(t / BOSS_FADE, 0.0, 1.0) * clampf((land_at - at) / DIP, 0.0, 1.0)
+	if show <= 0.0:
+		return
 	var flare := 0.0
-	var since := at - _growl_at
+	var since := at - growl_at
 	if since > 0.0:
 		flare = exp(-since * 4.0)
 	var top := BAR_TOP
@@ -599,7 +632,7 @@ func _draw_boss(c: Canvas) -> void:
 		which = int(at * 5.0) % _light_imgs.size()
 	var bw := _boss_img.get_width()
 	var bh := _boss_img.get_height()
-	var loom := 0.9 + .1 * clampf(t / maxf(1.0, length - _boss_at), 0.0, 1.0) + flare * .05
+	var loom := 0.9 + .1 * clampf(t / maxf(1.0, length - boss_at), 0.0, 1.0) + flare * .05
 	var sw := roundi(bw * loom)
 	var sh := roundi(bh * loom)
 	var feet := BAR_LOW - 4
@@ -651,14 +684,14 @@ static func caption_lines(text: String) -> PackedStringArray:
 
 
 ## For sorting [time, ...] rows (or [name, time]: `index` says which).
-static func _sooner(a: Array, b: Array, index: int) -> bool:
+static func sooner(a: Array, b: Array, index: int) -> bool:
 	var ta: float = a[index]
 	var tb: float = b[index]
 	return ta < tb
 
 
 ## The moments worth a picture: the middle of each shot, the card hung, the
-## boss lit, the boss growling, the boss's line.
+## boss lit, the boss growling, the boss's line, the landing.
 func key_times() -> Array:
 	var out: Array = []
 	for k in _starts.size():
@@ -666,10 +699,11 @@ func key_times() -> Array:
 		var secs: float = shot.get("secs", 3.0)
 		out.append(["shot%d" % k, _starts[k] + secs * .5])
 	out.append(["card", _title_at + DROP + 1.6])
-	out.append(["boss", _boss_at + BOSS_FADE + .6])
-	out.append(["growl", _growl_at + .25])
-	out.append(["line", _line_at + .5])
-	out.sort_custom(_sooner.bind(1))
+	out.append(["boss", boss_at + BOSS_FADE + .6])
+	out.append(["growl", growl_at + .25])
+	out.append(["line", line_at + .5])
+	out.append(["land", land_at + OpenerCamera.LAND * .6])
+	out.sort_custom(sooner.bind(1))
 	return out
 
 
@@ -686,19 +720,28 @@ func capture(m: MainState) -> void:
 		m.get_tree().quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(shots_out)
-	for k: Array in key_times():
+	var times := key_times()
+	if strip > 0:
+		# The flight over the level, then the landing.
+		times = []
+		for n in strip + 3:
+			var when := boss_at * (n + .5) / strip
+			if n >= strip:
+				when = land_at + OpenerCamera.LAND * (.25 + (n - strip) * .37)
+			times.append(["f%03d_%.2f" % [n, when], when])
+	for k: Array in times:
 		var when: float = k[1]
 		at = when
 		_cues.clear()
 		_caption = ""
 		_caption_until = at + 1.0
-		if at >= _line_at:
+		if at >= line_at:
 			_caption = _caption_for("")
 			_boss_caption = true
-		elif at > _boss_at + .3 and lines_of(chapter).size() > 1:
+		elif at > boss_at + .3 and lines_of(chapter).size() > 1:
 			_caption = lines_of(chapter)[1]
 			_boss_caption = false
-		elif at > .55 and at < _boss_at:
+		elif at > .55 and at < boss_at:
 			_caption = lines_of(chapter)[0]
 			_boss_caption = false
 		for _f in 3:
