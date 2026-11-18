@@ -778,7 +778,7 @@ func _legs() -> void:
 		boss.dormant = false
 		boss.windup = .6
 		boss.aim_mark = [boss.x + 5.0, boss.y, 0.0]
-		var danger := HoundLegs.dangers(g4, [], 2.2)
+		var danger := HoundLegs.dangers(g4, [], 2.2, [boss])
 		_check(
 			(
 				HoundLegs.harm(g4, danger, boss.x + 5.0, boss.y)

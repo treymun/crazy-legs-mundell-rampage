@@ -16,7 +16,7 @@ const RaceLaps := preload("res://src/features/race_laps.gd")
 const VIEW_COS := .55
 const VIEW_NEAR := 1.6
 ## How far apart a straight walk is tested (cells), and the longest tested.
-const PROBE := .3
+const PROBE := .4
 const PROBE_MOST := 14.0
 ## Turns tried, in order, when the way ahead is shut or dangerous.
 const TURNS := [0.0, .45, -.45, .9, -.9, 1.4, -1.4, 2.0, -2.0, 2.7, -2.7]
@@ -39,10 +39,10 @@ static func harms_of(g: Game, pad: float) -> Array:
 
 
 ## What is dangerous this tick, as circles (x, y, reach): the standing
-## hazards, a twister, steam and chalk, the race's cars, and a boss winding
-## up (round where it aims and along the way to it). Fire and deep water are
+## hazards, a twister, steam and chalk, the race's cars, and the `bosses`
+## (and, one winding up, round where it aims and along the way to it). Fire and deep water are
 ## asked where he steps (harm()).
-static func dangers(g: Game, harms: Array, telegraph: float) -> Array:
+static func dangers(g: Game, harms: Array, telegraph: float, bosses: Array) -> Array:
 	var out: Array = harms.duplicate()
 	var ev: CountyEvents = g.features.get("events")
 	if ev != null and ev.kind == "twister" and ev.tw_k > .2:
@@ -56,10 +56,13 @@ static func dangers(g: Game, harms: Array, telegraph: float) -> Array:
 			var speed: float = car[1]
 			if speed > 0.0:
 				var along: float = car[0]
-				var at: Vector2 = laps._at(along)[0]
-				out.append(Vector3(at.x, at.y, 1.6))
-	for e: Enemy in g.enemies:
-		if not e.alive or not Enemy.BOSS_TITLES.has(e.kind):
+				var where: Array = laps._at(along)
+				var at: Vector2 = where[0]
+				var h: float = where[1]
+				# Round the car and the road just ahead of it.
+				out.append(Vector3(at.x + cos(h) * .8, at.y + sin(h) * .8, 1.5))
+	for e: Enemy in bosses:
+		if not e.alive:
 			continue
 		out.append(Vector3(e.x, e.y, e.radius + 1.2))
 		if e.windup > 0.0 and e.aim_mark is Array:

@@ -91,7 +91,18 @@ const SKIP_FIELDS := {
 	"arena_wreck": ["steps", "foes", "_taken", "_ring_next", "_fly_feel"],
 	"boss_gear": ["_feels"],
 	# A hound's walking body (put in step from him each move) and the numbers.
-	"hound": ["_body", "_probe", "_n", "_harms", "_harms_read", "_danger", "_field"],
+	"hound":
+	[
+		"_body",
+		"_probe",
+		"_n",
+		"_harms",
+		"_harms_read",
+		"_danger",
+		"_bosses",
+		"_bosses_of",
+		"_field"
+	],
 	"events": ["_body", "_n"],
 	# The arena lights this machine's player is near (looks: each machine its own).
 	"boss_arena": ["_lights", "_light_used"],

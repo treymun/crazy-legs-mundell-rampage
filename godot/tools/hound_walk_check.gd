@@ -299,7 +299,8 @@ func _measure(g: Game, d: Hound.Dog, before: Vector3, t: Tally, spots: Array, h:
 		t.sights_from = -1.0
 	if g.clock >= trace.x and g.clock <= trace.y and t.ticks % 15 == 0:
 		_tell(g, d, "trace %.2f a tick %s" % [moved, str(d.path.slice(0, 3))])
-	var why := "" if d.state == Hound.RIDE else _harm(g, d, spots)
+	var aloft := d.state == Hound.RIDE or d.hop != Vector2.INF  # in a seat or leaping
+	var why := "" if aloft else _harm(g, d, spots)
 	if why != "":
 		if t.harm_was == "":
 			_tell(g, d, "in harm: " + why)

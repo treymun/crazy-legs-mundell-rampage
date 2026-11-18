@@ -167,7 +167,11 @@ static func riding(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, dt: 
 		var mirror := Vector2(p.x, p.y) * 2.0 - Vector2(v.x, v.y)
 		var down := HoundLegs.beside(g, v, mirror, h.n("radius"))
 		if down == Vector2.INF:
-			down = Vector2(v.x, v.y)
+			# No room beside it (a dock): down at his player's feet.
+			var toward := (Vector2(v.x, v.y) - Vector2(p.x, p.y)).normalized()
+			down = Vector2(p.x, p.y) + toward * .5
+			if HoundLegs.harm(g, [], down.x, down.y) or g.world.blocked(down.x, down.y, .2):
+				down = Vector2(p.x, p.y)
 		h.into(d, Game.HoundScript.FOLLOW)
 		d.hop = down
 		d.hop_z = g.world.floor_under(down.x, down.y, v.z + 1.0)
@@ -222,3 +226,69 @@ static func clear_of_rides(h: Game.HoundScript, d: Game.HoundScript.Dog, dt: flo
 		if g.clock - d.bark_at > 1.2:
 			d.bark_at = g.clock
 			g.sound_at("hound_bark", d.x, d.y, .9)
+
+
+## In a player's sights, or in his own player's as they swing round toward
+## him: he steps aside, off their line (across it against the swing, the
+## quickest way out of it).
+static func aside(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player) -> void:
+	var g := h.game
+	var q := HoundLegs.in_sights(g, d, h.n("clear_reach"), h.n("clear_cone"))
+	var swing := absf(d.p_turn) > .6
+	if q == null and swing:
+		var mine := HoundLegs.in_sights(g, d, h.n("clear_reach"), h.n("clear_cone") - .1)
+		if mine == p:
+			var to := Vector2(d.x - p.x, d.y - p.y)
+			var on_side := Vector2(cos(p.angle), sin(p.angle)).cross(to)
+			if signf(on_side) == signf(d.p_turn):
+				q = p  # the sights come his way
+	if q == null:
+		return
+	var look := Vector2(cos(q.angle), sin(q.angle))
+	var to_q := Vector2(d.x - q.x, d.y - q.y)
+	var side := 1.0 if look.cross(to_q) >= 0.0 else -1.0
+	if q == p and swing:
+		side = -signf(d.p_turn)
+	d.aside = Vector2(-look.y, look.x) * side
+	if d.job != Game.HoundScript.ASIDE:
+		h.asides += 1
+	d.job = Game.HoundScript.ASIDE
+	d.job_until = g.clock + h.n("aside_for")
+
+
+## A shot fired (the game's shot_fired, through the hound feature `h`): a
+## dog it passed close by (in front of the shooter, within `shot_near` of its
+## line, in their sight) sulks a while behind his player.
+static func shot(h: Game.HoundScript, gun: int) -> void:
+	if not Weapons.MUZZLE_GUNS.has(gun):
+		return
+	var g := h.game
+	var q := g.player
+	if q == null:
+		return
+	var look := Vector2(cos(q.angle), sin(q.angle))
+	for d: Game.HoundScript.Dog in h.dogs:
+		var st := d.state
+		if (
+			st != Game.HoundScript.FOLLOW
+			and st != Game.HoundScript.STAY
+			and st != Game.HoundScript.TREAT
+			and st != Game.HoundScript.GREET
+		):
+			continue
+		var to := Vector2(d.x - q.x, d.y - q.y)
+		var along := to.dot(look)
+		if along < .4 or along > 14.0 or absf(look.cross(to)) > h.n("shot_near"):
+			continue
+		if not g.world.visible(q.x, q.y, d.x, d.y, q.eye, d.floor_z + .4):
+			continue
+		if d.mood != Game.HoundScript.SULK:
+			h.sulks += 1
+			g.sound_at("hound_whine_soft", d.x, d.y, .9)
+			if d.slot == q.slot and q == g.player:
+				g.barks.say(g, "hound_shot")
+		d.mood = Game.HoundScript.SULK
+		d.mood_until = g.clock + h.n("sulk_for")
+		if d.state != Game.HoundScript.FOLLOW:
+			h.into(d, Game.HoundScript.FOLLOW)
+		d.job = Game.HoundScript.TRAIL
