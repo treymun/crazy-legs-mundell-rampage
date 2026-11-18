@@ -403,19 +403,28 @@ the walking test on locals and loops asking the cheap thing first; pass
 10's BLUE and the hands' barks add their own (the barks under 3 us a tick;
 `cpu_check -- report` names the costliest feature, BLUE at 70-90 us).
 
-**The worst moments (round 2, `tools/stress_bench.gd` in a window, v3.7.0
-against pass 10 `7e15cb42` plus round 2, three pairs, medians):**
+**The worst moments (rounds 2 and 3, `tools/stress_bench.gd` in a window,
+v3.7.0 against pass 10 `5ac86ac5` plus round 3, three pairs, medians; the
+render column is before PERFGPU's work on these scenes):**
 
 | Scene | frame median v3.7.0 -> now | p99 | tick (ms) | render (ms) |
 | --- | --- | --- | --- | --- |
-| idle | 3.14 -> 2.65 (1.18x) | 1.28x | 0.55 -> 0.54 | 1.93 -> 1.48 |
-| strike | 5.79 -> 4.08 (1.42x) | 1.46x | 1.61 -> 1.52 | 2.92 -> 1.24 |
-| wreck48 | 9.41 -> 7.58 (1.24x) | 1.25x | 4.13 -> 3.61 | 4.15 -> 3.12 |
-| fire | 4.00 -> 3.22 (1.24x) | 1.20x | 1.14 -> 1.05 | 2.32 -> 1.78 |
-| arena | 4.15 -> 3.20 (1.30x) | 1.54x | 0.79 -> 0.79 | 2.81 -> 1.97 |
-| fivev5 | 5.12 -> 3.66 (1.40x) | 1.19x | 2.97 -> 2.14 | 1.30 -> 0.88 |
-| county | 9.26 -> 7.77 (1.19x) | 1.16x | 2.43 -> 2.36 | 4.87 -> 3.62 |
+| idle | 3.21 -> 2.59 (1.24x) | 1.25x | 0.55 -> 0.52 | 1.95 -> 1.48 |
+| strike | 5.99 -> 3.98 (1.51x) | 1.58x | 1.66 -> 1.46 | 2.99 -> 1.21 |
+| wreck48 | 9.44 -> 6.80 (1.39x) | 1.44x | 4.14 -> 3.01 | 4.11 -> 3.07 |
+| fire | 4.01 -> 3.31 (1.21x) | 1.08x | 1.15 -> 1.10 | 2.35 -> 1.86 |
+| arena | 4.29 -> 3.27 (1.31x) | 1.29x | 0.82 -> 0.80 | 2.90 -> 2.02 |
+| fivev5 | 5.28 -> 3.54 (1.49x) | 1.60x | 3.04 -> 2.04 | 1.32 -> 0.85 |
+| county | 9.37 -> 7.57 (1.24x) | 1.36x | 2.51 -> 2.26 | 4.93 -> 3.51 |
 
+Round 3: `PhysCore.way_out` (a stuck wreck piece's corner probed eighty
+times, most of them in vain, where the breakables' furniture still lists
+in the cell) works out a probe's answer once for each cell and set of the
+cell's furniture holding it: at the point's one height that is all
+`_in_something` reads there (a cell with geometry, a door, a pane near or a
+gate is still asked probe by probe); an open cell with nothing listed now
+(`PhysCore.empty_cell`: broken furniture leaves index_cells marked) answers
+its floor and solid() from its ground; the pairs ask the reach first.
 Round 2's tick work, all exact (`stress_bench -- check hash` prints the
 same on the old and new builds for every scene): the panes indexed by row
 (`LevelData.pane_at` asked every pane on every blocked() of a level with
