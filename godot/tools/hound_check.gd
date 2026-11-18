@@ -18,6 +18,15 @@
 ## hounds, each with their own. NET: two games fed the same controls stay
 ## identical with the hounds about, a snapshot carries them onto a fresh game
 ## that runs on the same. LOOKS: his frames, the badge, his art and settings.
+## POSES (pass 10): every state and moment shows its own pose of his model
+## (src/hound_looks.gd: the walk, trot and gallop by pace, the limp, the
+## tracking walk, idle, scratch and sniff, sit and lying at STAY, the point,
+## the howl, the lunge and bite, the hold's shake, the yelp, going down,
+## whining on his side, got up, getting up and the shake), each a frame his
+## model has, none of it drawing on game.rng. FEEDBACK: the badge's job and
+## mood words, the marker over him behind a wall and at the view's edge, the
+## brackets on what he points at, GETTIN' BLUE UP and its bar, and USE's
+## prompt naming the key.
 extends SceneTree
 
 const STEP := 1.0 / 60.0
@@ -56,7 +65,19 @@ func _run() -> void:
 			quit()
 			return
 	for part: String in [
-		"heel", "off", "nose", "fight", "fetch", "down", "whistle", "save", "coop", "net", "looks"
+		"heel",
+		"off",
+		"nose",
+		"fight",
+		"fetch",
+		"down",
+		"whistle",
+		"save",
+		"coop",
+		"net",
+		"looks",
+		"poses",
+		"feedback"
 	]:
 		print("\n" + part.to_upper())
 		call("_" + part)
@@ -452,15 +473,38 @@ func _down() -> void:
 	var p := g.player
 	h.call("_hurt", d, 500.0, d.x + 1.0, d.y)
 	_check(d.state == Hound.DOWN and d.health == 0.0, "hurt to nothing he goes down")
-	_check(h.frame(d) == "down", "lying down, whining")
+	_check(h.frame(d) == "f0", "going down onto his side (%s)" % h.frame(d))
+	_tick(g, roundi(60 * (HoundLooks.FALL_TIME + .1)))
+	_check(h.frame(d) == "o0", "lying on his side, whining (%s)" % h.frame(d))
 	p.x = d.x + .5
 	p.y = d.y
 	p.inventory["rinds"] = 0
-	_check(h.prompt(p).begins_with("HOLD"), "USE's prompt beside him: '%s'" % h.prompt(p))
+	g.use_key = "E"
+	_check(
+		h.prompt(p) == "BLUE'S DOWN - HOLD E",
+		"USE's prompt beside him names the key: '%s'" % h.prompt(p)
+	)
+	g.use_key = "Y"
+	_check(h.prompt(p).ends_with("HOLD Y"), "and the pad's button: '%s'" % h.prompt(p))
+	g.use_key = "E"
 	var hold := Game.Controls.new()
 	hold.hold = true
-	_tick(g, roundi(60 * (h.n("revive_time") + .3)), hold)
+	_tick(g, roundi(60 * h.n("revive_time") * .5), hold)
+	_check(
+		d.state == Hound.DOWN and h.frame(d) == "v0" and HoundLooks._reviving(h) == d,
+		"a hand on him: he comes up onto his chest (%s), GETTIN' BLUE UP" % h.frame(d)
+	)
+	var lay := HudLayout.new()
+	lay.reset()
+	h.hud_flow(lay)
+	_check(lay.find("hound_revive").size.x > 0, "the revive bar takes its place on the HUD")
+	_tick(g, roundi(60 * (h.n("revive_time") * .5 + .1)), hold)
 	_check(d.state == Hound.FOLLOW and d.health > 0.0, "held USE beside him gets him up")
+	_check(h.frame(d) == "u0", "getting up (%s)" % h.frame(d))
+	_tick(g, roundi(60 * (HoundLooks.UP_TIME + .1)))
+	_check(h.frame(d) == "k0", "and shaking it off (%s)" % h.frame(d))
+	_tick(g, roundi(60 * HoundLooks.SHAKE_TIME))
+	_check(h.frame(d) != "k0" and h.frame(d) != "u0", "then himself again (%s)" % h.frame(d))
 	h.call("_hurt", d, 500.0, d.x + 1.0, d.y)
 	_tick(g, 2)
 	p.x = d.x + .5
@@ -648,8 +692,182 @@ func _looks() -> void:
 			if c.pixels[o] + c.pixels[o + 1] + c.pixels[o + 2] > 30:
 				lit += 1
 	_check(lit > 600, "his badge is drawn in the view's corner (%d pixels)" % lit)
+	var wide := 0
+	for yy in range(View.VIEW - 30, View.VIEW - 2):
+		for xx in range(60, HoundLooks.BADGE_X + HoundLooks.BADGE_W - 2):
+			var o := (yy * Canvas.WIDTH + xx) * 3
+			if c.pixels[o] + c.pixels[o + 1] + c.pixels[o + 2] > 200:
+				wide += 1
+	_check(wide > 12, "his mood and health reach across the badge (%d pixels)" % wide)
 	var rows := h.tally_rows()
 	_check(rows.is_empty(), "no tally row before he has done anything")
+
+
+## Every state and moment shows its own pose, each a frame of his model.
+func _poses() -> void:
+	var g := _game("hickston")
+	_tick(g, 2)
+	var h := _hound(g)
+	var d := _dog(g)
+	var rng_before: int = g.rng.state
+	var models: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string("res://assets3d/actors/actors.json")
+	)
+	var frames: Dictionary = models["hound"]["frames"]
+	# A moment out of his tracking and idle rounds (HoundLooks: TRACK_ROUND,
+	# IDLE_ROUND): plain heel.
+	g.clock = 13.0
+	var want := func(text: String, frame: String) -> void:
+		var now := h.frame(d)
+		_check(now == frame, "%s: %s (%s)" % [text, frame, now])
+		_check(frames.has(now), "%s: his model has frame %s" % [text, now])
+	d.hurt_at = -10.0
+	d.state = Hound.FOLLOW
+	d.item = ""
+	d.health = h.n("health")
+	for pace: Array in [[1.0, "w0"], [2.6, "t0"], [7.4, "r0"]]:
+		d.pace = pace[0]
+		want.call("pace %.1f" % pace[0], pace[1])
+	d.health = h.n("health") * .2
+	d.pace = 2.6
+	want.call("sore at a trot", "l0")
+	d.pace = 0.0
+	want.call("sore, standing", "l0")
+	d.health = h.n("health")
+	d.state = Hound.BAY
+	d.since = g.clock
+	d.bark_at = g.clock - 1.0
+	d.pace = 1.0
+	want.call("tracking to a secret", "n0")
+	d.pace = 0.0
+	d.bark_at = g.clock
+	want.call("baying (the howl)", "bay")
+	d.state = Hound.POINT
+	want.call("on point", "point")
+	d.state = Hound.PIN
+	want.call("holding a hand", "p0")
+	d.state = Hound.SIC
+	d.bite_at = g.clock + .1
+	want.call("about to bite", "j0")
+	d.bite_at = g.clock + h.n("bite_every") - .1
+	want.call("just bitten", "j0")
+	d.bite_at = g.clock + .3
+	want.call("between bites", "bark")
+	d.state = Hound.STAY
+	d.since = g.clock
+	want.call("told to STAY", "sit")
+	d.since = g.clock - HoundLooks.LIE_AFTER - 1.0
+	want.call("staying long", "rest")
+	d.state = Hound.CARRY
+	want.call("carrying", "fetch")
+	d.state = Hound.FOLLOW
+	d.hurt_at = g.clock
+	want.call("kicked", "pain")
+	d.hurt_at = -10.0
+	d.bark_at = -10.0
+	# Now and then at heel he tracks, nose down.
+	g.clock = HoundLooks.TRACK_ROUND * 3.0 + 1.0
+	d.pace = 1.0
+	want.call("tracking at heel", "n0")
+	d.pace = 0.0
+	g.clock = 13.0
+	# Idle: the wag, and in his round a scratch and a sniff.
+	var idle := {}
+	var clock := g.clock
+	for t in 300:
+		g.clock = clock + t * .1
+		idle[h.frame(d)] = true
+	g.clock = clock
+	for frame: String in ["i0", "c0", "sniff"]:
+		_check(idle.has(frame), "idle at heel he shows %s now and then (%s)" % [frame, idle.keys()])
+	for frame: String in idle:
+		_check(frames.has(frame), "idle: his model has frame %s" % frame)
+	_check(g.rng.state == rng_before, "his poses never draw on game.rng")
+
+
+## The badge's words, the markers, the point's brackets.
+func _feedback() -> void:
+	var g := _game("hickston")
+	_tick(g, 2)
+	var h := _hound(g)
+	var d := _dog(g)
+	var p := g.player
+	g.clock = 13.0
+	d.state = Hound.FOLLOW
+	_check(HoundLooks.job(h, d) == "HEELIN'", "job at heel: %s" % HoundLooks.job(h, d))
+	_check(str(HoundLooks.mood(h, d)[0]) == "HAPPY", "mood at heel: %s" % HoundLooks.mood(h, d)[0])
+	d.state = Hound.POINT
+	_check(HoundLooks.job(h, d) == "POINTIN'", "job on point: %s" % HoundLooks.job(h, d))
+	_check(str(HoundLooks.mood(h, d)[0]) == "KEEN", "mood on point: %s" % HoundLooks.mood(h, d)[0])
+	d.state = Hound.PIN
+	_check(HoundLooks.job(h, d) == "HOLDIN'", "job holding: %s" % HoundLooks.job(h, d))
+	_check(str(HoundLooks.mood(h, d)[0]) == "RILED", "mood holding: %s" % HoundLooks.mood(h, d)[0])
+	d.state = Hound.DOWN
+	_check(HoundLooks.job(h, d) == "DOWN!", "job down: %s" % HoundLooks.job(h, d))
+	d.state = Hound.FOLLOW
+	d.health = h.n("health") * .2
+	_check(HoundLooks.job(h, d) == "LIMPIN'", "job sore: %s" % HoundLooks.job(h, d))
+	_check(str(HoundLooks.mood(h, d)[0]) == "SORE", "mood sore: %s" % HoundLooks.mood(h, d)[0])
+	d.health = h.n("health")
+	var room := HoundLooks.BADGE_W - HoundLooks.FACE - 9
+	for word: String in HoundLooks.JOBS + ["SNIFFIN'", "LIMPIN'", "LAYIN' UP", "UP AGIN"]:
+		_check(PixelType.text_width(word, "mini") <= room, "%s fits the badge" % word)
+	for feel: String in ["HAPPY", "KEEN", "RILED", "SORE", "FRETTIN'", "PATIENT", "WHIPPED"]:
+		_check(PixelType.text_width(feel, "mini") <= room, "%s fits the badge's top row" % feel)
+	# The marker: none in plain sight, one over him behind a wall, one at
+	# the view's edge when he is off it.
+	var at := _spot(g, p.x, p.y, 5.0)
+	_put_dog(g, d, at)
+	var look := atan2(d.y - p.y, d.x - p.x)
+	g.view_eye = {
+		"x": p.x, "y": p.y, "eye": p.eye, "view_angle": look, "pitch": 0.0, "bob": 0.0, "sway": 0.0
+	}
+	_check(HoundLooks.in_sight(g, d), "he is in plain sight")
+	_check(HoundLooks.marker_at(g, d).is_empty(), "no marker on him in plain sight")
+	g.view_eye["view_angle"] = look + PI
+	var edge := HoundLooks.marker_at(g, d)
+	_check(edge.size() == 3, "behind the eye: a marker at the view's edge")
+	var hidden := _hidden_spot(g, p)
+	if hidden != Vector2.INF:
+		_put_dog(g, d, hidden)
+		g.view_eye["view_angle"] = atan2(d.y - p.y, d.x - p.x)
+		var over := HoundLooks.marker_at(g, d)
+		_check(
+			not HoundLooks.in_sight(g, d) and over.size() == 3 and absf(float(over[2])) < .01,
+			"behind a wall in the view: a marker over him, pointing down (%s)" % str(over)
+		)
+	else:
+		_check(false, "no spot behind a wall near the start to try the marker")
+	# On point: brackets on what he points at.
+	_put_dog(g, d, at)
+	var target := Vector2(p.x, p.y).lerp(at, .5)
+	d.state = Hound.POINT
+	d.since = g.clock - 1.0
+	d.bark_at = g.clock
+	d.look = target
+	g.view_eye["view_angle"] = atan2(target.y - p.y, target.x - p.x)
+	var c := Canvas.new()
+	HoundLooks._point_mark(h, c, d)
+	var mark := 0
+	for i in range(0, c.pixels.size(), 3):
+		if c.pixels[i] > 150 and c.pixels[i + 1] > 110:
+			mark += 1
+	_check(mark > 10, "on point, brackets on what he points at (%d pixels)" % mark)
+
+
+## A spot near the player that a wall hides from them, or INF.
+func _hidden_spot(g: Game, p: Player) -> Vector2:
+	for r: float in [4.0, 6.0, 8.0, 10.0]:
+		for k in 24:
+			var a := k * TAU / 24.0
+			var x := p.x + cos(a) * r
+			var y := p.y + sin(a) * r
+			if g.world.blocked(x, y, .25) or g.world.deep_at(x, y):
+				continue
+			var z := g.world.floor_under(x, y, g.world.stand(p) + .4)
+			if not g.world.visible(p.x, p.y, x, y, p.eye, z + .5):
+				return Vector2(x, y)
+	return Vector2.INF
 
 
 ## `-- play=<level>`: the campaign bot plays a chapter for two minutes with

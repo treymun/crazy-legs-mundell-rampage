@@ -112,6 +112,10 @@ def _label(c, skeleton):
     if skeleton is None:
         return "body"
     S, J = skeleton
+    if "dog_head" in J:
+        # A beast with no person's skeleton (the hound, actors_hound.py):
+        # the parts round its head's middle, within its look's head_box.
+        return "head" if (c - J["dog_head"]).length < S.get("head_box", .17) else "body"
     if "torso" not in J or "hipR" not in J:
         return "body"
     neck = J["neck"]
@@ -130,7 +134,9 @@ def _frames(kind):
     first beat again after its last (`w4`) so the walk loops smoothly."""
     make, S, extra, own = ACTORS[kind]
     if own:
-        living = [(f, str(f)) for f in own]
+        # A kind may key more frames on its model than it has cels (the
+        # hound's motions: its look's "model_frames").
+        living = [(f, str(f)) for f in S.get("model_frames", own)]
         # A kind with its own frames that walks (the Swamp King, Maw bare)
         # gets the loop's closing beat too, or its walk snaps beat to beat.
         names = [n for _f, n in living]

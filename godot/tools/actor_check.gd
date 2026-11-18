@@ -21,6 +21,10 @@
 ## half the deaths and never for a boss, and none of it draws on game.rng;
 ## thrown specks keep between View.SPECK_PX_MIN and SPECK_PX_MAX pixels; a
 ## partner on the riding mower sits on it (vehicles.cfg `pose`).
+## HOUND (pass 10): BLUE's fourteen motions of five keys in a row and his
+## ten poses (src/hound_looks.gd plays them), his texels over him and his
+## head, a motion played on the gait, a one-shot ending on its last key and
+## his own longer blend between poses.
 ## `report` prints every kind's texels a metre.
 extends SceneTree
 
@@ -37,7 +41,9 @@ const HEAD_MIN := 110.0
 ## The razorback bakes at 256 for the browser's first download: no floor.
 const TEXEL_FREE := ["hog"]
 const LABELS := ["head", "arm_r", "arm_l", "leg_r", "leg_l", "body"]
-const FIT_KEYS := ["light", "scale", "min_px", "ragdoll", "tips", "flat", "down_high", "down_cel"]
+const FIT_KEYS := [
+	"light", "scale", "min_px", "ragdoll", "tips", "flat", "down_high", "down_cel", "blend"
+]
 const HAND_FRAMES := [
 	"0",
 	"w0",
@@ -57,6 +63,16 @@ const HAND_FRAMES := [
 ]
 const HURT_FRAMES := ["hurt_0", "hurt_w0", "hurt_w4", "hurt_aim", "hurt_fire", "hurt_pain"]
 const CRITTER_FRAMES := ["-1", "0", "1", "aim", "fire", "pain"]
+## BLUE's motions (scripts/blender/actors_hound.py, pass 10), five keys
+## each, and his poses: src/hound_looks.gd plays every one of them.
+const HOUND_RUNS := ["i", "w", "t", "r", "l", "n", "c", "k", "f", "o", "v", "u", "j", "p"]
+const HOUND_POSES := ["0", "sit", "sniff", "point", "bark", "bay", "pain", "fetch", "rest", "down"]
+## His texels a metre: the pass 10 model at 512 measured 203 over him and
+## 269 on his head (export_actors.py gives his head 1.4 times its share
+## across; the content pass 8 dog had 151 and no head of its own): floors a
+## little under.
+const HOUND_MIN := 180.0
+const HOUND_HEAD_MIN := 240.0
 
 var failures: Array[String] = []
 var passes := 0
@@ -163,6 +179,11 @@ func _anim(models: ActorModels) -> void:
 				want.append("recover")
 		elif frames.has("-1"):
 			want = CRITTER_FRAMES.duplicate() if frames.has("aim") else ["-1", "0", "1"]
+		elif kind == "hound":
+			want = HOUND_POSES.duplicate()
+			for run: String in HOUND_RUNS:
+				for beat in 5:
+					want.append(run + str(beat))
 		elif frames.has("r0"):
 			want = ["0", "r0", "r1", "r2", "r3", "r4", "down"]
 		else:
@@ -174,7 +195,10 @@ func _anim(models: ActorModels) -> void:
 		_check(missing.is_empty(), "%s: no frames %s" % [kind, missing])
 		# The walk and the gallop each run their beats in a row (ActorView
 		# seeks between them on the gait).
-		for run: String in ["w", "r", "hurt_w"]:
+		var runs: Array = ["w", "r", "hurt_w"]
+		if kind == "hound":
+			runs = HOUND_RUNS
+		for run: String in runs:
 			if frames.has(run + "0"):
 				var first: float = frames[run + "0"]
 				var row := true
@@ -216,8 +240,13 @@ func _texels(models: ActorModels, assets: Assets) -> void:
 		if kind in TEXEL_FREE:
 			continue
 		var hand := "hurt" in (info.get("textures", []) as Array)
-		var least := HAND_MIN if hand else TEXEL_MIN
+		var least := HAND_MIN if hand else HOUND_MIN if kind == "hound" else TEXEL_MIN
 		_check(body >= least, "%s: %d texels a metre (at least %d)" % [kind, body, least])
+		if kind == "hound":
+			_check(
+				sums[2] > 0.0 and head >= HOUND_HEAD_MIN,
+				"hound: head %d texels a metre (at least %d)" % [head, HOUND_HEAD_MIN]
+			)
 		if hand and sums[2] > 0.0:
 			_check(
 				head >= HEAD_MIN,
@@ -402,6 +431,7 @@ func _motion(models: ActorModels, assets: Assets) -> void:
 			flipped += 1 if boss_view.transform.basis.determinant() < 0.0 else 0
 		_check(flipped == 0, "fall: a boss's set piece fall mirrored")
 		boss_view.queue_free()
+	_hound_motion(models, level)
 	_check(game.rng.state == rng_before, "looks: the actors' motion drew on game.rng")
 	# Specks: never under SPECK_PX_MIN of the view's pixels far off, nor over
 	# SPECK_PX_MAX right in front; their own size between.
@@ -433,6 +463,66 @@ func _motion(models: ActorModels, assets: Assets) -> void:
 			"mower: a rider shows %s (on foot %s)" % [seated, on_foot]
 		)
 	sound.queue_free()
+
+
+## BLUE's motions as ActorView plays them (src/hound_looks.gd hands it the
+## frame and the gait): a motion's beat on the gait, a one-shot short of
+## its last key, his own longer blend (fit.json "blend") between poses.
+func _hound_motion(models: ActorModels, level: LevelData) -> void:
+	if not models.kinds.has("hound"):
+		_check(false, "hound: no model")
+		return
+	var view := models.scene("hound").instantiate() as ActorView
+	root.add_child(view)
+	view.setup(models)
+	var skeleton := view.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var e := Enemy.new("coot", 10.0, 10.0, 0.0)
+	e.kind = "hound"
+	e.height = 1.0
+	var s := View.Sprite.new()
+	s.x = e.x
+	s.y = e.y
+	s.image = "hound_0"
+	var clock := 500.0
+	# The trot one and a half beats in: between t1 and t2, unblended.
+	s.pose = "hound_t0"
+	e.gait = 0.0
+	view.show_as(s, e, level, clock)
+	view.show_as(s, e, level, clock + 1.0)
+	e.gait = PI * .5 * 1.5
+	view.show_as(s, e, level, clock + 1.1)
+	var trot := _pose(skeleton)
+	var t0: float = models.key_time("hound", "t0")
+	view._player.seek(t0 + 1.5 * ActorModels.KEY_TIME, true)
+	_check(_far(trot, _pose(skeleton)) < 1e-4, "hound: the trot not played on his gait")
+	# Going down, played through once: its end is the last key, f4.
+	s.pose = "hound_f0"
+	e.gait = HoundLooks._once(1.0) * PI * .5
+	view.show_as(s, e, level, clock + 2.0)
+	view.show_as(s, e, level, clock + 3.0)
+	var fallen := _pose(skeleton)
+	view._player.seek(models.key_time("hound", "f4"), true)
+	_check(_far(fallen, _pose(skeleton)) < .02, "hound: going down does not end on his side (f4)")
+	view._player.seek(models.key_time("hound", "f0"), true)
+	_check(_far(fallen, _pose(skeleton)) > .05, "hound: going down wrapped back to its start")
+	# Sat to lying at STAY: his own blend, half way at half of it.
+	var blend: float = models.kinds["hound"].get("blend", ActorView.BLEND)
+	_check(blend > ActorView.BLEND, "hound: no blend of his own (fit.json)")
+	s.pose = "hound_sit"
+	view.show_as(s, e, level, clock + 4.0)
+	view.show_as(s, e, level, clock + 5.0)
+	var sat := _pose(skeleton)
+	s.pose = "hound_rest"
+	view.show_as(s, e, level, clock + 6.0)
+	view.show_as(s, e, level, clock + 6.0 + blend * .5)
+	var half := _pose(skeleton)
+	view.show_as(s, e, level, clock + 6.0 + blend + .01)
+	var lying := _pose(skeleton)
+	_check(
+		_far(half, sat) > .002 and _far(half, lying) > .002,
+		"hound: sat to lying not blended over his own blend"
+	)
+	view.queue_free()
 
 
 func _pose(skeleton: Skeleton3D) -> Array:

@@ -453,7 +453,10 @@ Each enemy and boss with a model shows as an `ActorView` scene
 (`scenes/actors/<kind>.tscn`); `View.Sprite.who` names the enemy.
 
 - ActorView poses from the sprite name the game would have shown: walk
-  (and a gallop's `r0..r4`, the hound's) interpolated on gait; a living
+  (and any motion of five keys in a row, a letter and the beat,
+  `ActorView.is_run`: the hound's gallop, trot, idle, shake and the rest)
+  interpolated on gait (a body that plays one through once, the hound going
+  down, is handed a gait short of its last key); a living
   body shown in a step of a fall it never took (`ActorView.held`: a hand
   the hound drags down) holds that step's key, falls on time since death.
 - Looks-only motion over the keys (polish pass 9; none of it reads or
@@ -461,8 +464,9 @@ Each enemy and boss with a model shows as an `ActorView` scene
   a jump between frames that are not neighbours in the action (idle to aim,
   aim to fire, pain, walking to standing, a hurt look's frames, the fall's
   start) blends every bone over `BLEND` (.13 s; `BLEND_SNAP` .06 into fire
-  and pain) instead of snapping (`ActorView.group_of`: the walk's beats, the
-  gallop's and the fall's steps are one group each and never blend, the
+  and pain; a kind's fit.json `blend`, the hound's .2, his poses being far
+  apart) instead of snapping (`ActorView.group_of`: the walk's beats, a
+  motion's and the fall's steps are one group each and never blend, the
   flapping bugs and saucers not at all). A hit rocks the living body about
   its feet for `FLINCH` (.34 s) by `Enemy.last_zone` and `last_side`: a head
   shot snaps it back, the body rocks and twists, an arm turns the shoulders,

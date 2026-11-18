@@ -57,6 +57,7 @@ static var draws := 0
 ## pain, walking to standing, the fall's start) eases over BLEND seconds
 ## (BLEND_SNAP into fire and pain, which keep their punch) instead of
 ## snapping; the walk and the fall already run smoothly between their keys.
+## A kind's fit.json "blend" sets its own (the hound's poses are far apart).
 const BLEND := .13
 const BLEND_SNAP := .06
 ## A hit rocks the body (rigid, about its feet) for FLINCH seconds by where
@@ -183,7 +184,8 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		if blend:
 			_blend_to = _capture()
 			_blend_at = clock
-			_blend_for = BLEND_SNAP if frame == "fire" or frame == "pain" else BLEND
+			var own: float = info.get("blend", BLEND)
+			_blend_for = BLEND_SNAP if frame == "fire" or frame == "pain" else own
 		else:
 			_blend_at = -1.0
 	_group = group
@@ -411,21 +413,17 @@ static func pose_of(image: String, stem: String) -> Array:
 ## through its five steps to the body at rest on the time since it died.
 func _time(frame: String, look: int, e: Enemy, clock: float, span: float) -> float:
 	var hurt := "hurt_" if look == 1 else ""
-	if frame.begins_with("w") and frame.length() == 2:
-		var first: Variant = models.key_time(kind, hurt + "w0")
-		var last: Variant = models.key_time(kind, hurt + "w4")
+	if ActorView.is_run(frame):
+		# A motion of five keys in a row (the walk w0..w4; the hound's gallop,
+		# trot, idle, shake and the rest, scripts/blender/actors_hound.py):
+		# its four beats run on the gait, and a body that plays one through
+		# once (the hound going down) is handed a gait short of the last key.
+		var first: Variant = models.key_time(kind, hurt + frame[0] + "0")
+		var last: Variant = models.key_time(kind, hurt + frame[0] + "4")
 		if first != null and last != null:
 			var beat := fposmod(e.gait / (PI * .5), 4.0)
-			var walk_at: float = first
-			return walk_at + beat * ActorModels.KEY_TIME
-	if frame.begins_with("r") and frame.length() == 2 and frame[1].is_valid_int():
-		# A gallop (the hound's, scripts/blender/actors_hound.py): four beats
-		# run on the gait as the walk is.
-		var first_r: Variant = models.key_time(kind, hurt + "r0")
-		if first_r != null and models.key_time(kind, hurt + "r4") != null:
-			var beat_r := fposmod(e.gait / (PI * .5), 4.0)
-			var run_at: float = first_r
-			return run_at + beat_r * ActorModels.KEY_TIME
+			var run_at: float = first
+			return run_at + beat * ActorModels.KEY_TIME
 	if frame.begins_with("die_") and not ActorView.held(e):
 		var first: Variant = models.key_time(kind, "die_0")
 		if first != null:
@@ -440,11 +438,17 @@ func _time(frame: String, look: int, e: Enemy, clock: float, span: float) -> flo
 	return 0.0
 
 
-## The group a frame's keys belong to: the walk's beats, the gallop's and the
-## fall's steps are one each (the action runs smoothly through them); any
-## other frame is its own.
+## Whether a frame is a beat of a motion of five keys (a letter and the
+## beat: w0, r2; the hound's t3, k1 and the rest).
+static func is_run(frame: String) -> bool:
+	return frame.length() == 2 and frame[0] >= "a" and frame[0] <= "z" and frame[1].is_valid_int()
+
+
+## The group a frame's keys belong to: the walk's beats, a motion's (the
+## gallop, the hound's) and the fall's steps are one each (the action runs
+## smoothly through them); any other frame is its own.
 static func group_of(frame: String) -> String:
-	if frame.length() == 2 and (frame[0] == "w" or frame[0] == "r") and frame[1].is_valid_int():
+	if ActorView.is_run(frame):
 		return frame[0]
 	if frame.begins_with("die_") or frame == "down":
 		return "die"

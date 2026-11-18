@@ -1077,14 +1077,39 @@ numbers in `data/tuning/hound.cfg`.
   the replay rows are unchanged). Sights on a hand SIC 'EM, on a pickup
   FETCH, else STAY (he sits) and again COME; Mundell says it in his voice
   (the `hound_*` barks, mundell_lines.json).
-- **Looks.** His model (`scripts/blender/actors_hound.py`, scene
-  `scenes/actors/hound.tscn`) drawn through a stand-in (`ModeBodies.stand_in`,
-  key `hound<slot>`) posed by `hound.frame()`: the walk `w0..w4` and the
-  gallop `r0..r4` run on his gait (`ActorView._time`), sit, bark, bay, bite,
-  pin and pin2 (the worrying shake), fetch (what he carries drawn in his
-  jaws), point, sniff, pain, down and whine. The badge in the view's bottom
-  left (`HoundLooks.badge`, from `draw_view`): his head
-  (`hound_face_0/1/2/down`), BLUE or what he is up to, five health ticks.
+- **Looks** (rebuilt in pass 10, `src/hound_looks.gd`, looks only: all of
+  it from what play carries and the clock, never `game.rng`). His model
+  (`scripts/blender/actors_hound.py`, scene `scenes/actors/hound.tscn`)
+  drawn through a stand-in (`ModeBodies.stand_in`, key `hound<slot>`; the
+  picture `hound_<cel>`, the model's frame in `Sprite.pose`) posed by
+  `HoundLooks.pose` (`hound.frame()`): by pace a walk (under
+  `TROT_FROM`), the trot (his heel pace) or the gallop (over
+  `GALLOP_FROM`), each at its own cycles a cell so his feet keep to the
+  ground; sore (under `SORE` of his health) a limp and no wag; tracking (on
+  his way to a bay or a point, and now and then at heel) his nose down.
+  Standing at heel the idle wag, and in his own round a scratch and a
+  sniff; STAY sat, lying down after `LIE_AFTER`; the point, the howl (bay),
+  the lunge and bite timed on his bites (`GATHER` before, `FOLLOW_THROUGH`
+  after), the hold's head shake, the yelp, fetch. Down: going down onto his
+  side (`FALL_TIME`), whining there, and with a hand on him up onto his
+  chest and his forelegs as `revive` grows (back down if it lets go); got
+  up (`Dog.up_at`, the one field pass 10 added to play) he gets up
+  (`UP_TIME`) and shakes it off (`SHAKE_TIME`). ActorView blends pose into
+  pose over his fit.json `blend` (.2 s) and plays each motion's five keys
+  on the stand-in's gait. A kick or blast rocks him (`ActorView.flinch`).
+- **His badge and markers.** The badge in the view's bottom left
+  (`HoundLooks.badge`, taken by `hud_fixed` through HudLayout): his head
+  (`hound_face_0/1/2/down`), BLUE and his mood (HAPPY, KEEN, RILED, SORE,
+  FRETTIN' when his player is low, PATIENT at STAY, WHIPPED down), his job
+  (HEELIN', SNIFFIN', LIMPIN', STAYIN', LAYIN' UP, SIC 'EM, HOLDIN',
+  FETCHIN', BRINGIN', BAYIN', POINTIN', UP AGIN, DOWN! blinking), ten health
+  ticks. Out of sight behind something a little tin tag BLUE with an arrow
+  stands over him in the view; off the view it sits on its edge pointing
+  his way (`HoundLooks.marker_at`); down, it is red, BLUE!, and blinks.
+  On point or baying, breathing brackets and a paw pip mark what he found.
+  Beside him down, USE's prompt is BLUE'S DOWN - HOLD <USE> (the bound
+  key, Y on a pad, USE on a touch screen); holding it, GETTIN' BLUE UP and
+  its bar (`hound_revive`, `hud_flow`) rise from the view's foot.
 
 `tools/hound_check.gd` (HOUND CHECK OK, in check_all) holds it: heel, catch
 up and the lost jump; none with it off, in County Run, a versus map, the
@@ -1095,8 +1120,13 @@ boss; a fetch dropped and taken; down, held USE, a rind, getting up himself;
 STAY, COME, the replay op and the controls' whistle; saves; co-op's two
 hounds and their own whistles; two games in lockstep with him about, a
 snapshot onto a fresh game running on the same; his art, the stand-in and
-the badge. `-- play=<level>` lets the campaign bot play two minutes with him
-and prints what he did.
+the badge; every state's pose a frame of his model (POSES); the badge's
+words, the markers, the point's brackets, the revive bar and the prompt
+(FEEDBACK). `tools/actor_check.gd` holds his model's motions (every frame
+`HoundLooks` plays, each motion's keys in a row, played on the gait, a
+one-shot ending on its last key, his own blend) and his texels.
+`-- play=<level>` lets the campaign bot play two minutes with him and prints
+what he did.
 
 ### Mundell's junk bench (content pass 8)
 

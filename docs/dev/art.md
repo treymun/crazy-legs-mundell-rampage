@@ -275,17 +275,39 @@ a shop lamp falling in the saw floor's arena.
    - Mundell has a `sit` frame (`skeleton()` in enemy_actors.py: the hips
      down to the knees' height, the boots out front), for a partner on the
      riding mower (vehicles.cfg `pose`).
-   - BLUE the hound (`actors_hound.py`, content pass 8) is a kind with its
-     own frames like the cow, built square for the model (`FOR_MODEL`):
-     every leg piece a fixed length posed by two-bone IK, so each is the
-     same part in every frame; his coat a ticked material sized to each part
-     (`_ticked`: a ball's coordinates are its unit sphere, a limb's metres).
-     His black hood, ears and saddle are matte (`_matte`: a glossy black
-     reads grey under the stage's rims). `hound_face` is his HUD badge's
-     head, near profile so the long muzzle and the black ear read at 27
-     pixels, cels only (`cels_only`: export_actors.py makes no model of it),
-     lit with the rims down and no road dirt (`_CLEAN`). `build_enemy_actors.gd --
-     kinds=hound,hound_face`, then the steps below for `hound`.
+   - BLUE the hound (`actors_hound.py`, rebuilt in pass 10: the content
+     pass 8 dog read as a stiff blue-white dalmatian with black lumps for a
+     head and saddle) is a kind with its own frames like the cow, built
+     square for the model (`FOR_MODEL`): a lean, deep-chested, muscled
+     bluetick. His trunk is two smooth hides lofted through the body's
+     sections (`_hd_loft`, front and back, so the spine bends between
+     them); the legs are pieces of fixed length posed by two-bone IK with a
+     muscle on each upper piece and a cat foot oriented with him; every
+     frame builds the same parts in the same order, so nothing pops in or
+     out between keys (one tongue that moves, lids that swing). His coat is
+     painted, not modelled: every part stores where it sits in its own
+     frame (`coat_co`: the body's parts in the body's, the head's in the
+     head's, a leg piece by its height on the standing leg), and one shader
+     a zone (`_hd_coat`: body, head, leg, tail, ear) paints the bluetick on
+     it: pale hair thick with slate roan and ticks, a ragged black saddle,
+     the hood down the neck, black patches and spots, tan points on the
+     brows, cheeks, muzzle, chest, under the tail and the legs, the ears
+     black leather. His model keys more frames than his cels (`HOUND`
+     "model_frames", which export_actors.py `_frames` reads): fourteen
+     motions of five keys (idle wag, walk, trot, gallop, limp, tracking,
+     scratch, shake, going down, down on his side, being got up, getting
+     up, the lunge and bite, the hold's head shake) and ten poses; his old
+     cel names stay for the pictures (`_CEL_POSE`). export_actors.py labels
+     his head's parts `head` (`_label`: within `head_box` of the head's
+     middle, `LAST_J`'s `dog_head`), so his face gets more of the texture.
+     `hound_face` is his HUD badge's head, three-quarters so the long muzzle
+     and the ears read at 28 pixels, cels only (`cels_only`: export_actors.py
+     makes no model of it), lit with the rims down and no road dirt
+     (`_HD_CLEAN`). `build_enemy_actors.gd -- kinds=hound,hound_face`, then
+     the steps below for `hound`. `tools/art/actor_sheet.gd -- kind=hound
+     out=<png> [frames=a,b]` (a window) lays out the model in the game's own
+     actor shader from five sides and at game size, a row a frame (the
+     before and after sheets of pass 10 came from it).
    - The county events' razorback (`actors_hog.py`, content pass 8) is a
      kind with its own frames like the hound (`0`, the gallop `r0..r4`,
      `down`), built square for the model, legs of fixed pieces posed by IK,

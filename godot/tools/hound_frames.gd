@@ -1,6 +1,12 @@
 ## Pictures of BLUE, the hound (features/hound.gd), in a real window:
-##   hound_<name>   see SHOTS below
-## Each lands in out=<dir> as <name>.png; only=<a,b> takes some of them.
+##   hound_<name>   see POSES below (pass 10: his gaits, the limp and the
+##                  tracking walk, the howl, the lunge, down on his side with
+##                  USE's prompt, being got up with its bar, getting up, the
+##                  shake, lying at STAY), hound_pin and hound_pin_side, and
+##                  hound_behind and hound_behind_down (his marker over a
+##                  wall, red when he is down)
+## Each lands in out=<dir> as <name>.png; only=<a,b> takes some of them
+## (only=poses all of POSES).
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/hound_frames.gd -- out=<dir> [only=follow,pin]
@@ -8,16 +14,34 @@
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
 
-## [picture, level, state (features/hound.gd), his turn from facing the eye]
+## [picture, level, state (features/hound.gd), his turn from facing the eye,
+## what else is set (pass 10: his pace and gait, seconds down, the revive,
+## his health, seconds since he got up, cells off, the bite to come)]
 const POSES := [
-	["stand", "hickston", 0, 1.2],
-	["front", "hickston", 0, 0.0],
-	["sit", "hickston", 1, 0.9],
-	["bay", "fair", 6, 1.3],
-	["point", "sawmill", 7, 1.57],
-	["carry", "hickston", 5, 0.5],
-	["down", "hickston", 8, 1.5],
-	["dusk", "quarry", 0, 2.2],
+	["stand", "hickston", 0, 1.2, {}],
+	["front", "hickston", 0, 0.0, {}],
+	["sit", "hickston", 1, 0.9, {}],
+	["rest", "hickston", 1, 0.9, {"since": 12.0}],
+	["bay", "fair", 6, 1.3, {}],
+	["point", "sawmill", 7, 1.2, {"look": 1.3}],
+	["carry", "hickston", 5, 0.5, {}],
+	["down", "hickston", 8, 1.5, {"down": 3.0, "far": 2.4, "pitch": -40.0, "rinds": 0}],
+	[
+		"revive",
+		"hickston",
+		8,
+		1.5,
+		{"down": 5.0, "revive": .6, "far": 1.35, "pitch": -90.0, "rinds": 0}
+	],
+	["getup", "hickston", 0, 1.3, {"up": .45}],
+	["shake", "hickston", 0, 1.3, {"up": 1.0}],
+	["trot", "hickston", 0, 1.57, {"pace": 2.6, "gait": 1.4}],
+	["gallop", "hickston", 0, 1.57, {"pace": 7.4, "gait": 0.0}],
+	["track", "hickston", 6, 1.3, {"pace": 1.0, "gait": 2.0, "tracking": true}],
+	["limp", "hickston", 0, 1.57, {"pace": 2.6, "gait": 1.0, "health": 20.0}],
+	["lunge", "hickston", 2, 1.57, {"bite": .05}],
+	["howl", "quarry", 6, 1.0, {}],
+	["dusk", "quarry", 0, 2.2, {}],
 ]
 
 var main
@@ -58,24 +82,52 @@ func _run() -> void:
 		_ticks(g, 4)
 		var h = g.features["hound"]
 		var d = h.dogs[0]
+		var more: Dictionary = pose[4]
+		# A moment out of his idle and tracking rounds (HoundLooks).
+		g.clock = 13.0
 		h.call("_into", d, int(pose[2]))
 		d.until = g.clock + 99.0
-		d.bark_at = g.clock + 99.0 if pose[2] in [6, 7] else -10.0
-		d.down_at = g.clock - 2.0 if pose[2] == 8 else -1.0
+		d.bark_at = g.clock if pose[2] in [6, 7] else -10.0
+		d.since = g.clock - float(more.get("since", 1.0))
+		if more.get("tracking", false):
+			d.bark_at = -10.0
+		d.down_at = g.clock - float(more.get("down", 2.0)) if pose[2] == 8 else -1.0
+		d.revive = float(more.get("revive", 0.0)) * h.n("revive_time")
+		d.up_at = g.clock - float(more.get("up", 50.0))
+		d.health = float(more.get("health", h.n("health")))
+		d.hurt_at = -10.0
+		if pose[2] == 2:
+			d.bite_at = g.clock + float(more.get("bite", .5))
 		if pose[2] == 5:
 			d.item = "shells"
 		var p := g.player
 		var turn: float = pose[3]
-		d.x = p.x + cos(p.angle) * 2.6
-		d.y = p.y + sin(p.angle) * 2.6
+		var far: float = more.get("far", 2.6)
+		d.x = p.x + cos(p.angle) * far
+		d.y = p.y + sin(p.angle) * far
 		d.floor_z = g.world.floor_under(d.x, d.y, g.world.stand(p) + .4)
 		d.angle = p.angle + PI + turn
-		p.pitch = -16.0
+		d.pace = float(more.get("pace", 0.0))
+		d.gait = float(more.get("gait", 0.0))
+		if more.has("look"):
+			# what he points at: in the view, off to the side of him
+			var reach: float = more["look"]
+			var side := p.angle - PI * .5
+			d.look = Vector2(
+				d.x + cos(side) * reach + cos(p.angle) * .5,
+				d.y + sin(side) * reach + sin(p.angle) * .5
+			)
+			d.angle = atan2(d.look.y - d.y, d.look.x - d.x)
+		p.pitch = float(more.get("pitch", -16.0))
+		if more.has("rinds"):
+			p.inventory["rinds"] = int(more["rinds"])
 		g.armory.holstered = true
 		g.armory.lower = 1.0
 		await _snap("hound_" + name)
 	if _wanted("pin"):
 		await _pin()
+	if _wanted("behind"):
+		await _behind()
 	print("hound frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -116,6 +168,37 @@ func _level(level_id: String) -> Game:
 func _ticks(g: Game, n: int) -> void:
 	for i in n:
 		g.tick(1.0 / 60.0, Game.Controls.new())
+
+
+## BLUE behind a wall from the player: his marker over him.
+func _behind() -> void:
+	var g := _level("hickston")
+	_ticks(g, 4)
+	var h = g.features["hound"]
+	var d = h.dogs[0]
+	var p := g.player
+	g.clock = 13.0
+	for r: float in [4.0, 5.0, 6.0, 8.0, 10.0]:
+		for k in 36:
+			var a := k * TAU / 36.0
+			var x := p.x + cos(a) * r
+			var y := p.y + sin(a) * r
+			if g.world.blocked(x, y, .25):
+				continue
+			var z := g.world.floor_under(x, y, g.world.stand(p) + .4)
+			if not g.world.visible(p.x, p.y, x, y, p.eye, z + .5):
+				d.x = x
+				d.y = y
+				d.floor_z = z
+				p.angle = a
+				p.pitch = -6.0
+				g.armory.holstered = true
+				g.armory.lower = 1.0
+				await _snap("hound_behind")
+				h.call("_into", d, 8)
+				d.down_at = g.clock - 3.0
+				await _snap("hound_behind_down")
+				return
 
 
 ## BLUE holding a hand down: the hand stunned in its pain pose, BLUE hauling
