@@ -87,8 +87,10 @@ var rest_frames: Array[Transform3D] = []
 ## The points as the model's own body at rest ("down") has them (a tool's
 ## pose to drop from).
 var down_points := PackedVector3Array()
-## The points lying on the back on the floor (_lie_down).
+## The points lying on the back on the floor (_lie_down), and the gear's
+## balls beside it.
 var lying_points := PackedVector3Array()
+var gear_lying := PackedVector3Array()
 ## Each segment's outermost points in its rest frame (model units), in a
 ## bucket for each of ways() (Array[PackedVector3Array] each), and how far
 ## the furthest reaches from the frame's origin (_hull).
@@ -598,10 +600,18 @@ func _lie_down() -> void:
 	for i in POINTS:
 		lying_points[i] = lying_points[i] - Vector3(0.0, low, 0.0)
 	# The gear beside it on the floor, as it was held turned with the body.
+	gear_lying = PackedVector3Array()
 	for g in gear_bones.size():
 		for k in GEAR_BALLS:
 			var p := turn * (gear_ends[g * GEAR_BALLS + k] - mid) - Vector3(0.0, low, 0.0)
-			lying_points.append(Vector3(p.x, gear_radius[g], p.z))
+			gear_lying.append(Vector3(p.x, gear_radius[g], p.z))
+
+
+## The points lying on the back (lying_points), the gear beside it after.
+func lying() -> PackedVector3Array:
+	var out := lying_points.duplicate()
+	out.append_array(gear_lying)
+	return out
 
 
 ## Each segment's outermost points (its parts' convex hull, a part the dead

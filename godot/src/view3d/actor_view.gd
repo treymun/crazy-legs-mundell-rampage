@@ -319,7 +319,7 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 		var fresh := clock - e.died_at < .5
 		# The pose it died in where this model showed it alive (as it was
 		# drawn, its flinch and all), else standing.
-		var start := _rig.lying_points
+		var start := _rig.lying()
 		var from := xf
 		_hand_from = []
 		if fresh:
