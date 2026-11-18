@@ -49,6 +49,8 @@ static var FLOOD_OUT: float = BossData.get_value("boss_arena", "flood_out")
 static var FLOOD_HIGH: float = BossData.get_value("boss_arena", "flood_high")
 static var FLOOD_REACH: float = BossData.get_value("boss_arena", "flood_reach")
 const FLOOD_COLOUR := Color(1, .93, .78)
+## Seconds a boss's burning ground takes to go out once it falls (stand_down).
+const FIRE_OUT := .6
 static var FLOOD_STRENGTH: float = BossData.get_value("boss_arena", "flood_strength")
 static var FLOOD_SEEN: float = BossData.get_value("boss_arena", "flood_seen")
 
@@ -375,6 +377,21 @@ func knock_tyres(x: float, y: float, reach: float) -> bool:
 
 
 # ------------------------------------------------------------------ the tick
+
+
+## A boss of ours fell (features/boss_fight.gd): what its fight threw is
+## stood down at once (the strikes due, the lobs and balloons in the air,
+## the rolling tyres, the horn lanes, a carriage on the move or rung for),
+## and the burning ground goes out over FIRE_OUT seconds. Play: no dice.
+func stand_down(_e: Enemy) -> void:
+	strikes.clear()
+	lobs.clear()
+	rollers.clear()
+	lanes.clear()
+	carriage_run = INF
+	for f: Fire in fires:
+		f.until = minf(f.until, game.clock + FIRE_OUT)
+		f.spread_at = INF
 
 
 func _tick(dt: float) -> void:

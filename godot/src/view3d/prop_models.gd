@@ -31,6 +31,8 @@ var _textures: Dictionary = {}
 ## ResourceLoader.exists costs tens of microseconds a call.
 var _named: Dictionary = {}
 var _has_scene: Dictionary = {}
+## picture -> its model's name once its art and scene are here (they stay).
+var _ready: Dictionary = {}
 var _assets: Assets
 
 
@@ -47,6 +49,10 @@ func _init(assets: Assets) -> void:
 ## A quest station's pictures (town_quest_<name>_off, _on) both stand for its
 ## one model, `quest_<name>`.
 func name_of(image: String) -> String:
+	var ready: Variant = _ready.get(image)
+	if ready != null:
+		var ready_name: String = ready
+		return ready_name
 	var known: Variant = _named.get(image)
 	if known == null:
 		known = _model_named(image)
@@ -62,7 +68,20 @@ func name_of(image: String) -> String:
 	if ok == null:
 		ok = ResourceLoader.exists(SCENES.path_join(name + ".tscn"))
 		_has_scene[name] = ok
-	return name if ok else ""
+	if not ok:
+		return ""
+	_ready[image] = name
+	return name
+
+
+## Whether a picture's name stands for a model at all (by its text alone:
+## its art may still be coming).
+func named(image: String) -> bool:
+	var known: Variant = _named.get(image)
+	if known == null:
+		known = _model_named(image)
+		_named[image] = known
+	return known != ""
 
 
 ## The model a picture's name stands for by its text alone ("" none).

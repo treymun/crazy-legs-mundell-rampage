@@ -13,12 +13,29 @@ const PICTURE_TURN := PropModels.PICTURE_TURN
 ## again may be from where it went and keep its marks (cells).
 const KEEP := 48
 const REMADE := 1.6
+## Props gone out of view are kept hidden (parked) by key, at most PARK and
+## `park_most` (the view's room in the shader instance buffer: a hidden part
+## keeps its slot), and shown again as they were when they come back: making
+## them again (scene, look, light) cost 7 or 8 props a frame while the
+## view-bench turned (2026-11-17).
+const PARK := 64
+## A prop further from the eye (map x, y) than its reach (PropView.setup:
+## its parts' visibility_range_end, to their middle) and half its own
+## breadth and BEYOND more is not stood at all: it would not show. The game
+## lists sprites to 51 cells ahead.
+const BEYOND := 1.0
 
 var models: PropModels
 var _shader: Shader
 var _materials: Dictionary = {}
-## key (picture and place) -> PropView (scenes/props/<name>.tscn)
+## key ([picture, place], [picture, thing's id] or [picture, track]) ->
+## PropView (scenes/props/<name>.tscn)
 var _shown: Dictionary = {}
+## key -> PropView out of view, hidden, the oldest first (PARK).
+var _parked: Dictionary = {}
+var park_most := PARK
+## Props made from their scenes since the layer was made (view_perf_check).
+var made_total := 0
 ## place -> facing (radians about up), kept so a broken prop faces as it did
 var _facing: Dictionary = {}
 var _level: LevelData
@@ -36,6 +53,22 @@ func _init(p_models: PropModels) -> void:
 ## The props shown now.
 func shown() -> Array:
 	return _shown.values()
+
+
+## The model parts the layer holds, shown and parked (each a slot in the
+## shader instance buffer).
+func held() -> int:
+	var n := 0
+	for node: PropView in _shown.values():
+		n += node.meshes().size()
+	for node: PropView in _parked.values():
+		n += node.meshes().size()
+	return n
+
+
+## How many props are parked (out of view, kept hidden).
+func parked() -> int:
+	return _parked.size()
 
 
 ## The materials the props shown now draw with (each once).
@@ -109,7 +142,7 @@ func _material(name: String) -> ShaderMaterial:
 
 ## Show these sprites (each with a mesh) and nothing else. Returns the
 ## materials made this frame (the view hands them its shader numbers).
-func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
+func show_props(sprites: Array, level: LevelData, eye := Vector3.INF) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
 	made.clear()
 	if level != _level:
@@ -119,22 +152,36 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 		for node: PropView in _shown.values():
 			node.queue_free()
 		_shown.clear()
+		for node: PropView in _parked.values():
+			node.queue_free()
+		_parked.clear()
 	var seen := {}
-	var made_keys: Array[String] = []
+	var made_keys: Array = []
 	for s: View.Sprite in sprites:
 		var name := models.name_of(s.image)
-		var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
-		var key := "%s@%s" % [s.image, place]
+		if eye.x != INF and _beyond(s, name, eye):
+			continue
 		# A thing on the move (thrown, held: features/carry.gd) keeps its model
 		# by what it is, stood again each frame, tumbling by its turn; a prop a
 		# boss arena flings or topples (View.Sprite.track) likewise.
 		var loose := s.who != null and s.track == ""
+		var key: Array
 		if loose:
-			key = "%s#%d" % [s.image, s.who.get_instance_id()]
+			key = [s.image, s.who.get_instance_id()]
 		elif s.track != "":
-			key = "%s#%s" % [s.image, s.track]
+			key = [s.image, s.track]
+		else:
+			key = [s.image, Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))]
 		seen[key] = true
 		var node: PropView = _shown.get(key)
+		if node == null:
+			node = _parked.get(key)
+			if node != null:
+				# Back in view: shown as it was, lit by its cell's light now.
+				_parked.erase(key)
+				node.visible = true
+				node.light_again(level)
+				_shown[key] = node
 		if node != null and loose:
 			var model_size := models.scale_of(name, s.height)
 			var model_dims: Array = models.sizes[name]
@@ -150,9 +197,11 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			var packed := models.scene(name)
 			if packed == null:
 				continue
+			var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
 			node = packed.instantiate() as PropView
 			if node == null:
 				continue
+			made_total += 1
 			var had := _materials.size()
 			var material := _material(name)
 			if _materials.size() > had:
@@ -175,26 +224,53 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			continue
 		node.lean(s.tilt)
 	var gone: Array = []
-	for key: String in _shown.keys():
+	for key: Array in _shown.keys():
 		if not seen.has(key):
 			var old: PropView = _shown[key]
-			var marks := old.take_marks()
-			if not marks.is_empty():
-				gone.append([key, old.prop, old.position, marks])
-			old.queue_free()
 			_shown.erase(key)
+			gone.append([key, old])
 	_pass_marks(made_keys, gone)
+	# The rest of those gone out of view are parked; the oldest parked go.
+	for row: Array in gone:
+		var key: Array = row[0]
+		var old: PropView = row[1]
+		old.visible = false
+		_parked[key] = old
+	while _parked.size() > maxi(0, park_most):
+		var oldest: Array = _parked.keys()[0]
+		var old: PropView = _parked[oldest]
+		_parked.erase(oldest)
+		var marks := old.take_marks()
+		if not marks.is_empty():
+			_kept[oldest] = marks
+		old.queue_free()
+	while _kept.size() > KEEP:
+		_kept.erase(_kept.keys()[0])
 	return fresh
 
 
-## Marks follow a prop that comes back into view (kept by its key) or one
-## made again where it went (a car stood again at its next place, a thrown
-## thing landing, a breakable showing its struck picture): the nearest gone
-## prop of the same model within REMADE cells hands its marks on.
-func _pass_marks(made_keys: Array[String], gone: Array) -> void:
+## Whether sprite `s` (model `name`) stands too far from `eye` to show.
+func _beyond(s: View.Sprite, name: String, eye: Vector3) -> bool:
+	var dims: Array = models.sizes[name]
+	var size := models.scale_of(name, s.height)
+	var tall: float = dims[2]
+	var wide: float = dims[0]
+	var deep: float = dims[1]
+	var reach := 51.0 if tall * size > 2.7 else 32.0
+	var far := reach + Vector2(wide, deep).length() * size * .5 + BEYOND
+	return Vector2(s.x - eye.x, s.y - eye.y).length_squared() > far * far
+
+
+## Marks follow a prop made again where one went this frame (a car stood
+## again at its next place, a thrown thing landing, a breakable showing its
+## struck picture): the nearest one gone ([key, PropView] in `gone`) of the
+## same model within REMADE cells with marks hands them on and is let go; and
+## a prop made again after it left the park keeps the marks kept by its key.
+## One that comes back from the park has kept its own.
+func _pass_marks(made_keys: Array, gone: Array) -> void:
 	for i in made.size():
 		var node := made[i]
-		var key := made_keys[i]
+		var key: Array = made_keys[i]
 		if _kept.has(key):
 			var kept: Array = _kept[key]
 			node.give_marks(kept)
@@ -204,22 +280,17 @@ func _pass_marks(made_keys: Array[String], gone: Array) -> void:
 		var best_d := REMADE
 		for k in gone.size():
 			var row: Array = gone[k]
-			var at: Vector3 = row[2]
-			var model: String = row[1]
-			var d := at.distance_to(node.position)
-			if model == node.prop and d < best_d:
+			var old: PropView = row[1]
+			var d := old.position.distance_to(node.position)
+			if old.prop == node.prop and d < best_d and not old.take_marks().is_empty():
 				best = k
 				best_d = d
 		if best >= 0:
 			var row: Array = gone[best]
-			var marks: Array = row[3]
-			node.give_marks(marks)
+			var old: PropView = row[1]
+			node.give_marks(old.take_marks())
+			old.queue_free()
 			gone.remove_at(best)
-	for row: Array in gone:
-		var key: String = row[0]
-		_kept[key] = row[3]
-	while _kept.size() > KEEP:
-		_kept.erase(_kept.keys()[0])
 
 
 ## Which way a prop faces (PropModels.facing), kept for where it stands so a

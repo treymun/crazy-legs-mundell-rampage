@@ -74,7 +74,8 @@ func _tick(_dt: float) -> void:
 
 
 ## The tough guy says his piece (TOUGH_SAYS, cue bark_<kind>) with CHATTER
-## on, captioned; his kind's alert cry otherwise. Sound and caption only.
+## on, captioned, cutting in over anyone talking; his kind's alert cry
+## otherwise. Sound and caption only.
 func _says(e: Enemy) -> void:
 	var cue := "bark_" + e.kind
 	var said := str(TOUGH_SAYS.get(e.kind, ""))
@@ -84,6 +85,9 @@ func _says(e: Enemy) -> void:
 		and game.sound != null
 		and game.sound.has(cue)
 	):
+		# His piece cuts in, as a boss's line does (pass 10: with the hands'
+		# barks heard again it came over theirs).
+		game.sound.hush_speech()
 		game.sound_at(cue, e.x, e.y, 1.0)
 		game.caption = said
 		game.caption_until = game.clock + 2.4

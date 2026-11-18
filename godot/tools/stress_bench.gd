@@ -190,16 +190,26 @@ func _counts(g: Game, extra: Callable) -> String:
 		% [pieces, awake, shown_wrecks, alive, g.enemies.size(), sprites.size(), props, actors]
 	)
 	if main.world_view != null:
-		text += "  instance slots %d" % _slots(main.world_view)
+		var view: WorldView3D = main.world_view
+		text += (
+			"  instance parts %d of %d (parked props %d, models %d)"
+			% [
+				_slots(view),
+				WorldView3D.instance_parts(),
+				view.props.parked(),
+				view.actors.parked()
+			]
+		)
 	if extra.is_valid():
 		text += "  " + String(extra.call(g))
 	return text
 
 
-## The shader instance numbers the view's models hold (each a vec4 slot of
-## the global buffer: 4096 here, 1024 where a uniform block holds 16 KB, as
-## on many phones and in WebGL): prop and wreck parts 8 (tone, six marks,
-## char), actor parts 4.
+## The model parts that hold a block of the shader instance buffer (16 of
+## its vec4 slots each, shown or hidden, whatever the shader uses: room for
+## WorldView3D.instance_parts(), 250 here, 60 where a uniform block holds
+## 16 KB, as on many phones and in WebGL): props, wreck pieces, actors and
+## the seat views, every part with instance uniforms.
 func _slots(view: Node) -> int:
 	var total := 0
 	for node: Node in view.find_children("*", "MeshInstance3D", true, false):
@@ -208,10 +218,9 @@ func _slots(view: Node) -> int:
 		if m == null or m.shader == null:
 			continue
 		var path := m.shader.resource_path
-		if path.ends_with("prop.gdshader") or path.ends_with("wreck.gdshader"):
-			total += 8
-		elif path.ends_with("actor.gdshader"):
-			total += 4
+		for kind: String in ["prop", "wreck", "actor", "cab"]:
+			if path.ends_with(kind + ".gdshader"):
+				total += 1
 	return total
 
 

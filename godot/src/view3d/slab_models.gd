@@ -69,6 +69,8 @@ const PARTS := {"town_range_gong": Rect2i(14, 6, 56, 48)}
 const PART := "#part"
 
 var _assets: Assets
+## picture -> its family (family())
+static var _families: Dictionary = {}
 ## mesh key -> ArrayMesh (null cached for a picture that is not there)
 var _meshes: Dictionary = {}
 ## picture -> where its part hangs from, in sprite units up (NAN: no part)
@@ -79,8 +81,18 @@ func _init(assets: Assets) -> void:
 	_assets = assets
 
 
-## Which family a picture's slab is in (NONE: it stays a sprite).
+## Which family a picture's slab is in (NONE: it stays a sprite), kept by
+## picture (asked for every sprite every frame).
 static func family(image: String) -> int:
+	var known: Variant = _families.get(image)
+	if known == null:
+		known = _family(image)
+		_families[image] = known
+	var kind: int = known
+	return kind
+
+
+static func _family(image: String) -> int:
 	if image.begins_with("item_"):
 		return PICKUP
 	if TARGET_NAMES.has(image):

@@ -384,7 +384,7 @@ static func build() -> Array:
 					"kill_cam",
 					1,
 					["OFF", "BOSSES", "BOSSES AND AREAS"],
-					"A SHORT REPLAY OF THE KILL FROM ANOTHER ANGLE. ANY KEY SKIPS. NEVER ONLINE."
+					"A BOSS'S FALL ON ITS OWN CAMERA; AREAS ADDS A FIGHT'S LAST KILL. KEY SKIPS."
 				),
 				SessionStore.choices(
 					"OPENERS",

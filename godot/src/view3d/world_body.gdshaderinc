@@ -8,11 +8,9 @@
 // The tiles with their mip levels (view_tiles.gd): read with texelFetch at
 // the level tile_lod picks, so the sampler's filter is never used.
 uniform sampler2DArray tiles : filter_nearest_mipmap, repeat_disable;
-uniform float flash = 0.0;
+global uniform float flash;
 // True in the moments the liquor tube dips (render_surfaces.gd flicker).
-uniform bool liquor_flicker = false;
-uniform int flow_tile[2];
-uniform int flow_shift[2];
+global uniform bool liquor_flicker;
 // The reflection the mirror shows (world_view.gd's mirror camera's picture).
 uniform sampler2D mirror_tex : filter_nearest, repeat_disable;
 
@@ -125,10 +123,12 @@ void fragment() {
 	if (floor_) {
 		pu = int(map_p.x * 128.0) & 127;
 		pv = int(map_p.y * 128.0) & 127;
-		for (int k = 0; k < 2; k++) {
-			if (tile == flow_tile[k]) {
-				pv = (pv + flow_shift[k]) & 127;
-			}
+		vec4 flow = view_row(ROW_FLOW, 0);
+		if (tile == int(flow.x)) {
+			pv = (pv + int(flow.z)) & 127;
+		}
+		if (tile == int(flow.y)) {
+			pv = (pv + int(flow.w)) & 127;
 		}
 		if (effects_on && !overhead) {
 			info = tile_info(tile);

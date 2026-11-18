@@ -11,6 +11,10 @@ class_name ActorView
 extends Node3D
 
 const HEADINGS: Array[String] = ["quarter_", "side_", "away_", "back_"]
+## How far a model shows (its parts' visibility_range_end, cells from the
+## camera to its middle): the game lists bodies to 54 cells ahead.
+const REACH := 32.0
+
 ## A body at rest is drawn this much of its height: its cel was a flat
 ## picture a quarter of the body's height, and the model lying in full, its
 ## belly and boots up, read as a heap.
@@ -41,16 +45,30 @@ var _skeletons: Array[Skeleton3D] = []
 ## the ragdoll), and the numbers last handed to the parts' shader: most
 ## bodies hold a frame for many draws, and each seek or shader number costs.
 var _seeked := NAN
+## A fallen boss's turn toward open floor, and the fall it was found for.
+var _twist := 0.0
+var _twist_for := -1.0
+## kind -> where its body lies at the end of its fall (_lying_middle).
+static var _lying := {}
 var _shaded := []
 ## stem -> picture -> pose_of's answer (it parses the name each time).
 static var _poses: Dictionary = {}
-## VIEW DETAIL LOW (QUALITY LOW): bodies past LOD_NEAR cells from `lod_eye`
-## (map x, y) are posed every other frame, past LOD_FAR every third
-## (staggered), as a 160-wide picture cannot show the difference; INF: every
-## body every frame. `draws` counts the view's frames (WorldView3D sets both).
+## Bodies past `lod_high` cells from `lod_eye` (map x, y), times their
+## height, are posed every other frame (staggered): LOD_HIGH at the old
+## focal length, so a body there is 14 of the view's pixels tall or less and
+## its limbs move under half a pixel a frame (pass 10; further in HD or with
+## a narrower FIELD OF VIEW). With VIEW
+## DETAIL LOW (QUALITY LOW, `lod_low`) past LOD_NEAR every other frame and
+## past LOD_FAR every third, as a 160-wide picture cannot show the
+## difference. A change of action (aim, fire, pain, a fall) is posed at once
+## whatever the distance. INF: every body every frame. `draws` counts the
+## view's frames (WorldView3D sets all three).
+const LOD_HIGH := 16.0
 const LOD_NEAR := 10.0
 const LOD_FAR := 20.0
 static var lod_eye := Vector3.INF
+static var lod_high := LOD_HIGH
+static var lod_low := false
 static var draws := 0
 ## Looks only (none of it touches play or game.rng): a jump between poses
 ## that are not neighbours in the action (idle to aim, aim to fire, a hit's
@@ -80,6 +98,15 @@ var _blend_for := BLEND
 ## Per skeleton: [positions, rotations, scales] of the pose blended from and to.
 var _blend_from: Array = []
 var _blend_to: Array = []
+## The keys of the frame and look last posed (_keys): a motion's first key
+## and a fall's (NAN: not one), the frame's own key and its blend group.
+## Worked out when the frame changes, not each draw (each built key names).
+var _keys_for := ""
+var _keys_look := -1
+var _run_at := NAN
+var _die_at := NAN
+var _key_at := 0.0
+var _group_name := ""
 
 
 ## Bind the kind's material and find the model's parts. False when the model
@@ -92,7 +119,7 @@ func setup(p_models: ActorModels) -> bool:
 			var mesh := child as MeshInstance3D
 			mesh.material_override = material
 			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			mesh.visibility_range_end = 32.0
+			mesh.visibility_range_end = REACH
 			_meshes.append(mesh)
 		elif child is Skeleton3D:
 			_skeletons.append(child as Skeleton3D)
@@ -162,6 +189,10 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		down = clampf((clock - e.died_at) / span, 0.0, 1.0)
 	var flat_at: float = info.get("flat", FLAT)
 	var flat := lerpf(1.0, flat_at, down * down) if not e.alive else 1.0
+	if not e.alive and e.died_at >= 0.0 and Enemy.BOSS_TITLES.has(e.kind):
+		# A boss twists as it goes down so it lies on open floor.
+		var twist := _fall_twist(e, level, size, turn)
+		turn += twist * down * down * (3.0 - 2.0 * down)
 	transform = Transform3D(
 		(
 			Basis(Vector3.UP, turn).scaled(Vector3(size, size * flat, size))
@@ -174,8 +205,8 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	elif e.alive:
 		transform = transform * _lively(e, frame, clock)
 	var at := _time(frame, look, e, clock, span)
-	var group := ("hurt_" if look == 1 else "") + ActorView.group_of(frame)
-	if at != _seeked and (is_nan(_seeked) or _due(s)):
+	var group := _group_name
+	if at != _seeked and (is_nan(_seeked) or group != _group or _due(s)):
 		var blend := not is_nan(_seeked) and group != _group and _blends()
 		if blend:
 			_blend_from = _capture()
@@ -205,15 +236,18 @@ static func tipped(lean: float, side: float) -> Transform3D:
 	return Transform3D(roll, pivot - roll * pivot)
 
 
-## Whether a body is posed again this frame (lod_eye: VIEW DETAIL LOW).
+## Whether a body is posed again this frame (lod_eye, lod_low).
 func _due(s: View.Sprite) -> bool:
 	if lod_eye == Vector3.INF:
 		return true
 	var d := Vector2(s.x - lod_eye.x, s.y - lod_eye.y).length()
-	if d < LOD_NEAR:
-		return true
-	var every := 2 if d < LOD_FAR else 3
-	return (ActorView.draws + get_instance_id()) % every == 0
+	var every := 1
+	if lod_low:
+		if d >= LOD_NEAR:
+			every = 2 if d < LOD_FAR else 3
+	elif d >= lod_high * maxf(1.0, s.height):
+		every = 2
+	return every == 1 or (ActorView.draws + get_instance_id()) % every == 0
 
 
 ## The model's size for enemy `e` (its height against the model's canvas).
@@ -412,30 +446,55 @@ static func pose_of(image: String, stem: String) -> Array:
 ## its four beats (and back to the first, `w4`) on the enemy's gait; a fall
 ## through its five steps to the body at rest on the time since it died.
 func _time(frame: String, look: int, e: Enemy, clock: float, span: float) -> float:
-	var hurt := "hurt_" if look == 1 else ""
-	if ActorView.is_run(frame):
+	_keys(frame, look)
+	if not is_nan(_run_at):
 		# A motion of five keys in a row (the walk w0..w4; the hound's gallop,
 		# trot, idle, shake and the rest, scripts/blender/actors_hound.py):
 		# its four beats run on the gait, and a body that plays one through
 		# once (the hound going down) is handed a gait short of the last key.
+		var beat := fposmod(e.gait / (PI * .5), 4.0)
+		return _run_at + beat * ActorModels.KEY_TIME
+	# A boss's fall ends on its last step, the body lying where it went down:
+	# its separate "down" key lies elsewhere, and running on into it slid the
+	# body a cell and a half across the floor (pass 10, the boss endings).
+	var boss := Enemy.BOSS_TITLES.has(e.kind)
+	if not is_nan(_die_at) and not ActorView.held(e):
+		var steps := 4.0 if boss else 5.0
+		var step := clampf((clock - e.died_at) / span * steps, 0.0, steps)
+		return _die_at + step * ActorModels.KEY_TIME
+	if boss and frame == "down":
+		var lying: Variant = models.key_time(kind, "die_4")
+		if lying != null:
+			var lying_at: float = lying
+			return lying_at
+	return _key_at
+
+
+## The keys _time and the blend need for `frame` in `look`, when it changed.
+func _keys(frame: String, look: int) -> void:
+	if frame == _keys_for and look == _keys_look:
+		return
+	_keys_for = frame
+	_keys_look = look
+	var hurt := "hurt_" if look == 1 else ""
+	_group_name = hurt + ActorView.group_of(frame)
+	_run_at = NAN
+	if ActorView.is_run(frame):
 		var first: Variant = models.key_time(kind, hurt + frame[0] + "0")
 		var last: Variant = models.key_time(kind, hurt + frame[0] + "4")
 		if first != null and last != null:
-			var beat := fposmod(e.gait / (PI * .5), 4.0)
-			var run_at: float = first
-			return run_at + beat * ActorModels.KEY_TIME
-	if frame.begins_with("die_") and not ActorView.held(e):
-		var first: Variant = models.key_time(kind, "die_0")
-		if first != null:
-			var step := clampf((clock - e.died_at) / span * 5.0, 0.0, 5.0)
-			var fall_at: float = first
-			return fall_at + step * ActorModels.KEY_TIME
+			_run_at = first
+	_die_at = NAN
+	if frame.begins_with("die_"):
+		var fall: Variant = models.key_time(kind, "die_0")
+		if fall != null:
+			_die_at = fall
+	_key_at = 0.0
 	for name: String in [hurt + frame, frame, hurt + "0", "0"]:
 		var t: Variant = models.key_time(kind, name)
 		if t != null:
-			var key_at: float = t
-			return key_at
-	return 0.0
+			_key_at = t
+			return
 
 
 ## Whether a frame is a beat of a motion of five keys (a letter and the
@@ -557,3 +616,67 @@ static func flinch(e: Enemy, since: float) -> Transform3D:
 		* Basis(Vector3(0, 0, 1), roll * hard)
 	)
 	return Transform3D(basis, Vector3(0, -dip * hard, 0))
+
+
+## The middle of the body as drawn (the average of its bones, world space):
+## the boss ending frames a fallen boss by it, whichever way it fell
+## (boss_ending.gd). Its spot when it has no bones.
+func body_middle() -> Vector3:
+	var total := Vector3.ZERO
+	var n := 0
+	for skeleton in _skeletons:
+		for i in skeleton.get_bone_count():
+			total += skeleton.global_transform * skeleton.get_bone_global_pose(i).origin
+			n += 1
+	return total / n if n > 0 else global_position
+
+
+## How far a fallen boss turns as it goes down so the body lies on open floor,
+## not through a wall, a deck or its own throne (Maw lay through her
+## alcove's wall): its lying middle (measured once a kind) tried where it
+## falls, then turned a quarter either way, then a half. Looks only, the same
+## every time for the same fall.
+func _fall_twist(e: Enemy, level: LevelData, size: float, turn: float) -> float:
+	if _twist_for == e.died_at:
+		return _twist
+	_twist_for = e.died_at
+	_twist = 0.0
+	var lying := _lying_middle() * size
+	if lying.length() < .2:
+		return _twist
+	var floor_z: float = level.stand(e)
+	for extra: float in [0.0, PI * .5, -PI * .5, PI]:
+		var off := Basis(Vector3.UP, turn + extra) * lying
+		var open := true
+		for k: float in [.5, 1.0, 1.45]:
+			if level.blocked(e.x + off.x * k, e.y + off.z * k, .2, floor_z + .35):
+				open = false
+				break
+		if open:
+			_twist = extra
+			break
+	return _twist
+
+
+## Where this kind's body lies at the end of its fall (its bones' middle on
+## the last fall step), from its feet, unscaled: measured once a kind.
+func _lying_middle() -> Vector3:
+	if _lying.has(kind):
+		var known: Vector3 = _lying[kind]
+		return known
+	var out := Vector3.ZERO
+	var key: Variant = models.key_time(kind, "die_4")
+	if key != null and _player != null and not _skeletons.is_empty() and is_inside_tree():
+		var at: float = key
+		_player.seek(at, true)
+		var back := global_transform.affine_inverse()
+		var n := 0
+		for skeleton in _skeletons:
+			for i in skeleton.get_bone_count():
+				out += back * (skeleton.global_transform * skeleton.get_bone_global_pose(i).origin)
+				n += 1
+		out = out / maxf(1.0, n)
+		out.y = 0.0
+		_seeked = NAN  # posed again from its own time this frame
+	_lying[kind] = out
+	return out

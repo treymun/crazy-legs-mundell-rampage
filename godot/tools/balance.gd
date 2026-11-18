@@ -54,7 +54,10 @@ const BOSS_BANDS := {
 ## cleared within CHAPTER_DEATHS deaths and inside its band of seconds (after
 ## the pass 9 tuning, as each check_all row plays them: hickston 247, fair
 ## 275, sawmill 205, quarry 212, bayou 561 (one death), speedway 196,
-## moonshine 482, mothership 513 (one death); about 35 % either side). Before
+## moonshine 482, mothership 513 (one death); about 35 % either side). Pass
+## 10 eased the boss fall's slow motion (a finisher's ease, 1.3 s): the run
+## after Maw's fall went otherwise and the bot no longer died, mothership 270
+## (no death); its band now holds both runs. Before
 ## the tuning it could not clear Hickston at all within two deaths. A part
 ## plays the same every time; the whole check in one process differs a
 ## little (ids and caches are carried over from the chapters before it).
@@ -67,7 +70,7 @@ const CHAPTER_BANDS := {
 	"bayou": [365.0, 760.0],
 	"speedway": [125.0, 265.0],
 	"moonshine": [310.0, 645.0],
-	"mothership": [335.0, 700.0],
+	"mothership": [175.0, 700.0],
 }
 ## check_all's rows: the bosses, then two chapters a row.
 const CHECK_PARTS := 5
