@@ -208,6 +208,20 @@ func place_of(t: Thing) -> Vector3:
 	return Vector3(t.board.x, t.board.y, game.world.elevation(t.board.x, t.board.y) + t.board.z)
 
 
+## place_of()'s x and y alone (no floor's height looked up): for passing
+## over what lies out of reach first.
+func _place_xy(t: Thing) -> Vector2:
+	if t.moved:
+		return Vector2(t.x, t.y)
+	if t.piece >= 0:
+		var p: Breakables.Piece = _bk.pieces[t.piece]
+		return Vector2(p.x, p.y)
+	if t.prop >= 0:
+		var s: View.Sprite = game.props[t.prop]
+		return Vector2(s.x, s.y)
+	return Vector2(t.board.x, t.board.y)
+
+
 ## Whether a standing thing can be taken up (a breakable not broken).
 func takeable(t: Thing) -> bool:
 	if t.state != STAND:
@@ -264,11 +278,12 @@ func target() -> int:
 		var t: Thing = things[i]
 		if t.state != STAND:
 			continue
+		var flat := _place_xy(t)
+		if absf(flat.x - p.x) > reach or absf(flat.y - p.y) > reach:
+			continue
 		var at := place_of(t)
 		var dx := at.x - p.x
 		var dy := at.y - p.y
-		if absf(dx) > reach or absf(dy) > reach:
-			continue
 		var d := sqrt(dx * dx + dy * dy)
 		var along := dx * facing.x + dy * facing.y
 		if d >= reach or (along <= d * cone and d > .45) or absf(at.z - stand) > 1.0:

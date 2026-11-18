@@ -107,6 +107,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `games_check` | GAMES CHECK OK | yes | the range's board on a lobby server over ENet (posts, a name's best, refusals, asks, the County Run board beside it), the fair's shooting gallery (the bell, each target's points, a can flying and bouncing, the house paying, the prizes saved, no station or door added), the hub's trophy shack (statuettes by the gates open, cups, gnomes, its card), the range's duck row (a duck turned at the rail's end spins round on its stick) |
 | `leak_check` | LEAK CHECK OK | yes | every game let go is freed: games made and disposed (campaign, co-op, deathmatch, County Run, range, Crossroads, a host's) and the front end's own flow (a chapter, the Crossroads, the range, a County Run, co-op, a deathmatch, back to the title) come back to the same object count round after round ([architecture.md](architecture.md#letting-a-game-go)) |
 | `ai_check` | AI CHECK OK | yes | the tick's spike fixes and the enemies' level of detail: sight lines with the quick tests answer as step by step (nine maps, flat and at heights, furniture broken out), flow walks reach the same cells, cover's whole search finds the old spot (both HANDS settings) and in play stays within `cover_budget` spots a tick and ends where the whole search would, idle activities by cell, far calm enemies wait and near or engaged ones do not, a shot heard or a hit wakes one at once, `lod=false`, a snapshot mid-wait goes on the same ([gameplay.md](gameplay.md#speed-of-the-tick)) |
+| `cpu_check` | CPU CHECK OK | yes | the frame's and the tick's CPU work (pass 10, PERFCPU): text_width kept by text answers as letter by letter (every style, SMALL TEXT CLEAR either way), the kept glyphs read-only, 20,000 measures under 40 yardsticks; polygons fill the old scanline pixels; a line's runs on the Godot canvas cover the Bresenham pixels once in fewer rectangles; a label's kept letters where the software's stand; the feature hook lists are the features with their own, in order; every live enemy asked its level of detail once a tick; the bot game's tick under 2 yardsticks and no feature's tick past 0.3 (a yardstick: a fixed piece of GDScript work timed in the same process, so a busy runner slows both alike; `report` prints the numbers) |
 | `cover_check` | COVER CHECK OK | yes | the 5v5 maps' boarded cover: shot through (floor, sight, a shorter way), stood up again each round, kept by snapshots alone |
 | `bot_check` | BOT CHECK OK | | the 5v5 bots' aim per BOT SKILL against a strafing target at 5, 12 and 20 cells (first hit, hit rate, kills inside 6 s within bounds; EASY slower than HARD; no laser up close), a target behind smoke never taken for a foe or shot at (and with the lane clear it is), ten-bot matches where they plant, carry and rescue a hostage and the team radio speaks, and a bomb planted with the outlaws down cut by the deputy bots on grainyard, salvage and pineacres (`bench` prints the before/after table: four skills, 4..22 cells, standing and strafing) |
 | `replay_check` | REPLAY CHECK OK | | replays play back exactly (`replay_check.gd`, run `-- quick`): bots record chapter one from a fresh game, sawmill from the middle with its keys as actions and a cheat and a wound outside them, the quarry boss fight, County Run with card picks and co-op with two; each from its bytes onto a fresh game matches every hash and the whole end snapshot; a recording past its cap plays across its gap; a nudged game is caught within a hash; the front end's own recorder (advance, act, a setting changed mid-run), `replay save`, a death's file and the crash log keeping the session's replay. Prints the recording's cost a tick. Without quick, twice as long |
@@ -371,6 +372,33 @@ Whole details: `docs/godot3d/optimize/R/results.md`.
 | a wall broken through (whole level mesh vs its chunks) | 59 ms | 3.4 ms |
 | load, 15 levels, warm (a retry, a load) / cold | 4.64 / 5.79 s | 1.54 / 5.12 s |
 | game tick, all chapters idle and fighting (headless) | 0.78 ms | 0.77 ms |
+
+### Measured in pass 10, PERFCPU (2026-11-18)
+
+v3.7.0 (`4972aec9`) against the PERFCPU branch with pass 10 merged in
+(`e1a006d5`: the new BLUE, the openers, PERFGPU's view, the boss endings),
+back to back, three pairs, medians (the PC busy with other tracks). "Our
+CPU" is the frame's parts outside the 3D view: tick + sprites + weapon (the
+HUD's layout, the features' drawing and the gun) + hud.
+
+| What | v3.7.0 | pass 10 + PERFCPU |
+| --- | --- | --- |
+| `--view-bench=300` default, frame mean, 8 chapters (geomean) | 1x | 1.61x faster (hickston 8.06 -> 6.00, moonshine 7.73 -> 4.01 ms) |
+| ... the same at LOW | 1x | 1.86x faster |
+| ... our CPU per frame (geomean, default / LOW) | 1x | 1.80x / 2.08x (weapon part 1.5-3.4 -> 0.5-0.7 ms) |
+| `--view-bench=300` against pass 10 before PERFCPU (`945a9993`), frame / our CPU, two pairs | 1x | 1.66x / 2.39x |
+| `bench.gd -- 150` tick / draw (software HUD) | 0.85 / 4.97 ms | 0.82 / 2.64 ms |
+| `tick_spikes` hickston, bayou, mothership, 1 and 2 players, median tick (geomean) | 1x | 1.03x (1.05-1.17x on five; mothership with two players 0.76x, from the merged work: against `e1a006d5` alone PERFCPU is 5% faster there) |
+
+The window's weapon part held the HUD's layout, which measured its words
+letter by letter, parsing each letter's hex every time: kept by text now
+(with the labels' letters, the plates' polygon spans, the lines' runs and
+the per-frame feature hooks). The tick is many small costs spread over
+120-odd features and every enemy; what came off it (about 8% against
+pass 10's own start) is the level of detail on the enemies' own fields,
+the walking test on locals and loops asking the cheap thing first; pass
+10's BLUE and the hands' barks add their own (the barks under 3 us a tick;
+`cpu_check -- report` names the costliest feature, BLUE at 70-90 us).
 
 Remaining worst cases: County Run late (12 to 14 ms a frame on this desktop:
 33 rigged hands posed every frame, 1.4 to 1.7 ms of AnimationPlayer seeks);

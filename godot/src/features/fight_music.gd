@@ -126,9 +126,9 @@ func _struck() -> void:
 	var p := game.player
 	for enemy: Enemy in game.enemies:
 		if (
-			enemy.alive
+			enemy.alerted
+			and enemy.alive
 			and enemy.hostile
-			and enemy.alerted
 			and absf(enemy.x - p.x) < NEAR
 			and absf(enemy.y - p.y) < NEAR
 		):
@@ -140,7 +140,7 @@ func _engaged() -> int:
 	var p := game.player
 	var count := 0
 	for enemy: Enemy in game.enemies:
-		if not (enemy.alive and enemy.hostile and enemy.alerted):
+		if not (enemy.alerted and enemy.alive and enemy.hostile):
 			continue
 		var distance := Vector2(enemy.x - p.x, enemy.y - p.y).length()
 		if (

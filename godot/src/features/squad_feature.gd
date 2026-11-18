@@ -318,7 +318,7 @@ func ground_marks() -> Array:
 		return out
 	for e: Enemy in game.enemies:
 		var m: Squad.Mind = e.mind
-		if m != null and e.alive and m.flush_at > 0.0:
+		if m != null and m.flush_at > 0.0 and e.alive:
 			out.append(game._spot(m.flush_to.x, m.flush_to.y, 1.1, "warning"))
 	for shot: GameState.Shot in game.shots:
 		if shot.enemy and shot.kind == "tnt":

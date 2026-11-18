@@ -131,6 +131,16 @@ const STYLES := {"mini": [1, 5], "body": [1, 7], "menu": [1, 9], "heading": [2, 
 ## letters (main_state.gd sets it from the setting).
 static var clear_small := false
 
+## The glyphs worked out so far (glyph()), by character, 7- and 5-pixel.
+static var _glyphs := {}
+static var _mini_glyphs := {}
+## text_width()'s answers by style and text, and the SMALL TEXT CLEAR they
+## were measured with (a change of it forgets them). At most WIDTHS_KEPT
+## texts a style (then they start again).
+const WIDTHS_KEPT := 2048
+static var _widths := {}
+static var _widths_small := false
+
 
 static func style_of(name: String) -> Array:
 	if name == "mini" and clear_small:
@@ -143,8 +153,21 @@ static func is_mini(style: String) -> bool:
 	return style == "mini" and not clear_small
 
 
-## Returns [rows:Array[int], width:int] for one character.
+## Returns [rows:Array[int], width:int] for one character. Read-only and
+## kept: each character's is worked out once (the HUD measures its text every
+## frame; parsing the hex was most of a frame's CPU, pass 10).
 static func glyph(char: String, mini: bool) -> Array:
+	var kept: Dictionary = _mini_glyphs if mini else _glyphs
+	var known: Variant = kept.get(char)
+	if known != null:
+		return known
+	var made := _make_glyph(char, mini)
+	made.make_read_only()
+	kept[char] = made
+	return made
+
+
+static func _make_glyph(char: String, mini: bool) -> Array:
 	if char == " ":
 		return [[0, 0, 0, 0, 0] if mini else [0, 0, 0, 0, 0, 0, 0], 2 if mini else 3]
 	if mini:
@@ -152,6 +175,7 @@ static func glyph(char: String, mini: bool) -> Array:
 		var rows: Array = []
 		for d in code:
 			rows.append(int(d))
+		rows.make_read_only()
 		return [rows, 3]
 	var hex: String = LETTERS.get(char, LETTERS["?"])
 	var rows2: Array = []
@@ -160,6 +184,7 @@ static func glyph(char: String, mini: bool) -> Array:
 	var w := 0
 	for r: int in rows2:
 		w = maxi(w, _bitlen(int(r)))
+	rows2.make_read_only()
 	return [rows2, w]
 
 
@@ -172,13 +197,26 @@ static func _bitlen(value: int) -> int:
 
 
 static func text_width(text: String, style := "body") -> int:
+	if _widths_small != clear_small:
+		_widths.clear()
+		_widths_small = clear_small
+	var known: Dictionary = _widths.get(style, {})
+	if known.is_empty():
+		_widths[style] = known
+	var kept: int = known.get(text, -1)
+	if kept >= 0:
+		return kept
 	var sx: int = style_of(style)[0]
 	var mini := is_mini(style)
 	var total := 0
 	for c in text.to_upper():
 		var glyph_width: int = glyph(c, mini)[1]
 		total += glyph_width + 1
-	return maxi(0, total - 1) * sx
+	var width := maxi(0, total - 1) * sx
+	if known.size() >= WIDTHS_KEPT:
+		known.clear()
+	known[text] = width
+	return width
 
 
 static func wrap(text: String, width: int, style := "body") -> PackedStringArray:

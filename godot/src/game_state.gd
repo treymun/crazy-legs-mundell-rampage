@@ -399,7 +399,9 @@ var _idle := Controls.new()
 ## this tick copies that one: the fields walked this tick, by cell.
 var flow_walks := {}
 ## With more than one player, the hostile bodies by cell while the players'
-## bodies step (game.gd): move_actor looks only round the player.
+## bodies step (game.gd): move_actor looks only round the player. Keyed by
+## the cell as x * BODY_ROW + y.
+const BODY_ROW := 65536
 var body_cells := {}
 var body_cells_on := false
 ## The next stable entity id (enemies, shots, pickups): handed out in the

@@ -86,7 +86,15 @@ detail: [view3d.md](view3d.md).
 ## The canvas, HUD and menus
 
 `canvas.gd` draws shapes and text; with a window the calls become Godot 2D
-canvas commands (`Canvas.gpu`), headless they draw in software. `hud.gd`
+canvas commands (`Canvas.gpu`), headless they draw in software. What a
+frame asks again and again is kept (pass 10, `cpu_check` holds each to the
+old answers): `PixelType.glyph` (read-only) and `text_width` by text (the
+HUD measured its words every frame: parsing the letters was 2 to 5 ms of a
+window frame), a label's letters on the Godot canvas by text
+(`Canvas._glyph_run`), a polygon's spans by shape (`_poly_rows`: the
+badge's plate), a software letter's pixels (`_soft_glyph`); a one-pixel
+line on the Godot canvas is one rectangle a run, not one a pixel
+(`_gpu_line`). `hud.gd`
 draws the HUD with it; with a window its status bar and objective pin are
 Controls (`HudLayer`, `src/ui/hud/`) under the canvas. The menu screens are
 Controls under `UiRoot` (`src/ui/`). PHOTO MODE (`photo_mode.gd`) and the
@@ -156,7 +164,11 @@ Each is a simulation feature or a looks feature (`SIM_FEATURES`,
 `LOOKS_FEATURES` in `game_snapshot.gd`). Triggers, lessons, chapter stats,
 weather, debris, weapon effects, the posse, boss fights and arenas,
 breakables, wall breaks, corpses, squads, variants, County Run and the mode
-feature (last) are all features. See [gameplay.md](gameplay.md#features-listen-to-events).
+feature (last) are all features. The per-frame hooks (sprites, draw_view,
+hud_fixed/flow/late, ground_marks, wall_marks) are run only on the features
+whose script has its own (`Features.with_hook`, listed once a game in the
+features' order in `GameEvents.hooks`): GameFeature's are empty. See
+[gameplay.md](gameplay.md#features-listen-to-events).
 
 ## Modes
 

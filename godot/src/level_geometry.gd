@@ -828,21 +828,27 @@ func _fixture_in(lv: LevelData, x: float, y: float, r: float, feet: float, tall:
 func blocked_body(
 	lv: LevelData, x: float, y: float, r: float, feet: float, tall: float, pieces := true
 ) -> bool:
+	# (width and height are the level's; its grid read once.)
+	var solid := lv.solid
 	for step in 4:
 		var ix := int(x + (-r if step < 2 else r))
 		var iy := int(y + (-r if step % 2 == 0 else r))
-		if ix < 0 or iy < 0 or ix >= lv.width or iy >= lv.height:
+		if ix < 0 or iy < 0 or ix >= width or iy >= height:
 			return true
-		if lv.solid[iy * lv.width + ix] >= 0:
+		if solid[iy * width + ix] >= 0:
 			return true
 	if not lv.pane_tiles.is_empty() and feet < 1.83 and lv.pane_at(x, y, null, r) != null:
 		return true
 	for gate: LevelData.Gate in lv.locked_gates:
 		if absf(y - gate.y) < r + .09 and absf(x - gate.x) < gate.width * .5 + r:
 			return true
-	if _fixture_in(lv, x, y, r, feet, tall):
+	# A cell neither index lists anything under (index_cells 0) has no
+	# furniture near and no door: both lookups are left out (most steps).
+	var index_cells := lv.index_cells
+	var listed := index_cells.size() != width * height or index_cells[int(y) * width + int(x)] != 0
+	if (listed or r > lv.index_radius) and _fixture_in(lv, x, y, r, feet, tall):
 		return true
-	if feet < 1.85:
+	if feet < 1.85 and listed:
 		for door: LevelData.Door in lv.near_doors.get(Vector2i(int(x), int(y)), NOTHING):
 			if door.blocks(x, y, r):
 				return true
@@ -860,8 +866,10 @@ func can_walk(
 	var air: float = pl.air if player else 0.0
 	var bx: float = en.x if en != null else pl.x
 	var by: float = en.y if en != null else pl.y
-	var here: int = lv.cell(bx, by)
-	var c: int = lv.cell(x, y)
+	# (lv.cell() written out: the same width. The level's tables read once.)
+	var here: int = int(by) * width + int(bx)
+	var c: int = int(y) * width + int(x)
+	var ground := lv.ground
 	# Nothing of the geometry within reach of either end (cells are marked out
 	# to PAD): support, the floor and the ceiling are the grid's own and no
 	# piece can block, so those calls are left out. The same answers.
@@ -882,9 +890,7 @@ func can_walk(
 	# without walking (a bridge, a shove, a script) leaves floor_z behind, and
 	# the grid's own steps are measured from the cell it is in, as ever.
 	var was_z: float = en.floor_z if en != null else pl.floor_z
-	var floor_z: float = (
-		lv.ground[here] if clear else support(bx, by, radius, was_z, lv.ground[here])
-	)
+	var floor_z: float = ground[here] if clear else support(bx, by, radius, was_z, ground[here])
 	if en != null:
 		en.floor_z = floor_z
 	else:
@@ -905,10 +911,8 @@ func can_walk(
 	# Deep water: nobody walks into it from dry ground, but a deck over it is
 	# dry ground (a boardwalk over the swamp); and nobody steps off one into it.
 	if lv.deep_tile >= 0 and lv.deep_at(x, y) and not obj.get("swims"):
-		var dry_here: bool = not lv.deep_at(bx, by) or floor_z > lv.ground[here] + STEP
-		var dry_there: bool = (
-			not clear and floor_at(x, y, feet, lv.ground[c], true) > lv.ground[c] + STEP
-		)
+		var dry_here: bool = not lv.deep_at(bx, by) or floor_z > ground[here] + STEP
+		var dry_there: bool = not clear and floor_at(x, y, feet, ground[c], true) > ground[c] + STEP
 		if dry_here and not dry_there:
 			return false
 	if occupied != null:
@@ -916,11 +920,11 @@ func can_walk(
 		if check.call(x, y):
 			return false
 	if clear:
-		var flat: float = lv.ground[c]
+		var flat: float = ground[c]
 		if player and flat - floor_z > STEP + air + .001:
 			return false
 		return _roof(lv, c, flat) - flat >= CROUCH
-	var under := floor_at(x, y, feet, lv.ground[c], true)
+	var under := floor_at(x, y, feet, ground[c], true)
 	if player and under - floor_z > STEP + air + .001:
 		return false
 	var over := minf(ceiling_at(x, y, under), _roof(lv, c, under))
