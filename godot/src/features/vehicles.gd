@@ -1049,6 +1049,15 @@ func sprites() -> Array:
 			# the eye.
 			_smoke(out, v, s)
 			continue
+		if v.wreck >= 0.0:
+			# A wreck: its hulk without the parts that came off, on its rims
+			# (gun_fx.gd's src/vehicle_wreck_looks.gd; looks only).
+			var fx: GameFeature = game.features.get("gun_fx")
+			var hulk: Variant = fx.call("hulk", i) if fx != null else null
+			if hulk != null:
+				out.append(hulk)
+				_smoke(out, v, s)
+				continue
 		# Its model on the move (the 3D view keeps one by its track), turned
 		# to its heading and tipped on its springs (src/vehicle_feel.gd).
 		var b := body(i)
@@ -1115,6 +1124,10 @@ func _fly(
 ## Smoke from a hurt engine (thick, with flames, under a quarter and while a
 ## wreck burns), worked out from the clock: nothing kept.
 func _smoke(out: Array, v: VehicleDrive.Ride, s: VehicleDrive.Spec) -> void:
+	if Effects.rich:
+		# With LIGHTS AND GLOW the gun and blast layer smokes and burns it
+		# (src/vehicle_wreck_looks.gd).
+		return
 	var burning := v.wreck >= 0.0 and game.clock - v.wreck < VehicleDrive.shared("burn")
 	var share := v.hp / maxf(1.0, s.hp)
 	if share > .5 and v.wreck < 0.0:

@@ -7,20 +7,23 @@
 ##
 ##   fx_mf_<style>_<v>_<f>   muzzle flashes: style pistol, shotgun, rifle, hunter, mower, forge,
 ##                           rocket, energy, steam; two of each (v), three frames
-##   fx_boom_N (8)           a blast: the flash, the fireball rolling up, soot
-##                           taking it over
+##   fx_boom_<r><v>_<f>      a blast's fireball, 12 frames, two fires (r: d dynamite,
+##                           f fuel) in three shapes (v): tools/art/blast_art.gd, with
+##                           fx_soothot_N, fx_powder_N, fx_dirtpuff_N, fx_scrap_<k>_N,
+##                           fx_geyser_N and mark_crater_N
 ##   fx_boomflash_N (2)      the white star of the moment it goes
 ##   fx_smokecloud_N (4)     a thrown smoke pot's billow: thick, grey, opaque
 ##   fx_flame_N (4)          a firebomb's flames licking up, four frames
 ##   fx_soot_N (4)           chunky black smoke for a blast's column and trails
 ##   fx_chunk_N (4)          a charred scrap tumbling (four turns)
 ##   mark_shock_N (3)        the dust ring a blast throws along the ground
-##   fx_hit_<kind>_N (3)     a round striking: metal, brick, stone, wood, dirt,
+##   fx_hit_<kind>_N (4)     a round striking: metal, brick, stone, wood, dirt,
 ##                           glass, water, brush
 ## Then run tools/pack_assets.gd. out= writes somewhere else instead (to compare).
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
+const Blast := preload("res://tools/art/blast_art.gd")
 const FIRE := [
 	Color8(70, 20, 10),
 	Color8(132, 36, 12),
@@ -28,16 +31,6 @@ const FIRE := [
 	Color8(236, 124, 30),
 	Color8(252, 188, 64),
 	Color8(255, 236, 152),
-	Color8(255, 255, 236),
-]
-## A blast's fire: yellower than a flash, so a dusk tint leaves it orange.
-const BOOM := [
-	Color8(84, 24, 8),
-	Color8(156, 48, 10),
-	Color8(218, 98, 18),
-	Color8(246, 156, 36),
-	Color8(252, 208, 84),
-	Color8(255, 242, 164),
 	Color8(255, 255, 236),
 ]
 const FORGE := [
@@ -90,10 +83,10 @@ const STYLES := {
 ## kind -> [dust colour, chip colour, glows]
 const HITS := {
 	"metal": [Color8(255, 210, 120), Color8(255, 250, 220), true],
-	"brick": [Color8(226, 156, 116), Color8(150, 60, 40), false],
-	"stone": [Color8(206, 202, 190), Color8(120, 116, 108), false],
-	"wood": [Color8(206, 172, 120), Color8(236, 204, 140), false],
-	"dirt": [Color8(150, 116, 78), Color8(84, 60, 38), false],
+	"brick": [Color8(206, 116, 76), Color8(112, 38, 26), false],
+	"stone": [Color8(146, 142, 132), Color8(78, 74, 70), false],
+	"wood": [Color8(198, 160, 106), Color8(238, 208, 150), false],
+	"dirt": [Color8(140, 106, 70), Color8(70, 50, 32), false],
 	"glass": [Color8(210, 236, 248), Color8(255, 255, 255), true],
 	"water": [Color8(176, 206, 214), Color8(240, 250, 252), false],
 	"brush": [Color8(150, 170, 72), Color8(222, 200, 100), false],
@@ -113,12 +106,24 @@ func _init() -> void:
 		for v in 2:
 			for f in 3:
 				_save(muzzle(style, v, f), "fx_mf_%s_%d_%d" % [style, v, f])
-	for f in 8:
-		_save(boom(f), "fx_boom_%d" % f)
+	for ramp: String in ["d", "f"]:
+		for v in 3:
+			for f in 12:
+				_save_flat(Blast.boom(ramp, v, f), "fx_boom_%s%d_%d" % [ramp, v, f])
+	for f in 3:
+		_save_flat(Blast.soot_hot(f), "fx_soothot_%d" % f)
+	for f in 4:
+		_save_flat(Blast.powder(f), "fx_powder_%d" % f)
+		_save_flat(Blast.dirt_puff(f), "fx_dirtpuff_%d" % f)
+		_save(Blast.scrap("metal", f), "fx_scrap_metal_%d" % f)
+		_save(Blast.scrap("meat", f), "fx_scrap_meat_%d" % f)
+		_save_flat(Blast.crater(f), "mark_crater_%d" % f)
+	for f in 5:
+		_save_flat(Blast.geyser(f), "fx_geyser_%d" % f)
 	for f in 2:
 		_save(boom_flash(f), "fx_boomflash_%d" % f)
 	for f in 4:
-		_save(soot(f), "fx_soot_%d" % f)
+		_save_flat(soot(f), "fx_soot_%d" % f)
 		_save(chunk(f), "fx_chunk_%d" % f)
 	for f in 3:
 		_save(shock(f), "mark_shock_%d" % f)
@@ -126,7 +131,7 @@ func _init() -> void:
 		_save(smokecloud(f), "fx_smokecloud_%d" % f)
 		_save(flame(f), "fx_flame_%d" % f)
 	for kind: String in HITS:
-		for f in 3:
+		for f in 4:
 			_save(hit(kind, f), "fx_hit_%s_%d" % [kind, f])
 	print("gun fx art: %d pictures in %s" % [count, out])
 	quit()
@@ -134,6 +139,14 @@ func _init() -> void:
 
 func _save(s: Paint.Sheet, name: String) -> void:
 	Paint.digitize(s, 7.0).save(out.path_join(name + ".png"))
+	count += 1
+
+
+## A blast's picture without the ordered dither: flat bands of colour, so a
+## fireball or a cloud blown up big close to the eye reads as hard-edged cels,
+## not a screen of dots.
+func _save_flat(s: Paint.Sheet, name: String) -> void:
+	Paint.digitize(s, 0.0).save(out.path_join(name + ".png"))
 	count += 1
 
 
@@ -237,67 +250,6 @@ func muzzle(style: String, variant: int, frame: int) -> Paint.Sheet:
 		s.put(px, py, hot)
 		if frame == 0 and k % 2 == 0:
 			s.put(px + 1, py, hot)
-	return s
-
-
-## A blast's fireball, frame 0 to 7: the white flash, the ball rolling up and
-## out in lobes, cooling from the top, soot taking it over from the edge.
-func boom(frame: int) -> Paint.Sheet:
-	var n := 64
-	var t := frame / 7.0
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 4400 + frame
-	var churn := Paint.cloud(n, 911 + frame * 13, [4, 8, 16])
-	var fine := Paint.cloud(n, 1301 + frame * 7, [8, 16, 32])
-	var radius := .4 + .52 * sqrt(t)
-	var rise := t * .26
-	var smoke_k := clampf((t - .28) * 1.45, 0.0, 1.0)
-	var s := Paint.Sheet.new(n, n)
-	var c := (n - 1) / 2.0
-	for y in n:
-		for x in n:
-			var i := y * n + x
-			var dx := (x - c) / (n / 2.0)
-			var dy := (y - c) / (n / 2.0) + rise
-			var r := sqrt(dx * dx + dy * dy)
-			var a := atan2(dy, dx)
-			var lobes := (
-				1.0
-				+ .17 * sin(a * 5.0 + 1.3 + t * 1.5)
-				+ .09 * sin(a * 8.0 + 2.1 - t * 2.0)
-				+ .05 * sin(a * 13.0)
-			)
-			var edge := radius * lobes * (.84 + .3 * churn[i])
-			if frame == 0:
-				# The instant it goes: a star of white fire.
-				var star := 0.0
-				for k in 9:
-					var at := k * TAU / 9.0 + .3
-					star = maxf(star, exp(-pow(_gap(a, at) / .13, 2)) * (.95 if k % 2 else .7))
-				edge = maxf(edge, star)
-			if r > edge:
-				continue
-			var inner := 1.0 - r / edge
-			var heat := inner * 1.35 * (1.0 - t * .78) + (fine[i] - .5) * .4 + .25 * (1.0 - t)
-			# The top cools first as the ball rolls up.
-			heat -= maxf(0.0, -dy) * t * .45
-			var soot := smoke_k * (.55 + churn[i] * .9) - inner * (1.0 - smoke_k) * .5
-			if soot > heat * 1.3:
-				var shade := .45 + (-dx - dy) * .22 + fine[i] * .45 - smoke_k * .15
-				s.put(x, y, _step(SOOT, shade))
-			else:
-				s.put(x, y, _step(BOOM, heat))
-	if frame >= 1 and frame <= 4:
-		_rim(s, BOOM[0])
-	# Burning bits flung clear of the ball.
-	if frame >= 1 and frame <= 6:
-		for k in 14 - frame:
-			var at := rng.randf_range(-PI, PI)
-			var d := radius * rng.randf_range(1.0, 1.35)
-			var px := int(c + cos(at) * d * n / 2.0)
-			var py := int(c + (sin(at) * d - rise) * n / 2.0)
-			s.put(px, py, BOOM[5 if k % 3 == 0 else 4])
-			s.put(px, py + 1, BOOM[2])
 	return s
 
 
@@ -409,10 +361,12 @@ func shock(frame: int) -> Paint.Sheet:
 	return s
 
 
-## A round striking `kind`, frames 0 to 2.
+## A round striking `kind`, frames 0 to 3: the burst, flung out, at its
+## widest, and the dust it leaves thinning. A dark rim round dust and chips
+## so it reads at 320 wide against the wall it is on.
 func hit(kind: String, frame: int) -> Paint.Sheet:
-	var n := 24
-	var h := 36 if kind == "water" else 24
+	var n := 32
+	var h := 48 if kind == "water" else 32
 	var spec: Array = HITS[kind]
 	var dust: Color = spec[0]
 	var chip: Color = spec[1]
@@ -421,44 +375,54 @@ func hit(kind: String, frame: int) -> Paint.Sheet:
 	var s := Paint.Sheet.new(n, h)
 	var c := Vector2((n - 1) / 2.0, h - n / 2.0)
 	var grain := Paint.cloud(n, hash(kind) % 1000 + frame, [4, 8])
+	var reach_k: float = [.5, .8, 1.0, 1.0][frame]
 	match kind:
 		"metal", "glass":
-			# A star of sparks (a glint for glass), the heads flying out.
-			for k in 11 if kind == "metal" else 6:
+			# A star of sparks (glints for glass), the heads flying out.
+			for k in 13 if kind == "metal" else 8:
 				var at := rng.randf_range(-PI, PI)
 				var length := rng.randf_range(.5, 1.0) * n * .5
-				var head: float = length * float([.45, .8, 1.0][frame])
-				var tail: float = head - length * float([.45, .5, .3][frame])
+				var head: float = length * float([.4, .72, .92, 1.0][frame])
+				var tail: float = head - length * float([.4, .45, .3, .12][frame])
 				for d in range(int(maxf(0.0, tail)), int(head) + 1):
 					var p: Vector2 = c + Vector2(cos(at), sin(at)) * d
 					var col := chip if d > head - 2 else dust
 					if kind == "metal" and d < head - 4:
 						col = FIRE[3]
+					if frame == 3 and k % 2 == 0:
+						continue
 					s.put(int(p.x), int(p.y), col)
 			if frame < 2:
-				var core := 3 - frame * 2
+				var core := 4 - frame * 2
 				for y in range(-core, core + 1):
 					for x in range(-core, core + 1):
 						if absi(x) + absi(y) <= core:
 							s.put(int(c.x) + x, int(c.y) + y, chip)
+			if kind == "glass" and frame < 3:
+				# The pane's crack star round the hole.
+				for k in 6:
+					var at := k * TAU / 6.0 + .3
+					for d in range(2, int(9 * reach_k)):
+						var p: Vector2 = c + Vector2(cos(at), sin(at)) * d
+						s.put(int(p.x), int(p.y), Color8(170, 200, 214))
 		"water":
 			# A crown of water thrown up, falling back as drops.
-			var tall: float = float([.5, 1.0, .8][frame]) * h * .8
-			for k in 9:
-				var x0 := c.x + (k - 4) * 2.2
-				var top: float = tall * (1.0 - absf(k - 4) / 6.0) * rng.randf_range(.7, 1.0)
+			var tall: float = float([.5, 1.0, .85, .5][frame]) * h * .8
+			for k in 11:
+				var x0 := c.x + (k - 5) * 2.2
+				var top: float = tall * (1.0 - absf(k - 5) / 7.0) * rng.randf_range(.7, 1.0)
 				for d in int(top):
-					if frame == 2 and d < top * .5:
+					if frame >= 2 and d < top * (.4 if frame == 2 else .7):
 						continue
 					var col := chip if d > top - 3 else dust
-					s.put(int(x0), int(c.y + 4 - d), col)
+					s.put(int(x0), int(c.y + 5 - d), col)
 				if frame >= 1:
 					s.put(int(x0 + rng.randf_range(-2, 2)), int(c.y - top - 2), chip)
 		_:
 			# A puff of dust off the face, jets of it thrown out, chips flying.
-			var radius: float = float([.26, .42, .55][frame]) * n * .5
+			var radius: float = float([.28, .44, .56, .6][frame]) * n * .5
 			var jets: Array = []
-			for k in 7:
+			for k in 8:
 				var at := rng.randf_range(-PI, PI)
 				if kind == "dirt":
 					at = rng.randf_range(-PI * .95, -PI * .05)
@@ -472,28 +436,30 @@ func hit(kind: String, frame: int) -> Paint.Sheet:
 					var reach := radius * (.75 + g * .5)
 					for jet: Array in jets:
 						var across := absf(_gap(a, jet[0]))
-						if across < .28:
-							var length: float = (
-								n * .5 * float([.55, .85, 1.0][frame]) * float(jet[1])
-							)
-							reach = maxf(reach, length * (1.0 - across / .28))
-					if d > reach or g < frame * .2 + (d / maxf(reach, 1.0)) * .25:
+						if across < .26:
+							var length: float = n * .5 * reach_k * float(jet[1])
+							reach = maxf(reach, length * (1.0 - across / .26))
+					var thin := float([0.0, .12, .3, .55][frame])
+					if d > reach or g < thin + (d / maxf(reach, 1.0)) * .22:
 						continue
 					var shade := clampf(1.0 - d / maxf(reach, 1.0) + g * .5, 0.0, 1.0)
 					var col := (
-						dust.lightened(.22)
+						dust.lightened(.2)
 						if shade > .8
-						else dust if shade > .35 else dust.darkened(.25)
+						else dust if shade > .35 else dust.darkened(.28)
 					)
 					if kind == "brush" and g > .55:
 						col = chip
 					s.put(x, y, col)
-			for k in 10:
+			if frame < 3:
+				_rim(s, dust.darkened(.6))
+			for k in 14 - frame * 2:
 				var jet: Array = jets[k % jets.size()]
 				var at: float = float(jet[0]) + rng.randf_range(-.35, .35)
-				var d: float = n * .5 * float([.5, .8, 1.0][frame]) * rng.randf_range(.6, 1.0)
+				var d: float = n * .5 * float([.5, .8, 1.0, 1.0][frame]) * rng.randf_range(.6, 1.0)
 				var p: Vector2 = c + Vector2(cos(at), sin(at)) * d
 				s.put(int(p.x), int(p.y), chip)
+				s.put(int(p.x) + 1, int(p.y), chip.darkened(.3))
 				if kind == "wood" or k % 3 == 0:
 					var q: Vector2 = p - Vector2(cos(at), sin(at)) * 1.5
 					s.put(int(q.x), int(q.y), chip)

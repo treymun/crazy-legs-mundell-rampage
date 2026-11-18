@@ -1598,3 +1598,18 @@ add("distant",
     opener_hickston_truck=G("An old pickup truck rumbling past far away on a gravel country road at dusk, its "
                             "engine fading out into the distance.", 4.0, 3.8, "far"),
     )
+# Destruction pass 11 (godot/src/blast_looks.gd, godot/src/vehicle_wreck_looks.gd):
+# a fuel blast's fireball rolling up under the bang, the debris raining down
+# after a big one, a vehicle blown apart by its tank and the pops of it burning.
+add("boom",
+    fuel_whoomp=N("A drum of gasoline going up: a deep rushing whoomp as a fireball rolls up into the sky, a low "
+                  "roar swelling and dying away.", 2.0, 1.6, style="boom"),
+    wreck_crash=N("A stock car blown apart by its own gas tank: a heavy metal crunch, its windows shattering, a "
+                  "hubcap ringing away and sheet tin clanging down.", 2.2, 1.8, style="boom"),
+    )
+add("impact",
+    blast_debris=N("Debris raining down in a dirt yard after an explosion: clods of dirt, splinters of wood and "
+                   "scraps of tin pattering and clattering down, thinning out.", 2.2, style="impact"),
+    wreck_pop=N("A burning wrecked car: one sharp pop as a tire bursts in the flames, a small whump of fuel and "
+                "crackling.", 1.0, style="impact"),
+    )

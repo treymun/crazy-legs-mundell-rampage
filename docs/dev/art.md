@@ -390,10 +390,20 @@ the seat views in a window.
 `tools/art/build_gun_fx_art.gd` makes the pictures for the LIGHTS AND GLOW gun
 and blast layer (`features/gun_fx.gd`, `gun_flash.gd`; see
 [gameplay.md](gameplay.md#gun-effects)): hard edged, few colours, committed to
-the VGA palette; `fx_mf_*`, `fx_boom_*`, `fx_soot_*`, `fx_chunk_*`,
-`mark_shock_*`, `fx_hit_*`. Each gun has a flash style (STYLES; the 5v5 guns'
+the VGA palette; `fx_mf_*`, `fx_soot_*`, `fx_chunk_*`, `mark_shock_*`,
+`fx_hit_*` (four frames, a dark rim round dust and chips). The blasts' own
+(destruction pass 11) are `tools/art/blast_art.gd`'s, digitized without the
+ordered dither (flat cels, so a fireball blown up close is hard bands, not a
+screen of dots): `fx_boom_<fire><shape>_N` (two fires, three shapes, 12
+frames: lobes of fire bulging out of a hot core and rolling up, the top
+cooling first, soot eating in, pockets of fire glowing through it at the
+end), `fx_soothot_N`, `fx_powder_N`, `fx_dirtpuff_N`, `fx_scrap_metal_N`,
+`fx_scrap_meat_N` (tumbling slabs: SlabModels LOOSE), `fx_geyser_N` and
+`mark_crater_N` (a burnt pit, a churned rim, soot streaks thrown out). Each gun has a flash style (STYLES; the 5v5 guns'
 are hunter, mower, auto45, magnum, pump, smg, bar, marksman).
 
+`tools/blast_frames.gd` renders every kind of blast, where it went off, a
+chain and each vehicle wrecked (see [gameplay.md](gameplay.md#blasts-and-wrecks-destruction-pass-11)).
 `tools/gun_frames.gd` renders every gun firing at a plank wall, a blast, a
 chain and the .38 into each material, in a window, as rows of frames (run it
 on the old build too for a before; `docs/weapon_fx/` has the contact sheet):

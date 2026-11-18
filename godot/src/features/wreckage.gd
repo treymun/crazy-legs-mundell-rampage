@@ -514,6 +514,13 @@ func _throw(
 	_cap()
 
 
+## Throw pieces `only` of a cut another feature made (a vehicle's parts:
+## src/vehicle_wreck_looks.gd), as _throw does, when pieces fly here.
+func throw_cut(src: Dictionary, knock: Vector3, power: float, only: Array) -> void:
+	if on:
+		_throw(src, knock, power, only.size(), "debris_settle", only)
+
+
 ## More than `most`: the oldest begin to shrink away; far more, they go now.
 func _cap() -> void:
 	var live := 0

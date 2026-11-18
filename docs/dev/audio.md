@@ -372,6 +372,16 @@ as "Failures out", "at a still" with an "uh") and were reworded and made
 again (one of those then heard "man" for "men"). About 1,330 credits at the
 ledger's expected rates. Not listened to.
 
+## Blasts and wrecks (destruction pass 11)
+
+`fuel_whoomp` (family `boom`: a fuel fireball rolling up, layered under a
+fuel, drum, propane, gas can, still or wreck blast's own cue by
+blast_looks.cfg `layer`), `blast_debris` (`impact`: what a big blast threw
+raining down, `debris_after` later), `wreck_crash` (`boom`: a vehicle blown
+apart by its tank) and `wreck_pop` (`impact`: a burning wreck's pops).
+Prompts in `audio_spec.py`; made 2026-11-18, one take each, about 85
+credits at the ledger's expected rates. Not listened to.
+
 ## Audio QA (pass 9)
 
 `scripts/audio_qa.py` (free, numpy; ffmpeg for the songs) measures every

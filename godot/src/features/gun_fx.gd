@@ -3,10 +3,15 @@
 ## weapon_fx.gd's as they were. Its pictures are build_gun_fx_art.gd's, hard
 ## edged and few-coloured like a 1997 sprite.
 ##
-## A blast: a white star the instant it goes, a fireball rolling up in lobes
-## and going over to soot (with two smaller ones beside it), a column of black
-## smoke, charred scraps flung out trailing smoke, a ring of dust running out
-## along the ground, and the yard lit by it a moment (lights()). A round
+## A blast (src/blast_looks.gd, by data/tuning/blast_looks.cfg): a white star
+## the instant it goes, a fireball rolling up in lobes and going over to soot
+## with smaller ones bursting beside it, a soot column rolling up into a
+## mushroom, scraps arcing out trailing smoke, clods, dirt puffs rolling out
+## along the ground, sparks, embers, burning drops, a crater with soot
+## streaks, the yard lit by it a moment (lights()) and the view kicked
+## (feel.gd punch()); each its own, by what blew and where. A vehicle hurt
+## and wrecked (src/vehicle_wreck_looks.gd): engine smoke, sparks off its
+## tin, its parts flying, its hulk burning and popping. A round
 ## striking: a burst of what it struck by material (sparks, brick dust, wood
 ## dust and splinters, dirt, glass, a splash, leaves) and more of it flying. A
 ## shot leaving the gun: burning wadding, a puff of smoke, sparks. Dynamite
@@ -14,20 +19,26 @@
 ##
 ## Looks only: its own dice, never saved, never in the way. Everything is
 ## made whatever the view (so the shader view's picture does not depend on
-## what was drawn before), and capped: MAX_BITS in the air, MAX_BOOMS
-## fireballs, MAX_HITS strikes, and a chain of blasts throws less each.
+## what was drawn before), and capped: blast_looks.cfg `most_bits` in the air
+## (fewer on a phone or QUALITY LOW), MAX_BOOMS fireballs, MAX_HITS strikes,
+## and a chain of blasts throws fewer bits each (never a smaller fireball).
 extends GameFeature
 
-const MAX_BITS := 150
+const Bit := preload("res://src/fx_bit.gd")
 ## What the 3D view draws as tumbling slabs (sprites(); SlabModels LOOSE).
 const TUMBLES := {
 	"chunk": true, "splinter": true, "grit_brick": true, "grit_stone": true, "clod": true
 }
-const MAX_BOOMS := 6
+const MAX_BOOMS := 8
 const MAX_HITS := 20
-## Seconds a fireball takes to burn through its eight frames.
-const BOOM_LIFE := .95
-const HIT_LIFE := .15
+## Seconds a fireball of a blast the game made without a look (a boss's)
+## takes to burn through its frames.
+const BOOM_LIFE := 1.0
+const HIT_LIFE := .24
+## Seconds a burning drop lies burning once it lands.
+const DROP_BURN := 1.6
+## Seconds a water column takes to rise and fall back.
+const GEYSER_LIFE := 1.1
 const SHOCK_LIFE := .4
 ## Pellets of one load that each show a strike.
 const PELLET_HITS := 5
@@ -47,31 +58,19 @@ const HIT_ART := {
 	"rubber": "dirt",
 }
 
-
-class Bit:
-	var x := 0.0
-	var y := 0.0
-	var z := 0.0
-	var vx := 0.0
-	var vy := 0.0
-	var vz := 0.0
-	## Below zero: not out yet.
-	var age := 0.0
-	var life := 1.0
-	var kind := ""
-	var size := .05
-	var grow := 0.0
-	var gravity := 0.0
-	var rest := false
-	var trail := 0.0
-	## Its age when it came to rest (the 3D view settles it onto a face).
-	var landed := -1.0
-
-
 var dice := RandomNumberGenerator.new()
+## The bits in the air (FxBit). The helpers append to this same array, so it
+## is changed in place, never swapped for another.
 var bits: Array = []
-## [x, y, z, born, size, secondary]
+## [x, y, z, born, scale, side lobe, fire, shape, life, flip, flash, glow]
+## (src/blast_looks.gd)
 var booms: Array = []
+## A blast's column of water: [x, y, z, born, size].
+var geysers: Array = []
+var blast_looks: BlastLooks
+var wrecks: VehicleWreckLooks
+## Sounds to play a moment later: [when, cue, x, y, volume].
+var _later: Array = []
 ## [x, y, z, born, picture, size]
 var hits: Array = []
 ## [x, y, z, born]
@@ -90,6 +89,8 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = 1997
+	blast_looks = BlastLooks.new(game, dice, bits, booms, geysers)
+	wrecks = VehicleWreckLooks.new(game, dice, bits, booms)
 	game.events.shot_fired.connect(_fired)
 	game.events.traced.connect(_traced)
 	game.events.exploded.connect(_exploded)
@@ -97,19 +98,9 @@ func attach() -> void:
 
 
 func _bit(kind: String, at: Vector3, v: Vector3, life: float, size: float, gravity := 0.0) -> Bit:
-	var bit := Bit.new()
-	bit.kind = kind
-	bit.x = at.x
-	bit.y = at.y
-	bit.z = at.z
-	bit.vx = v.x
-	bit.vy = v.y
-	bit.vz = v.z
-	bit.life = life
-	bit.size = size
-	bit.gravity = gravity
+	var bit := Bit.make(kind, at, v, life, size, gravity)
 	bits.append(bit)
-	if bits.size() > MAX_BITS:
+	if bits.size() > blast_looks.most_bits:
 		bits.pop_front()
 	return bit
 
@@ -196,6 +187,8 @@ func _traced(end: Vector3, struck: String) -> void:
 		return
 	if gun == Weapons.PRESSURE or gun == Weapons.TEAT:
 		return
+	var shooter := game.player
+	wrecks.struck(Vector3(shooter.x, shooter.y, shooter.eye - .1), end)
 	var kind := ""
 	if struck == "glass":
 		kind = "glass"
@@ -219,19 +212,19 @@ func _traced(end: Vector3, struck: String) -> void:
 		big = .8
 	elif gun == Weapons.MOWER:
 		big = 1.2
-	var size := (.42 if art == "metal" or art == "glass" else .6) * big
+	var size := (.55 if art == "metal" or art == "glass" else .8) * big
 	hits.append([at.x, at.y, at.z, game.clock, art, size])
 	if hits.size() > MAX_HITS:
 		hits.pop_front()
 	var out := -dir
 	match art:
 		"metal":
-			for _k in 5:
+			for _k in 7:
 				_bit(
 					"spark", at, _scatter(2.6, 2.2) + out * 1.2, dice.randf_range(.18, .4), .03, 7.0
 				)
 		"wood":
-			for _k in 2:
+			for _k in 3:
 				_bit(
 					"splinter",
 					at,
@@ -242,7 +235,7 @@ func _traced(end: Vector3, struck: String) -> void:
 				)
 			_puff(at, out, "dust", .16)
 		"brick", "stone":
-			for _k in 3:
+			for _k in 5:
 				_bit(
 					"grit_" + art,
 					at,
@@ -253,13 +246,13 @@ func _traced(end: Vector3, struck: String) -> void:
 				)
 			_puff(at, out, "dust", .2 * big)
 		"dirt":
-			for _k in 3:
+			for _k in 4:
 				var v := _scatter(.9, 0.0) + out * .6
 				v.z = dice.randf_range(1.6, 2.6)
 				_bit("clod", at, v, dice.randf_range(.6, .9), .04, 9.0)
 			_puff(at, out, "dust", .2 * big)
 		"glass":
-			for _k in 3:
+			for _k in 5:
 				_bit(
 					"glint",
 					at,
@@ -309,49 +302,81 @@ func _puff(at: Vector3, out: Vector3, kind: String, size: float) -> void:
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 	if energy:
 		return
-	# A chain going up throws less each blast, so a row of barrels can't swamp
-	# the frame.
+	wrecks.blasted(x, y)
+	# A chain going up throws fewer bits each blast (never a smaller fireball),
+	# so a row of barrels reads as boom after boom without swamping the frame.
 	var since: float = game.clock - 1.0
 	while not _recent.is_empty():
 		var oldest: float = _recent[0]
 		if not (oldest < since):
 			break
 		_recent.pop_front()
+	var less: float = blast_looks.setting("chain_less", .18)
+	var least: float = blast_looks.setting("chain_least", .35)
+	var share := maxf(least, 1.0 - less * _recent.size())
 	_recent.append(game.clock)
-	var heavy := _recent.size() > 2
-	var at := Vector3(x, y, z)
-	var floor_z: float = game.world.elevation(x, y)
-	# The column of black smoke rolling up after the fireball.
-	for k in 2 if heavy else 6:
-		var puff := _bit(
-			"soot",
-			Vector3(
-				x + dice.randf_range(-.35, .35), y + dice.randf_range(-.35, .35), z + .2 + k * .2
-			),
-			Vector3(0, 0, dice.randf_range(.5, .95)),
-			dice.randf_range(3.0, 4.2),
-			.75 + k * .08
-		)
-		puff.age = -.3 - k * .1
-		puff.grow = .6
-	# Charred scraps flung out, trailing smoke.
-	for _k in 2 if heavy else 7:
-		var v := _scatter(3.6, 0.0)
-		v.z = dice.randf_range(2.6, 5.2)
-		var scrap := _bit("chunk", at + Vector3(0, 0, .1), v, dice.randf_range(1.2, 1.8), .1, 9.0)
-		scrap.trail = dice.randf_range(0.0, .05)
-	# Burning bits rising off it a while.
-	for _k in 1 if heavy else 4:
-		var ember := _bit("ember", at, _scatter(1.4, 1.8), dice.randf_range(1.0, 1.8), .035, -.3)
-		ember.vz = maxf(ember.vz, .6)
-	if z - floor_z < 1.2:
+	# The game's own record of this blast has its fireball here.
+	if not game.blasts.is_empty():
+		var last: GameState.Blast = game.blasts[game.blasts.size() - 1]
+		if absf(last.x - x) < .01 and absf(last.y - y) < .01:
+			_seen_blasts[last.get_instance_id()] = true
+	var look := blast_looks.look_of(game.blast_kind, x, y)
+	var where := blast_looks.place(x, y, z)
+	blast_looks.burst(x, y, z, look, where, share)
+	var floor_z: float = where["floor"]
+	var wet: bool = where["water"]
+	if z - floor_z < 1.2 and not wet:
 		shocks.append([x, y, floor_z + .006, game.clock])
 		if shocks.size() > 4:
 			shocks.pop_front()
+	_kick(x, y, look)
+	_sounds(x, y, look)
 
 
-## The fireballs: one for every blast the game has (any source), and two
-## smaller ones beside a fire blast unless a chain is going.
+## A blast's own layer (a fuel fireball's whoomp) now, and what it threw
+## raining down a moment later.
+func _sounds(x: float, y: float, look: Dictionary) -> void:
+	var layer := str(look.get("layer", ""))
+	if layer != "":
+		game.sound_at(layer, x, y, .9)
+	var scraps: float = look.get("scraps", 0)
+	var from: float = blast_looks.setting("debris_from", 5)
+	if scraps >= from:
+		var after: float = blast_looks.setting("debris_after", .55)
+		var cue := str(blast_looks.setting("debris_cue", ""))
+		if cue != "" and _later.size() < 6:
+			_later.append([game.clock + after * dice.randf_range(.85, 1.25), cue, x, y, .75])
+			_later.sort_custom(
+				func(a: Array, b: Array) -> bool:
+					var at_a: float = a[0]
+					var at_b: float = b[0]
+					return at_a < at_b
+			)
+
+
+## The view kicked by a blast near the local player, by how near and how big
+## (features/feel.gd punch(), as far as SCREEN SHAKE lets it; game_combat's
+## shake still rattles it as before).
+func _kick(x: float, y: float, look: Dictionary) -> void:
+	var feel: GameFeature = game.features.get("feel")
+	var ear := game.local_player
+	if feel == null or ear == null:
+		return
+	var reach: float = blast_looks.setting("kick_reach", 7.0)
+	var d := Vector2(x - ear.x, y - ear.y).length()
+	if d >= reach:
+		return
+	var most: float = blast_looks.setting("kick", 1.0)
+	var big: float = look.get("kick", 1.0)
+	var k := pow(1.0 - d / reach, 2.0) * most * big
+	# Away from the blast: one off to a side throws the view the other way.
+	var side := sin(atan2(y - ear.y, x - ear.x) - ear.view_angle())
+	feel.call("punch", -side * .03 * k, 5.0 * k, .035 * k, Vector2(-side * 9.0 * k, 12.0 * k))
+
+
+## A fireball for each fire blast the game made without going off through
+## explode() (a boss's flames, the bayou's gator): those that did have theirs
+## from _exploded.
 func _new_blasts() -> void:
 	if game.blasts.is_empty() and _seen_blasts.is_empty():
 		return
@@ -363,23 +388,25 @@ func _new_blasts() -> void:
 			continue
 		_seen_blasts[key] = true
 		var born: float = game.clock - blast.age
-		booms.append([blast.x, blast.y, blast.z, born, 1.0, false])
-		if _recent.size() <= 2:
-			for k in 2:
-				var a := dice.randf_range(0, TAU)
-				booms.append(
-					[
-						blast.x + cos(a) * .4,
-						blast.y + sin(a) * .4,
-						blast.z + dice.randf_range(.0, .3),
-						born + .05 + k * .06,
-						dice.randf_range(.5, .65),
-						true
-					]
-				)
+		booms.append(
+			[
+				blast.x,
+				blast.y,
+				blast.z,
+				born,
+				1.0,
+				false,
+				"d",
+				dice.randi_range(0, BlastLooks.SHAPES - 1),
+				BOOM_LIFE,
+				dice.randf() < .5,
+				1.0,
+				1.0
+			]
+		)
 	if not _seen_blasts.is_empty():
 		_seen_blasts = _keep(live)
-	while booms.size() > MAX_BOOMS * 3:
+	while booms.size() > MAX_BOOMS * 4:
 		booms.pop_front()
 
 
@@ -397,9 +424,21 @@ func _keep(live: Dictionary) -> Dictionary:
 func _tick(dt: float) -> void:
 	_new_blasts()
 	_follow_shots()
+	wrecks.tick()
+	while not _later.is_empty():
+		var due: Array = _later[0]
+		var when: float = due[0]
+		if game.clock < when:
+			break
+		_later.pop_front()
+		var dx: float = due[2]
+		var dy: float = due[3]
+		var loud: float = due[4]
+		game.sound_at(str(due[1]), dx, dy, loud)
 	var wind := Vector2.ZERO
 	if not bits.is_empty():
 		wind = Effects.DEBRIS.get("wind_" + game.level.id, Vector2.ZERO)
+	var world := game.world
 	var kept: Array = []
 	for bit: Bit in bits:
 		bit.age += dt
@@ -412,8 +451,14 @@ func _tick(dt: float) -> void:
 		bit.vz -= bit.gravity * dt
 		match bit.kind:
 			"soot", "smoke", "dust":
-				bit.vx += (wind.x - bit.vx) * minf(1.0, dt * 1.6)
-				bit.vy += (wind.y - bit.vy) * minf(1.0, dt * 1.6)
+				# Drifts on the wind; a mushroom's cap spreads out once it has
+				# risen a while; a dirt puff rolls out and is slowed by the air.
+				var drift := wind
+				if bit.spread != Vector2.ZERO and bit.age > .45:
+					drift += bit.spread
+				var pull := 1.6 if bit.kind != "dust" else 2.4
+				bit.vx += (drift.x - bit.vx) * minf(1.0, dt * pull)
+				bit.vy += (drift.y - bit.vy) * minf(1.0, dt * pull)
 				bit.vz *= 1.0 - minf(1.0, dt * .6)
 			"chaff":
 				bit.vx += (wind.x - bit.vx) * minf(1.0, dt * 2.0)
@@ -421,21 +466,17 @@ func _tick(dt: float) -> void:
 				bit.vz = maxf(bit.vz, -.6)
 			"chunk":
 				bit.trail -= dt
-				if bit.trail <= 0.0 and bit.age < bit.life * .8:
-					bit.trail = .07
-					var wisp := Bit.new()
-					wisp.kind = "soot"
-					wisp.x = bit.x
-					wisp.y = bit.y
-					wisp.z = bit.z
-					wisp.vz = .25
-					wisp.life = .8
-					wisp.size = .09
-					wisp.grow = .35
+				if bit.trail <= 0.0 and bit.age < bit.life * .5:
+					bit.trail = .11
+					var wisp := Bit.make(
+						"soot", Vector3(bit.x, bit.y, bit.z), Vector3(0, 0, .25), .75, .11
+					)
+					wisp.grow = .45
+					wisp.look = "soot"
 					kept.append(wisp)
 		var nx := bit.x + bit.vx * dt
 		var ny := bit.y + bit.vy * dt
-		if bit.gravity > 0.0 and game.world.blocked(nx, ny, .02):
+		if bit.gravity > 0.0 and world.blocked(nx, ny, .02, bit.z):
 			bit.vx *= -.3
 			bit.vy *= -.3
 		else:
@@ -444,11 +485,16 @@ func _tick(dt: float) -> void:
 		bit.z += bit.vz * dt
 		if bit.gravity <= 0.0:
 			continue
-		var floor_z: float = game.world.elevation(bit.x, bit.y)
+		var floor_z: float = world.floor_under(bit.x, bit.y, bit.z + .3)
 		if bit.z <= floor_z:
 			bit.z = floor_z
 			if bit.kind == "spark" or bit.kind == "drop":
 				bit.life = bit.age
+			elif bit.kind == "burning":
+				# A burning drop lies burning a moment where it fell.
+				bit.rest = true
+				bit.landed = bit.age
+				bit.life = bit.age + DROP_BURN * (.6 + fposmod(bit.x * 7.3 + bit.y * 3.1, .8))
 			elif bit.vz < -2.0 and bit.kind != "chaff":
 				bit.vz *= -.3
 				bit.vx *= .5
@@ -456,15 +502,24 @@ func _tick(dt: float) -> void:
 			else:
 				bit.rest = true
 				bit.landed = bit.age
-	bits = kept
-	if bits.size() > MAX_BITS:
-		bits = bits.slice(bits.size() - MAX_BITS)
-	while not booms.is_empty():
-		var boom: Array = booms[0]
+	bits.assign(kept)
+	if bits.size() > blast_looks.most_bits:
+		bits.assign(bits.slice(bits.size() - blast_looks.most_bits))
+	var k := 0
+	while k < booms.size():
+		var boom: Array = booms[k]
 		var boom_at: float = boom[3]
-		if not (game.clock - boom_at > BOOM_LIFE):
+		var boom_life: float = boom[8]
+		if game.clock - boom_at > boom_life:
+			booms.remove_at(k)
+		else:
+			k += 1
+	while not geysers.is_empty():
+		var g: Array = geysers[0]
+		var g_at: float = g[3]
+		if not (game.clock - g_at > GEYSER_LIFE):
 			break
-		booms.pop_front()
+		geysers.pop_front()
 	while not hits.is_empty():
 		var hit: Array = hits[0]
 		var hit_at: float = hit[3]
@@ -525,29 +580,40 @@ func _shed(shot: GameState.Shot) -> float:
 # ------------------------------------------------------------------ drawing
 
 
-## A light for each fireball's afterglow and a hot spark of a strike on metal:
-## [x, y, z, radius, Color, strength, flags, heat], as Effects.light() (view_lights.gd).
+## A light for each fireball's flash and afterglow, by its look's `flash` and
+## `glow` (a lobe beside it has none; a wreck's pop a little), and over each
+## burning wreck: [x, y, z, radius, Color, strength, flags, heat], as
+## Effects.light() (view_lights.gd).
 func lights() -> Array:
 	var out: Array = []
 	for boom: Array in booms:
-		var energy: bool = boom[5]
-		if energy:
+		var flash_k: float = boom[10]
+		var glow_k: float = boom[11]
+		if flash_k <= 0.0 and glow_k <= 0.0:
 			continue
 		var boom_at: float = boom[3]
 		var age: float = game.clock - boom_at
+		if age < 0.0:
+			continue
+		var life: float = boom[8]
 		var bx: float = boom[0]
 		var by: float = boom[1]
 		var bz: float = boom[2]
-		var flash: Variant = Effects.light(
-			"blast_flash", bx, by, bz + .4, 1.0 - age / .14, game.clock
-		)
-		if flash != null and age < .14:
-			out.append(flash)
+		if age < .14 and flash_k > 0.0:
+			var flash: Variant = Effects.light(
+				"blast_flash", bx, by, bz + .4, (1.0 - age / .14) * flash_k, game.clock
+			)
+			if flash != null:
+				var lit: Array = flash
+				var reach: float = lit[3]
+				lit[3] = reach * sqrt(flash_k)
+				out.append(lit)
 		var glow: Variant = Effects.light(
-			"boom_glow", bx, by, bz + .5, 1.0 - age / BOOM_LIFE, game.clock
+			"boom_glow", bx, by, bz + .5, (1.0 - age / (life * 1.2)) * glow_k, game.clock
 		)
 		if glow != null:
 			out.append(glow)
+	wrecks.lights(out)
 	return out
 
 
@@ -570,20 +636,27 @@ func sprites() -> Array:
 		match bit.kind:
 			"spark":
 				continue
-			"soot":
-				name = "fx_soot_%d" % mini(3, int(step * 4.0))
-				translucent = true
-			"smoke":
-				name = "fx_smoke_%d" % mini(3, int(step * 4.0))
-				translucent = true
-			"dust":
-				name = "fx_puff_%d" % mini(3, int(step * 4.0))
+			"soot", "smoke", "dust":
+				name = _smoke_art(bit, step)
 				translucent = true
 			"ember":
 				name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
 				glow = true
+			"burning":
+				# A burning drop: an ember falling, a little flame once it lies.
+				if bit.rest:
+					name = "fx_flame_%d" % (int(bit.age * 12.0 + bit.x * 7.0) % 4)
+					var left := bit.life - bit.age
+					bit.size = .2 * clampf(left / .5, .2, 1.0)
+				else:
+					name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
+				glow = true
 			"chunk":
-				name = "fx_chunk_%d" % (0 if bit.rest else int(bit.age * 16.0) % 4)
+				var turn := 0 if bit.rest else int(bit.age * 16.0) % 4
+				if bit.look == "":
+					name = "fx_chunk_%d" % turn
+				else:
+					name = "fx_scrap_%s_%d" % [bit.look, turn]
 			"splinter":
 				name = "fx_splinter_%d" % (0 if bit.rest else int(bit.age * 14.0) % 2)
 			"grit_brick", "grit_stone":
@@ -622,7 +695,7 @@ func sprites() -> Array:
 		var age: float = game.clock - hit_at
 		var size: float = hit[5]
 		var art := str(hit[4])
-		var frame := mini(2, int(age / HIT_LIFE * 3.0))
+		var frame := mini(3, int(age / HIT_LIFE * 4.0))
 		var tall := 1.5 if art == "water" else 1.0
 		var hz: float = hit[2]
 		var s: View.Sprite = game.pooled(
@@ -631,7 +704,51 @@ func sprites() -> Array:
 		s.glow = art == "metal" or art == "glass"
 		out.append(s)
 	_boom_sprites(out)
+	_geyser_sprites(out)
+	wrecks.flames(out)
 	return out
+
+
+## A smoke bit's picture by its look and age: the column's soot (lit from
+## under while young), a keg's powder smoke, the dirt a blast rolls out, gun
+## smoke, a puff of dust.
+func _smoke_art(bit: Bit, step: float) -> String:
+	var frame := mini(3, int(step * 4.0))
+	match bit.look:
+		"soothot":
+			if bit.age < .7:
+				return "fx_soothot_%d" % mini(2, int(bit.age / .7 * 3.0))
+			return "fx_soot_%d" % frame
+		"soot":
+			return "fx_soot_%d" % frame
+		"powder":
+			return "fx_powder_%d" % frame
+		"dirtpuff":
+			return "fx_dirtpuff_%d" % frame
+		"smoke":
+			return "fx_smoke_%d" % frame
+	match bit.kind:
+		"soot":
+			return "fx_soot_%d" % frame
+		"smoke":
+			return "fx_smoke_%d" % frame
+	return "fx_puff_%d" % frame
+
+
+func _geyser_sprites(out: Array) -> void:
+	for g: Array in geysers:
+		var gx: float = g[0]
+		var gy: float = g[1]
+		if not game.in_view(gx, gy, 2.0):
+			continue
+		var g_at: float = g[3]
+		var t := clampf((game.clock - g_at) / GEYSER_LIFE, 0.0, .999)
+		var size: float = g[4]
+		var gz: float = g[2]
+		var column: View.Sprite = game.pooled(
+			gx, gy, "fx_geyser_%d" % int(t * 5.0), 1.8 * size, gz - .05
+		)
+		out.append(column)
 
 
 func _boom_sprites(out: Array) -> void:
@@ -658,21 +775,26 @@ func _boom_sprites(out: Array) -> void:
 		var boom: Array = row[1]
 		var age: float = row[2]
 		var scale: float = boom[4]
-		var t := clampf(age / BOOM_LIFE, 0.0, .999)
-		var frame := mini(7, int(pow(t, .8) * 8.0))
-		var size := (.95 + 1.7 * sqrt(t)) * scale
+		var life: float = boom[8]
+		var t := clampf(age / life, 0.0, .999)
+		var frame := mini(BlastLooks.FRAMES - 1, int(pow(t, .78) * BlastLooks.FRAMES))
+		# Out fast, then it stops growing and rolls up as it goes over to soot.
+		var size := (.7 + 1.25 * sqrt(minf(t, .6) / .6)) * scale
 		var bx: float = boom[0]
 		var by: float = boom[1]
 		var bz: float = boom[2]
-		var energy: bool = boom[5]
-		var z := maxf(.02, bz - size * .42 + age * .55)
-		var ball: View.Sprite = game.pooled(bx, by, "fx_boom_%d" % frame, size, z)
-		ball.glow = frame < 5
-		ball.translucent = frame >= 5
+		var side: bool = boom[5]
+		var z := maxf(.02, bz - size * .42 + age * .5 * scale)
+		var shape: int = boom[7]
+		var picture := "fx_boom_%s%d_%d" % [str(boom[6]), shape, frame]
+		var ball: View.Sprite = game.pooled(bx, by, picture, size, z)
+		ball.glow = frame < 8
+		ball.translucent = frame >= 8
+		ball.flip = boom[9]
 		out.append(ball)
-		if age < .1 and not energy:
+		if age < .1 and not side:
 			var flash: View.Sprite = game.pooled(
-				bx, by, "fx_boomflash_%d" % (0 if age < .05 else 1), 2.1, z - .3
+				bx, by, "fx_boomflash_%d" % (0 if age < .05 else 1), 2.1 * sqrt(scale), z - .3
 			)
 			flash.glow = true
 			out.append(flash)
@@ -682,6 +804,7 @@ func ground_marks() -> Array:
 	var out: Array = []
 	if not Effects.rich:
 		return out
+	blast_looks.crater_marks(out)
 	for ring: Array in shocks:
 		var ring_at: float = ring[3]
 		var t: float = (game.clock - ring_at) / SHOCK_LIFE
@@ -719,3 +842,8 @@ func draw_view(c: Canvas) -> void:
 			else Color8(255, 200, 96) if heat > .3 else Color8(232, 112, 36)
 		)
 		c.stroke(int(b.x), int(b.y), int(a.x), int(a.y), colour, 2 if a.z < 1.6 else 1)
+
+
+## A wrecked vehicle's hulk (features/vehicles.gd sprites(); null: its model).
+func hulk(i: int) -> View.Sprite:
+	return wrecks.hulk(i) if wrecks != null else null

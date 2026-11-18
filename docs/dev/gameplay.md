@@ -83,17 +83,68 @@ firing; viewpoints after it keep firing it.
 **The gun and blast effects with LIGHTS AND GLOW on** are a layer of their
 own, drawn only while `Effects.rich` (game_view.gd sets it: `view.layered`
 and `Effects.enabled`), so the view without lights stays as it was
-(`compare_3d.gd`'s `_gpu` pictures hold that): `features/gun_fx.gd` (blasts:
-a white star, a fireball rolling up into soot with two smaller beside it, a
-smoke column, charred scraps trailing smoke, a dust ring on the ground,
-lights `blast_flash` and `boom_glow`; strikes by material, `fx_hit_<kind>`,
-with more chips; wadding, smoke and sparks off the muzzle; fuse and rocket
-sparks; all capped, a chain of blasts throwing less each, its own dice, made
+(`compare_3d.gd`'s `_gpu` pictures hold that): `features/gun_fx.gd` (blasts,
+by `src/blast_looks.gd`: see "Blasts and wrecks" below; strikes by material,
+`fx_hit_<kind>`, four frames with a dark rim, with more chips; wadding,
+smoke and sparks off the muzzle; fuse and rocket sparks; its own dice, made
 whatever the view), `gun_flash.gd` (each gun's muzzle flash: weapons.cfg
 `flash_art`/`flash_size`, over the old flash as a glow), weapon_fx's fatter
 tracers with a glowing head, and each gun's own muzzle light
 (`[light.muzzle_<gun>]`). game_view.gd leaves the old `fx_blast` fireball out
 then. The pictures are in [art.md](art.md#gun-effects-art).
+
+### Blasts and wrecks (destruction pass 11)
+
+`src/blast_looks.gd` (owned by gun_fx), numbers in
+`data/tuning/blast_looks.cfg`. Looks only: none of it touches a blast's
+damage, reach or shove (shots.cfg), and nothing is saved or carried.
+
+- **A look a blast**: by its shots.cfg kind (`[kinds]`: tnt, keg, fuel,
+  gas_can, cow, rocket, still, nitro, small) or, over it, by what blew
+  (`[from]`: the breakable whose picture went up there, a propane tank or a
+  hazard drum both being "fuel" blasts in play, or a vehicle wrecked this
+  tick). A look says the fireball's fire (`d` yellow-white, `f` fuel's deep
+  orange going to oily black), size and life, lobes, the column (soot or a
+  keg's grey-white powder) and its mushroom cap, scraps (charred wood, torn
+  tin, meat), clods, the dirt puffs of the dust ring, sparks, embers,
+  burning drops, the crater, the light and the view's kick.
+- **No two alike**: each blast reseeds the layer's own dice from where and
+  when it went (`burst`), so a replay looks the same and every blast its own:
+  one of three fireball shapes (`fx_boom_<fire><shape>_N`, 12 frames),
+  mirrored or not, size and life within 15 %, one to `lobes` smaller balls
+  bursting beside it at their own angles and moments, the column's lean,
+  counts within 30 %, every scrap's arc, one of four craters
+  (`mark_crater_N`) turned and sized its own way.
+- **Where**: in standing water (an effects.cfg `[water]` floor, not a puddle)
+  a column of water (`fx_geyser_N`), spray, steam, a smaller fireball and no
+  crater; on a deck or any floor that is not the ground splinters instead of
+  clods and no crater (debris.gd's scorch stays); within `WALL_NEAR` of a
+  wall the fire is set off it and the lobes, scraps and clods go the other
+  way.
+- **Chains**: a blast within a second of the last throws `chain_less` fewer
+  bits (down to `chain_least`), never a smaller fireball or flash, so a row
+  of drums reads as boom after boom.
+- **The view's kick**: within `kick_reach` a blast punches the local view
+  (`feel.gd punch()`: yaw away from it, a pitch, a drop, the gun shoved) by
+  the square of how near, times the look's `kick`; SCREEN SHAKE scales it.
+  game_combat.gd's distance shake is as it was.
+- **Lights**: a look's `flash` and `glow` scale `[light.blast_flash]` and
+  `[light.boom_glow]`; side lobes have none; a burning wreck has
+  `[light.wreck_fire]`.
+- **Sounds**: a look's `layer` plays with the blast's own cue (the fuel
+  looks: `fuel_whoomp`); a blast throwing `debris_from` scraps or more plays
+  `debris_cue` (`blast_debris`) `debris_after` seconds later.
+- **Cost**: `most_bits` in the air (200; `most_bits_low` 90 on a phone or
+  QUALITY LOW), the oldest going first; craters `CRATERS` (16, 8 on LOW),
+  fading after `CRATER_LIFE`. Measured against v3.8.0 back to back:
+  stress_bench's new `chain6` (six blasts nine ticks apart) and strike,
+  wreck48, fire, arena are all within noise ([checks.md](checks.md#benchmarks)).
+- **Vehicles** (`src/vehicle_wreck_looks.gd`, owned by gun_fx): see
+  "Hurt and wrecked" under Vehicles.
+- Checks: `tools/blast_check.gd` (BLAST CHECK OK, check_all, quick too);
+  `tools/blast_frames.gd -- out=<dir>` pictures every kind, a wall, the loft,
+  water, a chain, two side by side and each vehicle wrecked
+  (`docs/godot3d/destruction/BLASTS/`, before and after).
 
 ## The automap, canvas and sprites
 
@@ -1864,6 +1915,29 @@ chapel path at Hickston. Only the campaign and co-op have them
   smokes under half, burns under a quarter; at 0 everyone in it is thrown out
   (`eject_damage`, "WRECK") and it blows (`wreck_blast`, a shots.cfg blast)
   and burns `burn` seconds, then stays a burnt-out wreck.
+- **How it looks hurt and wrecked** (destruction pass 11,
+  `src/vehicle_wreck_looks.gd`, looks only, gun_fx's dice): under half its
+  engine smokes (`smoke_at` in vehicles.cfg: the share of the way from its
+  middle to its nose; the airboat's is behind), under a quarter black with
+  sparks; a round whose line passes through its hull throws sparks where it
+  went in (and pings now and then). Wrecked, parts come off by where the
+  last blast near it was and how hard (`blasted()`): the near side's door,
+  wheels and the end toward the blast most, the hood or top more often than
+  not, thrown away from the blast; its glass bursts (glints) and
+  `wreck_crash` plays. The parts are its own model cut in a grid
+  (`CUTS`: the car's hood, doors, four wheels, trunk lid; the airboat's fan
+  cage, rails and seat; the mower's hood, wheels and seat) with WreckCuts'
+  clipping, put as `m:<model>|vw`, and thrown by `wreckage.throw_cut` (real
+  pieces, scorched by `PART_CHAR`). The hulk is the rest of the model
+  (`m:<model>|vh<mask>`, one wreck-layer piece, `vehicles.gd sprites()`
+  shows it instead of the model): kicked up by its blast and dropped onto
+  its rims, sagging where a wheel went, charring from `CHAR_FROM` to
+  `CHAR_TO` as it burns (`View.Sprite.hurt`, `wreck_layer.gd`). While it
+  burns: flames over it, a column of soot, embers, secondary pops (a small
+  fuel ball, sparks, `wreck_pop`) every second or two; then it smoulders
+  `SMOULDER` seconds. With LIGHTS AND GLOW off the old smoke and flames
+  (`_smoke`) stay. A wreck already wrecked when seen (a save, a snapshot)
+  shows its hulk whole and throws nothing.
 - **The speedway's lap timer**: the car on the lap cars' racing line counts
   the turn round its middle; a whole turn is a lap (LAP n, the time, the
   best); off the line by `LINE_REACH` it starts again. The time and best are

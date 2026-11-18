@@ -50,6 +50,7 @@ const LOOSE_NAMES := [
 	"fx_soil",
 	"fx_splinter_",
 	"fx_chunk_",
+	"fx_scrap_",
 	"fx_grit_",
 	"fx_hat_",
 	"fx_drop_",

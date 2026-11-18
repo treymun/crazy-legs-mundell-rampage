@@ -13,6 +13,9 @@
   "bar_mag": {
    "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
   },
+  "blast_debris": {
+   "quiet for family:impact": "a patter of small falling bits, no one big hit: quiet on purpose under the blast it follows (destruction pass 11, played at .75 half a second after it)"
+  },
   "bomb_beep": {
    "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
   },
@@ -202,6 +205,9 @@
    "loud for family:foot": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
   },
   "weapon_pickup": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "wreck_crash": {
    "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
   }
  }

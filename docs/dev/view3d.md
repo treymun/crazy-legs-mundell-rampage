@@ -702,7 +702,10 @@ hurt `CHAR_HURT`. `PropLayer3D` keeps the marks of props gone out of view
 (`KEEP`, by key) and hands a gone prop's marks to one of its model made again
 within `REMADE` cells (a car stood again at its next place, a thrown thing
 landing, a breakable showing its struck picture); at most `MOST_MARKED` (64)
-parts carry marks. Looks only. Pictures: `docs/godot3d/polish/L/marks_*.png`.
+parts carry marks. A wreck piece whose sprite has a `hurt` is charred to it
+(a vehicle's hulk as it burns, `src/vehicle_wreck_looks.gd`), and a part
+blown off a vehicle (`|vw#`) comes scorched. Looks only. Pictures:
+`docs/godot3d/polish/L/marks_*.png`.
 
 A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
 `wet`, `lightning`, `actors` (to show the 3D models), `cels` (true: enemies
