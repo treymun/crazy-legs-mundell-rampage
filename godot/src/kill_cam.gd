@@ -1,8 +1,11 @@
 ## KILL CAM (PLAY setting: OFF, BOSSES, BOSSES AND AREAS; never online or
-## with more than one player): after a boss falls, or the last foe of a
+## with more than one player): with BOSSES AND AREAS, when the last foe of a
 ## fight goes down with nobody else awake near, play pauses and the last
 ## couple of seconds are shown again from another angle, slowed, a camera
-## swinging round the body; any key, click or tap skips it.
+## swinging round the body; any key, click or tap skips it. A boss's fall is
+## shown live instead (boss_ending.gd, BOSSES and up): replayed here it was
+## framed from a hand's distance whatever the boss's size, and ran time
+## backwards (pass 10).
 ##
 ## Looks only. While play runs it samples what the 3D view was handed
 ## (game.view_frame: the moving sprites, copied, and each body's pose) RATE
@@ -78,8 +81,6 @@ var _kills := PackedFloat64Array()
 var _next_sample := -INF
 var _fixed := {}
 var _fixed_key := 0
-var _boss_seen := false
-var _boss_check := 0.0
 var _stand_ins := {}
 var _marks: Array = []
 var _ground: Array = []
@@ -112,8 +113,8 @@ func record(m: MainState) -> void:
 	if not moments.is_empty() and g.clock < moments[-1].clock:
 		moments.clear()  # a load or a retry: the clock went back
 		_next_sample = -INF
-	if mode == BOSSES and pending.is_empty() and not _boss_awake(g):
-		moments.clear()
+	if mode < AREAS:
+		moments.clear()  # only an area's last kill is replayed
 		return
 	if g.clock < _next_sample:
 		return
@@ -133,21 +134,6 @@ func _attach(g: Game) -> void:
 	var heard := _killed.bind(g)
 	if not g.events.enemy_killed.is_connected(heard):
 		g.events.enemy_killed.connect(heard)
-
-
-## BOSSES: only while a boss is up and awake (looked for twice a second of
-## play) or its fall waits to be shown, so nothing is sampled the rest of the
-## time.
-func _boss_awake(g: Game) -> bool:
-	if absf(g.clock - _boss_check) < .5:
-		return _boss_seen
-	_boss_check = g.clock
-	_boss_seen = false
-	for e: Enemy in g.enemies:
-		if e.alive and e.alerted and not e.dormant and BossKit.is_boss(e):
-			_boss_seen = true
-			break
-	return _boss_seen
 
 
 ## A copy of what the view shows now that moves (the level's fixed sprites are
@@ -202,16 +188,15 @@ static func copy(s: View.Sprite) -> View.Sprite:
 	return out
 
 
-## A foe died: a boss, or (BOSSES AND AREAS) the last of a fight with nobody
-## else awake within AREA, is noted to be shown. Reads only.
+## A foe died: (BOSSES AND AREAS) the last of a fight with nobody else awake
+## within AREA is noted to be shown; never a boss (boss_ending.gd). Reads only.
 func _killed(e: Enemy, g: Game) -> void:
 	if g != game or playing or mode == OFF:
 		return
 	_kills.append(g.clock)
 	while not _kills.is_empty() and _kills[0] < g.clock - FIGHT_TIME:
 		_kills.remove_at(0)
-	var boss := BossKit.is_boss(e)
-	if not boss and (mode < AREAS or _kills.size() < FIGHT or _foe_near(g, e)):
+	if BossKit.is_boss(e) or mode < AREAS or _kills.size() < FIGHT or _foe_near(g, e):
 		return
 	pending = {"clock": g.clock, "x": e.x, "y": e.y, "floor": g.world.stand(e), "height": e.height}
 

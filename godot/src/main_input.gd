@@ -91,6 +91,8 @@ func key(code: int, shift := false) -> void:
 	if binding_action != "":
 		_bind_key(code)
 		return
+	if boss_end.skip():
+		return  # any key skips a boss's fall to its fade
 	if kill_cam.playing:
 		kill_cam.stop(self)  # any key skips the KILL CAM
 		return
@@ -476,6 +478,10 @@ func _input(event: InputEvent) -> void:
 		if event.is_pressed():
 			opener.stop(self)  # a click or a tap skips a chapter's opener
 		return
+	if boss_end.playing and (event is InputEventMouseButton or event is InputEventScreenTouch):
+		if event.is_pressed():
+			boss_end.skip()  # a click or a tap skips a boss's fall to its fade
+		return
 	if kill_cam.playing and (event is InputEventMouseButton or event is InputEventScreenTouch):
 		if event.is_pressed():
 			kill_cam.stop(self)  # a click or a tap skips the KILL CAM
@@ -851,6 +857,8 @@ func read_pad(dt: float) -> Dictionary:
 	if not pressed.is_empty() and opener.playing:
 		opener.stop(self)  # any button skips a chapter's opener
 		return idle
+	if not pressed.is_empty() and boss_end.skip():
+		return idle  # any button skips a boss's fall to its fade
 	if pressed.has(JOY_BUTTON_Y) and state == "title" and game != null and photo.enter(self):
 		grab(true)  # Y on the pause screen: PHOTO MODE
 		return idle

@@ -638,6 +638,9 @@ var station := RadioStation.new()
 var _dj: Voice
 var _scan: Voice
 var _music_duck := 1.0
+## A boss's ending holding the music under its end sting (boss_ending.gd
+## hold_music): the share _music_duck eases toward, 1 when nothing holds it.
+var _music_hold := 1.0
 ## Play's own hold on the music (game.gd: a blast, a caption up), a share of
 ## MUSIC VOLUME; level_music sets it. 1 in the menus.
 var _game_music := 1.0
@@ -1326,6 +1329,29 @@ func sting(cue: String) -> void:
 		Sound.set_level(_sting.player, .84 * music_gain)
 
 
+## A boss's ending (boss_ending.gd): the music eased down to `share` of its
+## level under the end sting, and back up with 1.
+func hold_music(share: float) -> void:
+	_music_hold = clampf(share, 0.0, 1.0)
+
+
+## Whether a sting (a boss's end, a chapter's) is playing now.
+func sting_playing() -> bool:
+	return _sting.player.playing and not _sting.player.stream_paused
+
+
+## How loud the music is now as a share of MUSIC VOLUME: the score under its
+## holds, or a sting over it, whichever is louder (the checks read it).
+func music_heard() -> float:
+	var heard := 0.0
+	if score_player != null and score_player.enabled and not score_player.paused:
+		if score_player.player.playing and not score_player.player.stream_paused:
+			heard = _game_music * (1.0 - radio_gain) * _music_duck * score_player.gain
+	if sting_playing():
+		heard = maxf(heard, .84)
+	return heard
+
+
 ## A chapter opener's music (opener.gd): the chapter's score held while the
 ## opener's sting `cue` plays, or with "" the sting stopped and the score let go.
 func opener_music(cue: String) -> void:
@@ -1415,6 +1441,7 @@ func _radio_levels(dt: float) -> void:
 	if dt <= 0.0:
 		return
 	var want := MUSIC_UNDER_DJ if _dj.player.playing and not station.in_break else 1.0
+	want = minf(want, _music_hold)
 	var duck_now := move_toward(_music_duck, want, dt * 2.5)
 	if duck_now != _music_duck:
 		_music_duck = duck_now

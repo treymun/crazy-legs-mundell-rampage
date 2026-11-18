@@ -685,7 +685,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		marks_list = marks_list + gore_fx.walls
 	marks_list = marks_list + Features.wall_marks(me)
 	var listed: Array = sprites()
-	if posing and not ModeBodies.hidden_in_vehicle(me, p):
+	if posing and not ModeBodies.hidden_in_vehicle(me, p) and not eye_override.has("hide_self"):
 		listed.append(ModeBodies.player_sprite(me, p))
 	var t1 := Time.get_ticks_usec()
 	# What the 3D view (view3d/world_view.gd) draws this frame: it reads this
