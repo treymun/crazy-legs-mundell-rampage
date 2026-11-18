@@ -1358,6 +1358,15 @@ add("scene",
     gas_leak=N("Gasoline gushing and glugging out of a shot-up gas pump hose, a wet hissing spray pattering on concrete.", 1.8, style="scene"),
     gas_whoosh=N("A trail of spilled gasoline catching fire: a quick rushing whoosh of flame racing along the ground.", 1.4, style="scene"),
     plank_crack=N("Weathered barn planks split by a shotgun blast: a sharp dry splintering crack and a board knocked loose.", .8, style="scene"),
+    # The big breaks coming apart (pass 11, godot/src/set_piece_wreck.gd): a
+    # post snapping in two as the frame goes, the tin sheets sliding off and
+    # clattering down, a wall slamming flat in its dust, the tank's iron
+    # hoops springing off and a fuel pipe bursting in the fire.
+    timber_snap=N("A thick old wooden barn post snapping in two under a falling roof: one deep sharp crack, splintering fibres, the top half thudding away.", 1.0, style="scene"),
+    collapse_tin=N("Rusty corrugated tin roof sheets sliding off a collapsed barn and clattering down onto broken timber and dirt: loose rattling, scraping and banging tin.", 1.8, style="scene"),
+    collapse_rumble=N("A heavy plank barn wall slamming flat onto dry dirt: a deep wooden thud and a dusty whump, loose boards rattling and settling after.", 1.4, style="scene", level=-10.5),
+    hoop_ring=N("Iron hoops springing off a burst wooden water tank and clanging down on a dirt street: two ringing metallic clangs and a rattle.", 1.3, style="scene", level=-10.5),
+    pipe_burst=N("A steel fuel pipe bursting in a gasoline fire: a sharp metallic bang and a deep whoomp of flame.", 1.2, style="scene"),
     )
 # The county events (content pass 8, godot/src/features/county_events.gd,
 # features/event_looks.gd): the civil defence siren and the twister's roar, a

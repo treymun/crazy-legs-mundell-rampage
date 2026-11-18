@@ -11,7 +11,10 @@
 ## down; the same breaks twice come out the same; a snapshot carries it to a
 ## fresh game; a save keeps what came down; nothing is ever shut off: with
 ## every set piece down every way it may fall, every station, key and the
-## exit is still walked to from the start; and the idle tick costs nothing.
+## exit is still walked to from the start; the idle tick costs nothing; and
+## (looks) a barn comes apart in pieces of itself that lie on the ground or
+## the pile, the same fall the same, another fall otherwise, and a tower's
+## legs snap, its tank tears, its hoops land in bands and its deck splinters.
 ##
 ##   godot --headless --path godot --script res://tools/set_piece_check.gd [-- <level>]
 ##
@@ -125,6 +128,8 @@ func _check_all(only: String) -> void:
 		_snapshot("hickston")
 		_saved("hickston")
 		_idle("hickston")
+		_looks("hickston")
+		_tower_looks("hickston")
 	for level_id: String in WANT:
 		if only == "" or only == level_id:
 			_no_soft_lock(level_id)
@@ -547,3 +552,225 @@ func _idle(level_id: String) -> void:
 	)
 	check(not g.events.is_awake(sp), "standing, its tick sleeps (nothing calls it)")
 	check(us < 40.0, "standing, its tick costs next to nothing (%.1f us)" % us)
+
+
+# ------------------------------------------------------------------ looks
+
+
+static func _ruin(g: Game) -> SetPieceWreck:
+	var wk: GameFeature = g.features.get("wreckage")
+	var ruin: SetPieceWreck = wk.get("ruin")
+	return ruin
+
+
+## The barn brought down `how` ("south": its first two posts shot from the
+## south; "north": its last two shot from the north; "blast": dynamite in it),
+## `wait` seconds into the game: its ruin once all of it lies still.
+func _brought_down(level_id: String, how: String, wait: float) -> SetPieceWreck.Ruin:
+	var g := _game(level_id)
+	g.player.x = 75.0
+	g.player.y = 70.0
+	_ticks(g, wait)
+	var sp := _sets(g)
+	var i := _find(sp, "barn")
+	var posts := _codes(sp, i, "post")
+	var st: Dictionary = sp.pieces[i]
+	match how:
+		"south":
+			sp.strike(posts[0], 300.0, 0.0, 1.0)
+			sp.strike(posts[1], 300.0, 0.0, 1.0)
+		"north":
+			sp.strike(posts[posts.size() - 1], 300.0, 0.0, -1.0)
+			sp.strike(posts[posts.size() - 2], 300.0, 0.0, -1.0)
+		"blast":
+			var mid: Vector2 = sp._boxes[i].get_center()
+			var z := g.world.elevation(mid.x, mid.y) + .3
+			for n in 3:
+				if int(st["stage"]) == SetPieces.STANDING:
+					g.explode(Game.Shot.new(mid.x, mid.y, z, 0.0, 0.0, 0.0, "tnt", 0.0, false, 0))
+					_ticks(g, .2)
+	_ticks(g, 7.0)
+	var ruin := _ruin(g)
+	var r: SetPieceWreck.Ruin = ruin.ruins.get(i)
+	return r
+
+
+## Where the pieces of a ruin lie: each one's key and index, middle.
+static func _layout(r: SetPieceWreck.Ruin) -> Dictionary:
+	var out := {}
+	for b: SetPieceWreck.Bit in r.bits:
+		out["%d:%s#%d" % [b.k, b.key.get_slice("|", 1), b.index]] = b.rest_p
+	return out
+
+
+## How far apart two layouts lie: the share of pieces of `a` that `b` has
+## no piece of (by its key) within `near` of.
+static func _apart(a: Dictionary, b: Dictionary, near: float) -> float:
+	var off := 0
+	for key: String in a:
+		var pa: Vector3 = a[key]
+		var pb: Variant = b.get(key)
+		if pb == null:
+			off += 1
+			continue
+		var at: Vector3 = pb
+		if pa.distance_to(at) > near:
+			off += 1
+	return float(off) / maxf(1.0, a.size())
+
+
+## A barn comes apart in pieces of itself (looks: src/set_piece_wreck.gd):
+## more than its few big parts, every post snapped, the pieces lying on the
+## ground or the pile (none in the air or under the floor), merged once
+## still; the same fall twice lies the same (a client, a save), and brought
+## down another way (other posts, from the other side, a blast) or at
+## another time it lies otherwise.
+func _looks(level_id: String) -> void:
+	var a := _brought_down(level_id, "south", 1.0)
+	if a == null:
+		check(false, "the barn's ruin is made")
+		return
+	var g := _game(level_id)
+	var sp := _sets(g)
+	var i := _find(sp, "barn")
+	var made: Array = sp.shapes[i]
+	var posts := 0
+	var snapped := {}
+	var low := INF
+	var high := -INF
+	var floating := 0
+	var ground: float = sp._ground[i]
+	for b: SetPieceWreck.Bit in a.bits:
+		var part: Shape.Part = made[b.k]
+		if part.role == "post":
+			snapped[b.k] = int(snapped.get(b.k, 0)) + 1
+		var basis := Basis(b.rest_q)
+		var reach := absf(basis[0].z) * b.half.x + absf(basis[1].z) * b.half.y
+		reach += absf(basis[2].z) * b.half.z
+		var bottom := b.rest_p.z - reach
+		low = minf(low, bottom - ground)
+		high = maxf(high, bottom - ground)
+		if (not b.stub and bottom - ground > 1.6) or b.state != SetPieceWreck.REST:
+			floating += 1
+			print(
+				(
+					"    afloat: %s #%d state %d bottom %.2f"
+					% [part.role, b.index, b.state, bottom - ground]
+				)
+			)
+	for k in made.size():
+		var part: Shape.Part = made[k]
+		if part.role == "post":
+			posts += 1
+	var whole := 0
+	for k: int in snapped:
+		if int(snapped[k]) < 2:
+			whole += 1
+	print(
+		(
+			"    barn: %d parts in %d pieces, bottoms %.2f to %.2f over the ground, %d posts whole"
+			% [made.size(), a.bits.size(), low, high, whole]
+		)
+	)
+	check(a.bits.size() > made.size() * 3, "the barn comes apart in pieces (%d)" % a.bits.size())
+	check(a.bits.size() <= 220, "but not past its budget (%d of 220)" % a.bits.size())
+	check(whole <= 1, "its posts snap rather than fall whole (%d of %d whole)" % [whole, posts])
+	check(low > -.12 and floating == 0, "every piece lies on the ground or the pile, none afloat")
+	check(
+		a.still and not a.merged.is_empty(),
+		"once still its pieces are merged (%d meshes)" % a.merged.size()
+	)
+	var la := _layout(a)
+	var again := _layout(_brought_down(level_id, "south", 1.0))
+	check(_apart(la, again, .001) == 0.0, "the same fall twice lies the same, piece for piece")
+	var north := _apart(la, _layout(_brought_down(level_id, "north", 1.0)), .3)
+	var blast := _apart(la, _layout(_brought_down(level_id, "blast", 1.0)), .3)
+	var later := _apart(la, _layout(_brought_down(level_id, "south", 3.0)), .3)
+	print(
+		(
+			"    pieces lying otherwise: other posts %.2f, a blast %.2f, later %.2f"
+			% [north, blast, later]
+		)
+	)
+	check(north > .6, "brought down by the other posts it breaks otherwise (%.2f)" % north)
+	check(blast > .6, "brought down by a blast it breaks otherwise (%.2f)" % blast)
+	check(later > .6, "the same posts shot another time it breaks otherwise (%.2f)" % later)
+	# A save put back: the pile lies in its pieces at once, none flying.
+	var back := _brought_down_saved(level_id)
+	check(
+		back[0] > made.size() * 3 and back[1], "a save put back shows the pile in its pieces, still"
+	)
+
+
+## The barn down, saved and read back: [its pieces, all still].
+func _brought_down_saved(level_id: String) -> Array:
+	var g := _game(level_id)
+	var sp := _sets(g)
+	var i := _find(sp, "barn")
+	var posts := _codes(sp, i, "post")
+	sp.strike(posts[0], 300.0, 0.0, 1.0)
+	sp.strike(posts[1], 300.0, 0.0, 1.0)
+	_ticks(g, 7.0)
+	var path := OS.get_cache_dir().path_join("set-piece-looks.json")
+	SessionStore.save(g, path)
+	var back: Game = SessionStore.read(path, Callable(main, "make_game"), false)
+	if back == null:
+		return [0, false]
+	_ticks(back, .1)
+	var r: SetPieceWreck.Ruin = _ruin(back).ruins.get(i)
+	if r == null:
+		return [0, false]
+	return [r.bits.size(), r.still]
+
+
+## A tower comes apart: its legs snap, its tank tears in the fall, its hoops
+## spring off in bands that end on the ground (never in the air), its deck
+## splinters.
+func _tower_looks(level_id: String) -> void:
+	var g := _game(level_id)
+	var sp := _sets(g)
+	var i := _find(sp, "tower")
+	var made: Array = sp.shapes[i]
+	for code: int in _codes(sp, i, "leg"):
+		if _part(sp, code).side.y < 0.0:
+			sp.strike(code, 300.0, 0.0, -1.0)
+	_ticks(g, 8.0)
+	var r: SetPieceWreck.Ruin = _ruin(g).ruins.get(i)
+	if r == null:
+		check(false, "the tower's ruin is made")
+		return
+	var hoops := 0
+	var high_hoop := -INF
+	var deck := 0
+	var torn := 0
+	var legs := 0
+	for b: SetPieceWreck.Bit in r.bits:
+		var part: Shape.Part = made[b.k]
+		var ground := g.world.elevation(b.rest_p.x, b.rest_p.y)
+		match part.role:
+			"hoop":
+				hoops += 1
+				high_hoop = maxf(high_hoop, b.rest_p.z - ground)
+			"deck":
+				deck += 1
+			"tank":
+				torn += 1
+			"leg":
+				legs += 1
+	print(
+		(
+			(
+				"    tower: %d pieces, %d hoop bands (highest %.2f up), %d deck planks,"
+				+ " %d staves torn out, %d leg pieces"
+			)
+			% [r.bits.size(), hoops, high_hoop, deck, torn, legs]
+		)
+	)
+	check(
+		hoops >= 6 and high_hoop < 1.3,
+		"its hoops spring off in bands that lie on the ground or the pile"
+	)
+	check(deck >= 6, "its deck splinters (%d planks)" % deck)
+	check(torn >= 3, "its tank tore open in the fall (%d staves)" % torn)
+	check(legs >= 6, "its legs snap (%d pieces of 4 legs)" % legs)
+	check(r.still, "and it all lies still")

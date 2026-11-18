@@ -45556,14 +45556,119 @@
    "bytes": 97845
   },
   {
-   "id": "reconcile@2026-11-17T22:05:05",
+   "id": "sfx/collapse_tin#1",
+   "kind": "sfx",
+   "name": "collapse_tin",
+   "params": {
+    "text": "Rusty corrugated tin roof sheets sliding off a collapsed barn and clattering down onto broken timber and dirt: loose rattling, scraping and banging tin. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "08ddc5713f3c",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-18T07:16:06",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/collapse_tin.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "sfx/timber_snap#1",
+   "kind": "sfx",
+   "name": "timber_snap",
+   "params": {
+    "text": "A thick old wooden barn post snapping in two under a falling roof: one deep sharp crack, splintering fibres, the top half thudding away. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c91dc5db46e3",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-18T07:16:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/timber_snap.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/hoop_ring#1",
+   "kind": "sfx",
+   "name": "hoop_ring",
+   "params": {
+    "text": "Iron hoops springing off a burst wooden water tank and clanging down on a dirt street: two ringing metallic clangs and a rattle. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.3,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0dad6b6556c9",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-18T07:16:06",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hoop_ring.mp3",
+   "bytes": 32016
+  },
+  {
+   "id": "sfx/collapse_rumble#1",
+   "kind": "sfx",
+   "name": "collapse_rumble",
+   "params": {
+    "text": "A heavy plank barn wall slamming flat onto dry dirt: a deep wooden thud and a dusty whump, loose boards rattling and settling after. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "49707bbb07e9",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-18T07:16:06",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/collapse_rumble.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/pipe_burst#1",
+   "kind": "sfx",
+   "name": "pipe_burst",
+   "params": {
+    "text": "A steel fuel pipe bursting in a gasoline fire: a sharp metallic bang and a deep whoomp of flame. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ae7341024096",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-18T07:16:08",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/pipe_burst.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "reconcile@2026-11-18T07:17:21",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -29385,
+   "actual": -29332,
    "basis": "account",
-   "balance_after": 83562
+   "balance_after": 83693
   }
  ],
  "anchor": {
@@ -45571,7 +45676,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-17T22:05:05",
-  "account_drop": 78839
+  "when": "2026-11-18T07:17:21",
+  "account_drop": 78970
  }
 }

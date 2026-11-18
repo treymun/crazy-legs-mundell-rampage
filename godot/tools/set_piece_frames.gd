@@ -4,7 +4,9 @@
 ## <level>_<id>_<n>.png in out=<dir>; only=<id,id> picks some. With
 ## `bench` it pictures nothing and times each one instead: the frame (tick
 ## and draw, as the game runs them) over two seconds standing, then from
-## the moment it is brought down for six (median, p99, worst, in ms).
+## the moment it is brought down for six (median, p99, worst, in ms), and
+## the CPU's share of it (the tick and the draw handed over, without the wait
+## for the picture: a window's frame waits for the screen's next refresh).
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/set_piece_frames.gd -- out=<dir> [only=a,b]
@@ -28,6 +30,8 @@ var main
 var out := ""
 var only: Array = []
 var bench := false
+## The CPU's share of the last _frames(): [median, p99, worst].
+var _cpu: Array = []
 
 
 func _init() -> void:
@@ -255,10 +259,21 @@ func _fuel(g: Game, sp: SetPieces, i: int, name: String) -> void:
 	sp.strike(pumps[0], 100.0, 0.0, 1.0)
 	_ticks(g, 4.0)
 	await _snap(name + "_1_leaking")
+	# The holed pump close: its gas spurting.
+	var pump: Shape.Part = sp.shapes[i][pumps[0] % 1000]
+	var near := _spot(g, Vector2(pump.p.x, pump.p.y), 2.6, PI * .5)
+	var back := Vector2(eye.x, eye.y)
+	_stand(g, near.x, near.y, pump.p.x, pump.p.y, g.world.elevation(pump.p.x, pump.p.y) + .5)
+	_ticks(g, .02)
+	await _snap(name + "_1b_spurting")
+	_stand(g, back.x, back.y, mid.x, mid.y, g.world.elevation(mid.x, mid.y) + .2)
+	_view(g, str(sp.spec_of(i).get("id", "")))
 	var fire = g.features["fire"]
 	fire.fresh()
 	fire.ignite(first.x + .5, first.y + .5, g.world.elevation(first.x + .5, first.y + .5), 3.0)
-	_ticks(g, .7)
+	_ticks(g, .35)
+	await _snap(name + "_2a_flaring")
+	_ticks(g, .35)
 	await _snap(name + "_2_running")
 	_ticks(g, 1.2)
 	await _snap(name + "_3_end")
@@ -274,6 +289,7 @@ func _bench(g: Game, sp: SetPieces, i: int, name: String) -> void:
 		var eye := _spot(g, mid, 9.0, 0.0)
 		_stand(g, eye.x, eye.y, mid.x, mid.y, g.world.elevation(mid.x, mid.y) + 1.5)
 	var before := await _frames(g, 120)
+	var cpu_before: Array = _cpu.duplicate()
 	match str(spec["kind"]):
 		"barn":
 			for code: int in _codes(sp, i, "post").slice(0, 2):
@@ -304,17 +320,27 @@ func _bench(g: Game, sp: SetPieces, i: int, name: String) -> void:
 			% [name, before[0], before[1], before[2], during[0], during[1], during[2]]
 		)
 	)
+	print(
+		(
+			"%-28s cpu standing median %5.2f p99 %5.2f max %5.2f | down median %5.2f p99 %5.2f max %5.2f"
+			% [name, cpu_before[0], cpu_before[1], cpu_before[2], _cpu[0], _cpu[1], _cpu[2]]
+		)
+	)
 
 
 ## n frames as the game runs them (a tick, then the draw), each timed:
 ## [median, p99, worst] in ms.
 func _frames(g: Game, n: int) -> Array:
 	var times: Array = []
+	var cpu: Array = []
 	for f in n:
 		var t0 := Time.get_ticks_usec()
 		g.tick(1.0 / 60.0, Game.Controls.new())
 		main.render()
+		cpu.append((Time.get_ticks_usec() - t0) / 1000.0)
 		await RenderingServer.frame_post_draw
 		times.append((Time.get_ticks_usec() - t0) / 1000.0)
 	times.sort()
+	cpu.sort()
+	_cpu = [cpu[n / 2], cpu[mini(n - 1, int(n * .99))], cpu[n - 1]]
 	return [times[n / 2], times[mini(n - 1, int(n * .99))], times[n - 1]]

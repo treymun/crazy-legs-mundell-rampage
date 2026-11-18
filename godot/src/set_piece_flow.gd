@@ -192,7 +192,6 @@ static func burst(sp: SetPiecesFeature, i: int) -> void:
 	g.sound_at("tower_burst", x, y, 1.0)
 	g.burst(x, y, z + .4, "splash", 26, 3.2)
 	g.burst(x, y, z + .2, "chips", 14, 3.0)
-	g.shake = minf(1.0, g.shake + .5)
 	var flood := _spread(sp, Vector2(x, y), z, lean)
 	flood["t0"] = g.clock
 	sp.floods.append(flood)
@@ -397,3 +396,102 @@ static func marks(sp: SetPiecesFeature) -> Array:
 				sp.mark_cache[key] = mark
 			out.append(mark)
 	return out
+
+
+## The sprites of what runs out (looks): gas spurting from each hole while
+## it leaks, a flare where the fire has just reached along the line, and the
+## flood's front breaking as it rolls out.
+static func looks(sp: SetPiecesFeature, out: Array) -> void:
+	var g := sp.game
+	var w := g.world
+	var clock := g.clock
+	for i in sp.pieces.size():
+		var st: Dictionary = sp.pieces[i]
+		if str(st["kind"]) != "fuel":
+			continue
+		var holes: Array = st["holes"]
+		if holes.is_empty():
+			continue
+		var cells: Array = sp.trails[i]
+		var lit: Array = st["lit"]
+		var outs: Array = st["out"]
+		var made: Array = sp.shapes[i]
+		for k in made.size():
+			var part: Shape.Part = made[k]
+			var was: int = outs[k]
+			if was == SetPiecesFeature.UP or not g.in_view(part.p.x, part.p.y, 1.0):
+				continue
+			var j := _nearest(cells, part.p)
+			if not gas_at(st, j, clock):
+				continue
+			var at := Vector2(part.p.x, part.p.y)
+			var high := .05
+			if part.role == "pump":
+				# Out of the pump's side toward its line (its hose), not
+				# inside the pump's model.
+				var c: Vector2i = cells[j]
+				var side := Vector2(c.x + .5, c.y + .5) - at
+				at += side.normalized() * .45 if side.length() > .05 else Vector2(.45, 0)
+				high = .3
+			var floor_z := w.elevation(at.x, at.y)
+			out.append(
+				g.pooled(
+					at.x, at.y, "fx_gasjet_%d" % ((int(clock * 12.0) + k) % 3), .7, floor_z + high
+				)
+			)
+		for j in cells.size():
+			var when: float = lit[j]
+			var age := clock - when
+			if when < 0.0 or age > .5:
+				continue
+			var c: Vector2i = cells[j]
+			if not g.in_view(c.x + .5, c.y + .5, 1.2):
+				continue
+			var flare := g.pooled(
+				c.x + .5,
+				c.y + .5,
+				"fx_boom_%d" % mini(7, int(age / .5 * 8.0)),
+				.8 + .35 * absf(sin(j * 1.7)),
+				w.elevation(c.x + .5, c.y + .5)
+			)
+			flare.glow = true
+			out.append(flare)
+	var speed := Shape.num("tower", "flood_speed", 7.0)
+	for f: Dictionary in sp.floods:
+		var front := (clock - Shape.f(f["t0"])) * speed
+		var costs: Array = f["costs"]
+		var cells: Array = f["cells"]
+		var done: int = f["done"]
+		if costs.is_empty() or front > Shape.f(costs[costs.size() - 1]) + 1.0:
+			continue
+		var z: float = f["z"]
+		for n in range(maxi(0, done - 48), done):
+			var behind := front - Shape.f(costs[n])
+			if behind > 1.3 or n % 2 == 1:
+				continue
+			var cell: int = cells[n]
+			var x := (cell % w.width) + .5
+			var y := Shape.f(cell / w.width) + .5
+			if not g.in_view(x, y, 1.0):
+				continue
+			out.append(
+				g.pooled(
+					x,
+					y,
+					"fx_gush_%d" % ((n + int(clock * 10.0)) % 4),
+					.45 + .4 * (1.0 - behind / 1.3),
+					z
+				)
+			)
+
+
+static func _nearest(cells: Array, p: Vector3) -> int:
+	var best := 0
+	var near := INF
+	for j in cells.size():
+		var c: Vector2i = cells[j]
+		var d := Vector2(c.x + .5 - p.x, c.y + .5 - p.y).length_squared()
+		if d < near:
+			near = d
+			best = j
+	return best

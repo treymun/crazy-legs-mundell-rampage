@@ -710,7 +710,6 @@ func _collapse(i: int) -> void:
 	var box: Rect2 = _boxes[i]
 	var mid := box.get_center()
 	game.sound_at("collapse_crash", mid.x, mid.y, 1.0)
-	game.shake = minf(1.0, game.shake + .35)
 	if str(spec["kind"]) == "tower":
 		_topple(i, lean)
 	else:
@@ -1051,7 +1050,6 @@ func _landed(i: int, k: int) -> void:
 		game.burst(c.x, c.y, v[7] + .1, "dust", 4 if part.half.length() < 1.0 else 9, 1.4)
 		if part.half.length() > 1.0:
 			game.sound_at("collapse_crash" if part.role == "roof" else "impact_wood", c.x, c.y, .7)
-		game.shake = minf(1.0, game.shake + .05)
 	var floor_z := game.world.floor_under(c.x, c.y, minf(c.z, v[7]) + .3)
 	# Cover where it stands higher than a step; none overhead (a fallen
 	# tower's far legs lie over the near ones).
@@ -1151,9 +1149,13 @@ func sprites() -> Array:
 	var out: Array = []
 	if _specs.is_empty():
 		return out
-	if _drawn_version != net_version:
+	# The parts wreckage.gd's SetPieceWreck draws in their own pieces (looks).
+	var ruin := _ruin()
+	var ruin_version := ruin.version if ruin != null else -1
+	if _drawn_version != net_version or _draw_plan.get(-1, -1) != ruin_version:
 		_drawn_version = net_version
 		_draw_plan.clear()
+		_draw_plan[-1] = ruin_version
 	# One merged mesh made a frame at most (a few milliseconds each): the
 	# rest are drawn a part at a time until their turn.
 	var merges := 1
@@ -1163,7 +1165,7 @@ func sprites() -> Array:
 		if not game.in_view(mid.x, mid.y, box.size.length() * .5 + 2.0):
 			continue
 		if not _draw_plan.has(i):
-			_draw_plan[i] = _plan(i)
+			_draw_plan[i] = _plan(i, ruin)
 		var plan: Array = _draw_plan[i]
 		var groups: Dictionary = plan[0]
 		var moving: Array = plan[1]
@@ -1194,16 +1196,26 @@ func sprites() -> Array:
 				s = View.Sprite.new(mid.x, mid.y, "", 1.0, floor_z)
 				_sprites[tag] = s
 			s.solid = "~%s#0" % key
-			s.turn = Basis.IDENTITY
+			# Its frame swaying in the creak (looks: SetPieceWreck).
+			s.turn = ruin.sway_turn(i) if ruin != null else Basis.IDENTITY
 			out.append(s)
+	Flow.looks(self, out)
 	return out
+
+
+func _ruin() -> SetPieceWreck:
+	var wk: GameFeature = game.features.get("wreckage")
+	if wk == null:
+		return null
+	var ruin: SetPieceWreck = wk.get("ruin")
+	return ruin
 
 
 ## How piece i is drawn while it stays as it is: [{merged key: its parts},
 ## the parts moving]. What stands (and, once nothing of it moves, what
 ## lies) is merged, a mesh a tile (a few nodes: each holds shader slots);
 ## what moves is drawn a part at a time.
-func _plan(i: int) -> Array:
+func _plan(i: int, ruin: SetPieceWreck) -> Array:
 	var st: Dictionary = pieces[i]
 	var made: Array = shapes[i]
 	var outs: Array = st["out"]
@@ -1213,7 +1225,7 @@ func _plan(i: int) -> Array:
 	for k in made.size():
 		var was: int = outs[k]
 		var part: Shape.Part = made[k]
-		if was == GONE or part.key == "":
+		if was == GONE or part.key == "" or (ruin != null and ruin.taken.has(i * 1000 + k)):
 			continue
 		if was == UP or (was == LYING and still):
 			var tile := _tile_of(st, k)

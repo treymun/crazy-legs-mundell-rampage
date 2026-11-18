@@ -19,6 +19,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | --- | --- |
 | `build_fx_art` | the soft older effects (also runs gore, menu, building tiles) |
 | `build_gun_fx_art` | the LIGHTS AND GLOW muzzle flashes, blasts, soot, scraps, dust ring and strikes (below) |
+| `build_collapse_art` | the big breaks' effects: a barn's rolling dust billows `fx_barndust_*`, a tank's water bursting out `fx_gush_*`, gas spurting from a holed pipe `fx_gasjet_*` |
 | `build_gore_art` | gore pictures (it rewrites the older gore pictures slightly differently: put those back after a run) |
 | `build_menu_art` | menu boards and pictures |
 | `build_building_tiles` | building wall tiles |
