@@ -22,10 +22,15 @@
 ##       --script res://tools/stress_bench.gd -- [only=strike,fire] [frames=240]
 ##       [shots=<dir>]
 ##   godot --headless --path godot --script res://tools/stress_bench.gd -- check
-##       [only=wreck48,arena,county] [frames=40]
+##       [only=wreck48,arena,county] [frames=40] [hash]
+##
+## hash prints each scenario's frames as hashes of what was played (the
+## state, the wreck pieces, the SIM snapshot every 40 frames): the same
+## command on two builds prints the same when play is the same.
 ##
 ## shots= saves the window's picture at the end of each scenario
-## (<dir>/<name>.png). check (headless, in check_all) builds the scenes with a
+## (<dir>/<name>.png). check (headless, in check_all) holds each scene's tick
+## to its budget in TICK_YARDS (yardsticks: _hold_tick), and builds the scenes with a
 ## 3D view made by hand and holds each, over its frames, to the shader
 ## instance buffer of WebGL and many phones (WorldView3D.INSTANCE_SLOTS_SMALL:
 ## the global uniforms and 16 slots a model part with instance uniforms,
@@ -46,6 +51,16 @@ extends SceneTree
 const STEP := 1.0 / 60.0
 const SIM := 1.0 / 120.0
 const SCENARIOS := ["idle", "strike", "wreck48", "fire", "arena", "fivev5", "county"]
+## check: each scene's tick budget, in yardsticks (_hold_tick).
+const TICK_YARDS := {
+	"idle": 1.6,
+	"strike": 1.5,
+	"wreck48": 13.0,
+	"fire": 2.4,
+	"arena": 2.6,
+	"fivev5": 6.0,
+	"county": 7.0
+}
 const Fire := preload("res://src/features/fire.gd")
 const CountyBot := preload("res://tools/county_bot.gd")
 
@@ -59,6 +74,12 @@ var hand_view: WorldView3D
 var failed := false
 ## The most model parts with instance uniforms seen in this scenario's frames.
 var most_parts := 0
+## hash: each frame's play folded into one number (Replay.state_hash, the
+## wreck pieces' places and turns) and the SIM snapshot's hash every 40
+## frames, printed per scenario: two builds that print the same played the
+## same (a speed change must leave them alike).
+var hashing := false
+var hashes := PackedStringArray()
 
 
 func _init() -> void:
@@ -74,6 +95,8 @@ func _run() -> void:
 			frames = maxi(10, int(a.substr(7)))
 		elif a.begins_with("shots="):
 			shots = a.substr(6)
+		elif a == "hash":
+			hashing = true
 		elif a == "check":
 			checking = true
 			if only.is_empty():
@@ -164,6 +187,8 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 		var now := Time.get_ticks_usec()
 		ticks += tick_us
 		renders += t2 - t1
+		if hashing:
+			_fold(g, i)
 		whole.append((now - last) / 1000.0)
 		last = now
 	var sorted := whole.duplicate()
@@ -191,8 +216,12 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 		for k in WorldView3D.PART_NAMES.size():
 			row += "  %s %.2f" % [WorldView3D.PART_NAMES[k], view.parts_us[k] / 1000.0 / n]
 		print(row)
+	if hashing:
+		print("STRESS %-8s hash %s" % [name, " ".join(hashes)])
+		hashes.clear()
 	if checking:
 		_hold(name)
+		_hold_tick(name, ticks / 1000.0 / n)
 	if shots != "" and DisplayServer.get_name() != "headless":
 		DirAccess.make_dir_recursive_absolute(shots)
 		root.get_texture().get_image().save_png(shots.path_join(name + ".png"))
@@ -215,6 +244,20 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 			]
 		)
 	)
+
+
+## This frame's play as one number (hash): the state, every wreck piece.
+func _fold(g: Game, i: int) -> void:
+	var f := PackedFloat64Array([Replay.state_hash(g)])
+	var wreck = g.features.get("wreckage")
+	if wreck != null:
+		for w in wreck.wrecks:
+			var b = w.body
+			f.append_array([b.p.x, b.p.y, b.p.z, b.q.x, b.q.y, b.q.z, b.q.w])
+	var h := hash(f)
+	if i % 40 == 39:
+		h = hash([h, hash(GameSnapshot.to_bytes(Replay.capture_quiet(g)))])
+	hashes.append("%08x" % (h & 0xFFFFFFFF))
 
 
 ## What explains a frame's cost, now.
@@ -293,6 +336,42 @@ func _hold(name: String) -> void:
 			]
 		)
 	)
+
+
+## check: the scene's tick (the mean over its frames) inside its budget in
+## TICK_YARDS, counted in yardsticks (a fixed piece of GDScript work timed
+## here, so a slow or busy machine slows both alike; pass 10, PERFCPU).
+func _hold_tick(name: String, tick_ms: float) -> void:
+	if not TICK_YARDS.has(name):
+		return
+	var yard := _yardstick()
+	var budget: float = TICK_YARDS[name]
+	var ok := tick_ms < budget * yard
+	failed = failed or not ok
+	print(
+		(
+			"STRESS %-8s %s tick %.2f ms = %.2f yardsticks (budget %.1f)"
+			% [name, "ok  " if ok else "FAIL", tick_ms, tick_ms / yard, budget]
+		)
+	)
+
+
+## A fixed piece of plain GDScript work (members, arrays, a dictionary,
+## calls), best of five, in ms: the unit of TICK_YARDS (as cpu_check's).
+func _yardstick() -> float:
+	var best := INF
+	var probe: Array[Rect2i] = []
+	for batch in 5:
+		var t0 := Time.get_ticks_usec()
+		var d := {}
+		var sum := 0.0
+		for i in 4000:
+			d[i % 97] = sum
+			sum += 160.0 + float(d.get(i % 89, 0.0)) * .001 + sqrt(float(i))
+			probe.append(Rect2i(i, 0, 1, 1))
+		probe.clear()
+		best = minf(best, (Time.get_ticks_usec() - t0) / 1000.0)
+	return best
 
 
 ## The model parts drawn (props, wreck pieces, actors and the seat views;

@@ -12,6 +12,9 @@ extends RefCounted
 const DEVICE_REACH := 1.65
 const DEVICE_TOUCH := .62
 const DEVICE_CONE := .34
+## How far an aim point can lie from its device's own point (aim_points: a
+## board under 3.5, a prop under 1.5, and a little over for rounding).
+const AIM_SPREAD := 3.6
 
 
 ## Mirrors Game.use_target: returns [target, x, y] or null.
@@ -74,6 +77,12 @@ static func use_target(g: Game) -> Variant:
 			result = door_entry
 			g.use_aim = Vector3.INF
 	for device: Variant in devices:
+		# Every aim point lies within AIM_SPREAD of the device's own point
+		# (aim_points): one farther than that and the reach is passed over.
+		var own := use_point(g, device)
+		var off := Vector2(own.x - px, own.y - py)
+		if off.length_squared() >= (DEVICE_REACH + AIM_SPREAD) * (DEVICE_REACH + AIM_SPREAD):
+			continue
 		for point: Vector3 in aim_points(g, device):
 			if absf(point.x - px) >= DEVICE_REACH or absf(point.y - py) >= DEVICE_REACH:
 				continue

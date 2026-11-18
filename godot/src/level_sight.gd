@@ -12,18 +12,32 @@ static func visible(
 	# No heights given (z null): the flat test it always was, furniture in the
 	# way whatever its height; geometry stops it where it stands in a body's
 	# way (blocked(): a deck overhead does not, a stair or a wall does).
+	# (The level's tables read once into locals: this loop runs for every
+	# step of every sight line, and a read through `lv` costs twice a local.)
+	var w := lv.width
+	var hgt := lv.height
+	var solid := lv.solid
+	var index_cells := lv.index_cells
+	var clear_cells := lv.clear_cells
+	var box_cells := lv.box_cells
+	var pane_cells := lv.pane_cells
+	var furniture_cells := lv.furniture_cells
+	var geo := lv.geo
 	var distance := sqrt((xx - x) * (xx - x) + (yy - y) * (yy - y))
 	var n := maxi(1, ceili(distance * 9.0))
 	# With no panes and no locked gates, a step whose four corners are open floor
 	# and whose cell neither index lists is clear, as blocked() would find: those
 	# steps (most of them) are tested here without the call.
+	# A level with glass (pass 10) too, but a step in a cell a pane may meet
+	# (pane_cells) asks blocked() as ever.
+	var glassless := lv.pane_tiles.is_empty()
 	var plain := (
-		lv.pane_tiles.is_empty()
+		(glassless or pane_cells.size() == w * hgt)
 		and lv.locked_gates.is_empty()
-		and lv.index_cells.size() == lv.width * lv.height
+		and index_cells.size() == w * hgt
 	)
-	var fast := plain and lv.clear_cells.size() == lv.width * lv.height
-	var boxed := fast and lv.box_cells.size() == lv.width * lv.height
+	var fast := plain and clear_cells.size() == w * hgt
+	var boxed := fast and box_cells.size() == w * hgt
 	# At heights on a level with geometry, a step in a cell the geometry alone
 	# lists (no furniture, no door) whose heights lie outside the cell's sight
 	# bands is clear too (LevelGeometry.sight_clear: what blocked() and
@@ -32,9 +46,9 @@ static func visible(
 	var banded := (
 		plain
 		and z != null
-		and lv.geo != null
-		and lv.furniture_cells.size() == lv.width * lv.height
-		and lv.geo.sight_band_at.size() == lv.width * lv.height + 1
+		and geo != null
+		and furniture_cells.size() == w * hgt
+		and geo.sight_band_at.size() == w * hgt + 1
 	)
 	var z0 := LevelData._float(z) if banded else 0.0
 	var z1 := LevelData._float(zz) if banded else 0.0
@@ -46,16 +60,19 @@ static func visible(
 		if fast and sx >= 0.0 and sy >= 0.0:
 			var cx := int(sx)
 			var cy := int(sy)
-			if cx < lv.width and cy < lv.height and lv.clear_cells[cy * lv.width + cx] != 0:
+			var glass := not glassless and cx < w and cy < hgt
+			if glass and pane_cells[cy * w + cx] != 0:
+				pass
+			elif cx < w and cy < hgt and clear_cells[cy * w + cx] != 0:
 				i = _past_cell(x, y, xx, yy, n, i, cx, cy)
 				continue
-			if boxed and cx < lv.width and cy < lv.height and lv.box_cells[cy * lv.width + cx] != 0:
+			elif boxed and cx < w and cy < hgt and box_cells[cy * w + cx] != 0:
 				var j := _past_cell(x, y, xx, yy, n, i, cx, cy)
 				var t1 := float(j - 1) / float(n)
 				if (
 					_walls_clear(lv, cx, cy, sx, sy, x + (xx - x) * t1, y + (yy - y) * t1)
 					and (
-						lv.index_cells[cy * lv.width + cx] == 0
+						index_cells[cy * w + cx] == 0
 						or not _boxes_met(lv, cx, cy, x, y, xx, yy, z, zz, t, t1)
 					)
 				):
@@ -66,23 +83,24 @@ static func visible(
 			var bx := int(sx + .023)
 			var ay := int(sy + -.023)
 			var by := int(sy + .023)
-			if ax < 0 or ay < 0 or bx >= lv.width or by >= lv.height:
+			if ax < 0 or ay < 0 or bx >= w or by >= hgt:
 				return false
 			if (
-				lv.solid[ay * lv.width + ax] >= 0
-				or lv.solid[by * lv.width + ax] >= 0
-				or lv.solid[ay * lv.width + bx] >= 0
-				or lv.solid[by * lv.width + bx] >= 0
+				solid[ay * w + ax] >= 0
+				or solid[by * w + ax] >= 0
+				or solid[ay * w + bx] >= 0
+				or solid[by * w + bx] >= 0
 			):
 				return false
-			var cell := int(sy) * lv.width + int(sx)
-			if lv.index_cells[cell] == 0:
+			var cell := int(sy) * w + int(sx)
+			var paned := not glassless and pane_cells[cell] != 0
+			if index_cells[cell] == 0 and not paned:
 				i += 1
 				continue
-			if banded and lv.furniture_cells[cell] == 0:
+			if banded and furniture_cells[cell] == 0 and not paned:
 				var step_z := z0 + (z1 - z0) * t
 				var back_z := z0 + (z1 - z0) * (float(i - 1) / float(n))
-				if lv.geo.sight_clear(cell, back_z, step_z):
+				if geo.sight_clear(cell, back_z, step_z):
 					i += 1
 					continue
 		var wz: Variant = null
@@ -90,13 +108,11 @@ static func visible(
 			wz = LevelData._float(z) + (LevelData._float(zz) - LevelData._float(z)) * t
 		if lv.blocked(sx, sy, .023, wz):
 			return false
-		if lv.geo != null and wz != null and lv.geo.cells[int(sy) * lv.width + int(sx)] != 0:
+		if geo != null and wz != null and geo.cells[int(sy) * w + int(sx)] != 0:
 			# A steep look can step over a deck thinner than one step climbs.
 			var bt := float(i - 1) / float(n)
 			var bz := LevelData._float(z) + (LevelData._float(zz) - LevelData._float(z)) * bt
-			if lv.geo.crosses(
-				x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, LevelData._float(wz)
-			):
+			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, LevelData._float(wz)):
 				return false
 		i += 1
 	return true

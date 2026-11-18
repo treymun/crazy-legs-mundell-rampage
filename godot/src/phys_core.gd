@@ -237,6 +237,131 @@ class Contact:
 	var jt1 := 0.0
 	var jt2 := 0.0
 
+	## PhysCore.solve: the exact pass, as PhysCore.rel, mass_along and apply
+	## work it out.
+	func solve_exact() -> void:
+		if mass_n <= 0.0:
+			return
+		var vn := _rel().dot(n)
+		var dj := (bias - vn) * mass_n
+		var total := maxf(jn + dj, 0.0)
+		dj = total - jn
+		jn = total
+		_apply(n * dj)
+		var vr := _rel()
+		var slip := vr - n * vr.dot(n)
+		var speed := slip.length()
+		if speed < 1e-6:
+			return
+		var t := slip / speed
+		var k := _mass_along(t)
+		var want := jt - t * speed * k
+		var most := mu * jn
+		if want.length() > most:
+			want = want.normalized() * most
+		_apply(want - jt)
+		jt = want
+
+	func _rel() -> Vector3:
+		var v := a.velocity_at(ra)
+		if b != null:
+			v -= b.velocity_at(rb)
+		return v
+
+	func _mass_along(d: Vector3) -> float:
+		var k := a.mass_inv() + a.inv_inertia(ra.cross(d)).cross(ra).dot(d)
+		if b != null:
+			k += b.mass_inv() + b.inv_inertia(rb.cross(d)).cross(rb).dot(d)
+		return 1.0 / k if k > 1e-9 else 0.0
+
+	func _apply(j: Vector3) -> void:
+		a.push(j, ra)
+		if b != null:
+			b.push(-j, rb)
+
+	## Its terms for the fast solve (PhysCore.prepare_fast).
+	func prepare(h: float, bounce_from: float) -> void:
+		var tx := n.cross(Vector3(1.0, 0.0, 0.0) if absf(n.x) < .6 else Vector3(0.0, 1.0, 0.0))
+		t1 = tx.normalized()
+		t2 = n.cross(t1)
+		ima = a.mass_inv()
+		an = ra.cross(n)
+		at1 = ra.cross(t1)
+		at2 = ra.cross(t2)
+		var ia := a.iw if a.awake else STILL
+		ian = ia * an
+		iat1 = ia * at1
+		iat2 = ia * at2
+		var kn := ima + ian.dot(an)
+		var k1 := ima + iat1.dot(at1)
+		var k2 := ima + iat2.dot(at2)
+		var closing := a.v.dot(n) + a.w.dot(an)
+		if b != null:
+			imb = b.mass_inv()
+			bn = rb.cross(n)
+			bt1 = rb.cross(t1)
+			bt2 = rb.cross(t2)
+			var ib := b.iw if b.awake else STILL
+			ibn = ib * bn
+			ibt1 = ib * bt1
+			ibt2 = ib * bt2
+			kn += imb + ibn.dot(bn)
+			k1 += imb + ibt1.dot(bt1)
+			k2 += imb + ibt2.dot(bt2)
+			closing -= b.v.dot(n) + b.w.dot(bn)
+		mass_n = 1.0 / kn if kn > 1e-9 else 0.0
+		mass_t1 = 1.0 / k1 if k1 > 1e-9 else 0.0
+		mass_t2 = 1.0 / k2 if k2 > 1e-9 else 0.0
+		if depth < 0.0:
+			bias = depth / h
+		else:
+			bias = -e * closing if closing < -bounce_from else 0.0
+
+	## One fast pass on this contact (PhysCore.solve_fast): the push along
+	## its normal, then friction across it held inside mu times the push.
+	## Returns how much it changed the speeds (0 when it has no weight).
+	func solve_once() -> float:
+		if mass_n <= 0.0:
+			return 0.0
+		var vn := a.v.dot(n) + a.w.dot(an)
+		if b != null:
+			vn -= b.v.dot(n) + b.w.dot(bn)
+		var total := maxf(jn + (bias - vn) * mass_n, 0.0)
+		var dj := total - jn
+		jn = total
+		if dj != 0.0:
+			a.v += n * (dj * ima)
+			a.w += ian * dj
+			if b != null:
+				b.v -= n * (dj * imb)
+				b.w -= ibn * dj
+		var most := mu * total
+		var v1 := a.v.dot(t1) + a.w.dot(at1)
+		var v2 := a.v.dot(t2) + a.w.dot(at2)
+		if b != null:
+			v1 -= b.v.dot(t1) + b.w.dot(bt1)
+			v2 -= b.v.dot(t2) + b.w.dot(bt2)
+		var j1 := jt1 - v1 * mass_t1
+		var j2 := jt2 - v2 * mass_t2
+		var sq := j1 * j1 + j2 * j2
+		if sq > most * most:
+			var k := most / sqrt(sq) if sq > 1e-18 else 0.0
+			j1 *= k
+			j2 *= k
+		var d1 := j1 - jt1
+		var d2 := j2 - jt2
+		jt1 = j1
+		jt2 = j2
+		var changed := (absf(dj) + absf(d1) + absf(d2)) * (ima + imb)
+		if d1 == 0.0 and d2 == 0.0:
+			return changed
+		a.v += (t1 * d1 + t2 * d2) * ima
+		a.w += iat1 * d1 + iat2 * d2
+		if b != null:
+			b.v -= (t1 * d1 + t2 * d2) * imb
+			b.w -= ibt1 * d1 + ibt2 * d2
+		return changed
+
 
 ## Contacts kept and handed out again each step (a step of 48 boxes in the
 ## air makes hundreds; making them anew was a good share of its cost).
@@ -302,29 +427,10 @@ static func prepare(contacts: Array, h: float, bounce_from: float) -> void:
 
 
 ## One exact pass on a contact: the push along its normal (never pulling),
-## then friction against the slip, no more than mu times the push.
+## then friction against the slip, no more than mu times the push
+## (Contact.solve_exact: the same sums, on the contact's own fields).
 static func solve(c: Contact) -> void:
-	if c.mass_n <= 0.0:
-		return
-	var vn := rel(c).dot(c.n)
-	var dj := (c.bias - vn) * c.mass_n
-	var total := maxf(c.jn + dj, 0.0)
-	dj = total - c.jn
-	c.jn = total
-	apply(c, c.n * dj)
-	var vr := rel(c)
-	var slip := vr - c.n * vr.dot(c.n)
-	var speed := slip.length()
-	if speed < 1e-6:
-		return
-	var t := slip / speed
-	var k := mass_along(c, t)
-	var want := c.jt - t * speed * k
-	var most := c.mu * c.jn
-	if want.length() > most:
-		want = want.normalized() * most
-	apply(c, want - c.jt)
-	c.jt = want
+	c.solve_exact()
 
 
 static func apply(c: Contact, j: Vector3) -> void:
@@ -338,46 +444,8 @@ static func apply(c: Contact, j: Vector3) -> void:
 ## changes while the passes run).
 static func prepare_fast(contacts: Array, h: float, bounce_from: float) -> void:
 	for c: Contact in contacts:
-		var a := c.a
-		var n := c.n
-		var t1 := n.cross(Vector3(1.0, 0.0, 0.0) if absf(n.x) < .6 else Vector3(0.0, 1.0, 0.0))
-		t1 = t1.normalized()
-		var t2 := n.cross(t1)
-		c.t1 = t1
-		c.t2 = t2
-		c.ima = a.mass_inv()
-		c.an = c.ra.cross(n)
-		c.at1 = c.ra.cross(t1)
-		c.at2 = c.ra.cross(t2)
-		var ia := a.iw if a.awake else STILL
-		c.ian = ia * c.an
-		c.iat1 = ia * c.at1
-		c.iat2 = ia * c.at2
-		var kn := c.ima + c.ian.dot(c.an)
-		var k1 := c.ima + c.iat1.dot(c.at1)
-		var k2 := c.ima + c.iat2.dot(c.at2)
-		var closing := a.v.dot(n) + a.w.dot(c.an)
-		var b := c.b
-		if b != null:
-			c.imb = b.mass_inv()
-			c.bn = c.rb.cross(n)
-			c.bt1 = c.rb.cross(t1)
-			c.bt2 = c.rb.cross(t2)
-			var ib := b.iw if b.awake else STILL
-			c.ibn = ib * c.bn
-			c.ibt1 = ib * c.bt1
-			c.ibt2 = ib * c.bt2
-			kn += c.imb + c.ibn.dot(c.bn)
-			k1 += c.imb + c.ibt1.dot(c.bt1)
-			k2 += c.imb + c.ibt2.dot(c.bt2)
-			closing -= b.v.dot(n) + b.w.dot(c.bn)
-		c.mass_n = 1.0 / kn if kn > 1e-9 else 0.0
-		c.mass_t1 = 1.0 / k1 if k1 > 1e-9 else 0.0
-		c.mass_t2 = 1.0 / k2 if k2 > 1e-9 else 0.0
-		if c.depth < 0.0:
-			c.bias = c.depth / h
-		else:
-			c.bias = -c.e * closing if closing < -bounce_from else 0.0
+		# (Contact.prepare: the same sums, on the contact's own fields.)
+		c.prepare(h, bounce_from)
 
 
 ## The fast passes over the contacts (prepare_fast first), at most
@@ -390,48 +458,9 @@ static func solve_fast(contacts: Array, passes: int) -> int:
 		var change := 0.0
 		for item: Variant in contacts:
 			var c: Contact = item
-			if c.mass_n <= 0.0:
-				continue
-			var a := c.a
-			var b := c.b
-			var n := c.n
-			var vn := a.v.dot(n) + a.w.dot(c.an)
-			if b != null:
-				vn -= b.v.dot(n) + b.w.dot(c.bn)
-			var total := maxf(c.jn + (c.bias - vn) * c.mass_n, 0.0)
-			var dj := total - c.jn
-			c.jn = total
-			if dj != 0.0:
-				a.v += n * (dj * c.ima)
-				a.w += c.ian * dj
-				if b != null:
-					b.v -= n * (dj * c.imb)
-					b.w -= c.ibn * dj
-			var most := c.mu * total
-			var v1 := a.v.dot(c.t1) + a.w.dot(c.at1)
-			var v2 := a.v.dot(c.t2) + a.w.dot(c.at2)
-			if b != null:
-				v1 -= b.v.dot(c.t1) + b.w.dot(c.bt1)
-				v2 -= b.v.dot(c.t2) + b.w.dot(c.bt2)
-			var j1 := c.jt1 - v1 * c.mass_t1
-			var j2 := c.jt2 - v2 * c.mass_t2
-			var sq := j1 * j1 + j2 * j2
-			if sq > most * most:
-				var k := most / sqrt(sq) if sq > 1e-18 else 0.0
-				j1 *= k
-				j2 *= k
-			var d1 := j1 - c.jt1
-			var d2 := j2 - c.jt2
-			c.jt1 = j1
-			c.jt2 = j2
-			change = maxf(change, (absf(dj) + absf(d1) + absf(d2)) * (c.ima + c.imb))
-			if d1 == 0.0 and d2 == 0.0:
-				continue
-			a.v += (c.t1 * d1 + c.t2 * d2) * c.ima
-			a.w += c.iat1 * d1 + c.iat2 * d2
-			if b != null:
-				b.v -= (c.t1 * d1 + c.t2 * d2) * c.imb
-				b.w -= c.ibt1 * d1 + c.ibt2 * d2
+			# (Contact.solve_once: the same sums in the same order, on the
+			# contact's own fields, read there at half the cost.)
+			change = maxf(change, c.solve_once())
 		if change < SETTLED:
 			return pass_no + 1
 	return passes
@@ -651,6 +680,11 @@ static func in_wall(world: LevelData, at: Vector3) -> bool:
 static func solid(world: LevelData, at: Vector3) -> bool:
 	if in_wall(world, at):
 		return true
+	return _in_something(world, at)
+
+
+## solid() for a point not in a wall cell.
+static func _in_something(world: LevelData, at: Vector3) -> bool:
 	var top := Tumble.floor_at(world, at.x, at.y, at.z + .02)
 	if top > at.z + LEDGE:
 		return true
@@ -661,12 +695,25 @@ static func solid(world: LevelData, at: Vector3) -> bool:
 
 
 ## The shortest way out of a wall, furniture or a step's side, along x or y
-## (ZERO when none is near).
+## (ZERO when none is near). (A probe in a wall cell is passed over here, as
+## solid() would answer it: most of them, for a point deep in a wall.)
 static func way_out(world: LevelData, at: Vector3) -> Vector3:
+	var w := world.width
+	var hgt := world.height
+	var cells := world.solid
 	var s := WALL_STEP
 	while s <= WALL_REACH:
 		for dir: Vector3 in WAYS:
-			if not solid(world, at + dir * s):
+			var probe := at + dir * s
+			if (
+				probe.x < 0.0
+				or probe.y < 0.0
+				or probe.x >= w
+				or probe.y >= hgt
+				or cells[int(probe.y) * w + int(probe.x)] >= 0
+			):
+				continue
+			if not _in_something(world, probe):
 				return dir * s
 		s += WALL_STEP
 	return Vector3.ZERO

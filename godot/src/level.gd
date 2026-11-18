@@ -279,6 +279,9 @@ var index_cells := PackedByteArray()
 ## geometry's cells): a geometry cell without it is the geometry's alone to
 ## blocked() at a height (LevelSight.visible's quick test).
 var furniture_cells := PackedByteArray()
+## 1 for a cell a pane may meet a sight line's step in (_build_indexes):
+## elsewhere LevelSight's quick tests hold on a level with glass too.
+var pane_cells := PackedByteArray()
 ## 1 for a cell neither index lists anything under whose eight neighbours
 ## and itself are all open floor, off the map's edge: every step of a sight
 ## line inside it is clear, so visible() jumps to where the line leaves it.
@@ -293,6 +296,10 @@ var clear_cells := PackedByteArray()
 ## leaves the cell open: still exact).
 var box_cells := PackedByteArray()
 var broken_panes := {}
+## pane_at()'s index: each row's panes (by pane.y) as places in pane_tiles,
+## in order, and the count of panes it was made of.
+var _pane_rows := {}
+var _pane_rows_of := -1
 var return_gate: Gate = null
 var extraction: Extraction = null
 var hub_clues: Array = []
@@ -456,6 +463,15 @@ func _build_indexes() -> void:
 	if geo != null:
 		for i in width * height:
 			index_cells[i] = geo.cells[i]
+	# The cells a pane can answer pane_at() in for a sight line's step (its
+	# own and the two beside it along x; whole or broken).
+	pane_cells = PackedByteArray()
+	pane_cells.resize(width * height)
+	pane_cells.fill(0)
+	for pane: Vector2i in pane_tiles:
+		for px in range(pane.x - 1, pane.x + 2):
+			if px >= 0 and pane.y >= 0 and px < width and pane.y < height:
+				pane_cells[pane.y * width + px] = 1
 	furniture_cells = PackedByteArray()
 	furniture_cells.resize(width * height)
 	furniture_cells.fill(0)
@@ -610,7 +626,8 @@ func open_cell(cx: int, cy: int, faces: Dictionary, low := false) -> void:
 
 ## Mirrors TileMap.blocked().
 func blocked(x: float, y: float, radius := 0.0, z: Variant = null) -> bool:
-	for step in 4:
+	# (A point, radius 0: its four corners are one cell, asked once.)
+	for step in 4 if radius != 0.0 else 1:
 		var dx := -radius if step < 2 else radius
 		var dy := -radius if step % 2 == 0 else radius
 		var ix := int(x + dx)
@@ -658,19 +675,43 @@ func blocked(x: float, y: float, radius := 0.0, z: Variant = null) -> bool:
 const NOTHING: Array = []
 
 
-## Mirrors TileMap.pane_at(); returns the pane cell or null.
+## Mirrors TileMap.pane_at(); returns the pane cell or null: the first in
+## pane_tiles' order that is whole and meets the point. Only the rows of
+## panes near y are asked (_pane_rows, pass 10: every blocked() on a level
+## with glass asked every pane).
 func pane_at(x: float, y: float, z: Variant = null, radius := 0.0) -> Variant:
-	for pane in pane_tiles:
-		if broken_panes.has(pane):
+	if _pane_rows_of != pane_tiles.size():
+		_pane_rows_of = pane_tiles.size()
+		_pane_rows.clear()
+		for i in pane_tiles.size():
+			var py := pane_tiles[i].y
+			if not _pane_rows.has(py):
+				_pane_rows[py] = PackedInt32Array()
+			var row: PackedInt32Array = _pane_rows[py]
+			row.append(i)
+			_pane_rows[py] = row
+	var reach := radius + .044
+	var first := pane_tiles.size()
+	for py in range(floori(y - .5 - reach), ceili(y - .5 + reach) + 1):
+		var listed: Variant = _pane_rows.get(py)
+		if listed == null:
 			continue
-		if (
-			float(pane.x) - radius < x
-			and x < float(pane.x) + 1.0 + radius
-			and absf(y - float(pane.y) - .5) < radius + .044
-			and (z == null or (.30 < _float(z) and _float(z) < 1.83))
-		):
-			return pane
-	return null
+		var row: PackedInt32Array = listed
+		for i in row:
+			if i >= first:
+				break
+			var pane := pane_tiles[i]
+			if broken_panes.has(pane):
+				continue
+			if (
+				float(pane.x) - radius < x
+				and x < float(pane.x) + 1.0 + radius
+				and absf(y - float(pane.y) - .5) < radius + .044
+				and (z == null or (.30 < _float(z) and _float(z) < 1.83))
+			):
+				first = i
+				break
+	return pane_tiles[first] if first < pane_tiles.size() else null
 
 
 ## Mirrors TileMap.visible(): a stepped line-of-sight test (level_sight.gd).
