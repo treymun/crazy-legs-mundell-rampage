@@ -31,6 +31,12 @@ func _init(assets: Assets) -> void:
 	_shader = load("res://src/view3d/wreck.gdshader")
 
 
+## The parts the layer holds, shown and spare (each a slot in the shader
+## instance buffer).
+func held() -> int:
+	return _shown.size() + _spare.size()
+
+
 ## The pieces shown now (what shots and fire mark: thing_marks.gd).
 func shown() -> Array:
 	return _shown.values()

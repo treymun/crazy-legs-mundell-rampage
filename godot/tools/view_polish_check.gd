@@ -122,9 +122,21 @@ static func _marks(main, check: Callable) -> void:
 		found.size() == 2 and int(found[1].w / 10.0) == 2, "a blast beside it scorches it too"
 	)
 	layer.show_props([], g.level)
+	check.call(not node.visible and layer.parked() == 1, "out of view it is parked, hidden")
 	layer.show_props([s], g.level)
 	var again: PropView = layer.shown()[0]
-	check.call(again != node and _marks_of(again).size() == 2, "its marks come back in view")
+	check.call(
+		again == node and again.visible and _marks_of(again).size() == 2,
+		"back in view: the same model, its marks on it"
+	)
+	layer.park_most = 0
+	layer.show_props([], g.level)
+	layer.park_most = PropLayer3D.PARK
+	layer.show_props([s], g.level)
+	again = layer.shown()[0]
+	check.call(
+		again != node and _marks_of(again).size() == 2, "let go of and made again: its marks kept"
+	)
 	var moved := View.Sprite.new(at.x + .4, at.y, "town_" + name, 1.0, 0.0)
 	layer.show_props([moved], g.level)
 	var next: PropView = layer.shown()[0]
@@ -175,7 +187,7 @@ static func _storm(main, check: Callable) -> void:
 	Effects.enabled = true
 	view.call("_storm", g, Vector3(f.storm_at.x, f.storm_at.y, 1.0))
 	var walls: Array = view.get("_storm_walls")
-	var ring: Vector4 = view.get("_params").get("storm_ring", Vector4.ZERO)
+	var ring: Vector4 = view.shared("storm_ring")
 	check.call(
 		walls[0].visible and walls[1].visible and absf(ring.z - f.storm_r) < .01 and ring.w > 0.0,
 		"the storm's two curtains stand round its ring, the ring handed to the shaders"
@@ -185,7 +197,7 @@ static func _storm(main, check: Callable) -> void:
 	check.call(walls[0].visible and not walls[1].visible, "LIGHTS AND GLOW off: the front alone")
 	f.storm_on = false
 	view.call("_storm", g, Vector3(f.storm_at.x, f.storm_at.y, 1.0))
-	ring = view.get("_params").get("storm_ring", Vector4.ONE)
+	ring = view.shared("storm_ring")
 	check.call(not walls[0].visible and ring == Vector4.ZERO, "no storm: no wall, no ring")
 	Effects.enabled = lights_were
 	view.queue_free()
