@@ -12,6 +12,11 @@ static var _prop_boards: Array = []
 ## This frame's gathered lights (gather()) and what they were gathered for.
 static var _gathered_key: Array = []
 static var _gathered: Array = []
+## effect_lights' answer and the gathered list it was worked out from: the 3D
+## view's lights and the gun's light ask for it in the same frame (a filter
+## and a sort each time).
+static var _lit_of: Array = []
+static var _lit: Array = []
 
 
 ## Every light this frame, nearer or farther, with its flags. Worked out once
@@ -116,9 +121,12 @@ static func _gather(g: GameView) -> Array:
 ## The nearest Effects.MAX_LIGHTS lights that give light (a hot source of
 ## strength 0 only shimmers).
 static func effect_lights(g: GameView) -> Array:
-	return _nearest(
-		g, gather(g).filter(func(l: Array) -> bool: return l[5] > 0.0), Effects.MAX_LIGHTS
-	)
+	var found := gather(g)
+	if is_same(found, _lit_of):
+		return _lit
+	_lit_of = found
+	_lit = _nearest(g, found.filter(func(l: Array) -> bool: return l[5] > 0.0), Effects.MAX_LIGHTS)
+	return _lit
 
 
 ## The nearest hot sources within 14 cells, at most `most`: [x, y, z, width]

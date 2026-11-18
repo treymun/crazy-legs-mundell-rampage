@@ -560,6 +560,9 @@ func _crackle() -> void:
 
 # ---------------------------------------------------------------- the view
 
+## The flames' four pictures (sprites() names three a burning cell a frame).
+const FLAMES: Array[String] = ["fx_flame_0", "fx_flame_1", "fx_flame_2", "fx_flame_3"]
+
 
 func sprites() -> Array:
 	var out: Array = []
@@ -587,7 +590,7 @@ func sprites() -> Array:
 			var fx := x + cos(a) * r
 			var fy := y + sin(a) * r
 			var tall := big * grow * fade * (1.0 - k * .18)
-			var s: View.Sprite = game.pooled(fx, fy, "fx_flame_%d" % ((frame + k + c) % 4), tall, z)
+			var s: View.Sprite = game.pooled(fx, fy, FLAMES[(frame + k + c) % 4], tall, z)
 			s.glow = true
 			out.append(s)
 	return out

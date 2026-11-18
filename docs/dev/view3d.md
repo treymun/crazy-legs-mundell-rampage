@@ -827,6 +827,13 @@ Rules that keep it cheap, none of which changes a picture:
   (`SpriteLayer3D.put`; the sprites' buffer sized once a frame,
   `put_at`) and handed over with `RenderingServer.multimesh_set_buffer`, not
   three calls an instance from a Packed array made per row.
+- **A sprite's row is written out** (pass 10, round 2): `SpriteLayer3D._row`
+  does the slot's lookup, the cell's tone and the twenty numbers itself
+  instead of calling `_slot`, `tone_at` and `put_at` (the same numbers: a
+  row for every sprite every frame, 100 to 330 in the stress scenes); the
+  marks' buffer is sized once a frame. `ViewLights.effect_lights` keeps its
+  answer for the frame's gathered lights (the view's lights and the gun's
+  light asked for it in the same frame, a filter and a sort each).
 - **A sprite's picture is sorted once.** Whether a picture is drawn as a
   prop's model, a slab (its family) or a picture is kept by picture
   (`WorldView3D._picture_kind`; a model whose art is still coming is asked

@@ -246,22 +246,29 @@ func show_reflection(sprite: View.Sprite, level: LevelData, angle: float) -> voi
 
 ## One instance's 20 numbers, row `at` of `buf`: its transform (a billboard's
 ## width along the view's right, `across`, a board's along its own axis),
-## its tint and light, its art slot and size, its flags and hit wash.
+## its tint and light, its art slot and size, its flags and hit wash. The
+## calls a row made (the slot, the tone, put_at) are written out here: a row
+## for every sprite every frame, hundreds of them in a busy moment (pass 10).
 func _row(
 	buf: PackedFloat32Array, at: int, s: View.Sprite, level: LevelData, across: Vector3
 ) -> void:
 	var board := not is_nan(s.plane)
-	var slot := _slot(s.image)
+	var image := s.image
+	var slot: int = _slot_of.get(image, -1)
+	if slot < 0:
+		slot = _slot(image)
+	else:
+		_slot_used[slot] = _frame
 	var size := _slot_size[slot]
-	var art_size: Variant = _sizes.get(s.image)
+	var art_size: Variant = _sizes.get(image)
 	if art_size == null:
-		var a := _assets.art(s.image)
+		var a := _assets.art(image)
 		var w: int = a["w"]
 		var h: int = a["h"]
 		art_size = Vector2(w, h)
 		# A picture still coming (a blank stand-in) is asked again next time.
-		if _assets.art_ready(s.image):
-			_sizes[s.image] = art_size
+		if _assets.art_ready(image):
+			_sizes[image] = art_size
 	var art_wh: Vector2 = art_size
 	var width := s.height * art_wh.x / maxf(1.0, art_wh.y)
 	var axis := across
@@ -269,8 +276,18 @@ func _row(
 		axis = Vector3(cos(s.plane), 0.0, sin(s.plane))
 	var z := s.z
 	if s.body:
-		z -= s.height * _drop_of(s.image)
-	var tint := tone_at(level, s.x, s.y, s.glow)
+		z -= s.height * _drop_of(image)
+	# tone_at(level, s.x, s.y, s.glow), written out.
+	var c := (
+		int(clampf(s.y, 0.0, level.height - .01)) * level.width
+		+ int(clampf(s.x, 0.0, level.width - .01))
+	)
+	var tints := level.tints
+	var light: float = level.light[c]
+	var tint := Color(1, 1, 1, light)
+	if tints.size() >= 3:
+		var ti := clampi(1 if s.glow else level.area[c], 0, maxi(0, tints.size() / 3 - 1)) * 3
+		tint = Color(tints[ti], tints[ti + 1], tints[ti + 2], light)
 	var flags := (
 		(FLIP if s.flip else 0)
 		| (GLOW if s.glow else 0)
@@ -287,18 +304,28 @@ func _row(
 	var bx := axis * width
 	var by := Vector3(0.0, s.height, 0.0)
 	var bz := bx.cross(by).normalized()
-	put_at(
-		buf,
-		at,
-		bx,
-		by,
-		bz,
-		Vector3(s.x, z, s.y),
-		tint,
-		Color(
-			float(slot), float(size.x), float(size.y), float(flags + hurt * 256 + spin * SPIN_ONE)
-		)
-	)
+	# put_at(buf, at, bx, by, bz, origin, tint, art), written out.
+	var k := at * FLOATS
+	buf[k] = bx.x
+	buf[k + 1] = by.x
+	buf[k + 2] = bz.x
+	buf[k + 3] = s.x
+	buf[k + 4] = bx.y
+	buf[k + 5] = by.y
+	buf[k + 6] = bz.y
+	buf[k + 7] = z
+	buf[k + 8] = bx.z
+	buf[k + 9] = by.z
+	buf[k + 10] = bz.z
+	buf[k + 11] = s.y
+	buf[k + 12] = tint.r
+	buf[k + 13] = tint.g
+	buf[k + 14] = tint.b
+	buf[k + 15] = tint.a
+	buf[k + 16] = slot
+	buf[k + 17] = size.x
+	buf[k + 18] = size.y
+	buf[k + 19] = flags + hurt * 256 + spin * SPIN_ONE
 
 
 ## Lay out this frame's wall marks (View.WallMark: a square of half side
