@@ -321,6 +321,33 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   (since the load pass not part of the load: it runs on a worker in the
   level's first frames).
 
+### Measured in pass 10, the 3D view's draw (PERFGPU, 2026-11-17)
+
+Desktop, 1280x800 window, scratch `APPDATA`, v3.7.0 (`4972aec9`) against
+the PERFGPU branch alone (pass 10's BLUE and openers in, the other speed
+tracks not), six pairs run back to back alternating, medians of the six;
+the PC was busy (other tracks' runs), so single rows wander by 10%.
+The view's own work (`WorldView3D.parts_us`, all parts) fell about 2.2
+times; the whole frame, mostly the tick and the HUD and gun stage outside
+the view, by the factors below. The graphics card's time stayed 0.1 to
+0.4 ms a frame (35 draw calls, 50 to 60 objects in the 3D view).
+
+| What | v3.7.0 | PERFGPU | x |
+| --- | --- | --- | --- |
+| `--view-bench`, 8 chapters, frame median (geometric mean of the speed-ups) | | | 1.19 |
+| the same, p99 | | | 1.25 |
+| `--view-bench` LOW, frame median / p99 | | | 1.18 / 1.22 |
+| the view's parts, hickston HIGH / bayou HIGH / hickston LOW | 2.46 / 1.94 / 2.40 ms | 1.09 / 0.70 / 0.98 ms | 2.3 / 2.8 / 2.4 |
+| stress_bench, 7 scenes, frame median / p99 / max | | | 1.16 / 1.21 / 1.17 |
+| stress wreck48 frame median / p99 | 12.43 / 23.38 ms | 9.42 / 17.27 ms | 1.32 / 1.35 |
+| stress county frame median / p99, the view's parts | 10.23 / 21.27, 2.95 ms | 9.16 / 16.23, 2.25 ms | 1.12 / 1.31, 1.31 |
+| the view's `frame()` turning round Hickston headless (median) | 1.7 ms | 0.8 ms | 2.1 |
+
+Still the view's: posing many bodies close by (County Run late: 0.3 to
+0.5 ms of AnimationPlayer seeks, 0.2 ms of ragdolls), the sprites' and
+slabs' rows (0.1 to 0.6 ms with hundreds of bits about), the engine's own
+frame (about 0.5 ms, little of it the view's draw).
+
 ### Measured before v3.3.0 (track R, 2026-11-16)
 
 Desktop (RTX 5070 Ti laptop, 1280x800 window, the PC busy with other work),
