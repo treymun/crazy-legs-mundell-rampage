@@ -59,7 +59,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | --- | --- | --- | --- |
 | `check_shader` | SHADER OK | yes | texture counts: `display.gdshader` at most 9 (incl. TEXTURE), each view3d shader with its includes at most 10 |
 | `view_perf_check` | VIEW PERF CHECK OK | yes | the 3D view's frame stays cheap (pass 10): its global uniforms match `project.godot` and the shaders, no view3d shader keeps a uniform array, no frame number goes to a material; two to four turns round Hickston's spawn with its hands awake make no prop or model again after the first, nothing past where it shows gets a model, no view3d shader has instance uniforms and the parts with them stay in WebGL's room with margin; `frame()`'s lower quartile under 1.5 times a yardstick of plain GDScript |
-| `stress_bench` (`check`) | STRESS CHECK OK | no | the busy scenes (wreck48, arena, county) built headless with a 3D view made by hand: every frame's model parts with instance uniforms under WebGL's room (60) less 20, and the global uniforms and their blocks under its 1024 slots with the same margin (none since pass 10: each part has its own material) |
+| `stress_bench` (`check`) | STRESS CHECK OK | no | the busy scenes (wreck48, arena, county) built headless with a 3D view made by hand: every frame's model parts with instance uniforms under WebGL's room (60) less 20, and the global uniforms and their blocks under its 1024 slots with the same margin (none since pass 10: each part has its own material); each scene's tick under its budget in yardsticks (`TICK_YARDS`, a fixed piece of GDScript work timed in the same process); `hash` prints each frame's play as hashes, the same on two builds that play the same |
 | `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads (a station's with both looks, every quest picture modelled); every slab (pickups, loose things, range targets) builds at its picture's size; no fallen body's part stays up at `down` (fit.json `down_high` for the cow's raised legs); the hanging lamp is the shop_lamp model and a tipped cow rolls on her hooves (`ActorView.tipped`) |
 | `actor_check` | ACTOR CHECK OK | yes | the actors' models (polish pass 9): every actors.json kind's glb, scene and looks (square, a power of two), keys numbered once each, bone labels, canvas; fit.json names only models and numbers ActorModels reads; every kind has the frames the game asks for (walk with its closing `w4`, fall, hurt set, a boss's recover, a critter's -1/0/1); texels a metre over each body and head at least `TEXEL_MIN`/`HEAD_MIN` (`report` prints them), the hound's at least `HOUND_MIN`/`HOUND_HEAD_MIN`; the hound's fourteen motions and ten poses (pass 10), each motion's keys in a row, played on the gait, a one-shot ending on its last key, his own fit.json blend, and his drawn size (shoulder .33-.41 and head top .41-.52 of Mundell's drawn height, measured on his skinned model); ActorView's looks-only motion: pose blends, no blend between walk beats, hit flinches by zone with their own dice and still after `FLINCH`, idle breath, mirrored scripted falls (never a boss), game.rng untouched; specks between `View.SPECK_PX_MIN` and `SPECK_PX_MAX` pixels; a partner on the riding mower shows Mundell's `sit` ([view3d.md](view3d.md#actors)) |
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
@@ -402,6 +402,35 @@ pass 10's own start) is the level of detail on the enemies' own fields,
 the walking test on locals and loops asking the cheap thing first; pass
 10's BLUE and the hands' barks add their own (the barks under 3 us a tick;
 `cpu_check -- report` names the costliest feature, BLUE at 70-90 us).
+
+**The worst moments (round 2, `tools/stress_bench.gd` in a window, v3.7.0
+against pass 10 `7e15cb42` plus round 2, three pairs, medians):**
+
+| Scene | frame median v3.7.0 -> now | p99 | tick (ms) | render (ms) |
+| --- | --- | --- | --- | --- |
+| idle | 3.14 -> 2.65 (1.18x) | 1.28x | 0.55 -> 0.54 | 1.93 -> 1.48 |
+| strike | 5.79 -> 4.08 (1.42x) | 1.46x | 1.61 -> 1.52 | 2.92 -> 1.24 |
+| wreck48 | 9.41 -> 7.58 (1.24x) | 1.25x | 4.13 -> 3.61 | 4.15 -> 3.12 |
+| fire | 4.00 -> 3.22 (1.24x) | 1.20x | 1.14 -> 1.05 | 2.32 -> 1.78 |
+| arena | 4.15 -> 3.20 (1.30x) | 1.54x | 0.79 -> 0.79 | 2.81 -> 1.97 |
+| fivev5 | 5.12 -> 3.66 (1.40x) | 1.19x | 2.97 -> 2.14 | 1.30 -> 0.88 |
+| county | 9.26 -> 7.77 (1.19x) | 1.16x | 2.43 -> 2.36 | 4.87 -> 3.62 |
+
+Round 2's tick work, all exact (`stress_bench -- check hash` prints the
+same on the old and new builds for every scene): the panes indexed by row
+(`LevelData.pane_at` asked every pane on every blocked() of a level with
+glass) and LevelSight's quick tests on levels with glass outside the cells a
+pane can meet (`pane_cells`): the 5v5's sight lines and bodies; the sight
+loop on locals; the wreck pieces' and pins' solvers on the contacts' own
+fields (`Contact.prepare`, `solve_once`, `solve_exact`, the same sums in the
+same order); `PhysCore.way_out` passing wall cells itself; blocked() asking a
+point's one cell once; `use_target` passing devices farther than any of
+their aim points. What is left: idle, fire, arena and county are held by the
+render and the frame's wait more than the tick; wreck48's tick is the wreck
+pieces' contacts against the level (`way_out`'s probes into furniture, the
+floors) and against each other; County Run's is its 38 hands' own thinking
+and sight lines. `stress_bench -- check` holds each scene's tick to a budget
+in yardsticks (`TICK_YARDS`).
 
 Remaining worst cases: County Run late (12 to 14 ms a frame on this desktop:
 33 rigged hands posed every frame, 1.4 to 1.7 ms of AnimationPlayer seeks);
