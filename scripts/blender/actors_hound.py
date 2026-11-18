@@ -79,11 +79,11 @@ _HD_THIGH, _HD_GASKIN, _HD_META = .22, .24, .12
 _HD_SHOULDER = Vector((.30, .075, .45))
 _HD_HIP = Vector((-.27, .075, .52))
 _HD_FOOT_F = Vector((.31, .08, 0))
-_HD_FOOT_H = Vector((-.32, .085, 0))
+_HD_FOOT_H = Vector((-.41, .085, 0))
 # The spine bends about his waist.
 _HD_WAIST = Vector((-.05, 0, .52))
 # His head a touch big for him, as a hound's reads at the view's size.
-_HD_HEAD = 1.12
+_HD_HEAD = 1.06
 _HD_MATS = {}
 # The badge's head is drawn near the stage's floor: no road dirt on it.
 _HD_CLEAN = [False]
@@ -240,8 +240,8 @@ def _hd_blob(nt, xyz, centre, radius, edge, wobble=None):
 
 
 # The hide's colours.
-_HD_PALE = (158, 166, 182)
-_HD_ROAN = (52, 62, 86)
+_HD_PALE = (172, 180, 194)
+_HD_ROAN = (66, 78, 104)
 _HD_TICK = (30, 36, 52)
 _HD_BLACK = (24, 24, 30)
 _HD_TAN = (164, 102, 54)
@@ -277,9 +277,9 @@ def _hd_coat(zone):
     xyz = (sep.outputs[0], sep.outputs[1], sep.outputs[2])
     x, y, z = xyz
     # The blue: pale hair, a roan of slate blue through it, small hard ticks.
-    roan = _hd_ramp(nt, _hd_noise(nt, vec, 7., 3.), .28, .58, .45, 1.)
-    ticks_a = _hd_ramp(nt, _hd_noise(nt, vec, 70., 2., (3.1, 1.7, .4)), .54, .58)
-    ticks_b = _hd_ramp(nt, _hd_noise(nt, vec, 140., 1., (7.3, 2.2, 5.1)), .55, .59)
+    roan = _hd_ramp(nt, _hd_noise(nt, vec, 7., 3.), .3, .6, .36, .95)
+    ticks_a = _hd_ramp(nt, _hd_noise(nt, vec, 70., 2., (3.1, 1.7, .4)), .565, .6)
+    ticks_b = _hd_ramp(nt, _hd_noise(nt, vec, 140., 1., (7.3, 2.2, 5.1)), .57, .61)
     ticks = _hd_math(nt, "MAXIMUM", ticks_a, ticks_b)
     blue = _hd_mix(nt, ticks, _hd_mix(nt, roan, _HD_PALE, _HD_ROAN), _HD_TICK)
     # Tan hair, ticked a little.
@@ -378,11 +378,11 @@ def _hd_kit():
         ear=_hd_coat("ear"),
         nose=_hd_matte(mat(22, 20, 24, .38, grime=0), .4),
         nostril=mat(8, 6, 8, .9, grime=0),
-        eye=mat(70, 38, 18, .1, grime=0),
+        eye=mat(50, 28, 14, .15, grime=0),
         pupil=mat(10, 8, 8, .1, grime=0),
         glint=mat(246, 240, 228, .2, grime=0, emit=.6),
         lid=_hd_matte(mat(24, 24, 30, .85, grime=0)),
-        haw=mat(150, 60, 56, .45, grime=0),
+        haw=mat(112, 40, 38, .5, grime=0),
         mouth=MOUTH(),
         tongue=mat(206, 92, 100, .4, grime=0),
         tooth=TOOTH(),
@@ -407,7 +407,7 @@ def _hd_rest():
         sat=False, low=False, lie_roll=0.,
         # the neck's lift and turn, the head's nod, roll and turn
         neck=.72, neck_yaw=0., nod=0., head_roll=0., head_yaw=0.,
-        jaw=.16, tongue=1., lids=0., brows=0.,
+        jaw=.16, tongue=1., lids=.22, brows=0.,
         # the ears: swung back, flared out, each side's own swing (+ forward)
         ears=0., flare=0., ear_l=0., ear_r=0.,
         # the tail: lift (from straight back), curl, wag (+ to his left)
@@ -753,7 +753,7 @@ def _hd_leg(F, K, hip, foot, lens, radii, front, pole, mode, P_h, curl=False, al
             if front:
                 low = (Vector((-.12, 0, 1)).lerp(Vector((.9, 0, .5)), lift)).normalized() * l3
             else:
-                low = (Vector((.4, 0, 1)).lerp(Vector((.2, 0, 1)), lift)).normalized() * l3
+                low = (Vector((.62, 0, 1)).lerp(Vector((.3, 0, 1)), lift)).normalized() * l3
             # the low piece points up from the foot along the leg (a lying
             # dog's "up" is his own)
             if lie is not None:
@@ -763,20 +763,21 @@ def _hd_leg(F, K, hip, foot, lens, radii, front, pole, mode, P_h, curl=False, al
     leg = K["leg"]
     flip = Matrix.Diagonal((1, 1, -1, 1))
     hh = P_h
+    # each piece as wide where it starts as the last where it ends, the
+    # joints capped flush: one tapering leg, no knobs at the joints
     _hd_limb(hip, knee, r0, r1, leg, F, P=T((0, 0, hh[0])) @ flip)
-    _hd_limb(knee, wrist, r1 * .82, r2, leg, F, P=T((0, 0, hh[1])) @ flip)
-    _hd_limb(wrist, paw, r2 * .95, r3, leg, F, P=T((0, 0, hh[2])) @ flip, seg=12)
-    # the joints' caps
-    _hd_ball(knee, r1 * 1.02, leg, F, P=T((0, 0, hh[1] + l2 * .5)))
-    _hd_ball(wrist, r2 * 1.02, leg, F, P=T((0, 0, hh[2] + l3 * .5)))
+    _hd_limb(knee, wrist, r1, r2, leg, F, P=T((0, 0, hh[1])) @ flip)
+    _hd_limb(wrist, paw, r2, r3, leg, F, P=T((0, 0, hh[2])) @ flip, seg=12)
+    _hd_ball(knee, r1, leg, F, P=T((0, 0, hh[1] + l2 * .5)))
+    _hd_ball(wrist, r2, leg, F, P=T((0, 0, hh[2] + l3 * .5)))
     if front:
         # the shoulder's mass on the upper arm, the forearm's muscle
         _hd_seg_ball(hip, knee, .35, (.055, .05, .11), leg, F, P=T((0, 0, hh[0])) @ flip)
-        _hd_seg_ball(knee, wrist, .22, (.04, .047, .09), leg, F, P=T((0, 0, hh[1])) @ flip)
+        _hd_seg_ball(knee, wrist, .3, (.034, .041, .13), leg, F, P=T((0, 0, hh[1])) @ flip)
     else:
         # the ham: the big muscle of the thigh, and the second thigh
-        _hd_seg_ball(hip, knee, .4, (.075, .085, .14), leg, F, P=T((0, 0, hh[0])) @ flip, side=-.012)
-        _hd_seg_ball(knee, wrist, .25, (.035, .04, .09), leg, F, P=T((0, 0, hh[1])) @ flip, side=-.01)
+        _hd_seg_ball(hip, knee, .45, (.072, .082, .16), leg, F, P=T((0, 0, hh[0])) @ flip, side=-.01)
+        _hd_seg_ball(knee, wrist, .33, (.036, .042, .13), leg, F, P=T((0, 0, hh[1])) @ flip, side=-.008)
     toes = Vector((fwd.x, fwd.y, 0)) if mode != "lifted" else (Vector((fwd.x, fwd.y, 0)) * .3 + (paw - wrist).normalized())
     if curl:
         toes = (paw - wrist).normalized() + Vector((0, 0, -.6))
@@ -792,7 +793,7 @@ def _hd_head(Hm, P, K):
     # cheeks, the brow ridges, the stop
     for sd in (-1, 1):
         _hd_ball((.07, sd * .036, .008), (.062, .026, .042), h, Hm)
-        _hd_ball((.112, sd * .03, .058), (.03, .022, .018), h, Hm, rot=(0, -.2, 0))
+        _hd_ball((.104, sd * .033, .052), (.027, .018, .011), h, Hm, rot=(0, -.15, 0))
     _hd_ball((.122, 0, .045), (.036, .032, .03), h, Hm)
     # the muzzle: long and square, the bridge over it
     _hd_limb((.115, 0, .018), (.238, 0, .012), .041, .035, h, Hm)
@@ -823,17 +824,20 @@ def _hd_head(Hm, P, K):
     # the eyes: brown, a glint, the haw under each, the upper lid that
     # closes down over it (swung up under the brow while open)
     for sd in (-1, 1):
-        eye = Vector((.116, sd * .041, .043))
-        E = Hm @ T(eye) @ R(0, 0, sd * .5)
-        _hd_ball((0, 0, 0), .0155, K["eye"], E)
-        _hd_ball((.009, 0, .001), (.006, .0075, .0075), K["pupil"], E)
-        _hd_ball((.012, sd * -.004, .007), .0036, K["glint"], E)
-        _hd_ball((.002, 0, -.014), (.012, .01, .0045), K["haw"], E)
+        # set into the head under the brow, looking out and forward
+        eye = Vector((.11, sd * .037, .04))
+        E = Hm @ T(eye) @ R(0, 0, sd * .45)
+        _hd_ball((0, 0, 0), .013, K["eye"], E)
+        _hd_ball((.0075, 0, .001), (.005, .0062, .0062), K["pupil"], E)
+        _hd_ball((.0095, sd * -.003, .006), .0026, K["glint"], E)
+        # the droop of the lower lid: the red haw, a dark rim over it
+        _hd_ball((.002, 0, -.0115), (.011, .0095, .005), K["haw"], E)
+        _hd_ball((.001, 0, -.0145), (.0125, .0105, .0042), K["lid"], E)
         shut = P["lids"]
         lid = E @ R(0, -.9 + 1.25 * shut, 0)
-        _hd_ball((.0, 0, .011), (.019, .018, .0085), K["lid"], lid)
+        _hd_ball((.0, 0, .009), (.0165, .0158, .0075), K["lid"], lid)
         # the brow's tan pip, lifted when he frets
-        pip = Vector((-.004, 0, .022 + .006 * P["brows"]))
+        pip = Vector((-.004, 0, .02 + .006 * P["brows"]))
         _hd_ball(pip, (.012, .011, .006), h, E, P=T(eye) @ R(0, 0, sd * .5) @ T(pip))
     return J
 
@@ -845,11 +849,15 @@ def _hd_ears(Hm, P, K):
     ear = K["ear"]
     for sd, own in ((1, P["ear_l"]), (-1, P["ear_r"])):
         swing = .35 * P["ears"] - own
-        E = Hm @ T((.03, sd * .052, .032)) @ R(sd * (.07 + .8 * P["flare"]), swing, 0)
-        _hd_ball((.002, sd * .004, -.018), (.026, .008, .024), ear, E)
-        _hd_ball((-.002, sd * .008, -.062), (.043, .006, .07), ear, E)
-        E2 = E @ T((-.004, sd * .01, -.1)) @ R(-sd * .22, swing * .4, 0)
-        _hd_ball((-.004, 0, -.045), (.048, .0055, .062), ear, E2, rot=(0, .05, 0))
+        E = Hm @ T((.036, sd * .057, .036)) @ R(sd * (-.05 + .8 * P["flare"]), swing, 0)
+        # set on at eye level, the leather folded over at the top
+        _hd_ball((.0, sd * .003, -.014), (.024, .008, .02), ear, E)
+        _hd_ball((-.004, sd * .004, -.048), (.04, .005, .05), ear, E, rot=(0, .08, 0))
+        # its front edge rolled in, as a hound's ear hangs
+        _hd_ball((.03, sd * -.001, -.05), (.009, .008, .046), ear, E, rot=(0, .08, 0))
+        E2 = E @ T((-.008, sd * .004, -.08)) @ R(-sd * .28, swing * .4, 0)
+        _hd_ball((-.004, 0, -.03), (.044, .0048, .042), ear, E2, rot=(0, .05, 0))
+        _hd_ball((.032, sd * -.004, -.026), (.008, .008, .034), ear, E2, rot=(0, .05, 0))
 
 
 def _hd_body(P, K, M):
@@ -870,7 +878,7 @@ def _hd_body(P, K, M):
     # the neck: up from the withers, muscled along its crest, the hound's
     # dewlap loose under the throat
     base = Vector((.32, 0, .58))
-    top = base + Vector((math.cos(P["neck"]), 0, math.sin(P["neck"]))) * .19
+    top = base + Vector((math.cos(P["neck"]), 0, math.sin(P["neck"]))) * .23
     N = Ff @ T(base) @ R(0, 0, P["neck_yaw"]) @ T(-base)
     _hd_limb(base, top, .078, .06, b, N, P=None)
     _hd_seg_ball(base, top, .45, (.07, .066, .12), b, N, side=0)

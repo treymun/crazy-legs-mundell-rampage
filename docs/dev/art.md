@@ -281,8 +281,12 @@ a shop lamp falling in the saw floor's arena.
      square for the model (`FOR_MODEL`): a lean, deep-chested, muscled
      bluetick. His trunk is two smooth hides lofted through the body's
      sections (`_hd_loft`, front and back, so the spine bends between
-     them); the legs are pieces of fixed length posed by two-bone IK with a
-     muscle on each upper piece and a cat foot oriented with him; every
+     them); the legs are pieces of fixed length posed by two-bone IK, each
+     piece as wide where it starts as the last ends and the joints capped
+     flush (no ball knobs), long slim muscles, the hind foot set behind the
+     hip with a bent stifle and an angled hock, a cat foot oriented with
+     him; the ears hang folded close down the cheeks, their front edges
+     rolled in; every
      frame builds the same parts in the same order, so nothing pops in or
      out between keys (one tongue that moves, lids that swing). His coat is
      painted, not modelled: every part stores where it sits in its own

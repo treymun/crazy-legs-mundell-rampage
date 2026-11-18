@@ -67,8 +67,8 @@ const CRITTER_FRAMES := ["-1", "0", "1", "aim", "fire", "pain"]
 ## each, and his poses: src/hound_looks.gd plays every one of them.
 const HOUND_RUNS := ["i", "w", "t", "r", "l", "n", "c", "k", "f", "o", "v", "u", "j", "p"]
 const HOUND_POSES := ["0", "sit", "sniff", "point", "bark", "bay", "pain", "fetch", "rest", "down"]
-## His texels a metre: the pass 10 model at 512 measured 203 over him and
-## 269 on his head (export_actors.py gives his head 1.4 times its share
+## His texels a metre: the pass 10 model at 512 measured 202 over him and
+## 270 on his head (export_actors.py gives his head 1.4 times its share
 ## across; the content pass 8 dog had 151 and no head of its own): floors a
 ## little under.
 const HOUND_MIN := 180.0

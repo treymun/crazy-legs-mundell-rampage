@@ -2915,12 +2915,12 @@
 		]
 	},
 	"hound": {
-		"bones": 77.0,
+		"bones": 71.0,
 		"canvas": [
 			1.5,
 			1.0
 		],
-		"faces": 18546.0,
+		"faces": 19543.0,
 		"frames": {
 			"0": 0.0,
 			"bark": 74.0,
@@ -3036,9 +3036,9 @@
 			"b33": "head",
 			"b34": "head",
 			"b35": "head",
-			"b36": "body",
+			"b36": "head",
 			"b37": "head",
-			"b38": "body",
+			"b38": "head",
 			"b39": "body",
 			"b4": "body",
 			"b40": "body",
@@ -3075,17 +3075,11 @@
 			"b69": "body",
 			"b7": "body",
 			"b70": "body",
-			"b71": "body",
-			"b72": "body",
-			"b73": "body",
-			"b74": "body",
-			"b75": "body",
-			"b76": "body",
 			"b8": "body",
 			"b9": "body"
 		},
 		"lit": true,
-		"parts": 150.0,
+		"parts": 156.0,
 		"textures": [
 			""
 		]
