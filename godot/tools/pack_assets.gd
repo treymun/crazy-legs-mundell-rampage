@@ -25,6 +25,7 @@
 ##                music_index.json (track -> file, offset, length), music_ends.json
 ##   sky.bin      the 512x116 panoramas, + sky_index.json
 ##   palette.bin  the RGB555 -> 256-colour table; grain.bin the film grain frames
+##   made_cues.bin  the cues the game makes in code (Assets.MADE_CUES)
 extends SceneTree
 
 ## By path, not class name: CI packs before the project is imported, when
@@ -84,12 +85,25 @@ func _init() -> void:
 	_copy("assets/tiles/vga_rgb555.bin", "palette.bin")
 	_copy("assets/tiles/grain.bin", "grain.bin")
 	_copy("assets/art/weapon_anchors.json", "weapon_anchors.json")
+	_made_cues()
 	if failed:
 		print("PACKING FAILED")
 		quit(1)
 		return
 	print("PACKS WRITTEN in %.1f s to %s" % [(Time.get_ticks_msec() - started) / 1000.0, out])
 	quit()
+
+
+## The cues the game makes in code (Assets.MADE_CUES), made once here (pass
+## 10: a level's first load made them, a quarter of a second): 16-bit samples
+## at SFX_RATE, the very bytes Assets._synth makes.
+func _made_cues() -> void:
+	var cues := {}
+	for name: String in AssetsLib.MADE_CUES:
+		cues[name] = AssetsLib._synth(name, SFX_RATE)
+	_write(
+		AssetsLib.MADE_FILE, AssetsLib.pack_whole(var_to_bytes({"rate": SFX_RATE, "cues": cues}))
+	)
 
 
 func _fail(message: String) -> void:

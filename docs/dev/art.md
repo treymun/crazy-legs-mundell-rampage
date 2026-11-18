@@ -339,6 +339,11 @@ a shop lamp falling in the saw floor's arena.
 4. `tools/art/build_actor_scenes.gd [-- kinds=a,b]` writes
    `scenes/actors/<kind>.tscn` (an `ActorView` root). Same rule as props for
    hand additions.
+5. `tools/art/bake_rigs.gd` writes each kind's ragdoll rig beside its model
+   (`assets3d/actors/<kind>.rig`, pass 10: the game reads it back instead of
+   finding it from the model's vertices at a level's first frame). Run it
+   after any change to a model or to its `actors.json` labels or keys;
+   `tools/load_speed_check.gd` fails while a rig is out of date.
 
 How ActorView poses and picks a look is in [view3d.md](view3d.md#actors).
 Guns in hand stay 2D cels over the 3D view.

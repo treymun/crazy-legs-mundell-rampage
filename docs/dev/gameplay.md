@@ -36,7 +36,9 @@ level builder in [levels.md](levels.md).
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
   red hulls, crows, county-fair words and ribbons, cartoon wipes; original art
-  and sound only (new small sounds can be made in `assets.gd` MADE_CUES).
+  and sound only (new small sounds can be made in `assets.gd` MADE_CUES;
+  since pass 10 `tools/pack_assets.gd` makes them once into
+  `assets_gen/made_cues.bin`, so run it after changing one).
 
 ## Features listen to events
 

@@ -23,6 +23,8 @@ const MADE_CUES := [
 	"mule_bray",
 	"bench_tape",
 ]
+## The cues made in code (MADE_CUES), made by tools/pack_assets.gd (pass 10).
+const MADE_FILE := "made_cues.bin"
 ## Enemies only one chapter has. Everything named after one lives in that
 ## chapter's own files (chapter_of: its pictures, its model and baked looks,
 ## its sounds), which the browser build fetches after it starts
@@ -103,9 +105,7 @@ var sky_blob: PackedByteArray = PackedByteArray()
 var palette: PackedByteArray = PackedByteArray()
 var grain: PackedByteArray = PackedByteArray()
 
-## MADE_CUES' samples made on a worker (make_cues_soon): the task (-1 none
-## started, -2 waited for), the rate they were made at and name -> samples.
-static var _made_task := -1
+## MADE_FILE's rate (0 not read yet, -1 none) and name -> samples.
 static var _made_rate := 0
 static var _made_raw: Dictionary = {}
 
@@ -357,6 +357,20 @@ func art(name: String) -> Dictionary:
 	return result
 
 
+## Picture `name`'s pixels for a texture made once from them (a model's
+## baked looks): not kept, and dropped if they were (pass 10: after the
+## eight chapters these copies of what the textures hold were 128 of the
+## 516 MB the game held).
+func art_for_texture(name: String) -> Dictionary:
+	var kept: Variant = _art_cache.get(name)
+	if kept != null:
+		_art_cache.erase(name)
+		return kept
+	var out := art(name)
+	_art_cache.erase(name)
+	return out
+
+
 func has_art(name: String) -> bool:
 	return art_index.has(name)
 
@@ -516,31 +530,28 @@ func has_cue(name: String) -> bool:
 	return sfx_index.has(name) or name in MADE_CUES
 
 
-## Starts making MADE_CUES' samples on a worker thread (once a process; the
-## front end calls it at boot): about a quarter of a second of GDScript on
-## the desktop that a level's first load used to wait for (Game.new asks for
-## them all). _made_cue waits for it the first time a cue is asked for.
-static func make_cues_soon(rate := 22050) -> void:
-	if _made_task != -1:
-		return
-	_made_rate = rate
-	_made_task = WorkerThreadPool.add_task(_make_all.bind(rate), false, "made cues")
+## MADE_CUES' samples as tools/pack_assets.gd made them (MADE_FILE, read the
+## first time one is asked for): making them here was about a quarter of a
+## second of GDScript on the desktop that a level's first load waited for
+## (Game.new asks for them all). Empty when the packs have no such file.
+static func made_bank() -> Dictionary:
+	if _made_rate == 0:
+		_made_rate = -1
+		var path := FULL_DIR + MADE_FILE
+		if FileAccess.file_exists(path):
+			var whole: Variant = bytes_to_var(unpack_whole(FileAccess.get_file_as_bytes(path)))
+			if whole is Dictionary:
+				var bank: Dictionary = whole
+				_made_rate = bank.get("rate", -1)
+				_made_raw = bank.get("cues", {})
+	return _made_raw
 
 
-static func _make_all(rate: int) -> void:
-	var out := {}
-	for name: String in MADE_CUES:
-		out[name] = _synth(name, rate)
-	_made_raw = out
-
-
-## The made cue's samples: from the worker when it made them at this rate,
+## The made cue's samples: from MADE_FILE when it holds them at this rate,
 ## else made now.
 func _made_cue(name: String) -> AudioStreamWAV:
-	if _made_task >= 0:
-		WorkerThreadPool.wait_for_task_completion(_made_task)
-		_made_task = -2
-	var made: Variant = _made_raw.get(name) if _made_rate == sfx_rate else null
+	var bank := made_bank()
+	var made: Variant = bank.get(name) if _made_rate == sfx_rate else null
 	var data: PackedByteArray
 	if made is PackedByteArray:
 		data = made

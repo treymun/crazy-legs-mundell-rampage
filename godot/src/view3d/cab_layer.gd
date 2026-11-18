@@ -183,7 +183,7 @@ func show_cab(cab: Dictionary, eye: Vector3, level: LevelData) -> Array[ShaderMa
 func _make(model: String) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = _shader
-	var art := _assets.art("mesh_" + model)
+	var art := _assets.art_for_texture("mesh_" + model)
 	var w: int = art["w"]
 	var h: int = art["h"]
 	var data: PackedByteArray = art["data"]

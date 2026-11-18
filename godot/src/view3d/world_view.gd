@@ -180,6 +180,7 @@ func _init(assets: Assets) -> void:
 	props = PropLayer3D.new(PropModels.new(assets))
 	_root.add_child(props)
 	wrecks = WreckLayer3D.new(assets)
+	wrecks.prop_models = props.models
 	_root.add_child(wrecks)
 	actors = ActorLayer3D.new(ActorModels.new(assets))
 	_root.add_child(actors)

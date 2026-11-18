@@ -819,6 +819,55 @@ coming down 36 -> 21; the hogs 87 -> 67. Hickston's first frame costs about
 vehicle (the view's setup, 15 to 20 ms), a whole yard of props coming into
 view at once (each a new instance; props are not pooled, above).
 
+## Loading and the warm-up, pass 10 (PERFLOAD)
+
+Measured with `--view-bench` (each chapter's `load` line: `start()` and the
+first frame) and `tools/hitch_bench.gd`; the numbers are in
+[checks.md](checks.md#measured-in-pass-10-perfload).
+
+- **The title's warm-up** (`WorldView3D.warm_title`, driven by
+  `main_state.gd` `warm_view` once a menu has been up `TITLE_WARM_AFTER`
+  seconds before the first level): the 3D view is made (0.18 s the first
+  level's load paid) and every view3d shader is drawn once, a piece a
+  frame, into the viewport nobody sees yet: a quad with each shader's
+  material, the sprites', slabs' and solids' in one-instance MultiMeshes as
+  they draw; the sky draws itself. Then every pickup's slab mesh is built,
+  eight a frame. In the browser (which keeps no compiled shaders) the first
+  level's first frame was 10 s of compiling; it now happens under the
+  title. A level started before it ends compiles the rest as before.
+  `--view-bench` runs it first and prints it as `TITLE`.
+- **Models load on the loader's threads**: at a level's first frame the
+  view asks `ResourceLoader.load_threaded_request` for its props' and
+  enemies' scenes (`PropModels.request`, `ActorModels.request`) before
+  building the level's mesh, and `scene()` takes each (waiting if it must).
+  Every one asked for is taken in that frame (`ActorLayer3D.prepare` takes
+  every enemy kind's, a boss's too). Not with sub-threads: those left 220
+  objects behind at exit. Not headless: the dummy renderer's meshes are not
+  made safely from two threads at once.
+- **Ragdoll rigs are baked** (`assets3d/actors/<kind>.rig`,
+  `tools/art/bake_rigs.gd`): `RagdollRig.of` reads the points, radii, parts
+  and hull back and makes the poses from the model (35 to 100 ms a kind
+  found from the vertices, under 1 ms read). A file made from other
+  actors.json labels or keys is not used. `RagdollRig.found` counts rigs
+  found from vertices (a level's load finds none).
+- **A hog and a raider are made and kept hidden** at the first frame
+  (`ActorLayer3D.warm`, in the spare pool) and drawn once by `warm_up`
+  (`warm_roots`): the herd's first frame had paid the model's first draw
+  (35 -> 19 ms). Every pickup the level holds has its slab mesh built then
+  too (`SlabLayer3D.warm`): a turn at Hickston's spawn built eleven
+  (10 -> 6 ms), getting in the mower eight (17 -> 10).
+- **A model's looks are not kept twice**: its texture is made from
+  `Assets.art_for_texture`, which keeps no copy of the pixels (128 of the
+  516 MB held after the eight chapters), and a wrecked prop's pieces share
+  the prop's own texture (`WreckLayer3D.prop_models`).
+
+`tools/load_speed_check.gd` holds all of it. Still to do: a yard of props
+coming into view at once (each a new instance; props are not pooled, see
+"Keeping the frame cheap"), the script compiling at boot (4.5 s in the
+project folder, about 1.5 s in the browser build: every script loads with
+main.gd and Godot compiles them one at a time), the level's mesh built
+again on a retry.
+
 ## User folder
 
 The 3D build uses its own user folder ("Crazy Legs Mundell Rampage 3D"), so it

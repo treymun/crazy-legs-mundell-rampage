@@ -199,7 +199,7 @@ func texture(name: String) -> ImageTexture:
 	var cached: Variant = _textures.get(name)
 	if cached != null:
 		return cached
-	var a := _assets.art("mesh_" + name)
+	var a := _assets.art_for_texture("mesh_" + name)
 	var w: int = a["w"]
 	var h: int = a["h"]
 	var data: PackedByteArray = a["data"]

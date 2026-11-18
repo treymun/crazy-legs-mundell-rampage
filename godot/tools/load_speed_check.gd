@@ -4,14 +4,16 @@
 ##   RagdollRig.baked) is the rig found from its model, field for field and
 ##   bit for bit (tools/rig_reference.gd, the build as it was); a stale one
 ##   names tools/art/bake_rigs.gd;
-## - the cues made in code (Assets.MADE_CUES) made on the worker are the
-##   samples made at once;
+## - the cues made in code (Assets.MADE_CUES), packed by pack_assets.gd
+##   (made_cues.bin), are the samples made at once;
 ## - the title's warm-up (WorldView3D.warm_title) draws every view3d shader
 ##   but the sky's (which draws itself) and takes its pieces away;
 ## - each chapter's load (start() and the view's first frame) finds no rig
 ##   from vertices, leaves no model asked of the loader untaken, and keeps
-##   within its time budget; visiting the chapters again keeps memory within
-##   its ceiling and grows it by no more than GROWTH_MB.
+##   within its time budget; no model's looks are kept as pixels beside the
+##   texture made from them (Assets.art_for_texture); visiting the chapters
+##   again keeps memory within its ceiling and grows it by no more than
+##   GROWTH_MB.
 ##
 ##   Godot --headless --path <project> --script res://tools/load_speed_check.gd [-- report]
 ##
@@ -81,10 +83,8 @@ func _run() -> void:
 	_done()
 
 
-## MADE_CUES from the worker against the same made at once.
+## MADE_CUES from the packs against the same made at once.
 func _cues() -> void:
-	var probe := Assets.new()
-	Assets.make_cues_soon(probe.sfx_rate)
 	var art := Assets.new()
 	var same := 0
 	for name: String in Assets.MADE_CUES:
@@ -94,7 +94,7 @@ func _cues() -> void:
 	_check(
 		same == Assets.MADE_CUES.size(),
 		(
-			"the cues made on the worker are the samples made at once (%d of %d)"
+			"the cues packed are the samples made at once (%d of %d; run pack_assets.gd if not)"
 			% [same, Assets.MADE_CUES.size()]
 		)
 	)
@@ -224,6 +224,11 @@ func _loads(view: WorldView3D) -> void:
 		view_ms < VIEW_MS,
 		"the chapters' first view frames within budget (%.0f ms, under %.0f)" % [view_ms, VIEW_MS]
 	)
+	var kept := 0
+	for name: String in main.art._art_cache:
+		if name.begins_with("mesh_") or name.begins_with("actor3d_"):
+			kept += 1
+	_check(kept == 0, "no model's looks kept as pixels beside its texture (%d)" % kept)
 	var grew := (after - after_first) / 1048576.0
 	_check(
 		after / 1048576.0 < MEMORY_MB and grew < GROWTH_MB,

@@ -37,6 +37,7 @@ godot --headless --path godot --script res://tools/art/build_prop_meshes.gd -- n
 godot --headless --path godot --script res://tools/art/build_prop_scenes.gd [-- names=a,b]
 godot --headless --path godot --script res://tools/art/build_actor_meshes.gd -- kinds=billy,coot [no-render]
 godot --headless --path godot --script res://tools/art/build_actor_scenes.gd [-- kinds=a,b]
+godot --headless --path godot --script res://tools/art/bake_rigs.gd     # each actor kind's ragdoll rig (after a model or its labels change)
 ```
 
 ## Checks (all run in CI too)
@@ -75,6 +76,7 @@ godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CH
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/warm_check.gd      # WARM CHECK OK (the view's warm-up)
+godot --headless --path godot --script res://tools/load_speed_check.gd # LOAD SPEED OK (pass 10's loads: rigs, cues, title warm-up, budgets)
 godot --headless --path godot --script res://tools/opener_check.gd     # OPENER CHECK OK (the chapter openers)
 godot --headless --path godot --script res://tools/opener_camera_check.gd [-- report]   # OPENER CAMERA OK (the openers' camera)
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- --opener=<chapter> [--opener-out=<dir> [--opener-strip=<n>]]   # a chapter's opener (its key frames, or n frames of its flight, saved)

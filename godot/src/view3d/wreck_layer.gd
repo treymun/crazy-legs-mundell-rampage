@@ -24,6 +24,9 @@ var _materials := {}
 ## sprite -> MeshInstance3D shown for it; the spare nodes.
 var _shown := {}
 var _spare: Array[MeshInstance3D] = []
+## The props' models, whose textures a model's pieces share (the view sets
+## it; pass 10: each was a second copy of the same picture).
+var prop_models: PropModels
 
 
 func _init(assets: Assets) -> void:
@@ -149,11 +152,18 @@ func _material(source: String) -> ShaderMaterial:
 	if cached != null:
 		var known: ShaderMaterial = cached
 		return known
-	var image := WreckCuts.texture_image(_assets, source)
-	if image == null:
+	var baked: Texture2D = null
+	if source.begins_with("m:") and prop_models != null:
+		if _assets.has_art("mesh_" + source.substr(2)):
+			baked = prop_models.texture(source.substr(2))
+	else:
+		var image := WreckCuts.texture_image(_assets, source)
+		if image != null:
+			baked = ImageTexture.create_from_image(image)
+	if baked == null:
 		return null
 	var m := ShaderMaterial.new()
 	m.shader = _shader
-	m.set_shader_parameter("baked", ImageTexture.create_from_image(image))
+	m.set_shader_parameter("baked", baked)
 	_materials[source] = m
 	return m

@@ -61,7 +61,6 @@ func _ready() -> void:
 	)
 
 	art = Assets.new()
-	Assets.make_cues_soon(art.sfx_rate)  # off the first level's load (assets.gd)
 	hud = HUD.new(art)
 	menu = Menu.new(art)
 	sound = Sound.new(art)

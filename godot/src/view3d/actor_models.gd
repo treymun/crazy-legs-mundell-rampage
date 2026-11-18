@@ -271,7 +271,7 @@ func materials() -> Array[ShaderMaterial]:
 
 
 func _texture(name: String) -> ImageTexture:
-	var a := _assets.art(name)
+	var a := _assets.art_for_texture(name)
 	var w: int = a["w"]
 	var h: int = a["h"]
 	var data: PackedByteArray = a["data"]
