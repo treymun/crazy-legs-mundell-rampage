@@ -473,7 +473,9 @@ func _gpu_line(x0: int, y0: int, x1: int, y1: int, r: int, g: int, b: int) -> vo
 
 ## `n` pixels from (x, y) along a row (or a column when `steep`), clipped to
 ## the canvas as set_pixel clips each.
-func _gpu_run(x: int, y: int, n: int, steep: bool, sx: int, sy: int, r: int, g: int, b: int) -> void:
+func _gpu_run(
+	x: int, y: int, n: int, steep: bool, sx: int, sy: int, r: int, g: int, b: int
+) -> void:
 	if steep:
 		if x < 0 or x >= w:
 			return

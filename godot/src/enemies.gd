@@ -698,9 +698,7 @@ func lod_calm(lod: EnemyLod, clock: float, full: bool) -> bool:
 		or brain == "derby_champ"
 	):
 		return false
-	return not (
-		BOSS_TITLES.has(kind) or (m != null and (m.search_until > 0.0 or m.kick_at > 0.0))
-	)
+	return not (BOSS_TITLES.has(kind) or (m != null and (m.search_until > 0.0 or m.kick_at > 0.0)))
 
 
 func tick(dt: float, game: Game) -> void:

@@ -2279,6 +2279,21 @@ new drops fall in its hordes too, as every hand's drop always has.)
   only from play's own state, so it is the same on every machine and in a
   replay; `lod=false` turns it off. On hickston about two thirds of the
   enemies wait on a given tick at the start.
+- **Pass 10 (PERFCPU).** A member read through another object
+  (`e.alerted` from EnemyLod) costs about twice one read in the object's own
+  method, so the level of detail is worked out on the enemy
+  (`Enemy.lod_step`, `Enemy.lod_calm`; `EnemyLod.look` takes the players once
+  a tick and `Game.tick` calls the enemy's own step), climbing's plain case
+  (on its feet: note the floor) is written into `Enemy.tick`, and the walking
+  test (`LevelGeometry.can_walk`, `blocked_body`) reads the level's tables
+  into locals once and skips both index lookups on a cell `index_cells`
+  marks empty. The several-player body buckets are keyed by one number, not
+  a Vector2i; `use_target`, the loose things' target, the gun glints and
+  lights and the lamps' pickup lights pass over what is out of reach before
+  any lookup. Every one answers as before: `cpu_check` holds the level of
+  detail's asks, and the bot game played on the old and new builds gave the
+  same state hash every 20 ticks on seven chapter, player and hound/event
+  mixes.
 - **What was tried for the tick and dropped:** cosmetic features stepped at
   60 Hz would move choppier on a display over 60 Hz. (Far enemies ticking
   less often was dropped once for not being exact; it is now the level of

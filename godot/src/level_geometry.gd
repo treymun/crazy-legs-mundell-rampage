@@ -845,9 +845,7 @@ func blocked_body(
 	# A cell neither index lists anything under (index_cells 0) has no
 	# furniture near and no door: both lookups are left out (most steps).
 	var index_cells := lv.index_cells
-	var listed := (
-		index_cells.size() != width * height or index_cells[int(y) * width + int(x)] != 0
-	)
+	var listed := index_cells.size() != width * height or index_cells[int(y) * width + int(x)] != 0
 	if (listed or r > lv.index_radius) and _fixture_in(lv, x, y, r, feet, tall):
 		return true
 	if feet < 1.85 and listed:
@@ -914,9 +912,7 @@ func can_walk(
 	# dry ground (a boardwalk over the swamp); and nobody steps off one into it.
 	if lv.deep_tile >= 0 and lv.deep_at(x, y) and not obj.get("swims"):
 		var dry_here: bool = not lv.deep_at(bx, by) or floor_z > ground[here] + STEP
-		var dry_there: bool = (
-			not clear and floor_at(x, y, feet, ground[c], true) > ground[c] + STEP
-		)
+		var dry_there: bool = not clear and floor_at(x, y, feet, ground[c], true) > ground[c] + STEP
 		if dry_here and not dry_there:
 			return false
 	if occupied != null:

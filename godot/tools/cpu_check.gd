@@ -6,7 +6,7 @@
 ## - Text: PixelType.text_width() (kept by text) answers as measuring each
 ##   letter does, in every style and with SMALL TEXT CLEAR either way; the
 ##   kept glyphs are read-only; measuring the HUD's words 20,000 times stays
-##   inside TEXT_BUDGET_MS (it took a frame's whole CPU before).
+##   inside TEXT_BUDGET yardsticks (it took a frame's whole CPU before).
 ## - Polygons: Canvas._fill_poly (spans kept by shape) sets the very pixels
 ##   the old scanline fill set, anywhere on the canvas.
 ## - The Godot canvas: a line's runs (Canvas._gpu_line) cover the pixels the
@@ -16,16 +16,19 @@
 ##   own sprites/draw_view/hud_*/ground_marks/wall_marks, in order; the
 ##   others' are GameFeature's empty ones.
 ## - The tick: every live enemy asked its level of detail once a tick; the
-##   bot game's tick (best of three batches) inside TICK_BUDGET_MS and no
-##   feature's tick past FEATURE_BUDGET_MS (CI-scale: they catch a big
-##   slowdown, not noise). `report` prints the numbers.
+##   bot game's tick (best of three batches) inside TICK_BUDGET and no
+##   feature's tick past FEATURE_BUDGET, in yardsticks (CI-scale: they catch
+##   a big slowdown, not noise). `report` prints the numbers.
 extends SceneTree
 
 const Pilot := preload("res://tools/bot_pilot.gd")
 const STEP := 1.0 / 120.0
-const TEXT_BUDGET_MS := 40.0
-const TICK_BUDGET_MS := 3.0
-const FEATURE_BUDGET_MS := .4
+const TEXT_BUDGET := 40.0
+## The tick's budgets, in units of a fixed piece of GDScript work timed just
+## before (_yardstick: the same on any machine and as slow under load), so a
+## busy CI runner or check_all's other rows do not fail them.
+const TICK_BUDGET := 2.0
+const FEATURE_BUDGET := .3
 const WORDS := [
 	"E  OPEN DOOR",
 	"FIRE  THROW     ALT  SET DOWN",
@@ -122,9 +125,13 @@ func _text() -> void:
 		for i in 20000:
 			PixelType.text_width(WORDS[i % WORDS.size()], "mini" if i % 2 else "body")
 		best = minf(best, (Time.get_ticks_usec() - t0) / 1000.0)
+	var yard := _yardstick()
 	if report:
-		print("    20,000 measures: %.2f ms" % best)
-	_check(best < TEXT_BUDGET_MS, "20,000 measures %.1f ms (< %.0f)" % [best, TEXT_BUDGET_MS])
+		print("    20,000 measures: %.2f ms (yardstick %.3f ms)" % [best, yard])
+	_check(
+		best < TEXT_BUDGET * yard,
+		"20,000 measures %.1f yardsticks (< %.0f)" % [best / yard, TEXT_BUDGET]
+	)
 
 
 ## The width as text_width worked it out before it kept its answers.
@@ -391,6 +398,7 @@ func _tick(main) -> void:
 			var us: float = g.events.tick_us[i] / 600.0
 			feature_us[name] = minf(float(feature_us.get(name, INF)), us)
 		main.release_games()
+	var yard := _yardstick()
 	var worst := ""
 	var worst_us := 0.0
 	for name: String in feature_us:
@@ -398,9 +406,38 @@ func _tick(main) -> void:
 			worst_us = feature_us[name]
 			worst = name
 	if report:
-		print("    tick %.3f ms; costliest feature %s %.1f us" % [best, worst, worst_us])
-	_check(best < TICK_BUDGET_MS, "the bot game's tick %.2f ms (< %.1f)" % [best, TICK_BUDGET_MS])
+		print(
+			(
+				"    tick %.3f ms; costliest feature %s %.1f us; yardstick %.3f ms"
+				% [best, worst, worst_us, yard]
+			)
+		)
 	_check(
-		worst_us < FEATURE_BUDGET_MS * 1000.0,
-		"no feature's tick past %.1f ms (%s %.0f us)" % [FEATURE_BUDGET_MS, worst, worst_us]
+		best < TICK_BUDGET * yard,
+		"the bot game's tick %.2f yardsticks (< %.1f)" % [best / yard, TICK_BUDGET]
 	)
+	_check(
+		worst_us / 1000.0 < FEATURE_BUDGET * yard,
+		(
+			"no feature's tick past %.1f yardsticks (%s %.2f)"
+			% [FEATURE_BUDGET, worst, worst_us / 1000.0 / yard]
+		)
+	)
+
+
+## A fixed piece of plain GDScript work (members, arrays, a dictionary,
+## calls), best of five: the unit the tick's budgets are in.
+func _yardstick() -> float:
+	var best := INF
+	var probe := RectCanvas.new()
+	for batch in 5:
+		var t0 := Time.get_ticks_usec()
+		var d := {}
+		var sum := 0.0
+		for i in 4000:
+			d[i % 97] = sum
+			sum += probe.w * .5 + float(d.get(i % 89, 0.0)) * .001 + sqrt(float(i))
+			probe.rects.append(Rect2i(i, 0, 1, 1))
+		probe.rects.clear()
+		best = minf(best, (Time.get_ticks_usec() - t0) / 1000.0)
+	return best
