@@ -7,13 +7,22 @@ extends Node3D
 
 ## Ragdolls kept for bodies out of sight (the oldest let go first).
 const KEEP_DOLLS := 64
-## Models kept hidden for reuse when their body leaves the view, per kind
-## and in all: a model made from its scene costs a few tenths of a
-## millisecond, and bodies leave and come back into view all the time as the
-## player turns. Few: each keeps its share of the shader instance numbers
-## (gl_compatibility has room for 4096, 1024 on some phones and browsers).
-const SPARE := 3
-const SPARE_ALL := 12
+## Models kept hidden (parked) when their body leaves the view, by body, at
+## most PARK and `park_most` (the view's room in the shader instance buffer:
+## a hidden model keeps its slot): a model made from its scene costs a few
+## tenths of a millisecond, and bodies leave and come back into view all the
+## time as the player turns (the view-bench made 1.6 a frame with the old
+## pool of three a kind). A body coming back gets its own model, a new one
+## the oldest parked model of its kind, else a new one; either is posed
+## afresh (ActorView.revive), as a model just made.
+const PARK := 24
+## A living body further than ActorView.REACH and this from the eye (map
+## x, y) is not posed or given a model at all: its model would not show
+## (its parts end there, measured to their middle, which is nearer its feet
+## than this). The game lists bodies to 54 cells ahead; their models were
+## made and posed every frame to show nothing (pass 10). The dead are posed
+## as before (their ragdolls).
+const BEYOND := 5.0
 
 var models: ActorModels
 ## enemy instance id -> ActorView
@@ -24,10 +33,13 @@ var _dolls: Dictionary = {}
 var _mirrored: ActorView
 ## "enemy instance id:gear" -> the piece of gear shot off (show_gear)
 var _pieces: Dictionary = {}
-## kind -> Array of hidden ActorViews ready for reuse (SPARE), how many
-var _spare: Dictionary = {}
-var _spares := 0
-## kind -> the hidden model warm() made for it.
+## enemy instance id -> its hidden ActorView, the oldest first (PARK)
+var _parked: Dictionary = {}
+var park_most := PARK
+## Models made from their scenes since the layer was made (view_perf_check).
+var made_total := 0
+## kind -> the hidden model warm() made for the first body of that kind
+## (not parked: the first of its kind takes it, _make).
 var _warmed: Dictionary = {}
 
 
@@ -72,6 +84,12 @@ func request(enemies: Array, later: Array[String]) -> void:
 ## raiders), make their looks and find their ragdoll rigs now (a level's
 ## first frame) rather than when the first of them comes into view.
 func warm(kinds: Array) -> void:
+	# The last level's warmed models of kinds this one will not bring go.
+	for kind: String in _warmed.keys():
+		if not kinds.has(kind):
+			var old: ActorView = _warmed[kind]
+			old.queue_free()
+			_warmed.erase(kind)
 	for kind: String in kinds:
 		if not models.has(kind):
 			continue
@@ -88,12 +106,13 @@ func warm(kinds: Array) -> void:
 		# view's warm-up draws it once (warm_roots), so the herd's first frame
 		# does not pay the model's first draw (hitch_bench's hogs: 35 -> 19
 		# ms; a second and third so made took off under a millisecond more).
-		var kept: Array = _spare.get(kind, [])
-		if kept.is_empty():
+		# Not parked, so it takes none of the parking's room but its own slot
+		# (held()), till the first body of its kind takes it (_make).
+		if not _warmed.has(kind):
 			var fresh: Array[ShaderMaterial] = []
 			var view := _make(kind, fresh, false)
 			if view != null:
-				_retire(view)
+				view.retire()
 				_warmed[kind] = view
 
 
@@ -101,13 +120,27 @@ func warm(kinds: Array) -> void:
 func warm_roots() -> Array[Node3D]:
 	var out: Array[Node3D] = []
 	for kind: String in _warmed:
-		var held: Variant = _warmed[kind]
-		if not is_instance_valid(held):
-			continue
-		var view: ActorView = held
+		var view: ActorView = _warmed[kind]
 		if not view.visible:
 			out.append(view)
 	return out
+
+
+## The models the layer holds, shown, parked, the mirror's and the gear shot
+## off (each a slot in the shader instance buffer).
+func held() -> int:
+	return (
+		_shown.size()
+		+ _parked.size()
+		+ _warmed.size()
+		+ _pieces.size()
+		+ (1 if _mirrored != null else 0)
+	)
+
+
+## How many models are parked (their bodies out of view).
+func parked() -> int:
+	return _parked.size()
 
 
 ## The materials the models shown now draw with (bodies, gear shot off,
@@ -154,7 +187,12 @@ func takes(s: View.Sprite, e: Enemy) -> bool:
 ## Show these sprites (each an enemy's, with a model) and no others. Returns
 ## the materials first used this frame (the view hands them its numbers).
 func show_actors(
-	sprites: Array, level: LevelData, clock: float, lost: Dictionary, gear_lost := {}
+	sprites: Array,
+	level: LevelData,
+	clock: float,
+	lost: Dictionary,
+	gear_lost := {},
+	eye := Vector3.INF
 ) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
 	var seen := {}
@@ -168,17 +206,26 @@ func show_actors(
 		if shown.doll != null:
 			dolls.append(shown.doll)
 	Ragdoll.others = dolls
+	var far := (ActorView.REACH + BEYOND) * (ActorView.REACH + BEYOND)
 	for s: View.Sprite in sprites:
 		var e := s.who as Enemy
+		if e.alive and Vector2(s.x - eye.x, s.y - eye.y).length_squared() > far:
+			continue
 		var kind := kind_of(e)
 		var id := e.get_instance_id()
 		seen[id] = true
 		var view: ActorView = _shown.get(id)
 		if view == null or view.kind != kind:
 			if view != null:
-				_retire(view)
+				_park(id, view)
 			_shown.erase(id)
-			view = _make(kind, fresh)
+			view = _parked.get(id)
+			if view != null and view.kind == kind:
+				# Its own model, posed afresh as a model just made would be.
+				_parked.erase(id)
+				view.revive()
+			else:
+				view = _make(kind, fresh)
 			if view == null:
 				continue
 			_shown[id] = view
@@ -199,22 +246,25 @@ func show_actors(
 				_dolls[id] = old.doll
 				if _dolls.size() > KEEP_DOLLS:
 					_dolls.erase(_dolls.keys()[0])
-			_retire(old)
 			_shown.erase(id)
+			_park(id, old)
+	while _parked.size() > maxi(0, park_most):
+		var oldest: int = _parked.keys()[0]
+		var gone: ActorView = _parked[oldest]
+		_parked.erase(oldest)
+		gone.queue_free()
 	return fresh
 
 
-## A model no longer shown: hidden and kept for its kind's next body
-## (SPARE of a kind, SPARE_ALL in all), or freed.
-func _retire(view: ActorView) -> void:
-	var kept: Array = _spare.get(view.kind, [])
-	if kept.size() >= SPARE or _spares >= SPARE_ALL:
-		view.queue_free()
-		return
+## A model no longer shown: hidden and kept for its body (or the next of its
+## kind); show_actors lets the oldest go past park_most.
+func _park(id: int, view: ActorView) -> void:
+	var was: ActorView = _parked.get(id)
+	if was != null and was != view:
+		was.queue_free()
+	_parked.erase(id)
 	view.retire()
-	kept.append(view)
-	_spare[view.kind] = kept
-	_spares += 1
+	_parked[id] = view
 
 
 ## Show the player's reflection `s` as its model on render layers `bits`
@@ -297,12 +347,19 @@ func show_gear(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 
 
 func _make(kind: String, fresh: Array[ShaderMaterial], reuse := true) -> ActorView:
-	var kept: Array = _spare.get(kind, [])
-	if reuse and not kept.is_empty():
-		var again: ActorView = kept.pop_back()
-		_spares -= 1
-		again.revive()
-		return again
+	if reuse and _warmed.has(kind):
+		# The model warm() made for the first of this kind.
+		var first: ActorView = _warmed[kind]
+		_warmed.erase(kind)
+		first.revive()
+		return first
+	if reuse:
+		for id: int in _parked:
+			var again: ActorView = _parked[id]
+			if again.kind == kind:
+				_parked.erase(id)
+				again.revive()
+				return again
 	var packed := models.scene(kind)
 	if packed == null:
 		return null
@@ -310,6 +367,7 @@ func _make(kind: String, fresh: Array[ShaderMaterial], reuse := true) -> ActorVi
 	var view := packed.instantiate() as ActorView
 	if view == null:
 		return null
+	made_total += 1
 	if not view.setup(models):
 		view.free()
 		return null
@@ -317,3 +375,13 @@ func _make(kind: String, fresh: Array[ShaderMaterial], reuse := true) -> ActorVi
 		fresh.append(models.material(kind))
 	add_child(view)
 	return view
+
+
+## Where enemy `e`'s model shows its body's middle (map x, y and height), or
+## null when it is not drawn (boss_ending.gd frames a fallen boss by it).
+func body_middle(e: Enemy) -> Variant:
+	var view: ActorView = _shown.get(e.get_instance_id())
+	if view == null or not view.visible:
+		return null
+	var at := view.body_middle()
+	return Vector3(at.x, at.z, at.y)

@@ -17,10 +17,10 @@ render_mode unshaded, cull_disabled, depth_draw_never, blend_mix, shadows_disabl
 
 // The ring's radius (cells), how hard the storm blows (0 to 1), the ground's
 // height under it, and whether the rich wall is drawn.
-uniform float storm_r = 10.0;
-uniform float storm_k = 0.5;
-uniform float storm_base = 0.0;
-uniform bool storm_rich = true;
+global uniform float storm_r;
+global uniform float storm_k;
+global uniform float storm_base;
+global uniform bool storm_rich;
 // 0 the front curtain, 1 the one behind it.
 uniform int layer_k = 0;
 

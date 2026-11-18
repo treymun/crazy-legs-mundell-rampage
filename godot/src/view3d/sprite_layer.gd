@@ -35,6 +35,8 @@ var _slot_used := PackedInt64Array()
 var _slot_size: Array[Vector2i] = []
 var _frame := 0
 var _drop := {}
+## picture -> its size (w, h), asked for every sprite every frame.
+var _sizes := {}
 var _blank: Image
 
 
@@ -198,6 +200,11 @@ func show_sprites(
 	var fy := sin(angle)
 	var solid_buf := PackedFloat32Array()
 	var clear_buf := PackedFloat32Array()
+	# Room for every row at once (each put() grew the arrays by one row).
+	solid_buf.resize(sprites.size() * FLOATS)
+	clear_buf.resize(sprites.size() * FLOATS)
+	var rows := Vector2i.ZERO
+	var across := Vector3(-sin(angle), 0.0, cos(angle))
 	for item: Variant in sprites:
 		if not item is View.Sprite:
 			continue
@@ -216,7 +223,14 @@ func show_sprites(
 				continue
 		if board and dx * sin(s.plane) - dy * cos(s.plane) <= .02 and not everywhere:
 			continue
-		_row(clear_buf if s.translucent else solid_buf, s, level, angle)
+		if s.translucent:
+			_row(clear_buf, rows.y, s, level, across)
+			rows.y += 1
+		else:
+			_row(solid_buf, rows.x, s, level, across)
+			rows.x += 1
+	solid_buf.resize(rows.x * FLOATS)
+	clear_buf.resize(rows.y * FLOATS)
 	fill(solid, solid_buf)
 	fill(clear, clear_buf)
 
@@ -225,22 +239,32 @@ func show_sprites(
 func show_reflection(sprite: View.Sprite, level: LevelData, angle: float) -> void:
 	var buf := PackedFloat32Array()
 	if sprite != null and sprite.image != "":
-		_row(buf, sprite, level, angle)
+		buf.resize(FLOATS)
+		_row(buf, 0, sprite, level, Vector3(-sin(angle), 0.0, cos(angle)))
 	fill(reflection, buf)
 
 
-## One instance's 20 numbers, added to `buf`: its transform (a billboard's
-## width along the view's right, a board's along its own axis), its tint and
-## light, its art slot and size, its flags and hit wash.
-func _row(buf: PackedFloat32Array, s: View.Sprite, level: LevelData, angle: float) -> void:
+## One instance's 20 numbers, row `at` of `buf`: its transform (a billboard's
+## width along the view's right, `across`, a board's along its own axis),
+## its tint and light, its art slot and size, its flags and hit wash.
+func _row(
+	buf: PackedFloat32Array, at: int, s: View.Sprite, level: LevelData, across: Vector3
+) -> void:
 	var board := not is_nan(s.plane)
 	var slot := _slot(s.image)
 	var size := _slot_size[slot]
-	var a := _assets.art(s.image)
-	var art_w: float = a["w"]
-	var art_h: float = a["h"]
-	var width := s.height * art_w / maxf(1.0, art_h)
-	var axis := Vector3(-sin(angle), 0.0, cos(angle))
+	var art_size: Variant = _sizes.get(s.image)
+	if art_size == null:
+		var a := _assets.art(s.image)
+		var w: int = a["w"]
+		var h: int = a["h"]
+		art_size = Vector2(w, h)
+		# A picture still coming (a blank stand-in) is asked again next time.
+		if _assets.art_ready(s.image):
+			_sizes[s.image] = art_size
+	var art_wh: Vector2 = art_size
+	var width := s.height * art_wh.x / maxf(1.0, art_wh.y)
+	var axis := across
 	if board:
 		axis = Vector3(cos(s.plane), 0.0, sin(s.plane))
 	var z := s.z
@@ -263,8 +287,9 @@ func _row(buf: PackedFloat32Array, s: View.Sprite, level: LevelData, angle: floa
 	var bx := axis * width
 	var by := Vector3(0.0, s.height, 0.0)
 	var bz := bx.cross(by).normalized()
-	put(
+	put_at(
 		buf,
+		at,
 		bx,
 		by,
 		bz,
@@ -344,8 +369,23 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 static func put(
 	buf: PackedFloat32Array, bx: Vector3, by: Vector3, bz: Vector3, o: Vector3, c: Color, d: Color
 ) -> void:
-	var i := buf.size()
-	buf.resize(i + FLOATS)
+	var at := buf.size() / FLOATS
+	buf.resize(buf.size() + FLOATS)
+	put_at(buf, at, bx, by, bz, o, c, d)
+
+
+## put() into row `at` of a buffer already that long.
+static func put_at(
+	buf: PackedFloat32Array,
+	at: int,
+	bx: Vector3,
+	by: Vector3,
+	bz: Vector3,
+	o: Vector3,
+	c: Color,
+	d: Color
+) -> void:
+	var i := at * FLOATS
 	buf[i] = bx.x
 	buf[i + 1] = by.x
 	buf[i + 2] = bz.x

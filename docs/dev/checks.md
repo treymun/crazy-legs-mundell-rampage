@@ -58,6 +58,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | Check | Passes with | In quick | What it holds |
 | --- | --- | --- | --- |
 | `check_shader` | SHADER OK | yes | texture counts: `display.gdshader` at most 9 (incl. TEXTURE), each view3d shader with its includes at most 10 |
+| `view_perf_check` | VIEW PERF CHECK OK | yes | the 3D view's frame stays cheap (pass 10): its global uniforms match `project.godot` and the shaders, no view3d shader keeps a uniform array, no frame number goes to a material; two to four turns round Hickston's spawn with its hands awake make no prop or model again after the first, nothing past where it shows gets a model, the shader instance buffer stays in its room; `frame()`'s lower quartile under 1.2 times a yardstick of plain GDScript |
 | `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads (a station's with both looks, every quest picture modelled); every slab (pickups, loose things, range targets) builds at its picture's size; no fallen body's part stays up at `down` (fit.json `down_high` for the cow's raised legs); the hanging lamp is the shop_lamp model and a tipped cow rolls on her hooves (`ActorView.tipped`) |
 | `actor_check` | ACTOR CHECK OK | yes | the actors' models (polish pass 9): every actors.json kind's glb, scene and looks (square, a power of two), keys numbered once each, bone labels, canvas; fit.json names only models and numbers ActorModels reads; every kind has the frames the game asks for (walk with its closing `w4`, fall, hurt set, a boss's recover, a critter's -1/0/1); texels a metre over each body and head at least `TEXEL_MIN`/`HEAD_MIN` (`report` prints them), the hound's at least `HOUND_MIN`/`HOUND_HEAD_MIN`; the hound's fourteen motions and ten poses (pass 10), each motion's keys in a row, played on the gait, a one-shot ending on its last key, his own fit.json blend, and his drawn size (shoulder .33-.41 and head top .41-.52 of Mundell's drawn height, measured on his skinned model); ActorView's looks-only motion: pose blends, no blend between walk beats, hit flinches by zone with their own dice and still after `FLINCH`, idle breath, mirrored scripted falls (never a boss), game.rng untouched; specks between `View.SPECK_PX_MIN` and `SPECK_PX_MAX` pixels; a partner on the riding mower shows Mundell's `sit` ([view3d.md](view3d.md#actors)) |
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
@@ -95,7 +96,9 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `menu_touch_check` | MENU TOUCH OK | yes | taps through every menu, the 5v5 store, the County Run screens as touch events; in play the junk bench's board (a tag bought, a tap off it), the USE button held (`Controls.hold`) and a tap skipping an opener ([ui.md](ui.md#touch-in-play-polish-pass-9)) |
 | `opener_check` | OPENER CHECK OK | yes | the chapter openers: every chapter's shots inside its map, card, tagline, boss cel and cues, the narrator's two lines STT-matched and in the bank; the OPENERS setting (FIRST TIME once, ALWAYS, OFF), never the hub, COUNTY RUN, a retry or a loaded save; a key or click skips it, it ends by itself, play's snapshot and clock unchanged in every chapter, two seconds of play after it the same as without; every opener draws its key moments; the sound: a bed of the chapter's own song from start to end and past it, played by the score player as the chapter's score, no gap over 0.5 s with nothing sounding in the mix plan, the bed never held to nothing and at play's level at the end, every line 6 dB over it, every cue in the bank and in its chapter's pack or the first download; played out the bed goes on at play's level, skipped the duck, sting and opener effects stop (`-- plan <file>` writes the mix plans) ([view3d.md](view3d.md#the-chapter-openers-content-pass-8)) |
 | `opener_camera_check` | OPENER CAMERA OK | yes | every opener's camera sampled 60 times a second: never in or skimming a wall, roof, deck, door, prop or the ground (`OpenerCamera.clear_at`); between cuts turns under 45 deg/s, tilts under 30, speed under 8 cells/s, velocity continuous (changes under 12 cells/s^2), a lean of at most 2.3 degrees; it lands in the player's own eye with his picture out of the way (`-- report` prints each chapter's numbers) |
-| `camera_check` | CAMERA CHECK OK | yes | the QUALITY tiers (pick, presets, AUTO's meter, physics steps); the HUD's Control boxes compose to `HUD.draw`'s bar pixel for pixel (campaign, 5v5, County Run, full and MINIMAL); PHOTO MODE in and out, flying, the player in view, a filter, a picture saved; the KILL CAM noted, sampled, replayed with stand-ins and skipped; play's snapshot unchanged by either; the view polish (`view_polish_check.gd`): SHADOWS' pairs and blobs, marks on a prop's model (holes, scorch, char, kept and handed on), the storm wall's curtains and ring |
+| `boss_end_check` | BOSS END OK | no | the boss endings (`src/boss_ending.gd`), every boss: felled in its rematch, the arena stood down (no hazard, no enemy shot, a hand near stunned), the ending started and run through the front end's frame to the result board in its band (5.1 to 5.8 s), its camera never in a wall, roof or the ground (`OpenerCamera.clear_at`) and keeping the boss in the shot, no HUD laid, the end sting still playing over the score's hand-back, the music as asked never silent over 0.5 s, the last word captioned, the board's time and ribbon; a key held off at first and a key a second in skipping to the board; in the campaign with two players it plays its length and hands back to play; the foreman's fall with and without it leaves the same game (play exact) |
+| `bark_check` | BARK CHECK OK | no | the county's talk in play: the balance bot plays Hickston and the mill (4 minutes or to the end) with an ear that times every line on the game clock; the hands' barks come at 1.5 to 14 lines a minute, never the same line twice running, never one over another still playing (a boss's line or a tough guy's piece cuts in), Mundell sizes up the chapter, and a minute of it is the same game as with CHATTER OFF ([audio.md](audio.md#voices)) |
+| `camera_check` | CAMERA CHECK OK | yes | the QUALITY tiers (pick, presets, AUTO's meter, physics steps); the HUD's Control boxes compose to `HUD.draw`'s bar pixel for pixel (campaign, 5v5, County Run, full and MINIMAL); PHOTO MODE in and out, flying, the player in view, a filter, a picture saved; the KILL CAM noted, sampled, replayed with stand-ins and skipped, never a boss's fall; play's snapshot unchanged by either; the view polish (`view_polish_check.gd`): SHADOWS' pairs and blobs, marks on a prop's model (holes, scorch, char, kept and handed on), the storm wall's curtains and ring |
 | `hud_layout_check` | HUD LAYOUT OK | yes | the HUD's layout ([ui.md](ui.md#the-huds-layout)): crowded moments (campaign, SMALL TEXT, MINIMAL, driving with a run, the lap, co-op watching and reviving, a boss, versus, the fair, COUNTY RUN, 5v5) drawn headless with each piece's ink measured: no two touch, all inside the margins, each expected piece there; the layout's rules; the status bar's meter captions fit their wells |
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server (`seconds=30`, as CI always ran it) |
@@ -298,7 +301,8 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   arena (Maw's third phase, the arena coming apart), fivev5 (ten bots in a
   grainyard round) and county (County Run at 12 minutes, the storm closing,
   38 hands) and prints each one's frame median, p99 and max, tick and render
-  means, the view's parts, what is on screen, the shader instance slots held
+  means, the view's parts, what is on screen, the shader instance parts held
+  (and the props and models parked out of view)
   and the memory (static, textures, buffers, video). Give it a scratch
   `APPDATA` with an options.json to pick a QUALITY tier.
 - **The first-time hitches**, in a window: `tools/hitch_bench.gd -- [only=a,b]
@@ -320,6 +324,33 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   again (warm), the 3D level mesh's whole build, the wreck cutting alone
   (since the load pass not part of the load: it runs on a worker in the
   level's first frames).
+
+### Measured in pass 10, the 3D view's draw (PERFGPU, 2026-11-17)
+
+Desktop, 1280x800 window, scratch `APPDATA`, v3.7.0 (`4972aec9`) against
+the PERFGPU branch alone (pass 10's BLUE and openers in, the other speed
+tracks not), six pairs run back to back alternating, medians of the six;
+the PC was busy (other tracks' runs), so single rows wander by 10%.
+The view's own work (`WorldView3D.parts_us`, all parts) fell about 2.2
+times; the whole frame, mostly the tick and the HUD and gun stage outside
+the view, by the factors below. The graphics card's time stayed 0.1 to
+0.4 ms a frame (35 draw calls, 50 to 60 objects in the 3D view).
+
+| What | v3.7.0 | PERFGPU | x |
+| --- | --- | --- | --- |
+| `--view-bench`, 8 chapters, frame median (geometric mean of the speed-ups) | | | 1.19 |
+| the same, p99 | | | 1.25 |
+| `--view-bench` LOW, frame median / p99 | | | 1.18 / 1.22 |
+| the view's parts, hickston HIGH / bayou HIGH / hickston LOW | 2.46 / 1.94 / 2.40 ms | 1.09 / 0.70 / 0.98 ms | 2.3 / 2.8 / 2.4 |
+| stress_bench, 7 scenes, frame median / p99 / max | | | 1.16 / 1.21 / 1.17 |
+| stress wreck48 frame median / p99 | 12.43 / 23.38 ms | 9.42 / 17.27 ms | 1.32 / 1.35 |
+| stress county frame median / p99, the view's parts | 10.23 / 21.27, 2.95 ms | 9.16 / 16.23, 2.25 ms | 1.12 / 1.31, 1.31 |
+| the view's `frame()` turning round Hickston headless (median) | 1.7 ms | 0.8 ms | 2.1 |
+
+Still the view's: posing many bodies close by (County Run late: 0.3 to
+0.5 ms of AnimationPlayer seeks, 0.2 ms of ragdolls), the sprites' and
+slabs' rows (0.1 to 0.6 ms with hundreds of bits about), the engine's own
+frame (about 0.5 ms, little of it the view's draw).
 
 ### Measured before v3.3.0 (track R, 2026-11-16)
 

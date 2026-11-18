@@ -71,15 +71,91 @@ var _moving_rows := PackedFloat32Array()
 var _cells: ImageTexture
 var _anim_tiles := {}
 var _params := {}
+## picture -> how a sprite showing it is drawn when nothing about the sprite
+## itself says otherwise (_picture_kind): PICTURE_MODEL a prop's model, else
+## its slab family (SlabModels.NONE: a picture). Asked for every sprite every
+## frame.
+const PICTURE_MODEL := -1
+var _picture_kinds := {}
+## The frame's numbers the shaders take as global uniforms (project.godot
+## [shader_globals]), as last set: one call a number, no material touched.
+## Every other _share number (the textures) goes to the materials.
+const GLOBALS := {
+	"anim_count": true,
+	"anim_time": true,
+	"blackout": true,
+	"effects_on": true,
+	"eye": true,
+	"flash": true,
+	"flash_dir": true,
+	"focal": true,
+	"fog_banks": true,
+	"fog_color": true,
+	"fog_range": true,
+	"grade": true,
+	"horizon": true,
+	"hub_fx": true,
+	"hub_patch": true,
+	"hub_runoff": true,
+	"hub_wall": true,
+	"light_count": true,
+	"lightning": true,
+	"liquor_flicker": true,
+	"map_size": true,
+	"mirror_on": true,
+	"mirror_x": true,
+	"moon_rim": true,
+	"motion": true,
+	"pool": true,
+	"rain": true,
+	"res_up": true,
+	"ring_count": true,
+	"shadow_gust": true,
+	"shadow_lx": true,
+	"shadow_ly": true,
+	"shadow_still": true,
+	"sky_drift": true,
+	"storm_base": true,
+	"storm_k": true,
+	"storm_r": true,
+	"storm_rich": true,
+	"storm_ring": true,
+	"view_angle": true,
+	"view_size": true,
+	"water_drift": true,
+	"wet": true,
+	"wind_now": true
+}
+var _globals := {}
+## The frame's lists (view_light.gdshaderinc view_row): ROWS rows of DATA_W
+## RGBA32F texels in view_data, uploaded once a frame when one changed.
+const DATA_W := 16
+const ROWS := 9
+const ROW_LIGHT_POS := 0
+const ROW_LIGHT_COL := 1
+const ROW_LIGHT_FLAGS := 2
+const ROW_RINGS := 3
+const ROW_ANIMS := 4
+const ROW_SHADOW_A := 5
+const ROW_SHADOW_B := 6
+const ROW_BLOBS := 7
+const ROW_FLOW := 8
+var _data := PackedFloat32Array()
+var _data_image: Image
+var _data_tex: ImageTexture
+var _data_dirty := false
 ## SHADOWS' numbers as last handed to the floors, walls and marks.
 var _received := {}
 var _materials: Array[ShaderMaterial] = []
-## The layers' materials drawn lately (_track_live), and the frame each was
-## last drawn on.
-const IDLE_FRAMES := 120
-var _live: Array[ShaderMaterial] = []
-var _used := {}
-var _frames := 0
+## The layers' materials met so far (_track_live): each handed the view's
+## material numbers (the textures) once, and again when one changes.
+var _known := {}
+## The level's flowing floors' first two tiles and speeds, and the moving
+## tiles' rows (_uniforms), worked out when the level or its tiles change.
+var _flows_of: LevelData
+var _flows: Array = []
+var _anims := PackedVector4Array()
+var _anim_count := -1
 var _rain: Array[MeshInstance3D] = []
 ## County Run's storm front: a wall round the safe ground, its front curtain
 ## and the one behind it (storm_wall.gdshader).
@@ -123,6 +199,17 @@ const PART_NAMES: Array[String] = [
 	"uniforms"
 ]
 var parts_us := PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+## The shader instance buffer: every model part drawn with instance uniforms
+## (props, wreck pieces, actors, seat views) holds a block of 16 of its vec4
+## slots, shown or hidden (Godot's fixed block, whatever the shader uses;
+## measured, pass 10), after the global uniforms' 44: 4096 slots on a desktop
+## are INSTANCE_PARTS parts, 1024 where a uniform block holds 16 KB (WebGL2's
+## least, many phones) INSTANCE_PARTS_SMALL. Past it the parts draw black. The layers park what
+## left the view (hidden, shown again when it comes back) only in the room
+## left after what is shown and INSTANCE_SPARE more.
+const INSTANCE_PARTS := 250
+const INSTANCE_PARTS_SMALL := 60
+const INSTANCE_SPARE := 40
 var _mirror_view: SubViewport
 var _mirror_camera: Camera3D
 
@@ -276,6 +363,12 @@ func _init(assets: Assets) -> void:
 	_materials.append(solids.material)
 	_share("tiles", tiles.tiles)
 	_share("tile_info_tex", tiles.info)
+	_data.resize(DATA_W * ROWS * 4)
+	_data_image = Image.create_from_data(
+		DATA_W, ROWS, false, Image.FORMAT_RGBAF, _data.to_byte_array()
+	)
+	_data_tex = ImageTexture.create_from_image(_data_image)
+	_share("view_data", _data_tex)
 
 
 ## What a level may show later that costs a hitch the first time (a model
@@ -432,6 +525,28 @@ func warming() -> bool:
 	return _warm > 0
 
 
+## How many model parts with instance uniforms this machine has room for.
+static func instance_parts() -> int:
+	if OS.has_feature("web") or OS.has_feature("mobile"):
+		return INSTANCE_PARTS_SMALL
+	return INSTANCE_PARTS
+
+
+## The model parts with instance uniforms the view holds now.
+func instance_held() -> int:
+	return props.held() + wrecks.held() + actors.held()
+
+
+## How many props and actors out of view may stay parked in the room left:
+## actors first (a model costs a few tenths of a millisecond to make, a prop
+## a few hundredths), never past the room.
+func _park_room() -> void:
+	var room := instance_parts() - INSTANCE_SPARE - instance_held()
+	actors.park_most = clampi(actors.parked() + room, 0, ActorLayer3D.PARK)
+	room -= actors.park_most - actors.parked()
+	props.park_most = clampi(props.parked() + room, 0, PropLayer3D.PARK)
+
+
 func texture() -> ViewportTexture:
 	return viewport.get_texture()
 
@@ -448,57 +563,81 @@ func _moon_rim(id: String, county: CountyEvents, dark: float) -> Vector4:
 	return Vector4(rim.r, rim.g, rim.b, amount)
 
 
-## Set a shader number on every material of the view in use, when it
-## changed: the view's own and the props', wrecks' and actors' drawn lately
-## (_track_live; one not drawn for a while is handed every number when it is
-## drawn again).
+## A number as last handed to the shaders (_share), global or not; null when
+## never handed (tools/view_perf_check.gd, view_polish_check.gd).
+func shared(name: String) -> Variant:
+	return _globals.get(name, _params.get(name))
+
+
+## Set a shader number when it changed: a global uniform (GLOBALS) once, or
+## else (the textures) on the view's own materials and every layer's met so
+## far (_track_live).
 func _share(name: String, value: Variant) -> void:
+	if GLOBALS.has(name):
+		var was: Variant = _globals.get(name)
+		if was != null and typeof(was) == typeof(value) and was == value:
+			return
+		_globals[name] = value
+		RenderingServer.global_shader_parameter_set(name, value)
+		return
 	var old: Variant = _params.get(name)
 	if old != null and typeof(old) == typeof(value) and old == value:
 		return
 	_params[name] = value
 	for m: ShaderMaterial in _materials:
 		m.set_shader_parameter(name, value)
-	for m: ShaderMaterial in _live:
+	for m: ShaderMaterial in _known:
 		m.set_shader_parameter(name, value)
 
 
-## The props', wrecks' and actors' materials drawn this frame join `_live`
-## (handed every shader number first when they were not in it); those not
-## drawn for IDLE_FRAMES leave it. A long session meets hundreds of models,
-## and handing each frame's numbers to every one of them cost more than the
-## rest of the frame's view work.
+## The props', wrecks' and actors' materials drawn this frame: one not met
+## before is handed the view's material numbers. (Until pass 10 the frame's
+## numbers went to every material drawn lately, each frame: `_live`.)
 func _track_live(materials: Array[ShaderMaterial]) -> void:
-	_frames += 1
 	for m in materials:
-		var last: int = _used.get(m, -IDLE_FRAMES - 1)
-		if _frames - last > IDLE_FRAMES:
+		if not _known.has(m):
+			_known[m] = true
 			for key: String in _params:
 				m.set_shader_parameter(key, _params[key])
-			_live.append(m)
-		_used[m] = _frames
-	var k := _live.size() - 1
-	while k >= 0:
-		var gone: int = _used[_live[k]]
-		if _frames - gone > IDLE_FRAMES:
-			_live.remove_at(k)
-		k -= 1
+
+
+## Row `row` of view_data from `values` (as many as fit), when it changed.
+func _row(row: int, values: PackedVector4Array) -> void:
+	var o := row * DATA_W * 4
+	for i in mini(values.size(), DATA_W):
+		var v := values[i]
+		var k := o + i * 4
+		if _data[k] != v.x or _data[k + 1] != v.y or _data[k + 2] != v.z or _data[k + 3] != v.w:
+			_data[k] = v.x
+			_data[k + 1] = v.y
+			_data[k + 2] = v.z
+			_data[k + 3] = v.w
+			_data_dirty = true
+
+
+## view_data to the graphics card, when a row changed this frame.
+func _upload_data() -> void:
+	if not _data_dirty:
+		return
+	_data_dirty = false
+	_data_image.set_data(DATA_W, ROWS, false, Image.FORMAT_RGBAF, _data.to_byte_array())
+	_data_tex.update(_data_image)
 
 
 ## SHADOWS' numbers (view_shadows.gd), only to what takes shadows: the
-## level's floors and walls and the marks on them, when they changed.
+## level's floors and walls and the marks on them (their counts; the lists
+## are view_data's rows), when they changed.
 func _share_shadows() -> void:
 	var counts := Vector2i(_shadows.pair_count, _shadows.blob_count)
 	var values := {
 		"shadow_count": counts.x,
 		"blob_count": counts.y,
 	}
-	# Copies: the layer fills its own arrays again each frame.
 	if counts.x > 0:
-		values["shadow_a"] = _shadows.pair_a.duplicate()
-		values["shadow_b"] = _shadows.pair_b.duplicate()
+		_row(ROW_SHADOW_A, _shadows.pair_a)
+		_row(ROW_SHADOW_B, _shadows.pair_b)
 	if counts.y > 0:
-		values["blobs"] = _shadows.blobs.duplicate()
+		_row(ROW_BLOBS, _shadows.blobs)
 	var takers: Array[ShaderMaterial] = [world_material, glass_material, sprites.mark_material]
 	for name: String in values:
 		var value: Variant = values[name]
@@ -574,26 +713,39 @@ func frame(game: Game) -> void:
 	var gear: Array = []
 	var listed: Array = view["sprites"]
 	for item: Variant in listed:
-		var s: View.Sprite = item if item is View.Sprite else null
-		if s != null and WreckLayer3D.takes(s):
+		if not item is View.Sprite:
+			pictures.append(item)
+			continue
+		var s: View.Sprite = item
+		# WreckLayer3D.takes, SolidLayer3D.takes, actors.takes, a prop's
+		# model, slabs.takes, in that order, the picture's part kept.
+		var enemy := s.who is Enemy
+		if s.solid.begins_with("~"):
 			wrecked.append(s)
-		elif s != null and s.gear != "" and s.who is Enemy:
+		elif enemy and s.gear != "":
 			if not cels:
 				gear.append(s)
-		elif s != null and SolidLayer3D.takes(s):
+		elif s.solid != "":
 			solid.append(s)
-		elif s != null and not cels and s.who is Enemy and actors.takes(s, s.who as Enemy):
+		elif enemy and not cels and actors.takes(s, s.who as Enemy):
 			acting.append(s)
-		elif s != null and props.models.name_of(s.image) != "":
-			modelled.append(s)
-		elif s != null and slabs.takes(s):
-			slabbed.append(s)
 		else:
-			pictures.append(item)
+			var kind := _picture_kind(s.image)
+			if kind == PICTURE_MODEL:
+				modelled.append(s)
+			elif (
+				kind != SlabModels.NONE
+				and not s.translucent
+				and (kind != SlabModels.PICKUP or is_nan(s.plane))
+			):
+				slabbed.append(s)
+			else:
+				pictures.append(item)
+	_park_room()
 	var t1 := Time.get_ticks_usec()
 	_shadows.collect(game, acting, modelled, wrecked, Vector3(x, y, z), props.models)
 	var t2 := Time.get_ticks_usec()
-	var fresh := props.show_props(modelled, level)
+	var fresh := props.show_props(modelled, level, Vector3(x, y, z))
 	var t3 := Time.get_ticks_usec()
 	fresh.append_array(wrecks.show_wrecks(wrecked, level))
 	var t4 := Time.get_ticks_usec()
@@ -601,8 +753,14 @@ func frame(game: Game) -> void:
 	var t5 := Time.get_ticks_usec()
 	var gear_lost: Dictionary = view.get("gear_lost", {})
 	ActorView.draws += 1
-	ActorView.lod_eye = Vector3(x, y, z) if r.detail == 1 else Vector3.INF
-	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost, gear_lost))
+	ActorView.lod_eye = Vector3(x, y, z)
+	ActorView.lod_high = ActorView.LOD_HIGH * r.focal / View.FOCAL
+	ActorView.lod_low = r.detail == 1
+	fresh.append_array(
+		actors.show_actors(
+			acting, level, game.clock, game.gore_fx.lost, gear_lost, Vector3(x, y, z)
+		)
+	)
 	fresh.append_array(actors.show_gear(gear, level))
 	var t6 := Time.get_ticks_usec()
 	# The player in the mirror: their model when they have one, else their picture.
@@ -644,6 +802,22 @@ func frame(game: Game) -> void:
 	var at := [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11]
 	for k in PART_NAMES.size():
 		parts_us[k] += at[k + 1] - at[k]
+
+
+## How a sprite showing `image` is drawn by its picture alone (_picture_kinds):
+## kept once known (a picture whose model is still coming is asked again).
+func _picture_kind(image: String) -> int:
+	var known: Variant = _picture_kinds.get(image)
+	if known != null:
+		var kind: int = known
+		return kind
+	if props.models.name_of(image) != "":
+		_picture_kinds[image] = PICTURE_MODEL
+		return PICTURE_MODEL
+	var family := slabs.family_of(image)
+	if not props.models.named(image):
+		_picture_kinds[image] = family
+	return family
 
 
 func _place_camera(
@@ -746,6 +920,7 @@ func _build(level: LevelData, at_hub: bool) -> void:
 			_anim_tiles[int(level.walls[i * LevelData.WALL_STRIDE + 4])] = true
 		for t in level.floor_tile:
 			_anim_tiles[t] = true
+		_anim_count = -1
 	if level.retiled.size() > _retiled_seen:
 		# A window shot out, a fence shot about: only its chunks again.
 		var only := {}
@@ -806,6 +981,7 @@ func _reshape(level: LevelData, at_hub: bool) -> void:
 	_cells.update(_cell_pixels)
 	for i in level.wall_count:
 		_anim_tiles[int(level.walls[i * LevelData.WALL_STRIDE + 4])] = true
+	_anim_count = -1
 
 
 func _chunk_node(k: Vector2i, chunk: ArrayMesh) -> void:
@@ -853,19 +1029,30 @@ func _uniforms(
 	_share("flash", flash)
 	var phase := r.time - floorf(r.time / 6.1) * 6.1
 	_share("liquor_flicker", phase > .87 and phase < 1.02)
+	if _flows_of != _level:
+		_flows_of = _level
+		_flows = []
+		for h: float in _level.moving_floors:
+			for f: Array in _level.moving_floors[h]:
+				var tile: int = f[0]
+				var speed: float = f[1]
+				if (
+					_flows.size() < 2
+					and not _flows.any(func(g: Array) -> bool: return g[0] == tile)
+				):
+					_flows.append([tile, speed])
 	var flow_tile := PackedInt32Array([-1, -1])
 	var flow_shift := PackedInt32Array([0, 0])
-	var found := 0
-	for h: float in _level.moving_floors:
-		for f: Array in _level.moving_floors[h]:
-			var tile: int = f[0]
-			var speed: float = f[1]
-			if found < 2 and not flow_tile.has(tile):
-				flow_tile[found] = tile
-				flow_shift[found] = int(r.time * speed) & 127
-				found += 1
-	_share("flow_tile", flow_tile)
-	_share("flow_shift", flow_shift)
+	for found in _flows.size():
+		var flow: Array = _flows[found]
+		var tile: int = flow[0]
+		var speed: float = flow[1]
+		flow_tile[found] = tile
+		flow_shift[found] = int(r.time * speed) & 127
+	_row(
+		ROW_FLOW,
+		PackedVector4Array([Vector4(flow_tile[0], flow_tile[1], flow_shift[0], flow_shift[1])])
+	)
 	_share("view_angle", fmod(angle, TAU * 512.0))
 	var horizon: float = view["horizon"]
 	# A widened view (a driver's) has its horizon row and focal moved with it.
@@ -896,6 +1083,7 @@ func _uniforms(
 	_effects(game)
 	_storm(game, cam)
 	_twister_at(game)
+	_upload_data()
 
 
 ## A county event's twister: its funnel stood where it is, its strength (a
@@ -1011,9 +1199,14 @@ func _effects(game: Game) -> void:
 		var light_flags: int = l[6] if l.size() > 6 else 0
 		flags[i] = light_flags
 	_share("light_count", mini(found.size(), Effects.MAX_LIGHTS))
-	_share("light_pos", at)
-	_share("light_col", tint)
-	_share("light_flags", flags)
+	_row(ROW_LIGHT_POS, at)
+	_row(ROW_LIGHT_COL, tint)
+	# The flags whole: 16 bits a channel, as a float holds them exactly.
+	var halves := PackedVector4Array()
+	halves.resize(Effects.MAX_LIGHTS)
+	for i in flags.size():
+		halves[i] = Vector4(flags[i] & 0xFFFF, (flags[i] >> 16) & 0xFFFF, 0.0, 0.0)
+	_row(ROW_LIGHT_FLAGS, halves)
 	_shadows.pair(found)
 	_share_shadows()
 	var id := game.level.id
@@ -1052,23 +1245,25 @@ func _effects(game: Game) -> void:
 		var wk: float = w[3]
 		rings[i] = Vector4(wx, wy, wr, wk)
 	_share("ring_count", mini(shown.size(), 16))
-	_share("rings", rings)
-	var anims := PackedVector4Array()
-	anims.resize(Effects.MAX_ANIMS)
-	var count := 0
-	for tile_name: String in Effects.ANIMS:
-		if count >= Effects.MAX_ANIMS or not _assets.tile_index.has(tile_name):
-			continue
-		var tile: int = _assets.tile_index[tile_name]
-		if not _anim_tiles.has(tile):
-			continue
-		var a: Dictionary = Effects.ANIMS[tile_name]
-		var rate: float = a.get("rate", 8.0)
-		var depth: float = a.get("depth", .05)
-		anims[count] = Vector4(
-			tile, 0.0 if str(a.get("mode", "neon")) == "neon" else 1.0, rate, depth
-		)
-		count += 1
-	_share("anim_count", count)
-	_share("anims", anims)
+	_row(ROW_RINGS, rings)
+	if _anim_count < 0:
+		# The moving tiles the level shows (again when its tiles change).
+		_anims = PackedVector4Array()
+		_anims.resize(Effects.MAX_ANIMS)
+		_anim_count = 0
+		for tile_name: String in Effects.ANIMS:
+			if _anim_count >= Effects.MAX_ANIMS or not _assets.tile_index.has(tile_name):
+				continue
+			var tile: int = _assets.tile_index[tile_name]
+			if not _anim_tiles.has(tile):
+				continue
+			var a: Dictionary = Effects.ANIMS[tile_name]
+			var rate: float = a.get("rate", 8.0)
+			var depth: float = a.get("depth", .05)
+			_anims[_anim_count] = Vector4(
+				tile, 0.0 if str(a.get("mode", "neon")) == "neon" else 1.0, rate, depth
+			)
+			_anim_count += 1
+	_share("anim_count", _anim_count)
+	_row(ROW_ANIMS, _anims)
 	_share("anim_time", fposmod(game.clock, 3600.0))

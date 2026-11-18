@@ -65,3 +65,185 @@ gdscript/warnings/unsafe_call_argument=2
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/clmr_levels/plugin.cfg", "res://addons/clmr_maps/plugin.cfg")
+
+[shader_globals]
+
+; The 3D view's numbers of the frame (src/view3d/view_light.gdshaderinc,
+; world_view.gd _share), set once a frame instead of on every material.
+
+anim_count={
+"type": "int",
+"value": 0
+}
+anim_time={
+"type": "float",
+"value": 0.0
+}
+blackout={
+"type": "float",
+"value": 0.0
+}
+effects_on={
+"type": "bool",
+"value": false
+}
+eye={
+"type": "vec3",
+"value": Vector3(0.0, 0.0, 0.0)
+}
+flash={
+"type": "float",
+"value": 0.0
+}
+flash_dir={
+"type": "vec2",
+"value": Vector2(0.6, -0.8)
+}
+focal={
+"type": "float",
+"value": 230.0
+}
+fog_banks={
+"type": "float",
+"value": 0.0
+}
+fog_color={
+"type": "vec3",
+"value": Vector3(0.0, 0.0, 0.0)
+}
+fog_range={
+"type": "vec3",
+"value": Vector3(1000.0, 2000.0, 0.0)
+}
+grade={
+"type": "vec3",
+"value": Vector3(1.0, 1.0, 1.0)
+}
+horizon={
+"type": "float",
+"value": 78.0
+}
+hub_fx={
+"type": "bool",
+"value": false
+}
+hub_patch={
+"type": "int",
+"value": -1
+}
+hub_runoff={
+"type": "int",
+"value": -1
+}
+hub_wall={
+"type": "int",
+"value": -1
+}
+light_count={
+"type": "int",
+"value": 0
+}
+lightning={
+"type": "float",
+"value": 0.0
+}
+liquor_flicker={
+"type": "bool",
+"value": false
+}
+map_size={
+"type": "ivec2",
+"value": Vector2i(1, 1)
+}
+mirror_on={
+"type": "bool",
+"value": false
+}
+mirror_x={
+"type": "float",
+"value": 0.0
+}
+moon_rim={
+"type": "vec4",
+"value": Vector4(0.0, 0.0, 0.0, 0.0)
+}
+motion={
+"type": "float",
+"value": 1.0
+}
+pool={
+"type": "float",
+"value": 0.0
+}
+rain={
+"type": "float",
+"value": 0.0
+}
+res_up={
+"type": "float",
+"value": 1.0
+}
+ring_count={
+"type": "int",
+"value": 0
+}
+shadow_gust={
+"type": "float",
+"value": 0.0
+}
+shadow_lx={
+"type": "float",
+"value": 1.15
+}
+shadow_ly={
+"type": "float",
+"value": 0.73
+}
+shadow_still={
+"type": "bool",
+"value": false
+}
+sky_drift={
+"type": "float",
+"value": 0.0
+}
+storm_base={
+"type": "float",
+"value": 0.0
+}
+storm_k={
+"type": "float",
+"value": 0.5
+}
+storm_r={
+"type": "float",
+"value": 10.0
+}
+storm_rich={
+"type": "bool",
+"value": true
+}
+storm_ring={
+"type": "vec4",
+"value": Vector4(0.0, 0.0, 0.0, 0.0)
+}
+view_angle={
+"type": "float",
+"value": 0.0
+}
+view_size={
+"type": "vec2",
+"value": Vector2(320.0, 156.0)
+}
+water_drift={
+"type": "float",
+"value": 0.0
+}
+wet={
+"type": "float",
+"value": 0.0
+}
+wind_now={
+"type": "vec3",
+"value": Vector3(0.0, 0.0, 1.0)
+}

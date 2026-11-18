@@ -150,6 +150,26 @@ always sounds like itself).
   after a few seconds); Mundell's answer to a boss's entrance or fall waits
   for the boss to finish (`enemy_barks.gd _mundell_after`). All of it is
   sound and captions, off its own dice; play is unchanged.
+- **Heard again (pass 10).** Until then none of the hands' squad barks, the
+  bots' chatter, Mundell's word at a chapter's start, the bosses' entrance,
+  worried and last lines, their taunts or Mundell's answers to them were
+  ever played: `enemy_barks.gd` and `boss_voices.gd` looked for their
+  signals on the game, which has had none since GameEvents. They listen on
+  `game.events` now. With the hands talking again two lines came over them
+  and now wait or cut in: the fall-back shout keeps quiet while anyone talks
+  (`game_world.gd`), and a tough guy's piece cuts in as a boss's does
+  (`variants_feature.gd`, `hush_speech`). Measured by `tools/bark_check.gd`
+  (the balance bot at NORMAL, 4 minutes or to the chapter's end, god mode):
+  the hands' lines a minute went from 0 to 6.0 (Hickston), 6.0 (the mill),
+  5.2 (the quarry) and 6.0 (the bayou); Mundell's said aloud from 37, 31, 29
+  and 26 to 23, 25, 20 and 22 (more of his are shown while a hand talks);
+  never the same hand's line twice running, never one over another. Not
+  listened to.
+- **End stings.** A boss's end sting (`<kind>_end`, `shakedown_end`) used to
+  be cut off the moment the boss loop handed back: `set_score` stopped any
+  sting. It now stops one only for a score outside play's (the menus, the
+  tally, `victory`); the boss ending holds the score under the sting
+  ([bosses.md](bosses.md#the-boss-ending-pass-10)).
 - **Checks.** `tools/voice_check.gd` (check_all, quick): every spoken line
   mastered from its transcript, its CLEAN copy, loading from the bank at
   0.3 to 6 s, every caption the game shows the words the line was made

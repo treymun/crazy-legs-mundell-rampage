@@ -75,6 +75,13 @@ func _light(c: int, level: LevelData) -> void:
 		mesh.set_instance_shader_parameter("tone", tone)
 
 
+## Lit again by its cell's light and tint now (shown again after it was out
+## of view: a lamp may have gone out meanwhile).
+func light_again(level: LevelData) -> void:
+	if _lit_cell >= 0 and _lit_cell < level.light.size():
+		_light(_lit_cell, level)
+
+
 ## Turned by `turn` (Godot's axes) about its middle, its feet at z when it
 ## stands upright: a thing thrown and tumbling (features/carry.gd). `tall` is
 ## the model's own height.

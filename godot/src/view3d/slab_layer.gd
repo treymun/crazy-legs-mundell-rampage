@@ -87,6 +87,16 @@ func warm(images: Array[String]) -> void:
 			models.mesh(image)
 
 
+## Whether a picture can be a slab at all (its family and mesh), whatever its
+## sprite: SlabModels.NONE when not, else its family. takes() is this and the
+## sprite's own tests (see-through, a pickup's board).
+func family_of(image: String) -> int:
+	var kind := SlabModels.family(image)
+	if kind == SlabModels.NONE or models.mesh(image) == null:
+		return SlabModels.NONE
+	return kind
+
+
 ## Show these sprites (each one `takes`) and no other slabs, seen from `cam`
 ## looking along `angle`; `everywhere` keeps the ones behind the eye (the
 ## mirror may show them). Call after SpriteLayer3D.show_sprites.

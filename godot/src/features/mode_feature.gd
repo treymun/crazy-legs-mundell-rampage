@@ -282,7 +282,8 @@ func hud_flow(layout: HudLayout) -> void:
 func draw_view(c: Canvas) -> void:
 	if game.players.size() > 1 and Modes.TACTICAL.has(mode):
 		TacticalScreens.draw_view(c, game, self)
-	elif game.players.size() > 1:
+	elif game.players.size() > 1 and game.eye_override.is_empty():
+		# (not over a camera of its own: a boss's fall, PHOTO MODE)
 		ModeScreens.draw_view(c, game, self)
 	# A flash whites out the view and everything drawn over it.
 	if not blind.is_empty():

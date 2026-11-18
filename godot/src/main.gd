@@ -726,6 +726,11 @@ func _process(delta: float) -> void:
 			photo.frame(self, dt, _controls(dt, pad, fingers))
 		elif opener.playing or opener.start(self):
 			opener.frame(self, dt)  # a chapter's opener: the game holds still
+		elif boss_end.start(self):
+			# A boss's fall: play goes on under it with the controls let go.
+			boss_end.frame(self, dt)
+			var hands_off := Game.Controls.new()
+			advance(dt, hands_off)
 		elif kill_cam.playing or kill_cam.start(self):
 			kill_cam.frame(self, dt)  # the replay: the game holds still
 		elif not focused or (console != null and console.open):
@@ -814,7 +819,7 @@ func _start_quality() -> void:
 func _measure_quality(dt: float, spent: float) -> void:
 	if quality_meter == null or game == null or state != "play" or not game.view3d:
 		return
-	if photo.on or kill_cam.playing or opener.playing:
+	if photo.on or kill_cam.playing or opener.playing or boss_end.playing:
 		return
 	var late := maxf(0.0, dt * 1000.0 - frame_interval() * 1000.0 * 1.1)
 	var tier := quality_meter.add(dt, spent + late)

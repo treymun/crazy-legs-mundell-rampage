@@ -104,15 +104,19 @@ browser build downloads it (`JavaScriptBridge.download_buffer`); headless it
 is the software canvas's view rows. ESC, P or MENU leaves.
 
 **KILL CAM** (`src/kill_cam.gd`; PLAY page `kill_cam`: OFF, BOSSES (the
-default), BOSSES AND AREAS; never online or with more than one player):
+default), BOSSES AND AREAS; never online or with more than one player). Since
+pass 10 a boss's fall is not replayed: BOSSES and up show it live as the boss
+ending ([bosses.md](bosses.md#the-boss-ending-pass-10)); the replay framed a
+giant from a hand's distance (inside Maw, inside the King's fan cage), ran
+time backwards and cut in and out hard.
 
-- While play runs it samples `game.view_frame` `rate` times a second of game
-  clock, `keep` seconds of it: copies of the moving sprites (the level's
-  fixed sprites are taken as they stand when it plays) and each body's pose
-  (kind, heading, gait, height, when it died). In BOSSES it samples only while
-  a boss is up and awake. It listens to `enemy_killed` and only notes a kill:
-  a boss, or (BOSSES AND AREAS) the last of `fight` kills in `fight_time`
-  seconds with no foe awake within `area` cells.
+- With BOSSES AND AREAS, while play runs it samples `game.view_frame` `rate`
+  times a second of game clock, `keep` seconds of it: copies of the moving
+  sprites (the level's fixed sprites are taken as they stand when it plays)
+  and each body's pose (kind, heading, gait, height, when it died). It
+  listens to `enemy_killed` and only notes a kill: the last of `fight` kills
+  in `fight_time` seconds with no foe awake within `area` cells, never a
+  boss.
 - It starts once `game.slowmo`, `hitstop` and `boss_hold` are all over and
   `delay` more seconds have played: a finishing shot's slow motion that uses
   `game.slowmo` runs first, then the replay.
@@ -124,8 +128,8 @@ default), BOSSES AND AREAS; never online or with more than one player):
   black bars carry KILL CAM and how to skip. Any key, click, tap or pad
   button skips it. Lost limbs are not shown in the replay.
 - Cost (measured in a 1280x800 window while firing, 2026-11-15): one sample
-  0.35 to 0.6 ms, taken every other frame at 60 fps (BOSSES only while a boss
-  is up and alerted); the HUD's Controls 0.03 ms a frame over the old bar.
+  0.35 to 0.6 ms, taken every other frame at 60 fps (BOSSES AND AREAS only);
+  the HUD's Controls 0.03 ms a frame over the old bar.
 
 ## The chapter openers (content pass 8)
 
@@ -274,7 +278,13 @@ for what feeds them.
   nothing while a desktop looks fine. `display.gdshader` samples 4 textures
   now. `tools/check_shader.gd` (in CI) counts textures in `display.gdshader`
   (limit 9 including TEXTURE) and in every view3d shader with its includes
-  (limit 10). Stack new data into an existing texture instead of adding one.
+  (limit 10; the most now is actor.gdshader's 8, `view_data` among them).
+  Stack new data into an existing texture instead of adding one.
+- **A number the view sets each frame is a global uniform** (`global
+  uniform` in the shader, in `project.godot [shader_globals]` with the same
+  type, in `WorldView3D.GLOBALS`), a list a row of `view_data`; never a
+  material's own uniform handed to every material each frame
+  ([below](#keeping-the-frame-cheap-track-r-before-v330)).
 - **Nothing in the view changes play.** It reads the level, camera and sprite
   list and changes nothing; a host game draws nothing at all.
 - **Guns in hand stay 2D cels** over the 3D view (`weapons.gd`), drawn on the
@@ -573,6 +583,13 @@ The pipeline is in [art.md](art.md#actors).
   and `night_contrast.gd`'s measure to a known figure (VIEW3D CHECK OK; in
   check_all and CI).
 - `tools/check_shader.gd` counts textures (SHADER OK).
+- `tools/view_perf_check.gd` holds the frame cheap (VIEW PERF CHECK OK): the
+  global uniforms against `project.godot` and the shaders, no uniform
+  arrays, no frame number handed to a material; turning round Hickston's
+  spawn with its hands awake, the later turns make no prop or model again,
+  nothing past where it shows gets one, the instance buffer stays in its
+  room; and the view's `frame()` (headless, its lower quartile) under 1.2
+  times a yardstick of plain GDScript timed beside it (0.4 to 0.7 here).
 - `tools/compare_3d.gd` holds a window tour's pictures against
   `tools/pictures_3d/` ([checks.md](checks.md#picture-references)).
 - `tools/compare_sheet.gd` makes side-by-side sheets of two tours (the 3D
@@ -745,31 +762,65 @@ Rules that keep it cheap, none of which changes a picture:
   `ActorModels.has` keep their answers (a picture's model name by its text,
   whether a scene exists by name; the art is still asked each time, as a
   chapter's pack may arrive later in the browser).
-- **Actor models are pooled and posed only when the pose changes.** A body
-  leaving the view hides its `ActorView` for its kind's next body
-  (`ActorLayer3D.SPARE` 3 a kind, `SPARE_ALL` 12 in all) instead of freeing
-  it; making one from its scene cost about 0.15 ms, and turning in a fight
-  made three a frame. `ActorView` seeks its AnimationPlayer only when the
-  action time changed (a seek is 25 to 70 us; idle bodies hold a frame), sets
-  its four instance numbers only when they changed, and keeps
-  `pose_of`'s answers by picture. Props are not pooled: a hidden model keeps
-  its shader instance numbers (below).
-- **VIEW DETAIL LOW (QUALITY LOW) poses far bodies less often**: past
-  `ActorView.LOD_NEAR` (10 cells) every other frame, past `LOD_FAR` (20)
-  every third, staggered by body; they still move every frame. HIGH and
-  MEDIUM pose every body every frame.
-- **Shader numbers go to the materials in use.** `_share` sets a changed
-  number on the view's own materials and on the props', wrecks' and actors'
-  materials drawn within `IDLE_FRAMES` (120) frames (`_track_live`; each
-  layer's `live_materials()`); a material drawn again after that gets every
-  number at once. A long session meets hundreds of models, and handing each
-  frame's eye, angle, clock and lights to every material ever made cost more
-  than the rest of the view.
+- **Models out of view are parked, not made again** (pass 10). A body
+  leaving the view hides its `ActorView` under its own id
+  (`ActorLayer3D._parked`, at most `PARK` 24); coming back it gets that model
+  again, a new body the oldest parked one of its kind, and either is posed
+  afresh (`ActorView.revive`, as a model just made). Props the same: a prop
+  leaving the view is hidden under its key (`PropLayer3D._parked`, at most
+  `PARK` 64) and shown again as it was, its marks on it, lit by its cell's
+  light now (`PropView.light_again`); one let go of keeps its marks by key
+  (`_kept`) as before. A hidden part still holds its block of the shader
+  instance buffer (below), so both park only in the room left
+  (`WorldView3D._park_room`: actors first, a model costing about ten times a
+  prop to make). The view-bench's turn made 1.6 models and 7.5 props a frame
+  before; `view_perf_check` holds a second turn round Hickston to none.
+- **Nothing is made or posed past where it shows.** A model's parts end at
+  its `visibility_range_end` (`ActorView.REACH` 32 cells; a prop 32, 51 when
+  tall), but the game lists bodies to 54 cells ahead and sprites to 51: a
+  living body past `REACH` and `ActorLayer3D.BEYOND` (5) is given no model
+  and not posed, a prop past its reach and half its breadth and
+  `PropLayer3D.BEYOND` (1) is not stood. The dead are posed as before (their
+  ragdolls keep falling).
+- **Posed only when the pose changes.** `ActorView` seeks its
+  AnimationPlayer only when the action time changed (a seek is 25 to 70 us;
+  idle bodies hold a frame), sets its four instance numbers only when they
+  changed, keeps `pose_of`'s answers by picture and its frame's keys
+  (`_keys`) until the frame changes.
+- **Far bodies are posed every other frame**: past `ActorView.LOD_HIGH` (16
+  cells, times the body's height, further in HD or a narrower FIELD OF
+  VIEW: there a body is 14 of the view's pixels tall or less and its limbs
+  move under half a pixel a frame), staggered by body; with VIEW DETAIL LOW
+  (QUALITY LOW) past `LOD_NEAR` (10) every other frame and past `LOD_FAR`
+  (20) every third. A change of action (aim, fire, pain, a fall) is posed at
+  once; every body still moves every frame.
+- **The frame's numbers are global uniforms** (pass 10). The eye, angle,
+  horizon, clock, weather, fog, storm and the rest (`WorldView3D.GLOBALS`,
+  declared `global uniform` in `view_light.gdshaderinc`, `world_body` and
+  `storm_wall`, registered in `project.godot [shader_globals]`) are set once
+  a frame with `RenderingServer.global_shader_parameter_set`; the frame's
+  lists (the lights' places, colours and flags, the wading rings, the moving
+  tiles, SHADOWS' pairs and blobs, the flowing floors) are rows of one small
+  RGBA32F texture, `view_data` (`view_row()`; a light's flags as two 16-bit
+  halves, as a float holds them exactly), uploaded once a frame when a row
+  changed. So no material changes from frame to frame: before, `_share`
+  handed seven or so changed numbers to each of the 80-odd materials drawn
+  lately (`_track_live`, still used for the textures a material is given
+  once), and the renderer rebuilt each one's uniforms: 0.5 to 0.9 ms a frame.
+  SHADOWS' counts stay the floors', walls' and marks' own uniforms (a body
+  would shadow itself). A new per-frame number goes in all three places
+  (the shader, `project.godot`, `GLOBALS`); `view_perf_check` holds them
+  together and fails on a uniform array in a view3d shader.
 - **MultiMeshes are filled in one call.** The sprites', slabs' and solids'
   rows are written in place in the MultiMesh's own layout
-  (`SpriteLayer3D.put`) and handed over with
-  `RenderingServer.multimesh_set_buffer`, not three calls an instance from
-  a Packed array made per row.
+  (`SpriteLayer3D.put`; the sprites' buffer sized once a frame,
+  `put_at`) and handed over with `RenderingServer.multimesh_set_buffer`, not
+  three calls an instance from a Packed array made per row.
+- **A sprite's picture is sorted once.** Whether a picture is drawn as a
+  prop's model, a slab (its family) or a picture is kept by picture
+  (`WorldView3D._picture_kind`; a model whose art is still coming is asked
+  again), and `SlabModels.family`, `ActorModels.has` and a picture's size
+  keep their answers.
 - **An opened cell rebuilds only its chunks.** `LevelData.open_cell` (a plank
   wall or fence broken through, a shed's wall opened) counts `reshapes` and
   lists the points it changed in `reshaped`; `WorldView3D._reshape` builds
@@ -778,14 +829,21 @@ Rules that keep it cheap, none of which changes a picture:
   the walls (the 5v5 cover standing again) still rebuilds all.
   `view3d_check` holds the chunks to what a whole build makes.
 - **Shader instance numbers are a budget.** Every model part with instance
-  uniforms holds them in one global buffer: 4096 vec4 slots on this desktop,
-  1024 where a uniform block holds 16 KB (WebGL2's minimum, many phones).
-  Prop and wreck parts take 8 (tone, six marks, char), actor parts 4. Past
-  the budget Godot prints "Too many instances using shader instance
-  variables" and those parts draw black. The heavy stress scenes hold 600 to
-  800 slots (`stress_bench` prints `instance slots`), so hidden pools stay
-  small (`WreckLayer3D.SPARE` 8 spare pieces, the actor pool above). A next
-  step would give unmarked parts a material without the mark slots.
+  uniforms (props, wreck pieces, actors, seat views), shown or hidden, holds
+  a block of 16 vec4 slots of one global buffer whatever its shader uses
+  (Godot's fixed block; measured in pass 10: 256 parts filled 4096 slots,
+  with prop.gdshader's 8 numbers or cab.gdshader's 2), after the 44 global
+  uniforms: 4096 slots on this desktop, room for
+  `WorldView3D.INSTANCE_PARTS` 250 parts; 1024 where a uniform block holds
+  16 KB (WebGL2's minimum, many phones), room for `INSTANCE_PARTS_SMALL` 60.
+  Past it Godot prints "Too many instances using shader instance variables"
+  and those parts draw black. Before pass 10 the slots were counted as the
+  numbers used (8 a prop, 4 an actor), and the heavy stress scenes' 500 to
+  800 "slots" were in fact 60 to 110 parts: over 60 on a small buffer (not
+  checked on a phone or in the browser). `stress_bench` prints `instance
+  parts` held; the parks above keep `INSTANCE_SPARE` (40) parts free. A next
+  step would give unmarked parts no instance uniforms at all (the tone from
+  the cell texture, marks only on the parts marked).
 
 ## The warm-up (polish pass 9)
 
@@ -817,7 +875,8 @@ coming down 36 -> 21; the hogs 87 -> 67. Hickston's first frame costs about
 `tools/warm_check.gd` holds it. Still to do: the hogs' first frame (about
 40 ms outside the tick and the view's frame: the GPU side), getting in a
 vehicle (the view's setup, 15 to 20 ms), a whole yard of props coming into
-view at once (each a new instance; props are not pooled, above).
+view at once for the first time (each a new instance; back in view they are
+parked ones, above).
 
 ## Loading and the warm-up, pass 10 (PERFLOAD)
 
@@ -851,7 +910,8 @@ first frame) and `tools/hitch_bench.gd`; the numbers are in
   actors.json labels or keys is not used. `RagdollRig.found` counts rigs
   found from vertices (a level's load finds none).
 - **A hog and a raider are made and kept hidden** at the first frame
-  (`ActorLayer3D.warm`, in the spare pool) and drawn once by `warm_up`
+  (`ActorLayer3D.warm`; not parked, so it takes none of the parking's room but
+  its own slot, `held()`, and the first body of its kind takes it) and drawn once by `warm_up`
   (`warm_roots`): the herd's first frame had paid the model's first draw
   (35 -> 19 ms). Every pickup the level holds has its slab mesh built then
   too (`SlabLayer3D.warm`): a turn at Hickston's spawn built eleven

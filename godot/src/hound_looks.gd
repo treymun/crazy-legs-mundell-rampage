@@ -491,7 +491,7 @@ static func draw(h: Game.HoundScript, c: Canvas) -> void:
 	if d == null:
 		return
 	var g := h.game
-	if g.player.health > 0 and not g.map:
+	if g.player.health > 0 and not g.map and g.eye_override.is_empty():
 		_point_mark(h, c, d)
 		_marker(h, c, d)
 	var helped := _reviving(h)

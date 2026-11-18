@@ -20,6 +20,8 @@ var _scenes: Dictionary = {}
 var _asked: Dictionary = {}
 var _has_scene: Dictionary = {}
 var _materials: Dictionary = {}
+## kind -> true once its model, looks and scene are here (has(); they stay).
+var _ready: Dictionary = {}
 ## "kind:gear" -> [ArrayMesh, middle] (gear_mesh)
 var _gear_meshes: Dictionary = {}
 ## "kind:gear" -> Array[String] of its bones (gear_bones)
@@ -55,6 +57,8 @@ func _init(assets: Assets) -> void:
 
 
 func has(kind: String) -> bool:
+	if _ready.has(kind):
+		return true
 	if not kinds.has(kind) or not _assets.has_art("actor3d_" + kind):
 		return false
 	# A browser build fetches a chapter's models and looks after it starts:
@@ -66,6 +70,9 @@ func has(kind: String) -> bool:
 	if ok == null:
 		ok = ResourceLoader.exists(SCENES.path_join(kind + ".tscn"))
 		_has_scene[kind] = ok
+	if ok:
+		# Here for good once here (asked for every enemy's sprite every frame).
+		_ready[kind] = true
 	return ok
 
 
