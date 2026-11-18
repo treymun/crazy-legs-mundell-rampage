@@ -94,7 +94,13 @@ window frame), a label's letters on the Godot canvas by text
 (`Canvas._glyph_run`), a polygon's spans by shape (`_poly_rows`: the
 badge's plate), a software letter's pixels (`_soft_glyph`); a one-pixel
 line on the Godot canvas is one rectangle a run, not one a pixel
-(`_gpu_line`). `hud.gd`
+(`_gpu_line`). The letters on the Godot canvas sit on pages, each style's
+together on one texture (`Canvas._glyph_slot`, `PAGE_W` by `PAGE_ROWS`
+rows), so text draws in batches: with a texture a letter (and the outline's
+five passes) County Run's HUD and the bowling board took about 260 draw
+calls a frame and 0.6 ms of the HUD viewport's render; now 10 or 11 and
+0.1 ms (`stress_bench` prints the HUD's draw calls; `view_perf_check` holds
+a line to one texture). `hud.gd`
 draws the HUD with it; with a window its status bar and objective pin are
 Controls (`HudLayer`, `src/ui/hud/`) under the canvas. The menu screens are
 Controls under `UiRoot` (`src/ui/`). PHOTO MODE (`photo_mode.gd`) and the

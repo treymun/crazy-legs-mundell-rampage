@@ -3,6 +3,7 @@
 ##
 ##   godot --headless --path godot --script res://tools/view_perf_check.gd
 ##
+## - The HUD's letters: a line of text draws with one texture a style.
 ## - The frame's numbers are global uniforms: every name WorldView3D.GLOBALS
 ##   routes is in project.godot [shader_globals] with the type the shaders
 ##   declare, no view3d shader declares one as a material's own uniform, and
@@ -44,6 +45,7 @@ func _check(ok: bool, what: String) -> void:
 
 func _run() -> void:
 	_globals()
+	_letters()
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
@@ -54,6 +56,26 @@ func _run() -> void:
 	main.queue_free()
 	await process_frame
 	quit(1 if failed else 0)
+
+
+## The HUD's letters on the Godot canvas come off pages (canvas.gd
+## _glyph_slot): a line of text in each style draws with one texture, so the
+## canvas batches it (a texture a letter made 260 draw calls a frame under
+## County Run's HUD and the bowling board; 10 or 11 now, stress_bench).
+func _letters() -> void:
+	var line := "COUNTY RUN 12:11  STREAK 27  .38 5/6  YOU BOUGHT THE FARM"
+	var worst := 0
+	var styles: Array[String] = ["body", "mini", "heading"]
+	for style: String in styles:
+		var shape: Array = PixelType.style_of(style)
+		var sx: int = shape[0]
+		var height: int = shape[1]
+		var run: Array = Canvas._glyph_run(line, PixelType.is_mini(style), sx, height)
+		var used := {}
+		for letter: Array in run:
+			used[letter[0]] = true
+		worst = maxi(worst, used.size())
+	_check(worst == 1, "a line of HUD text draws with one texture in each style (%d)" % worst)
 
 
 ## The shaders' global uniforms against project.godot and the view's list.

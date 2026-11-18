@@ -73,6 +73,19 @@ const RUNS_KEPT := 1024
 static var _runs := {}
 ## _draw_glyphs' letters for the software canvas (_soft_glyph).
 static var _soft_glyphs := {}
+## The letters on the Godot canvas sit on pages, one texture holding many
+## (each style's letters together, PAGE_W wide and PAGE_ROWS rows of the
+## style's height): a line of text then draws with one texture, which the
+## canvas batches, where a texture a letter (and five outline passes) broke
+## every batch: 260 draw calls a frame under County Run's HUD (pass 10).
+## style -> [Image, ImageTexture, next x, next row]; letter key ->
+## [page texture RID, region in the page, advance in glyph columns].
+const PAGE_W := 1024
+const PAGE_ROWS := 8
+static var _pages := {}
+static var _slots := {}
+## Pages with letters added since they went to the graphics card.
+static var _dirty := {}
 
 
 ## Free the items made for Godot 2D drawing (the program is closing).
@@ -182,6 +195,51 @@ func gpu_texture_turned(
 		_item, Rect2(-pivot.x, -pivot.y, tw, th), made.get_rid(), false, Color(1, 1, 1, 1)
 	)
 	RenderingServer.canvas_item_add_set_transform(_item, Transform2D.IDENTITY)
+
+
+## A letter on its style's page: [page texture RID, its region on the page
+## (empty for a letter with no width), its advance in glyph columns]. The
+## same pixels _glyph_texture lays on a texture of its own.
+static func _glyph_slot(char: String, mini: bool, sx: int, height: int) -> Array:
+	var key := (char.unicode_at(0) << 16) | (int(mini) << 15) | (sx << 8) | height
+	var kept: Variant = _slots.get(key)
+	if kept != null:
+		return kept
+	var info := PixelType.glyph(char, mini)
+	var rows: Array = info[0]
+	var glyph_w: int = info[1]
+	var n := rows.size()
+	var wide := glyph_w * sx
+	var style := (int(mini) << 15) | (sx << 8) | height
+	var page: Array = _pages.get(style, [])
+	var next_x: int = page[2] if not page.is_empty() else 0
+	var next_row: int = page[3] if not page.is_empty() else 0
+	if not page.is_empty() and next_x + wide > PAGE_W:
+		next_x = 0
+		next_row += 1
+	if page.is_empty() or next_row >= PAGE_ROWS:
+		var image := Image.create_empty(PAGE_W, height * PAGE_ROWS, false, Image.FORMAT_RGBA8)
+		page = [image, ImageTexture.create_from_image(image), 0, 0]
+		_pages[style] = page
+		next_x = 0
+		next_row = 0
+	page[3] = next_row
+	var paper: Image = page[0]
+	var at := Vector2i(next_x, next_row * height)
+	for yi in n:
+		var bits: int = rows[yi]
+		for col in glyph_w:
+			if bits & (1 << (glyph_w - col - 1)):
+				for yy in range(yi * height / n, (yi + 1) * height / n):
+					for xx in sx:
+						paper.set_pixel(at.x + col * sx + xx, at.y + yy, Color(1, 1, 1, 1))
+	var sheet: ImageTexture = page[1]
+	if wide > 0:
+		_dirty[sheet] = page
+	page[2] = at.x + wide
+	kept = [sheet.get_rid(), Rect2(at.x, at.y, wide, height), glyph_w]
+	_slots[key] = kept
+	return kept
 
 
 static func _glyph_texture(char: String, mini: bool, sx: int, height: int) -> Array:
@@ -1148,7 +1206,8 @@ func _gpu_label(
 	)
 
 
-## [texture RID, offset x, width, height] for each letter of `text`.
+## [page texture RID, offset x, region on the page] for each letter of
+## `text` (_glyph_slot; a letter with no width has an empty region).
 static func _glyph_run(text: String, mini: bool, sx: int, height: int) -> Array:
 	var style := (int(mini) << 15) | (sx << 8) | height
 	var kept: Dictionary = _runs.get(style, {})
@@ -1160,11 +1219,15 @@ static func _glyph_run(text: String, mini: bool, sx: int, height: int) -> Array:
 	var made: Array = []
 	var x := 0
 	for ch in text.to_upper():
-		var glyph := _glyph_texture(ch, mini, sx, height)
-		var tex: ImageTexture = glyph[0]
-		made.append([tex.get_rid(), x, tex.get_width(), tex.get_height()])
-		var glyph_width: int = glyph[1]
+		var glyph := _glyph_slot(ch, mini, sx, height)
+		made.append([glyph[0], x, glyph[1]])
+		var glyph_width: int = glyph[2]
 		x += (glyph_width + 1) * sx
+	for page: Array in _dirty.values():
+		var paper: Image = page[0]
+		var sheet: ImageTexture = page[1]
+		sheet.update(paper)
+	_dirty.clear()
 	if kept.size() >= RUNS_KEPT:
 		kept.clear()
 	kept[text] = made
@@ -1175,11 +1238,11 @@ func _lay_run(run: Array, x0: int, y0: int, tint: Color) -> void:
 	for letter: Array in run:
 		var rid: RID = letter[0]
 		var ox: int = letter[1]
-		var lw: int = letter[2]
-		var lh: int = letter[3]
-		RenderingServer.canvas_item_add_texture_rect(
-			_item, Rect2(x0 + ox, y0, lw, lh), rid, false, tint
-		)
+		var region: Rect2 = letter[2]
+		if region.size.x > 0:
+			RenderingServer.canvas_item_add_texture_rect_region(
+				_item, Rect2(Vector2(x0 + ox, y0), region.size), rid, region, tint
+			)
 
 
 func _draw_glyphs(

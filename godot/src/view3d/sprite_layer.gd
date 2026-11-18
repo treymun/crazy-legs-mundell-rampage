@@ -294,7 +294,7 @@ func _row(
 		by,
 		bz,
 		Vector3(s.x, z, s.y),
-		Color(tint.r, tint.g, tint.b, tint.a),
+		tint,
 		Color(
 			float(slot), float(size.x), float(size.y), float(flags + hurt * 256 + spin * SPIN_ONE)
 		)
@@ -309,6 +309,9 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 	var fx := cos(angle)
 	var fy := sin(angle)
 	var buf := PackedFloat32Array()
+	# Room for every mark at once (put() grew it a row at a time).
+	buf.resize((walls.size() + grounds.size()) * FLOATS)
+	var n := 0
 	for item: Variant in walls:
 		if not item is View.WallMark:
 			continue
@@ -321,8 +324,9 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 		var bx := Vector3(m.ux, 0.0, m.uy) * (2.0 * m.radius)
 		var by := Vector3(0.0, 2.0 * m.radius, 0.0)
 		var bz := Vector3(-m.uy, 0.0, m.ux)
-		put(
+		put_at(
 			buf,
+			n,
 			bx,
 			by,
 			bz,
@@ -330,6 +334,7 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 			Color(1.0, 1.0, 1.0, 1.0),
 			Color(float(slot), float(size.x), float(size.y), 0.0)
 		)
+		n += 1
 	for item: Variant in grounds:
 		if not item is View.GroundMark:
 			continue
@@ -350,8 +355,9 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 			bx.y = g.gx * bx.x + g.gy * bx.z
 			by.y = g.gx * by.x + g.gy * by.z
 			at.y += g.gx * (at.x - g.x) + g.gy * (at.z - g.y)
-		put(
+		put_at(
 			buf,
+			n,
 			bx,
 			by,
 			Vector3(0.0, 1.0, 0.0),
@@ -359,6 +365,8 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 			Color(1.0, 1.0, 1.0, 1.0),
 			Color(float(slot), float(size.x), float(size.y), 1.0)
 		)
+		n += 1
+	buf.resize(n * FLOATS)
 	fill(marks, buf)
 
 

@@ -230,6 +230,20 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 	if shots != "" and DisplayServer.get_name() != "headless":
 		DirAccess.make_dir_recursive_absolute(shots)
 		root.get_texture().get_image().save_png(shots.path_join(name + ".png"))
+	if main.overlay != null:
+		print(
+			(
+				"STRESS %-8s HUD draw calls %d (the overlay's, last frame)"
+				% [
+					name,
+					RenderingServer.viewport_get_render_info(
+						main.overlay.get_viewport_rid(),
+						RenderingServer.VIEWPORT_RENDER_INFO_TYPE_CANVAS,
+						RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME
+					)
+				]
+			)
+		)
 	print("STRESS %-8s start  %s" % [name, start])
 	print("STRESS %-8s end    %s" % [name, _counts(g, extra)])
 	print(
