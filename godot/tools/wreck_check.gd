@@ -178,8 +178,8 @@ func _level(game: Game) -> void:
 			shown += 1
 			print(
 				(
-					"       still moving: %s#%d at %s v %s w %s"
-					% [w.key, w.index, w.body.p, w.body.v, w.body.w]
+					"       still moving: %s#%d at %s v %s w %s awake %.1f s"
+					% [w.key, w.index, w.body.p, w.body.v, w.body.w, w.body.awake_for]
 				)
 			)
 	var worst := 0.0

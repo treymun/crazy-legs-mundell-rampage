@@ -43,6 +43,11 @@ const BLAST_TIME := .5
 const BLAST_NEAR := 4.5
 ## A piece gone to sleep this far into a wall shrinks away (_came_to_rest).
 const STUCK := .03
+## A thin piece left on its end is nudged over at most this many times; one
+## still creeping this long after it woke lies down.
+const NUDGES := 3
+const CREEP_MOST := 5.0
+const WAKES := 6
 ## How long after a shot struck near a thing its break counts as that shot's.
 const SHOT_TIME := .15
 ## More awake than this: one physics step a tick.
@@ -101,7 +106,9 @@ class Wreck:
 	var floats := -1
 	## Asleep when last looked at, and whether it was nudged off its end.
 	var asleep := false
-	var nudged := false
+	var nudged := 0
+	## How often it has woken since it was thrown or last knocked.
+	var wakes := 0
 
 
 ## How a thing was struck when it broke: where (map), which way the push
@@ -330,12 +337,23 @@ func _watch() -> void:
 ## Pieces that have just gone to sleep: one left with a corner in a wall
 ## (wedged there in a pile, a thin sheet that skipped) shrinks away rather
 ## than stay half in it; a thin one left standing on its end with nothing
-## leaning it is nudged over once.
+## leaning it is nudged over (up to NUDGES times, harder each); one still
+## creeping CREEP_MOST seconds after it woke, or woken more than WAKES times
+## where it lies since it was last knocked, lies down.
 func _came_to_rest() -> void:
 	for w: Wreck in wrecks:
 		var b := w.body
 		if b.awake:
+			if w.asleep:
+				w.wakes += 1
 			w.asleep = false
+			# Still creeping long after it was thrown, or woken again and
+			# again where it lies (a pile that will not settle): it lies down.
+			var slow := b.v.length() < .05 and b.w.length() < .3
+			if slow and (b.awake_for > CREEP_MOST or w.wakes > WAKES):
+				b.awake = false
+				b.v = Vector3.ZERO
+				b.w = Vector3.ZERO
 			continue
 		if w.asleep or w.fading >= 0.0:
 			continue
@@ -344,8 +362,8 @@ func _came_to_rest() -> void:
 			w.fading = game.clock
 			continue
 		b.turn = Basis(b.q)
-		if not w.nudged and not b.propped and WreckPhysics.standing(b):
-			w.nudged = true
+		if w.nudged < NUDGES and not b.propped and WreckPhysics.standing(b):
+			w.nudged += 1
 			var up := 0
 			for a in 3:
 				if absf(b.turn[a].z) > absf(b.turn[up].z):
@@ -357,7 +375,8 @@ func _came_to_rest() -> void:
 			over.z = 0.0
 			over = over.normalized() * (1.0 if dice.randf() < .5 else -1.0)
 			var spin := Vector3(0, 0, 1).cross(over) * 5.0
-			WreckPhysics.knock(b, over * .9 + Vector3(0, 0, .6), spin)
+			var harder := 1.0 + .5 * (w.nudged - 1)
+			WreckPhysics.knock(b, (over * .9 + Vector3(0, 0, .6)) * harder, spin * harder)
 
 
 ## A set piece's tank burst throws its staves, hoops, cap, deck and name
@@ -1051,6 +1070,7 @@ func _shoved(x: float, y: float, reach: float, power: float) -> void:
 			dice.randf_range(-1.0, 1.0), dice.randf_range(-1.0, 1.0), dice.randf_range(-1.0, 1.0)
 		)
 		w.wedged = false
+		w.wakes = 0
 		WreckPhysics.knock(b, push * dice.randf_range(.5, 1.0), spin * dice.randf_range(3.0, 9.0))
 
 
@@ -1075,6 +1095,7 @@ func _kick() -> void:
 		var light := clampf(.15 / maxf(b.reach, .01), .25, 1.0)
 		var spin := Vector3(dice.randf_range(-1.0, 1.0), dice.randf_range(-1.0, 1.0), 0.0)
 		w.wedged = false
+		w.wakes = 0
 		WreckPhysics.knock(b, Vector3(run.x * .6, run.y * .6, .9) * light, spin * 4.0 * light)
 
 
