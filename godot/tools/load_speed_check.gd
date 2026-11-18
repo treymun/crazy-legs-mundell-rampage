@@ -44,10 +44,11 @@ const RIG_FIELDS := [
 ## made) and the view's first frame (the level's mesh, its models, rigs and
 ## looks). Desktop 2026-11-17: about 1,400 and 1,250, beside other work
 ## (the rigs found from vertices instead cost 1,100 more); CI's runners are
-## slower and run two checks at once. The rigs and models are held by the
-## counts above; these catch a load grown several times over.
-const START_MS := 7000.0
-const VIEW_MS := 6000.0
+## slower and run two checks at once, and a loaded check_all here reached
+## 7,400 for the view. The rigs and models are held by the counts above;
+## these only catch a load grown many times over.
+const START_MS := 14000.0
+const VIEW_MS := 12000.0
 ## Static memory after the chapters twice (MB; desktop about 570), and what
 ## the second round may add to the first's.
 const MEMORY_MB := 900.0
