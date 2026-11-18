@@ -618,6 +618,91 @@ func retreat_from(game: GameWorld, px: float, py: float) -> void:
 	retreat = [px, py, game.clock + 1.20]
 
 
+## EnemyLod.step for this enemy (src/enemy_lod.gd): the step to tick it
+## with this tick, 0 while far and calm it waits. Written here, on its own
+## fields, for speed (a tick asks it of every enemy).
+func lod_step(lod: EnemyLod, wdt: float, clock: float) -> float:
+	if not (hp > 0.0) or dormant or brain == "bessie":
+		# (Enemy.tick does nothing for these.)
+		return wdt
+	# While it waits only what others can change is asked again (lod_calm's
+	# `full` false); the rest on the tick after each of its own.
+	var full := lod_since < 0.0 or clock - lod_since <= wdt * 1.5
+	if not EnemyLod.ON or not lod_calm(lod, clock, full):
+		lod.thought += 1
+		if lod_since < 0.0:
+			return wdt
+		# Engaged again: this tick, with what it saved.
+		var owed := clock - lod_since
+		lod_since = -1.0
+		return owed
+	lod.thought += 1
+	if lod_since < 0.0:
+		# Calm from now: this tick it takes, then it waits.
+		lod_since = clock
+		return wdt
+	# Between .6 and 1 of STEP, by its uid and how long it has lived (its
+	# pose, which only moves when it ticks): each wait a little different,
+	# so the far ones' turns never fall together for long.
+	var since := clock - lod_since
+	var turn := EnemyLod.STEP * (.6 + .4 * fposmod(uid * .6180339887 + pose * 3.7, 1.0))
+	if since < turn:
+		lod.thought -= 1
+		lod.waited += 1
+		return 0.0
+	lod_since = clock
+	return since
+
+
+## EnemyLod.calm for this enemy (`lod` holds this tick's players).
+func lod_calm(lod: EnemyLod, clock: float, full: bool) -> bool:
+	var eyes := lod.eyes
+	var far2 := lod.far2
+	var view2 := lod.view2
+	var n := eyes.size()
+	var k := 0
+	while k < n:
+		var dx := x - eyes[k]
+		var dy := y - eyes[k + 1]
+		var d2 := dx * dx + dy * dy
+		if d2 < far2:
+			return false
+		if d2 < view2 and dx * eyes[k + 2] + dy * eyes[k + 3] > EnemyLod.VIEW_COS * sqrt(d2):
+			# Out in front of them, near enough to watch it walk.
+			return false
+		k += 4
+	if alerted or heard != null or retreat != null or held_cel != "" or hop > 0.0:
+		return false
+	if struck_at >= 0.0 and clock - struck_at < EnemyLod.HURT:
+		return false
+	var m := mind
+	if m != null and (m.investigate != null or m.regroup != null or m.flush_at > 0.0):
+		return false
+	if not full:
+		return true
+	if (
+		windup > 0.0
+		or volley != 0
+		or stun > 0.0
+		or recovery > 0.0
+		or hit_flash > 0.0
+		or flinch > 0.0
+		or soak > 0.0
+		or cover != null
+		or grudge != null
+		or fetching != null
+		or ladder >= 0
+		or climb_z > 0.0
+		or disarmed_until >= 0.0
+		or not cover_hunt.is_empty()
+		or brain == "derby_champ"
+	):
+		return false
+	return not (
+		BOSS_TITLES.has(kind) or (m != null and (m.search_until > 0.0 or m.kick_at > 0.0))
+	)
+
+
 func tick(dt: float, game: Game) -> void:
 	# (not alive, written out)
 	if not (hp > 0.0) or dormant or brain == "bessie":
@@ -679,8 +764,13 @@ func tick(dt: float, game: Game) -> void:
 			volley -= 1
 			volley_timer += .078
 		return
-	if Climbing.enemy_step(self, dt, game):
-		return
+	# Climbing.enemy_step's plain case written out (on a ladder, falling or
+	# off an edge it takes the tick): on its feet it only notes the floor.
+	if ladder >= 0 or climb_z > 0.0 or (floor_z < last_floor - Climbing.DROP and hostile):
+		if Climbing.enemy_step(self, dt, game):
+			return
+	else:
+		last_floor = floor_z
 	var p: Player = game.player
 	var dx: float = p.x - x
 	var dy: float = p.y - y

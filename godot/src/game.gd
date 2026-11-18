@@ -356,23 +356,19 @@ func tick(dt: float, controls: Variant) -> void:
 			# The player's, or one a hand lobbed to flush them out (squad.gd).
 			dangers.append(Vector3(shot.x, shot.y, 3.1))
 	# Far and calm ones think less often (enemy_lod.gd): 0 while one waits.
-	# The dead and the dormant are passed over (and Bessie alone): Enemy.tick
-	# does nothing for them and enemy_lod.step hands them the tick unchanged.
-	# (With several players Bessie still takes her pick of who to watch.)
+	# (enemy_lod.step written out: its players looked at once, then each
+	# enemy's own Enemy.lod_step.)
+	enemy_lod.look(self)
 	if players.size() == 1:
 		for enemy: Enemy in enemies:
-			if not (enemy.hp > 0.0) or enemy.dormant or enemy.brain == "bessie":
-				continue
-			var edt := enemy_lod.step(enemy, wdt, self)
+			var edt := enemy.lod_step(enemy_lod, wdt, clock)
 			if edt > 0.0:
 				enemy.tick(edt, self)
 	else:
 		# Each enemy ticks with the player it is after acting (Players.hunted):
 		# its sight, flow field, aim and blows are about them.
 		for enemy: Enemy in enemies:
-			if not (enemy.hp > 0.0) or enemy.dormant:
-				continue
-			var edt := enemy_lod.step(enemy, wdt, self)
+			var edt := enemy.lod_step(enemy_lod, wdt, clock)
 			if edt == 0.0:
 				continue
 			if enemy.hp > 0.0 and not enemy.dormant:

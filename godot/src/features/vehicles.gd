@@ -961,9 +961,11 @@ func _clear_hull(v: VehicleDrive.Ride, s: VehicleDrive.Spec) -> void:
 			game.focus(q)
 			game.move_actor(q, push.x, push.y, GameState.PLAYER_RADIUS)
 			game.focus(game.local_player)
+	var vx := v.x
+	var vy := v.y
 	for e: Enemy in game.enemies:
 		# Far first: `alive` is worked out (the same hands pass either way).
-		if absf(e.x - v.x) > far or absf(e.y - v.y) > far or e.dormant or not e.alive:
+		if absf(e.x - vx) > far or absf(e.y - vy) > far or e.dormant or not e.alive:
 			continue
 		var out := VehicleDrive.out_of(s, v, e.x, e.y, e.radius)
 		if out != Vector2.INF and not Enemy.BOSS_TITLES.has(e.kind):

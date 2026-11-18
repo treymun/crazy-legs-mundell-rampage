@@ -36,12 +36,12 @@ var cover_left := 0
 var cover_clock := -1.0
 ## The players who are up this tick: x, y, and their facing's cos and sin,
 ## four numbers each (worked out once a tick, for calm()).
-var _eyes := PackedFloat64Array()
+var eyes := PackedFloat64Array()
 var _eyes_clock := -1.0
 var _eyes_players := -1
 ## FAR and VIEW_FAR squared, as of the last _look().
-var _far2 := 0.0
-var _view2 := 0.0
+var far2 := 0.0
+var view2 := 0.0
 ## Ticks taken and waited this game, for the tools (not play).
 var thought := 0
 var waited := 0
@@ -70,36 +70,10 @@ static func load_tuning() -> void:
 ## while calm, -1 otherwise: it changes only on the ticks it takes, so a
 ## waiting enemy changes nothing in a snapshot's delta.
 func step(e: Enemy, wdt: float, game: GameState) -> float:
-	if not (e.hp > 0.0) or e.dormant or e.brain == "bessie":
-		# (Enemy.tick does nothing for these.)
-		return wdt
-	# While it waits only what others can change is asked again (calm()'s
-	# `full` false); the rest on the tick after each of its own.
-	var full := e.lod_since < 0.0 or game.clock - e.lod_since <= wdt * 1.5
-	if not ON or not calm(e, game, full):
-		thought += 1
-		if e.lod_since < 0.0:
-			return wdt
-		# Engaged again: this tick, with what it saved.
-		var owed := game.clock - e.lod_since
-		e.lod_since = -1.0
-		return owed
-	thought += 1
-	if e.lod_since < 0.0:
-		# Calm from now: this tick it takes, then it waits.
-		e.lod_since = game.clock
-		return wdt
-	# Between .6 and 1 of STEP, by its uid and how long it has lived (its
-	# pose, which only moves when it ticks): each wait a little different,
-	# so the far ones' turns never fall together for long.
-	var since := game.clock - e.lod_since
-	var turn := STEP * (.6 + .4 * fposmod(e.uid * .6180339887 + e.pose * 3.7, 1.0))
-	if since < turn:
-		thought -= 1
-		waited += 1
-		return 0.0
-	e.lod_since = game.clock
-	return since
+	look(game)
+	# (Worked out in the enemy's own method, Enemy.lod_step: its own fields
+	# are read there at half the cost of reading them from here.)
+	return e.lod_step(self, wdt, game.clock)
 
 
 ## Whether `e` may think less often now: far from every player who is up,
@@ -107,68 +81,29 @@ func step(e: Enemy, wdt: float, game: GameState) -> float:
 ## only what others change (a player's place, an alarm, a shot heard, a hit,
 ## a critter's scare, the squad's calls): the rest only changes on its own
 ## ticks, and a far calm one cannot start a wind-up, a volley or a climb.
+## (Enemy.lod_calm.)
 func calm(e: Enemy, game: GameState, full := true) -> bool:
 	if game.clock != _eyes_clock or game.players.size() != _eyes_players:
 		_look(game)
-	# (Locals and the commonest answers first: asked for most enemies a tick.)
-	var ex := e.x
-	var ey := e.y
-	var eyes := _eyes
-	var n := eyes.size()
-	var k := 0
-	while k < n:
-		var dx := ex - eyes[k]
-		var dy := ey - eyes[k + 1]
-		var d2 := dx * dx + dy * dy
-		if d2 < _far2:
-			return false
-		if d2 < _view2 and dx * eyes[k + 2] + dy * eyes[k + 3] > VIEW_COS * sqrt(d2):
-			# Out in front of them, near enough to watch it walk.
-			return false
-		k += 4
-	if e.alerted or e.heard != null or e.retreat != null or e.held_cel != "" or e.hop > 0.0:
-		return false
-	var struck := e.struck_at
-	if struck >= 0.0 and game.clock - struck < HURT:
-		return false
-	var m: Squad.Mind = e.mind
-	if m != null and (m.investigate != null or m.regroup != null or m.flush_at > 0.0):
-		return false
-	if not full:
-		return true
-	if (
-		e.windup > 0.0
-		or e.volley != 0
-		or e.stun > 0.0
-		or e.recovery > 0.0
-		or e.hit_flash > 0.0
-		or e.flinch > 0.0
-		or e.soak > 0.0
-		or e.cover != null
-		or e.grudge != null
-		or e.fetching != null
-		or e.ladder >= 0
-		or e.climb_z > 0.0
-		or e.disarmed_until >= 0.0
-		or not e.cover_hunt.is_empty()
-		or e.brain == "derby_champ"
-	):
-		return false
-	return not (
-		Enemy.BOSS_TITLES.has(e.kind)
-		or (m != null and (m.search_until > 0.0 or m.kick_at > 0.0))
-	)
+	return e.lod_calm(self, game.clock, full)
+
+
+## This tick's players for lod_step (worked out again when the clock or the
+## count of players has changed since).
+func look(game: GameState) -> void:
+	if game.clock != _eyes_clock or game.players.size() != _eyes_players:
+		_look(game)
 
 
 func _look(game: GameState) -> void:
 	_eyes_clock = game.clock
 	_eyes_players = game.players.size()
-	_far2 = FAR * FAR
-	_view2 = VIEW_FAR * VIEW_FAR
-	_eyes.resize(0)
+	far2 = FAR * FAR
+	view2 = VIEW_FAR * VIEW_FAR
+	eyes.resize(0)
 	for q: Player in game.players:
 		if q.health > 0:
-			_eyes.append(q.x)
-			_eyes.append(q.y)
-			_eyes.append(cos(q.angle))
-			_eyes.append(sin(q.angle))
+			eyes.append(q.x)
+			eyes.append(q.y)
+			eyes.append(cos(q.angle))
+			eyes.append(sin(q.angle))
