@@ -126,6 +126,22 @@ always sounds like itself).
   `Sound.VARIANTS`), the whistle `hound_whistle`; Mundell's words to him are
   his own `hound_*` lines (mundell_lines.json; `MUNDELL_SAY` spells "sic 'em"
   for the voice). Made in content pass 8 (about 520 credits).
+  Pass 10 (2026-11-17): 23 more recordings (more takes of his bark, bay,
+  yelp, boof and bite; a low warning growl, yips, a howl, panting, sniffing,
+  a shake-off, a whimper, a sulky whine and huff), each later take mastered
+  `like` the first of its set; `Sound.SHUFFLED` deals his sets at random
+  instead of in turn, never the take just played (`hound_check`). Eleven
+  more of Mundell's lines about him (`hound_down`, `hound_praise`,
+  `hound_shot`, `hound_hush`, `hound_greet`, `hound_shine`): seven said
+  their words (four with a word before them, "And", "Uh", "Yeah", which the
+  cut leaves off), two only spelled them their own way ("That a boy",
+  "hollering": MUNDELL_HEARD), "Hush, Blue" came back "Ha ha, Blue" and was
+  reworded "Hush up, Blue", and "Blue! Outta my sights!" was heard as "Blow"
+  and then "Blah, oh" and was reworded "Git outta my sights, Blue!" (heard
+  "Get out of"). `hound_bite_alt` was made again (its first take a lone
+  spike 11 dB under the family). The ledger went from 78,068 to 78,582: 849
+  booked at its expected rates (effects 403, lines 278, transcripts 168),
+  335 given back at the reconciles. Not listened to.
 - **Turns.** `Sound.talking()` is any spoken line (`Sound.SPEECH`) still
   playing; `hush_speech()` stops the ones playing as effects. A hand keeps
   quiet while anyone talks; Mundell's line is shown, not said; a boss's

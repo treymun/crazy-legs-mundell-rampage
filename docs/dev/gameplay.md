@@ -1028,27 +1028,108 @@ and the front end sets it to 0 when a tool or a view tour runs the game
 (`main.gd`), so every check and picture made before him is the same; a tool
 that wants him sets `main.options["hound"] = 1` (`bot_campaign.gd -- hound`
 walks the campaign with him). Play, carried and saved: `features/hound.gd`
-(a SIM feature, a `Dog` per player slot, its dice `game.rng`), what his
-nose finds `src/hound_nose.gd`, his looks and badge `src/hound_looks.gd`,
-numbers in `data/tuning/hound.cfg`.
+(a SIM feature, a `Dog` per player slot, its dice `game.rng`), how he gets
+about `src/hound_legs.gd`, his ears, moods and rides `src/hound_moods.gd`,
+what his nose finds `src/hound_nose.gd`, his looks and badge
+`src/hound_looks.gd`, his own little noises `features/hound_voice.gd` (a
+looks feature), numbers in `data/tuning/hound.cfg`.
+
+- **What the looks read** (pass 10). `Dog.state`: FOLLOW, STAY, SIC, PIN,
+  FETCH, CARRY, BAY, POINT, DOWN, and new HOWL (at a siren), COWER (a
+  twister), GREET (got up), TREAT (wagging round a still or scrap), GROWL (a
+  hand round a corner, `Dog.look` where), RIDE (in a vehicle's seat,
+  `Dog.ride` which). `Dog.job` while FOLLOW (`Hound.JOBS`): HEEL, RANGE
+  (`Dog.roam` where to), NOSING (sniffing about there), CIRCLE (back to
+  heel), CATCH (running to catch up), ASIDE (out of a player's sights),
+  TRAIL (sulking behind), WAIT (where he cannot follow). `Dog.mood`
+  (`Hound.MOODS`): CALM, HAPPY, ALERT, SCARED, SULK, HURT, till
+  `Dog.mood_until`. `Dog.pace` is how fast he went (his trot about 3.3, lope
+  5.4, run 7.4), `Dog.hop` a leap in the air (into a seat, down off it).
+  `features/hound_voice.gd` (this machine's only) answers `cowering(slot)`
+  (the thunder), `howling(slot)` (along with the radio), `shaking(slot)`
+  and `panting(slot)`.
+- **Getting about** (pass 10, `HoundLegs`). He walks straight where a
+  scratch body walked there in short steps the way he moves (walls, steps,
+  decks, deep water) gets the whole way, off no ledge and into no harm;
+  else he plans a way over the level's floor (`HoundLegs.plan`: a scratch
+  flow field from the goal, walked again from nothing every plan so a game
+  and its snapshot copy plan alike; closed doors, the standing hazards and
+  burning cells shut; `plan_reach` steps) and walks the furthest of its next
+  few steps he can walk straight to, planning again when the goal moves, the
+  plan is `replan` old or he stalls (under a third of his pace's way in half
+  a second, to and fro on the spot counts); else down his player's flow
+  field. A stride that is shut or walks into harm takes the nearest turn off
+  it that goes somewhere (`HoundLegs.step`). Caught inside something (a
+  prop's corner, a door shut on him: no little step goes anywhere) he is put
+  on the nearest free spot a short hop away; stalled `unstick` where nobody
+  sees, he hops on to the next step of his way. He eases into a pace
+  (`accel`): a trot about his player, a lope ranging beside one running, a
+  run catching up or after a hand. Cost: whether a way is straight (and how
+  far along a plan he can cut) is asked every `Hound.LOOK_AGAIN` (.2 s) or
+  when the goal moves, the bosses are looked for when the hands come or go,
+  whether it is calm at his sniff, and whether anybody sees him only when
+  he is cut off or stuck: about 70 to 80 us a tick headless with the
+  campaign bot playing (v3.7.0's heel: 45 to 117), no change measured in the
+  whole tick.
+- **Ranging.** Calm (no hand awake within 10 of his player, his mood calm,
+  his player not driving) he waits at heel `range_rest` or so, then goes out
+  to a spot `range_near`..`range_far` from his player and `range_side_min`..
+  `range_side_max` off the way they go (round one standing, anywhere but in
+  front), somewhere fair (open, near their floor, walkable to them not by a
+  long way round) and in nobody's sights (`HoundLegs.roam_spot`, game.rng),
+  noses about there and circles back; passed by his player or too far, he
+  comes back sooner. Further than `catch_far` he runs back to heel.
+- **Out of the line of fire.** In any player's sights (`clear_reach`,
+  `clear_cone`), or in his own player's as they swing round toward him, he
+  steps aside off their line for at least `aside_for` (across it against
+  the swing, the quickest way out); no spot he ranges to is in a player's
+  sights.
+- **Out of trouble.** `HoundLegs.dangers` each tick: the standing hazards
+  (BrawlHazards' saw, chipper, zapper, hot fence, burn barrel, crusher, plus
+  `harm_pad`), a twister, steam and chalk, the race's cars, a boss (and
+  where one winding up aims, `telegraph_reach`, and the way there); fire and
+  deep water are asked where he steps. He never steps into one, gets out of
+  one he finds himself in first of all, and never picks a hand standing in
+  one.
+- **Catching up.** Further than `lost_far`, or cut off (no way planned, off
+  his player's flow field) and out of everyone's sight, for `lost_for`, he
+  turns up `hide_near`..`hide_far` behind his player where no player sees
+  the spot (off their view, `HoundLegs.seen`) and only from where nobody
+  saw him go; no such spot (his player on open water), he waits. A new
+  chapter starts him at heel; a load puts him where he was, and he catches
+  up from there.
 
 - **Vehicles.** One coming at him faster than `ride_from` within `ride_reach`
   ahead: he jumps aside at `ride_hop` (a bark, never hurt); one on him shoves
-  him out of its hull (`_clear_of_rides`, deterministic). His player at the
-  wheel: he heels `heel` past the vehicle's tail.
+  him out of its hull (`HoundMoods.clear_of_rides`, deterministic). His
+  player at the wheel of one with a free second seat (the airboat, the car;
+  pass 10): he runs to it and, within `board_reach` of its end with it
+  under `board_speed`, leaps into the seat (`HoundLegs.seat_at`, state
+  RIDE) and rides along; his player out, someone in his seat or it wrecked,
+  he leaps down beside it. A partner getting in finds the seat free (he is
+  never in `Ride.seats`) and he hops out. Else (the mower, the seat taken,
+  it gone off fast) he heels `heel` past the vehicle's tail and catches up.
 - **Heel.** Behind his player off to one side, out of their sights; a run
-  past `run_past`, round walls on the player's flow field; lost (far out of
-  sight, or no way through) for `lost_for` he turns up behind them. He walks
-  the level as a body of his own (an Enemy no list holds, moved with
-  `LevelData.move`, never carried: `SnapCodec.SKIP_FIELDS`). The hands do not
+  past `run_past`. He walks the level as a body of his own (an Enemy no list
+  holds, moved with `LevelData.move`, never carried: `SnapCodec.SKIP_FIELDS`,
+  with the scratch body his straight walks are tested with, the level's
+  hazards, the tick's dangers and the scratch flow field). The hands do not
   hunt him and the player's shots pass him.
 - **Nose.** Calm (no hand awake near the player) he bays at a secret door
   not found yet from its open side (`HoundNose.door_front`) and at a gun his
   player ain't got lying out (GunFinder: never one behind a secret, the door
   gives that away), and points at a pickup his player cannot see; each place
-  once (`bayed`, saved), the nose resting `bay_rest`/`point_rest` after.
-- **Fight.** On his own he goes for a hand under `pin_below` of its health or
-  one right on top of his player; told (the whistle with the sights on one)
+  once (`bayed`, saved), the nose resting `bay_rest`/`point_rest` after. He
+  goes to a spot short of it clear of harm, bays from where he got to when
+  the way is shut, and leaves it when his player goes on past `catch_far`. Pass 10: a hand awake within `growl_reach` that his
+  player cannot see, while none they can see is near, and he stops and
+  growls low at it (`HoundNose.unseen_foe`, once a hand: `warned`); a still
+  or scrap lying out within `treat_reach` and he runs to it and wags round
+  it yipping (`HoundNose.treat_near`, once each, in `bayed`).
+- **Fight.** On his own he goes for a hand under `pin_below` of its health,
+  one right on top of his player or going for them close by (pass 10: the
+  one on his player first, then a hurt one, then the nearest, and one not
+  already in a player's sights; never one standing in harm); told (the whistle with the sights on one)
   any hand he takes (`HoundNose.takes`: not a boss, nothing that flies or
   swims). He bites (never for the last of its health: the kill is always a
   player's) and under `pin_below` holds it down `pin_time`: stunned the whole
@@ -1060,7 +1141,9 @@ numbers in `data/tuning/hound.cfg`.
   the hold's gap his head stood inside its chest. The hands within `kick_reach`, the held one
   too, kick at him (`kick_rate`, the kick shown as the hand's attack frame);
   blasts hurt him. A held hand finished counts on the tally (BLUE: FETCHED,
-  HELD) and gets a GOOD BOY.
+  HELD) and gets a GOOD BOY. Under `back_off` of his health (pass 10) he
+  lets go and keeps behind his player, mood HURT, `back_off_for`; no way to
+  his hand (a hazard, a ledge) and he gives it up.
 - **Fetch.** Told, the pickup the sights are on (ammo or food, never keys,
   quest pieces, guns or dynamite); on his own every `fetch_every` or so,
   food when his player is hurt, rounds for the gun in hand when it runs low.
@@ -1069,7 +1152,25 @@ numbers in `data/tuning/hound.cfg`.
 - **Down.** Hurt to nothing he lies whining; a player holding USE beside him
   for `revive_time` gets him up, USE with a pork rind in the pocket at once
   (`hound.use`, `hound.prompt`, from `game_use.gd`), and after `get_up` he
-  gets up himself: he never dies.
+  gets up himself: he never dies. Up again he greets the one who got him up
+  (state GREET, `greet_for`: runs to them, yips).
+- **Moods** (pass 10). A shot passing within `shot_near` of him (in front
+  of the shooter, in their sight: `shot_fired`) and he sulks `sulk_for`,
+  trailing `sulk_heel` behind at a walk. A siren (the twister's warning and
+  the raid's anywhere, their first seconds; a cruiser with its siren within
+  `siren_reach`): now and then (`howl_chance`, game.rng, at most every
+  `howl_rest`) he stops and howls `howl_for`. A twister within its reach and
+  `cower_reach`: he runs to his player's side away from it and cowers,
+  whimpering, till it is gone. His own noises (`features/hound_voice.gd`,
+  looks and sound only, its own dice): a pant after a run, a sniff nosing
+  about and now and then at heel, a shake-off out of the water, back on his
+  feet or down off the airboat, a whimper and a cower at the thunder (the
+  weather is this machine's), and now and then a howl along with the
+  radio's song by a set (not the jock, not with RADIO off).
+- **Mundell about BLUE** (pass 10, barks.gd, each held back a good while):
+  `hound_down` when he goes down, `hound_praise` at a bay or a point,
+  `hound_shot` after a shot close by him, `hound_hush` when he howls,
+  `hound_greet` getting him up, `hound_shine` at a still.
 - **The whistle.** WHISTLE FOR BLUE (G; the pad's BACK held
   `PAD_WHISTLE_HOLD`, a tap is the map on its release, or its share button;
   the touch WHISTLE button, shown with BLUE along, or a tap on his badge): `act(["hound"])` -> `Game.hound_call()`; online and for bots
@@ -1095,8 +1196,32 @@ boss; a fetch dropped and taken; down, held USE, a rind, getting up himself;
 STAY, COME, the replay op and the controls' whistle; saves; co-op's two
 hounds and their own whistles; two games in lockstep with him about, a
 snapshot onto a fresh game running on the same; his art, the stand-in and
-the badge. `-- play=<level>` lets the campaign bot play two minutes with him
-and prints what he did.
+the badge; pass 10's ranging, stepping out of the sights, going round a
+hazard, backing off hurt, a boss's aim as harm, the free seat and a partner
+taking it, the sulk, the howl, the cower, the growl, the still, the pant,
+the shake and the barks dealt at random. `-- play=<level>` lets the campaign
+bot play two minutes with him and prints what he did.
+
+`tools/hound_walk_check.gd` (HOUND WALK OK, in check_all; pass 10) walks
+every chapter's way through (route_map's stops, every door open, no hands)
+and the hub and the range (he is set on there for it) with him along,
+turning round at each stop, and fails when he is stuck over 2 s, further
+than 10 cells over 8 s, seen jumping, or standing in a hazard; then a load
+far off, a ride in each vehicle (the car, the airboat, the mower) and every
+chapter's start. `-- verbose` names each moment, `-- trace=<from>-<to>`
+prints him every quarter second. Measured at v3.7.0 and after pass 10 (the
+same walks; seconds):
+
+| | stuck, longest | far, longest | in the sights, all | in harm, all | 90th percentile apart |
+| --- | --- | --- | --- | --- | --- |
+| v3.7.0 | 12.0 (Hickston), 2.4 to 3.3 on five more | 12.6 (Hickston), 10.8 (the ridge) | 45.2 | 1.8 (burn barrels) | 3.3 to 17.3 cells |
+| pass 10 | 1.6 | 2.2 | 30.0 | 0 | 3.6 to 6.5 cells |
+
+(The walk turns a full circle at every stop, its sights sweeping over him;
+most of what is left in the sights is a third of a second a turn.) The
+rides: the airboat with him 35% of the ride and him not back at
+heel 12 s after, now 100% (riding) and back at once; the mower 20% and not
+back, now 100% (following) and back in 3.1 s; the car 64%, now 85%.
 
 ### Mundell's junk bench (content pass 8)
 
