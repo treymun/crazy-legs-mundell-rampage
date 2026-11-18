@@ -363,6 +363,34 @@ uncompressed meshes (mesh compression would change how they look).
 - Close browser tabs and preview servers after testing: the owner has heard
   game audio from tabs left open.
 
+### Measured in pass 10 (PERFLOAD)
+
+Desktop (RTX 5070 Ti laptop, 1280x800 window, a fresh profile each run, the
+PC busy with the other tracks), v3.7.0 (`4972aec9`) against `eng10-perfload`,
+back to back, medians of three pairs; the browser in headless Chrome
+(SwiftShader), two pairs. Every number is in the track's report.
+
+| What | v3.7.0 | pass 10 |
+| --- | --- | --- |
+| a level's load in a window, start() + first frame, the 11 levels summed | 7.06 s | 4.86 s (1.45x) |
+| ... Hickston, the first level of a session | 2.06 s | 1.13 s |
+| `load_bench.gd` view's first frame, 16 levels (new: `view`) | 6.08 s | 3.58 s (1.70x) |
+| `load_bench.gd` cold / warm / mesh / cuts, 16 levels | 1.92 / 0.85 / 0.68 / 1.50 s | 1.87 / 0.82 / 0.68 / 1.42 s (the same) |
+| `hitch_bench.gd` worst frame over the settled median: cab / hogs / turn | 18.6 / 21.7 / 7.0 ms | 5.6 / 8.6 / 4.7 ms |
+| ... the worst frame of all the moments | 27.7 ms | 13.4 ms |
+| static memory after ten levels (window) | 506 MB | 387 MB |
+| browser: the first level's load (start to its first frame) | 12.1 s | 1.0 to 1.3 s, after the title's warm-up (10.5 s under the title) |
+| browser: the other seven chapters' loads summed | 4.3, 4.5 s | 4.1, 3.4 s |
+| browser, CPU slowed 4x: Hickston's load | 19.6 s | 3.1 s (after 12.9 s under the title) |
+| browser: the title up (from the page's start; 4x slower CPU) | 4.9 s (13.3 s) | 4.7 s (13.6 to 16.2 s) |
+| browser `--view-bench=60`, all chapters | 15.0, 16.9 ms | 19.2, 15.0 ms (the same within the noise) |
+
+Not faster: the boot (4.5 s of the project folder's start, 1.5 s of the
+browser build's, is GDScript compiling every script with main.gd, one at a
+time: threaded loads did not run any of it at once), Game.new (the level
+read, the nav graph, the features: spread thin, no part over 15 ms), the
+level's mesh and the wreck cutting.
+
 ### The browser packs
 
 What a browser downloads, gzipped as GitHub Pages sends it (measured on the
