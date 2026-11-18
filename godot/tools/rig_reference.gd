@@ -443,7 +443,9 @@ func _points(clouds: Dictionary) -> bool:
 ## parts are left out (the millhand's arm on his saw, the tin guard's behind
 ## his shield) takes the other side's, mirrored across the body (pass 11).
 static func _mirror_limbs(clouds: Dictionary) -> void:
-	for pair: Array in [["arm_l", "arm_r"], ["arm_r", "arm_l"], ["leg_l", "leg_r"], ["leg_r", "leg_l"]]:
+	for pair: Array in [
+		["arm_l", "arm_r"], ["arm_r", "arm_l"], ["leg_l", "leg_r"], ["leg_r", "leg_l"]
+	]:
 		var own: PackedVector3Array = clouds.get(pair[0], PackedVector3Array())
 		var other: PackedVector3Array = clouds.get(pair[1], PackedVector3Array())
 		if own.size() >= 8 or other.size() < 8:

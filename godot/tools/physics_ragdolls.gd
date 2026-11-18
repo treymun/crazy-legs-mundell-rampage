@@ -223,7 +223,9 @@ func _falls(game: Game) -> void:
 				if jump > .02:
 					faults.append("%s: the hand-over moved a ball %.3f" % [name, jump])
 				if stretch > STRETCH_HIT:
-					faults.append("%s: a rigid link stretched %.0f%% (%s)" % [name, stretch * 100.0, worst])
+					faults.append(
+						"%s: a rigid link stretched %.0f%% (%s)" % [name, stretch * 100.0, worst]
+					)
 				var lying := 0.0
 				for k in doll.la.size():
 					if doll.lmin[k] == doll.lmax[k] and doll.lmin[k] > 0.0:
@@ -233,7 +235,9 @@ func _falls(game: Game) -> void:
 							lying = ly
 							worst = "%d-%d" % [doll.la[k], doll.lb[k]]
 				if lying > STRETCH:
-					faults.append("%s: a rigid link lies stretched %.0f%% (%s)" % [name, lying * 100.0, worst])
+					faults.append(
+						"%s: a rigid link lies stretched %.0f%% (%s)" % [name, lying * 100.0, worst]
+					)
 				if doll.awake or t > REST_BY:
 					faults.append("%s: still moving after %.1f s" % [name, t])
 				rests.append(t)
@@ -259,17 +263,24 @@ func _falls(game: Game) -> void:
 						b = row[2]
 			# The same kill from another way: not the same body turned round.
 			if _shape_gap(a, b) < .05:
-				faults.append("%s %s: both ways lie the same (%.3f)" % [kind, how, _shape_gap(a, b)])
+				faults.append(
+					"%s %s: both ways lie the same (%.3f)" % [kind, how, _shape_gap(a, b)]
+				)
 		var head: float = drops["%s head from 0.0" % kind]
 		var near: float = drops["%s shotgun_near from 0.0" % kind]
 		if not near > head:
-			faults.append("%s: buckshot at arm's length throws it no further than a head shot" % kind)
+			faults.append(
+				"%s: buckshot at arm's length throws it no further than a head shot" % kind
+			)
 		for f in faults:
 			_check(false, f)
 		if faults.is_empty():
 			_ok(
 				(
-					"%s's falls: no jump at the hand-over, links held, knees forwards, at rest in %.1f to %.1f s, two ways two bodies"
+					(
+						"%s's falls: no jump at the hand-over, links held, knees forwards,"
+						+ " at rest in %.1f to %.1f s, two ways two bodies"
+					)
 					% [kind, rests.min(), rests.max()]
 				)
 			)
@@ -291,7 +302,11 @@ func _knees_back(doll: Ragdoll) -> String:
 		if off.dot(ahead) < -most:
 			return "a knee folds backwards (%.3f)" % off.dot(ahead)
 	for k in doll.la.size():
-		if doll.lmax[k] == INF and doll.lb[k] in [R.BACK, R.BELLY] and doll.la[k] in [R.KNEE_L, R.KNEE_R]:
+		if (
+			doll.lmax[k] == INF
+			and doll.lb[k] in [R.BACK, R.BELLY]
+			and doll.la[k] in [R.KNEE_L, R.KNEE_R]
+		):
 			var d := doll.pos[doll.la[k]].distance_to(doll.pos[doll.lb[k]])
 			if d < doll.lmin[k] * .9:
 				return "a thigh is past the hip's stop (%.3f of %.3f)" % [d, doll.lmin[k]]

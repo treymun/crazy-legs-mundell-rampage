@@ -390,7 +390,9 @@ func _ease_over(k: float) -> void:
 		var turns: Array[Quaternion] = from[1]
 		for b in mini(skeleton.get_bone_count(), at.size()):
 			skeleton.set_bone_pose_position(b, at[b].lerp(skeleton.get_bone_pose_position(b), k))
-			skeleton.set_bone_pose_rotation(b, turns[b].slerp(skeleton.get_bone_pose_rotation(b), k))
+			skeleton.set_bone_pose_rotation(
+				b, turns[b].slerp(skeleton.get_bone_pose_rotation(b), k)
+			)
 
 
 ## The model's light, wash, look and how fallen it is (the rim's shade).

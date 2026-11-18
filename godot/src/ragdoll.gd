@@ -250,7 +250,9 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 	var key := how
 	if how == "shotgun" and away.length() < Corpses.POINT_BLANK:
 		key = "shotgun_near"
-	var row: Array = Effects.RAGDOLL.get(key, Effects.RAGDOLL.get("default", [1.4, .5, 0.0, .6, .4]))
+	var row: Array = Effects.RAGDOLL.get(
+		key, Effects.RAGDOLL.get("default", [1.4, .5, 0.0, .6, .4])
+	)
 	var zone := e.last_zone if e.last_zone != "" and not blast else "body"
 	var by: Array = Effects.RAGDOLL.get("zone_" + zone, [1.0, 0.0, 0.0, .18])
 	var spread: float = Effects.RAGDOLL.get("spread", .3)
@@ -301,7 +303,9 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 				near = i
 		at = pos[near]
 		dir = (dir + Vector3(0.0, 0.0, .6)).normalized()
-	var wobble := Vector3(dice.randf_range(-.3, .3), dice.randf_range(-.3, .3), dice.randf_range(-.15, .2))
+	var wobble := Vector3(
+		dice.randf_range(-.3, .3), dice.randf_range(-.3, .3), dice.randf_range(-.15, .2)
+	)
 	strike(at, (dir + wobble * spread).normalized(), hit)
 	# (Map space is the model's mirrored, y and z swapped: ahead is right x up.)
 	var ahead := Vector3(right.y, -right.x, 0.0).normalized()
@@ -517,7 +521,9 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 	# The muscles: across each knee, elbow and hip, the knees apart. A lying
 	# body's ease: the knees a touch bent, the hips straight, the knees no
 	# wider than standing.
-	for leg: Array in [[R.HIP_L, R.KNEE_L, R.FOOT_L, R.SH_L], [R.HIP_R, R.KNEE_R, R.FOOT_R, R.SH_R]]:
+	for leg: Array in [
+		[R.HIP_L, R.KNEE_L, R.FOOT_L, R.SH_L], [R.HIP_R, R.KNEE_R, R.FOOT_R, R.SH_R]
+	]:
 		var hip: int = leg[0]
 		var knee: int = leg[1]
 		var foot: int = leg[2]
@@ -1090,7 +1096,9 @@ func _slump(tone: float) -> bool:
 		if tip.length_squared() < 1e-4:
 			tip = _fall_way if _fall_way != Vector3.ZERO else Vector3(1.0, 0.0, 0.0)
 		tip = tip.normalized()
-		var push := SLUMP_PULL * minf(1.0, (-up.z - HEADLONG) / (1.0 - HEADLONG) * 2.0) * STEP * STEP
+		var push := (
+			SLUMP_PULL * minf(1.0, (-up.z - HEADLONG) / (1.0 - HEADLONG) * 2.0) * STEP * STEP
+		)
 		for i: int in [R.HIP_L, R.HIP_R, R.BELLY, R.BACK, R.KNEE_L, R.KNEE_R, R.FOOT_L, R.FOOT_R]:
 			old[i] -= tip * push
 		return true
@@ -1128,6 +1136,8 @@ func _slump(tone: float) -> bool:
 ## The muscles (`tone`: the pose it died in, going slack) and a lying body's
 ## ease (`ease`), each a share of the error put right.
 func _muscles(tone: float, ease: float) -> void:
+	if tone < .002 and ease <= 0.0:
+		return
 	for k in sa.size():
 		var target := s_hold[k]
 		var share := tone
@@ -1228,7 +1238,11 @@ func _walls(world: LevelData, i: int) -> void:
 		# the top just over it when there is one within a step, else as it is.
 		var top := Tumble.floor_at(world, p.x, p.y, p.z + r + STEP_UP, r * .6)
 		var lift := top + r
-		if lift > p.z and lift - p.z < STEP_UP + r and not _solid(world, Vector3(p.x, p.y, lift), r * .5):
+		if (
+			lift > p.z
+			and lift - p.z < STEP_UP + r
+			and not _solid(world, Vector3(p.x, p.y, lift), r * .5)
+		):
 			pos[i] = Vector3(p.x, p.y, lift)
 			old[i] = Vector3(o.x, o.y, lift)
 		return

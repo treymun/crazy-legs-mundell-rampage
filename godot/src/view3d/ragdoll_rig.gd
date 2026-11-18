@@ -467,7 +467,9 @@ func _find_gear() -> void:
 					group.append(m)
 			at += 1
 		clusters.append(group)
-	clusters.sort_custom(func(a: PackedInt32Array, b: PackedInt32Array) -> bool: return a.size() > b.size())
+	clusters.sort_custom(
+		func(a: PackedInt32Array, b: PackedInt32Array) -> bool: return a.size() > b.size()
+	)
 	for group: PackedInt32Array in clusters:
 		if gear_bones.size() >= 2:
 			break
@@ -512,9 +514,7 @@ func _find_gear() -> void:
 		var centre := (lo + hi) * .5
 		var a := axes[0] * minf(lo.x + r, centre.x) + axes[1] * (lo.y + r) + axes[2] * centre.z
 		var b := axes[0] * maxf(hi.x - r, centre.x) + axes[1] * (lo.y + r) + axes[2] * centre.z
-		var c := (
-			axes[0] * centre.x + axes[1] * maxf(hi.y - r, lo.y + r * 3.0) + axes[2] * centre.z
-		)
+		var c := axes[0] * centre.x + axes[1] * maxf(hi.y - r, lo.y + r * 3.0) + axes[2] * centre.z
 		var bones := PackedInt32Array()
 		for k in group:
 			bones.append(lost[k])
@@ -823,7 +823,9 @@ func _points(clouds: Dictionary) -> bool:
 ## parts are left out (the millhand's arm on his saw, the tin guard's behind
 ## his shield) takes the other side's, mirrored across the body (pass 11).
 static func _mirror_limbs(clouds: Dictionary) -> void:
-	for pair: Array in [["arm_l", "arm_r"], ["arm_r", "arm_l"], ["leg_l", "leg_r"], ["leg_r", "leg_l"]]:
+	for pair: Array in [
+		["arm_l", "arm_r"], ["arm_r", "arm_l"], ["leg_l", "leg_r"], ["leg_r", "leg_l"]
+	]:
 		var own: PackedVector3Array = clouds.get(pair[0], PackedVector3Array())
 		var other: PackedVector3Array = clouds.get(pair[1], PackedVector3Array())
 		if own.size() >= 8 or other.size() < 8:
@@ -993,7 +995,11 @@ func pose(skeleton: Skeleton3D, at: PackedVector3Array, dead: bool) -> void:
 			break
 		var at3 := PackedVector3Array([at[k], at[k + 1], at[k + 2]])
 		var was := PackedVector3Array(
-			[gear_ends[g * GEAR_BALLS], gear_ends[g * GEAR_BALLS + 1], gear_ends[g * GEAR_BALLS + 2]]
+			[
+				gear_ends[g * GEAR_BALLS],
+				gear_ends[g * GEAR_BALLS + 1],
+				gear_ends[g * GEAR_BALLS + 2]
+			]
 		)
 		var turn := _triangle(was, at3, 0, 1, 2)
 		held.append(Transform3D(turn, at[k] - turn * was[0]))

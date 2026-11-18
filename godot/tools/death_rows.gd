@@ -49,9 +49,7 @@ const ROWS := [
 ]
 ## Each zone's height on the body (shares of its height) and how far off its
 ## middle across the shot (shares of its radius).
-const ZONES := {
-	"head": [.93, 0.0], "body": [.6, 0.0], "arms": [.62, 1.0], "legs": [.24, .3]
-}
+const ZONES := {"head": [.93, 0.0], "body": [.6, 0.0], "arms": [.62, 1.0], "legs": [.24, .3]}
 
 ## A killing hit's usual damage by gun.
 const DAMAGE := {"shotgun": 70.0, "revolver": 30.0, "rifle": 45.0, "blast": 29.0}
@@ -154,9 +152,13 @@ func run(row: Array) -> void:
 func _place(place: String) -> Dictionary:
 	match place:
 		"stairs":
-			return {"level": "feedstore", "at": Vector2(10.9, 4.6), "top": 1.7, "way": Vector2(-1, 0)}
+			return {
+				"level": "feedstore", "at": Vector2(10.9, 4.6), "top": 1.7, "way": Vector2(-1, 0)
+			}
 		"rail":
-			return {"level": "hickston", "at": Vector2(44.0, 8.6), "top": 1.55, "way": Vector2(0, 1)}
+			return {
+				"level": "hickston", "at": Vector2(44.0, 8.6), "top": 1.55, "way": Vector2(0, 1)
+			}
 		"flat":
 			return _open("hickston", false)
 		"wall":
@@ -220,7 +222,10 @@ func _slab(id: String, what: String) -> Dictionary:
 	for s: LevelGeometry.Slab in w.geo.slabs:
 		if not s.walk:
 			continue
-		if (what == "ramp") != s.sloped() or (what == "deck" and (s.kind == "stair" or s.thick <= 0.0)):
+		if (
+			(what == "ramp") != s.sloped()
+			or (what == "deck" and (s.kind == "stair" or s.thick <= 0.0))
+		):
 			continue
 		var mid := Vector2((s.x0 + s.x1) * .5, (s.y0 + s.y1) * .5)
 		if not s.inside(mid.x, mid.y) or minf(s.x1 - s.x0, s.y1 - s.y0) < 2.0:
@@ -265,7 +270,9 @@ func _ticks(g: Game, n: int, cam: Vector3, at: Vector2, top: float) -> void:
 		_look = body if _look == Vector2.INF else _look.lerp(body, .2)
 		var lz := top + .6
 		if _body != null:
-			var bz: float = g.world.floor_under(_body.x, _body.y, g.world.stand(_body) + .3) + _body.toss
+			var bz: float = (
+				g.world.floor_under(_body.x, _body.y, g.world.stand(_body) + .3) + _body.toss
+			)
 			_look_z = bz + .6 if is_nan(_look_z) else lerpf(_look_z, bz + .6, .2)
 			lz = _look_z
 		var look := _look
@@ -328,10 +335,40 @@ func _probe(g: Game) -> void:
 	var hp := (d.pos[0] + d.pos[1]) * .5
 	var up := ((d.pos[2] + d.pos[3]) * .5 - hp).normalized()
 	var th := (d.pos[9] - d.pos[0]).normalized()
-	print("    age %.2f up %.2f hipz %.2f elb %.2f %.2f hand %.2f %.2f sh %.2f %.2f awake %s" % [d.age, up.z, hp.z, d.pos[5].z, d.pos[7].z, d.pos[6].z, d.pos[8].z, d.pos[2].z, d.pos[3].z, d.awake])
+	print(
+		(
+			"    age %.2f up %.2f hipz %.2f elb %.2f %.2f hand %.2f %.2f sh %.2f %.2f awake %s"
+			% [
+				d.age,
+				up.z,
+				hp.z,
+				d.pos[5].z,
+				d.pos[7].z,
+				d.pos[6].z,
+				d.pos[8].z,
+				d.pos[2].z,
+				d.pos[3].z,
+				d.awake
+			]
+		)
+	)
 	var head := d.pos[RagdollRig.HEAD]
 	var hips := (d.pos[0] + d.pos[1]) * .5
 	print(
-		"    %.3f steps %d awake %s head %.2f %.2f %.2f hips %.2f %.2f %.2f body %.2f %.2f"
-		% [g.clock - _body.died_at, d.steps, d.awake, head.x, head.y, head.z, hips.x, hips.y, hips.z, _body.x, _body.y]
+		(
+			"    %.3f steps %d awake %s head %.2f %.2f %.2f hips %.2f %.2f %.2f body %.2f %.2f"
+			% [
+				g.clock - _body.died_at,
+				d.steps,
+				d.awake,
+				head.x,
+				head.y,
+				head.z,
+				hips.x,
+				hips.y,
+				hips.z,
+				_body.x,
+				_body.y
+			]
+		)
 	)
