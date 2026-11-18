@@ -39,6 +39,9 @@ var cover_clock := -1.0
 var _eyes := PackedFloat64Array()
 var _eyes_clock := -1.0
 var _eyes_players := -1
+## FAR and VIEW_FAR squared, as of the last _look().
+var _far2 := 0.0
+var _view2 := 0.0
 ## Ticks taken and waited this game, for the tools (not play).
 var thought := 0
 var waited := 0
@@ -107,33 +110,33 @@ func step(e: Enemy, wdt: float, game: GameState) -> float:
 func calm(e: Enemy, game: GameState, full := true) -> bool:
 	if game.clock != _eyes_clock or game.players.size() != _eyes_players:
 		_look(game)
-	var far2 := FAR * FAR
-	var view2 := VIEW_FAR * VIEW_FAR
+	# (Locals and the commonest answers first: asked for most enemies a tick.)
+	var ex := e.x
+	var ey := e.y
 	var eyes := _eyes
-	for k in range(0, eyes.size(), 4):
-		var dx := e.x - eyes[k]
-		var dy := e.y - eyes[k + 1]
+	var n := eyes.size()
+	var k := 0
+	while k < n:
+		var dx := ex - eyes[k]
+		var dy := ey - eyes[k + 1]
 		var d2 := dx * dx + dy * dy
-		if d2 < far2:
+		if d2 < _far2:
 			return false
-		if d2 < view2 and dx * eyes[k + 2] + dy * eyes[k + 3] > VIEW_COS * sqrt(d2):
+		if d2 < _view2 and dx * eyes[k + 2] + dy * eyes[k + 3] > VIEW_COS * sqrt(d2):
 			# Out in front of them, near enough to watch it walk.
 			return false
-	if (
-		e.alerted
-		or e.heard != null
-		or e.retreat != null
-		or e.held_cel != ""
-		or e.hop > 0.0
-		or (e.struck_at >= 0.0 and game.clock - e.struck_at < HURT)
-	):
+		k += 4
+	if e.alerted or e.heard != null or e.retreat != null or e.held_cel != "" or e.hop > 0.0:
+		return false
+	var struck := e.struck_at
+	if struck >= 0.0 and game.clock - struck < HURT:
 		return false
 	var m: Squad.Mind = e.mind
 	if m != null and (m.investigate != null or m.regroup != null or m.flush_at > 0.0):
 		return false
 	if not full:
 		return true
-	return not (
+	if (
 		e.windup > 0.0
 		or e.volley != 0
 		or e.stun > 0.0
@@ -149,7 +152,10 @@ func calm(e: Enemy, game: GameState, full := true) -> bool:
 		or e.disarmed_until >= 0.0
 		or not e.cover_hunt.is_empty()
 		or e.brain == "derby_champ"
-		or Enemy.BOSS_TITLES.has(e.kind)
+	):
+		return false
+	return not (
+		Enemy.BOSS_TITLES.has(e.kind)
 		or (m != null and (m.search_until > 0.0 or m.kick_at > 0.0))
 	)
 
@@ -157,6 +163,8 @@ func calm(e: Enemy, game: GameState, full := true) -> bool:
 func _look(game: GameState) -> void:
 	_eyes_clock = game.clock
 	_eyes_players = game.players.size()
+	_far2 = FAR * FAR
+	_view2 = VIEW_FAR * VIEW_FAR
 	_eyes.resize(0)
 	for q: Player in game.players:
 		if q.health > 0:

@@ -33,6 +33,10 @@ static func use_target(g: Game) -> Variant:
 			and g.world.visible(g.player.x, g.player.y, g.bessie.x, g.bessie.y)
 		):
 			return ["bessie", g.bessie.x, g.bessie.y]
+	# What lies past the reach on either axis use_rank() would turn down:
+	# left out first (most of a level's doors and devices, every frame).
+	var px: float = g.player.x
+	var py: float = g.player.y
 	var doors: Array = []
 	for door: LevelData.Door in g.world.doors:
 		if (
@@ -41,6 +45,8 @@ static func use_target(g: Game) -> Variant:
 		):
 			continue
 		var centre := door.center()
+		if absf(centre.x - px) >= 1.57 or absf(centre.y - py) >= 1.57:
+			continue
 		doors.append([door, centre.x, centre.y])
 	var devices: Array = []
 	for station: LevelData.Station in g.world.stations:
@@ -69,6 +75,8 @@ static func use_target(g: Game) -> Variant:
 			g.use_aim = Vector3.INF
 	for device: Variant in devices:
 		for point: Vector3 in aim_points(g, device):
+			if absf(point.x - px) >= DEVICE_REACH or absf(point.y - py) >= DEVICE_REACH:
+				continue
 			var rank := use_rank(
 				g, point.x, point.y, DEVICE_REACH, DEVICE_TOUCH, DEVICE_CONE, facing
 			)

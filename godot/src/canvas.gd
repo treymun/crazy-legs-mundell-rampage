@@ -64,6 +64,15 @@ const ITEM_ADD_VIEW := 3
 static var _add_material: ShaderMaterial
 static var _textures := {}
 static var _glyphs := {}
+## _fill_poly's spans by shape (corners from the top left), at most
+## POLY_SHAPES_KEPT shapes (then they start again).
+const POLY_SHAPES_KEPT := 512
+static var _poly_spans := {}
+## label()'s letters on the Godot canvas by text, per style (_glyph_run).
+const RUNS_KEPT := 1024
+static var _runs := {}
+## _draw_glyphs' letters for the software canvas (_soft_glyph).
+static var _soft_glyphs := {}
 
 
 ## Free the items made for Godot 2D drawing (the program is closing).
@@ -197,6 +206,33 @@ static func _glyph_texture(char: String, mini: bool, sx: int, height: int) -> Ar
 	kept = [ImageTexture.create_from_image(image), glyph_w]
 	_glyphs[key] = kept
 	return kept
+
+
+## A letter's lit pixels for the software canvas, [x, y] pairs from its top
+## left, and last its advance (_draw_glyphs).
+static func _soft_glyph(char: String, mini: bool, sx: int, height: int) -> PackedInt32Array:
+	var key := (char.unicode_at(0) << 16) | (int(mini) << 15) | (sx << 8) | height
+	var kept: Variant = _soft_glyphs.get(key)
+	if kept != null:
+		return kept
+	var info := PixelType.glyph(char, mini)
+	var rows: Array = info[0]
+	var glyph_w: int = info[1]
+	var n := rows.size()
+	var dots := PackedInt32Array()
+	for yi in n:
+		var top := yi * height / n
+		var bottom := (yi + 1) * height / n
+		var bits: int = rows[yi]
+		for col in glyph_w:
+			if bits & (1 << (glyph_w - col - 1)):
+				for yy in range(top, bottom):
+					for xx in sx:
+						dots.append(col * sx + xx)
+						dots.append(yy)
+	dots.append((glyph_w + 1) * sx)
+	_soft_glyphs[key] = dots
+	return dots
 
 
 ## Start an empty 320x200 layer: nothing over the view, the status rows solid.
@@ -367,6 +403,9 @@ func line(x0: int, y0: int, x1: int, y1: int, c: Color, width := 1) -> void:
 	var r := roundi(c.r * 255.0)
 	var g := roundi(c.g * 255.0)
 	var b := roundi(c.b * 255.0)
+	if width <= 1 and gpu:
+		_gpu_line(x0, y0, x1, y1, r, g, b)
+		return
 	if width <= 1:
 		while x0 != x1 or y0 != y1:
 			set_pixel(x0, y0, r, g, b)
@@ -397,6 +436,60 @@ func line(x0: int, y0: int, x1: int, y1: int, c: Color, width := 1) -> void:
 		if e2 < dy:
 			err += dx
 			y0 += sy
+
+
+## line()'s one-pixel Bresenham on the Godot canvas: the same pixels, a
+## row's (or a column's) run of them one rectangle instead of a rectangle
+## each (pass 10: a tracer was a hundred draw commands).
+func _gpu_line(x0: int, y0: int, x1: int, y1: int, r: int, g: int, b: int) -> void:
+	var dx := absi(x1 - x0)
+	var dy := absi(y1 - y0)
+	var sx := 1 if x0 < x1 else -1
+	var sy := 1 if y0 < y1 else -1
+	var err := (dx if dx > dy else -dy) / 2
+	var steep := dy > dx
+	var run_x := x0
+	var run_y := y0
+	var run_n := 1
+	while x0 != x1 or y0 != y1:
+		var e1 := err
+		if e1 > -dx:
+			err -= dy
+			x0 += sx
+		if e1 < dy:
+			err += dx
+			y0 += sy
+		if steep and x0 == run_x:
+			run_n += 1
+		elif not steep and y0 == run_y:
+			run_n += 1
+		else:
+			_gpu_run(run_x, run_y, run_n, steep, sx, sy, r, g, b)
+			run_x = x0
+			run_y = y0
+			run_n = 1
+	_gpu_run(run_x, run_y, run_n, steep, sx, sy, r, g, b)
+
+
+## `n` pixels from (x, y) along a row (or a column when `steep`), clipped to
+## the canvas as set_pixel clips each.
+func _gpu_run(x: int, y: int, n: int, steep: bool, sx: int, sy: int, r: int, g: int, b: int) -> void:
+	if steep:
+		if x < 0 or x >= w:
+			return
+		var top := y if sy > 0 else y - n + 1
+		var lo := maxi(0, top)
+		var hi := mini(h - 1, top + n - 1)
+		if lo <= hi:
+			_gpu_rect(x, lo, 1, hi - lo + 1, r, g, b)
+		return
+	if y < 0 or y >= h:
+		return
+	var left := x if sx > 0 else x - n + 1
+	var lo2 := maxi(0, left)
+	var hi2 := mini(w - 1, left + n - 1)
+	if lo2 <= hi2:
+		_gpu_rect(lo2, y, hi2 - lo2 + 1, 1, r, g, b)
 
 
 func circle(cx: int, cy: int, radius: int, c: Color, filled := true, width := 0) -> void:
@@ -827,7 +920,35 @@ func _fill_tri(xs: PackedInt32Array, ys: PackedInt32Array, r: int, g: int, b: in
 
 
 ## pygame draw_fillpoly: scanline intersections with floor/ceil alternation.
+## The spans depend only on the shape (whole-number corners moved by whole
+## numbers move every span alike): worked out once per shape and kept
+## (_poly_rows), then drawn where it is (the HUD's plates every frame).
 func _fill_poly(xs: PackedInt32Array, ys: PackedInt32Array, r: int, g: int, b: int) -> void:
+	var n := xs.size()
+	var min_x := xs[0]
+	var min_y := ys[0]
+	for i in range(1, n):
+		min_x = mini(min_x, xs[i])
+		min_y = mini(min_y, ys[i])
+	var shape := PackedInt32Array()
+	shape.resize(n * 2)
+	for i in n:
+		shape[i] = xs[i] - min_x
+		shape[n + i] = ys[i] - min_y
+	var rows: Variant = _poly_spans.get(shape)
+	if rows == null:
+		if _poly_spans.size() >= POLY_SHAPES_KEPT:
+			_poly_spans.clear()
+		rows = _poly_rows(shape.slice(0, n), shape.slice(n))
+		_poly_spans[shape] = rows
+	var spans: PackedInt32Array = rows
+	for k in range(0, spans.size(), 3):
+		_hspan(spans[k] + min_x, spans[k + 1] + min_y, spans[k + 2] + min_x, r, g, b)
+
+
+## The spans of a polygon, [x0, y, x1] each in the order drawn.
+static func _poly_rows(xs: PackedInt32Array, ys: PackedInt32Array) -> PackedInt32Array:
+	var out := PackedInt32Array()
 	var n := xs.size()
 	var min_y := ys[0]
 	var max_y := ys[0]
@@ -840,10 +961,11 @@ func _fill_poly(xs: PackedInt32Array, ys: PackedInt32Array, r: int, g: int, b: i
 		for i in range(1, n):
 			min_x = mini(min_x, xs[i])
 			max_x = maxi(max_x, xs[i])
-		_hspan(min_x, min_y, max_x, r, g, b)
-		return
+		out.append_array([min_x, min_y, max_x])
+		return out
+	var hits := PackedInt32Array()
 	for y in range(min_y, max_y + 1):
-		var hits: Array[int] = []
+		hits.resize(0)
 		for i in n:
 			var prev := (i - 1 + n) % n
 			var y1 := ys[prev]
@@ -871,13 +993,14 @@ func _fill_poly(xs: PackedInt32Array, ys: PackedInt32Array, r: int, g: int, b: i
 		hits.sort()
 		var k := 0
 		while k + 1 < hits.size():
-			_hspan(hits[k], y, hits[k + 1], r, g, b)
+			out.append_array([hits[k], y, hits[k + 1]])
 			k += 2
 	for i in n:
 		var prev2 := (i - 1 + n) % n
 		var yy := ys[i]
 		if min_y < yy and ys[prev2] == yy and yy < max_y:
-			_hspan(xs[i], yy, xs[prev2], r, g, b)
+			out.append_array([xs[i], yy, xs[prev2]])
+	return out
 
 
 ## Alpha-blend an RGBA image (assets.art format) with its top-left at x,y.
@@ -980,6 +1103,9 @@ func label(
 	elif right:
 		px = x - width
 	var rect := Rect2i(px, y, width, height)
+	if gpu:
+		_gpu_label(text, rect.position.x, rect.position.y, sx, height, mini, color, shadow)
+		return rect
 	if shadow:
 		# A dark outline all round and the drop below it, so text reads over
 		# the busy view as well as on a plain panel.
@@ -995,6 +1121,63 @@ func label(
 			)
 	_draw_glyphs(text, rect.position.x, rect.position.y, sx, height, mini, color)
 	return rect
+
+
+## label() on the Godot canvas: the text's letters looked up once (kept by
+## text, _glyph_run) and laid down for each outline pass and the ink, in the
+## order _draw_glyphs lays them.
+func _gpu_label(
+	text: String, x0: int, y0: int, sx: int, height: int, mini: bool, color: Color, shadow: bool
+) -> void:
+	var run := _glyph_run(text, mini, sx, height)
+	if shadow:
+		var shade := Color8(
+			roundi(PixelType.SHADE.r * 255.0),
+			roundi(PixelType.SHADE.g * 255.0),
+			roundi(PixelType.SHADE.b * 255.0)
+		)
+		for off: Vector2i in OUTLINE:
+			_lay_run(run, x0 + off.x, y0 + off.y, shade)
+	_lay_run(
+		run,
+		x0,
+		y0,
+		Color8(roundi(color.r * 255.0), roundi(color.g * 255.0), roundi(color.b * 255.0))
+	)
+
+
+## [texture RID, offset x, width, height] for each letter of `text`.
+static func _glyph_run(text: String, mini: bool, sx: int, height: int) -> Array:
+	var style := (int(mini) << 15) | (sx << 8) | height
+	var kept: Dictionary = _runs.get(style, {})
+	if kept.is_empty():
+		_runs[style] = kept
+	var run: Variant = kept.get(text)
+	if run != null:
+		return run
+	var made: Array = []
+	var x := 0
+	for ch in text.to_upper():
+		var glyph := _glyph_texture(ch, mini, sx, height)
+		var tex: ImageTexture = glyph[0]
+		made.append([tex.get_rid(), x, tex.get_width(), tex.get_height()])
+		var glyph_width: int = glyph[1]
+		x += (glyph_width + 1) * sx
+	if kept.size() >= RUNS_KEPT:
+		kept.clear()
+	kept[text] = made
+	return made
+
+
+func _lay_run(run: Array, x0: int, y0: int, tint: Color) -> void:
+	for letter: Array in run:
+		var rid: RID = letter[0]
+		var ox: int = letter[1]
+		var lw: int = letter[2]
+		var lh: int = letter[3]
+		RenderingServer.canvas_item_add_texture_rect(
+			_item, Rect2(x0 + ox, y0, lw, lh), rid, false, tint
+		)
 
 
 func _draw_glyphs(
@@ -1020,21 +1203,26 @@ func _draw_glyphs(
 			x += (glyph_width + 1) * sx
 		return
 	for ch in text.to_upper():
-		var info := PixelType.glyph(ch, mini)
-		var rows: Array = info[0]
-		var glyph_w: int = info[1]
-		var n := rows.size()
-		for yi in n:
-			var top := yi * height / n
-			var bottom := (yi + 1) * height / n
-			var bits: int = rows[yi]
-			for col in glyph_w:
-				if bits & (1 << (glyph_w - col - 1)):
-					var px := x + col * sx
-					for yy in range(top, bottom):
-						for xx in sx:
-							set_pixel(px + xx, y0 + yy, r, g, b)
-		x += (glyph_w + 1) * sx
+		# Each letter's lit pixels, worked out once (_soft_glyph): the same
+		# pixels set_pixel() would set, one by one.
+		var dots := _soft_glyph(ch, mini, sx, height)
+		var count := dots.size() - 1
+		var k := 0
+		while k < count:
+			var px := x + dots[k]
+			var py := y0 + dots[k + 1]
+			k += 2
+			if px < 0 or py < 0 or px >= w or py >= h:
+				continue
+			var o := (py * w + px) * 3
+			pixels[o] = r
+			pixels[o + 1] = g
+			pixels[o + 2] = b
+			if use_mask:
+				mask[py * w + px] = 1
+			if layer:
+				cover[py * w + px] = 255
+		x += dots[count]
 
 
 ## pygame HUD.panel(): drop shadow, face, 1px edge and a bottom inner line.

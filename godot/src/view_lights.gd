@@ -95,13 +95,16 @@ static func _gather(g: GameView) -> Array:
 			var more_lights: Array = lit.call("lights", p)
 			found.append_array(more_lights)
 	for entry: Array in g.pickups:
-		var item := str(entry[0])
-		var quest := item.begins_with("key_") or GameState.TASK_ITEMS.has(item)
+		# (Where it lies asked first: most of a level's pickups are far off.)
 		var x: float = entry[1]
-		if quest and absf(x - p.x) < 10.0:
-			var y: float = entry[2]
-			if absf(y - p.y) < 10.0:
-				found.append(Effects.light(item, x, y, g.world.elevation(x, y) + .4, 1.0, g.clock))
+		if absf(x - p.x) >= 10.0:
+			continue
+		var y: float = entry[2]
+		if absf(y - p.y) >= 10.0:
+			continue
+		var item := str(entry[0])
+		if item.begins_with("key_") or GameState.TASK_ITEMS.has(item):
+			found.append(Effects.light(item, x, y, g.world.elevation(x, y) + .4, 1.0, g.clock))
 	found.append_array(GameObjective.quest_lights((g as Object) as Game))
 	for l: Array in g.trigger_lights:
 		var until: float = l[6]
@@ -222,7 +225,7 @@ static func _boat_engines(g: GameView) -> Array:
 	if not Effects.LIGHTS.has("airboat_engine"):
 		return out
 	for e: Enemy in g.enemies:
-		if e.alive and e.brain == "swamp_king":
+		if e.brain == "swamp_king" and e.alive:
 			var x := e.x - cos(e.angle) * .7
 			var y := e.y - sin(e.angle) * .7
 			out.append(
