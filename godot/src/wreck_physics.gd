@@ -309,15 +309,22 @@ func _pairs(live: Array, contacts: Array) -> void:
 			var o: Body = bodies[i]
 			_grid.add(i, o.p.x, o.p.y, o.reach)
 	for a: Body in live:
+		# _pair_up's reach test asked first, here (most pairs fail it).
+		var ap := a.p
+		var ar := a.reach
 		if gridded:
-			var near := _grid.near(a.p.x, a.p.y, a.reach)
+			var near := _grid.near(ap.x, ap.y, ar)
 			near.sort()
 			for i in near:
 				var o: Body = bodies[i]
-				_pair_up(a, o, contacts)
+				var r := ar + o.reach
+				if ap.distance_squared_to(o.p) <= r * r:
+					_pair_up(a, o, contacts)
 		else:
 			for o: Body in bodies:
-				_pair_up(a, o, contacts)
+				var r := ar + o.reach
+				if ap.distance_squared_to(o.p) <= r * r:
+					_pair_up(a, o, contacts)
 
 
 func _pair_up(a: Body, o: Body, contacts: Array) -> void:
@@ -503,7 +510,7 @@ func _world_contacts(b: Body, h: float, out: Array) -> void:
 		else:
 			var plain := PhysCore.plain(world, at.x, at.y)
 			flat = not is_nan(plain)
-			under = plain if flat else Tumble.floor_at(world, at.x, at.y, from)
+			under = plain if flat else PhysCore.floor_under(world, at.x, at.y, from)
 			fl.keep(i, at.x, at.y, from, under, flat)
 		var depth := under - at.z
 		if depth > -margin and depth < LEDGE:
