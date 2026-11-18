@@ -168,8 +168,6 @@ const REPORT_GAIN := {
 ## played twice running): BLUE's, whose barks in turn ran a fixed round.
 const SHUFFLED := "hound_"
 const VARIANTS := {
-	# BLUE, the hound (features/hound.gd, hound_voice.gd; scripts/audio_spec.py
-	# "the hound"): dealt at random, never the take just played (SHUFFLED).
 	"hound_bark":
 	["hound_bark", "hound_bark_alt", "hound_bark_alt2", "hound_bark_alt3", "hound_bark_alt4"],
 	"hound_bay": ["hound_bay", "hound_bay_alt", "hound_bay_alt2"],
@@ -565,6 +563,20 @@ class ScorePlayer:
 			else:
 				player.play()
 
+	## Score `context` from the top of its track `track_name` (a chapter
+	## opener's bed): the bank deals it now, the one playing fades out first.
+	func cue_song(context: String, track_name: String) -> void:
+		var bank: ShuffleBank = banks.get(context)
+		if bank == null:
+			return
+		bank.track = track_name
+		bank.offset = 0.0
+		bank.bag.erase(track_name)
+		requested = context
+		reopen = active == context
+		if active == null and enabled and not paused:
+			start(context, false)
+
 	func bookmark(context: String) -> Variant:
 		var bank: ShuffleBank = banks.get(context)
 		if bank == null or bank.track == null:
@@ -638,12 +650,17 @@ var station := RadioStation.new()
 var _dj: Voice
 var _scan: Voice
 var _music_duck := 1.0
-## A boss's ending holding the music under its end sting (boss_ending.gd
-## hold_music): the share _music_duck eases toward, 1 when nothing holds it.
-var _music_hold := 1.0
 ## Play's own hold on the music (game.gd: a blast, a caption up), a share of
 ## MUSIC VOLUME; level_music sets it. 1 in the menus.
 var _game_music := 1.0
+## A chapter opener's hold on its bed (set_opener_hold), what it eases back
+## to after (1), and whether the music ducks under the voice channel.
+var _opener_hold := 1.0
+var _opener_aim := 1.0
+var _duck_voice := false
+## The ambience's and the sting's share of their level (OPENER_AMB, sting()).
+var _amb_share := 1.0
+var _sting_share := 1.0
 var _preview_left := 0.0
 var _preview_side := 1.0
 var _music: AudioStreamPlayer
@@ -654,8 +671,7 @@ var score_lift := 1.0
 
 var _amb_target := [0.0, 0.0]
 var _amb_rate := [0.0, 0.0]
-## The dice for each effect's own pitch and level (PITCH_SPREAD), and for
-## the takes of a SHUFFLED set.
+## The dice for each effect's pitch and level (PITCH_SPREAD) and SHUFFLED takes.
 var _dice := ShuffleRng.new(3001)
 var _take_dice := ShuffleRng.new(3011)
 ## The pitch play_at_rate() asks of the cue it starts (1 otherwise).
@@ -1001,7 +1017,7 @@ func set_room(room_name: Variant) -> void:
 	v.player.stream = stream
 	Sound.set_level(v.player, 0.0)
 	v.player.play()
-	_amb_target[room_slot] = .78 * ambient_gain * mix_headroom
+	_amb_target[room_slot] = .78 * ambient_gain * mix_headroom * _amb_share
 	_amb_rate[room_slot] = _amb_target[room_slot] / AMB_FADE
 
 
@@ -1059,7 +1075,7 @@ func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2
 	pan_width = [0.0, .35, .70, .93][clampi(stereo, 0, 3)]
 	if score_player != null:
 		_apply_music()
-	_amb_target[room_slot] = .78 * ambience * mix_headroom
+	_amb_target[room_slot] = .78 * ambience * mix_headroom * _amb_share
 	if _amb_rate[room_slot] <= 0.0:
 		var bed_level: float = _amb_target[room_slot]
 		Sound.set_level(_ambience[room_slot].player, bed_level)
@@ -1068,7 +1084,7 @@ func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2
 	if _tool.player.playing:
 		Sound.set_level(_tool.player, TOOL_GAIN * effects * mix_headroom)
 	if _sting.player.playing:
-		Sound.set_level(_sting.player, .84 * music_gain)
+		Sound.set_level(_sting.player, .84 * music_gain * _sting_share)
 
 
 func set_fuse(burning: bool) -> void:
@@ -1219,6 +1235,9 @@ func tick_score(dt: float) -> void:
 	station.others_talking = talking()
 	station.update(dt)
 	_radio_levels(dt)
+	if _opener_hold != _opener_aim and not _duck_voice:
+		_opener_hold = move_toward(_opener_hold, _opener_aim, dt * DUCK_UP)
+		_apply_music()
 	if score_player != null:
 		score_player.update(dt)
 	if _music != null:
@@ -1305,7 +1324,9 @@ func level_music(gain: float) -> void:
 ## jukebox or truck radio playing (radio_gain), Dub over the song.
 func _apply_music() -> void:
 	if score_player != null:
-		score_player.level(music_gain * _game_music * (1.0 - radio_gain) * _music_duck)
+		score_player.level(
+			music_gain * _game_music * (1.0 - radio_gain) * _music_duck * _opener_hold
+		)
 
 
 ## Whether the player is in a fight (features/fight_music.gd, every tick): the
@@ -1320,36 +1341,16 @@ func fight_mix() -> float:
 	return score_player.fight_mix if score_player != null else 0.0
 
 
-func sting(cue: String) -> void:
+## A music sting over the score; `volume` a share of its level (a chapter
+## opener's boss sting sits under the boss's line).
+func sting(cue: String, volume := 1.0) -> void:
 	var stream := assets.cue(cue)
 	if music and stream != null:
 		_sting.cue = cue
 		_sting.player.stream = stream
 		_sting.player.play()
-		Sound.set_level(_sting.player, .84 * music_gain)
-
-
-## A boss's ending (boss_ending.gd): the music eased down to `share` of its
-## level under the end sting, and back up with 1.
-func hold_music(share: float) -> void:
-	_music_hold = clampf(share, 0.0, 1.0)
-
-
-## Whether a sting (a boss's end, a chapter's) is playing now.
-func sting_playing() -> bool:
-	return _sting.player.playing and not _sting.player.stream_paused
-
-
-## How loud the music is now as a share of MUSIC VOLUME: the score under its
-## holds, or a sting over it, whichever is louder (the checks read it).
-func music_heard() -> float:
-	var heard := 0.0
-	if score_player != null and score_player.enabled and not score_player.paused:
-		if score_player.player.playing and not score_player.player.stream_paused:
-			heard = _game_music * (1.0 - radio_gain) * _music_duck * score_player.gain
-	if sting_playing():
-		heard = maxf(heard, .84)
-	return heard
+		_sting_share = volume
+		Sound.set_level(_sting.player, .84 * music_gain * volume)
 
 
 ## A chapter opener's music (opener.gd): the chapter's score held while the
@@ -1362,6 +1363,43 @@ func opener_music(cue: String) -> void:
 		return
 	sting(cue)
 	_sting.player.stream_paused = false
+
+
+## A chapter opener's bed (opener_mix.gd): score `context` from the top of `song`,
+## held at `hold`, ducked under the voice. False when it is not here (the sting).
+func opener_bed(context: String, song: String, hold: float) -> bool:
+	if score_player == null or song == "" or assets.track(song) == null:
+		return false
+	set_score(context)
+	score_player.cue_song(context, song)
+	_duck_voice = true
+	_amb_share = OPENER_AMB
+	set_opener_hold(hold)
+	return true
+
+
+## The opener's hold on its bed this frame (a share of MUSIC VOLUME).
+func set_opener_hold(hold: float) -> void:
+	_opener_aim = hold
+	if hold != _opener_hold:
+		_opener_hold = hold
+		_apply_music()
+
+
+## The opener over: no more ducking under the voice, the bed eased up to
+## play's level (tick_score), and the opener's own effects `cues` stopped.
+func end_opener(cues: PackedStringArray) -> void:
+	_duck_voice = false
+	_opener_aim = 1.0
+	if _amb_share != 1.0:
+		_amb_share = 1.0
+		if room == null:
+			return
+		_amb_target[room_slot] = .78 * ambient_gain * mix_headroom
+		_amb_rate[room_slot] = _amb_target[room_slot] / (AMB_FADE * 4.0)
+	for v: Voice in _effects:
+		if v.player.playing and cues.has(v.cue):
+			v.player.stop()
 
 
 func toggle_music() -> void:
@@ -1380,6 +1418,13 @@ func toggle_music() -> void:
 const DJ_GAIN := .72
 const RADIO_DUCK := .32
 const MUSIC_UNDER_DJ := .42
+## Under an opener's spoken lines the music sits at VOICE_DUCK, going down at
+## DUCK_DOWN a second (about a tenth of a second) and back at DUCK_UP.
+const VOICE_DUCK := .5
+const DUCK_DOWN := 6.0
+const DUCK_UP := 2.5
+## The room's ambience under an opener, a share of its level (the lines over it).
+const OPENER_AMB := .5
 const SCAN_FAINT := .17
 const SCAN_RIDING := .5
 const SCAN_NEAR := .7
@@ -1441,9 +1486,14 @@ func _radio_levels(dt: float) -> void:
 	if dt <= 0.0:
 		return
 	var want := MUSIC_UNDER_DJ if _dj.player.playing and not station.in_break else 1.0
-	want = minf(want, _music_hold)
-	var duck_now := move_toward(_music_duck, want, dt * 2.5)
+	var rate := DUCK_UP
+	if _duck_voice and _voice.player.playing:
+		want = minf(want, VOICE_DUCK)
+		rate = DUCK_DOWN if want < _music_duck else DUCK_UP
+	var duck_now := move_toward(_music_duck, want, dt * rate)
 	if duck_now != _music_duck:
 		_music_duck = duck_now
 		if score_player != null:
 			_apply_music()
+		if _duck_voice and _sting.player.playing:
+			Sound.set_level(_sting.player, .84 * music_gain * _sting_share * _music_duck)

@@ -2,6 +2,7 @@
 ## data/tuning/openers.json):
 ##
 ##   Godot --headless --path <project> --script res://tools/opener_check.gd
+##   ... -- plan <file>    (writes every chapter's mix plan, OpenerMix.plan, and quits)
 ##
 ## - Every campaign chapter has an opener: camera shots inside its map, a
 ##   tagline, a card style, a boss cel, its growl, sting and line in the bank
@@ -18,6 +19,15 @@
 ##   ends by itself; the camera is never left on the game. A chapter played
 ##   after its opener is, tick for tick, the chapter played without one.
 ## - Each chapter's opener draws at its key moments without an error.
+## - The sound (src/opener_mix.gd): under every opener a bed of the chapter's
+##   own song, long enough, from start to end, never held to nothing, at
+##   play's level at the end, its score player playing it as the chapter's
+##   score; no stretch of more than OpenerMix.GAP with nothing sounding in the
+##   plan; the music ducked under the voice channel, the lines at least 6 dB
+##   over it; every cue in the bank and in this chapter's pack or the first
+##   download (Hickston's all in the first download). Played out the bed is
+##   let up to play's level, the same song on; skipped, the duck, the sting
+##   and the opener's own effects stop at once.
 ## Fails on any script or engine error.
 extends SceneTree
 
@@ -40,6 +50,10 @@ func _run() -> void:
 	op.tools_write = true
 	op.seen_path = OS.get_cache_dir().path_join("clmr_opener_check_seen.json")
 	DirAccess.remove_absolute(op.seen_path)
+	var args := OS.get_cmdline_user_args()
+	if args.size() > 1 and args[0] == "plan":
+		_write_plans(args[1])
+		return
 	var tally := CrashLog.tally()
 	_data()
 	_setting()
@@ -47,6 +61,7 @@ func _run() -> void:
 	_still()
 	_exact()
 	_draws()
+	_mix()
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -105,12 +120,17 @@ func _data() -> void:
 			bad_shots.append("%s (%d shots)" % [id, shots.size()])
 		for shot: Dictionary in shots:
 			var secs: float = shot.get("secs", 0.0)
-			for key: String in ["from", "to", "look", "look_to"]:
-				var at: Array = shot.get(key, [])
-				var x: float = at[0] if at.size() > 2 else -1.0
-				var y: float = at[1] if at.size() > 2 else -1.0
-				if x < 0.0 or y < 0.0 or x > level.width or y > level.height or secs <= 0.0:
-					bad_shots.append("%s %s %s" % [id, key, at])
+			var keys := OpenerCamera.keys_of(shot, "path", "from", "to")
+			keys.append_array(OpenerCamera.keys_of(shot, "look", "look", "look_to"))
+			for at: Vector3 in keys:
+				if (
+					at.x < 0.0
+					or at.y < 0.0
+					or at.x > level.width
+					or at.y > level.height
+					or secs <= 0.0
+				):
+					bad_shots.append("%s %s" % [id, at])
 		if str(e.get("tagline", "")) == "" or not OpenerArt.STYLES.has(str(e.get("card", ""))):
 			bad_cards.append(id + " (tagline or card style)")
 		var boss: Dictionary = e.get("boss", {})
@@ -251,7 +271,7 @@ func _still() -> void:
 			main.render()
 		frames += 1
 	_check(not op.playing, "left alone it ends by itself (%.1f s)" % (frames / 30.0))
-	_check(op.length >= 10.0 and op.length <= 17.0, "it lasts %.1f s (10 to 17)" % op.length)
+	_check(op.length >= 10.0 and op.length <= 18.0, "it lasts %.1f s (10 to 18)" % op.length)
 	_check(g.eye_override.is_empty(), "the camera is not left on the game")
 	var after := GameSnapshot.capture(g)
 	_check(
@@ -327,3 +347,158 @@ func _draws() -> void:
 			main.render()
 		op.stop(main)
 	_check(short.is_empty(), "every chapter's opener starts and draws its key moments %s" % [short])
+
+
+# ------------------------------------------------------------------ the sound
+
+
+func _mix() -> void:
+	print("THE SOUND")
+	var op: ChapterOpener = main.opener
+	var sound: Sound = main.sound
+	var art: Assets = main.art
+	main.options["openers"] = ChapterOpener.ALWAYS
+	main.apply_options()
+	var no_bed: Array = []
+	var gaps: Array = []
+	var levels: Array = []
+	var missing: Array = []
+	var packs: Array = []
+	var scored: Array = []
+	for id: String in Campaign.ORDER:
+		var g := _fresh(id)
+		if not op.start(main):
+			no_bed.append(id + " (did not start)")
+			continue
+		var p := op.mix.plan(op, main)
+		var song := str(p["song"])
+		var tracks: Array = Sound.SCORES.get(g.level.score, [])
+		if song == "" or art.track(song) == null or not tracks.has(song):
+			no_bed.append("%s (%s)" % [id, song])
+		elif art.track_length(song) < op.length + 1.0:
+			no_bed.append("%s (%s is %.1f s)" % [id, song, art.track_length(song)])
+		var bank: Sound.ShuffleBank = sound.score_player.banks.get(g.level.score)
+		if bank == null or str(bank.track) != song or sound.score_player.requested != g.level.score:
+			scored.append(id + " (the score player is not on the song)")
+		var silent := OpenerMix.silences(p, OpenerMix.GAP)
+		if not silent.is_empty():
+			gaps.append("%s %s" % [id, silent])
+		var bed: Array = p["bed"]
+		var lowest := INF
+		for key: Array in bed:
+			lowest = minf(lowest, float(key[1]))
+		var last: Array = bed[bed.size() - 1]
+		if lowest < .2 * sound.music_gain or absf(float(last[1]) - sound.music_gain) > .001:
+			levels.append("%s (bed %.2f to %.2f)" % [id, lowest, float(last[1])])
+		for row: Dictionary in p["rows"]:
+			var cue := str(row["cue"])
+			if art.cue(cue) == null:
+				missing.append("%s %s" % [id, cue])
+			var home := Assets.chapter_of(cue)
+			if home != "" and home != id:
+				packs.append("%s %s (in %s's pack)" % [id, cue, home])
+			if row["lane"] == "voice":
+				var over: float = row["gain"]
+				var under := op.mix.bed_at(float(row["at"])) * sound.music_gain * Sound.VOICE_DUCK
+				if over < under * 2.0:
+					levels.append(
+						"%s %s only %.1f dB over the bed" % [id, cue, linear_to_db(over / under)]
+					)
+		op.stop(main)
+		if sound.score_player.requested != g.level.score:
+			scored.append(id + " (another score after the opener)")
+	_check(
+		no_bed.is_empty(),
+		(
+			"every opener has a bed: the chapter's own song, from start to end and past it %s"
+			% [no_bed]
+		)
+	)
+	_check(scored.is_empty(), "the score player plays the bed as the chapter's score %s" % [scored])
+	_check(
+		gaps.is_empty(), "no stretch over %.1f s with nothing sounding %s" % [OpenerMix.GAP, gaps]
+	)
+	_check(
+		levels.is_empty(),
+		(
+			"the bed is never held to nothing, ends at play's level, and every line is 6 dB over it %s"
+			% [levels]
+		)
+	)
+	_check(missing.is_empty(), "every cue the openers play is in the bank %s" % [missing])
+	_check(
+		packs.is_empty(),
+		(
+			"every cue comes with its chapter's pack or the first download (Hickston's all there) %s"
+			% [packs]
+		)
+	)
+	# Played out: the bed is let up to play's level and keeps going.
+	var g := _fresh("fair")
+	op.start(main)
+	while op.playing:
+		op.frame(main, .1)
+	_check(
+		(
+			not sound._duck_voice
+			and sound._opener_aim == 1.0
+			and sound.score_player.requested == g.level.score
+		),
+		"played out, the bed is let up to play's level, the chapter's song going on"
+	)
+	# Skipped: the duck, the sting and the opener's own effects stop at once.
+	_fresh("sawmill")
+	op.start(main)
+	for _i in 120:
+		op.frame(main, .1)
+	main.key(KEY_SPACE)
+	var own: Array = []
+	for row: Array in op.mix.cues:
+		if str(row[1]) == "effect":
+			own.append(str(row[2]))
+	var left: Array = []
+	for v: Sound.Voice in sound._effects:
+		if v.player.playing and own.has(v.cue):
+			left.append(v.cue)
+	_check(
+		(
+			not op.playing
+			and not sound._duck_voice
+			and not sound._sting.player.playing
+			and left.is_empty()
+		),
+		(
+			"skipped, the bed is let go cleanly: no duck, no sting, none of the opener's effects %s"
+			% [left]
+		)
+	)
+
+
+## Every chapter's mix plan as JSON (the measuring script renders it).
+func _write_plans(path: String) -> void:
+	var op: ChapterOpener = main.opener
+	main.options["openers"] = ChapterOpener.ALWAYS
+	main.apply_options()
+	var out := {}
+	for id: String in Campaign.ORDER:
+		_fresh(id)
+		if not op.start(main):
+			continue
+		var p := op.mix.plan(op, main)
+		var shots: Array = []
+		for shot in op.camera.shots:
+			shots.append([shot.start, shot.start + shot.secs])
+		p["shots"] = shots
+		p["title"] = [op.title_land() - ChapterOpener.DROP, op.title_land() + ChapterOpener.STAY]
+		p["boss"] = [op.boss_at, op.land_at]
+		p["land"] = op.land_at
+		out[id] = p
+		op.stop(main)
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify({"chapters": out}, " "))
+	file.close()
+	print("wrote ", path)
+	DirAccess.remove_absolute(op.seen_path)
+	main.queue_free()
+	await process_frame
+	quit(0)

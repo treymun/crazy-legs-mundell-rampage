@@ -128,6 +128,9 @@
   "menu_move": {
    "quiet for family:ui": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
   },
+  "opener_quarry_hit": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .66 (hit_gain .8) into the -0.8 dB master limiter"
+  },
   "pod_open": {
    "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
   },
