@@ -31,10 +31,13 @@ Boss fights share a framework: `src/boss_kit.gd`, `features/boss_fight.gd`,
   its `[boss_fight] backup_share` of difficulty.cfg's count, rounded up:
   Hickston's sheriff and Jerry a half each, so the chapter with two bosses
   gets the backup one boss brings anywhere else (polish pass 9).
-- A fall sets `game.slowmo` (game.gd steps the world at `SLOWMO_PACE`, the
-  player and gun at full speed). SLOW-MO FINISHERS off drops it when alone;
-  the last kill of an ordinary fight has its own, eased
-  (`features/finishers.gd`, [gameplay.md](gameplay.md#ragdolls-and-finishing-shots-v320)).
+- A fall sets `game.slowmo` (game.gd steps the world slower, the player and
+  gun at full speed), since pass 10 eased in and out like a finisher's
+  (`[boss_fight] slowmo` 1.3 real seconds, `slowmo_pace` .3; before, a flat
+  .35 that snapped back). SLOW-MO FINISHERS off drops it when alone; the last
+  kill of an ordinary fight has its own (`features/finishers.gd`,
+  [gameplay.md](gameplay.md#ragdolls-and-finishing-shots-v320)). The fall
+  also stands the arena down (below, the boss ending).
 - Signals for voices and the like (on `game.events`): `boss_intro`,
   `boss_phase`, `boss_staggered`, `boss_weak_hit`, `boss_down(e, seconds)`.
   `features/boss_voices.gd` says each boss's lines on them (entrance, taunts,
@@ -42,6 +45,77 @@ Boss fights share a framework: `src/boss_kit.gd`, `features/boss_fight.gd`,
   queues a line until nobody is talking ([audio.md](audio.md#voices)).
 - `tools/boss_check.gd` (in check_fixes) holds it; `physics_frames.gd
   only=boss` takes its pictures.
+
+## The boss ending (pass 10)
+
+The owner: "fix end of boss fights because it looks bad, the post boss fight
+cutscenes". Before, the fall played in the player's view under the gun and
+the HUD (BOSS DOWN!, the chapter's messages, in a rematch "HERE COMES
+JERRY!"), then the KILL CAM replayed the last seconds from 2.7 cells
+whatever the boss's size (inside Maw, inside the King's fan cage, the body
+falling out of the bottom of the frame, Boggs's replay staring at a tyre
+wall), back to play with hard cuts, and in a rematch a hard cut to the board
+three seconds later. The end sting was cut off at once by the boss loop
+handing back (`Sound.set_score` stopped any sting; now only for a score
+outside play's), the bosses' entrance, worried line and last word and
+Mundell's answer were never said (`boss_voices.gd` and `enemy_barks.gd`
+looked for the signals on the game, which has none since GameEvents), the
+scripted fall slid the body a cell and a half on its last step (the
+separate `down` key lies elsewhere), Maw lay through her alcove's wall,
+hazards and throws kept coming (the foreman's carriage ran on, dynamite and
+curlers still landed) and the backup kept shooting.
+
+- **Play** (`features/boss_fight.gd stand_down`, every game, no dice): the
+  boss's and its hands' shots in the air and `game.hazards` go;
+  `boss_arena.gd`/`boss_arenas.gd stand_down` drop the strikes due, lobs,
+  balloons, rollers, horn lanes, a carriage on the move or rung for, copper
+  rain, dynamite, curlers, rocks, burning slicks and the core's pulses, and
+  the burning ground goes out over `FIRE_OUT`; Maw's second pins go
+  (`mothership.gd`); every hand in the boss's room or within `awe_reach`
+  stands stunned `awe` seconds, gawping. `boss_fight` throws a ring of dust
+  and chips with a jolt as the body lands (`lands` seconds; looks, its own
+  dice). The sheriff alone (a rematch) gets Hickston's end sting and no
+  Jerry message.
+- **The camera** (`src/boss_ending.gd`, `BossEnding`, the front end's
+  `boss_end`; camera.cfg `[boss_end]`; KILL CAM BOSSES or BOSSES AND AREAS,
+  the default; OFF plays none): the blow lands in the player's eyes (no gun,
+  no HUD, his own body undrawn while the camera is in his head: eye key
+  `hide_player`), then over `fly` an eased flight out to a shot `reach`
+  times the boss's size off (`size` for the truck, the boat, Maw), off the
+  player's line where its whole swing is clear by the openers' rule
+  (`OpenerCamera.clear_at`) and in sight of the body (a dip to black instead
+  when the way is walled off or long). It swings `swing` round the boss,
+  easing back (`push`) and craning up (`crane`, lower under a roof), follows
+  the middle of the body as the 3D view draws it (`ActorLayer3D.body_middle`,
+  its bones), and once the body lies still away from where it stood the shot
+  is planned again round it and the camera eased over (`REFRAME_FLY`). A
+  wall cutting in brings it nearer at `REACH_RATE`, never in a jump.
+- **On screen**: black bars slide in (the openers' rows); the boss bar
+  drains and slides off; a fair ribbon with the boss's name drops into the
+  bar under the picture, the line under it a rematch's TIME and ribbon,
+  HERE COMES JERRY!, THE SHIP'S COMING APART! or PUT DOWN IN m:ss; the last
+  word (and Mundell's answer) captioned at the foot; ANY KEY SKIPS.
+- **Music**: the end sting the fall plays (the chapter's last boss its own,
+  Jerry and the sheriff alone Hickston's) now plays out over the chapter's
+  score, which is eased down to `duck` under it (Sound's opener hold) and
+  let back up when it ends. The sheriff with Jerry to come keeps the boss
+  loop.
+- **The end**: after `length` (4.6 s; a rematch `rematch_length` 5.2 s with
+  the time and ribbon; the sheriff before Jerry `short_length` 3.2 s) a
+  fade to black, then the iris opens on play (`screen_age`), or a rematch's
+  board (`main_flow.gd watch_rematch` ends it as soon as the ending has run).
+  Any key, button, click or tap after `skip_after` goes to the fade
+  (`skip_fade`). It stops at once if the game changes, play is left or
+  everyone is down; never a soft lock.
+- **Looks only**: play runs on under it with the local controls let go (as
+  with the console open), so it is the same alone, in co-op and online (each
+  machine starts its own when the boss's body shows it fell, `died_at`).
+  The view: a boss's scripted fall ends on its last step (`die_4`) instead of
+  sliding on into `down`, and twists a quarter or half turn as it goes so the
+  body lies on open floor (`ActorView._fall_twist`).
+- `tools/boss_end_check.gd` (check_all) holds it; `tools/boss_end_frames.gd`
+  (a window) takes a sheet of each ending (`campaign`, `coop`, `skip`,
+  `big=` for whole frames).
 
 ## The arenas of the sheriff, Jerry, Rudy and the foreman
 
@@ -263,7 +337,7 @@ its fight track (`assets/music/fight_*.ogg`, made by `audio_build.py
 loop (`boss_<chapter>`, `Sound.BOSSES`), faster and heavier, that takes over
 while its last boss is alive, awake and the player is in its arena (as far as
 the boss bar shows), holds `BOSS_HOLD` seconds after the player steps out and
-hands back the moment the boss falls.
+hands back the moment the boss falls, under the end sting (the boss ending).
 
 ## Locked in
 

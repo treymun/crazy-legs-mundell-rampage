@@ -35,6 +35,15 @@ const FRESH := .75
 ## fast the shot follows a moving body (a share a second).
 const SELF_CLEAR := 1.1
 const FOLLOW := 5.0
+## Cells a second the camera comes nearer or goes back out when a wall cuts
+## in on its swing.
+const REACH_RATE := 2.5
+## The bearings tried round the boss: first (off the player's line, either
+## side, then nearer it or round behind), and again round the lying body
+## (nearest the camera first); and how long the camera takes to get there.
+const FIRST_TURNS := [.95, -.95, 1.45, -1.45, .5, -.5, 2.0, -2.0, 0.0, 2.6, -2.6, PI]
+const NEAR_TURNS := [0.0, .35, -.35, .7, -.7, 1.1, -1.1, 1.6, -1.6, 2.3, -2.3, PI]
+const REFRAME_FLY := .9
 static var HOLD: float = _num("hold")
 static var FLY: float = _num("fly")
 static var FLY_FAR: float = _num("fly_far")
@@ -52,6 +61,7 @@ static var FAR: float = _num("far")
 static var LIFT: float = _num("lift")
 static var SWING: float = _num("swing")
 static var PUSH: float = _num("push")
+static var CRANE: float = _num("crane")
 static var AIM_HIGH: float = _num("aim_high")
 static var AIM_LOW: float = _num("aim_low")
 static var DUCK: float = _num("duck")
@@ -80,6 +90,8 @@ var centre := Vector3.ZERO
 var tall := 2.0
 var reach := 3.0
 var lift := 1.2
+## How far up it cranes over the swing (CRANE, or 1 under a roof).
+var crane := 1.8
 var bearing := 0.0
 var swing_way := 1.0
 var start_eye := {}
@@ -88,8 +100,28 @@ var cuts := false
 var ended_game: Game = null
 var _seen_game: Game = null
 var _bosses: Array = []
+var _counted := -1
 var _shown := {}
 var _held := false
+## The height of the drawn body's middle (NAN until the 3D view shows it).
+var aim_z := NAN
+## Where the drawn body's middle last was (-INF until drawn), and the reach
+## the shot was planned at (the camera eases back to it once clear).
+var body := Vector2(-INF, -INF)
+var planned := 3.0
+var first_reach := 3.0
+var first_lift := 1.2
+## The spot the shot was planned round.
+var planned_round := Vector2.ZERO
+## When the shot was planned again round the lying body (INF: not yet), and
+## the eye it eases over from.
+var reframed_at := INF
+var re_spot := Vector3.ZERO
+var re_angle := 0.0
+var re_pitch := 0.0
+var _last_body := Vector2(-INF, -INF)
+## Seconds the end sting runs from the fall (0: none).
+var sting_left := 0.0
 var _black: Texture2D = null
 
 
@@ -126,6 +158,10 @@ func start(m: MainState) -> bool:
 	if g != _seen_game:
 		_seen_game = g
 		_shown.clear()
+		_counted = -1
+	if g.enemies.size() != _counted:
+		# Looked over again when the list changes (backup, a mirror's update).
+		_counted = g.enemies.size()
 		_bosses.clear()
 		for e: Enemy in g.enemies:
 			if BossKit.is_boss(e):
@@ -156,11 +192,19 @@ func begin(m: MainState, e: Enemy) -> void:
 	length = LENGTH
 	if BossRematch.active(g):
 		length = REMATCH_LENGTH
-	elif e == g.boss and g.jerry != null and g.jerry.alive:
+	elif e == g.boss and g.jerry != null and g.jerry.hp > 0.0:
 		length = SHORT_LENGTH
 	start_eye = g.player.as_render_player()
 	span = length
+	OpenerCamera.prepare(g.world, g.props, m.art)
 	_frame_shot(g, e)
+	sting_left = _sting_seconds(m, g, e)
+	aim_z = NAN
+	body = Vector2(-INF, -INF)
+	planned = reach
+	reframed_at = INF
+	_last_body = Vector2(-INF, -INF)
+	planned_round = Vector2(centre.x, centre.y)
 	_held = false
 
 
@@ -176,7 +220,7 @@ static func _under(g: Game, e: Enemy) -> String:
 			"TIME %s   %s"
 			% [BossRematch.clock_text(seconds), BossRematch.ribbon(e.kind, seconds) + " RIBBON"]
 		)
-	if e == g.boss and g.jerry != null and g.jerry.alive:
+	if e == g.boss and g.jerry != null and g.jerry.hp > 0.0:
 		return "HERE COMES JERRY!"
 	if e.brain == "maw":
 		return "THE SHIP'S COMING APART!"
@@ -202,52 +246,104 @@ func _frame_shot(g: Game, e: Enemy) -> void:
 	var size: float = SIZE.get(e.kind, tall)
 	centre = Vector3(e.x, e.y, w.stand(e))
 	reach = clampf(size * REACH, NEAR, FAR)
+	first_reach = reach
 	lift = clampf(size * LIFT, .9, 3.4)
+	first_lift = lift
 	var p := g.player
 	var toward := atan2(p.y - e.y, p.x - e.x)
-	var found := false
-	for scale: float in [1.0, .8, .64, .5]:
-		for turn: float in [.95, -.95, 1.45, -1.45, .5, -.5, 2.0, -2.0, 0.0, 2.6, -2.6, PI]:
-			var way := 1.0 if turn >= 0.0 else -1.0
-			if _swing_clear(w, toward + turn, way, reach * scale):
-				bearing = toward + turn
-				swing_way = way
-				reach *= scale
-				found = true
-				break
-		if found:
-			break
+	var found := _plan(w, toward, FIRST_TURNS, 0.0)
 	if not found:
 		# Walled in all round: from the player's side, as near as it must be.
 		bearing = toward
 		swing_way = 1.0
 		reach = clampf(Vector2(p.x - e.x, p.y - e.y).length(), 1.2, reach * .5)
 		lift = minf(lift, 1.1)
+		crane = 1.0
 	var to := orbit(HOLD + FLY)
 	var from := _start_spot()
 	cuts = from.distance_to(to) > FLY_FAR or not _path_clear(w, from, to)
 
 
-## The camera's spot at `a` round the boss, `d` off: open, under any roof,
-## over its floor and in sight of the boss's middle.
-func spot_clear(w: LevelData, a: float, d: float) -> bool:
+## The first clear swing round `centre` from bearings `toward` + each of
+## `turns` (a swing already `share` of the way through), at the planned reach
+## or nearer: bearing, swing_way and reach set. False when none is clear.
+func _plan(w: LevelData, toward: float, turns: Array, share: float) -> bool:
+	var full := reach
+	var high := lift
+	# Craning up and high first; lower under a roof or a lintel (Maw's
+	# throne alcove), then nearer.
+	for low: Array in [[1.0, CRANE], [1.0, 1.0], [.6, 1.0], [.45, 1.0]]:
+		var lower: float = low[0]
+		lift = high * lower
+		crane = low[1]
+		for scale: float in [1.0, .8, .64, .5]:
+			for turn: float in turns:
+				var way := 1.0 if turn >= 0.0 else -1.0
+				if share > 0.0:
+					way = swing_way
+				var a: float = toward + turn - SWING * way * _smooth(share)
+				if _swing_clear(w, a, way, full * scale):
+					bearing = a
+					swing_way = way
+					reach = full * scale
+					return true
+	lift = high
+	crane = CRANE
+	return false
+
+
+## The body has come to rest away from where it stood (a boss falls the
+## length of itself): the shot is planned again round where it lies, as near
+## the camera's bearing as is clear, and the camera eased over to it.
+func _reframe() -> void:
+	var w: LevelData = game.world
+	var was := eye_at(at)
+	var share := clampf((at - HOLD) / maxf(.1, span - HOLD), 0.0, 1.0)
+	var x: float = was["x"]
+	var y: float = was["y"]
+	var z: float = was["eye"]
+	reframed_at = at
+	re_spot = Vector3(x, y, z)
+	re_angle = was["view_angle"]
+	re_pitch = was["pitch"]
+	var kept := [bearing, swing_way, reach, lift, crane, centre]
+	centre.x = body.x
+	centre.y = body.y
+	reach = first_reach
+	lift = first_lift
+	if _plan(w, Vector2(x - body.x, y - body.y).angle(), NEAR_TURNS, share):
+		planned = reach
+		planned_round = body
+	else:
+		# Nowhere clear round where it lies: the shot as it was.
+		bearing = kept[0]
+		swing_way = kept[1]
+		reach = kept[2]
+		lift = kept[3]
+		crane = kept[4]
+		centre = kept[5]
+
+
+## The camera's spot at `a` round the boss, `d` off: clear by the openers'
+## own rule (OpenerCamera.clear_at: no wall, roof, deck, door, prop or ground
+## near it), clear of the furniture, and in sight of the boss's middle.
+func spot_clear(w: LevelData, a: float, d: float, up: float) -> bool:
 	var x := centre.x + cos(a) * d
 	var y := centre.y + sin(a) * d
-	var z := centre.z + lift
+	var z := centre.z + up
 	if x < 1.0 or y < 1.0 or x > w.width - 1.0 or y > w.height - 1.0:
 		return false
 	return (
-		not w.blocked(x, y, .3, z)
-		and z > w.floor_under(x, y, z) + .35
-		and z < w.roof_over(x, y, z) - .2
-		and w.visible(x, y, centre.x, centre.y, z, centre.z + tall * .5)
+		OpenerCamera.clear_at(w, x, y, z) == ""
+		and not w.blocked(x, y, .3, z)
+		and w.visible(x, y, centre.x, centre.y, z, centre.z + tall * .5 if is_nan(aim_z) else aim_z)
 	)
 
 
 func _swing_clear(w: LevelData, a: float, way: float, d: float) -> bool:
 	for k in 7:
 		var share := k / 6.0
-		if not spot_clear(w, a + SWING * way * share, d * (1.0 - PUSH * share)):
+		if not spot_clear(w, a + SWING * way * share, d * _out(share), _up(share)):
 			return false
 	return true
 
@@ -266,15 +362,29 @@ static func _path_clear(w: LevelData, from: Vector3, to: Vector3) -> bool:
 func orbit(t: float) -> Vector3:
 	var share := _smooth(clampf((t - HOLD) / maxf(.1, span - HOLD), 0.0, 1.0))
 	var a := bearing + SWING * swing_way * share
-	var d := reach * (1.0 - PUSH * share)
-	return Vector3(centre.x + cos(a) * d, centre.y + sin(a) * d, centre.z + lift)
+	var d := reach * _out(share)
+	return Vector3(centre.x + cos(a) * d, centre.y + sin(a) * d, centre.z + _up(share))
+
+
+## How far out (a share of reach) and how high over the boss's floor the
+## camera is `share` of the way through its swing: easing back and craning
+## up as the body comes to lie, so the whole of it shows whichever way it fell.
+func _out(share: float) -> float:
+	return 1.0 + PUSH * share
+
+
+func _up(share: float) -> float:
+	return lift * lerpf(1.0, crane, share)
 
 
 ## What the camera looks at: the boss's middle as the blow lands, low on
 ## it once it lies.
 func target(t: float) -> Vector3:
 	var down := _smooth(clampf((t - .2) / 1.4, 0.0, 1.0))
-	return Vector3(centre.x, centre.y, centre.z + tall * lerpf(AIM_HIGH, AIM_LOW, down))
+	var z := centre.z + tall * lerpf(AIM_HIGH, AIM_LOW, down)
+	if not is_nan(aim_z):
+		z = lerpf(aim_z, z, .35)  # the drawn body's middle, a touch toward the floor
+	return Vector3(centre.x, centre.y, z)
 
 
 ## The camera's eye at `t`: the player's, then flown out to the swing (or cut
@@ -295,6 +405,11 @@ func eye_at(t: float) -> Dictionary:
 		spot = from.lerp(spot, k)
 		angle = lerp_angle(from_angle, angle, k)
 		pitch = lerpf(from_pitch, pitch, k)
+	var over := _smooth(clampf((t - reframed_at) / REFRAME_FLY, 0.0, 1.0))
+	if t >= reframed_at and over < 1.0:
+		spot = re_spot.lerp(spot, over)
+		angle = lerp_angle(re_angle, angle, over)
+		pitch = lerpf(re_pitch, pitch, over)
 	var eye := {
 		"x": spot.x,
 		"y": spot.y,
@@ -305,7 +420,7 @@ func eye_at(t: float) -> Dictionary:
 		"sway": 0.0,
 	}
 	if Vector2(spot.x - _start_spot().x, spot.y - _start_spot().y).length() < SELF_CLEAR:
-		eye["hide_self"] = true  # still in the player's head: not drawn round the camera
+		eye["hide_player"] = true  # still in the player's head: not drawn round the camera
 	return eye
 
 
@@ -325,32 +440,86 @@ func frame(m: MainState, dt: float) -> void:
 		stop(m, false)
 		return
 	at += dt
-	_follow(dt)
-	var held := at < length and m.sound != null and m.sound.sting_playing()
-	if held != _held and m.sound != null:
-		_held = held
-		m.sound.hold_music(DUCK if held else 1.0)
+	_follow(m, dt)
+	_music(m)
 	if at >= length:
 		stop(m, true)
 
 
+## The music under the boss's end sting: eased down to DUCK while it plays
+## (the score and the sting played over each other before), then let go to
+## ease back up (Sound's opener hold, which only an opener uses otherwise).
+func _music(m: MainState) -> void:
+	if m.sound == null:
+		return
+	if at < sting_left - .15:
+		_held = true
+		var down := _smooth(clampf(at / .35, 0.0, 1.0))
+		m.sound.set_opener_hold(lerpf(1.0, DUCK, down))
+	else:
+		_let_music_go(m)
+
+
+func _let_music_go(m: MainState) -> void:
+	if _held and m.sound != null:
+		m.sound.end_opener(PackedStringArray())
+	_held = false
+
+
+## How long the end sting the fall played lasts (game_world.gd and
+## mothership.gd play it: the chapter's last boss its own, Jerry and the
+## sheriff alone Hickston's), 0 when there is none (the sheriff with Jerry
+## to come keeps the boss loop going).
+static func _sting_seconds(m: MainState, g: Game, e: Enemy) -> float:
+	var cue := ""
+	if e == g.finale:
+		cue = e.kind + "_end"
+	elif e == g.jerry or (e == g.boss and (g.jerry == null or g.jerry.hp <= 0.0)):
+		cue = "shakedown_end"
+	var stream := m.art.cue(cue) if cue != "" and m.art != null else null
+	return stream.get_length() if stream != null else 0.0
+
+
 ## The shot keeps on the body as it moves (a truck rolling on, a boat
-## drifting): its middle eased after it, and the camera brought nearer
-## while the spot it swings to is walled off.
-func _follow(dt: float) -> void:
+## drifting) and as it falls: eased after the middle of the body as the 3D
+## view draws it (its bones), so a boss lying the length of itself away from
+## its feet is still framed whole; the camera brought nearer while the spot
+## it swings to is walled off.
+func _follow(m: MainState, dt: float) -> void:
 	var w: LevelData = game.world
 	var k := minf(1.0, dt * FOLLOW)
-	centre.x = lerpf(centre.x, boss.x, k)
-	centre.y = lerpf(centre.y, boss.y, k)
+	var want := Vector2(boss.x, boss.y)
+	var mid: Variant = null
+	if m.world_view != null and m.world_view.actors != null:
+		mid = m.world_view.actors.body_middle(boss)
+	if mid is Vector3:
+		var middle: Vector3 = mid
+		if Vector2(middle.x - boss.x, middle.y - boss.y).length() < tall:
+			body = Vector2(middle.x, middle.y)
+			aim_z = middle.z if is_nan(aim_z) else lerpf(aim_z, middle.z, k)
+	if body.x > -INF:
+		want = body  # the last the view drew (out of sight it is not drawn)
+		var still := body.distance_to(_last_body) < .004
+		_last_body = body
+		var away := body.distance_to(planned_round)
+		if still and is_inf(reframed_at) and at > HOLD + FLY * .6 and away > tall * .3:
+			_reframe()
+			return
+	centre.x = lerpf(centre.x, want.x, k)
+	centre.y = lerpf(centre.y, want.y, k)
 	centre.z = lerpf(centre.z, w.stand(boss), k)
 	if at < HOLD:
 		return
+	# The nearest of the planned reach and a few shorter ones that is clear,
+	# eased to (never a jump).
 	var share := _smooth(clampf((at - HOLD) / maxf(.1, span - HOLD), 0.0, 1.0))
 	var a := bearing + SWING * swing_way * share
-	for i in 4:
-		if reach <= NEAR * .5 or spot_clear(w, a, reach * (1.0 - PUSH * share)):
+	var fit := planned
+	for i in 5:
+		if spot_clear(w, a, fit * _out(share), _up(share)):
 			break
-		reach = maxf(NEAR * .5, reach * .85)
+		fit = maxf(NEAR * .5, fit * .85)
+	reach = move_toward(reach, fit, dt * REACH_RATE)
 
 
 ## Any key, button, click or tap: on to the fade (after SKIP_AFTER, so the
@@ -373,9 +542,7 @@ func stop(m: MainState, whole: bool) -> void:
 	if not playing:
 		return
 	playing = false
-	if m.sound != null:
-		m.sound.hold_music(1.0)
-	_held = false
+	_let_music_go(m)
 	m.mouse_rel = Vector2.ZERO
 	m.block_fire = true
 	if whole:
@@ -433,7 +600,9 @@ func _draw_bar(c: Canvas) -> void:
 	c.fill_rect(x + 6, y + 12, 110, 4, Canvas.rgb(70, 42, 32))
 	var share := bar_from * (1.0 - drain)
 	if share > 0.0:
-		c.fill_rect(x + 6, y + 12, maxi(1, int(roundf(110.0 * share))), 4, Canvas.rgb(255, 238, 200))
+		c.fill_rect(
+			x + 6, y + 12, maxi(1, int(roundf(110.0 * share))), 4, Canvas.rgb(255, 238, 200)
+		)
 
 
 ## The fair ribbon for the fall (BossKit.draw_intro's, turned to the end) in

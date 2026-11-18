@@ -602,7 +602,9 @@ func release_games() -> int:
 		if each is NetPlay:
 			var link: NetPlay = each
 			kept.append(link.match_game())
-	kept.append_array([kill_cam.game, boss_end.game, photo.game, hud.shown_game if hud != null else null])
+	kept.append_array(
+		[kill_cam.game, boss_end.game, photo.game, hud.shown_game if hud != null else null]
+	)
 	kept.append_array([opener.game, opener.pending])
 	return games.sweep(kept)
 

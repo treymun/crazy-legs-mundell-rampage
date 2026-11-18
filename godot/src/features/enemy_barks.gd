@@ -177,15 +177,13 @@ func attach() -> void:
 	if game.has_signal("ticked"):
 		game.events.connect("ticked", _tactical)
 		game.events.connect("ticked", _chapter_start)
-		game.events.connect("ticked", _mundell_waits)
+	game.events.ticked.connect(_mundell_waits)
 	# Mundell has his say at a boss fight's start and its end (Barks), once the
 	# boss has had his (features/boss_voices.gd).
-	if game.has_signal("boss_intro"):
-		game.events.connect("boss_intro", func(_e: Enemy) -> void: _mundell_after("boss"))
-	if game.has_signal("boss_down"):
-		game.events.connect(
-			"boss_down", func(_e: Enemy, _s: float) -> void: _mundell_after("boss_down")
-		)
+	# (On the event hub: the game itself has no such signals since GameEvents,
+	# so these were never heard; pass 10.)
+	game.events.boss_intro.connect(func(_e: Enemy) -> void: _mundell_after("boss"))
+	game.events.boss_down.connect(func(_e: Enemy, _s: float) -> void: _mundell_after("boss_down"))
 
 
 ## The voice `e` talks in, or "".

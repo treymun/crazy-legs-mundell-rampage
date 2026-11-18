@@ -590,7 +590,7 @@ func enemy_down(enemy: Enemy) -> void:
 				sound_at("county_fall_back", actor.x, actor.y, .67)
 				break
 	var kind_def: Dictionary = Enemy.DEFS[enemy.kind]
-	if enemy == boss and (jerry == null or not jerry.alive):
+	if enemy == boss and (jerry == null or jerry.hp <= 0.0):
 		# The sheriff alone (a rematch): Hickston's end sting, no Jerry.
 		message("THE SHERIFF'S DOWN. YEE-HAW!", 4.0)
 		sound.play("yee_haw")

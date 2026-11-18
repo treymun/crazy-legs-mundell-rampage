@@ -1212,7 +1212,7 @@ func pause_world() -> void:
 
 
 func set_score(cue: String) -> void:
-	if cue != score and _sting.player.playing:
+	if cue != score and _sting.player.playing and not SCORES.has(cue):
 		_sting.player.stop()
 	if cue != score and not SCORES.has(cue) and _game_music != 1.0:
 		# The menus and the tally: play's hold on the music goes with play.

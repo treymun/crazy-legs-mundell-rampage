@@ -250,7 +250,9 @@ func _stamp(sheet: Image, at: Vector2i, text: String) -> void:
 			if glyph[i] == "1":
 				for dy in 2:
 					for dx in 2:
-						sheet.set_pixel(x + (i % 3) * 2 + dx, at.y + 3 + (i / 3) * 2 + dy, Color(1, 1, 0))
+						sheet.set_pixel(
+							x + (i % 3) * 2 + dx, at.y + 3 + (i / 3) * 2 + dy, Color(1, 1, 0)
+						)
 		x += 8
 	if text.find("rematch_done") >= 0 or text.find("title") >= 0:
 		sheet.fill_rect(Rect2i(at.x + CELL.x - 10, at.y + 3, 6, 6), Color(1, 0, 0))

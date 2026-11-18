@@ -149,7 +149,18 @@ always sounds like itself).
   after the roar) and Maw's crew calls queue until nobody talks (dropped
   after a few seconds); Mundell's answer to a boss's entrance or fall waits
   for the boss to finish (`enemy_barks.gd _mundell_after`). All of it is
-  sound and captions, off its own dice; play is unchanged.
+  sound and captions, off its own dice; play is unchanged. Until pass 10 the
+  bosses' entrance, worried and last lines, their taunts and Mundell's
+  answers were never heard: their features looked for the boss signals (and
+  `ticked`) on the game, which has had none since GameEvents. Those are on
+  `game.events` now. The hands' squad barks (`enemy_bark`), their tactical
+  chatter and Mundell's line at a chapter's start still look on the game
+  and are still unheard (left for their own pass).
+- **End stings.** A boss's end sting (`<kind>_end`, `shakedown_end`) used to
+  be cut off the moment the boss loop handed back: `set_score` stopped any
+  sting. It now stops one only for a score outside play's (the menus, the
+  tally, `victory`); the boss ending holds the score under the sting
+  ([bosses.md](bosses.md#the-boss-ending-pass-10)).
 - **Checks.** `tools/voice_check.gd` (check_all, quick): every spoken line
   mastered from its transcript, its CLEAN copy, loading from the bank at
   0.3 to 6 s, every caption the game shows the words the line was made

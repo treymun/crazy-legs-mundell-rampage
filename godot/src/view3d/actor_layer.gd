@@ -277,3 +277,13 @@ func _make(kind: String, fresh: Array[ShaderMaterial], reuse := true) -> ActorVi
 		fresh.append(models.material(kind))
 	add_child(view)
 	return view
+
+
+## Where enemy `e`'s model shows its body's middle (map x, y and height), or
+## null when it is not drawn (boss_ending.gd frames a fallen boss by it).
+func body_middle(e: Enemy) -> Variant:
+	var view: ActorView = _shown.get(e.get_instance_id())
+	if view == null or not view.visible:
+		return null
+	var at := view.body_middle()
+	return Vector3(at.x, at.z, at.y)
