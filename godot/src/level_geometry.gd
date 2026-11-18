@@ -840,9 +840,15 @@ func blocked_body(
 	for gate: LevelData.Gate in lv.locked_gates:
 		if absf(y - gate.y) < r + .09 and absf(x - gate.x) < gate.width * .5 + r:
 			return true
-	if _fixture_in(lv, x, y, r, feet, tall):
+	# A cell neither index lists anything under (index_cells 0) has no
+	# furniture near and no door: both lookups are left out (most steps).
+	var listed := (
+		lv.index_cells.size() != lv.width * lv.height
+		or lv.index_cells[int(y) * lv.width + int(x)] != 0
+	)
+	if (listed or r > lv.index_radius) and _fixture_in(lv, x, y, r, feet, tall):
 		return true
-	if feet < 1.85:
+	if feet < 1.85 and listed:
 		for door: LevelData.Door in lv.near_doors.get(Vector2i(int(x), int(y)), NOTHING):
 			if door.blocks(x, y, r):
 				return true

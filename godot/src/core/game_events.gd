@@ -90,6 +90,10 @@ var _ticks_of := {}
 ## add up in `tick_us` by its place in the list; off, it costs one test a
 ## tick. Looks only: timing never changes what the ticks do.
 var timing := false
+## Features.with_hook's lists (hook -> the features with their own, in
+## order) and the count of features they were made of (-1: none yet).
+var hooks := {}
+var hooks_of := -1
 var tick_us := PackedInt64Array()
 
 
@@ -146,6 +150,8 @@ func clear_ticks() -> void:
 	_ticks.clear()
 	_awake.clear()
 	_ticks_of.clear()
+	hooks.clear()
+	hooks_of = -1
 
 
 func _run_ticks(dt: float) -> void:

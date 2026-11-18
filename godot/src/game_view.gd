@@ -536,8 +536,8 @@ func feedback(c: Canvas) -> void:
 		var nearest := 10.5 * 10.5
 		for enemy: Enemy in enemies:
 			if not (
-				enemy.alive
-				and enemy.windup > 0.0
+				enemy.windup > 0.0
+				and enemy.alive
 				and enemy.player_seen
 				and (Enemy.RANGED.has(enemy.kind) or enemy.brain in ["clone", "billy", "coot"])
 			):
@@ -588,14 +588,18 @@ func feedback(c: Canvas) -> void:
 			var iw: int = image["w"]
 			var ih: int = image["h"]
 			var data: PackedByteArray = image["data"]
-			for ty in 16:
-				var sy := clampi(ty * ih / 16, 0, ih - 1)
-				for tx in 16:
-					var sx := clampi(tx * iw / 16, 0, iw - 1)
-					var sp := (sy * iw + sx) * 4
-					if data[sp + 3] == 0:
-						continue
-					c.set_pixel(11 + tx, y + 2 + ty, data[sp], data[sp + 1], data[sp + 2])
+			if c.gpu:
+				# The same 16x16 pixels as one picture, not 256 draw commands.
+				c.gpu_texture(_item_icon(name, data, iw, ih), 11, y + 2, 16, 16)
+			else:
+				for ty in 16:
+					var sy := clampi(ty * ih / 16, 0, ih - 1)
+					for tx in 16:
+						var sx := clampi(tx * iw / 16, 0, iw - 1)
+						var sp := (sy * iw + sx) * 4
+						if data[sp + 3] == 0:
+							continue
+						c.set_pixel(11 + tx, y + 2 + ty, data[sp], data[sp + 1], data[sp + 2])
 			HUD.text(c, label, 30, y + 7, "mini", Canvas.rgb(249, 205, 144), false, false)
 			HudLayout.end(c)
 	if damage_feedback != null:
@@ -961,6 +965,26 @@ func _lay_item() -> void:
 	var width := 29 + PixelType.text_width(_item_label(), "mini")
 	var drop := roundi(maxf(0.0, end - clock - .79) * 25.0 * bob_scale)
 	hud.layout.up("item", HudLayout.panel_rect(0, 0, width, 20 + drop).size, 8)
+
+
+## The picked-up item's icon as feedback() sets its pixels (16x16, every
+## pixel not clear drawn solid), as a kept texture for the Godot canvas.
+func _item_icon(name: String, data: PackedByteArray, iw: int, ih: int) -> Texture2D:
+	var rgba := PackedByteArray()
+	rgba.resize(16 * 16 * 4)
+	for ty in 16:
+		var sy := clampi(ty * ih / 16, 0, ih - 1)
+		for tx in 16:
+			var sx := clampi(tx * iw / 16, 0, iw - 1)
+			var sp := (sy * iw + sx) * 4
+			if data[sp + 3] == 0:
+				continue
+			var o := (ty * 16 + tx) * 4
+			rgba[o] = data[sp]
+			rgba[o + 1] = data[sp + 1]
+			rgba[o + 2] = data[sp + 2]
+			rgba[o + 3] = 255
+	return Canvas.texture("item_icon|" + name, rgba, 16, 16)
 
 
 func _item_label() -> String:
