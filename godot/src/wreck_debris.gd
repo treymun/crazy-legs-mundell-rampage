@@ -53,7 +53,7 @@ class Bit:
 
 
 var bits: Array = []
-var most := 120
+var most := 80
 ## Counts up whenever any bit moved, shrank, came or went (the view draws
 ## them again only then).
 var version := 0

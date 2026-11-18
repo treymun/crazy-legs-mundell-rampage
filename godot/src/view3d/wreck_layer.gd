@@ -22,6 +22,8 @@ const FAR := 90.0
 ## The sprite carrying the fine debris, and how many bits it draws at most.
 const FINE := "~~fine"
 const FINE_MOST := 256
+## New piece meshes made in a frame at most.
+const MESHES_FRAME := 8
 
 var _assets: Assets
 var _shader: Shader
@@ -106,6 +108,7 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
 	var seen := {}
 	var fine_shown := false
+	var made_now := 0
 	for item: Variant in list:
 		var s: View.Sprite = item
 		if s.solid == FINE:
@@ -115,6 +118,12 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 			continue
 		var node: MeshInstance3D = _shown.get(s)
 		if node == null or node.get_meta("solid", "") != s.solid:
+			# A break's pieces are made a few a frame (the frame it breaks
+			# would make them all); one not made yet shows the next frame.
+			if not _meshes.has(s.solid):
+				if made_now >= MESHES_FRAME:
+					continue
+				made_now += 1
 			var mesh := _mesh(s.solid)
 			if mesh == null:
 				continue

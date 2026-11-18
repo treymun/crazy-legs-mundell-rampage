@@ -1605,7 +1605,7 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   by how far off its middle the push went (`lever`) plus `tumble`, at most
   `speed_most` and `spin_most`. A revolver round chips it open (the far
   side barely moves), buckshot blows it apart. One break throws at most
-  `per_break` pieces (24, `per_break_phone` 12; the biggest). A shot that
+  `per_break` pieces (18, `per_break_phone` 10; the biggest). A shot that
   does not break a thing knocks chips off where it struck (`prop_struck`,
   `wreck_burst.gd chips`; its hp untouched). The impact goes only through
   `_burst_apart`/`_launch`, the bodies only through `_add` (each given its
@@ -1624,7 +1624,7 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   colours and the stuff's): points with a spin that fall, bounce off the
   floor under them (asked when they have gone half a cell), stop at walls,
   slide and lie, and shrink away after their life; never the solver. At
-  most `fine_most` (120, `fine_most_phone` 48); drawn as one MultiMesh by
+  most `fine_most` (80, `fine_most_phone` 32); drawn as one MultiMesh by
   the wreck layer (the sprite "~~fine", its `who` the debris), written again
   only while some move. A dust puff (`features/dust.gd`) goes up off wood,
   hay, clay and plastic, and a second sound by stuff and force plays under
@@ -1696,6 +1696,16 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   a single crate about 1 to 2 ms for a second. A phone or the LOW physics
   tier (`Quality.level()`) takes `most_phone`; below HIGH a tick takes one
   step fewer.
+- **Cost of the pass 11 breaks** (window, back to back with v3.8.0 on a busy
+  desktop, medians of three): stress_bench wreck48 frame median 6.07 to
+  6.35 ms, p99 12.1 to 15.3 ms, max 20.4 to 25.3 ms (the cut faces' inside
+  faces and rims are about three times a piece's triangles, and the fine
+  debris; at most `per_break` pieces a break and `fine_most` bits keep it
+  near); hitch_bench's first wreck with a cold shader cache 23.2 to 27.5 ms
+  (67 ms before the warm-up drew the cut-face and debris shaders). A level's
+  variants are cut on the worker (about a second of worker time on
+  hickston). A break makes at most `MESHES_FRAME` (8) new piece meshes a
+  frame; the debris MultiMesh is written only while bits move.
 - **Drawn** by `WreckLayer3D`: a sprite with `solid` "~<key>#<piece>" is that
   piece's mesh (made once from the cut), a MeshInstance3D a piece shown
   (kept for the next piece after), `wreck.gdshader` (prop.gdshader's light

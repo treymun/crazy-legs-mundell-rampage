@@ -132,7 +132,7 @@ var on := false
 ## most one break throws, the small steps a tick, how long one takes to
 ## shrink away, how heavy a piece is.
 var most := 48
-var per_break := 28
+var per_break := 18
 var steps := 2
 var fade := .5
 var dense := 500.0
@@ -192,8 +192,8 @@ func attach() -> void:
 	)
 	var few := phone or Quality.level() == Quality.LOW
 	most = cfg.get_value("pieces", "most_phone" if few else "most", 48)
-	per_break = cfg.get_value("pieces", "per_break_phone" if few else "per_break", 28)
-	debris.most = cfg.get_value("pieces", "fine_most_phone" if few else "fine_most", 120)
+	per_break = cfg.get_value("pieces", "per_break_phone" if few else "per_break", 18)
+	debris.most = cfg.get_value("pieces", "fine_most_phone" if few else "fine_most", 80)
 	steps = cfg.get_value("pieces", "steps", 2)
 	fade = cfg.get_value("pieces", "fade", .5)
 	dense = cfg.get_value("pieces", "dense", 500.0)
@@ -350,7 +350,8 @@ func _came_to_rest() -> void:
 			# Still creeping long after it was thrown, or woken again and
 			# again where it lies (a pile that will not settle): it lies down.
 			var slow := b.v.length() < .05 and b.w.length() < .3
-			if slow and (b.awake_for > CREEP_MOST or w.wakes > WAKES):
+			var settling := b.v.length() < .3 and b.w.length() < 1.0
+			if (slow and b.awake_for > CREEP_MOST) or (settling and w.wakes > WAKES):
 				b.awake = false
 				b.v = Vector3.ZERO
 				b.w = Vector3.ZERO
@@ -644,7 +645,8 @@ func _variant(key: String, local: Vector3) -> Array:
 		var named := key if v == 0 else "%s^%d" % [key, v]
 		WreckCuts.parts(game.art, named)
 		var o := WreckCuts.origin(named)
-		var d := o.distance_to(local)
+		# Round its sides first, its height a third as much.
+		var d := Vector2(o.x - local.x, o.y - local.y).length() + absf(o.z - local.z) * .35
 		if round:
 			d = absf(o.z - local.z) + dice.randf() * .2
 		scored.append([d, v, named, o])

@@ -201,16 +201,23 @@ func _own_colours(p: Breakables.Piece) -> Array:
 		var known: Array = kept
 		return known
 	var out: Array = []
-	var image := WreckCuts.texture_image(game.art, source)
-	if image != null and image.get_width() > 0:
-		var w := image.get_width()
-		var h := image.get_height()
+	# Straight from the art's bytes (making an Image of a model's texture
+	# cost milliseconds the first time a kind broke).
+	var name := source.substr(2)
+	if source.begins_with("m:"):
+		name = "mesh_" + name
+	if game.art.has_art(name):
+		var art := game.art.art(name)
+		var w: int = art["w"]
+		var h: int = art["h"]
+		var data: PackedByteArray = art["data"]
 		for k in 40:
-			if out.size() >= 6:
+			if out.size() >= 6 or w <= 0 or h <= 0:
 				break
-			var px := int(w * fposmod(k * .618034 + .13, 1.0))
-			var py := int(h * fposmod(k * .381966 + .41, 1.0))
-			var c := image.get_pixel(clampi(px, 0, w - 1), clampi(py, 0, h - 1))
+			var px := clampi(int(w * fposmod(k * .618034 + .13, 1.0)), 0, w - 1)
+			var py := clampi(int(h * fposmod(k * .381966 + .41, 1.0)), 0, h - 1)
+			var at := (py * w + px) * 4
+			var c := Color8(data[at], data[at + 1], data[at + 2], data[at + 3])
 			if c.a > .5 and c.v > .08:
 				out.append(Color(c.r, c.g, c.b, 1.0))
 	_colours[source] = out
