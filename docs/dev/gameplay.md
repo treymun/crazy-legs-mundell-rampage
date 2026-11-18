@@ -1055,9 +1055,10 @@ numbers in `data/tuning/hound.cfg`.
   time, it cannot fight or walk, dragged half down (its fall's `die_1` held,
   `Enemy.held_cel`, now and then its pain twist), turned to face his player
   so it leans back along their line of sight and their shots land on what
-  they see (its hit cylinder never moves). His body is drawn `HoundLooks.PIN_BACK`
-  (.3) back along his heading while he holds it (looks only, polish pass 9): at
-  the hold's gap his head stood inside its chest. The hands within `kick_reach`, the held one
+  they see (its hit cylinder never moves). At his real size (pass 10,
+  `HoundLooks.SIZE`) his jaws reach its legs from the hold's gap; the .3 he
+  was drawn set back since polish pass 9, when his head stood in its chest,
+  is gone. The hands within `kick_reach`, the held one
   too, kick at him (`kick_rate`, the kick shown as the hand's attack frame);
   blasts hurt him. A held hand finished counts on the tally (BLUE: FETCHED,
   HELD) and gets a GOOD BOY.
@@ -1097,6 +1098,11 @@ numbers in `data/tuning/hound.cfg`.
   (`UP_TIME`) and shakes it off (`SHAKE_TIME`). ActorView blends pose into
   pose over his fit.json `blend` (.2 s) and plays each motion's five keys
   on the stand-in's gait. A kick or blast rocks him (`ActorView.flinch`).
+  His model is in metres and drawn `HoundLooks.SIZE` (.54) of a world unit
+  a metre, so his shoulder stands about .37 and his head about .46 of
+  Mundell's height (a co-op partner's model) as a real hound's against a
+  man's; before it he was drawn a metre to the unit, near a man's height
+  (`actor_check` holds the band).
 - **His badge and markers.** The badge in the view's bottom left
   (`HoundLooks.badge`, taken by `hud_fixed` through HudLayout): his head
   (`hound_face_0/1/2/down`), BLUE and his mood (HAPPY, KEEN, RILED, SORE,

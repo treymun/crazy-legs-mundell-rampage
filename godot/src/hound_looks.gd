@@ -47,11 +47,14 @@ const MARK_DARK := Color(22 / 255.0, 28 / 255.0, 40 / 255.0)
 const MARK_DOWN := Color(255 / 255.0, 96 / 255.0, 64 / 255.0)
 const POINT_INK := Color(251 / 255.0, 207 / 255.0, 142 / 255.0)
 const REVIVE_INK := Color(160 / 255.0, 210 / 255.0, 92 / 255.0)
-## Holding a hand (PIN) his body is drawn this far back along his heading
-## from where play has him: the hold's gap is the two bodies' radii, but
-## reared up his head and paws reach .8 ahead of his middle, and stood in
-## the hand's chest.
-const PIN_BACK := .3
+## His size in the world: his model is built in metres (a bluetick about
+## .66 at the shoulder and .82 to the top of his head), and the world draws
+## a man (a co-op partner's Mundell, ModeScreens.PARTNER_HEIGHT) about .97
+## tall, so a metre of him is SIZE of the world's: his shoulder about .37
+## and his head about .46 of Mundell's height, as a real hound's against a
+## man's (tools/actor_check.gd holds it). Before pass 10's size fix he was
+## drawn a metre to the world unit, nearly as tall as the man.
+const SIZE := .54
 ## His gaits by pace (cells a second): a walk under TROT_FROM, a trot under
 ## GALLOP_FROM, the gallop over it; each gait's cycles a cell, against
 ## what play's gait gives (d.gait: 6.5 radians a cell under 4 a second,
@@ -240,24 +243,25 @@ static func sprites(h: Game.HoundScript) -> Array:
 		var now := pose(h, d)
 		var frame: String = now[0]
 		var gait: float = now[1]
-		# Holding a hand, his body is drawn set back from it: at the hold's
-		# gap his reared-up head and paws stood inside its chest.
-		var back := PIN_BACK if d.state == Game.HoundScript.PIN else 0.0
-		var bx := d.x - cos(d.angle) * back
-		var by := d.y - sin(d.angle) * back
+		# Holding a hand he is drawn where play has him: at his size his jaws
+		# reach from the hold's gap (the two bodies' radii) to its legs. (Drawn
+		# a metre to the unit before pass 10, his head stood in its chest and
+		# he was set back .3.)
+		var bx := d.x
+		var by := d.y
 		var e := ModeBodies.stand_in(g, "hound%d" % d.slot, "hound")
 		e.x = bx
 		e.y = by
 		e.angle = d.angle
 		e.gait = gait
-		e.height = 1.0
+		e.height = SIZE
 		e.variant = 1.0
 		e.died_at = -1.0
 		# A kick or a blast rocks him as a hit rocks a hand (ActorView.flinch).
 		e.struck_at = d.hurt_at
 		e.struck_sum = 18.0
 		e.last_zone = "body"
-		var s := g.pooled(bx, by, "hound_" + cel(frame, gait), 1.0, d.floor_z)
+		var s := g.pooled(bx, by, "hound_" + cel(frame, gait), SIZE, d.floor_z)
 		s.pose = "hound_" + frame
 		s.who = e
 		s.body = true
@@ -272,8 +276,10 @@ static func sprites(h: Game.HoundScript) -> Array:
 static func carried(
 	g: Game, item: String, x: float, y: float, z: float, angle: float
 ) -> View.Sprite:
-	var reach := .86
-	return g.pooled(x + cos(angle) * reach, y + sin(angle) * reach, "item_" + item, .2, z + .72)
+	var reach := .86 * SIZE
+	return g.pooled(
+		x + cos(angle) * reach, y + sin(angle) * reach, "item_" + item, .2 * SIZE, z + .72 * SIZE
+	)
 
 
 # ------------------------------------------------------------------ the badge
@@ -494,7 +500,7 @@ static func in_sight(g: Game, d: Game.HoundScript.Dog) -> bool:
 	var ex: float = g.view_eye["x"]
 	var ey: float = g.view_eye["y"]
 	var ez: float = g.view_eye["eye"]
-	return g.world.visible(ex, ey, d.x, d.y, ez, d.floor_z + .5)
+	return g.world.visible(ex, ey, d.x, d.y, ez, d.floor_z + .9 * SIZE)
 
 
 ## Where his marker goes this frame: [x, y (the 320x200 view), the way
@@ -509,7 +515,7 @@ static func marker_at(g: Game, d: Game.HoundScript.Dog, near := 2.5) -> Array:
 	var gap := Vector2(d.x - ex, d.y - ey).length()
 	if gap < near:
 		return []
-	var top := d.floor_z + (.5 if d.state == Game.HoundScript.DOWN else 1.05)
+	var top := d.floor_z + (.5 if d.state == Game.HoundScript.DOWN else 1.05) * SIZE
 	var at := g.to_canvas(d.x, d.y, top)
 	var margin := 10.0
 	var on_view := (
