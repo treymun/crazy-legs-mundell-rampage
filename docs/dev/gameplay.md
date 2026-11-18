@@ -1566,9 +1566,12 @@ reads it (`wall_looks_check`: the same hp, stage, walls and flow without it).
   (its tile's column, `t:<tile>@1,1|planks:8,1` drawn stretched to its
   length: `Wreck.shape`) out the far side along the shot, turning, with
   splinters (weapon_fx) back toward the gun and `pierce_plank`. Gone
-  through, what is left over the stumps breaks at fresh heights and bursts
-  out along the shot (away from a blast, harder), `pieces_most` of them as
-  boards, and a stockyard's rails go in halves.
+  through, what is left over the stumps bursts out along the shot (away from
+  a blast, harder) in whole lengths (none over `BOARD_LONGEST`),
+  `pieces_most` (10) of them as boards, and a stockyard's rails go in
+  halves. Its own chips are left out (`burst(..., keep = false)`: the dice
+  spent as ever) and its `bits` are 4, so the boards read, not a cloud of
+  specks.
 - **Drawn.** `view_rows()` hands the 3D view the 32 cells nearest the eye
   (rows 9 to 12 of `view_data`); the world shader cuts their planks out of
   the faces along the fence (`world_body.gdshaderinc plank_damage`, kind
@@ -1848,11 +1851,13 @@ physics, so play's users stay the same on every machine.
   and a life from effects.cfg `[debris]`, the oldest fading first
   (`Assets.faded_art`, alpha-scaled copies). Each new hole takes one of its
   material's own pictures and size (`HOLE_LOOKS`, pass 11,
-  `tools/art/wall_mark_art.gd`): a splintered hole in planks (.17 across), a
-  crater with a chunk out in brick (.19), a torn dent in tin (.14), a pock in
-  stone (.15), each with its dust puff (tin's too now). A blast against a
-  wall knocks one to three big holes of the wall's material out round its
-  scorch (`_chunks`). Features add wall marks through
+  `tools/art/wall_mark_art.gd`, drawn to read from four to six cells off): a
+  dark hole with a pale torn rim and splinters sticking out in planks (.24
+  across), a chipped crater with a chunk out and a pale dust ring in brick
+  (.28), a punched hole with bright bent petals in tin (.2), a pale pock in
+  stone (.2), each with its dust puff (tin's too now), under the same cap. A
+  blast against a wall knocks two to four big holes (.34 to .48) of the
+  wall's material out of its scorch's upper half (`_chunks`). Features add wall marks through
   `wall_marks()`. It also keeps the latest marking shots and blasts in
   `thing_hits` (looks only) for the 3D view to hole, scorch and char props,
   vehicles and wreck pieces ([view3d.md](view3d.md#marks-on-modelled-things)).

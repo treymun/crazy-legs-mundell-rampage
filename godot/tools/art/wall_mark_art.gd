@@ -62,114 +62,107 @@ static func _blob(
 	return pts
 
 
-## A round through a plank, 28 x 28: splinters up and down the grain (pale,
-## a shadow beside each), the torn wood round the hole darker, the hole.
+## A round through a plank, 32 x 32, to read from a few cells off: the dark
+## hole, a pale torn rim round it outlined dark, splinters sticking out along
+## the grain (up and down), a few across.
 static func wood_hole(k: int) -> Paint.Sheet:
-	var s := Paint.Sheet.new(28, 28)
+	var s := Paint.Sheet.new(32, 32)
 	var dice := _dice("hole_wood_%d" % k)
-	var c := Vector2(14.0 + dice.randf_range(-1.0, 1.0), 14.0 + dice.randf_range(-1.0, 1.0))
-	# The splinters, mostly along the grain (up and down), a few across.
-	for i in 7 + k:
-		var a := (PI * .5 if i % 2 == 0 else -PI * .5) + dice.randf_range(-.45, .45)
-		if i >= 6:
+	var c := Vector2(16.0 + dice.randf_range(-1.0, 1.0), 16.0 + dice.randf_range(-1.0, 1.0))
+	var pale := Paint.rgb(218, 188, 138)
+	var dark := Paint.rgb(56, 38, 24)
+	for i in 6 + k:
+		var a := (PI * .5 if i % 2 == 0 else -PI * .5) + dice.randf_range(-.4, .4)
+		if i >= 5:
 			a = dice.randf_range(0.0, TAU)
-		var reach := dice.randf_range(5.0, 12.5) if i < 6 else dice.randf_range(3.5, 6.0)
+		var reach := dice.randf_range(11.0, 15.0) if i < 5 else dice.randf_range(8.0, 11.0)
 		var d := Vector2(cos(a), sin(a))
 		var side := Vector2(-d.y, d.x)
-		var wide := dice.randf_range(1.6, 2.8)
 		var tip := c + d * reach
-		var sliver := PackedVector2Array([c + side * wide, tip, c - side * wide])
-		Paint.polygon(s, sliver, Paint.rgb(196, 160, 108))
-		Paint.line2(
-			s, c.x + side.x * wide, c.y + side.y * wide, tip.x, tip.y, Paint.rgb(64, 44, 28)
+		var base := 2.6
+		Paint.polygon(
+			s, PackedVector2Array([c + side * (base + 1.0), tip + d, c - side * (base + 1.0)]), dark
 		)
-		Paint.line2(s, c.x, c.y, tip.x - d.x, tip.y - d.y, Paint.rgb(226, 196, 146))
-	# The torn wood round the hole, the hole dark and ragged.
-	Paint.polygon(s, _blob(c.x, c.y, 6.6, 10, .35, dice), Paint.rgb(84, 58, 36))
-	Paint.polygon(s, _blob(c.x, c.y, 4.2, 8, .3, dice), Paint.rgb(18, 13, 10))
-	s.put(int(c.x) - 1, int(c.y) - 2, Paint.rgb(214, 184, 134))
+		Paint.polygon(s, PackedVector2Array([c + side * base, tip, c - side * base]), pale)
+	Paint.polygon(s, _blob(c.x, c.y, 9.0, 11, .25, dice), dark)
+	Paint.polygon(s, _blob(c.x, c.y, 8.0, 11, .25, dice), pale)
+	Paint.polygon(s, _blob(c.x, c.y, 5.6, 9, .3, dice), Paint.rgb(70, 46, 28))
+	Paint.polygon(s, _blob(c.x, c.y, 4.6, 9, .3, dice), Paint.rgb(14, 10, 8))
 	return Paint.digitize(s, 0.0)
 
 
-## A round into brick, 30 x 30: the crater (raw brick, darker in), a chunk
-## knocked out to one side to the mortar's dark, red dust round it.
+## A round into brick, 36 x 36: a pale dust ring, the chipped crater (raw
+## brick, its lit rim pale, darker in) with a chunk knocked out to one side,
+## the dark hole.
 static func brick_hole(k: int) -> Paint.Sheet:
-	var s := Paint.Sheet.new(30, 30)
+	var s := Paint.Sheet.new(36, 36)
 	var dice := _dice("hole_brick_%d" % k)
-	var c := Vector2(15.0, 15.0)
-	# Dust first, under it all: red specks thinning out.
-	for i in 70:
+	var c := Vector2(18.0, 18.0)
+	for i in 160:
 		var a := dice.randf_range(0.0, TAU)
-		var d := sqrt(dice.randf()) * 13.5
+		var d := dice.randf_range(10.0, 17.0)
 		var p := c + Vector2(cos(a), sin(a)) * d
-		if d > 6.0:
-			s.put(int(p.x), int(p.y), Paint.rgb(170, 84, 58, 150))
-	# The chunk out: a blob pushed off to one side.
-	var off := Vector2.from_angle(dice.randf_range(0.0, TAU)) * dice.randf_range(3.0, 5.0)
-	Paint.polygon(s, _blob(c.x + off.x, c.y + off.y, 7.0, 7, .4, dice), Paint.rgb(204, 120, 86))
-	Paint.polygon(s, _blob(c.x, c.y, 8.0, 9, .35, dice), Paint.rgb(196, 112, 80))
+		s.put(int(p.x), int(p.y), Paint.rgb(214, 170, 140, 190 if d < 14.0 else 120))
+	var off := Vector2.from_angle(dice.randf_range(0.0, TAU)) * dice.randf_range(4.0, 6.0)
+	Paint.polygon(s, _blob(c.x + off.x, c.y + off.y, 9.0, 7, .35, dice), Paint.rgb(204, 120, 86))
+	Paint.polygon(s, _blob(c.x, c.y, 10.5, 10, .3, dice), Paint.rgb(196, 112, 80))
 	Paint.polygon(
-		s, _blob(c.x + off.x * .5, c.y + off.y * .5, 5.2, 8, .3, dice), Paint.rgb(132, 64, 44)
+		s, _blob(c.x + off.x * .5, c.y + off.y * .5, 7.0, 8, .3, dice), Paint.rgb(128, 60, 42)
 	)
-	Paint.polygon(s, _blob(c.x, c.y, 3.0, 7, .3, dice), Paint.rgb(44, 26, 22))
-	# Its lit rim (up and left) pale, its far rim in shadow.
-	for y in 30:
-		for x in 30:
-			var o := (y * 30 + x) * 4
+	Paint.polygon(s, _blob(c.x, c.y, 4.2, 7, .3, dice), Paint.rgb(36, 22, 18))
+	for y in 36:
+		for x in 36:
+			var o := (y * 36 + x) * 4
 			if s.data[o + 3] < 255:
 				continue
-			var up := (y - 1) * 30 + x
-			var left := y * 30 + x - 1
+			var up := (y - 1) * 36 + x
+			var left := y * 36 + x - 1
 			if (y > 0 and s.data[up * 4 + 3] < 255) or (x > 0 and s.data[left * 4 + 3] < 255):
-				s.put(x, y, Paint.rgb(232, 158, 118))
+				s.put(x, y, Paint.rgb(240, 176, 136))
 	return Paint.digitize(s, 0.0)
 
 
-## A round through sheet tin, 24 x 24: the dent (a darker ring), the petals
-## torn out and bent (bright on their lit side), the hole.
+## A round through sheet tin, 28 x 28: the dent (a dark ring), the petals torn
+## out and bent back (bright on their lit side, outlined dark), the hole.
 static func tin_hole(k: int) -> Paint.Sheet:
-	var s := Paint.Sheet.new(24, 24)
+	var s := Paint.Sheet.new(28, 28)
 	var dice := _dice("hole_tin_%d" % k)
-	var c := Vector2(12.0, 12.0)
-	Paint.polygon(s, _blob(c.x, c.y, 9.0, 12, .15, dice), Paint.rgb(58, 60, 64, 210))
+	var c := Vector2(14.0, 14.0)
+	Paint.polygon(s, _blob(c.x, c.y, 11.5, 12, .12, dice), Paint.rgb(52, 54, 58, 220))
 	var petals := 5 + k
 	var turn := dice.randf_range(0.0, TAU)
 	for i in petals:
 		var a := turn + TAU * i / petals + dice.randf_range(-.2, .2)
 		var d := Vector2(cos(a), sin(a))
 		var side := Vector2(-d.y, d.x)
-		var reach := dice.randf_range(6.5, 9.0)
-		var bright := Paint.rgb(232, 232, 222) if d.y < .3 else Paint.rgb(150, 152, 150)
+		var reach := dice.randf_range(8.5, 11.0)
 		Paint.polygon(
-			s, PackedVector2Array([c + side * 2.8, c + d * reach, c - side * 2.8]), bright
-		)
-		Paint.line2(
 			s,
-			c.x - side.x * 2.0,
-			c.y - side.y * 2.0,
-			c.x + d.x * reach,
-			c.y + d.y * reach,
-			Paint.rgb(48, 48, 52)
+			PackedVector2Array([c + side * 4.0, c + d * (reach + 1.0), c - side * 4.0]),
+			Paint.rgb(30, 30, 34)
 		)
-	Paint.polygon(s, _blob(c.x, c.y, 3.4, 7, .25, dice), Paint.rgb(14, 12, 12))
+		var bright := Paint.rgb(246, 246, 236) if d.y < .3 else Paint.rgb(170, 172, 168)
+		Paint.polygon(
+			s, PackedVector2Array([c + side * 3.0, c + d * reach, c - side * 3.0]), bright
+		)
+	Paint.polygon(s, _blob(c.x, c.y, 4.6, 8, .2, dice), Paint.rgb(12, 10, 10))
 	return Paint.digitize(s, 0.0)
 
 
-## A round into stone or plaster, 24 x 24: grey dust, the pale crushed pock,
-## a small dark core.
+## A round into stone or plaster, 28 x 28: a grey dust ring, the pale crushed
+## pock, a small dark core.
 static func stone_hole(k: int) -> Paint.Sheet:
-	var s := Paint.Sheet.new(24, 24)
+	var s := Paint.Sheet.new(28, 28)
 	var dice := _dice("hole_stone_%d" % k)
-	var c := Vector2(12.0, 12.0)
-	for i in 50:
+	var c := Vector2(14.0, 14.0)
+	for i in 110:
 		var a := dice.randf_range(0.0, TAU)
-		var d := sqrt(dice.randf()) * 11.0
+		var d := dice.randf_range(7.5, 13.0)
 		var p := c + Vector2(cos(a), sin(a)) * d
-		if d > 4.5:
-			s.put(int(p.x), int(p.y), Paint.rgb(176, 172, 162, 140))
-	Paint.polygon(s, _blob(c.x, c.y, 6.0, 9, .35, dice), Paint.rgb(206, 202, 192))
-	Paint.polygon(s, _blob(c.x + .6, c.y + .6, 3.8, 8, .3, dice), Paint.rgb(140, 136, 128))
-	Paint.polygon(s, _blob(c.x + .5, c.y + .5, 1.8, 6, .2, dice), Paint.rgb(34, 32, 30))
+		s.put(int(p.x), int(p.y), Paint.rgb(190, 186, 176, 170))
+	Paint.polygon(s, _blob(c.x, c.y, 8.5, 10, .3, dice), Paint.rgb(222, 218, 208))
+	Paint.polygon(s, _blob(c.x + .6, c.y + .6, 5.4, 8, .3, dice), Paint.rgb(140, 136, 128))
+	Paint.polygon(s, _blob(c.x + .5, c.y + .5, 2.8, 6, .2, dice), Paint.rgb(30, 28, 26))
 	return Paint.digitize(s, 0.0)
 
 
