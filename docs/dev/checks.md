@@ -340,6 +340,30 @@ Whole details: `docs/godot3d/optimize/R/results.md`.
 | load, 15 levels, warm (a retry, a load) / cold | 4.64 / 5.79 s | 1.54 / 5.12 s |
 | game tick, all chapters idle and fighting (headless) | 0.78 ms | 0.77 ms |
 
+### Measured in pass 10, PERFCPU (2026-11-17)
+
+v3.7.0 (`4972aec9`) against the PERFCPU branch, back to back, three pairs,
+medians (the PC busy with other tracks). "Our CPU" is the frame's parts
+outside the 3D view: tick + sprites + weapon (the HUD's layout, the
+features' drawing and the gun) + hud.
+
+| What | v3.7.0 | PERFCPU |
+| --- | --- | --- |
+| `--view-bench=300` default, 8 chapters: frame mean, geomean | 1x | 1.26x faster (e.g. bayou 8.34 -> 6.10 ms) |
+| ... our CPU per frame, geomean | 1x | 1.83x faster (weapon part 1.6-3.5 -> 0.5-0.8 ms) |
+| ... the same at LOW: frame / our CPU | 1x | 1.23x / 1.78x |
+| `--view-bench=300` against pass 10's own start (`945a9993`, the new BLUE in both), two pairs: frame / our CPU | 1x | 1.66x / 2.39x (speedway 9.55 -> 4.25 ms) |
+| `bench.gd -- 150` tick / draw (software HUD) | 1.00 / 6.02 ms | 0.85 / 2.66 ms |
+| `tick_spikes` hickston, bayou, mothership, 1 and 2 players: median tick, geomean | 1x | 1.09x faster |
+
+The window's weapon part held the HUD's layout, which measured its words
+letter by letter, parsing each letter's hex every time: kept by text now.
+The tick is many small costs spread over 120-odd features and every enemy;
+what came off it is the level of detail on the enemies' own fields, the
+walking test on locals and a few loops asking the cheap thing first. The
+v3.7.0 numbers have the old BLUE: pass 10's hound costs the tick about
+0.05-0.1 ms of its own (`cpu_check -- report` names the costliest feature).
+
 Remaining worst cases: County Run late (12 to 14 ms a frame on this desktop:
 33 rigged hands posed every frame, 1.4 to 1.7 ms of AnimationPlayer seeks);
 the first visit to a chapter (0.35 to 0.57 s headless: the nav graph, 0.2 to
