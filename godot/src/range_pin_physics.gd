@@ -184,7 +184,7 @@ func step(pins: Array, ball: Body, h: float) -> void:
 	_prepare(contacts, h)
 	for _pass in PASSES:
 		for c: PhysCore.Contact in contacts:
-			PhysCore.solve(c)
+			c.solve_exact()  # (PhysCore.solve)
 	for c: PhysCore.Contact in contacts:
 		if c.jn > .18 and (c.kind == 1 or c.kind == 2):
 			knocks += 1
