@@ -31,6 +31,9 @@
   "collapse_crash": {
    "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
   },
+  "coot_alert": {
+   "quiet for family:alert": "level unchanged (within 5 dB of its family before); BLUE's pass 10 takes moved the family's median up"
+  },
   "cowpie_pick": {
    "quiet for family:consume": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
   },
@@ -113,6 +116,9 @@
   "hogleg_gate": {
    "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
   },
+  "hound_shake_alt": {
+   "true peak": "between-sample peak of a hard-edged cue (ear flaps) mastered to -0.8 dB a sample; played at .7 into the -0.8 dB master limiter"
+  },
   "hound_whistle": {
    "loud for family:player": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
   },
@@ -162,7 +168,8 @@
    "quiet for family:scene": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
   },
   "sheriff_death": {
-   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter",
+   "quiet for family:death": "level unchanged (within 5 dB of its family before); BLUE's pass 10 takes moved the family's median up"
   },
   "shot_extract": {
    "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"

@@ -148,6 +148,29 @@
 		"hound_up": [
 			"Hang on, Blue. I gotcha."
 		],
+		"hound_down": [
+			"Blue! Hang on, boy!",
+			"They got Blue! Dang it!"
+		],
+		"hound_praise": [
+			"Atta boy, Blue.",
+			"Good nose, Blue."
+		],
+		"hound_shot": [
+			"Git outta my sights, Blue!",
+			"Sorry, boy. Sorry."
+		],
+		"hound_hush": [
+			"Hush up, Blue.",
+			"Blue, quit that hollerin'."
+		],
+		"hound_greet": [
+			"There's my boy.",
+			"Welcome back, Blue."
+		],
+		"hound_shine": [
+			"Easy, Blue. That's my shine."
+		],
 		"bench_buy": [
 			"Duct tape and a prayer. Good as new.",
 			"Now that's engineerin'.",

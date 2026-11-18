@@ -1,0 +1,35 @@
+{
+ "text": "And they got blue. Dang it",
+ "words": [
+  {
+   "text": "And",
+   "start": 0.06,
+   "end": 0.16
+  },
+  {
+   "text": "they",
+   "start": 0.2,
+   "end": 0.36
+  },
+  {
+   "text": "got",
+   "start": 0.4,
+   "end": 0.6
+  },
+  {
+   "text": "blue.",
+   "start": 0.72,
+   "end": 1.22
+  },
+  {
+   "text": "Dang",
+   "start": 1.38,
+   "end": 1.74
+  },
+  {
+   "text": "it",
+   "start": 1.82,
+   "end": 2.0
+  }
+ ]
+}

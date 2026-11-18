@@ -2,7 +2,9 @@
 ## not found yet and where to bay at it from, new iron lying out, a pickup out
 ## of the player's sight to point at, something worth fetching, the hand or
 ## pickup a player's sights are on, and whether a hand is one he can take.
-## Plain questions of the game: nothing here changes play or rolls dice.
+## Since pass 10 also a hand awake round a corner, a still or scrap to wag
+## at, a siren to howl at. Plain questions of the game: nothing here changes
+## play or rolls dice.
 class_name HoundNose
 extends RefCounted
 
@@ -13,6 +15,11 @@ const NO_PIN := ["skeeter", "saucer", "drone", "probe", "lantern", "crawler", "g
 ## What he carries: the food and every kind of rounds the game counts (no
 ## keys, quest pieces or guns; a stick of dynamite he leaves be).
 const NOT_FETCHED := ["dynamite"]
+## The pictures of what sets him wagging: a moonshine still, a copper vat, a
+## shine tank (and the scrap lying about, a pickup scrap_*).
+const TREATS := [
+	"town_still", "town_big_still", "town_copper_vat", "town_shine_tank", "wing_quarry_still"
+]
 
 
 ## A [hound] number from hound.cfg.
@@ -53,28 +60,145 @@ static func takes(e: Enemy) -> bool:
 
 
 ## The hand he would go for on his own from (x, y): awake, within `reach`, in
-## his sight, and badly hurt (under `below` of its health) or right on top of
-## player `p`; the nearest. Null when none. `taken` names hands another
-## hound already has (uid -> true).
+## his sight, not standing in harm (`danger`, HoundLegs.dangers), and badly
+## hurt (under `below` of its health), right on top of player `p` or going
+## for them close by; of several the one he ought to (pass 10): one on his
+## player first, then a hurt one, then the nearest, and one a player's
+## sights are not already on (they will shoot it: he takes the flanker).
+## Null when none. `taken` names hands another hound already has.
 static func foe_near(
-	g: Game, x: float, y: float, z: float, p: Player, reach: float, below: float, taken: Dictionary
+	g: Game,
+	x: float,
+	y: float,
+	z: float,
+	p: Player,
+	reach: float,
+	below: float,
+	taken: Dictionary,
+	danger: Array = []
 ) -> Enemy:
 	var best: Enemy = null
-	var best_d := reach
+	var best_score := INF
 	for e: Enemy in g.enemies:
 		if absf(e.x - x) > reach or absf(e.y - y) > reach or not e.alerted or not takes(e):
 			continue
 		if taken.has(e.uid):
 			continue
 		var d := Vector2(e.x - x, e.y - y).length()
-		var close := Vector2(e.x - p.x, e.y - p.y).length() < 3.0
-		if d >= best_d or (e.hp > e.max_hp * below and not close):
+		if d >= reach:
+			continue
+		var to_p := Vector2(e.x - p.x, e.y - p.y).length()
+		var chasing := false
+		if e.target is Player:
+			var aim: Player = e.target
+			chasing = aim == p
+		var on_p := to_p < 3.0 or (to_p < 5.0 and chasing)
+		var hurt := e.hp <= e.max_hp * below
+		if not hurt and not on_p:
+			continue
+		var score := d - (3.0 if on_p else 0.0) - (1.5 if hurt else 0.0)
+		if HoundLegs.before_sights(g, e.x, e.y, 14.0, .97):
+			score += 2.0
+		if score >= best_score:
+			continue
+		if not danger.is_empty() and HoundLegs.harm(g, danger, e.x, e.y, .3):
 			continue
 		if not g.world.visible(x, y, e.x, e.y, z + .4, g.world.stand(e) + .6):
 			continue
 		best = e
-		best_d = d
+		best_score = score
 	return best
+
+
+## A hand awake within `reach` of (x, y) that player `p` cannot see, while
+## none they can see is near (the fight is not on yet): he smells it round
+## the corner and growls (pass 10). Not one in `warned` (uid -> true), not a
+## boss. Null when none.
+static func unseen_foe(
+	g: Game, x: float, y: float, p: Player, reach: float, warned: Dictionary
+) -> Enemy:
+	var lurk: Enemy = null
+	var lurk_d := reach
+	for e: Enemy in g.enemies:
+		if not e.alive or not e.hostile or e.dormant:
+			continue
+		var near_p := absf(e.x - p.x) < 12.0 and absf(e.y - p.y) < 12.0
+		var near_d := absf(e.x - x) < reach and absf(e.y - y) < reach
+		if not near_p and not near_d:
+			continue
+		var seen := g.world.visible(p.x, p.y, e.x, e.y, p.eye, g.world.stand(e) + .8)
+		if seen and near_p:
+			return null  # one in sight: the fight is his player's to see
+		if seen or not near_d or warned.has(e.uid) or Enemy.BOSS_TITLES.has(e.kind):
+			continue
+		var d := Vector2(e.x - x, e.y - y).length()
+		if d < lurk_d:
+			lurk = e
+			lurk_d = d
+	return lurk
+
+
+## A still standing or scrap lying within `reach` of (x, y), on his floor, in
+## his sight and not wagged at yet (`bayed`): its place, or Vector2.INF.
+static func treat_near(
+	g: Game, x: float, y: float, z: float, reach: float, bayed: Dictionary
+) -> Vector2:
+	for board: LevelData.Billboard in g.world.billboards:
+		if board.hidden or not TREATS.has(board.image):
+			continue
+		if absf(board.x - x) > reach or absf(board.y - y) > reach:
+			continue
+		var at := Vector2(board.x, board.y)
+		if bayed.has(key(at)) or at.distance_to(Vector2(x, y)) > reach:
+			continue
+		if not g.world.visible(x, y, at.x, at.y, z + .4, g.world.elevation(at.x, at.y) + .6):
+			continue
+		return at
+	for entry: Array in g.pickups:
+		if not str(entry[0]).begins_with("scrap_"):
+			continue
+		var px: float = entry[1]
+		var py: float = entry[2]
+		if absf(px - x) > reach or absf(py - y) > reach:
+			continue
+		var at := Vector2(px, py)
+		if bayed.has(key(at)) or GunFinder.in_secret(g, px, py):
+			continue
+		var lies := GunFinder.lies(g, entry)
+		if absf(lies - z) > .4 or not g.world.visible(x, y, px, py, z + .4, lies + .2):
+			continue
+		return at
+	return Vector2.INF
+
+
+## Whether a still stands at `at` (not scrap): Mundell has a word for that.
+static func still_at(g: Game, at: Vector2) -> bool:
+	for board: LevelData.Billboard in g.world.billboards:
+		if TREATS.has(board.image) and Vector2(board.x, board.y).distance_to(at) < .05:
+			return true
+	return false
+
+
+## Whether a siren wails for him now: the twister's warning or the raid's
+## (heard everywhere, their first seconds), a cruiser with its siren on the
+## track within `reach` of (x, y).
+static func siren_near(g: Game, x: float, y: float, reach: float) -> bool:
+	var ev: CountyEvents = g.features.get("events")
+	if ev != null and (ev.kind == "twister" or ev.kind == "raid") and ev.phase == 0:
+		if g.clock - ev.since < 4.0:
+			return true
+	var laps: HoundLegs.RaceLaps = g.features.get("race_laps")
+	if laps == null or laps.total <= 0.0 or not laps.spec.get("siren", false):
+		return false
+	for car: Array in laps.cars:
+		var speed: float = car[1]
+		if speed <= 0.0:
+			continue
+		var along: float = car[0]
+		var at: Vector2 = laps._at(along)[0]
+		if at.distance_to(Vector2(x, y)) < reach:
+			return true
+	return false
 
 
 ## Whether any hand awake is within `reach` of (x, y): no time to sniff.

@@ -58,7 +58,7 @@ func _run() -> void:
 		_ticks(g, 4)
 		var h = g.features["hound"]
 		var d = h.dogs[0]
-		h.call("_into", d, int(pose[2]))
+		h.call("into", d, int(pose[2]))
 		d.until = g.clock + 99.0
 		d.bark_at = g.clock + 99.0 if pose[2] in [6, 7] else -10.0
 		d.down_at = g.clock - 2.0 if pose[2] == 8 else -1.0
@@ -149,7 +149,7 @@ func _pin() -> void:
 	d.x = foe.x + cos(side) * .62
 	d.y = foe.y + sin(side) * .62
 	d.floor_z = foe.floor_z
-	h.call("_into", d, 3)
+	h.call("into", d, 3)
 	d.foe = foe.uid
 	d.until = g.clock + 99.0
 	d.angle = atan2(foe.y - d.y, foe.x - d.x)

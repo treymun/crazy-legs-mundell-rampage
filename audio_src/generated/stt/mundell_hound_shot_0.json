@@ -1,0 +1,35 @@
+{
+ "text": "Get out of my sights, Blue",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "out",
+   "start": 0.34,
+   "end": 0.54
+  },
+  {
+   "text": "of",
+   "start": 0.58,
+   "end": 0.64
+  },
+  {
+   "text": "my",
+   "start": 0.7,
+   "end": 0.94
+  },
+  {
+   "text": "sights,",
+   "start": 1.1,
+   "end": 1.52
+  },
+  {
+   "text": "Blue",
+   "start": 1.64,
+   "end": 2.06
+  }
+ ]
+}

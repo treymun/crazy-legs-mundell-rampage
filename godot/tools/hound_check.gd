@@ -18,6 +18,13 @@
 ## hounds, each with their own. NET: two games fed the same controls stay
 ## identical with the hounds about, a snapshot carries them onto a fresh game
 ## that runs on the same. LOOKS: his frames, the badge, his art and settings.
+## Pass 10: LEGS: he ranges out and circles back, steps out of the sights,
+## goes round a hazard, lets go of a fight badly hurt, keeps clear of a boss
+## winding up, rides in a free seat and hops out for a partner. MOODS: he
+## sulks shot near, howls at the twister's siren and cowers from it, growls
+## at a hand round a corner, wags round a still. VOICE: he pants after a run
+## and shakes off back on his feet; his barks dealt at random, never twice
+## running. tools/hound_walk_check.gd walks every chapter with him.
 extends SceneTree
 
 const STEP := 1.0 / 60.0
@@ -56,7 +63,20 @@ func _run() -> void:
 			quit()
 			return
 	for part: String in [
-		"heel", "off", "nose", "fight", "fetch", "down", "whistle", "save", "coop", "net", "looks"
+		"heel",
+		"off",
+		"nose",
+		"fight",
+		"fetch",
+		"down",
+		"whistle",
+		"save",
+		"coop",
+		"net",
+		"looks",
+		"legs",
+		"moods",
+		"voice"
 	]:
 		print("\n" + part.to_upper())
 		call("_" + part)
@@ -460,7 +480,12 @@ func _down() -> void:
 	var hold := Game.Controls.new()
 	hold.hold = true
 	_tick(g, roundi(60 * (h.n("revive_time") + .3)), hold)
-	_check(d.state == Hound.FOLLOW and d.health > 0.0, "held USE beside him gets him up")
+	_check(
+		d.state == Hound.GREET and d.health > 0.0 and d.goal_uid == p.slot,
+		"held USE beside him gets him up, and he greets his helper"
+	)
+	_tick(g, roundi(60 * (h.n("greet_for") + .2)))
+	_check(d.state == Hound.FOLLOW, "the greeting done, he goes with his player again")
 	h.call("_hurt", d, 500.0, d.x + 1.0, d.y)
 	_tick(g, 2)
 	p.x = d.x + .5
@@ -469,7 +494,7 @@ func _down() -> void:
 	_check(h.prompt(p).contains("RIND"), "with a rind: '%s'" % h.prompt(p))
 	GameUse.interact(g)
 	_check(
-		d.state == Hound.FOLLOW and p.inventory["rinds"] == 0 and d.health == h.n("rind_health"),
+		d.state == Hound.GREET and p.inventory["rinds"] == 0 and d.health == h.n("rind_health"),
 		"a pork rind gets him up at once"
 	)
 	h.call("_hurt", d, 500.0, d.x + 1.0, d.y)
@@ -550,7 +575,8 @@ func _coop() -> void:
 	_tick(g, 60 * 4)
 	var d1 := _dog(g, 1)
 	_check(
-		Vector2(d1.x - q.x, d1.y - q.y).length() < 2.5, "player two's hound heels with player two"
+		Vector2(d1.x - q.x, d1.y - q.y).length() < h.n("range_far") + 1.0,
+		"player two's hound goes with player two"
 	)
 	var c := Game.Controls.new()
 	c.item = Game.HOUND_CALL
@@ -650,6 +676,263 @@ func _looks() -> void:
 	_check(lit > 600, "his badge is drawn in the view's corner (%d pixels)" % lit)
 	var rows := h.tally_rows()
 	_check(rows.is_empty(), "no tally row before he has done anything")
+
+
+# ------------------------------------------------------- pass 10: his legs
+
+
+## Calm, his player standing: he ranges out to one side and comes back; in
+## a player's sights he steps out of them; he never stands in harm; badly
+## hurt he lets go of a fight; a boss winding up is harm; a free seat beside
+## his player at the wheel and he rides, and hops out when a partner takes it.
+func _legs() -> void:
+	var g := _game("hickston")
+	_tick(g, 2)
+	var h := _hound(g)
+	var d := _dog(g)
+	var p := g.player
+	var open := _spot(g, p.x, p.y, 6.0)
+	_put_player(g, open, open + Vector2(4.0, 0.0))
+	_put_dog(g, d, open - Vector2(1.2, 0.0))
+	var ranged := 0.0
+	var jobs := {}
+	var faced_out := true
+	for t in 60 * 14:
+		g.tick(STEP, Game.Controls.new())
+		jobs[d.job] = true
+		ranged = maxf(ranged, Vector2(d.x - p.x, d.y - p.y).length())
+		if d.job == Hound.RANGE and HoundLegs.before_sights(g, d.roam.x, d.roam.y, 10.0, .93):
+			faced_out = false
+	_check(
+		jobs.has(Hound.RANGE) and jobs.has(Hound.CIRCLE) and ranged > 2.0,
+		"calm, he ranges out (%.1f cells) and circles back (jobs %s)" % [ranged, jobs.keys()]
+	)
+	_check(faced_out, "he never ranges to a spot in his player's sights")
+	_check(
+		Vector2(d.x - p.x, d.y - p.y).length() < h.n("range_far") + 1.0, "and stays with his player"
+	)
+	# In the sights: out of them within a second.
+	var aim := Vector2(d.x - p.x, d.y - p.y).angle()
+	p.angle = aim
+	var out_at := -1.0
+	for t in 60 * 2:
+		g.tick(STEP, Game.Controls.new())
+		p.angle = aim
+		if (
+			out_at < 0.0
+			and HoundLegs.in_sights(g, d, h.n("clear_reach"), h.n("clear_cone")) == null
+		):
+			out_at = t * STEP
+	_check(
+		out_at >= 0.0 and out_at < 1.0 and h.asides > 0,
+		"aimed at, he steps out of the sights (%.2f s)" % out_at
+	)
+	# Harm: a hazard prop between him and his heel never has him.
+	var g2 := _game("moonshine")
+	_tick(g2, 2)
+	var h2 := _hound(g2)
+	var d2 := _dog(g2)
+	var harms := HoundLegs.harms_of(g2, 0.0)
+	var tested := false
+	for c: Vector3 in harms:
+		var side_a := _spot(g2, c.x + c.z + 2.0, c.y, 1.5)
+		if side_a == Vector2.INF:
+			continue
+		var side_b := Vector2(c.x - (side_a.x - c.x), c.y - (side_a.y - c.y))
+		if g2.world.blocked(side_b.x, side_b.y, .35):
+			continue
+		_put_player(g2, side_b, Vector2(c.x, c.y))
+		_put_dog(g2, d2, side_a)
+		var hit := false
+		for t in 60 * 5:
+			g2.tick(STEP, Game.Controls.new())
+			hit = hit or Vector2(d2.x - c.x, d2.y - c.y).length() < c.z
+		_check(
+			not hit,
+			"a hazard between him and his player: he goes round it (%.1f,%.1f)" % [c.x, c.y]
+		)
+		tested = true
+		break
+	_check(tested, "moonshine has a hazard to go round")
+	_check(not HoundLegs.harm(g2, [], d2.x, d2.y), "he stands clear of harm")
+	# Badly hurt in a fight: he lets go and keeps behind his player.
+	var g3 := _game("hickston", true, true)
+	_tick(g3, 2)
+	var d3 := _dog(g3)
+	var e := _foe(g3, _spot(g3, g3.player.x, g3.player.y, 3.0))
+	if e != null:
+		_hound(g3).call("_sic", d3, e, true)
+		d3.health = _hound(g3).n("health") * _hound(g3).n("back_off") * .5
+		_tick(g3, 3)
+		_check(
+			d3.state == Hound.FOLLOW and d3.mood == Hound.HURT and _hound(g3).backed_off == 1,
+			"badly hurt, he lets go of the fight and keeps back (mood %s)" % Hound.MOODS[d3.mood]
+		)
+	# A boss winding up: where it aims is harm, and so is the way to it.
+	var g4 := _game("quarry", true, true)
+	var boss: Enemy = null
+	for b: Enemy in g4.enemies:
+		if Enemy.BOSS_TITLES.has(b.kind):
+			boss = b
+	if boss != null:
+		boss.dormant = false
+		boss.windup = .6
+		boss.aim_mark = [boss.x + 5.0, boss.y, 0.0]
+		var danger := HoundLegs.dangers(g4, [], 2.2)
+		_check(
+			(
+				HoundLegs.harm(g4, danger, boss.x + 5.0, boss.y)
+				and HoundLegs.harm(g4, danger, boss.x + 2.5, boss.y)
+			),
+			"a boss winding up: where it aims and the way there are harm"
+		)
+	_ride_seat()
+
+
+## A free seat beside his player at the wheel: he gets in and rides; a
+## partner taking the seat has him hop out.
+func _ride_seat() -> void:
+	var g := _game("speedway")
+	Modes.setup(g, Modes.COOP, 2)
+	_tick(g, 2)
+	var rides: Game.VehiclesScript = g.features.get("vehicles")
+	var d := _dog(g)
+	var p := g.player
+	if not rides.seat_in(p, 0):
+		_check(false, "speedway: the player takes the car's wheel")
+		return
+	var v: VehicleDrive.Ride = rides.rides[0]
+	_put_dog(g, d, Vector2(v.x - cos(v.h) * 2.2, v.y - sin(v.h) * 2.2))
+	_tick(g, 60)
+	_check(d.state == Hound.RIDE and d.ride == 0, "he gets in the seat beside his player")
+	var seat := HoundLegs.seat_at(v)
+	_check(Vector2(d.x - seat.x, d.y - seat.y).length() < .05, "and sits in it")
+	var q: Player = g.players[1]
+	v.seats[1] = q.slot
+	_tick(g, 30)
+	_check(d.state != Hound.RIDE and d.ride < 0, "a partner takes the seat: he hops out")
+	v.seats[1] = -1
+
+
+# ------------------------------------------------------- pass 10: his moods
+
+
+## Shot near: he sulks behind. A siren: he howls. A twister: he cowers. A
+## hand awake round a corner: he growls. A still: he wags round it.
+func _moods() -> void:
+	var g := _game("hickston")
+	_tick(g, 2)
+	var h := _hound(g)
+	var d := _dog(g)
+	var p := g.player
+	var open := _spot(g, p.x, p.y, 5.0)
+	_put_player(g, Vector2(p.x, p.y), open)
+	_put_dog(g, d, Vector2(p.x, p.y).lerp(open, .5))
+	p.angle = atan2(d.y - p.y, d.x - p.x)
+	g.events.shot_fired.emit(Weapons.NAMES.find("shotgun"))
+	_check(
+		d.mood == Hound.SULK and d.job == Hound.TRAIL and h.sulks == 1,
+		"a shot close by him: he sulks, trailing behind"
+	)
+	_tick(g, roundi(60 * (h.n("sulk_for") + .5)))
+	_check(d.mood == Hound.CALM, "and gets over it")
+	# A siren: the twister's warning.
+	var g2 := _game("hickston")
+	_tick(g2, 2)
+	var h2 := _hound(g2)
+	h2._n["howl_chance"] = 1.0
+	var ev: CountyEvents = g2.features.get("events")
+	var began := ev != null and ev.begin("twister")
+	var howled := false
+	var cowered := false
+	for t in 60 * 30:
+		g2.tick(STEP, Game.Controls.new())
+		howled = howled or _dog(g2).state == Hound.HOWL
+		cowered = cowered or _dog(g2).state == Hound.COWER
+		if cowered and howled:
+			break
+	_check(began and howled and h2.howls > 0, "the twister's siren: he howls")
+	_check(cowered and h2.cowers > 0, "the twister near: he cowers at his player's side")
+	# A hand awake his player cannot see.
+	var g3 := _game("hickston", true, true)
+	_tick(g3, 2)
+	var d3 := _dog(g3)
+	var p3 := g3.player
+	var hid := _hidden_pair(g3, p3)
+	var growled := false
+	if not hid.is_empty():
+		var e := _foe(g3, hid[1])
+		if e != null:
+			e.alerted = false
+			e.stun = 9.0
+			_put_dog(g3, d3, hid[0])
+			for t in 60 * 3:
+				g3.tick(STEP, Game.Controls.new())
+				e.x = hid[1].x
+				e.y = hid[1].y
+				growled = growled or d3.state == Hound.GROWL
+	_check(growled and _hound(g3).warned.size() == 1, "a hand round the corner: he growls at it")
+	# A still: he wags round it.
+	var g4 := _game("hickston")
+	_tick(g4, 2)
+	var d4 := _dog(g4)
+	var still := Vector2.INF
+	for board: LevelData.Billboard in g4.world.billboards:
+		if HoundNose.TREATS.has(board.image):
+			still = Vector2(board.x, board.y)
+	var wagged := false
+	var stand := _spot(g4, still.x, still.y, 3.0) if still != Vector2.INF else Vector2.INF
+	if stand != Vector2.INF:
+		_put_player(g4, stand, still + (still - stand))
+		_put_dog(g4, d4, stand.lerp(still, .3))
+		for door: LevelData.Door in g4.world.doors:
+			_hound(g4).bayed[HoundNose.key(Vector2(door.x + .5, door.y + .5))] = 0.0
+		for t in 60 * 5:
+			g4.tick(STEP, Game.Controls.new())
+			wagged = wagged or _hound(g4).treats > 0
+	_check(wagged, "a moonshine still: he wags round it")
+
+
+## His own noises (features/hound_voice.gd): a pant after a run, a shake
+## back on his feet; the takes of a set dealt at random, never the same
+## twice running.
+func _voice() -> void:
+	var g := _game("hickston")
+	_tick(g, 2)
+	var voice: GameFeature = g.features.get("hound_voice")
+	_check(voice != null, "his voice is a looks feature of the game")
+	_check(GameSnapshot.LOOKS_FEATURES.has("hound_voice"), "and never carried")
+	var d := _dog(g)
+	d.pace = 7.0
+	for t in 60 * 4:
+		d.pace = 7.0
+		voice.call("_tick", STEP)
+	d.pace = 0.0
+	voice.call("_tick", STEP)
+	_check(voice.call("panting", d.slot), "after a run he pants")
+	var h := _hound(g)
+	h.call("_hurt", d, 500.0, d.x + 1.0, d.y)
+	voice.call("_tick", STEP)
+	h.call("_up", d, 50.0, null)
+	voice.call("_tick", STEP)
+	_check(voice.call("shaking", d.slot), "back on his feet he shakes himself off")
+	var s: Sound = main.sound
+	var gain := s.effects_gain
+	s.effects_gain = 1.0
+	var takes := {}
+	var twice := 0
+	var last := -1
+	for k in 60:
+		s.play("hound_bark", .01)
+		var took: int = s.variations["hound_bark"] - 1
+		twice += 1 if took == last else 0
+		last = took
+		takes[took] = true
+	s.effects_gain = gain
+	_check(
+		twice == 0 and takes.size() >= 4,
+		"his barks dealt at random (%d takes), never the same twice running" % takes.size()
+	)
 
 
 ## `-- play=<level>`: the campaign bot plays a chapter for two minutes with

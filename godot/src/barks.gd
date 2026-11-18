@@ -125,6 +125,13 @@ const LINES := {
 	"hound_come": ["BLUE! HERE, BOY!"],
 	"hound_good": ["GOOD BOY, BLUE.", "THAT'S MY DOG."],
 	"hound_up": ["HANG ON, BLUE. I GOTCHA."],
+	# Pass 10: about BLUE, now and then (each held back a good while).
+	"hound_down": ["BLUE! HANG ON, BOY!", "THEY GOT BLUE! DANG IT!"],
+	"hound_praise": ["ATTA BOY, BLUE.", "GOOD NOSE, BLUE."],
+	"hound_shot": ["GIT OUTTA MY SIGHTS, BLUE!", "SORRY, BOY. SORRY."],
+	"hound_hush": ["HUSH UP, BLUE.", "BLUE, QUIT THAT HOLLERIN'."],
+	"hound_greet": ["THERE'S MY BOY.", "WELCOME BACK, BLUE."],
+	"hound_shine": ["EASY, BLUE. THAT'S MY SHINE."],
 	# A mod taped on at the junk bench (features/bench.gd).
 	"bench_buy":
 	[
@@ -165,6 +172,12 @@ const COOLDOWN := {
 	"hound_come": 1.5,
 	"hound_good": 9.0,
 	"hound_up": 2.0,
+	"hound_down": 20.0,
+	"hound_praise": 50.0,
+	"hound_shot": 25.0,
+	"hound_hush": 45.0,
+	"hound_greet": 12.0,
+	"hound_shine": 60.0,
 	"bench_buy": 1.0,
 	"event_twister": 2.0,
 	"event_hogs": 2.0,

@@ -1,0 +1,25 @@
+{
+ "text": "Blue, quit that hollering",
+ "words": [
+  {
+   "text": "Blue,",
+   "start": 0.06,
+   "end": 0.46
+  },
+  {
+   "text": "quit",
+   "start": 0.62,
+   "end": 0.84
+  },
+  {
+   "text": "that",
+   "start": 0.92,
+   "end": 1.2
+  },
+  {
+   "text": "hollering",
+   "start": 1.28,
+   "end": 1.8
+  }
+ ]
+}

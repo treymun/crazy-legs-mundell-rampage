@@ -164,13 +164,28 @@ const REPORT_GAIN := {
 	"actor_tool_down": .75,
 }
 
+## The VARIANTS sets dealt at random instead of in turn (never the take just
+## played twice running): BLUE's, whose barks in turn ran a fixed round.
+const SHUFFLED := "hound_"
 const VARIANTS := {
-	# BLUE, the hound (features/hound.gd; scripts/audio_spec.py "the hound").
-	"hound_bark": ["hound_bark", "hound_bark_alt", "hound_bark_alt2"],
-	"hound_bay": ["hound_bay", "hound_bay_alt"],
+	# BLUE, the hound (features/hound.gd, hound_voice.gd; scripts/audio_spec.py
+	# "the hound"): dealt at random, never the take just played (SHUFFLED).
+	"hound_bark":
+	["hound_bark", "hound_bark_alt", "hound_bark_alt2", "hound_bark_alt3", "hound_bark_alt4"],
+	"hound_bay": ["hound_bay", "hound_bay_alt", "hound_bay_alt2"],
 	"hound_whine": ["hound_whine", "hound_whine_alt"],
 	"hound_growl": ["hound_growl", "hound_growl_alt"],
-	"hound_yelp": ["hound_yelp", "hound_yelp_alt"],
+	"hound_growl_low": ["hound_growl_low", "hound_growl_low_alt"],
+	"hound_yelp": ["hound_yelp", "hound_yelp_alt", "hound_yelp_alt2"],
+	"hound_yip": ["hound_yip", "hound_yip_alt", "hound_yip_alt2"],
+	"hound_howl": ["hound_howl", "hound_howl_alt"],
+	"hound_pant": ["hound_pant", "hound_pant_alt"],
+	"hound_sniff": ["hound_sniff", "hound_sniff_alt"],
+	"hound_shake": ["hound_shake", "hound_shake_alt"],
+	"hound_whimper": ["hound_whimper", "hound_whimper_alt"],
+	"hound_whine_soft": ["hound_whine_soft", "hound_huff"],
+	"hound_boof": ["hound_boof", "hound_boof_alt"],
+	"hound_bite": ["hound_bite", "hound_bite_alt"],
 	"rifle": ["rifle", "rifle_alt", "rifle_alt2"],
 	"mower": ["mower", "mower_alt"],
 	"revolver": ["revolver", "revolver_alt"],
@@ -636,8 +651,10 @@ var score_lift := 1.0
 
 var _amb_target := [0.0, 0.0]
 var _amb_rate := [0.0, 0.0]
-## The dice for each effect's own pitch and level (PITCH_SPREAD).
+## The dice for each effect's own pitch and level (PITCH_SPREAD), and for
+## the takes of a SHUFFLED set.
 var _dice := ShuffleRng.new(3001)
+var _take_dice := ShuffleRng.new(3011)
 ## The pitch play_at_rate() asks of the cue it starts (1 otherwise).
 var _rate := 1.0
 
@@ -925,6 +942,12 @@ func play(name: String, volume := 1.0, pan := 0.0, cutoff := OPEN_CUTOFF) -> voi
 	var variant: Array = VARIANTS.get(name, [])
 	if not variant.is_empty():
 		var index: int = variations.get(name, 0)
+		if name.begins_with(SHUFFLED) and variant.size() > 1:
+			# Any take but the one just played (`index` is the next in turn).
+			var last := posmod(index - 1, variant.size())
+			index = floori(_take_dice.next() * (variant.size() - 1))
+			if index >= last:
+				index += 1
 		cue = str(variant[index % variant.size()])
 		if not assets.has_cue(cue):
 			cue = name

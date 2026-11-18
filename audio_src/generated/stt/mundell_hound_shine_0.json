@@ -1,0 +1,30 @@
+{
+ "text": "Easy Blue, that's my shine",
+ "words": [
+  {
+   "text": "Easy",
+   "start": 0.1,
+   "end": 0.46
+  },
+  {
+   "text": "Blue,",
+   "start": 0.54,
+   "end": 0.86
+  },
+  {
+   "text": "that's",
+   "start": 1.04,
+   "end": 1.32
+  },
+  {
+   "text": "my",
+   "start": 1.38,
+   "end": 1.62
+  },
+  {
+   "text": "shine",
+   "start": 1.74,
+   "end": 2.24
+  }
+ ]
+}

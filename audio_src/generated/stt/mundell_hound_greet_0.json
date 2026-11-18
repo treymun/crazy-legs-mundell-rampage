@@ -1,0 +1,25 @@
+{
+ "text": "Yeah, there's my boy",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.06,
+   "end": 0.22
+  },
+  {
+   "text": "there's",
+   "start": 0.32,
+   "end": 0.64
+  },
+  {
+   "text": "my",
+   "start": 0.7,
+   "end": 0.92
+  },
+  {
+   "text": "boy",
+   "start": 1.02,
+   "end": 1.52
+  }
+ ]
+}

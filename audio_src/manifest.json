@@ -11163,6 +11163,310 @@
    },
    "validation": "ok"
   },
+  "hound_yip": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_yip.mp3",
+   "prompt": "A big hound dog gives three quick excited yips, happy and high, tail wagging.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/hound_yip.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.614,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.614
+   },
+   "measured": {
+    "seconds": 0.614,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.0199,
+    "onset_ms": 14.0,
+    "centroid_hz": 727,
+    "end_db": -123.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_howl": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_howl.mp3",
+   "prompt": "A bluetick coonhound sits back and howls along at a siren: a long rising and falling mournful 'ow-ooooo-oooo', loud, outdoors at night.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/hound_howl.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 2.969,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.969
+   },
+   "measured": {
+    "seconds": 2.969,
+    "peak_db": -1.1,
+    "loud_db": -4.0,
+    "dc": 0.0,
+    "onset_ms": 0.4,
+    "centroid_hz": 410,
+    "end_db": -164.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_whimper": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_whimper.mp3",
+   "prompt": "A frightened hound dog cowers and whimpers, a thin trembling high whine, scared.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/hound_whimper.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.934,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.934
+   },
+   "measured": {
+    "seconds": 0.934,
+    "peak_db": -0.8,
+    "loud_db": -3.3,
+    "dc": 0.0061,
+    "onset_ms": 7.5,
+    "centroid_hz": 653,
+    "end_db": -141.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_whine_soft": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_whine_soft.mp3",
+   "prompt": "A big hound dog gives a short sulky whine through its nose, hurt feelings, quiet.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/hound_whine_soft.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.685,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.685
+   },
+   "measured": {
+    "seconds": 0.685,
+    "peak_db": -0.8,
+    "loud_db": -3.8,
+    "dc": 0.0009,
+    "onset_ms": 26.8,
+    "centroid_hz": 527,
+    "end_db": -125.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_huff": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "consume",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_huff.mp3",
+   "prompt": "A big hound dog lets out a long sulky huff through its nose and flops its jowls, a grumbly sigh.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/hound_huff.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "consume",
+    "chain": {
+     "hp": 100,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 1.5,
+     "fade": 0.2,
+     "level": -7.0
+    },
+    "natural_seconds": 0.729,
+    "level": "-7.0 dB (new cue)",
+    "keep_seconds": 0.729
+   },
+   "measured": {
+    "seconds": 0.729,
+    "peak_db": -1.2,
+    "loud_db": -7.0,
+    "dc": 0.0,
+    "onset_ms": 7.2,
+    "centroid_hz": 832,
+    "end_db": -133.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_pant": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "consume",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_pant.mp3",
+   "prompt": "A big hound dog pants hard and fast after a run, tongue out, quick wet breaths.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/hound_pant.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "consume",
+    "chain": {
+     "hp": 100,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 1.5,
+     "fade": 0.2,
+     "level": -7.0
+    },
+    "natural_seconds": 2.006,
+    "level": "-7.0 dB (new cue)",
+    "keep_seconds": 2.006
+   },
+   "measured": {
+    "seconds": 1.992,
+    "peak_db": -0.8,
+    "loud_db": -7.5,
+    "dc": 0.0012,
+    "onset_ms": 14.6,
+    "centroid_hz": 1539,
+    "end_db": -158.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_sniff": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "consume",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_sniff.mp3",
+   "prompt": "A big dog sniffs the ground eagerly, quick snuffling sniffs with its nose down.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/hound_sniff.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "consume",
+    "chain": {
+     "hp": 100,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 1.5,
+     "fade": 0.2,
+     "level": -7.0
+    },
+    "natural_seconds": 0.87,
+    "level": "-7.0 dB (new cue)",
+    "keep_seconds": 0.87
+   },
+   "measured": {
+    "seconds": 0.87,
+    "peak_db": -0.8,
+    "loud_db": -8.6,
+    "dc": 0.0017,
+    "onset_ms": 14.9,
+    "centroid_hz": 3120,
+    "end_db": -139.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_shake": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "consume",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_shake.mp3",
+   "prompt": "A big wet hound dog shakes itself off: long ears flapping and slapping, collar tags rattling, jowls flapping, water spraying.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/hound_shake.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "consume",
+    "chain": {
+     "hp": 100,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 1.5,
+     "fade": 0.2,
+     "level": -7.0
+    },
+    "natural_seconds": 1.039,
+    "level": "-7.0 dB (new cue)",
+    "keep_seconds": 1.039
+   },
+   "measured": {
+    "seconds": 1.039,
+    "peak_db": -0.8,
+    "loud_db": -10.6,
+    "dc": 0.0036,
+    "onset_ms": 0.0,
+    "centroid_hz": 7017,
+    "end_db": -124.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "hurt": {
    "purpose": "player takes damage and survives (cycles hurt/hurt_alt/hurt_alt2)",
    "refs": [
@@ -43431,6 +43735,468 @@
    },
    "validation": "ok"
   },
+  "mundell_hound_down_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_down_0.mp3",
+   "prompt": "Blue! Hang on, boy!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_hound_down_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.78
+    ],
+    "natural_seconds": 1.901,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.907
+   },
+   "measured": {
+    "seconds": 1.907,
+    "peak_db": -0.8,
+    "loud_db": -7.5,
+    "dc": 0.0,
+    "onset_ms": 3.5,
+    "centroid_hz": 1814,
+    "end_db": -149.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_down_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_down_1.mp3",
+   "prompt": "They got Blue! Dang it!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/mundell_hound_down_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.0
+    ],
+    "natural_seconds": 1.897,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.99
+   },
+   "measured": {
+    "seconds": 1.99,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0045,
+    "onset_ms": 0.0,
+    "centroid_hz": 1904,
+    "end_db": -158.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_praise_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_praise_0.mp3",
+   "prompt": "Atta boy, Blue.",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/mundell_hound_praise_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.56
+    ],
+    "natural_seconds": 1.718,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.718
+   },
+   "measured": {
+    "seconds": 1.69,
+    "peak_db": -0.8,
+    "loud_db": -7.7,
+    "dc": 0.0,
+    "onset_ms": 3.1,
+    "centroid_hz": 1838,
+    "end_db": -123.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_praise_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_praise_1.mp3",
+   "prompt": "Good nose, Blue.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_hound_praise_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.36,
+     1.86
+    ],
+    "natural_seconds": 1.652,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.687
+   },
+   "measured": {
+    "seconds": 1.687,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0117,
+    "onset_ms": 39.0,
+    "centroid_hz": 1345,
+    "end_db": -146.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_shot_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_shot_0.mp3",
+   "prompt": "Git outta my sights, Blue!",
+   "credits": 74,
+   "destination": "audio_src/final/sfx/mundell_hound_shot_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     2.06
+    ],
+    "natural_seconds": 2.181,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.184
+   },
+   "measured": {
+    "seconds": 2.184,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0017,
+    "onset_ms": 11.6,
+    "centroid_hz": 1724,
+    "end_db": -169.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_shot_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_shot_1.mp3",
+   "prompt": "Sorry, boy. Sorry.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/mundell_hound_shot_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.8
+    ],
+    "natural_seconds": 1.827,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.915
+   },
+   "measured": {
+    "seconds": 1.915,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0081,
+    "onset_ms": 56.3,
+    "centroid_hz": 1292,
+    "end_db": -168.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_hush_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_hush_0.mp3",
+   "prompt": "Hush up, Blue.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/mundell_hound_hush_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.52
+    ],
+    "natural_seconds": 1.63,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.646
+   },
+   "measured": {
+    "seconds": 1.646,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0046,
+    "onset_ms": 17.5,
+    "centroid_hz": 1309,
+    "end_db": -152.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_hush_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_hush_1.mp3",
+   "prompt": "Blue, quit that hollerin'.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/mundell_hound_hush_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.8
+    ],
+    "natural_seconds": 1.767,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.874
+   },
+   "measured": {
+    "seconds": 1.874,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0001,
+    "onset_ms": 7.5,
+    "centroid_hz": 1709,
+    "end_db": -145.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_greet_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_greet_0.mp3",
+   "prompt": "There's my boy.",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/mundell_hound_greet_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.32,
+     1.52
+    ],
+    "natural_seconds": 1.287,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.39
+   },
+   "measured": {
+    "seconds": 1.39,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.002,
+    "onset_ms": 0.9,
+    "centroid_hz": 1596,
+    "end_db": -166.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_greet_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_greet_1.mp3",
+   "prompt": "Welcome back, Blue.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_hound_greet_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.38,
+     1.9
+    ],
+    "natural_seconds": 1.709,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.71
+   },
+   "measured": {
+    "seconds": 1.71,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0033,
+    "onset_ms": 1.4,
+    "centroid_hz": 1567,
+    "end_db": -147.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hound_shine_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hound_shine_0.mp3",
+   "prompt": "Easy, Blue. That's my shine.",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/mundell_hound_shine_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.24
+    ],
+    "natural_seconds": 2.248,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.33
+   },
+   "measured": {
+    "seconds": 2.33,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1615,
+    "end_db": -164.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "mundell_bench_buy_0": {
    "purpose": "new cue",
    "refs": [],
@@ -49775,6 +50541,576 @@
     "onset_ms": 0.0,
     "centroid_hz": 870,
     "end_db": -132.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_bark_alt3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_bark_alt3.mp3",
+   "prompt": "A big bluetick coonhound gives one happy, bright bark, deep chested, tail wagging.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/hound_bark_alt3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.677,
+    "level": "-4.6 dB (as loud as hound_bark)",
+    "keep_seconds": 0.677
+   },
+   "measured": {
+    "seconds": 0.677,
+    "peak_db": -0.8,
+    "loud_db": -6.8,
+    "dc": 0.0006,
+    "onset_ms": 11.6,
+    "centroid_hz": 1136,
+    "end_db": -135.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_bark_alt4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_bark_alt4.mp3",
+   "prompt": "A big coonhound gives a quick chopping double bark, deep and loud, 'rowf-rowf'.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/hound_bark_alt4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.405,
+    "level": "-4.6 dB (as loud as hound_bark)",
+    "keep_seconds": 0.42
+   },
+   "measured": {
+    "seconds": 0.42,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0062,
+    "onset_ms": 66.6,
+    "centroid_hz": 780,
+    "end_db": -110.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_bay_alt2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_bay_alt2.mp3",
+   "prompt": "A bluetick coonhound bawls on a hot trail: a long ringing 'baw-oo-oo-ooo' bay that rolls and breaks, loud.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/hound_bay_alt2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.552,
+    "level": "-7.7 dB (as loud as hound_bay_alt)",
+    "keep_seconds": 1.552
+   },
+   "measured": {
+    "seconds": 1.552,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0007,
+    "onset_ms": 5.5,
+    "centroid_hz": 3631,
+    "end_db": -128.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_growl_low": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_growl_low.mp3",
+   "prompt": "A big hound growls very low and quiet, a long warning rumble deep in the chest at something unseen.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/hound_growl_low.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.557,
+    "level": "-4.2 dB (as loud as hound_growl)",
+    "keep_seconds": 1.557
+   },
+   "measured": {
+    "seconds": 1.557,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.003,
+    "onset_ms": 2.7,
+    "centroid_hz": 236,
+    "end_db": -133.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_growl_low_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_growl_low_alt.mp3",
+   "prompt": "A big dog gives a low, steady, suspicious growl through its teeth, quiet and menacing.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/hound_growl_low_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.613,
+    "level": "-5.3 dB (as loud as hound_growl_low)",
+    "keep_seconds": 1.613
+   },
+   "measured": {
+    "seconds": 1.6,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0164,
+    "onset_ms": 0.0,
+    "centroid_hz": 276,
+    "end_db": -142.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_yip_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_yip_alt.mp3",
+   "prompt": "An excited coonhound yips and yaps twice, eager and playful, a little whine between.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/hound_yip_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.417,
+    "level": "-4.0 dB (as loud as hound_yip)",
+    "keep_seconds": 0.45
+   },
+   "measured": {
+    "seconds": 0.45,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0021,
+    "onset_ms": 154.8,
+    "centroid_hz": 1920,
+    "end_db": -138.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_yip_alt2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_yip_alt2.mp3",
+   "prompt": "A happy hound dog gives a quick string of short excited barks and yips.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/hound_yip_alt2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.909,
+    "level": "-4.0 dB (as loud as hound_yip)",
+    "keep_seconds": 0.909
+   },
+   "measured": {
+    "seconds": 0.909,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0027,
+    "onset_ms": 0.0,
+    "centroid_hz": 1371,
+    "end_db": -131.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_howl_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_howl_alt.mp3",
+   "prompt": "A big hound dog howls long and wavering at a wailing sound, nose to the sky, a drawn-out 'aroooo-ooo'.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/hound_howl_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 2.809,
+    "level": "-4.0 dB (as loud as hound_howl)",
+    "keep_seconds": 2.809
+   },
+   "measured": {
+    "seconds": 2.809,
+    "peak_db": -0.8,
+    "loud_db": -3.6,
+    "dc": 0.0033,
+    "onset_ms": 0.0,
+    "centroid_hz": 469,
+    "end_db": -161.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_boof_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_boof_alt.mp3",
+   "prompt": "A big lazy hound dog gives one quiet low 'wuff' under its breath.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/hound_boof_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.568,
+    "level": "-6.0 dB (as loud as hound_boof)",
+    "keep_seconds": 0.568
+   },
+   "measured": {
+    "seconds": 0.568,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0008,
+    "onset_ms": 0.0,
+    "centroid_hz": 240,
+    "end_db": -137.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_bite_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_bite_alt.mp3",
+   "prompt": "A big dog lunges with a loud vicious snarl and bites down hard, a growling snap of jaws, all one quick burst.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/hound_bite_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.613,
+    "level": "-4.8 dB (as loud as hound_bite)",
+    "keep_seconds": 0.613
+   },
+   "measured": {
+    "seconds": 0.613,
+    "peak_db": -0.8,
+    "loud_db": -4.1,
+    "dc": 0.0008,
+    "onset_ms": 0.0,
+    "centroid_hz": 818,
+    "end_db": -122.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_yelp_alt2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_yelp_alt2.mp3",
+   "prompt": "A big hound dog is hurt: one shrill yelp and a short whimper.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/hound_yelp_alt2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.555,
+    "level": "-5.8 dB (as loud as hound_yelp_alt)",
+    "keep_seconds": 0.555
+   },
+   "measured": {
+    "seconds": 0.555,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0091,
+    "onset_ms": 25.0,
+    "centroid_hz": 667,
+    "end_db": -124.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_whimper_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_whimper_alt.mp3",
+   "prompt": "A scared big dog whimpers and whines quietly, shaking, a few short pitiful whines.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/hound_whimper_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.301,
+    "level": "-3.3 dB (as loud as hound_whimper)",
+    "keep_seconds": 1.301
+   },
+   "measured": {
+    "seconds": 1.301,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 5983,
+    "end_db": -129.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_pant_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "consume",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_pant_alt.mp3",
+   "prompt": "A tired big dog pants steadily, heavy panting breaths with a little lick of the lips.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/hound_pant_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "consume",
+    "chain": {
+     "hp": 100,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 1.5,
+     "fade": 0.2,
+     "level": -7.0
+    },
+    "natural_seconds": 1.853,
+    "level": "-7.5 dB (as loud as hound_pant)",
+    "keep_seconds": 1.853
+   },
+   "measured": {
+    "seconds": 1.853,
+    "peak_db": -0.8,
+    "loud_db": -8.4,
+    "dc": 0.0007,
+    "onset_ms": 9.6,
+    "centroid_hz": 1223,
+    "end_db": -142.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_sniff_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "consume",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_sniff_alt.mp3",
+   "prompt": "A coonhound snuffles and sniffs along a scent, short sharp sniffs and a snort.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/hound_sniff_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "consume",
+    "chain": {
+     "hp": 100,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 1.5,
+     "fade": 0.2,
+     "level": -7.0
+    },
+    "natural_seconds": 1.018,
+    "level": "-8.6 dB (as loud as hound_sniff)",
+    "keep_seconds": 1.018
+   },
+   "measured": {
+    "seconds": 1.018,
+    "peak_db": -0.8,
+    "loud_db": -8.2,
+    "dc": 0.0005,
+    "onset_ms": 34.6,
+    "centroid_hz": 4203,
+    "end_db": -139.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hound_shake_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "consume",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hound_shake_alt.mp3",
+   "prompt": "A big dog shakes off hard from head to tail: ears flapping loud, loose skin slapping, a metal collar jingling.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/hound_shake_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "consume",
+    "chain": {
+     "hp": 100,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 1.5,
+     "fade": 0.2,
+     "level": -7.0
+    },
+    "natural_seconds": 0.658,
+    "level": "-10.6 dB (as loud as hound_shake)",
+    "keep_seconds": 0.66
+   },
+   "measured": {
+    "seconds": 0.66,
+    "peak_db": -0.8,
+    "loud_db": -11.3,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 7137,
+    "end_db": -124.1,
     "problems": []
    },
    "validation": "ok"
@@ -59042,6 +60378,29 @@
   "hound_whine",
   "hound_whine_alt",
   "hound_whistle",
+  "hound_bark_alt3",
+  "hound_bark_alt4",
+  "hound_bay_alt2",
+  "hound_growl_low",
+  "hound_growl_low_alt",
+  "hound_yip",
+  "hound_yip_alt",
+  "hound_yip_alt2",
+  "hound_howl",
+  "hound_howl_alt",
+  "hound_boof_alt",
+  "hound_bite_alt",
+  "hound_yelp_alt2",
+  "hound_whimper",
+  "hound_whimper_alt",
+  "hound_whine_soft",
+  "hound_huff",
+  "hound_pant",
+  "hound_pant_alt",
+  "hound_sniff",
+  "hound_sniff_alt",
+  "hound_shake",
+  "hound_shake_alt",
   "distant_derby_engine",
   "distant_corn_rustle",
   "distant_mill_flume",
@@ -59696,6 +61055,17 @@
   "mundell_hound_good_0",
   "mundell_hound_good_1",
   "mundell_hound_up_0",
+  "mundell_hound_down_0",
+  "mundell_hound_down_1",
+  "mundell_hound_praise_0",
+  "mundell_hound_praise_1",
+  "mundell_hound_shot_0",
+  "mundell_hound_shot_1",
+  "mundell_hound_hush_0",
+  "mundell_hound_hush_1",
+  "mundell_hound_greet_0",
+  "mundell_hound_greet_1",
+  "mundell_hound_shine_0",
   "mundell_bench_buy_0",
   "mundell_bench_buy_1",
   "mundell_bench_buy_2",

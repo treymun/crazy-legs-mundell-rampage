@@ -351,6 +351,7 @@ const LOOKS_FEATURES := [
 	"new_iron",
 	"radio",
 	"event_looks",
+	"hound_voice",
 ]
 
 

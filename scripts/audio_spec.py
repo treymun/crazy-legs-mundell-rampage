@@ -419,6 +419,38 @@ add("death",
 add("player",
     hound_whistle=G("A man whistles for his dog through his fingers: two short sharp notes, the second rising.", 1.0, .8, "foot"),
     )
+# Pass 10: more of him (godot/src/features/hound.gd, hound_voice.gd): more takes
+# of his barks, bays, yelps, boofs and bites, and new moments (sound.gd deals a
+# set's takes at random, never the one just played).
+add("alert",
+    hound_bark_alt3=G("A big bluetick coonhound gives one happy, bright bark, deep chested, tail wagging.", 1.0, .6, "creature", like="hound_bark"),
+    hound_bark_alt4=G("A big coonhound gives a quick chopping double bark, deep and loud, 'rowf-rowf'.", 1.0, .7, "creature", like="hound_bark"),
+    hound_bay_alt2=G("A bluetick coonhound bawls on a hot trail: a long ringing 'baw-oo-oo-ooo' bay that rolls and breaks, loud.", 2.6, 2.4, "creature", like="hound_bay_alt"),
+    hound_growl_low=G("A big hound growls very low and quiet, a long warning rumble deep in the chest at something unseen.", 1.6, 1.3, "creature", like="hound_growl"),
+    hound_growl_low_alt=G("A big dog gives a low, steady, suspicious growl through its teeth, quiet and menacing.", 1.6, 1.3, "creature", like="hound_growl_low"),
+    hound_yip=G("A big hound dog gives three quick excited yips, happy and high, tail wagging.", 1.0, .7, "creature"),
+    hound_yip_alt=G("An excited coonhound yips and yaps twice, eager and playful, a little whine between.", 1.0, .75, "creature", like="hound_yip"),
+    hound_yip_alt2=G("A happy hound dog gives a quick string of short excited barks and yips.", 1.2, .9, "creature", like="hound_yip"),
+    hound_howl=G("A bluetick coonhound sits back and howls along at a siren: a long rising and falling mournful 'ow-ooooo-oooo', loud, outdoors at night.", 3.0, 2.6, "creature"),
+    hound_howl_alt=G("A big hound dog howls long and wavering at a wailing sound, nose to the sky, a drawn-out 'aroooo-ooo'.", 3.0, 2.6, "creature", like="hound_howl"),
+    hound_boof_alt=G("A big lazy hound dog gives one quiet low 'wuff' under its breath.", .6, .45, "creature", like="hound_boof"),
+    hound_bite_alt=G("A big dog lunges with a loud vicious snarl and bites down hard, a growling snap of jaws, all one quick burst.", .8, .55, "creature", like="hound_bite"),
+    )
+add("death",
+    hound_yelp_alt2=G("A big hound dog is hurt: one shrill yelp and a short whimper.", .8, .6, "creature", like="hound_yelp_alt"),
+    hound_whimper=G("A frightened hound dog cowers and whimpers, a thin trembling high whine, scared.", 1.6, 1.3, "creature"),
+    hound_whimper_alt=G("A scared big dog whimpers and whines quietly, shaking, a few short pitiful whines.", 1.6, 1.3, "creature", like="hound_whimper"),
+    hound_whine_soft=G("A big hound dog gives a short sulky whine through its nose, hurt feelings, quiet.", 1.0, .8, "creature"),
+    )
+add("consume",
+    hound_huff=G("A big hound dog lets out a long sulky huff through its nose and flops its jowls, a grumbly sigh.", 1.0, .8, "creature"),
+    hound_pant=G("A big hound dog pants hard and fast after a run, tongue out, quick wet breaths.", 2.0, 1.8, "creature"),
+    hound_pant_alt=G("A tired big dog pants steadily, heavy panting breaths with a little lick of the lips.", 2.0, 1.8, "creature", like="hound_pant"),
+    hound_sniff=G("A big dog sniffs the ground eagerly, quick snuffling sniffs with its nose down.", 1.2, 1.0, "creature"),
+    hound_sniff_alt=G("A coonhound snuffles and sniffs along a scent, short sharp sniffs and a snort.", 1.2, 1.0, "creature", like="hound_sniff"),
+    hound_shake=G("A big wet hound dog shakes itself off: long ears flapping and slapping, collar tags rattling, jowls flapping, water spraying.", 1.4, 1.1, "creature"),
+    hound_shake_alt=G("A big dog shakes off hard from head to tail: ears flapping loud, loose skin slapping, a metal collar jingling.", 1.4, 1.1, "creature", like="hound_shake"),
+    )
 
 # ------------------------------------------------------------------- player
 add("player",
@@ -1220,6 +1252,9 @@ MUNDELL_HEARD = {
     "mundell_event_dark_1": "Dark as the inside of a cow's",
     "mundell_event_hogs_1": "Zoe, look out!",
     "mundell_event_raid_1": "Revenue man. Figures",
+    "mundell_hound_praise_0": "That a boy, Blue",
+    "mundell_hound_hush_1": "Blue, quit that hollering",
+    "mundell_hound_shot_0": "Get out of my sights, Blue",
 }
 # Where the voice needs the words spelt as said (BLUE's "sic 'em").
 MUNDELL_SAY = {
