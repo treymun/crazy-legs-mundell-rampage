@@ -23,6 +23,9 @@ const FLAT := .5
 ## lying on its back, RagdollRig.lying_points), after which it lies still: no
 ## hitch, no stir.
 const SETTLE := 10
+## The model eases from the pose it was last shown in onto its ragdoll over
+## HANDOVER seconds of its death (no pop where the animation lets go).
+const HANDOVER := .12
 
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
@@ -33,6 +36,14 @@ var models: ActorModels
 var doll: Ragdoll
 var _rig: RagdollRig
 var _doll_clock := 0.0
+## Where the living body was last drawn and when (map), and how fast it was
+## going (smoothed): a body killed on the run falls on with it.
+var _was_at := Vector3.INF
+var _was_clock := 0.0
+var _going := Vector3.ZERO
+## The bones' poses the ragdoll took over from (_capture), eased off over
+## HANDOVER (empty: done).
+var _hand_from: Array = []
 ## The ragdoll's step count and transform the parts were last posed for.
 var _posed := -1
 var _posed_dead := false
@@ -149,6 +160,9 @@ func revive() -> void:
 	_posed_dead = false
 	_shown_alive = false
 	_doll_clock = 0.0
+	_was_at = Vector3.INF
+	_going = Vector3.ZERO
+	_hand_from = []
 	for skeleton in _skeletons:
 		skeleton.reset_bone_poses()
 	visible = true
@@ -173,6 +187,8 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		_shade(s, level, look, tint, down)
 		return
 	doll = null
+	if e.alive:
+		_track(Vector3(s.x, s.y, z), clock)
 	var turn := PI * .5 - e.angle
 	var size := _size(e)
 	var info: Dictionary = models.kinds[kind]
@@ -273,10 +289,25 @@ func _ragdolls(e: Enemy) -> bool:
 	return _rig.ok
 
 
+## How fast the living body goes (map units a second, smoothed over a few
+## frames), from where it is drawn.
+func _track(at: Vector3, clock: float) -> void:
+	var dt := clock - _was_clock
+	if _was_at != Vector3.INF and dt > 1e-4:
+		var v := (at - _was_at) / dt
+		if v.length() > 9.0:
+			# A jump (put back, a teleport), not a run.
+			v = Vector3.ZERO
+		_going = _going.lerp(v, minf(1.0, dt * 12.0))
+	if dt > 1e-4 or _was_at == Vector3.INF:
+		_was_at = at
+		_was_clock = clock
+
+
 ## The body as its ragdoll: started from the pose it died in (or lying on its
-## back when first seen long dead), thrown by the kill, carried
-## by play's body at `at` (map: x, y and the height it lies at), stepped and
-## its parts posed from it.
+## back when first seen long dead), going as it went, struck by the kill,
+## carried by play's body at `at` (map: x, y and the height it lies at),
+## stepped and its parts posed from it, eased from its last pose at first.
 func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 	var up := maxf(0.0, at.z - level.floor_under(at.x, at.y, at.z + .05))
 	if doll == null or doll.died_at != e.died_at:
@@ -286,17 +317,27 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 			Basis(Vector3.UP, turn).scaled(Vector3(size, size, size)), Vector3(at.x, at.z, at.y)
 		)
 		var fresh := clock - e.died_at < .5
-		# The pose it died in when this model showed it alive, else standing.
+		# The pose it died in where this model showed it alive (as it was
+		# drawn, its flinch and all), else standing.
 		var start := _rig.lying_points
+		var from := xf
+		_hand_from = []
 		if fresh:
-			start = _rig.posed_points(_skeletons[0]) if _shown_alive else _rig.points
-		doll = Ragdoll.made(_rig, xf, start)
+			start = _rig.standing()
+			if _shown_alive:
+				start = _rig.posed_points(_skeletons[0])
+				from = transform
+				_hand_from = _capture()
+		doll = Ragdoll.made(_rig, from, start)
 		doll.died_at = e.died_at
 		doll.turn = turn
 		doll.follow(at, up, 0.0)
 		if fresh:
 			var dice := RandomNumberGenerator.new()
 			dice.seed = hash([e.kind, e.died_at, e.uid])
+			doll.fit()
+			if _shown_alive:
+				doll.drift(Vector3(_going.x, _going.y, 0.0))
 			doll.knock(e, dice)
 		else:
 			# Lying already: a few steps fit it to the floor, the rest as it is drawn.
@@ -312,20 +353,44 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 		Vector3(at.x, at.z, at.y)
 	)
 	var dead := clock - e.died_at > .2
-	if doll.steps == _posed and xf == transform and dead == _posed_dead:
+	# Drawn part way between its last two steps (smooth when the clock runs
+	# slow); posed again only when that changes.
+	var alpha := doll.alpha() if doll.awake else 1.0
+	var mark := doll.steps * 64 + int(alpha * 63.0)
+	var easing := not _hand_from.is_empty()
+	if mark == _posed and xf == transform and dead == _posed_dead and not easing:
 		return
 	transform = xf
-	_posed = doll.steps
+	_posed = mark
 	_posed_dead = dead
 	_seeked = NAN
 	var back := xf.affine_inverse()
 	var model := PackedVector3Array()
 	model.resize(doll.pos.size())
 	for i in doll.pos.size():
-		var p := doll.pos[i]
+		var p := doll.shown(i, alpha)
 		model[i] = back * Vector3(p.x, p.z, p.y)
 	for skeleton in _skeletons:
 		_rig.pose(skeleton, model, dead)
+	if easing:
+		_ease_over(clampf((clock - e.died_at) / HANDOVER, 0.0, 1.0))
+
+
+## The pose the ragdoll took over from (_hand_from) eased onto the one just
+## posed: `k` 0 the old pose, 1 the ragdoll's (then the old one is let go).
+func _ease_over(k: float) -> void:
+	if k >= 1.0 or _hand_from.size() != _skeletons.size():
+		_hand_from = []
+		return
+	k = k * k * (3.0 - 2.0 * k)
+	for i in _skeletons.size():
+		var skeleton := _skeletons[i]
+		var from: Array = _hand_from[i]
+		var at: PackedVector3Array = from[0]
+		var turns: Array[Quaternion] = from[1]
+		for b in mini(skeleton.get_bone_count(), at.size()):
+			skeleton.set_bone_pose_position(b, at[b].lerp(skeleton.get_bone_pose_position(b), k))
+			skeleton.set_bone_pose_rotation(b, turns[b].slerp(skeleton.get_bone_pose_rotation(b), k))
 
 
 ## The model's light, wash, look and how fallen it is (the rim's shade).

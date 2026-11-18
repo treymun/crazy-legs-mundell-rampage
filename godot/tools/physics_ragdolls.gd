@@ -201,6 +201,7 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 	var top := -INF
 	var top_seg := -1
 	var low := INF
+	var low_bone := -1
 	for m: Node in view.find_children("*", "MeshInstance3D", true, false):
 		var mesh := m as MeshInstance3D
 		var arrays := mesh.mesh.surface_get_arrays(0)
@@ -219,6 +220,8 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 			if y > top:
 				top_seg = r.bone_seg[bone]
 			top = maxf(top, y)
+			if y < low:
+				low_bone = bone
 			low = minf(low, y)
 	if doll.awake:
 		return "%s: its ragdoll is still moving" % kind
@@ -227,7 +230,10 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 			"%s: a part (of segment %d) lies %.2f up (standing %.2f)" % [kind, top_seg, top, height]
 		)
 	if low < -SINK / size:
-		return "%s: a part sinks %.3f into the floor" % [kind, -low * size]
+		return (
+			"%s: a part sinks %.3f into the floor (bone %d, gear %d, ride %d)"
+			% [kind, -low * size, low_bone, r.bone_gear[low_bone], r.bone_ride[low_bone]]
+		)
 	return ""
 
 
