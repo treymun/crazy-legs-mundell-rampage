@@ -44,6 +44,13 @@ const REACH_RATE := 2.5
 const FIRST_TURNS := [.95, -.95, 1.45, -1.45, .5, -.5, 2.0, -2.0, 0.0, 2.6, -2.6, PI]
 const NEAR_TURNS := [0.0, .35, -.35, .7, -.7, 1.1, -1.1, 1.6, -1.6, 2.3, -2.3, PI]
 const REFRAME_FLY := .9
+## Bosses whose model is a ride as well (the boat's fan, the truck): their
+## bones' middle is not the body's, so the shot keeps to their own spot.
+const RIDES := ["swamp_king", "derby_champ"]
+## The most the camera looks down (horizon pixels; the view draws to about 53).
+const PITCH_MOST := 46.0
+## How near the camera a blast is never drawn while it plays (cells).
+const CLEAR_BLAST := 2.5
 static var HOLD: float = _num("hold")
 static var FLY: float = _num("fly")
 static var FLY_FAR: float = _num("fly_far")
@@ -66,6 +73,7 @@ static var AIM_HIGH: float = _num("aim_high")
 static var AIM_LOW: float = _num("aim_low")
 static var DUCK: float = _num("duck")
 static var SIZE: Dictionary = Tuning.file(DATA).get_value("boss_end", "size", {})
+static var CLOSE: Dictionary = Tuning.file(DATA).get_value("boss_end", "close", {})
 
 var mode := KillCam.BOSSES
 var playing := false
@@ -246,6 +254,9 @@ func _frame_shot(g: Game, e: Enemy) -> void:
 	var size: float = SIZE.get(e.kind, tall)
 	centre = Vector3(e.x, e.y, w.stand(e))
 	reach = clampf(size * REACH, NEAR, FAR)
+	if CLOSE.has(e.kind):
+		var close: float = CLOSE[e.kind]
+		reach = close
 	first_reach = reach
 	lift = clampf(size * LIFT, .9, 3.4)
 	first_lift = lift
@@ -381,7 +392,8 @@ func _up(share: float) -> float:
 ## it once it lies.
 func target(t: float) -> Vector3:
 	var down := _smooth(clampf((t - .2) / 1.4, 0.0, 1.0))
-	var z := centre.z + tall * lerpf(AIM_HIGH, AIM_LOW, down)
+	var low := AIM_LOW * (.35 if RIDES.has(boss.kind) else 1.0) if boss != null else AIM_LOW
+	var z := centre.z + tall * lerpf(AIM_HIGH, low, down)
 	if not is_nan(aim_z):
 		z = lerpf(aim_z, z, .35)  # the drawn body's middle, a touch toward the floor
 	return Vector3(centre.x, centre.y, z)
@@ -394,6 +406,11 @@ func eye_at(t: float) -> Dictionary:
 	var look := target(t)
 	var flat := Vector2(look.x - spot.x, look.y - spot.y)
 	var angle := atan2(flat.y, flat.x)
+	# Never so high over a near body that the view cannot tilt down to it
+	# (the King in his boat at the bottom edge).
+	var most := look.z + PITCH_MOST * maxf(.5, flat.length()) / View.base_focal
+	if spot.z > most:
+		spot.z = maxf(most, centre.z + .6)
 	var pitch := -View.base_focal * (spot.z - look.z) / maxf(.5, flat.length())
 	var k := _smooth(clampf((t - HOLD) / FLY, 0.0, 1.0))
 	if cuts:
@@ -490,7 +507,7 @@ func _follow(m: MainState, dt: float) -> void:
 	var k := minf(1.0, dt * FOLLOW)
 	var want := Vector2(boss.x, boss.y)
 	var mid: Variant = null
-	if m.world_view != null and m.world_view.actors != null:
+	if m.world_view != null and m.world_view.actors != null and not RIDES.has(boss.kind):
 		mid = m.world_view.actors.body_middle(boss)
 	if mid is Vector3:
 		var middle: Vector3 = mid
@@ -560,10 +577,27 @@ func stop(m: MainState, whole: bool) -> void:
 func draw(m: MainState) -> void:
 	var g := m.game
 	var c := m.canvas
-	g.eye_override = eye_at(at)
+	var eye := eye_at(at)
+	g.eye_override = eye
+	# The ship's explosions coming apart round Maw (and any blast) between the
+	# camera and the body are left out of the picture: they filled the frame.
+	var blasts := g.blasts
+	g.blasts = _behind(blasts, eye)
+	var fx: GameFeature = g.features.get("gun_fx")
+	var booms: Array = []
+	var bits: Array = []
+	if fx != null:
+		booms = fx.get("booms")
+		bits = fx.get("bits")
+		fx.set("booms", _behind(booms, eye))
+		fx.set("bits", _behind(bits, eye))
 	g.draw(c, 0, true)
-	g.eye_override = {}
 	m.show_view()
+	g.blasts = blasts
+	if fx != null:
+		fx.set("booms", booms)
+		fx.set("bits", bits)
+	g.eye_override = {}
 	if c.gpu:
 		c.gpu_item(Canvas.ITEM_NORMAL)
 	var dark := 0.0
@@ -585,6 +619,34 @@ func draw(m: MainState) -> void:
 	var gone := clampf((at - (length - fade)) / maxf(.05, fade), 0.0, 1.0)
 	if gone > 0.0:
 		_shade(c, 0, 0, View.WIDTH, View.HEIGHT, gone)
+
+
+## The blasts (game.blasts, and gun_fx's fireballs and their smoke and
+## scraps) out of the camera's way: none nearer it than the body is, and none
+## within CLEAR_BLAST of it. Looks only: the lists are put back after the draw.
+func _behind(things: Array, eye: Dictionary) -> Array:
+	if things.is_empty():
+		return things
+	var x: float = eye["x"]
+	var y: float = eye["y"]
+	var to_body := Vector2(centre.x - x, centre.y - y).length()
+	var out: Array = []
+	for thing: Variant in things:
+		var at := Vector2.INF
+		if thing is Array:
+			var row: Array = thing
+			var rx: float = row[0]
+			var ry: float = row[1]
+			at = Vector2(rx, ry)
+		elif thing is Object:
+			var obj: Object = thing
+			var ox: float = obj.get("x")
+			var oy: float = obj.get("y")
+			at = Vector2(ox, oy)
+		var d := at.distance_to(Vector2(x, y))
+		if d > CLEAR_BLAST and d > to_body - .5:
+			out.append(thing)
+	return out
 
 
 ## The boss bar where the fight had it, emptying to nothing and sliding off.

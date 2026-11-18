@@ -587,7 +587,9 @@ func enemy_down(enemy: Enemy) -> void:
 				and world.visible(actor.x, actor.y, enemy.x, enemy.y)
 			):
 				actor.retreat_from(me, enemy.x, enemy.y)
-				sound_at("county_fall_back", actor.x, actor.y, .67)
+				if sound == null or not sound.talking():
+					# (a shout: quiet while anyone talks, as the barks are)
+					sound_at("county_fall_back", actor.x, actor.y, .67)
 				break
 	var kind_def: Dictionary = Enemy.DEFS[enemy.kind]
 	if enemy == boss and (jerry == null or jerry.hp <= 0.0):

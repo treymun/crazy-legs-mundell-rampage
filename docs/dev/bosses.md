@@ -89,7 +89,14 @@ curlers still landed) and the backup kept shooting.
   the middle of the body as the 3D view draws it (`ActorLayer3D.body_middle`,
   its bones), and once the body lies still away from where it stood the shot
   is planned again round it and the camera eased over (`REFRAME_FLY`). A
-  wall cutting in brings it nearer at `REACH_RATE`, never in a jump.
+  wall cutting in brings it nearer at `REACH_RATE`, never in a jump. It is
+  never so high over a near body that the view cannot tilt down to it
+  (`PITCH_MOST`). `size` sets it tighter for the sheriff and the Revenue Man
+  (dark coats, lying low) and `close` brings it in on the King slumped in
+  his boat; the boat and the truck (`RIDES`) keep to their own spot, not
+  their bones' middle. Blasts, fireballs and their smoke and scraps nearer
+  the camera than the body are left out of the picture while it plays (the
+  ship coming apart round Maw filled the frame).
 - **On screen**: black bars slide in (the openers' rows); the boss bar
   drains and slides off; a fair ribbon with the boss's name drops into the
   bar under the picture, the line under it a rematch's TIME and ribbon,

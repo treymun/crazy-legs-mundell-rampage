@@ -172,16 +172,16 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = 6263
-	if game.has_signal("enemy_bark"):
-		game.events.connect("enemy_bark", _bark)
-	if game.has_signal("ticked"):
-		game.events.connect("ticked", _tactical)
-		game.events.connect("ticked", _chapter_start)
+	# All on the event hub. These looked for the signals on the game itself,
+	# which has had none since GameEvents, so until pass 10 the hands' barks,
+	# the bots' chatter, Mundell's word at a chapter's start and his answers
+	# to the bosses were never heard (tools/bark_check.gd holds them now).
+	game.events.enemy_bark.connect(_bark)
+	game.events.ticked.connect(_tactical)
+	game.events.ticked.connect(_chapter_start)
 	game.events.ticked.connect(_mundell_waits)
 	# Mundell has his say at a boss fight's start and its end (Barks), once the
 	# boss has had his (features/boss_voices.gd).
-	# (On the event hub: the game itself has no such signals since GameEvents,
-	# so these were never heard; pass 10.)
 	game.events.boss_intro.connect(func(_e: Enemy) -> void: _mundell_after("boss"))
 	game.events.boss_down.connect(func(_e: Enemy, _s: float) -> void: _mundell_after("boss_down"))
 
