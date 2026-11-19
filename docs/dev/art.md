@@ -251,16 +251,29 @@ a shop lamp falling in the saw floor's arena.
      pass 9 every kind's head gets `HEAD` (1.4) times its share across
      (`_favour_head`; a kind's look may set its own `uv_head`, Mundell 1.6),
      as the face is what reads at the view's size. Jerry, Rudy and the
-     foreman (74, 86, 73 a metre at 512) were not baked again: a bake of
-     theirs at 1024 took over an hour and lost the graphics card's context
-     with other bakes running. A re-bake keeps the gear bones
+     foreman (74, 86, 73 a metre at 512, their heads no more) waited until
+     pass 13 (a bake of theirs at 1024 took over an hour and lost the
+     graphics card's context with other bakes running in pass 9): baked
+     again at 1024 (`FINE`), one kind a run with nothing else on the
+     card (Jerry an hour, Rudy and the foreman 35 to 45 minutes), they
+     have 152, 173 and 149 a metre, their heads 204, 227 and 201, as the
+     baron (156); their colours came out within 1% of the old bakes
+     against the cels, so fit.json's `light` stands
+     (`docs/godot3d/bossart13/`: cel, v3.10.0 and pass 13 in the game, in
+     HD and in Blender; the plaid, stripes, helmet, beard and faces were
+     blocks up close). Bakes go in tiles (`BAKE_TILE`, 256): Jerry's lost
+     the card's context again in pass 13 with the whole 1024 texture in
+     one launch, and a bake whose card fails goes on on the processor
+     (`_bake_op`). A re-bake keeps the gear bones
      (they come from the builds' `gear()` tags) and every frame; fit.json's
      `light` was measured again for each (model against cel, the close-up
      body's mean on the dusk tour).
    - Looks are 512² (`TEXTURE`); `FINE` kinds bake 1024² (the baron, the
-     derby champ, the Swamp King, Maw and her bare model: the most parts or
-     the biggest bodies; the sheriff, Rudy and the foreman stay 512), with
-     fewer samples a texel.
+     derby champ, the Swamp King, Maw and her bare model, the Revenue Man,
+     and since pass 13 Jerry, Rudy and the foreman: the most parts or the
+     biggest bodies; the sheriff stays 512), with fewer samples a texel.
+     `actor_check` holds a boss to `BOSS_MIN` texels a metre over its body
+     and head.
    - A boss's gear (`enemy_actors.py gear("hat")` before its parts,
      `gear("")` after; the cels ignore it) gets bones of its own, never
      merged with the body's, listed in `actors.json` "gear" (bone -> name):

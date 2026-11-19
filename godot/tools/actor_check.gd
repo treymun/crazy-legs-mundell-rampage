@@ -13,14 +13,15 @@
 ## texels a metre over its whole body and over its head (the triangles bound to
 ## head bones): every model at least TEXEL_MIN, a hand (a kind with the hurt
 ## look) HAND_MIN and its head HEAD_MIN, a boss BOSS_MIN and BOSS_HEAD_MIN,
-## so no face or belly is a few blocky texels beside the crisp ones. MOTION: ActorView's looks-only motion:
-## a jump between poses blends (part way at half the blend, exactly the new
-## key after it), the walk does not blend between its beats, a hit rocks the
-## body by where it struck and is still again after ActorView.FLINCH, no two
-## hits the same, an idle body breathes, a scripted fall is mirrored for about
-## half the deaths and never for a boss, and none of it draws on game.rng;
-## thrown specks keep between View.SPECK_PX_MIN and SPECK_PX_MAX pixels; a
-## partner on the riding mower sits on it (vehicles.cfg `pose`).
+## so no face or belly is a few blocky texels beside the crisp ones.
+## MOTION: ActorView's looks-only motion: a jump between poses blends (part way
+## at half the blend, exactly the new key after it), the walk does not blend
+## between its beats, a hit rocks the body by where it struck and is still
+## again after ActorView.FLINCH, no two hits the same, an idle body breathes, a
+## scripted fall is mirrored for about half the deaths and never for a boss,
+## and none of it draws on game.rng; thrown specks keep between
+## View.SPECK_PX_MIN and SPECK_PX_MAX pixels; a partner on the riding mower
+## sits on it (vehicles.cfg `pose`).
 ## HOUND (pass 10): BLUE's fourteen motions of five keys in a row and his
 ## ten poses (src/hound_looks.gd plays them), his texels over him and his
 ## head, a motion played on the gait, a one-shot ending on its last key and
