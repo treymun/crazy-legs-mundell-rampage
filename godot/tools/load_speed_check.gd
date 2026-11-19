@@ -54,6 +54,8 @@ const VIEW_MS := 12000.0
 const MEMORY_MB := 900.0
 const GROWTH_MB := 40.0
 const BEAST_FIELDS := ["ends", "parents", "rides", "legs", "head", "tail", "bend"]
+## How near a beast rig's numbers must match the ones found anew (metres).
+const BEAST_EPS := 1e-4
 
 var failures: Array = []
 var report := false
@@ -132,7 +134,7 @@ func _rigs() -> void:
 		for field: String in fields if baked.ok else ["ok"]:
 			var a: Variant = baked.get(field)
 			var b: Variant = found.get(field)
-			if a != b or var_to_bytes(a) != var_to_bytes(b):
+			if not _same(a, b, info.has("beast")):
 				stale.append("%s (%s)" % [kind, field])
 				break
 	_check(
@@ -149,6 +151,32 @@ func _rigs() -> void:
 			]
 		)
 	)
+
+
+## Whether a baked rig field is the one found anew: to the bit, except a
+## beast's (pass 13 BeastRig), whose fitting sums its model's points in an
+## order that rounds a hair differently on Linux (CI) than on Windows: those
+## match to BEAST_EPS.
+func _same(a: Variant, b: Variant, beast: bool) -> bool:
+	if a == b and var_to_bytes(a) == var_to_bytes(b):
+		return true
+	if not beast or typeof(a) != typeof(b):
+		return false
+	var same := false
+	match typeof(a):
+		TYPE_FLOAT:
+			same = absf(float(a) - float(b)) <= BEAST_EPS
+		TYPE_VECTOR3:
+			same = (a as Vector3).distance_to(b as Vector3) <= BEAST_EPS
+		TYPE_PACKED_VECTOR3_ARRAY, TYPE_PACKED_FLOAT32_ARRAY, TYPE_PACKED_FLOAT64_ARRAY, TYPE_ARRAY:
+			same = a.size() == b.size()
+			for i in a.size() if same else 0:
+				same = same and _same(a[i], b[i], true)
+		TYPE_DICTIONARY:
+			same = (a as Dictionary).size() == (b as Dictionary).size()
+			for k: Variant in a if same else {}:
+				same = same and (b as Dictionary).has(k) and _same(a[k], b[k], true)
+	return same
 
 
 ## The title's warm-up: every view3d shader but the sky's drawn, then gone.
