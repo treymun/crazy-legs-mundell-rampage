@@ -32,8 +32,14 @@ const APPLY_RUNNING := false
 ## A rebuild puts the snapshot onto the copy already running (no fresh game,
 ## so no hitch): GameSnapshot.apply works on a running game.
 const REBUILD_RUNNING := true
-## Ticks a client's shots are rewound by at most (game.gd keeps REWIND_KEEP).
-const MAX_REWIND := 64
+## Ticks a client's shots are rewound by at most (game.gd keeps REWIND_KEEP):
+## 1.6 s. It was 64 until pass 13: past about 300 ms one way a shooter's
+## screen showed the others further back than that, and net_lag at 400 ms
+## cut 650 to 1,360 ticks' rewinds a minute short (judged where they were
+## not seen); none at 96.
+const MAX_REWIND := 96
+## What a host uses (net_lag.gd's `rewind=`).
+static var max_rewind := MAX_REWIND
 ## Parts of a snapshot's save that follow the local player (presentation).
 const LOCAL_ONLY := ["visited"]
 
@@ -105,6 +111,8 @@ class Remote:
 	var last := PackedByteArray()
 	## The newest snapshot it has (-1: none) and when it was last sent a whole one.
 	var acked := -1
+	## The snapshots it said it had lately, newest last (Host.coarse_bases).
+	var acks := PackedInt32Array()
 	var full_at := -1000000
 	var starved := 0
 	var skipped := 0
@@ -177,6 +185,21 @@ class Host:
 	static var buffer_inputs := true
 	const BUFFER_MOST := 2
 	const ARRIVALS_KEPT := 120
+	## Deltas only from this many snapshots a second at most (60 a second:
+	## every 4th, 30: every other one). Each base a client may still
+	## acknowledge has every new change merged onto it (_carry_since), so the
+	## work grew with the round trip times the rate: net_lag's 5v5 server at
+	## 60 a second took 30, 52 and 68% of this PC's core at 120, 250 and
+	## 400 ms (the snapshots 3.3, 6.7, 9.4 ms a tick), 27, 28 and 36% (2.5,
+	## 2.9, 4.0) with these. A client keeps every snapshot it said it had
+	## (Client.KEEP), so the host sends it a delta from the newest of those
+	## that is a base (`Remote.acks`); it is hardly bigger (a round trip's
+	## change either way: 1.01 against 0.97 KB median at 120 ms). Off
+	## (net_lag's `allbases`): every snapshot a base (the old way).
+	static var coarse_bases := true
+	const BASES_A_SECOND := 15
+	static var bases_a_second := BASES_A_SECOND
+	const ACKS_KEPT := 16
 
 	var session: NetSession
 	var game: Game
@@ -216,6 +239,10 @@ class Host:
 	var capture_us := 0
 	var delta_us := 0
 	var tick_us := 0
+	## The longest rewind a client's tick asked for (ticks), and how many
+	## ticks asked for more than MAX_REWIND (net_lag.gd).
+	var rewind_most := 0
+	var rewind_capped := 0
 	## base seq -> what changed from it to the newest snapshot (_carry_since).
 	var _since := {}
 	## Snapshots go out on ticks where (tick + snap_phase) % snap_every is 0
@@ -290,7 +317,11 @@ class Host:
 			var bytes := _next_input(r)
 			var view := _view_of(r) if per_input_view else r.view_tick
 			if rewind and view >= 0:
-				bytes = NetWire.with_rewind(bytes, clampi(tick + 1 - view, 0, MAX_REWIND))
+				var back := tick + 1 - view
+				rewind_most = maxi(rewind_most, back)
+				if back > NetSync.max_rewind:
+					rewind_capped += 1
+				bytes = NetWire.with_rewind(bytes, clampi(back, 0, NetSync.max_rewind))
 			rows[r.slot] = bytes
 			given[r.slot] = NetWire.unpack_controls(bytes)
 		for i in events.size():
@@ -356,9 +387,11 @@ class Host:
 	## own base; and the newest snapshot as a base to come.
 	func _carry_since(change: Dictionary) -> void:
 		var oldest := seq
+		var every := base_every()
 		for r: Remote in remotes.values():
-			if r.acked >= 0:
-				oldest = mini(oldest, r.acked)
+			var base := _base_for(r) if every > 1 else r.acked
+			if base >= 0:
+				oldest = mini(oldest, base)
 		var kept := {}
 		for base: int in _since:
 			if base < oldest or base <= seq - KEEP:
@@ -366,8 +399,26 @@ class Host:
 			var next: Variant = GameSnapshot.merge(_since[base], change)
 			if next != null:
 				kept[base] = next
-		kept[seq] = {}
+		if seq % every == 0:
+			kept[seq] = {}
 		_since = kept
+
+	## Every this many snapshots is a base for deltas (coarse_bases).
+	func base_every() -> int:
+		if not coarse_bases or not carry:
+			return 1
+		return maxi(1, roundi(1.0 / STEP / snap_every / bases_a_second))
+
+	## The snapshot `r`'s next delta is from: the newest it said it had that
+	## is a base (base_every), else its newest; -1 none (a whole one).
+	func _base_for(r: Remote) -> int:
+		var every := base_every()
+		if every > 1:
+			for i in range(r.acks.size() - 1, -1, -1):
+				var s := r.acks[i]
+				if s % every == 0 and s < seq and history.has(s):
+					return s
+		return r.acked if history.has(r.acked) and r.acked < seq else -1
 
 	## The remotes with a base to make a delta from first, then those that
 	## need a whole snapshot.
@@ -375,7 +426,7 @@ class Host:
 		var out: Array[Remote] = []
 		var whole: Array[Remote] = []
 		for r: Remote in remotes.values():
-			if history.has(r.acked) and r.acked < seq:
+			if _base_for(r) >= 0:
 				out.append(r)
 			else:
 				whole.append(r)
@@ -500,6 +551,10 @@ class Host:
 		r.heard += 1
 		var ack: int = msg["ack"]
 		r.acked = maxi(r.acked, ack)
+		if ack >= 0 and (r.acks.is_empty() or ack > r.acks[-1]):
+			r.acks.append(ack)
+			if r.acks.size() > ACKS_KEPT:
+				r.acks = r.acks.slice(r.acks.size() - ACKS_KEPT)
 		var view: int = msg.get("view_tick", -1)
 		if view > r.view_tick and view <= tick:
 			r.view_tick = view
@@ -541,7 +596,7 @@ class Host:
 		for r: Remote in _deltas_first():
 			if r.slot < 0:
 				continue
-			var base := r.acked if history.has(r.acked) and r.acked < seq else -1
+			var base := _base_for(r)
 			if base < 0 and tick - r.full_at < FULL_GAP:
 				continue
 			if base < 0 and not flushed:
@@ -635,14 +690,42 @@ class Client:
 	const LAG_KEPT := 8192
 	## Partings kept in mismatch_log.
 	const MISMATCH_LOG := 6
-	## Snapshots whose arrival is remembered to judge the link's jitter.
-	const ARRIVALS := 90
+	## When the rows came, to judge the link (`arrivals`): with fine_depth
+	## every tick's row as it first came (a snapshot brings the rows of the
+	## ticks since the last, so the pairs at 30 a second and the rows a lost
+	## snapshot held back count as late as they were), the last
+	## ARRIVAL_SECONDS of them at most ARRIVALS; the pass 12 way the newest
+	## snapshots' own ticks only, the last 90 (3 s at 30 a second, 1.5 at 60).
+	const ARRIVALS := 240
+	const ARRIVAL_SECONDS := 3.0
+	## The share of the rows the playout depth covers (the rest come a little
+	## late: everyone else held a frame or two).
+	const SPREAD_SHARE := .99
 	## The copy is played at least this far behind the newest snapshot, and
 	## at most PLAYOUT_MOST.
 	const PLAYOUT_LEAST := 2
 	const PLAYOUT_MOST := 14
-	## Seconds a lower playout depth must hold before the copy closes up.
-	const PLAYOUT_EASE := 3.0
+	## Seconds a lower playout depth must hold before the copy closes up, and
+	## then how fast it closes up (ticks a second; the render clock takes it
+	## in at most CLOCK_FAST faster). Until pass 13 a tick every 3 s: a spike
+	## or the match's first second left everyone shown 2 to 4 ticks later
+	## than the link needed for half a minute.
+	const PLAYOUT_EASE := 1.0
+	const PLAYOUT_CLOSE := 1.5
+	## Faster when far above where it should be: this share of the gap a second.
+	const PLAYOUT_CLOSE_SHARE := .5
+	## The copy plays on as far as the host's rows go (a snapshot's first
+	## part carries its tick's rows and input ack: `rows_tick`), not only to
+	## the newest snapshot put together whole; a split one (co-op and County
+	## Run deltas, 7 to 12 parts) used to hold everyone still until its last
+	## part, or for good when one was lost. Off: the newest whole snapshot.
+	static var rows_ahead := true
+	## Off: the depth in whole ticks, down a tick every 3 s, the arrivals the
+	## last 90 snapshots' (the pass 12 way; net_feel's `depth12`).
+	static var fine_depth := true
+	## SPREAD_SHARE, and ticks added to the depth (net_feel's share=, margin=).
+	static var spread_share := SPREAD_SHARE
+	static var depth_margin := 0.0
 	## Off: prediction from our inputs alone, and a fixed playout depth (the
 	## old ways, for net_lag.gd's before and after).
 	static var predict_from_echo := true
@@ -677,6 +760,10 @@ class Client:
 	var snaps := {}
 	var latest := -1
 	var latest_tick := -1
+	## The newest tick whose rows came (a snapshot's or a first part's
+	## header, rows_ahead): the copy may be played up to head().
+	var rows_tick := -1
+	var _arrival_tick := -1
 	## The copy of the game and the tick it is at.
 	var game: Game = null
 	var game_tick := -1
@@ -708,6 +795,8 @@ class Client:
 	## When each newest snapshot came, as (ms) less its tick's time: how much
 	## that wanders is the link's jitter.
 	var arrivals := PackedFloat32Array()
+	## When each of `arrivals` came (ms), to keep the last ARRIVAL_SECONDS.
+	var _arrived_ms := PackedFloat32Array()
 	## Paced by the clock (playout); off for COUNTY RUN co-op, whose world
 	## holds for the party's card picks and parted from the host when paced so.
 	var by_clock := true
@@ -719,8 +808,17 @@ class Client:
 	var check_part := 0
 	## Frames the copy waited for inputs on their way (_rows_late).
 	var rows_waited := 0
+	## Frames the copy could not be played as far as the render clock (the
+	## newest snapshot not yet there): everyone else held still.
+	var short := 0
 	var _parts := {}
-	var _depth := PLAYOUT_LEAST
+	var _depth := float(PLAYOUT_LEAST)
+	## The arrival the render clock reckons the host's tick from (the
+	## quickest lately) and how much later the rows come (SPREAD_SHARE of
+	## them, ms): _measure, at each arrival.
+	var _quickest := 0.0
+	var _spread_ms := 0.0
+	var _depth_ms := -1.0
 	var _lower_since := -1.0
 	var _now := 0.0
 	## The tick this frame shows, with its fraction (-1: the copy as it
@@ -797,8 +895,9 @@ class Client:
 			if i == newest or msg.is_empty():
 				continue
 			_take_rows(msg)
-			var msg_tick: int = msg["tick"]
-			_arrived(msg_tick)
+			if not rows_ahead:
+				var msg_tick: int = msg["tick"]
+				_arrived(msg_tick)
 			bunched += 1
 		_snap(top)
 
@@ -809,6 +908,8 @@ class Client:
 	func _take_rows(msg: Dictionary) -> void:
 		if not msg.has("echo"):
 			return
+		if rows_ahead:
+			_head(msg)
 		var first: int = msg["echo_first"]
 		var rows: Array = msg["echo"]
 		for i in rows.size():
@@ -859,7 +960,42 @@ class Client:
 
 	## Ticks of the game this copy is behind the newest snapshot.
 	func backlog() -> int:
-		return latest_tick - game_tick if latest >= 0 else 0
+		return head() - game_tick if latest >= 0 else 0
+
+	## The newest tick the copy may be played to: the newest whole snapshot's,
+	## or past it as far as the host's rows go (rows_ahead).
+	func head() -> int:
+		return maxi(latest_tick, rows_tick) if rows_ahead else latest_tick
+
+	## A snapshot's header (a whole one's, or its first part's): its tick's
+	## rows are in, so the copy may be played to it; its input ack is the
+	## host's word on which of ours it had played by then. The arrival that
+	## paces the copy is this one's.
+	func _head(msg: Dictionary) -> void:
+		var tick: int = msg["tick"]
+		if tick <= rows_tick:
+			return
+		rows_tick = tick
+		_arrived(tick)
+		var ack: int = msg["input_ack"]
+		if ack >= 0:
+			_acked(ack, tick)
+
+	## The host had played our input `ack` by `tick`.
+	func _acked(ack: int, tick: int) -> void:
+		input_ack = ack
+		input_ack_tick = tick
+		if sent_at.has(ack):
+			var at_ms: float = sent_at[ack]
+			lag_samples.append(_now - at_ms)
+			if lag_samples.size() > LAG_KEPT * 2:
+				# The newest only (a session of hours grew it without end).
+				lag_samples = lag_samples.slice(lag_samples.size() - LAG_KEPT)
+		for n: Variant in unacked.keys():
+			var n_seq: int = n
+			if n_seq <= ack:
+				unacked.erase(n)
+				sent_at.erase(n)
 
 	## Plays the copy on by the clock, not by when snapshots come: the tick it
 	## shows is the host's tick now (judged from the quickest arrivals) less
@@ -878,11 +1014,11 @@ class Client:
 			_paced(frame_ticks, now_ms, elapsed_ms)
 			return
 		view_at = -1.0
-		var target := _host_tick_at(now_ms) - playout_depth(now_ms)
+		var target := _host_tick_at(now_ms) - ceili(playout_depth(now_ms) - 1e-4)
 		# A tick more than the frame's while behind the mark, none while ahead;
 		# far back (a stall) it catches up at once (_catch_up).
 		var most := clampi(target - game_tick, 0, frame_ticks + 1)
-		_catch_up(most, maxi(0, latest_tick - target))
+		_catch_up(most, maxi(0, head() - target))
 
 	## The copy played on by the render clock (_view_clock): stepped to the
 	## tick at or just past the time this frame shows, so NetBlend can draw
@@ -894,16 +1030,16 @@ class Client:
 		var at := _view_clock(now_ms, elapsed_ms)
 		var target := ceili(at - 1e-4)
 		var most := clampi(target - game_tick, 0, frame_ticks + 2)
-		_catch_up(most, maxi(0, latest_tick - target))
+		_catch_up(most, maxi(0, head() - target))
 		view_at = at
+		if game_tick < target:
+			short += 1
 
 	## The tick this frame shows (with its fraction).
 	func _view_clock(now_ms: float, elapsed_ms: float) -> float:
 		var step_ms := STEP * 1000.0
-		var quickest := arrivals[0]
-		for a in arrivals:
-			quickest = minf(quickest, a)
-		var want := (now_ms - quickest) / step_ms - playout_depth(now_ms)
+		var depth := playout_depth(now_ms)
+		var want := (now_ms - _quickest) / step_ms - depth
 		if _clock < 0.0 or _clock_ms < 0.0 or absf(want - _clock) > CLOCK_SNAP:
 			_clock = want
 		else:
@@ -922,27 +1058,73 @@ class Client:
 			return game_tick
 		return clampi(roundi(view_at), game_tick - 4, game_tick)
 
-	## Ticks the copy is shown behind the host's tick now: the snapshots'
-	## gap and their arrivals' spread (95th percentile over the quickest),
-	## up at once, down only after PLAYOUT_EASE seconds.
-	func playout_depth(now_ms: float) -> int:
-		var sorted := arrivals.duplicate()
-		sorted.sort()
-		var spread := sorted[int(sorted.size() * .95)] - sorted[0]
-		var gap := 2
-		if snaps.size() >= 2 and snaps.has(latest - 1):
-			var before: int = snaps[latest - 1][0]
-			gap = maxi(1, latest_tick - before)
+	## Ticks the copy is shown behind the host's tick now, in ticks and their
+	## fraction (the render clock is not held to whole ticks): how much later
+	## than the quickest SPREAD_SHARE of the rows come, and a tick (the copy
+	## plays to the tick at or past the clock, so it needs that tick's row);
+	## up at once, down after PLAYOUT_EASE seconds, by PLAYOUT_CLOSE ticks a
+	## second or faster when far off. The rows' own arrivals hold the 30 a
+	## second pairs and the lost snapshots, so one rule serves every rate.
+	## (fine_depth off: the pass 12 way, the snapshots' spread rounded up to
+	## whole ticks and their gap added, down a tick every 3 s: everyone shown
+	## 2 to 8 ticks later than the link needed for half a minute after the
+	## match's first seconds or a spike.)
+	func playout_depth(now_ms: float) -> float:
+		if not fine_depth:
+			return _depth_whole(now_ms)
 		var step_ms := STEP * 1000.0
-		var want := clampi(ceili(spread / step_ms) + gap, PLAYOUT_LEAST, PLAYOUT_MOST)
+		var want := clampf(_spread_ms / step_ms + 1.0 + depth_margin, 1.0, float(PLAYOUT_MOST))
+		var passed := clampf(now_ms - _depth_ms, 0.0, 250.0) if _depth_ms >= 0.0 else 0.0
+		_depth_ms = now_ms
 		if want >= _depth:
 			_depth = want
 			_lower_since = -1.0
 		elif _lower_since < 0.0:
 			_lower_since = now_ms
 		elif now_ms - _lower_since > PLAYOUT_EASE * 1000.0:
-			_depth -= 1
+			var close := maxf(PLAYOUT_CLOSE, (_depth - want) * PLAYOUT_CLOSE_SHARE)
+			_depth = maxf(want, _depth - close * passed / 1000.0)
+		return _depth
+
+	## The pass 12 depth: whole ticks, the newest snapshots' arrivals.
+	func _depth_whole(now_ms: float) -> float:
+		var sorted := arrivals.duplicate()
+		sorted.sort()
+		var spread := sorted[int(sorted.size() * .95)] - sorted[0]
+		_quickest = sorted[0]
+		var gap := 2
+		if snaps.size() >= 2 and snaps.has(latest - 1):
+			var before: int = snaps[latest - 1][0]
+			gap = maxi(1, latest_tick - before)
+		var whole := clampi(ceili(spread / (STEP * 1000.0)) + gap, PLAYOUT_LEAST, PLAYOUT_MOST)
+		if whole >= _depth:
+			_depth = whole
+			_lower_since = -1.0
+		elif _lower_since < 0.0:
 			_lower_since = now_ms
+		elif now_ms - _lower_since > 3000.0:
+			_depth -= 1.0
+			_lower_since = now_ms
+		return _depth
+
+	## The quickest arrival lately and the rows' spread over it (fine_depth).
+	## More spread than the deepest playout covers (the link got slower and
+	## its quick arrivals of the last seconds are gone for good, or a long
+	## stall): the clock goes by the slower ones, so it does not run ahead of
+	## every snapshot and hold everyone still until the quick ones leave.
+	func _measure() -> void:
+		var sorted := arrivals.duplicate()
+		sorted.sort()
+		var late := sorted[mini(sorted.size() - 1, int(sorted.size() * spread_share))]
+		_quickest = sorted[0]
+		_spread_ms = late - sorted[0]
+		var most_ms := (PLAYOUT_MOST - 1) * STEP * 1000.0
+		if _spread_ms > most_ms:
+			_quickest = late - most_ms
+			_spread_ms = most_ms
+
+	## The playout depth as it stands (ticks; for net_feel.gd).
+	func depth_ticks() -> float:
 		return _depth
 
 	## The host's tick at `now_ms`, from the quickest arrival lately.
@@ -952,13 +1134,34 @@ class Client:
 			quickest = minf(quickest, a)
 		return floori((now_ms - quickest) / (STEP * 1000.0))
 
-	## A snapshot of `tick` came now: its arrival is noted (only the newest).
+	## The rows to `tick` came now (a snapshot's or its first part's): their
+	## arrival is noted (only the newest).
 	func _arrived(tick: int) -> void:
-		if tick <= latest_tick:
+		if tick <= _arrival_tick or (not rows_ahead and tick <= latest_tick):
 			return
-		arrivals.append(_now - tick * STEP * 1000.0)
-		if arrivals.size() > ARRIVALS:
-			arrivals.remove_at(0)
+		var first := tick
+		if fine_depth and _arrival_tick >= 0:
+			# Every tick whose row this brought (at most half a second's).
+			first = maxi(_arrival_tick + 1, tick - 30)
+		_arrival_tick = tick
+		for t in range(first, tick + 1):
+			arrivals.append(_now - t * STEP * 1000.0)
+			_arrived_ms.append(_now)
+		var kept := ARRIVALS if fine_depth else 90
+		var drop := 0
+		while (
+			drop < arrivals.size() - 8
+			and (
+				arrivals.size() - drop > kept
+				or (fine_depth and _now - _arrived_ms[drop] > ARRIVAL_SECONDS * 1000.0)
+			)
+		):
+			drop += 1
+		if drop > 0:
+			arrivals = arrivals.slice(drop)
+			_arrived_ms = _arrived_ms.slice(drop)
+		if fine_depth:
+			_measure()
 
 	## Sends this tick's input (and every one not confirmed yet).
 	func send_input(c: Game.Controls) -> void:
@@ -1004,9 +1207,9 @@ class Client:
 	## one the copy's tick had, which a held or merged input put a tick or
 	## more out: the drawn player jumped when the copy caught up.
 	func unplayed_inputs() -> Array:
-		if predict_from_echo and input_ack >= 0 and latest_tick >= game_tick:
+		if predict_from_echo and input_ack >= 0 and input_ack_tick >= game_tick:
 			var exact: Array = []
-			for t in range(game_tick + 1, latest_tick + 1):
+			for t in range(game_tick + 1, input_ack_tick + 1):
 				var row: Variant = echo.get(t)
 				var row_dict: Dictionary = {} if row == null else row
 				if not row_dict.has(slot):
@@ -1014,7 +1217,7 @@ class Client:
 					break
 				var mine: PackedByteArray = row_dict[slot]
 				exact.append(NetWire.unpack_controls(mine))
-			if exact.size() == latest_tick - game_tick:
+			if exact.size() == input_ack_tick - game_tick:
 				for n in range(maxi(input_ack + 1, input_seq - SENT_KEEP), input_seq):
 					var bytes: PackedByteArray = sent.get(n, PackedByteArray())
 					if bytes.size() >= NetWire.CONTROL_BYTES:
@@ -1033,8 +1236,9 @@ class Client:
 			return
 		var seq: int = msg["seq"]
 		_take_rows(msg)
-		var arrived_tick: int = msg["tick"]
-		_arrived(arrived_tick)
+		if not rows_ahead:
+			var arrived_tick: int = msg["tick"]
+			_arrived(arrived_tick)
 		if seq <= latest:
 			stale += 1
 			return
@@ -1058,20 +1262,8 @@ class Client:
 		latest = seq
 		latest_tick = tick
 		var ack: int = msg["input_ack"]
-		if ack >= 0:
-			input_ack = ack
-			input_ack_tick = tick
-			if sent_at.has(ack):
-				var at_ms: float = sent_at[ack]
-				lag_samples.append(_now - at_ms)
-				if lag_samples.size() > LAG_KEPT * 2:
-					# The newest only (a session of hours grew it without end).
-					lag_samples = lag_samples.slice(lag_samples.size() - LAG_KEPT)
-			for n: Variant in unacked.keys():
-				var n_seq: int = n
-				if n_seq <= ack:
-					unacked.erase(n)
-					sent_at.erase(n)
+		if ack >= 0 and (not rows_ahead or tick > input_ack_tick):
+			_acked(ack, tick)
 		if APPLY_RUNNING and game != null:
 			GameSnapshot.apply(game, data)
 			game_tick = tick
@@ -1091,16 +1283,18 @@ class Client:
 		if game == null or (not REBUILD_RUNNING and latest_tick - rebuilt_at >= REBUILD_EVERY):
 			_rebuild()
 			return
-		if latest_tick - game_tick > behind + 12:
+		var top := head()
+		if top - game_tick > behind + 12:
 			behind = 0  # far back: catch up at once
 			most = 1 << 30
 		var steps := 0
-		while game_tick < latest_tick - behind and steps < most:
+		while game_tick < top - behind and steps < most:
 			steps += 1
 			var row: Variant = echo.get(game_tick + 1)
 			var row_dict: Dictionary = {} if row == null else row
 			if row_dict.is_empty():
-				if _rows_late():
+				if _rows_late() or latest_tick <= game_tick:
+					# (No whole snapshot past the copy to put it on yet.)
 					return
 				# The inputs for the next tick never came (lost past the
 				# redundancy): start again from the newest snapshot.
@@ -1132,7 +1326,7 @@ class Client:
 	## newest at once, a jump of the whole world: 3 to 11 times in 20 s in
 	## co-op at 250 ms, 44 at 60 snapshots a second (net_feel.gd).
 	func _rows_late() -> bool:
-		if not wait_rows or game_tick < 0 or latest_tick - game_tick > ROWS_WAIT:
+		if not wait_rows or game_tick < 0 or head() - game_tick > ROWS_WAIT:
 			return false
 		rows_waited += 1
 		return true

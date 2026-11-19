@@ -14,7 +14,11 @@
 ## settings again. Closing the server tells everyone. BOB plays it all over
 ## the lobby's WebSocket side (the browser build's way in; ws here, wss on the
 ## real server), and a COUNTY RUN daily board knock is answered over it too.
-## Fails on any script or engine error.
+## The server's own config (server/lobbies.json, what deploy.sh sends) is
+## held to what the game's list expects: one lobby (pass 13: one server,
+## one lobby, 60 snapshots a second) on the port and wss port the first
+## party line server in data/tuning/servers.json names, the party line on,
+## and it opens. Fails on any script or engine error.
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
@@ -48,6 +52,7 @@ func _run() -> void:
 	main.state = "title"
 	var tally := CrashLog.tally()
 	_play()
+	_shipped()
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -404,3 +409,75 @@ func _board_over_ws() -> void:
 		"a daily board post over the WebSocket comes back on the board (%s)" % [rows]
 	)
 	CountyBoard.store = kept
+
+
+## server/lobbies.json against data/tuning/servers.json: the one lobby the
+## server runs is the one the game's list and the browser's wss reach first,
+## with the party line, at 60 snapshots a second; and it opens (on free
+## ports, no certificate).
+func _shipped() -> void:
+	var path := ProjectSettings.globalize_path("res://").path_join("../server/lobbies.json")
+	var config := LobbyServer.read_config(path)
+	_check(not config.is_empty(), "server/lobbies.json reads")
+	if config.is_empty():
+		return
+	var lobbies: Array = config.get("lobbies", [])
+	_check(lobbies.size() == 1, "the server runs one lobby (%d)" % lobbies.size())
+	if lobbies.is_empty():
+		return
+	var lobby: Dictionary = lobbies[0]
+	var listed := NetBrowser.listed()
+	var line := {}
+	for entry: Dictionary in listed:
+		if entry.get("relay", false):
+			line = entry
+			break
+	var port: int = lobby.get("port", 0)
+	var ws: int = lobby.get("ws_port", 0)
+	var wss := str(line.get("wss", ""))
+	_check(
+		int(line.get("port", -1)) == port and wss.ends_with(":%d" % ws),
+		(
+			"its UDP %d and wss %d are the party line server's in servers.json (%s, %s)"
+			% [port, ws, line.get("port"), wss]
+		)
+	)
+	_check(config.get("relay") is Dictionary, "the party line runs on its ports")
+	_check(
+		int(config.get("snap_every", NetPlay.SNAP_EVERY)) == 1,
+		"60 snapshots a second (snap_every 1)"
+	)
+	_check(int(config.get("most_matches", 2)) == 1, "one match at a time (most_matches 1)")
+	_check(
+		str(lobby.get("mode", "")) == Modes.BOMB and int(lobby.get("team_size", 0)) == 5,
+		"it opens on the 5v5 (MODE switches to hostage and tag team in the lobby)"
+	)
+	# It opens, on free ports and without the certificate.
+	var free := NetPorts.pick("net_server_check_shipped", [0], [3000])
+	var local := config.duplicate(true)
+	local["bind"] = "127.0.0.1"
+	local.erase("tls_cert")
+	local.erase("tls_key")
+	var opened: LobbyServer = null
+	for k in 20:
+		var room: Dictionary = local["lobbies"][0]
+		room["port"] = free + k
+		room["ws_port"] = free + k + 3000
+		opened = LobbyServer.new(local, {"difficulty": 1})
+		if opened.rooms.size() == 1 and opened.rooms[0].net.session.also != null:
+			break
+		opened.free()
+		opened = null
+	_check(
+		opened != null and opened.relay != null and NetPlay.snap_every == 1,
+		"it opens: one lobby, ENet and WebSocket, the party line, snapshots every tick"
+	)
+	if opened != null:
+		for room in opened.rooms:
+			# (The party line and the sessions it taps hold each other.)
+			room.net.session.tap = null
+			if room.net.session.also != null:
+				room.net.session.also.tap = null
+			room.net.finish()
+		opened.queue_free()
+	NetPlay.snap_every = NetPlay.SNAP_EVERY

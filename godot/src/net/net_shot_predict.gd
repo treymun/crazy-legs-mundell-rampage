@@ -150,7 +150,7 @@ func _now() -> float:
 static func played_seq(client: NetSync.Client) -> int:
 	if client == null or client.input_ack < 0:
 		return -1
-	return client.input_ack + 1 - maxi(0, client.latest_tick - client.game_tick)
+	return client.input_ack + 1 - maxi(0, client.input_ack_tick - client.game_tick)
 
 
 ## Watches `game` (the client's copy) for slot `my_slot`.

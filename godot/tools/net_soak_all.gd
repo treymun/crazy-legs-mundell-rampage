@@ -9,7 +9,7 @@
 ##       [-- modes=county,bomb,hostage,tagteam,deathmatch,team_deathmatch,coop]
 ##       [people=2] [minutes=1] [lags=120] [jitter=.2] [loss=.02]
 ##       [wreck=1] [every=4] [late=1] [ws=1] [clock=1] [grow=.15] [putback=0]
-##       [why=1] [fullcheck=1] [places=0] [bunch=0] [events=0] [quick]
+##       [why=1] [fullcheck=1] [places=0] [bunch=0] [events=0] [snaps=2] [quick]
 ##
 ## - **Modes**: the always-open lobby's (5v5 SEARCH AND DESTROY and HOSTAGE
 ##   RESCUE with bots filling, TAG TEAM 2V2, DEATHMATCH and TEAM DEATHMATCH,
@@ -82,6 +82,7 @@ var opts := {
 	"bunch": 1,
 	"events": 1,
 	"coop_people": 0,
+	"snaps": 2,
 }
 var rows: Array = []
 
@@ -150,6 +151,9 @@ func _run() -> void:
 		# leave and join again (NetWire.event: no put back for either).
 		opts["coop_people"] = 3
 	opts["people"] = clampi(int(opts["people"]), 2, 4)
+	# Snapshots every this many ticks (1: the always-open lobby's 60 a
+	# second, server/lobbies.json), the server's and a hosting front end's.
+	NetPlay.snap_every = int(opts["snaps"])
 	# Off: the old packets, no place rows sent (a measurement's before).
 	NetSync.Host.send_places = int(opts["places"]) != 0
 	NetSync.Host.tick_events = int(opts["events"]) != 0
@@ -279,7 +283,9 @@ func _open_server() -> bool:
 		var lb := _lobby_config()
 		lb["port"] = base + k
 		lb["ws_port"] = base + k + 3000
-		var config := {"bind": "127.0.0.1", "relay": {}, "lobbies": [lb]}
+		var config := {
+			"bind": "127.0.0.1", "relay": {}, "lobbies": [lb], "snap_every": int(opts["snaps"])
+		}
 		server = LobbyServer.new(config, {"difficulty": 1})
 		if not server.rooms.is_empty() and server.rooms[0].net.session.also != null:
 			port = base + k

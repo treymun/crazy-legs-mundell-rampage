@@ -717,9 +717,10 @@ var finish_slowmo := true
 ## With more than one player: where every player stood on each of the last
 ## REWIND_KEEP ticks, newest last (x, y, crouched per slot), so a shot can be
 ## judged against what its shooter saw online (Controls.rewind). Worked out
-## again by every copy as it steps, never carried.
+## again by every copy as it steps, never carried. NetSync.MAX_REWIND (96
+## since pass 13) and a few more.
 var place_log: Array[PackedFloat32Array] = []
-const REWIND_KEEP := 72
+const REWIND_KEEP := 104
 const SLOWMO_PACE := .35
 const FINISH_IN := .12
 const FINISH_OUT := .45

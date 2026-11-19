@@ -754,10 +754,15 @@ static func _soak_fixes(main, check: Callable, id: String) -> void:
 	# A client a round trip of more than a second behind (a browser player at
 	# 250 ms whose TCP held up a lost packet) still has a base the host
 	# keeps: no whole snapshots, no put backs for it (net_soak_all.gd).
+	# (At 60 a second, the always-open lobby's rate since pass 13, half as
+	# long: net_soak_all at 250 ms there sent no whole snapshot but the joins'.)
 	var kept_s := NetSync.Host.KEEP * NetPlay.SNAP_EVERY * NetSync.STEP
 	check.call(
-		NetSync.Client.KEEP >= NetSync.Host.KEEP and kept_s >= 3.0,
-		"host and client keep %.1f s of snapshots as bases (at least 3)" % kept_s
+		NetSync.Client.KEEP >= NetSync.Host.KEEP and kept_s >= 3.0 and kept_s / 2.0 >= 2.0,
+		(
+			"host and client keep %.1f s of snapshots as bases (at least 3; %.1f at 60 a second)"
+			% [kept_s, kept_s / 2.0]
+		)
 	)
 	# Where everyone stood on each tick travels with the echoed inputs, and a
 	# copy put back on a snapshot ahead of it takes the ticks it skipped from
@@ -774,7 +779,7 @@ static func _soak_fixes(main, check: Callable, id: String) -> void:
 	cs.game = two
 	cs.game_tick = 100
 	var own_log: Array[PackedFloat32Array] = []
-	for t in range(29, 101):
+	for t in range(101 - GameState.REWIND_KEEP, 101):
 		own_log.append(PackedFloat32Array([float(t), 0.0, 0.0, 0.0, 0.0, 0.0]))
 	cs._take_places(108, wire.get("places", []))
 	cs.game_tick = 110

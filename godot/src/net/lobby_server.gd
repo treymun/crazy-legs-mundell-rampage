@@ -15,7 +15,8 @@
 ## or any of them) runs THE PARTY LINE on the same ports: players' own lobbies
 ## reached through the server by a short code (net_relay.gd). "most_matches"
 ## caps the matches on at once, "snap_every" the ticks between snapshots (2:
-## 30 a second), "status_every" the seconds between status lines; "old" and
+## 30 a second; server/lobbies.json runs its one lobby at 1, 60 a second),
+## "status_every" the seconds between status lines; "old" and
 ## "test_link" are for measuring (tools/net_pace.gd). Prints a line for
 ## everyone who comes and goes, each match, each party line room, and every
 ## status_every seconds how busy it is (each room's tick cost and how evenly
@@ -113,8 +114,9 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 		paced = false
 		NetWire.pack_rows = false
 		NetSync.Host.split_big = false
-	# Snapshots every this many ticks (2: 30 a second; 1: 60, about half as
-	# much again of the server's work and twice the bandwidth).
+	# Snapshots every this many ticks (2: 30 a second; 1: 60, the VPS's one
+	# lobby since pass 13: about half as much again of the server's work and
+	# twice the bandwidth, everyone else drawn sooner and smoother).
 	var snap_every: int = config.get("snap_every", NetPlay.SNAP_EVERY)
 	NetPlay.snap_every = clampi(snap_every, 1, 6)
 	var link: Dictionary = config.get("test_link", {})

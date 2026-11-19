@@ -562,6 +562,7 @@ func _rows_check(host: NetSync.Host) -> void:
 	var keeper := Keeper.new()
 	host.session = keeper
 	r.acked = -1
+	r.acks = PackedInt32Array()
 	r.full_at = -1000000
 	for i in host.snap_every:
 		host.play({})
