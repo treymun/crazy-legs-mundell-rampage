@@ -335,14 +335,20 @@ func _size(e: Enemy) -> float:
 ## Whether dead enemy `e` falls as a ragdoll: RAGDOLLS on, a model standing
 ## on two legs (RagdollRig) or a beast's (BeastRig), not a kind fit.json
 ## keeps off ("ragdoll": false); a boss from part way through its scripted
-## fall (BOSS_HANDOVER), not one whose body at rest is a cel of its own.
+## fall (BOSS_HANDOVER), not one whose body at rest is a cel of its own nor
+## one fit.json keeps to his scripted fall ("hand_over": false: the Copper
+## Baron, on his back his great gut stood up and his bent legs propped him,
+## reading as a man squatting; his set fall lays him out flat).
 func _ragdolls(e: Enemy) -> bool:
 	if not View.ragdolls:
 		return false
 	var info: Dictionary = models.kinds[kind]
 	if not info.get("ragdoll", true):
 		return false
-	if Enemy.BOSS_TITLES.has(e.kind) and info.get("down_cel", false):
+	if (
+		Enemy.BOSS_TITLES.has(e.kind)
+		and (info.get("down_cel", false) or not info.get("hand_over", true))
+	):
 		return false
 	if _rig == null:
 		_rig = RagdollRig.of(kind, self, info)
