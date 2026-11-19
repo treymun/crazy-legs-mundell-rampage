@@ -1343,6 +1343,16 @@ Round 2 (after NETFEEL's and NETSERVER's second rounds were merged):
   (`/features/corpses/_known`: 39 against 37, 56 times in a two-minute
   County Run put back every 5 s). It lets go of the enemies the game has
   let go (`_forget_gone`, when the list's length changes).
+- **Snapshots that come in a bunch** (after a stall, or a WebSocket held up
+  a round trip by a lost packet): each delta is from a base the copy
+  acknowledged, so only the newest is put together now (`Client._snaps_in`;
+  every one's inputs and arrival still taken; the old way when the newest's
+  base is not here, or `bunch_newest` off). Patching one costs 0.5 ms in
+  County Run and 2.1 (p99 3.3) in Hickston co-op; a bunch of five cost five.
+  The client frame's packets part, p99: co-op 30.5 -> 10.1 ms, County Run
+  5.4 -> 2.9; the whole frame quiet p99 in co-op 43.5 -> 29.1
+  (`bunch=0` for the old way). What is left of the frame's spikes is the
+  copy's own ticks while the soak's director blows things up.
 - **Rubble shut into the paths after a mid-fall put back**: a snapshot's
   facts of the set pieces now list the rubble still waiting
   (`net_facts()`, `to_shut`, carried); a copy put back on one shuts what the

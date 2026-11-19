@@ -9,7 +9,7 @@
 ##       [-- modes=county,bomb,hostage,tagteam,deathmatch,team_deathmatch,coop]
 ##       [people=2] [minutes=1] [lags=120] [jitter=.2] [loss=.02]
 ##       [wreck=1] [every=4] [late=1] [ws=1] [clock=1] [grow=.15] [putback=0]
-##       [why=1] [fullcheck=1] [quick]
+##       [why=1] [fullcheck=1] [places=0] [bunch=0] [quick]
 ##
 ## - **Modes**: the always-open lobby's (5v5 SEARCH AND DESTROY and HOSTAGE
 ##   RESCUE with bots filling, TAG TEAM 2V2, DEATHMATCH and TEAM DEATHMATCH,
@@ -77,6 +77,7 @@ var opts := {
 	"why": 0,
 	"places": 1,
 	"fullcheck": 0,
+	"bunch": 1,
 }
 var rows: Array = []
 
@@ -133,6 +134,8 @@ func _run() -> void:
 	# fullcheck=1: the client's check of its copy whole once a second (the
 	# old way, a hitch), not a part at a time (net_check_parts.gd).
 	NetSync.Client.spread_check = int(opts["fullcheck"]) == 0
+	# bunch=0: every snapshot of a bunch put together (the old way).
+	NetSync.Client.bunch_newest = int(opts["bunch"]) != 0
 	if quick:
 		opts["modes"] = "county,coop"
 		opts["minutes"] = 2.0

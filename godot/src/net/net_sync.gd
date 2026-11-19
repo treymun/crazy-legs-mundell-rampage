@@ -571,6 +571,10 @@ class Client:
 	## whole copy every CHECK_EVERY ticks in one frame (a hitch of 7 to 40 ms).
 	const CHECK_PART_EVERY := 4
 	static var spread_check := true
+	## Off: every snapshot of a bunch put together, the old way (_snaps_in).
+	static var bunch_newest := true
+	## Snapshots of a bunch not put together (their newest was).
+	var bunched := 0
 	## Floats this near (relative) are the same to that comparison: a server
 	## on Linux and a client on Windows round sin, cos and the like a last bit
 	## apart, and copies were put back every 20 to 40 s for it against the VPS
@@ -704,6 +708,7 @@ class Client:
 	func take(packets: Array, now_ms := -1.0) -> void:
 		if now_ms >= 0.0:
 			_now = now_ms
+		var came: Array = []
 		for packet: Array in packets:
 			var bytes: PackedByteArray = packet[1]
 			if bytes.is_empty():
@@ -714,11 +719,47 @@ class Client:
 				slot = info.get("slot", -1)
 				level = str(info.get("level", ""))
 			elif bytes[0] == NetWire.SNAP:
-				_snap(NetWire.read_snap(bytes))
+				came.append(NetWire.read_snap(bytes))
 			elif bytes[0] == NetWire.SNAP_PART:
 				var whole := _joined(bytes)
 				if not whole.is_empty():
-					_snap(NetWire.read_snap(whole))
+					came.append(NetWire.read_snap(whole))
+		_snaps_in(came)
+
+	## The snapshots that came together (a bunch after a stall, a WebSocket
+	## held up a round trip): each delta is from a base this copy acknowledged,
+	## not from the one before it, so only the newest needs putting together
+	## (one patch, 2 to 4 ms in Hickston co-op, where a bunch of five took
+	## five; pass 12 soak). Every one's inputs and arrival are taken; the
+	## older ones are put together only when the newest's base is not here.
+	func _snaps_in(came: Array) -> void:
+		var newest := -1
+		var newest_seq := -1
+		for i in came.size():
+			var msg: Dictionary = came[i]
+			if msg.is_empty():
+				continue
+			var msg_seq: int = msg["seq"]
+			if newest < 0 or msg_seq > newest_seq:
+				newest = i
+				newest_seq = msg_seq
+		if newest < 0:
+			return
+		var top: Dictionary = came[newest]
+		var base: int = top["base"]
+		if not bunch_newest or came.size() < 2 or (base >= 0 and not snaps.has(base)):
+			for msg: Dictionary in came:
+				_snap(msg)
+			return
+		for i in came.size():
+			var msg: Dictionary = came[i]
+			if i == newest or msg.is_empty():
+				continue
+			_take_rows(msg)
+			var msg_tick: int = msg["tick"]
+			_arrived(msg_tick)
+			bunched += 1
+		_snap(top)
 
 	## The inputs played on each tick are the host's word whatever the
 	## snapshot: kept from a late one too (big snapshots go reliable, the
