@@ -2915,12 +2915,12 @@
 		]
 	},
 	"hound": {
-		"bones": 71.0,
+		"bones": 66.0,
 		"canvas": [
 			1.5,
 			1.0
 		],
-		"faces": 19543.0,
+		"faces": 28518.0,
 		"frames": {
 			"0": 0.0,
 			"bark": 74.0,
@@ -3069,12 +3069,7 @@
 			"b63": "body",
 			"b64": "body",
 			"b65": "body",
-			"b66": "body",
-			"b67": "body",
-			"b68": "body",
-			"b69": "body",
 			"b7": "body",
-			"b70": "body",
 			"b8": "body",
 			"b9": "body"
 		},

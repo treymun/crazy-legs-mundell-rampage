@@ -80,6 +80,13 @@ const HURT := 5
 const MOODS := ["CALM", "HAPPY", "ALERT", "SCARED", "SULK", "HURT"]
 ## How often he asks again whether a way is straight (seconds).
 const LOOK_AGAIN := .2
+## Pass 12: how fast his legs' speed follows his steps (seconds), the cells a
+## radian a pivot on the spot steps, how fast a kick's shove dies (a second).
+const STRIDE_EASE := .12
+const PIVOT := .22
+const KNOCK_FADE := 12.0
+## Facing further off his way than this (radians) he slows to an amble to turn.
+const TURN_SLOW := 1.4
 
 
 ## One hound: his player's slot, where he is and what he is doing.
@@ -165,6 +172,21 @@ class Dog:
 	var next_growl := 0.0
 	## No hand awake near his player at his last sniff.
 	var calm := true
+	## Pass 12. How fast his legs go (cells a second, his steps smoothed over
+	## a few ticks: what his looks read, so a tick's hitch never flips his
+	## gait), the gait they go in (HoundLooks: -1 standing, 0 walk, 1 trot, 2 lope, held
+	## by HoundLooks.gait_of so it never flickers between two), when he last
+	## stood still, how long he has been in a player's sights, and a kick's
+	## shove still carrying him (cells a second, dying away).
+	var stride_v := 0.0
+	var gait_kind := -1
+	var still_at := 0.0
+	var sighted := 0.0
+	var knock := Vector2.ZERO
+	## How his player goes (cells a second, where they truly went, eased: a
+	## player running into a wall stands) and where they stood last tick.
+	var p_v := Vector2.ZERO
+	var p_was := Vector2.INF
 
 
 ## The hounds, one a player who has one.
@@ -385,8 +407,35 @@ func into(d: Dog, state: int) -> void:
 
 
 func _step(d: Dog, p: Player, dt: float) -> void:
-	d.flash = maxf(0.0, d.flash - dt)
 	d.pace = 0.0
+	var here := Vector2(p.x, p.y)
+	if d.p_was != Vector2.INF:
+		var went := (here - d.p_was) / maxf(dt, .0001)
+		d.p_v = d.p_v.lerp(went if went.length() < 12.0 else Vector2.ZERO, minf(1.0, dt / .15))
+	d.p_was = here
+	var was_angle := d.angle
+	_act(d, p, dt)
+	# His legs' speed, eased (a pivot on the spot steps too), and when he
+	# last stood still.
+	var turned := absf(wrapf(d.angle - was_angle, -PI, PI)) / maxf(dt, .0001)
+	var going := maxf(d.pace, turned * PIVOT if d.pace < .3 else 0.0)
+	if d.pace < .3 and turned > .5:
+		d.gait += turned * PIVOT * dt * HoundLooks.beats_per_cell(0, going) * PI * .5
+	d.stride_v += (going - d.stride_v) * minf(1.0, dt / STRIDE_EASE)
+	d.gait_kind = HoundLooks.gait_of(d.gait_kind, d.stride_v)
+	if d.gait_kind >= 0:
+		d.still_at = game.clock
+
+
+func _act(d: Dog, p: Player, dt: float) -> void:
+	d.flash = maxf(0.0, d.flash - dt)
+	if d.knock.length() > .05 and d.state != RIDE and d.hop == Vector2.INF:
+		# A kick's shove carries him off over a few ticks (it was half a cell
+		# at once).
+		shove(d, d.knock.x * dt, d.knock.y * dt)
+		d.knock *= maxf(0.0, 1.0 - KNOCK_FADE * dt)
+	else:
+		d.knock = Vector2.ZERO
 	if d.mood != CALM and game.clock >= d.mood_until:
 		d.mood = CALM
 	if d.hop != Vector2.INF and d.state != RIDE:
@@ -408,7 +457,7 @@ func _step(d: Dog, p: Player, dt: float) -> void:
 		# His player is down: he goes to them and lies by them.
 		var gap := Vector2(p.x - d.x, p.y - d.y).length()
 		if gap > 1.0:
-			head(d, p, Vector2(p.x, p.y), n("run"), dt)
+			head(d, p, Vector2(p.x, p.y), n("lope"), dt, true)
 		if d.state != STAY:
 			_drop(d, p)
 			into(d, STAY)
@@ -459,8 +508,8 @@ func _out_of_harm(d: Dog, p: Player, dt: float) -> bool:
 	# Out of it, leaning toward his player (not down the road a car comes up).
 	var to_p := Vector2(p.x - d.x, p.y - d.y).normalized()
 	var heading := to_p.angle() if away == Vector2.ZERO else (away.normalized() + to_p * .6).angle()
-	d.speed = n("run")
-	stride(d, heading, n("run") * dt, dt)
+	d.speed = move_toward(d.speed, n("run"), n("accel") * 2.0 * dt)
+	stride(d, heading, maxf(d.speed, n("lope")) * dt, dt, 2.0)
 	return true
 
 
@@ -487,15 +536,18 @@ func _with(d: Dog, p: Player, dt: float) -> void:
 	var turned := wrapf(p.angle - d.p_angle, -PI, PI) / maxf(dt, .0001)
 	d.p_turn = lerpf(d.p_turn, turned, .3)
 	d.p_angle = p.angle
+	var pv := d.p_v.length()
+	if HoundMoods.make_way(self, d, p, gap, dt):
+		return
 	# Out of a player's sights before all else.
 	if d.job != ASIDE or game.clock >= d.job_until:
-		HoundMoods.aside(self, d, p)
+		HoundMoods.aside(self, d, p, dt)
 		if d.job != ASIDE or game.clock >= d.job_until:
 			if d.job == ASIDE:
 				_job(d, HEEL, n("range_rest"))
 	if d.job == ASIDE:
-		d.speed = maxf(d.speed, n("lope"))
-		stride(d, d.aside.angle(), n("run") * dt, dt)
+		d.speed = move_toward(d.speed, n("aside_pace"), n("accel") * dt)
+		stride(d, d.aside.angle(), maxf(d.speed, .4) * dt, dt)
 		_find_way(d, p, gap, dt)
 		return
 	var calm := d.calm and d.mood == CALM
@@ -511,20 +563,31 @@ func _with(d: Dog, p: Player, dt: float) -> void:
 		if d.job != HEEL and d.job != WAIT:
 			_job(d, HEEL, n("range_rest"))
 	_range(d, p, gap, calm and not driving)
+	# Pass 12: his pace by his player's, a little quicker going out or back,
+	# quick only catching up from far.
 	match d.job:
 		HEEL, WAIT:
 			_heel(d, p, gap, n("heel"), dt)
 		RANGE:
-			var fast := Vector2(p.vx, p.vy).length() > 2.6
-			head(d, p, d.roam, n("lope") if fast else n("trot"), dt)
+			var out := clampf(pv + n("range_extra"), n("amble") + .3, n("lope"))
+			head(d, p, d.roam, out, dt)
 		NOSING:
-			d.speed = 0.0
+			halt(d, dt)
 		CIRCLE:
-			var spot := HoundLegs.heel_spot(game, d, p, n("heel"), n("radius"))
-			var pace := n("run") if gap > n("run_past") + 2.0 else n("lope")
-			head(d, p, spot, pace, dt)
+			var home := _home(d, p, gap)
+			var behind := maxf(0.0, gap - n("run_past")) * .3
+			var top := maxf(n("lope"), pv + n("heel_extra"))
+			var back := clampf(pv + n("range_extra") + behind, n("amble") + .3, top)
+			if gap > n("catch_far") * .7:
+				back = n("run")  # far behind: he runs to catch up
+			head(d, p, home, back, dt, true)
 		CATCH:
-			head(d, p, HoundLegs.heel_spot(game, d, p, n("heel"), n("radius")), n("run"), dt)
+			var behind := maxf(0.0, gap - n("run_past")) * .3
+			var top := maxf(n("lope"), pv + n("heel_extra") + behind)
+			var hurry := clampf(pv + n("heel_extra") + behind, n("amble") + .3, top)
+			if gap > n("catch_far") * .7:
+				hurry = n("run")
+			head(d, p, _home(d, p, gap), hurry, dt, true)
 		TRAIL:
 			_heel(d, p, gap, n("sulk_heel"), dt)
 	_find_way(d, p, gap, dt)
@@ -547,9 +610,13 @@ func _range(d: Dog, p: Player, gap: float, free: bool) -> void:
 		HEEL:
 			if not free or now < d.job_until or gap > n("run_past"):
 				return
-			var moving := Vector2(p.vx, p.vy)
+			if d.p_v.length() > n("lope") - n("range_extra"):
+				return  # his player running: he runs along beside them
+			var moving := d.p_v
 			var still := moving.length() < .6
 			var base := p.angle if still else moving.angle()
+			if still and now - d.still_at < n("range_rest_still"):
+				return  # his player stands: he settles a good while first
 			var spot := HoundLegs.roam_spot(
 				game,
 				_danger,
@@ -562,7 +629,9 @@ func _range(d: Dog, p: Player, gap: float, free: bool) -> void:
 				PI * .8 if still else n("range_side_max"),
 				_n
 			)
-			if spot == Vector2.INF:
+			if spot == Vector2.INF or (not still and (spot - Vector2(d.x, d.y)).dot(moving) < 0.0):
+				# Nowhere, or (his player going on) only somewhere back the
+				# way he came: he would wheel round and run back (pass 12).
 				d.job_until = now + 1.0
 				return
 			d.roam = spot
@@ -572,11 +641,12 @@ func _range(d: Dog, p: Player, gap: float, free: bool) -> void:
 		RANGE:
 			var there := Vector2(d.x, d.y).distance_to(d.roam) < .6
 			var behind := (
-				Vector2(d.roam.x - p.x, d.roam.y - p.y).dot(Vector2(p.vx, p.vy)) < -2.0
-				and Vector2(p.vx, p.vy).length() > 1.0
+				Vector2(d.roam.x - p.x, d.roam.y - p.y).dot(d.p_v) < -2.0 and d.p_v.length() > 1.0
 			)
 			if there:
-				_job(d, NOSING, n("sniff_stop") + game.rng.random() * n("sniff_stop_more"))
+				var sniff := n("sniff_stop") + game.rng.random() * n("sniff_stop_more")
+				# (shorter with his player going on: he fell far behind)
+				_job(d, NOSING, sniff * (.5 if d.p_v.length() > .6 else 1.0))
 			elif now >= d.job_until or behind or gap > n("catch_far") * .8 or not free:
 				_job(d, CIRCLE, 0.0)
 			elif HoundLegs.before_sights(
@@ -587,26 +657,48 @@ func _range(d: Dog, p: Player, gap: float, free: bool) -> void:
 			if now >= d.job_until or not free:
 				_job(d, CIRCLE, 0.0)
 		CIRCLE:
-			var spot := HoundLegs.heel_spot(game, d, p, n("heel"), n("radius"))
+			var spot := _home(d, p, gap)
 			if Vector2(d.x, d.y).distance_to(spot) < 1.2:
 				_job(d, HEEL, n("range_rest") + game.rng.random() * n("range_rest_more"))
 
 
-## At heel `back` behind his player, off to his side: a run when far, a trot
-## near, his face to his player once there.
+## At heel `back` behind his player, off to his side (pass 12): going with
+## them at their own pace, a little quicker to close on his place, quick only
+## when far behind; his player standing, anywhere easy near them will do (he
+## no longer runs round behind them as they look about), and he settles.
 func _heel(d: Dog, p: Player, gap: float, back: float, dt: float) -> void:
-	var spot := HoundLegs.heel_spot(game, d, p, back, n("radius"))
+	var pv := d.p_v.length()
+	var near := n("heel_near")
+	var far := n("heel_far") + back - n("heel")
+	var spot := _home(d, p, gap, back)
 	var to_spot := Vector2(spot.x - d.x, spot.y - d.y).length()
-	if to_spot > .3:
-		var pace := n("run") if gap > n("run_past") else n("trot")
-		if d.mood == SULK:
-			pace = n("sulk_pace")
-		var moved := head(d, p, spot, pace, dt)
-		if gap > 2.0 and moved < pace * dt * .2 and d.path.is_empty():
-			d.side = -d.side  # that side is shut: the other
-	else:
+	if pv < .6 and gap >= near and gap <= far and (d.speed < .3 or to_spot < .4):
+		HoundMoods.settle(self, d, p, dt)
+		return
+	var top := maxf(n("trot"), pv + n("heel_extra"))
+	if gap > n("run_past") + 2.5:
+		top = maxf(top, n("lope"))  # well behind: he lopes back
+	var pace := clampf(pv + n("heel_gain") * to_spot, n("amble"), top)
+	if d.mood == SULK:
+		pace = minf(pace, maxf(n("sulk_pace"), pv * .6))
+	var moved := head(d, p, spot, pace, dt, true)
+	if pv >= .6 and gap > 2.0 and moved < pace * dt * .2 and d.path.is_empty():
+		d.side = -d.side  # that side is shut: the other
+
+
+func _home(d: Dog, p: Player, gap: float, back := -1.0) -> Vector2:
+	var b := n("heel") if back < 0.0 else back
+	return HoundLegs.home(game, d, p, gap, b, n("radius"), n("heel_near"), n("heel_far"))
+
+
+## Easing to a stop from his speed, on along where he faces (he never stops
+## dead from a run).
+func halt(d: Dog, dt: float) -> void:
+	if d.speed <= .05:
 		d.speed = 0.0
-		d.angle = HoundLegs.turn(d.angle, atan2(p.y - d.y, p.x - d.x), dt * 3.0)
+		return
+	d.speed = move_toward(d.speed, 0.0, n("decel") * dt)
+	stride(d, d.angle, d.speed * dt, dt)
 
 
 ## Lost: too far and out of everyone's sight (or no way to them) for long,
@@ -683,39 +775,80 @@ func leap(d: Dog, to: Vector2, z: float, dt: float) -> bool:
 # ------------------------------------------------------------ getting about
 
 
-## Toward `goal` at `pace` (he eases into it): straight where he can walk
-## straight, else along a way planned over the level's floor, else down his
-## player's flow field. Returns how far he went.
-func head(d: Dog, p: Player, goal: Vector2, pace: float, dt: float) -> float:
+## Toward `goal` at `pace` (he eases into it, and brakes for it: no faster
+## than he can stop in, plus his player's own speed when the goal goes along
+## with them, `with_p`): straight where he can walk straight, else along a
+## way planned over the level's floor, else down his player's flow field.
+## Facing well off his way he slows to turn (pass 12). Returns how far he went.
+func head(d: Dog, p: Player, goal: Vector2, pace: float, dt: float, with_p := false) -> float:
 	if goal == Vector2.INF:
 		return 0.0
 	var gap := Vector2(goal.x - d.x, goal.y - d.y).length()
-	var ease := n("accel") * dt * (1.0 if pace >= d.speed else 1.6)
-	d.speed = move_toward(d.speed, pace, ease)
-	if gap < .2:
-		d.speed = 0.0
+	var pv := d.p_v.length() if with_p else 0.0
+	if gap < .2 and pv < .6:
+		halt(d, dt)
 		d.stall = 0.0
 		d.anchor = Vector2.INF
 		return 0.0
 	_stalled(d)
-	var heading := _way(d, p, goal)
-	var length := minf(gap, maxf(d.speed, .8) * dt * Mud.pace(game, d.x, d.y))
+	var heading := HoundLegs.round_players(game, d, _way(d, p, goal))
+	var want := minf(pace, pv + sqrt(2.0 * n("decel") * maxf(0.0, gap - .15)))
+	var off := absf(wrapf(heading - d.angle, -PI, PI))
+	# Facing well off his way, or his goal (or the next step of his way)
+	# inside the circle he turns in at this speed: slow to turn (he would go
+	# round and round it, or overshoot a doorway and loop back).
+	var circle := d.speed / HoundLegs.turn_rate(d.speed, n("turn_slow"), n("turn_fast"))
+	var aim := gap if d.path.is_empty() else Vector2(d.path[0].x - d.x, d.path[0].y - d.y).length()
+	if off > TURN_SLOW or (off > .6 and aim < circle * 2.2):
+		want = minf(want, n("amble"))
+	if Vector2(p.x - d.x, p.y - d.y).length() < HoundLegs.CLEAR_PLAYER:
+		want = minf(want, maxf(n("trot"), d.p_v.length() + n("amble")))  # by his player's legs
+	if d.path.size() >= 2:
+		# A sharp corner in his way ahead: he slows for it in time.
+		var leg := d.path[0] - Vector2(d.x, d.y)
+		if absf(wrapf((d.path[1] - d.path[0]).angle() - leg.angle(), -PI, PI)) > .6:
+			want = minf(want, n("trot") + sqrt(2.0 * n("decel") * maxf(0.0, leg.length() - .45)))
+	var ease := (n("accel") if want >= d.speed else n("decel")) * dt
+	d.speed = move_toward(d.speed, want, ease)
+	var length := minf(gap, maxf(d.speed, .4) * dt * Mud.pace(game, d.x, d.y))
 	return stride(d, heading, length, dt)
 
 
-## One stride of `length` along `heading` (or the nearest way round), with
-## his gait and how long he has stalled kept.
-func stride(d: Dog, heading: float, length: float, dt: float) -> float:
-	var went: Array = HoundLegs.step(game, _body, _danger, d, heading, length, n("radius"))
+## One stride of `length` toward `heading` (or the nearest way round), turned
+## no quicker than his speed lets him (pass 12: wide arcs at a run, tight at
+## a walk; `quick` times his walk's turn out of harm or a player's way), with
+## his gait and how long he has stalled
+## kept.
+func stride(d: Dog, heading: float, length: float, dt: float, quick := 0.0) -> float:
+	var rate := HoundLegs.turn_rate(d.speed, n("turn_slow"), n("turn_fast"))
+	if quick > 0.0:
+		rate = n("turn_slow") * quick
+	var way := HoundLegs.turn(d.angle, heading, rate * dt)
+	var from := Vector2(d.x, d.y)
+	var went: Array = HoundLegs.step(game, _body, _danger, d, way, length, n("radius"))
+	var first: float = went[0]
+	if first <= 0.0 and d.stall >= n("stall_for") and length < HoundLegs.STEP_LEAST:
+		# Pinned where every little step goes nowhere: one that gets him out.
+		went = HoundLegs.step(game, _body, _danger, d, way, HoundLegs.STEP_LEAST, n("radius"))
 	var moved: float = went[0]
-	var took: float = went[1]
+	# He faces the way he truly went (sliding along a wall too: he slid
+	# along it facing into it).
+	var tried: float = went[1]
+	var took := (Vector2(d.x, d.y) - from).angle() if moved > .0005 else tried
 	if length > .002 and moved <= 0.0:
 		d.stall = maxf(d.stall, .01)  # not an inch: caught on something?
 	if moved > .0005:
-		d.pace = moved / maxf(dt, .0001)
-		# Radians a cell, changing where his looks go from trot to gallop.
-		d.gait += moved * (3.4 if d.pace > HoundLooks.GALLOP_FROM else 6.5)
-		d.angle = HoundLegs.turn(d.angle, took, dt * 10.0)
+		# (a step out of a tight spot is no burst of speed)
+		d.pace = minf(moved / maxf(dt, .0001), maxf(d.speed, n("amble")) * 1.5)
+		# His legs' beats over the ground (HoundLooks: his feet keep to it).
+		d.gait += moved * HoundLooks.beats_per_cell(d.gait_kind, d.stride_v) * PI * .5
+		# (Shoved off well wide of where he means to go, he turns on round
+		# toward it, not after the shove: wedged, he went to and fro facing
+		# a wall.)
+		var face := took if absf(wrapf(took - way, -PI, PI)) < 1.0 else heading
+		d.angle = HoundLegs.turn(d.angle, face, rate * dt)
+	else:
+		d.angle = HoundLegs.turn(d.angle, heading, rate * dt)
 	return moved
 
 
@@ -914,8 +1047,11 @@ func _nose(d: Dog, p: Player, dt: float) -> void:
 	if d.bark_at < d.since:
 		# Not yet at it: on his way (a few seconds at most; from where he is
 		# when the way there is shut).
-		if gap > .35 and game.clock < d.since + 3.0 and d.stall < .8:
-			head(d, p, d.goal, n("run"), dt)
+		if gap > .35 and game.clock < d.since + 4.0 and d.stall < .8:
+			head(d, p, d.goal, n("lope"), dt)
+			return
+		if d.speed > .3:
+			halt(d, dt)  # there: a stride or two to stop
 			return
 		d.speed = 0.0
 		d.bark_at = game.clock
@@ -931,8 +1067,11 @@ func _nose(d: Dog, p: Player, dt: float) -> void:
 		if p == game.player:
 			game.barks.say(game, "hound_praise")
 	d.angle = HoundLegs.turn(d.angle, atan2(d.look.y - d.y, d.look.x - d.x), dt * 6.0)
-	if game.clock >= d.until:
-		into(d, FOLLOW)
+	var going := (
+		d.p_v.length() > 1.0 and Vector2(p.x - d.x, p.y - d.y).length() > n("catch_far") * .7
+	)
+	if game.clock >= d.until or going:
+		into(d, FOLLOW)  # done, or his player has heard him and gone on
 
 
 # ------------------------------------------------------------- fighting
@@ -981,13 +1120,14 @@ func _fight(d: Dog, p: Player, dt: float) -> void:
 				game.sound_at("hound_bark", d.x, d.y, .9)
 			return
 		d.speed = 0.0
-		d.angle = atan2(e.y - d.y, e.x - d.x)
+		d.angle = HoundLegs.turn(d.angle, atan2(e.y - d.y, e.x - d.x), dt * 8.0)
 		if game.clock >= d.bite_at:
 			d.bite_at = game.clock + n("bite_every")
 			_bite(d, e, n("bite"))
 			if e.hp <= e.max_hp * n("pin_below"):
 				into(d, PIN)
 				d.foe = e.uid
+				e.angle = atan2(p.y - e.y, p.x - e.x)
 				d.until = game.clock + n("pin_time")
 				pins += 1
 				game.sound_at("hound_growl", d.x, d.y, 1.0)
@@ -1009,7 +1149,7 @@ func _fight(d: Dog, p: Player, dt: float) -> void:
 		head(d, p, Vector2(e.x, e.y), n("run"), dt)
 	else:
 		d.speed = 0.0
-		d.angle = atan2(e.y - d.y, e.x - d.x)
+		d.angle = HoundLegs.turn(d.angle, atan2(e.y - d.y, e.x - d.x), dt * 8.0)
 	if game.clock - d.bark_at > 1.6:
 		d.bark_at = game.clock
 		game.sound_at("hound_growl", d.x, d.y, .8)
@@ -1105,7 +1245,7 @@ func _hurt(d: Dog, amount: float, x: float, y: float) -> void:
 	if d.state == RIDE:
 		into(d, FOLLOW)
 	var away := atan2(d.y - y, d.x - x)
-	shove(d, cos(away) * n("kick_shove"), sin(away) * n("kick_shove"))
+	d.knock = Vector2(cos(away), sin(away)) * n("kick_shove") * KNOCK_FADE
 	if d.health > 0.0:
 		game.sound_at("hound_yelp", d.x, d.y, 1.0)
 		return
@@ -1230,7 +1370,7 @@ func _fetch(d: Dog, p: Player, dt: float) -> void:
 		var px: float = entry[1]
 		var py: float = entry[2]
 		if Vector2(px - d.x, py - d.y).length() > .45:
-			head(d, p, Vector2(px, py), n("run"), dt)
+			head(d, p, Vector2(px, py), n("lope"), dt)
 			return
 		d.item = str(entry[0])
 		game.pickups.remove_at(i)
@@ -1241,7 +1381,7 @@ func _fetch(d: Dog, p: Player, dt: float) -> void:
 	# Carrying it back to his player's feet.
 	var gap := Vector2(p.x - d.x, p.y - d.y).length()
 	if gap > .95 and game.clock < d.until:
-		head(d, p, Vector2(p.x, p.y), n("run"), dt)
+		head(d, p, Vector2(p.x, p.y), n("lope"), dt, true)
 		return
 	var item := d.item
 	_drop(d, p)

@@ -55,15 +55,23 @@ const REVIVE_INK := Color(160 / 255.0, 210 / 255.0, 92 / 255.0)
 ## man's (tools/actor_check.gd holds it). Before pass 10's size fix he was
 ## drawn a metre to the world unit, nearly as tall as the man.
 const SIZE := .54
-## His gaits by pace (cells a second): a walk under TROT_FROM, a trot under
-## GALLOP_FROM, the gallop over it; each gait's cycles a cell, against
-## what play's gait gives (d.gait: 6.5 radians a cell under 4 a second,
-## 3.4 over), so his feet keep to the ground.
-const TROT_FROM := 1.8
-const GALLOP_FROM := 5.0
-const WALK_RATE := 1.85
-const TROT_RATE := 1.2
-const GALLOP_RATE := .65
+## His gaits (pass 12), by how fast his legs go (Dog.stride_v, cells a
+## second): the walk, into the trot over TROT_FROM (back under TROT_TO), into
+## the lope (his gallop's keys) over LOPE_FROM (back under LOPE_TO), held
+## between so a gait never flickers. GALLOP_FROM is kept for the old cels.
+const TROT_FROM := 1.5
+const TROT_TO := 1.0
+const LOPE_FROM := 2.6
+const LOPE_TO := 1.9
+const GALLOP_FROM := LOPE_FROM
+## How far a planted foot goes back a beat in each gait's keys (metres of
+## his model: walk, trot, lope; tools/hound_pace.gd measures them off the
+## model), the share of the ground his feet keep to (1 they hold it), and
+## the most strides a second each gait goes (past it they slip a little
+## rather than scurry). Play's Dog.gait gains beats_per_cell a cell.
+const STRIDE: Array[float] = [.15, .21, .277]
+const HOLD := .9
+const CADENCE: Array[float] = [3.6, 4.2, 4.8]
 ## Seconds: going down onto his side, his breathing on it, getting up, the
 ## shake after; the idle wag's loops a second; the lunge's gather before
 ## a bite and its follow-through after.
@@ -84,6 +92,16 @@ const TRACK_ROUND := 26.0
 const TRACK_FOR := 6.0
 ## Sat at STAY this long he lies down.
 const LIE_AFTER := 9.0
+## His legs going faster than this (cells a second) he walks, and under
+## STAND_TO he stands again (pass 12).
+const MOVING := .3
+const STAND_TO := .12
+## Still beside his player standing this long he sits, and this long lies
+## down (pass 12).
+const SIT_AFTER := 4.0
+## Stood this long, his idle round's scratch and sniff come round.
+const IDLE_AFTER := 1.5
+const LIE_DOWN_AFTER := 14.0
 ## Under this share of his health he is sore: he limps and stops wagging.
 const SORE := .35
 ## His job words on the badge, by his state (features/hound.gd), and while
@@ -135,6 +153,28 @@ static var _faces: Dictionary = {}
 # ------------------------------------------------------------------ his body
 
 
+## His gait (-1 standing, 0 walk, 1 trot, 2 lope) for legs going `v` cells a
+## second, from the one he was in (`was`): held between the thresholds.
+static func gait_of(was: int, v: float) -> int:
+	if v > LOPE_FROM or (was == 2 and v > LOPE_TO):
+		return 2
+	if v > TROT_FROM or (was >= 1 and v > TROT_TO):
+		return 1
+	if v > MOVING or (was >= 0 and v > STAND_TO):
+		return 0
+	return -1
+
+
+## His legs' beats a cell in gait `kind` going `v` cells a second: his feet
+## held to the ground (HOLD of it), no more than CADENCE strides a second.
+static func beats_per_cell(kind: int, v: float) -> float:
+	var k := maxi(kind, 0)
+	var hold := HOLD / (STRIDE[k] * SIZE)
+	if v > .05:
+		hold = minf(hold, CADENCE[k] * 4.0 / v)
+	return hold
+
+
 ## [frame, gait]: the frame his model shows (actors.json "hound"; a motion's
 ## first beat, x0, for a motion) and the gait it is played at (ActorView: a
 ## motion's beat is gait / (PI / 2), 0..4).
@@ -165,15 +205,15 @@ static func pose(h: Game.HoundScript, d: Game.HoundScript.Dog) -> Array:
 	)
 	if d.state == Game.HoundScript.FOLLOW and calm and d.item == "":
 		tracking = fmod(now + d.slot * 7.3, TRACK_ROUND) < TRACK_FOR
-	if d.pace > GALLOP_FROM:
-		return ["r0", d.gait * GALLOP_RATE]
-	if d.pace > TROT_FROM:
-		return ["l0" if sore else "t0", d.gait * (WALK_RATE if sore else TROT_RATE)]
-	if d.pace > .3:
+	if d.gait_kind >= 0:
+		if d.gait_kind == 2:
+			return ["r0", d.gait]
+		if d.gait_kind == 1:
+			return ["l0" if sore else "t0", d.gait]
 		# Sulking behind, his nose down too.
 		var low := tracking or d.mood == Game.HoundScript.SULK
 		var walk := "l0" if sore else "n0" if low else "w0"
-		return [walk, d.gait * WALK_RATE]
+		return [walk, d.gait]
 	match d.state:
 		Game.HoundScript.STAY:
 			var lie := p != null and p.health <= 0
@@ -187,6 +227,10 @@ static func pose(h: Game.HoundScript, d: Game.HoundScript.Dog) -> Array:
 			var after := now - (d.bite_at - h.n("bite_every"))
 			if after >= 0.0 and after < FOLLOW_THROUGH:
 				return _run("j", 2.0 + after / FOLLOW_THROUGH * 1.999)
+			if d.bite_at - h.n("bite_every") > d.since:
+				# Between bites, braced to go again (the lunge's last key; pass
+				# 12: a bark flashed up between bites).
+				return _run("j", 3.999)
 			return ["bark", 0.0]
 		Game.HoundScript.BAY:
 			return ["bay" if d.bark_at >= d.since else "sniff", 0.0]
@@ -215,10 +259,22 @@ static func pose(h: Game.HoundScript, d: Game.HoundScript.Dog) -> Array:
 		return ["l0", 0.0]
 	if tracking or (d.state == Game.HoundScript.FOLLOW and d.job == Game.HoundScript.NOSING):
 		return ["sniff", 0.0]
+	# Settled by his player standing (pass 12): he sits, then lies down.
+	var settled := now - d.still_at
+	if (
+		calm
+		and d.state == Game.HoundScript.FOLLOW
+		and (d.job == Game.HoundScript.HEEL or d.job == Game.HoundScript.WAIT)
+		and d.p_v.length() < .3
+		and settled > SIT_AFTER
+	):
+		return ["rest" if settled > LIE_DOWN_AFTER else "sit", 0.0]
 	var round := fmod(now + d.slot * 5.1, IDLE_ROUND)
-	if calm and round < SCRATCH_FOR:
+	# (Only once he has stood a moment: a scratch flashed up as he stopped.)
+	var stood := settled > IDLE_AFTER
+	if calm and stood and round < SCRATCH_FOR:
 		return _run("c", _loop(round / .36))
-	if round >= SNIFF_AT and round < SNIFF_AT + SNIFF_FOR:
+	if stood and round >= SNIFF_AT and round < SNIFF_AT + SNIFF_FOR:
 		return ["sniff", 0.0]
 	return _run("i", _loop(now * WAG + d.slot * .3))
 

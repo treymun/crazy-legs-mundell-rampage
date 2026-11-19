@@ -1174,8 +1174,11 @@ looks feature), numbers in `data/tuning/hound.cfg`.
   heel), CATCH (running to catch up), ASIDE (out of a player's sights),
   TRAIL (sulking behind), WAIT (where he cannot follow). `Dog.mood`
   (`Hound.MOODS`): CALM, HAPPY, ALERT, SCARED, SULK, HURT, till
-  `Dog.mood_until`. `Dog.pace` is how fast he went (his trot about 3.3, lope
-  5.4, run 7.4), `Dog.hop` a leap in the air (into a seat, down off it).
+  `Dog.mood_until`. `Dog.pace` is how fast he went last tick, `Dog.stride_v`
+  how fast his legs go (eased over a few ticks) and `Dog.gait_kind` the gait
+  they go in (pass 12: -1 standing, 0 walk, 1 trot, 2 lope), `Dog.still_at`
+  when he last stood still, `Dog.hop` a leap in the air (into a seat, down
+  off it).
   `features/hound_voice.gd` (this machine's only) answers `cowering(slot)`
   (the thunder), `howling(slot)` (along with the radio), `shaking(slot)`
   and `panting(slot)`.
@@ -1193,9 +1196,8 @@ looks feature), numbers in `data/tuning/hound.cfg`.
   it that goes somewhere (`HoundLegs.step`). Caught inside something (a
   prop's corner, a door shut on him: no little step goes anywhere) he is put
   on the nearest free spot a short hop away; stalled `unstick` where nobody
-  sees, he hops on to the next step of his way. He eases into a pace
-  (`accel`): a trot about his player, a lope ranging beside one running, a
-  run catching up or after a hand. Cost: whether a way is straight (and how
+  sees, he hops on to the next step of his way. His pace, easing and turning
+  are pass 12's ("Calm and easy to look at" below). Cost: whether a way is straight (and how
   far along a plan he can cut) is asked every `Hound.LOOK_AGAIN` (.2 s) or
   when the goal moves, the bosses are looked for when the hands come or go,
   whether it is calm at his sniff, and whether anybody sees him only when
@@ -1315,12 +1317,9 @@ looks feature), numbers in `data/tuning/hound.cfg`.
   (`scripts/blender/actors_hound.py`, scene `scenes/actors/hound.tscn`)
   drawn through a stand-in (`ModeBodies.stand_in`, key `hound<slot>`; the
   picture `hound_<cel>`, the model's frame in `Sprite.pose`) posed by
-  `HoundLooks.pose` (`hound.frame()`): by pace a walk (under
-  `TROT_FROM`), the trot (his heel pace) or the gallop (over
-  `GALLOP_FROM`), each at its own cycles a cell so his feet keep to the
-  ground (play's `Dog.gait` changes its radians a cell at `GALLOP_FROM`
-  too: his trot 3.3 trots, his lope 5.4 and run 7.4 gallop, his sulking
-  trail at `sulk_pace` 1.5 walks, nose down); sore (under `SORE` of his health) a limp and no wag; tracking (on
+  `HoundLooks.pose` (`hound.frame()`): by `Dog.gait_kind` the walk, the
+  trot or the lope (pass 12, below; his sulking trail at `sulk_pace` walks,
+  nose down); sore (under `SORE` of his health) a limp and no wag; tracking (on
   his way to a bay or a point, and now and then at heel) his nose down.
   Standing at heel the idle wag, and in his own round a scratch and a
   sniff; STAY sat, lying down after `LIE_AFTER`; the point, the howl (bay),
@@ -1375,7 +1374,7 @@ one-shot ending on its last key, his own blend) and his texels. Pass 10's
 ranging, stepping out of the sights, going round a hazard, backing off
 hurt, a boss's aim as harm, the free seat and a partner taking it, the
 sulk, the howl, the cower, the growl, the still, the pant, the shake and
-the barks dealt at random (LEGS, MOODS, VOICE). `-- play=<level>` lets the
+the barks dealt at random (LEGS, MOODS, VOICE); pass 12: his gaits by `Dog.stride_v`, settling by a standing player (no ranging straight off, sitting, lying down, no scratch as he stops). `-- play=<level>` lets the
 campaign bot play two minutes with him and prints what he did.
 
 `tools/hound_walk_check.gd` (HOUND WALK OK, in check_all; pass 10) walks
@@ -1398,6 +1397,115 @@ most of what is left in the sights is a third of a second a turn.) The
 rides: the airboat with him 35% of the ride and him not back at
 heel 12 s after, now 100% (riding) and back at once; the mower 20% and not
 back, now 100% (following) and back in 3.1 s; the car 64%, now 85%.
+
+#### Calm and easy to look at (pass 12)
+
+The owner: "he's a frickin speed demon and hard to even look at".
+`tools/hound_pace.gd` (below) measured why, a row a tick. He ran 7.4 cells
+a second (1.9 times his player's run, a racing greyhound at his size) back
+to heel whenever he was over 3.4 off, and his heel spot followed where his
+player looked, so a player turning on the spot sent him sprinting round
+behind them; by a player standing he ranged out at 3.3 and back at 5.4 a
+few seconds after every stop (33 cells in 24 s, 10 sprints a minute); he
+stepped out of the sights at a run as a look swept past; he sped up and
+slowed at 10 cells a second each second and stopped dead; he turned 10
+radians a second at any pace (pivots at a run, sliding sideways along walls
+facing into them, 46 degrees off his facing at the 90th percentile); his
+legs went into the trot at 1.8 and the gallop at 5 by the tick's own speed,
+so his gait flickered (22 pose pops a minute); and his feet skated: a
+planted foot went back .14 of the ground he covered in the walk, .42 in the
+trot, .14 in the gallop (and Godot's import dropped keys from his motions,
+below). A cell is about 1.85 of his metres, so his player walks about
+5 m/s; a real coonhound trots 3-4 m/s and seldom gallops, so at heel he
+lopes with a walking player and gallops only to catch up.
+
+- **Pace.** With his player: their own speed (where they truly went,
+  `Dog.p_v`: running into a wall is standing), `heel_gain` a second more for
+  each cell off his place, at most `heel_extra` quicker; well behind, the
+  lope (`lope` 4.2); ranging out and circling back at their pace and
+  `range_extra`; beside a running player he does not range. `run` (7.0)
+  only with a reason: catching up from further than `catch_far` .7, after a
+  hand, out of harm. To bay, point and fetch, and greeting: the lope.
+  Asides at `aside_pace`, and only after `aside_after` in the sights (a look
+  sweeping past no longer sends him off). Round a still at an amble.
+- **Easing.** `accel` 3.5, `decel` 6 (cells a second each second). `head`
+  brakes for its goal (no faster than he can stop in, plus his player's
+  speed when the goal goes with them), for a sharp corner in his planned
+  way ahead (down to a trot at it) and by his player's legs; `halt` coasts
+  him to a stop.
+- **Turning.** No quicker than `HoundLegs.turn_rate`: `turn_slow` (4.5
+  radians a second) at a walk down to `turn_fast` (3.0) at a run, so he runs
+  arcs; facing well off his way, or with his goal inside his turning circle,
+  he slows to an amble to turn. He faces the way he truly went (along a
+  wall too); shoved well wide of where he means to go he turns on round
+  toward it (wedged, he went to and fro facing a wall). `TURNS` ends with
+  straight back; pinned where every little step goes nowhere (the level's
+  settling pushes him back), one `HoundLegs.STEP_LEAST` step gets him out.
+- **Heel.** Behind the way his player goes, not where they look
+  (`HoundLegs.heel_spot`). His player standing, anywhere `heel_near` to
+  `heel_far` from them will do (`HoundLegs.home`: the nearest easy spot on
+  his own side, not round behind them, unless he is right in front of their
+  face) and he settles (`HoundMoods.settle`: he turns his head to them only
+  when he faces well away); after `range_rest_still` he ranges round them
+  again. A player walking into him: off their path and on ahead
+  (`HoundMoods.make_way`); he goes round any player close in his way
+  (`HoundLegs.round_players`). A kick shoves him over a few ticks
+  (`Dog.knock`), not half a cell at once; a car coming, he bounds off facing
+  where he goes. Ranging beside a player going on, only to a spot ahead of
+  him (he wheeled round and ran back). His point or bay ends when his
+  player has gone on past `catch_far` .7.
+- **His legs** (`HoundLooks`). The gait by `Dog.stride_v`, held between
+  thresholds (`gait_of`: into the trot over `TROT_FROM` 1.5, back under
+  `TROT_TO` 1.0; into the lope over `LOPE_FROM` 2.6, back under `LOPE_TO`
+  1.9; standing under `STAND_TO`), so it never flickers. Play's `Dog.gait`
+  gains `beats_per_cell` a cell in the gait he is in, so the stride runs on
+  across a change of gait: his feet hold `HOLD` (.9) of the ground, from
+  `STRIDE` (how far a planted foot goes back a beat in each gait's keys,
+  measured off the model), and go no more than `CADENCE` strides a second
+  (past it, flat out, they slip a little rather than scurry). A pivot on the
+  spot steps. By his player standing he sits after `SIT_AFTER` and lies down
+  after `LIE_DOWN_AFTER`; his idle round's scratch and sniff come only once
+  he has stood `IDLE_AFTER`; between bites he stays braced in the lunge's
+  last key.
+- **His model** (art.md): longer strides with the shoulder blade swinging,
+  a new lope, his toes no longer flying between feet, every key kept.
+
+`tools/hound_pace.gd` (HOUND PACE OK, in check_all with `check`) runs him
+beside a scripted player, a row a tick at 120 ticks a second: walking and
+running the chapter's way, standing, looking round (a flick about at
+12 s), stop and go, turning back, a told SIC, a pickup to point at, a car
+coming at him, co-op; and sums each scene: his speed against his player's,
+the share of time he dashes past them (over their speed and 1.5 within 5
+cells), sprints (over 5) a minute, acceleration, turn rate, darts (his way
+reversed at a trot or quicker within .6 s, his player not turned about), off
+where he faces, pose pops (back to the pose before within .4 s), his feet
+against the ground in each gait, the nearest to the eye, how much of the
+view and how long over the crosshair, his own speed across the view, and at
+rest how far he wanders and how often his pose changes. `-- out=<dir>`
+writes the rows; `draw` (a window, scratch APPDATA) draws every tick and adds
+the drawn model's planted feet. The walker puts its player on a cell it is
+caught short of; the next second and a half is left out of the sums. The
+check holds each scene's turn rate, feet, view and rest, and over the calm
+scenes the middle and the worst of the rest (`BUDGETS`, `WORST`). Measured
+on hickston, fair, quarry and bayou (40 scenes; the middle of the calm
+ones; in `docs/godot3d/blue12/` before and after: the sums, hickston's walk, look and still a row a tick, the drawn feet and the model sheets):
+
+| | dashing past his player | sprints a minute | his 90th percentile speed | accel p99 | turn p95 | off his facing p90 | darts a minute | pose pops a minute | feet: walk / trot / lope |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| v3.9.0 | 32% | 18 | 5.4 | 37 | 573 | 46 | 10 | 22 | .14 / .42 / .14 |
+| pass 12 | 4% | 0 | 3.7 | 6.1 | 248 | 0 | 2.5 | 0 | .88 / .87 / .84 |
+
+Drawn in a window (`draw`, hickston), his drawn model's planted feet slid
+.58 of his speed walking with his player and .84 turning back; now .19 and
+.48 (the measure is rough at an amble and on a pivot: .58 before and .71
+now looking round). By a standing player (still) he wandered 33 to 61 cells in 24 s and
+sprinted 10 to 34 times a minute; now he stays where he settled, sits and
+lies down. The worst scenes left: a dog wedged on a level's corner jitters
+until his stall hops him on (a scene's worst facing-off, 81 degrees), a
+player walking him into a wall comes within .73 of the eye now and then,
+and his feet keep .64 of the ground flat out. hound_walk_check after pass
+12: stuck at most .5 s (pass 10: 1.6), far at most about 7 s (pass 10: 2.2;
+he catches up calmer), no hazard.
 
 ### Mundell's junk bench (content pass 8)
 

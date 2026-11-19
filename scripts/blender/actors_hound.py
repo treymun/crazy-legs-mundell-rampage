@@ -52,15 +52,16 @@ Seen side on (x along the body, head to +x, y his left, z up), turned a
 little to the camera for the cels; for the model (FOR_MODEL, set by
 export_actors.py) square, head toward -y, as the people are. Every leg is
 built from pieces of fixed length posed by two-bone IK, and every frame
-builds the same parts in the same order (export_actors.py matches parts by
-shape), so nothing pops in or out between keys.
+builds the same parts in the same order (export_actors.py pairs them by
+that order, `same_parts`: by shape his toes were paired across feet), so
+nothing pops in or out or flies between keys.
 """
 
 _HD_RUNS = ("i", "w", "t", "r", "l", "n", "c", "k", "f", "o", "v", "u", "j", "p")
 _HD_SINGLES = ("sit", "sniff", "point", "bark", "bay", "pain", "fetch", "rest", "down")
 HOUND = dict(canvas=(1.5, 1.0), px=64,
              model_frames=[0] + ["%s%d" % (s, k) for s in _HD_RUNS for k in range(5)] + list(_HD_SINGLES),
-             head_box=.17)
+             head_box=.17, same_parts=True)
 # The badge is cels only: export_actors.py makes no model of it.
 HOUND_FACE = dict(canvas=(.42, .42), px=48, cels_only=True)
 HOUND_CELS = [0, "wag", "w0", "w1", "w2", "w3", "w4", "r0", "r1", "r2", "r3", "r4", "sit", "bark", "bay",
@@ -433,6 +434,19 @@ def _hd_walk_feet(k, stride, lift, offs, k_total=4.):
 
 
 _HD_WALK = {"lh": 0., "lf": .25, "rh": .5, "rf": .75}
+# The lope's footfalls (pass 12): the key each foot strikes on, how far out
+# in front it strikes (it sweeps back _HD_LOPE_SWEEP over the next beat).
+_HD_LOPE = {"lh": (0, .15), "rh": (1, .15), "rf": (2, .17), "lf": (3, .17)}
+_HD_LOPE_SWEEP = .28
+
+
+def _hd_lope_foot(leg, k):
+    """A foot's place at key k of the lope: struck, swept back on the ground,
+    lifted behind, swung forward high."""
+    strike, out = _HD_LOPE[leg]
+    j = (k - strike) % 4
+    back = out - _HD_LOPE_SWEEP
+    return [(out, 0., 0.), (back, 0., 0.), (back - .05, .1, 0.), ((out + back) * .5, .16, 0.)][j]
 _HD_TROT = {"lf": 0., "rh": 0., "rf": .5, "lh": .5}
 
 
@@ -463,42 +477,49 @@ def _hd_pose(frame):
         P.update(jaw=.22 + .06 * (k % 2), tongue=1., tail_yaw=.5 * s, tail_whip=-.35 * s,
                  tail=(1.1, .26), nod=-.04 * c, neck=.82 + .03 * c, rise=.004 * c, ear_l=.05 * s, ear_r=-.05 * s)
     elif run == "w":
-        P["feet"] = _hd_walk_feet(k, .11, .07, _HD_WALK)
+        # (pass 12: strides lengthened, .11 to .15, so his feet keep to the
+        # ground at the pace he walks; the shoulder blade swings with the
+        # foreleg, `reach`, so the forefoot gets there)
+        P["feet"] = _hd_walk_feet(k, .15, .07, _HD_WALK)
+        P["reach"] = .3
         P.update(tail_yaw=.3 * s, tail_whip=-.2 * s, nod=.05 * math.sin(k / 2. * math.tau),
                  rise=.01 * math.cos(k / 2. * math.tau), roll=.025 * s, bend=.04 * s,
                  ear_l=.14 * s, ear_r=.14 * s, jaw=.18, tongue=1.)
     elif run == "t":
-        P["feet"] = _hd_walk_feet(k, .16, .1, _HD_TROT)
+        P["feet"] = _hd_walk_feet(k, .21, .09, _HD_TROT)
+        P["reach"] = .3
         P.update(neck=.7, nod=.05 + .03 * math.cos(k / 2. * math.tau), rise=.015 * math.cos(k / 2. * math.tau),
                  roll=.03 * s, tail=(.95, .2), tail_yaw=.15 * s, ears=.25, ear_l=.2 * c, ear_r=-.2 * c,
                  jaw=.25, tongue=1.)
     elif run == "r":
-        # The rotary gallop, four beats: stretched out in the air, the fore
-        # feet striking, gathered with the hind feet under him, the hind push.
-        P.update(neck=.45, ears=.95, flare=.15, tail=(.4, .12), jaw=.32, tongue=1., head_yaw=0.)
-        P["feet"] = [
-            {"lf": (.32, .1, 0.), "rf": (.26, .15, 0.), "lh": (-.32, .1, 0.), "rh": (-.26, .15, 0.)},
-            {"lf": (.08, 0., 0.), "rf": (.18, .03, 0.), "lh": (-.22, .16, 0.), "rh": (-.14, .21, 0.)},
-            {"lf": (-.2, .13, 0.), "rf": (-.1, .06, 0.), "lh": (.14, .03, 0.), "rh": (.22, .1, 0.)},
-            {"lf": (.02, .26, 0.), "rf": (-.06, .21, 0.), "lh": (-.04, 0., 0.), "rh": (.06, .03, 0.)},
-        ][k]
-        P["rise"] = [.07, -.01, -.03, .03][k]
-        P["pitch"] = [0., .1, -.05, -.1][k]
-        P["flex"] = [-.22, 0., .28, .05][k]
-        P["nod"] = [-.08, .12, .06, -.06][k]
-        P["ear_l"] = P["ear_r"] = [-.2, .15, .25, -.05][k]
+        # The lope, his rotary gallop at an easy pace (pass 12: it was a
+        # flat-out run with each foot down a sixteenth of the stride, so his
+        # feet skated at any pace): each foot down a whole beat, struck out
+        # in front and swept back under him over the ground he covers, in
+        # turn left hind, right hind, right fore, left fore; the back
+        # stretching as the hind feet drive and gathering as the fore land.
+        P.update(neck=.55, ears=.7, flare=.12, tail=(.55, .14), jaw=.3, tongue=1., head_yaw=0.)
+        P["feet"] = {leg: _hd_lope_foot(leg, k) for leg in ("lf", "rf", "lh", "rh")}
+        P["reach"] = .3
+        P["rise"] = [-.012, .018, -.006, .016][k]
+        P["pitch"] = [.04, -.01, -.045, .015][k]
+        P["flex"] = [-.07, .03, .09, -.02][k]
+        P["nod"] = [-.04, .05, .07, -.03][k]
+        P["ear_l"] = P["ear_r"] = [-.12, .08, .15, -.04][k]
     elif run == "l":
         # The limp: the right fore carried, only touched down; the head nods
         # up as it comes down, the rump rolls.
-        feet = _hd_walk_feet(k, .09, .06, _HD_WALK)
+        feet = _hd_walk_feet(k, .13, .06, _HD_WALK)
         feet["rf"] = (.05 + .03 * s, .07 + .03 * c, 0.)
         P["feet"] = feet
+        P["reach"] = .3
         P.update(nod=.1 + .08 * c, neck=.7, rise=-.03 + .012 * c, roll=-.05 + .03 * s, pitch=.04,
                  tail=(.35, .1), tail_yaw=.08 * s, ears=.35, brows=1., jaw=.08, tongue=0., lids=.25,
                  ear_l=.1 * s, ear_r=.1 * s)
     elif run == "n":
         # Tracking: walking with his nose to the ground, sweeping side to side.
-        P["feet"] = _hd_walk_feet(k, .08, .05, _HD_WALK)
+        P["feet"] = _hd_walk_feet(k, .13, .05, _HD_WALK)
+        P["reach"] = .3
         P.update(neck=-.55, nod=.5, neck_yaw=.28 * s, head_yaw=.12 * s, pitch=.08, rise=-.02,
                  front_drop=.03, tail=(1.15, .3), tail_yaw=.2 * c, jaw=0., tongue=0., ears=-.1,
                  ear_l=-.15 * s, ear_r=.15 * s)
@@ -912,6 +933,9 @@ def _hd_body(P, K, M):
     for leg, sd, front in (("lf", 1, True), ("rf", -1, True), ("lh", 1, False), ("rh", -1, False)):
         dx, dz, dy = P["feet"][leg]
         joint = Vector((_HD_SHOULDER.x, sd * _HD_SHOULDER.y, _HD_SHOULDER.z)) if front else             Vector((_HD_HIP.x, sd * _HD_HIP.y, _HD_HIP.z))
+        if front and not P["sat"] and not P["low"]:
+            # the shoulder blade swinging with the foreleg (pass 12)
+            joint.x += P.get("reach", 0.) * dx
         hip = (Bf if front else Br) @ joint
         rest = _HD_FOOT_F if front else _HD_FOOT_H
         foot = Vector((rest.x + dx, sd * rest.y + dy, rest.z + dz))

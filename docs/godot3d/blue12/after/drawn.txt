@@ -1,0 +1,9 @@
+his motions' planted feet (metres his feet go back a beat, share of the beats down):
+  w  0.150 m a beat, down 0.66
+  t  0.210 m a beat, down 0.48
+  r  0.277 m a beat, down 0.24
+  n  0.130 m a beat, down 0.86
+  l  0.130 m a beat, down 0.63
+walk     hickston   2.68  2.87  3.71  4.23    2%   0.0   6.0   235     0   2.5   2.5  0.88  0.87  0.84  1.67    0%   0.0  0.00    0%     28    0.0  0.19
+look     hickston   0.00  0.00  1.18  2.40    4%   0.0   5.8   253     0   0.0   0.0  0.83  0.88     -  1.17    4%   0.0  0.81   14%      8    0.0  0.71
+turnback hickston   2.59  2.32  3.66  4.23    6%   0.0   8.7   309     0   7.5   5.0  0.88  0.87  0.85  0.87    5%   0.0  1.38    4%     63    0.0  0.48
