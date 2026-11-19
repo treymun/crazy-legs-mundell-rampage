@@ -84,6 +84,8 @@ var _watched: Game = null
 var _boot_seq := -1
 ## The trigger hold (its first input) a stick was last shown lit for.
 var _lit_hold := -1
+## Our projectile guns' shots flown from the press (net_own_shots.gd).
+var own := NetOwnShots.new()
 
 
 func _init() -> void:
@@ -147,6 +149,7 @@ func forget() -> void:
 	_seen_seq = -1
 	_boot_seq = -1
 	_lit_hold = -1
+	own.forget()
 
 
 func _client_now() -> NetSync.Client:
@@ -305,6 +308,8 @@ func _show(game: Game, me: Player, ev: Dictionary) -> void:
 	var mode := str(how.get("fire", ""))
 	if mode == "hitscan" or mode == "pellets":
 		_line(game, me, gun, ev, shown)
+	elif mode == "projectile":
+		own.launch(game, me, gun)
 
 
 ## Plays `cue` now and notes it, so the copy's own is not heard again.

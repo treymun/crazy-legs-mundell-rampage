@@ -750,18 +750,13 @@ func _process(delta: float) -> void:
 		watch_rematch()
 
 	sound.tick_score(dt)
-	var aimed := _net_aim(dt)
+	var aimed := net_draw_begin(dt)
 	render()
 	if waiting_play != null and canvas.gpu:
 		# A browser still fetching the chapter: say so, and how far it has come.
 		var pack := str(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
 		HUD.banner(canvas, packs.road_line(pack), 88)
-	if not aimed.is_empty():
-		var aimed_player: Player = aimed[0]
-		var aimed_kept: Dictionary = aimed[1]
-		var shots_kept: Dictionary = aimed[2]
-		net_shots.restore(game, aimed_player, shots_kept)
-		NetPredict.restore(aimed_player, aimed_kept)
+	net_draw_end(aimed)
 	var spent := (Time.get_ticks_usec() - work_began) / 1000.0
 	_auto_detail(dt, spent)
 	_measure_quality(dt, spent)
@@ -1091,7 +1086,8 @@ func _shop_pointer() -> void:
 ## Every frame while online (src/net/net_play.gd): what came in, who came and
 ## went, a match beginning or ending, the lobby gone.
 func _net_frame() -> void:
-	var now := float(Time.get_ticks_msec())
+	# To the microsecond: the render clock (NetSync.Client.view_at) reads it each frame.
+	var now := Time.get_ticks_usec() / 1000.0
 	if browser != null:
 		browser.poll(now)
 	for old: NetPlay in net_old.duplicate():
@@ -1160,7 +1156,7 @@ func _net_advance(elapsed: float, controls: Game.Controls) -> void:
 			else:
 				net.client_input(controls)
 	if not hosting:
-		net.client_play(steps)
+		net.client_play(steps, elapsed * 1000.0)
 		var copy := net.match_game()
 		if copy != null and copy != game:
 			game = copy
@@ -1189,14 +1185,75 @@ func _net_host_tick(mine: Game.Controls) -> void:
 	target.focus(target.local_player)
 
 
-## A client's own aim drawn where the mouse has put it (inputs the host has
-## not played into the copy yet), so looking round never waits on the
-## network; put back after the frame. [player, kept, shots' kept] or [].
+## Before an online frame is drawn: everyone else between the game's last
+## two ticks (net_blend.gd), our own player led by the inputs the host has
+## not played and into the next tick by this frame's share of it
+## (net_predict.gd), our shots shown at the press (net_shot_predict.gd).
+## Looks only; net_draw_end puts it all back after the frame.
+func net_draw_begin(dt: float) -> Array:
+	# Our own player first, walked among the others as the copy has them
+	# (the prediction's walk against bodies part way between ticks moved
+	# every frame and was eased as corrections), then the others blended,
+	# then our shots looked along at what this frame shows.
+	var aimed := _net_aim(dt)
+	_net_blend()
+	if aimed.size() == 2:
+		var me: Player = aimed[0]
+		var client := net.role == NetPlay.Role.CLIENT
+		aimed.append(net_shots.frame(game, me, net.client_sync) if client else {})
+		if client:
+			# Our thrown shots at our own time (net_own_shots.gd).
+			net_shots.own.begin(game, me, net_smooth.last_inputs, dt)
+	return aimed
+
+
+func net_draw_end(aimed: Array) -> void:
+	net_shots.own.end(game)
+	if not aimed.is_empty():
+		var aimed_player: Player = aimed[0]
+		var aimed_kept: Dictionary = aimed[1]
+		var shots_kept: Dictionary = aimed[2]
+		net_shots.restore(game, aimed_player, shots_kept)
+		NetPredict.restore(aimed_player, aimed_kept)
+	net_blend.end()
+
+
+## The others drawn between ticks: a client's at its playout clock's tick
+## (NetSync.Client.view_at), the host's a tick behind its newest by the
+## frame's share of the next.
+func _net_blend() -> void:
+	if net == null or state != "play" or game == null or net.match_game() != game:
+		net_blend.forget()
+		return
+	var mine := TacticalScreens.human
+	if net.role == NetPlay.Role.CLIENT:
+		var cs := net.client_sync
+		if not net.client_ready():
+			net_blend.forget()
+			return
+		mine = cs.slot
+		var skip: Player = game.players[mine] if mine >= 0 and mine < game.players.size() else null
+		net_blend.begin(game, cs.game_tick, cs.view_at, skip)
+		return
+	var hs := net.host_sync
+	if hs == null:
+		net_blend.forget()
+		return
+	var own: Player = game.players[mine] if mine >= 0 and mine < game.players.size() else null
+	net_blend.begin(game, hs.tick, hs.tick - 1 + net_accum / NetSync.STEP, own)
+
+
+## Our own aim drawn where the mouse has put it (a client: with the inputs
+## the host has not played into the copy yet), so looking round never waits
+## on the network; put back after the frame. [player, kept] or [].
 func _net_aim(dt: float) -> Array:
-	if net == null or net.role != NetPlay.Role.CLIENT or state != "play" or game == null:
+	if net == null or state != "play" or game == null:
 		net_smooth.reset()
 		net_shots.forget()
 		return []
+	if net.role != NetPlay.Role.CLIENT:
+		net_shots.forget()
+		return _host_aim()
 	if not net.client_ready():
 		net_smooth.reset()
 		return []
@@ -1209,14 +1266,35 @@ func _net_aim(dt: float) -> Array:
 		net_smooth.reset()
 		return []
 	# Walk on with the inputs the host has not played into the copy yet
-	# (net_predict.gd), eased over a correction, then turn by the mouse not
-	# sent yet.
+	# (net_predict.gd), eased over a correction, then into the next tick by
+	# the share of it this frame has (the keys held now), turned by the mouse
+	# not sent yet.
 	var kept := net_smooth.draw(game, me, net.client_sync, dt)
-	me.angle = fposmod(me.angle + net_turn, TAU)
-	me.pitch = clampf(me.pitch + net_look, -53.0, 53.0)
-	# Our shots, reloads and pickups shown now, not when the copy plays them
-	# (net_shot_predict.gd); the gun and the pickups are put back after the frame.
-	return [me, kept, net_shots.frame(game, me, net.client_sync)]
+	var keys := Game.Controls.new() if net_leave else last_controls
+	var ticks := net_smooth.last_inputs + 1
+	NetPredict.ahead(game, me, keys, net_turn, net_look, net_accum / NetSync.STEP, ticks)
+	# Our shots, reloads and pickups are shown now, not when the copy plays
+	# them (net_shot_predict.gd, in net_draw_begin); the gun and the pickups
+	# are put back after the frame.
+	return [me, kept]
+
+
+## The host's own player into the next tick by this frame's share of it
+## (its game ticks at NetSync.STEP, 60 a second, under a faster screen).
+func _host_aim() -> Array:
+	if net.match_game() != game or game.showing_tally:
+		return []
+	var mine := TacticalScreens.human
+	if mine < 0 or mine >= game.players.size():
+		return []
+	var me: Player = game.players[mine]
+	if game.local_player != me or me.health <= 0 or not NetPredict.between:
+		return []
+	var kept := {}
+	for field: String in NetPredict.KEPT:
+		kept[field] = me.get(field)
+	NetPredict.ahead(game, me, last_controls, net_turn, net_look, net_accum / NetSync.STEP)
+	return [me, kept]
 
 
 ## --host-online / --join-online: straight into a lobby.

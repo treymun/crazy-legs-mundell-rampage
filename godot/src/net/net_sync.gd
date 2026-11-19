@@ -492,6 +492,18 @@ class Client:
 	## old ways, for net_lag.gd's before and after).
 	static var predict_from_echo := true
 	static var adaptive_playout := true
+	## Off: the copy shown at whole ticks by the clock as it was (net_feel's
+	## `old`): no render clock, no fraction for NetBlend.
+	static var smooth_clock := true
+	## The render clock eases toward its mark by at most these shares of the
+	## time passing (faster, slower), and jumps only when this many ticks off.
+	const CLOCK_FAST := .08
+	const CLOCK_SLOW := .15
+	const CLOCK_SNAP := 10.0
+	## Ticks the newest snapshot may be ahead while the copy waits for a
+	## late snapshot's inputs (_rows_late); off: put back at once.
+	const ROWS_WAIT := 12
+	static var wait_rows := true
 
 	var session: NetSession
 	## level id -> a fresh Game for it (configured as the host's).
@@ -540,10 +552,17 @@ class Client:
 	var by_clock := true
 	## Snapshots that came in SNAP_PARTs, and the parts of those still coming.
 	var parts_joined := 0
+	## Frames the copy waited for inputs on their way (_rows_late).
+	var rows_waited := 0
 	var _parts := {}
 	var _depth := PLAYOUT_LEAST
 	var _lower_since := -1.0
 	var _now := 0.0
+	## The tick this frame shows, with its fraction (-1: the copy as it
+	## stands): NetBlend draws everyone between the copy's last two ticks by it.
+	var view_at := -1.0
+	var _clock := -1.0
+	var _clock_ms := -1.0
 
 	func _init(s: NetSession, maker: Callable) -> void:
 		session = s
@@ -626,16 +645,60 @@ class Client:
 	## it moves a tick a frame however the snapshots bunch up, and closes on
 	## that mark by a tick a frame at most. `frame_ticks` is the frame's ticks
 	## (NetSync.STEP), `now_ms` the clock the session is polled on.
-	func playout(frame_ticks: int, now_ms: float) -> void:
+	func playout(frame_ticks: int, now_ms: float, elapsed_ms := -1.0) -> void:
 		if not (adaptive_playout and by_clock) or arrivals.size() < 8 or latest < 0 or game == null:
+			view_at = -1.0
+			_clock = -1.0
 			var extra := 1 if backlog() > PLAYOUT_LEAST + 2 else 0
 			_catch_up(maxi(1, frame_ticks) + extra, PLAYOUT_LEAST)
 			return
+		if smooth_clock:
+			_paced(frame_ticks, now_ms, elapsed_ms)
+			return
+		view_at = -1.0
 		var target := _host_tick_at(now_ms) - playout_depth(now_ms)
 		# A tick more than the frame's while behind the mark, none while ahead;
 		# far back (a stall) it catches up at once (_catch_up).
 		var most := clampi(target - game_tick, 0, frame_ticks + 1)
 		_catch_up(most, maxi(0, latest_tick - target))
+
+	## The copy played on by the render clock (_view_clock): stepped to the
+	## tick at or just past the time this frame shows, so NetBlend can draw
+	## everyone between that tick and the one before by the fraction. The
+	## clock runs with the frame's time and eases toward the host's tick less
+	## the depth, so a late snapshot, a quicker arrival or a deeper playout
+	## bends its pace a little instead of freezing or hurrying everyone.
+	func _paced(frame_ticks: int, now_ms: float, elapsed_ms: float) -> void:
+		var at := _view_clock(now_ms, elapsed_ms)
+		var target := ceili(at - 1e-4)
+		var most := clampi(target - game_tick, 0, frame_ticks + 2)
+		_catch_up(most, maxi(0, latest_tick - target))
+		view_at = at
+
+	## The tick this frame shows (with its fraction).
+	func _view_clock(now_ms: float, elapsed_ms: float) -> float:
+		var step_ms := STEP * 1000.0
+		var quickest := arrivals[0]
+		for a in arrivals:
+			quickest = minf(quickest, a)
+		var want := (now_ms - quickest) / step_ms - playout_depth(now_ms)
+		if _clock < 0.0 or _clock_ms < 0.0 or absf(want - _clock) > CLOCK_SNAP:
+			_clock = want
+		else:
+			var passed := (
+				maxf(0.0, elapsed_ms if elapsed_ms >= 0.0 else now_ms - _clock_ms) / step_ms
+			)
+			var off := want - (_clock + passed)
+			_clock += passed * (1.0 + clampf(off * .1, -CLOCK_SLOW, CLOCK_FAST))
+		_clock_ms = now_ms
+		return _clock
+
+	## The tick our inputs say this screen shows (the host rewinds our shots
+	## to it): the render clock's, rounded, never past the copy's.
+	func shown_tick() -> int:
+		if view_at < 0.0:
+			return game_tick
+		return clampi(roundi(view_at), game_tick - 4, game_tick)
 
 	## Ticks the copy is shown behind the host's tick now: the snapshots'
 	## gap and their arrivals' spread (95th percentile over the quickest),
@@ -692,7 +755,9 @@ class Client:
 		for i in range(first, input_seq):
 			list.append(unacked[i])
 		session.send(
-			NetSession.HOST_ID, NetSession.CH_INPUTS, NetWire.inputs(latest, first, list, game_tick)
+			NetSession.HOST_ID,
+			NetSession.CH_INPUTS,
+			NetWire.inputs(latest, first, list, shown_tick())
 		)
 
 	## The turn and look of our inputs the copy has not played yet (sent, or
@@ -809,6 +874,8 @@ class Client:
 			var row: Variant = echo.get(game_tick + 1)
 			var row_dict: Dictionary = {} if row == null else row
 			if row_dict.is_empty():
+				if _rows_late():
+					return
 				# The inputs for the next tick never came (lost past the
 				# redundancy): start again from the newest snapshot.
 				if game_tick >= 0:
@@ -826,6 +893,19 @@ class Client:
 			if game_tick - checked_at >= CHECK_EVERY:
 				if not _check_at(game_tick):
 					return
+
+	## The next tick's inputs are missing but may still be on their way: a
+	## snapshot that carried them passed by a newer one (jitter reorders the
+	## unreliable ones; the newest repeats only the last few snapshots'
+	## rows). The copy waits for them (a frozen frame or two) while the
+	## newest snapshot is under ROWS_WAIT ticks ahead; it was put back on the
+	## newest at once, a jump of the whole world: 3 to 11 times in 20 s in
+	## co-op at 250 ms, 44 at 60 snapshots a second (net_feel.gd).
+	func _rows_late() -> bool:
+		if not wait_rows or game_tick < 0 or latest_tick - game_tick > ROWS_WAIT:
+			return false
+		rows_waited += 1
+		return true
 
 	## Compares the copy with the snapshot of the tick it is at, if one is
 	## kept; false when they parted (the copy is then put back on the newest).

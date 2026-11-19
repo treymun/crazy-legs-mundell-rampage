@@ -82,6 +82,10 @@ static var DEFAULTS: Dictionary = Tuning.file(LOBBY_DATA).get_value("lobby", "de
 ## Each mode's maps (lobby.cfg mode_maps): MAP steps through the mode's own.
 static var MODE_MAPS: Dictionary = Tuning.file(LOBBY_DATA).get_value("lobby", "mode_maps", {})
 const TEAM_NAMES := ["HOGS", "GATORS"]
+## COUNTY RUN co-op's copies paced by the clock like every other mode's (off:
+## the old fixed two ticks behind the newest snapshot, kept from 3.2 when its
+## copies parted from the host; those partings were found and fixed in pass 9).
+static var county_by_clock := true
 ## The party modes (campaign co-op, deathmatch, team deathmatch): people only,
 ## no bots, four at most; a newcomer joins a match under way (late joining)
 ## and someone leaving lies out of play (Modes.went_away).
@@ -1284,15 +1288,16 @@ func client_input(c: Game.Controls) -> void:
 
 
 ## Plays the copy on toward the host's newest snapshot: `ticks` (about a
-## frame's worth), paced by the clock (NetSync.Client.playout).
-func client_play(ticks: int) -> void:
+## frame's worth), paced by the clock (NetSync.Client.playout); `elapsed_ms`
+## the frame's own time, which the render clock runs with.
+func client_play(ticks: int, elapsed_ms := -1.0) -> void:
 	if client_sync != null:
 		# Paced by the clock, a depth behind the host that covers the link's
 		# jitter (NetSync.Client.playout); it used to stand a fixed
 		# two ticks behind the newest snapshot, so every late one froze
 		# everyone for a frame and the catch-up after it hurried them.
-		client_sync.by_clock = not county()
-		client_sync.playout(ticks, _now)
+		client_sync.by_clock = county_by_clock or not county()
+		client_sync.playout(ticks, _now, elapsed_ms)
 
 
 ## The client's copy has the host's game on it (a first snapshot came).

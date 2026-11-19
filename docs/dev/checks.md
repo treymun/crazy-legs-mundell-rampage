@@ -48,8 +48,8 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 - Timing a check asserts is the quickest of a few batches (set_piece_check's
   idle tick), never one batch a busy PC can preempt; online checks count
   ticks, not the wall clock.
-- Rows in `ALONE` (`net_lag` and `net_pace`: their limits are on online
-  timing) run last, one at a time, with nothing beside them.
+- Rows in `ALONE` (`net_lag`, `net_pace` and `net_feel`: their limits are on
+  online timing) run last, one at a time, with nothing beside them.
 - check_all reads the children's output every 10 ms: a child whose output
   pipe is full waits until it is read, and at the old 100 ms net_lag's
   timing came out differently (13% of hits judged misses, over its 12%
@@ -124,6 +124,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `net_errors_check` | NET ERRORS OK | yes | what a player is told when joining goes wrong: another version or protocol (both versions named), a full lobby, nobody at the address (COULD NOT REACH THE HOST), a host that never answers the HELLO (THE HOST NEVER ANSWERED, pass 9: it waited for ever); a client that lost the host lands on the JOIN form with ENTER TO TRY AGAIN and gets back in; a refusal or a closed lobby goes to the title |
 | `predict_check` | PREDICT CHECK OK | yes | an online client's own shots, reloads and pickups shown at the press and put right by the host's word (`net_shot_predict.gd`), with no network: a range deathmatch as the copy, a hand-filled `NetSync.Client` as its link, each input played 12 ticks on. A shot played (one bang, kick and tracer, rounds down at the press and never back up, its mark and tick once), refused (rounds back, mark and blood withdrawn), out of rounds (one dry click), a hit judged a miss (mark and blood withdrawn), a gun taken up and fired at once, a pickup played and one refused (back in the picture), a reload pressed mid-burst with the trigger held (every cue, tracer and shell counted as often as a copy without prediction), a stick of dynamite lit and thrown (and one the host never lit: struck once, the stick back), the crowbar's blow on player two before the copy plays it, USE's boot in co-op, and nothing on a game nobody watches |
 | `net_lag` | NET LAG OK | | what a player feels online (`net_lag.gd`, run `-- quick`: a 120 ms link, limits on rubber band, missed hits, stalls, lost inputs, bandwidth); without quick, three links and the full table (`oldserver`: the 3.9.0 server's side, `snaps=1`: 60 snapshots a second) |
+| `net_feel` | NET FEEL OK | | how smooth an online client looks frame by frame (`net_feel.gd`, run `-- quick`: the 5v5 at 120 ms on a 144 Hz screen, a client drawn by main.gd's own calls; limits on the view's and the others' frozen frames and jerk, the turn held against the mouse, snaps, no parting); without quick, every scene (5v5, deathmatch, co-op as a client and as the host, County Run co-op) at 50/120/250 ms against single-player ([multiplayer.md](multiplayer.md#frame-by-frame-pass-12-net_feelgd)) |
 | `net_pace` | NET PACE OK | | how evenly a lobby server's snapshots go out (pass 12): on a made-up clock a stall is caught up with one snapshot a room and a 2 s stall let go; on the real clock two lobbies in matches with extra work each tick, no snapshot bunched, gap p99 under 45 ms (server) and 50 (a probe), arrivals' wander p95 under 20 ms, nothing over the MTU. `server=<address:port>` measures a lobby server in another process instead ([multiplayer.md](multiplayer.md#pacing-packets-and-the-one-core-server-pass-12)) |
 
 ### What check_fixes runs
