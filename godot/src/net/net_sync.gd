@@ -533,6 +533,11 @@ class Client:
 	extends RefCounted
 	## Compare the copy with a snapshot every this many ticks.
 	const CHECK_EVERY := 60
+	## With spread_check: a part of the copy every this many ticks
+	## (net_check_parts.gd), all of it in turn about once a second; off: the
+	## whole copy every CHECK_EVERY ticks in one frame (a hitch of 7 to 40 ms).
+	const CHECK_PART_EVERY := 4
+	static var spread_check := true
 	## Floats this near (relative) are the same to that comparison: a server
 	## on Linux and a client on Windows round sin, cos and the like a last bit
 	## apart, and copies were put back every 20 to 40 s for it against the VPS
@@ -625,6 +630,8 @@ class Client:
 	## `rows_from_parts` off: a split snapshot's rows only once it is whole.
 	static var rows_from_parts := true
 	var parts_joined := 0
+	## The part of the copy the next check looks at (net_check_parts.gd).
+	var check_part := 0
 	## Frames the copy waited for inputs on their way (_rows_late).
 	var rows_waited := 0
 	var _parts := {}
@@ -982,7 +989,7 @@ class Client:
 			game.tick(STEP, given)
 			echo.erase(game_tick)
 			game_tick += 1
-			if game_tick - checked_at >= CHECK_EVERY:
+			if game_tick - checked_at >= (CHECK_PART_EVERY if spread_check else CHECK_EVERY):
 				if not _check_at(game_tick):
 					return
 
@@ -1009,9 +1016,17 @@ class Client:
 			checked_at = tick
 			checks += 1
 			var seq_data: Dictionary = snaps[seq][1]
-			var where := GameSnapshot.first_difference(
-				NetSync.comparable(seq_data), NetSync.comparable(NetSync.capture(game)), "", near
-			)
+			var where := ""
+			if spread_check:
+				where = NetCheckParts.compare(game, seq_data, check_part, near)
+				check_part += 1
+			else:
+				where = GameSnapshot.first_difference(
+					NetSync.comparable(seq_data),
+					NetSync.comparable(NetSync.capture(game)),
+					"",
+					near
+				)
 			if where != "":
 				mismatches += 1
 				if first_mismatch == "":

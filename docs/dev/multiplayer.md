@@ -775,6 +775,23 @@ scene moves our player, shuts the door and stands the hand in front on
 the host's game between ticks, so its copies are put back often: its
 other rows are not the feel of play. predict_check holds each case.
 
+**The copy's check, a part at a time** (`src/net/net_check_parts.gd`,
+`NetSync.Client.spread_check`): the client compared its whole copy with
+the host's snapshot once a second, a whole capture and its walk in one
+frame (NETSOAK: 7 ms in a 5v5, 23 in County Run, about 40 in campaign
+co-op). Now every `CHECK_PART_EVERY` (4) ticks it compares one part: the
+game's fields, the world, the facts, the players, the enemies' order and
+the statics; or the simulation's features; or the next `ENEMIES` (8)
+enemies. The parts take turns, so all of it is still held to the host's
+word about every second and a parting is found by its own part
+(predict_check). Hickston co-op: the dearest part 2.4 ms against 18.5 for
+the whole check. `net_soak_all -- modes=coop minutes=1 lags=120`
+(`fullcheck=1` before): a client frame with a check in it 37.4 -> 14.8 ms
+median (County Run 16.1 -> 11.1 at 16 enemies a part); the frame's p99
+stays where the copy's own ticks and the snapshots' patching put it in
+those soaks (about 50 ms in co-op with the wrecker's blasts, 13 to 21 in
+County Run), which the check never was.
+
 What it does not fix, and why:
 
 - **How far behind the others are drawn** is the one-way trip, the

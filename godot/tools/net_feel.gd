@@ -177,6 +177,7 @@ static func _way(old: bool, way := "") -> void:
 	NetHitLooks.enabled = not old
 	NetUseLooks.enabled = not old
 	NetGunLead.scopes = not old
+	NetSync.Client.spread_check = not old
 	NetSync.Client.wait_rows = not old and way != "nowait"
 	# v390: the server's side of pass 12 off too (NETSERVER's: net_lag's oldserver).
 	LobbyServer.paced = way != "v390"

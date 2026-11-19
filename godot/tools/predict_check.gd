@@ -35,6 +35,8 @@
 ##   release, one at a time, gone off when its fuse is out, heard once; a
 ##   hand's flinch drawn at the press and once only; USE on a door swinging
 ##   from the press, never back, its sound heard once;
+## - the client's check of its copy a part at a time: all clean, a change in
+##   the game's fields, a feature or an enemy found by its own part;
 ## - nothing on a game nobody watches (single player, a host).
 ##
 ##   godot --headless --path godot --script res://tools/predict_check.gd
@@ -225,6 +227,7 @@ func _run() -> void:
 	_flinch(main, false)
 	_door(main, true)
 	_door(main, false)
+	_check_parts(main)
 	_nobody_watching(main)
 	print("")
 	print("PREDICT CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
@@ -1100,6 +1103,61 @@ func _door(main, on: bool) -> void:
 		(
 			"USE on a door (%s): it swings %d frames after the press, never back, heard once (%d)"
 			% ["led" if on else "the copy's", first, r.ears.count("door") - heard0]
+		)
+	)
+
+
+## The client's check a part at a time (net_check_parts.gd): every part of a
+## copy that keeps finds nothing, a change in any part is found by that part,
+## and the most a part costs against the whole check (printed).
+func _check_parts(main) -> void:
+	var g: Game = main.make_game("hickston")
+	g.configure({"difficulty": 1})
+	Modes.setup(g, Modes.COOP, 2)
+	for i in 120:
+		g.tick(STEP, Game.Controls.new())
+	var snap := NetSync.capture(g)
+	var n := NetCheckParts.count(g)
+	var clean := true
+	var most := 0
+	for k in n:
+		var t0 := Time.get_ticks_usec()
+		clean = clean and NetCheckParts.compare(g, snap, k, 0.0) == ""
+		most = maxi(most, Time.get_ticks_usec() - t0)
+	var t1 := Time.get_ticks_usec()
+	GameSnapshot.first_difference(snap, NetSync.capture(g), "", 0.0)
+	var whole := Time.get_ticks_usec() - t1
+	var found := []
+	g.clock += 1.0
+	found.append(NetCheckParts.compare(g, snap, 0, 0.0).begins_with("/game"))
+	g.clock -= 1.0
+	var fire: GameFeature = g.features.get("climate")
+	var was: Variant = null
+	if fire != null:
+		var names := SnapCodec.fields_of(fire, "climate")
+		for name: String in names:
+			var v: Variant = fire.get(name)
+			if v is float:
+				was = [name, v]
+				fire.set(name, float(v) + 1.0)
+				break
+	if was != null:
+		found.append(NetCheckParts.compare(g, snap, 1, 0.0).begins_with("/features"))
+		fire.set(was[0], was[1])
+	var at := mini(20, g.enemies.size() - 1)
+	var e: Enemy = g.enemies[at]
+	e.x += .5
+	var part := 2 + at / NetCheckParts.ENEMIES
+	found.append(NetCheckParts.compare(g, snap, part, 0.0).begins_with("/enemies/%d" % e.uid))
+	e.x -= .5
+	_check(
+		clean and not found.has(false) and found.size() >= 2,
+		(
+			(
+				"the copy's check a part at a time: %d parts all clean, a change found by its"
+				+ " part (%s); the dearest part %.1f ms against %.1f for the whole"
+			)
+			% [n, found, most / 1000.0, whole / 1000.0]
 		)
 	)
 
