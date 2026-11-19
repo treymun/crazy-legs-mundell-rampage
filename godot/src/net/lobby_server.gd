@@ -19,10 +19,21 @@
 class_name LobbyServer
 extends Node
 
-## Seconds between status lines.
+## Seconds between status lines (the config's "status_every").
 const STATUS_EVERY := 300.0
-## Ticks played in one frame at most (a stall is not caught up past this).
+## Ticks played in one wake at most (the rest of a stall is caught up at the
+## next, at once).
 const MOST_STEPS := 8
+## Behind the schedule by more than this (ms) the server lets the time go
+## (the schedule starts again from now) instead of racing to catch it up.
+const SLIP_MS := 500.0
+## While the party line has players the server wakes at least this often
+## (ms) between ticks to pass their packets on.
+const RELAY_POLL_MS := 4.0
+## Off: the old loop (Engine.max_fps frames, each room's ticks from the
+## frame's delta, every snapshot of a catch-up sent): net_pace.gd's `old`,
+## or the config's "paced": false.
+static var paced := true
 ## Matches on at once at most (the config's "most_matches"): one 5v5 with
 ## nine bots is about 15-20% of a small VPS core (40% before NetSync's
 ## snapshots came from NetTrack).
@@ -44,6 +55,14 @@ class Room:
 	var worst_us := 0
 	## Of tick_us, the bots' steering.
 	var bot_us := 0
+	## The bots' controls for the next tick (steered after this one went out).
+	var own := {}
+	## Pacing since the last status: ms between snapshots going out, each
+	## tick's cost (ms), and the snapshot number last seen going out.
+	var gaps := PackedFloat32Array()
+	var costs := PackedFloat32Array()
+	var sent_seq := -1
+	var sent_at := -1.0
 
 
 var rooms: Array[Room] = []
@@ -56,7 +75,15 @@ var most_matches := MOST_MATCHES
 ## THE PARTY LINE on the lobbies' ports (null: the config has no "relay").
 var relay: NetRelay = null
 var _status_in := 10.0
+var _status_at := 0.0
+var status_every := STATUS_EVERY
 var _failed := ""
+## The schedule (paced): when the next tick is due (ms on frame()'s clock;
+## -1 no match on), how often the time was let go, the ticks played.
+var _due := -1.0
+var slips := 0
+var ticks := 0
+var _rest_set := false
 
 
 ## `config` is the parsed config; `sim_options` every match is configured
@@ -67,6 +94,9 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 	var bind := str(config.get("bind", "*"))
 	var tls := _tls(config)
 	most_matches = config.get("most_matches", MOST_MATCHES)
+	status_every = config.get("status_every", STATUS_EVERY)
+	if config.has("paced"):
+		paced = config["paced"]
 	var relay_config: Variant = config.get("relay")
 	var line_peers := 0
 	if relay_config is Dictionary:
@@ -164,18 +194,45 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	frame(float(Time.get_ticks_msec()), delta)
+	if not paced:
+		frame(float(Time.get_ticks_msec()), delta)
+		return
+	if not _rest_set:
+		# The loop sleeps itself (_rest): no frame cap, and none of the
+		# headless main loop's own sleep between frames
+		# (OS.low_processor_usage_mode_sleep_usec, 6.9 ms).
+		_rest_set = true
+		Engine.max_fps = 0
+		OS.low_processor_usage_mode_sleep_usec = 0
+	frame(Time.get_ticks_usec() / 1000.0, delta)
+	_rest(Time.get_ticks_usec() / 1000.0)
 
 
-## One frame: every lobby polled at `now` (ms), `delta` seconds of matches
-## played (tools/net_server_check.gd drives it on its own clock).
+## Sleeps until the next tick is due, or (the party line busy) its next
+## look, or the idle beat.
+func _rest(now: float) -> void:
+	var wake := now + 1000.0 / IDLE_FPS
+	if _due >= 0.0:
+		wake = minf(wake, _due)
+	if relay != null and relay.busy():
+		wake = minf(wake, now + RELAY_POLL_MS)
+	if wake > now:
+		OS.delay_usec(int((wake - now) * 1000.0))
+
+
+## One frame: every lobby polled at `now` (ms), the matches' ticks due by
+## then played (tools drive it on their own clock, a tick's time a frame;
+## `delta` is only the old loop's).
 func frame(now: float, delta: float) -> void:
 	var busy := false
 	for room in rooms:
 		_poll(room, now)
 		if room.net.phase == "match":
 			busy = true
-			_play(room, delta)
+			if not paced:
+				_play(room, delta)
+	if paced:
+		_play_due(now)
 	if relay != null:
 		relay.poll(now)
 		# What the lobbies' polls forwarded goes out now, not a frame later.
@@ -183,13 +240,114 @@ func frame(now: float, delta: float) -> void:
 		for line: String in relay.take_news():
 			_log("PARTY LINE: " + line)
 		busy = busy or relay.busy()
-	Engine.max_fps = MATCH_FPS if busy else IDLE_FPS
+	if not paced:
+		Engine.max_fps = MATCH_FPS if busy else IDLE_FPS
+		_note_sends(Time.get_ticks_usec() / 1000.0)
 	if games.size() > 0:
 		games.sweep(rooms.map(func(r: Room) -> Game: return r.net.match_game()))
-	_status_in -= delta
+	_status_in -= delta if not paced else clampf(now - _status_at, 0.0, 1000.0) / 1000.0
+	_status_at = now
 	if _status_in <= 0.0:
-		_status_in = STATUS_EVERY
+		_status_in = status_every
 		_status()
+
+
+## The ticks due by `now` on one schedule for every match (paced): a tick
+## every NetSync.STEP from when the first match began, so the snapshots go
+## out evenly whatever each wake's own timing. A late wake plays the ticks
+## it owes (MOST_STEPS at most, the rest at the next, at once) and only the
+## last of them sends snapshots: a stall never sends a burst of them. Each
+## tick's packets leave at once (flushed); the bots steer for the next tick
+## after that, off the snapshots' way.
+func _play_due(now: float) -> void:
+	var on: Array[Room] = []
+	for room in rooms:
+		if room.net.phase == "match" and room.net.match_game() != null:
+			on.append(room)
+	if on.is_empty():
+		_due = -1.0
+		return
+	var step_ms := NetSync.STEP * 1000.0
+	if _due < 0.0:
+		_due = now
+	elif now - _due > SLIP_MS:
+		slips += 1
+		_due = now
+	if now + .001 < _due:
+		return
+	var owed := mini(MOST_STEPS, floori((now + .001 - _due) / step_ms) + 1)
+	for i in owed:
+		ticks += 1
+		for room in on:
+			if room.net.phase == "match":
+				_tick(room, i < owed - 1)
+		_due += step_ms
+	_note_sends(Time.get_ticks_usec() / 1000.0)
+
+
+## One tick of a room's match (paced) with the bots' controls steered after
+## the last and every client's next input; `hold` keeps its snapshots for
+## the wake's last tick. Its packets go out at once, then the bots steer.
+func _tick(room: Room, hold: bool) -> void:
+	var g := room.net.match_game()
+	var host := room.net.host_sync
+	if g == null or host == null:
+		return
+	var t0 := Time.get_ticks_usec()
+	if room.own.is_empty() and not room.pilots.is_empty():
+		room.own = _steer(room, g, false)
+	var bots_us := Time.get_ticks_usec() - t0
+	host.hold = hold
+	if host.snap_phase < 0:
+		# The rooms' snapshots on alternate ticks: their costs spread out.
+		host.snap_phase = (ticks + rooms.find(room)) % host.snap_every
+	room.net.host_tick(room.own)
+	host.hold = false
+	if not hold and room.net.session != null:
+		room.net.session.flush()
+	var t1 := Time.get_ticks_usec()
+	room.own = _steer(room, g, true) if room.net.phase == "match" else {}
+	bots_us += Time.get_ticks_usec() - t1
+	var spent := Time.get_ticks_usec() - t0
+	room.bot_us += bots_us
+	room.ticks += 1
+	room.tick_us += spent
+	room.worst_us = maxi(room.worst_us, spent)
+	room.costs.append(spent / 1000.0)
+
+
+## The bots' controls for the next tick (`after`: each has seen the tick
+## its last controls played first, TacticalBot.moved).
+func _steer(room: Room, g: Game, after: bool) -> Dictionary:
+	var out := {}
+	for slot: int in room.pilots:
+		if slot >= g.players.size():
+			continue
+		var p: Player = g.players[slot]
+		var pilot: TacticalBot = room.pilots[slot]
+		g.focus(p)
+		if after and room.own.has(slot):
+			pilot.moved(g)
+		if p.health > 0:
+			out[slot] = pilot.steer(g)
+	g.focus(g.local_player)
+	return out
+
+
+## Notes the snapshots that went out by `now` (ms): the gap since each
+## room's last.
+func _note_sends(now: float) -> void:
+	for room in rooms:
+		var host := room.net.host_sync
+		if host == null or room.net.phase != "match":
+			room.sent_at = -1.0
+			continue
+		if host.seq == room.sent_seq:
+			continue
+		room.sent_seq = host.seq
+		if room.sent_at >= 0.0:
+			room.gaps.append(now - room.sent_at)
+		room.sent_at = now
 
 
 func _poll(room: Room, now: float) -> void:
@@ -200,7 +358,9 @@ func _poll(room: Room, now: float) -> void:
 	for change: Dictionary in net.take_changes():
 		if change.has("started"):
 			room.pilots.clear()
+			room.own = {}
 			room.accum = 0.0
+			room.sent_at = -1.0
 			room.matches += 1
 			for slot: int in net.bot_slots():
 				room.pilots[slot] = TacticalBot.new(slot)
@@ -217,6 +377,7 @@ func _poll(room: Room, now: float) -> void:
 			)
 		elif change.has("lobby"):
 			room.pilots.clear()
+			room.own = {}
 			_log("%s: BACK TO THE LOBBY" % net.settings["lobby_name"])
 		elif change.has("bot"):
 			var bot: int = change["bot"]
@@ -224,6 +385,7 @@ func _poll(room: Room, now: float) -> void:
 		elif change.has("human"):
 			var human: int = change["human"]
 			room.pilots.erase(human)
+			room.own.erase(human)
 
 
 ## A frame's ticks of a room's match at the network's rate: the bots' controls
@@ -257,6 +419,7 @@ func _play(room: Room, delta: float) -> void:
 		room.ticks += 1
 		room.tick_us += spent
 		room.worst_us = maxi(room.worst_us, spent)
+		room.costs.append(spent / 1000.0)
 
 
 ## A match's game, as every client makes its copy (main_flow.gd
@@ -279,8 +442,12 @@ func _make(info: Dictionary) -> Game:
 ## The process's resident memory in MB (Linux; else Godot's own count, which
 ## a release build leaves at 0).
 static func memory_mb() -> float:
-	if FileAccess.file_exists("/proc/self/status"):
-		for line in FileAccess.get_file_as_string("/proc/self/status").split("\n"):
+	# Line by line: a /proc file says it is 0 bytes long, so reading it whole
+	# read nothing and every status line said 0 MB.
+	var f := FileAccess.open("/proc/self/status", FileAccess.READ)
+	if f != null:
+		while not f.eof_reached():
+			var line := f.get_line()
 			if line.begins_with("VmRSS:"):
 				return float(line.get_slice(":", 1).strip_edges().get_slice(" ", 0)) / 1024.0
 	return OS.get_static_memory_usage() / 1048576.0
@@ -292,27 +459,66 @@ func _status() -> void:
 	for room in rooms:
 		var n := room.net
 		var avg := room.tick_us / maxf(1.0, room.ticks) / 1000.0
-		parts.append(
-			(
-				"%s %s %d in, %d matches, tick %.2f ms (bots %.2f, worst %.1f)"
-				% [
-					n.port,
-					n.phase,
-					n.players.size(),
-					room.matches,
-					avg,
-					room.bot_us / maxf(1.0, room.ticks) / 1000.0,
-					room.worst_us / 1000.0
-				]
-			)
+		var line := (
+			"%s %s %d in, %d matches, tick %.2f ms (bots %.2f, worst %.1f)"
+			% [
+				n.port,
+				n.phase,
+				n.players.size(),
+				room.matches,
+				avg,
+				room.bot_us / maxf(1.0, room.ticks) / 1000.0,
+				room.worst_us / 1000.0
+			]
 		)
+		if room.gaps.size() > 1:
+			var p := pacing(room)
+			line += (
+				", snaps %.1f ms apart (p99 %.1f, worst %.1f, %d bunched), tick p99 %.2f"
+				% [p["gap_med"], p["gap_p99"], p["gap_max"], p["bunched"], p["cost_p99"]]
+			)
+		parts.append(line)
 		room.ticks = 0
 		room.tick_us = 0
 		room.worst_us = 0
 		room.bot_us = 0
+		room.gaps.clear()
+		room.costs.clear()
 	if relay != null:
 		parts.append(relay.status())
+	if slips > 0:
+		parts.append("%d SLIPS" % slips)
+		slips = 0
 	_log("STATUS %.0f MB; %s" % [mem, "; ".join(parts)])
+
+
+## A room's pacing since the last status: the snapshots' gaps (median, p99,
+## worst ms; `bunched`: closer than half the beat) and its ticks' cost (ms).
+static func pacing(room: Room) -> Dictionary:
+	var g := room.gaps.duplicate()
+	g.sort()
+	var c := room.costs.duplicate()
+	c.sort()
+	var beat := NetSync.STEP * 1000.0 * NetPlay.SNAP_EVERY
+	var bunched := 0
+	for v in g:
+		if v < beat * .5:
+			bunched += 1
+	return {
+		"gap_med": _at(g, .5),
+		"gap_p99": _at(g, .99),
+		"gap_max": g[-1] if not g.is_empty() else 0.0,
+		"bunched": bunched,
+		"cost_med": _at(c, .5),
+		"cost_p99": _at(c, .99),
+		"cost_max": c[-1] if not c.is_empty() else 0.0,
+	}
+
+
+static func _at(sorted: PackedFloat32Array, q: float) -> float:
+	if sorted.is_empty():
+		return 0.0
+	return sorted[mini(sorted.size() - 1, int(sorted.size() * q))]
 
 
 ## Closes every lobby, telling everyone why (the service is stopping).

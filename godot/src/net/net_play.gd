@@ -385,7 +385,7 @@ func poll(now_ms: float) -> void:
 		var kind := bytes[0]
 		if kind == NetWire.INPUTS:
 			inputs.append(packet)
-		elif kind == NetWire.SNAP:
+		elif kind == NetWire.SNAP or kind == NetWire.SNAP_PART:
 			snaps.append(packet)
 		elif role == Role.HOST:
 			var from: int = packet[0]

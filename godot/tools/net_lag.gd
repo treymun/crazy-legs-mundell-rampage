@@ -24,7 +24,7 @@
 ##
 ##   godot --headless --path godot --script res://tools/net_lag.gd
 ##       [-- lags=50,120,250] [jitter=0.2] [loss=0.02] [seconds=50]
-##       [map=grainyard] [mode=bomb] [people=4] [quick]
+##       [map=grainyard] [mode=bomb] [people=4] [quick] [old] [oldserver]
 ##
 ## jitter is a share of the latency (or `jitter_ms=`). quick: one 120 ms link
 ## for 30 s with limits (tools/check_all.gd). Prints NET LAG OK.
@@ -49,6 +49,7 @@ const QUICK_LIMITS := {
 
 var failures: Array = []
 var main: Control
+var now := 0.0
 var opts := {
 	"lags": "50,120,250",
 	"jitter": .2,
@@ -83,6 +84,11 @@ func _run() -> void:
 			NetPredict.Smoother.enabled = false
 			NetSession.throttle = true
 			NetShotPredict.enabled = false
+			_old_server()
+			continue
+		if arg == "oldserver":
+			# Only pass 12's server side off (the 3.9.0 server).
+			_old_server()
 			continue
 		if arg == "noshots":
 			# Only the shots' prediction off (net_shot_predict.gd).
@@ -179,6 +185,15 @@ func _run() -> void:
 	quit(1 if not failures.is_empty() else 0)
 
 
+## Pass 12's server side off: the old loop, the echoed rows unpacked, a
+## snapshot over the MTU sent reliable. The test's loss hits reliable
+## packets either way (NetSession.resend_lost), as a real network's does.
+static func _old_server() -> void:
+	LobbyServer.paced = false
+	NetWire.pack_rows = false
+	NetSync.Host.split_big = false
+
+
 ## Whether a quick run's numbers are all within QUICK_LIMITS.
 static func _within(r: Dictionary) -> bool:
 	for key: String in QUICK_LIMITS:
@@ -222,7 +237,9 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 	server.set_process(false)
 	var lobby_net: NetPlay = server.rooms[0].net
 	var nets: Array = []
-	var now := 0.0
+	# A member, not a local: the frame lambda below would advance its own
+	# copy of a local, and the server's schedule needs the clock to move.
+	now = 0.0
 	var frame := func() -> void:
 		now += STEP * 1000.0
 		server.frame(now, STEP)
@@ -338,6 +355,9 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 	var delta_us0 := host.delta_us
 	var full0 := host.sizes_full.size()
 	var delta0 := host.sizes_delta.size()
+	var packet0 := host.sizes_packet.size()
+	var split0 := host.split_count
+	var resent0: int = lobby_net.session.resent
 	var frames := int(float(opts["seconds"]) / STEP)
 	var wall := Time.get_ticks_msec()
 	var serve_us := 0
@@ -522,6 +542,17 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 	out["delta_med"] = deltas[deltas.size() / 2] if not deltas.is_empty() else 0
 	out["delta_p95"] = deltas[int(deltas.size() * .95)] if not deltas.is_empty() else 0
 	out["fulls"] = host.sizes_full.size() - full0
+	var packets := host.sizes_packet.slice(packet0)
+	packets.sort()
+	var over := 0
+	for size in packets:
+		if size > NetWire.PART_MOST:
+			over += 1
+	out["packet_med"] = packets[packets.size() / 2] if not packets.is_empty() else 0
+	out["packet_p95"] = packets[int(packets.size() * .95)] if not packets.is_empty() else 0
+	out["over_mtu"] = over / maxf(1.0, packets.size())
+	out["split"] = (host.split_count - split0) / maxf(1.0, packets.size())
+	out["resent"] = lobby_net.session.resent - resent0
 	var ticks := maxi(1, room.ticks)
 	out["tick_ms"] = room.tick_us / 1000.0 / ticks
 	out["worst_ms"] = room.worst_us / 1000.0
@@ -681,6 +712,11 @@ func _table(rows: Array) -> void:
 	line.call("delta median (bytes)", "%.0f", "delta_med")
 	line.call("delta p95 (bytes)", "%.0f", "delta_p95")
 	line.call("whole snapshots sent", "%.0f", "fulls")
+	line.call("snapshot packet median (bytes)", "%.0f", "packet_med")
+	line.call("snapshot packet p95 (bytes)", "%.0f", "packet_p95")
+	line.call("snapshots over the MTU (%)", "%.1f", "over_mtu", 100.0)
+	line.call("  of them sent in parts, unreliable (%)", "%.1f", "split", 100.0)
+	line.call("reliable packets lost and resent (down)", "%.0f", "resent")
 	line.call("server: match tick (ms)", "%.2f", "tick_ms")
 	line.call("  of it the game (ms)", "%.2f", "game_ms")
 	line.call("  of it snapshots (ms)", "%.2f", "snap_ms")

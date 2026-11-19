@@ -12,7 +12,13 @@
 ##   SNAP     host -> client: sequence, the base it is a delta from (NO_BASE:
 ##            whole), its tick, the last input of the client's it used, the
 ##            inputs every player played on each tick since the base (so the
-##            client can step its own copy), then the GameSnapshot bytes
+##            client can step its own copy; packed, zstd), then the
+##            GameSnapshot bytes. Unreliable, but a whole snapshot goes
+##            reliable; one too big for a packet goes as SNAP_PARTs
+##   SNAP_PART host -> client, unreliable: a piece of a SNAP too big for one
+##            packet (seq, its place, how many); a piece lost loses that
+##            snapshot only, never holding up the ones after it as a
+##            reliable packet would
 ##   LOBBY    host -> clients, reliable: the lobby (its settings, the players)
 ##   ASK      client -> host, reliable: what this player wants (name, team,
 ##            ready)
@@ -30,7 +36,8 @@ class_name NetWire
 extends RefCounted
 
 ## 4: snapshot version 3 (a feature's guarded lists travel as tables).
-const PROTOCOL := 4
+## 5: a SNAP's echoed inputs packed, a big SNAP in SNAP_PARTs (pass 12).
+const PROTOCOL := 5
 const HELLO := 1
 const WELCOME := 2
 const INPUTS := 3
@@ -44,6 +51,7 @@ const BYE := 9
 const INFO := 10
 ## COUNTY RUN's daily board (county_board.gd): a post or an ask, and the board.
 const BOARD := 11
+const SNAP_PART := 12
 ## A lobby's player map (net_maps.gd).
 const MAP := 20
 ## The party line's own kinds start here (net_relay.gd): a game packet's
@@ -53,7 +61,19 @@ const NO_BASE := 0xFFFFFFFF
 const CONTROL_BYTES := 14
 ## Inputs carried again in each INPUTS packet until confirmed.
 const REDUNDANT := 12
-const SNAP_HEADER := 22
+## A SNAP: kind, seq, base, tick, input ack, echo's first tick (u32 each),
+## the rows, the rows' size unpacked and packed (u16 each; packed 0: kept
+## as they are).
+const SNAP_HEADER := 26
+## A SNAP_PART: kind, the snapshot's seq (u32), its place, how many.
+const PART_HEADER := 7
+## A SNAP over this goes in parts: room for the party line's own header
+## (NetRelay.TO_HEADER) under NetSession.MTU_SAFE, so a part never goes
+## reliable on the way.
+const PART_MOST := 1184
+const PARTS_MOST := 64
+## Off: a SNAP's rows go as they are (net_lag.gd's `old`, for the sizes).
+static var pack_rows := true
 const INPUTS_HEADER := 14
 ## The most ticks a shot is rewound by (a byte; the host's own cap is lower).
 const MAX_REWIND := 255
@@ -212,7 +232,9 @@ static func read_inputs(bytes: PackedByteArray) -> Dictionary:
 	}
 
 
-## SNAP. `echo` is [first tick, [per tick: slot byte + controls, ...]].
+## SNAP. `echo` is [first tick, [per tick: slot byte + controls, ...]]. The
+## rows go zstd'd (a 5v5's 8 rows of 10 players, 1.2 KB, are about 200
+## bytes packed: each player's controls change little from tick to tick).
 static func snap(
 	seq: int, base: int, tick: int, input_ack: int, echo: Array, payload: PackedByteArray
 ) -> PackedByteArray:
@@ -227,10 +249,38 @@ static func snap(
 	var echo_seq: int = echo[0] if echo.size() > 0 else 0
 	out.encode_u32(17, echo_seq)
 	out[21] = ticks.size()
+	var rows := PackedByteArray()
 	for row: PackedByteArray in ticks:
-		out.append(row.size() / (CONTROL_BYTES + 1))
-		out.append_array(row)
+		rows.append(row.size() / (CONTROL_BYTES + 1))
+		rows.append_array(row)
+	var packed := (
+		rows.compress(FileAccess.COMPRESSION_ZSTD) if rows.size() > 32 and pack_rows else rows
+	)
+	out.encode_u16(22, rows.size())
+	if packed.size() < rows.size():
+		out.encode_u16(24, packed.size())
+		out.append_array(packed)
+	else:
+		out.encode_u16(24, 0)
+		out.append_array(rows)
 	out.append_array(payload)
+	return out
+
+
+## A SNAP too big for one packet as SNAP_PARTs of PART_MOST bytes at most.
+static func split(packet: PackedByteArray, seq: int) -> Array[PackedByteArray]:
+	var room := PART_MOST - PART_HEADER
+	var count := ceili(packet.size() / float(room))
+	var out: Array[PackedByteArray] = []
+	for i in count:
+		var part := PackedByteArray()
+		part.resize(PART_HEADER)
+		part[0] = SNAP_PART
+		part.encode_u32(1, seq)
+		part[5] = i
+		part[6] = count
+		part.append_array(packet.slice(i * room, mini((i + 1) * room, packet.size())))
+		out.append(part)
 	return out
 
 
@@ -241,20 +291,31 @@ static func read_snap(bytes: PackedByteArray) -> Dictionary:
 		return {}
 	var base := bytes.decode_u32(5)
 	var ack := bytes.decode_u32(13)
-	var at := SNAP_HEADER
+	var raw_size := bytes.decode_u16(22)
+	var packed_size := bytes.decode_u16(24)
+	var after := SNAP_HEADER + (packed_size if packed_size > 0 else raw_size)
+	if after > bytes.size():
+		return {}
+	var rows := bytes.slice(SNAP_HEADER, after)
+	if packed_size > 0:
+		rows = rows.decompress(raw_size, FileAccess.COMPRESSION_ZSTD)
+		if rows.size() != raw_size:
+			return {}
+	var at := 0
 	var echo: Array = []
 	for i in bytes[21]:
-		if at >= bytes.size():
+		if at >= rows.size():
 			return {}
-		var count := bytes[at]
+		var count := rows[at]
 		at += 1
-		if at + count * (CONTROL_BYTES + 1) > bytes.size():
+		if at + count * (CONTROL_BYTES + 1) > rows.size():
 			return {}
 		var row := {}
 		for k in count:
-			row[int(bytes[at])] = bytes.slice(at + 1, at + 1 + CONTROL_BYTES)
+			row[int(rows[at])] = rows.slice(at + 1, at + 1 + CONTROL_BYTES)
 			at += CONTROL_BYTES + 1
 		echo.append(row)
+	at = after
 	return {
 		"seq": bytes.decode_u32(1),
 		"base": -1 if base == NO_BASE else base,
