@@ -751,6 +751,14 @@ static func _soak_fixes(main, check: Callable, id: String) -> void:
 		),
 		"an enemy's notes travel in a snapshot, and a copy put back keeps none of its own"
 	)
+	# A client a round trip of more than a second behind (a browser player at
+	# 250 ms whose TCP held up a lost packet) still has a base the host
+	# keeps: no whole snapshots, no put backs for it (net_soak_all.gd).
+	var kept_s := NetSync.Host.KEEP * NetPlay.SNAP_EVERY * NetSync.STEP
+	check.call(
+		NetSync.Client.KEEP >= NetSync.Host.KEEP and kept_s >= 3.0,
+		"host and client keep %.1f s of snapshots as bases (at least 3)" % kept_s
+	)
 	var metas := _play_metas("res://src")
 	check.call(
 		metas.is_empty(),

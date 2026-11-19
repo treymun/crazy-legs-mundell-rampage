@@ -409,15 +409,18 @@ func _open_server() -> bool:
 	var admin: NetPlay = nets[0]
 	for net: NetPlay in nets.slice(1):
 		net.ask({"ready": true})
-	_wait(
-		func() -> bool:
-			return admin.players.all(
-				func(p: Dictionary) -> bool:
-					return bool(p.get("ready", false)) or p["id"] == admin.my_id
-			),
-		2000
-	)
+	_wait(func() -> bool: return _all_ready(admin, people), 2000)
 	return _start()
+
+
+## Everyone in the admin's lobby, and everyone else ready.
+static func _all_ready(admin: NetPlay, people: int) -> bool:
+	if admin.players.size() != people:
+		return false
+	for p: Dictionary in admin.players:
+		if not bool(p.get("ready", false)) and p["id"] != admin.my_id:
+			return false
+	return true
 
 
 func _start() -> bool:
@@ -912,11 +915,33 @@ func _sample(when: String) -> void:
 		"lists": lists,
 		"wrecked": _wrecked(sg),
 	}
+	var grew: Array = []
+	if not samples.is_empty():
+		var was: Dictionary = samples[-1]["lists"]
+		for key: String in lists:
+			var before: int = was.get(key, 0)
+			var now_n: int = lists[key]
+			if now_n - before >= 20:
+				grew.append([now_n - before, "%s %d" % [key, now_n]])
+		grew.sort_custom(func(x: Array, y: Array) -> bool: return x[0] > y[0])
 	samples.append(s)
 	print(
 		(
-			"    %s: %.0f MB, %d objects, %d orphan nodes; %s"
-			% [when, s["mb"], s["objects"], s["orphans"], s["wrecked"]]
+			"    %s: %.0f MB, %d objects, %d orphan nodes; %s%s"
+			% [
+				when,
+				s["mb"],
+				s["objects"],
+				s["orphans"],
+				s["wrecked"],
+				(
+					""
+					if grew.is_empty()
+					else (
+						"; grew " + str(grew.slice(0, 6).map(func(r: Array) -> String: return r[1]))
+					)
+				)
+			]
 		)
 	)
 
