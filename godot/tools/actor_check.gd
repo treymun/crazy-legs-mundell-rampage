@@ -52,7 +52,8 @@ const FIT_KEYS := [
 	"down_cel",
 	"blend",
 	"yaw",
-	"beast"
+	"beast",
+	"hand_over"
 ]
 const HAND_FRAMES := [
 	"0",
