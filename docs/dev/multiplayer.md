@@ -746,6 +746,27 @@ newest is under 12 ticks ahead instead of jumping to the newest at once.
 At 250 ms: co-op put back 10 -> 5 times in 20 s, County Run 14 -> 6, the
 others' jerk 28 -> 26% and 18 -> 15%.
 
+**Round 2: what a player causes** (`net_feel.gd -- scenes=kit seconds=100
+ways=old,new`; `tools/net_feel_kit.gd`): a client in an online co-op
+Hickston presses each thing again and again, timed from the press to the
+first frame that shows it (the bolt less its own flight, the stick less
+the fuse it had left), old (shown when the copy plays it) -> new, medians:
+
+| 144 Hz | 50 ms | 120 ms | 250 ms |
+| --- | --- | --- | --- |
+| ALT FIRE to the scope up | 215 -> 7 ms | 389 -> 7 | 667 -> 7 |
+| a crossbow bolt's blast | 182 -> 0 | 357 -> 0 | 626 -> 0 |
+| USE to a door moving | 216 -> 14 | (14) -> 14 | 703 -> 14 |
+| a .38 shot to the hand's flinch | 203 -> 7 | 426 -> 7 | 684 -> 7 |
+| a stick of dynamite's blast | 216 -> 6 | 396 -> 6 | 706 -> 6 |
+
+Each 4 presses or so a column (one or two of the old ones missed past
+1.5 s; the 120 ms old door's 14 is a door the host had just shut still
+swinging). 7 ms is the next frame, when a press lands between ticks. The
+scene moves our player, shuts the door and stands the hand in front on
+the host's game between ticks, so its copies are put back often: its
+other rows are not the feel of play. predict_check holds each case.
+
 What it does not fix, and why:
 
 - **How far behind the others are drawn** is the one-way trip, the
