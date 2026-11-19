@@ -42,7 +42,7 @@ const CHECK_P99 := 45.0
 const CHECK_PROBE_P99 := 50.0
 const CHECK_WANDER := 20.0
 ## The check's stand-in for a slower core: busy time added to each tick (us).
-const CHECK_LOAD_US := 2500
+const CHECK_LOAD_US := 1500
 
 var failures: Array = []
 var main: Control

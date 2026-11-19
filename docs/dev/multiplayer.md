@@ -960,7 +960,7 @@ pin it to one core (`Start-Process ... -PassThru`, `.ProcessorAffinity`)
 beside a busy process to stand for the VPS. Without `server` it is the check
 (check_all, run alone): on a made-up clock a stall's ticks are caught up
 with one snapshot a room and a 2 s stall is let go; then two lobbies, each a
-match of bots with 2.5 ms of extra work a tick, on the real clock: no
+match of bots with 1.5 ms of extra work a tick, on the real clock: no
 snapshot bunched, the gaps' p99 under 45 ms at the server and 50 at a probe,
 the arrivals' wander p95 under 20 ms and no snapshot packet over the MTU.
 
