@@ -618,9 +618,12 @@ At 250 ms the prediction stopped at 40 unplayed inputs (`NetPredict.MOST`, now
 `GameState.REWIND_KEEP` 72): that was the 1009 jumps a minute. The server's
 match tick includes the bots' steering of the six bot slots; with one match
 of a full 5v5 it is about a fifth of a core here (the VPS's core is slower
-than this PC's, so allow more). County Run co-op keeps the old playout
-(`Client.by_clock` off): its copies parted from the host while the party's
-card picks held the world.
+than this PC's, so allow more). County Run co-op kept the old playout
+(`Client.by_clock` off) until pass 12: its copies parted from the host while
+the party's card picks held the world. The partings were found and fixed in
+pass 9 ([county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed));
+pass 12 paces it by the clock like every other mode (`NetPlay.county_by_clock`;
+county_net_check passed every run with it).
 
 ## Online 5v5
 

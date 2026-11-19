@@ -300,6 +300,8 @@ var net_turn := 0.0
 var net_look := 0.0
 ## A client's own player eased over prediction corrections (net_predict.gd).
 var net_smooth := NetPredict.Smoother.new()
+## Everyone else drawn between ticks online (net_blend.gd).
+var net_blend := NetBlend.new()
 ## An online client's own shots, reloads and pickups shown at once (net_shot_predict.gd).
 var net_shots := NetShotPredict.new()
 ## Online from the command line (tests, a quick game with friends):

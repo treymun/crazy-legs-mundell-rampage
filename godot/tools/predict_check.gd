@@ -25,6 +25,10 @@
 ##   marked when it comes due, before the copy plays it, once in all;
 ## - USE's boot (pass 9, co-op): the boot drawn and the grunt heard at the
 ##   press, once in all, and the copy kicks;
+## - a crossbow bolt (pass 12): drawn from the press as a ghost, then as the
+##   copy's own drawn on to our time, one in the picture at every frame and
+##   no step bigger than its flight's; one the host refuses goes after
+##   NetOwnShots.WAIT;
 ## - nothing on a game nobody watches (single player, a host).
 ##
 ##   godot --headless --path godot --script res://tools/predict_check.gd
@@ -83,6 +87,10 @@ class Rig:
 	## it returns is kept in `probes`.
 	var frame_probe := Callable()
 	var probes: Array = []
+	## Each frame: our own thrown shots drawn (ghosts and the copy's); every
+	## frame the copy's shots were left as it has them.
+	var drawn_own: Array = []
+	var own_put_back := true
 	var _kick_was := 0.0
 
 	func _init(game: Game) -> void:
@@ -128,6 +136,15 @@ class Rig:
 		pred.now_ms += STEP * 1000.0
 		var walked := NetPredict.lead(g, me, client.unplayed_inputs())
 		var kept := pred.frame(g, me, client)
+		# Our thrown shots at our time (net_own_shots.gd), as main.gd draws them.
+		var copy_shots_at := []
+		for s: GameState.Shot in g.shots:
+			copy_shots_at.append([s, s.x, s.y, s.z])
+		pred.own.begin(g, me, client.unplayed_inputs().size(), STEP)
+		var own := 0
+		for s: GameState.Shot in g.shots:
+			own += 1 if s.slot == me.slot and not s.enemy else 0
+		drawn_own.append(own)
 		drawn_rounds.append(me.armory.loaded[me.armory.active])
 		drawn_pickups.append(g.pickups.size())
 		var feel: Object = g.features.get("feel")
@@ -137,6 +154,12 @@ class Rig:
 		_kick_was = kick
 		if frame_probe.is_valid():
 			probes.append(frame_probe.call())
+		pred.own.end(g)
+		var back := g.shots.size() == copy_shots_at.size()
+		for row: Array in copy_shots_at:
+			var s: GameState.Shot = row[0]
+			back = back and g.shots.has(s) and s.x == row[1] and s.y == row[2] and s.z == row[3]
+		own_put_back = own_put_back and back
 		pred.restore(g, me, kept)
 		NetPredict.restore(me, walked)
 		copy_pickups.append(g.pickups.size())
@@ -185,6 +208,8 @@ func _run() -> void:
 	_dynamite(main, true)
 	_melee(main)
 	_boot(main)
+	_thrown(main, false)
+	_thrown(main, true)
 	_nobody_watching(main)
 	print("")
 	print("PREDICT CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
@@ -694,6 +719,90 @@ func _boot(main) -> void:
 				+ " the copy kicks %d frames on"
 			)
 			% [grunt_then, r.ears.count("blow_grunt"), LAG]
+		)
+	)
+
+
+## Pass 12: the dynamite crossbow's bolt (a projectile gun) drawn from the
+## press as a ghost (net_own_shots.gd) and, once the copy fires it, as the
+## copy's own drawn on to our time: one bolt in the picture at every frame
+## from the press, never two, the copy's shots put back after each frame; a
+## bolt the host refuses goes after NetOwnShots.WAIT.
+func _thrown(main, refused: bool) -> void:
+	var r := _rig(main)
+	var a := r.me
+	a.armory.owned[Weapons.CROSSBOW] = true
+	a.armory.select(Weapons.CROSSBOW, r.g)
+	a.armory.reserve[Weapons.CROSSBOW] = 8
+	a.angle = fposmod(a.angle + PI, TAU)  # away from player two
+	a.pitch = 0.0
+	r.idle(90)
+	if refused:
+		r.refuse = func(c: Game.Controls) -> Game.Controls:
+			c.fire = false
+			return c
+	r.frame_probe = func() -> Variant:
+		for s: GameState.Shot in r.g.shots:
+			if s.slot == a.slot and not s.enemy:
+				return Vector3(s.x, s.y, s.z)
+		return null
+	var from := r.drawn_own.size()
+	var probed := r.probes.size()
+	r.step(_fire())
+	r.idle(LAG + 4)
+	var flying: Array = r.drawn_own.slice(from)
+	# The bolt's step from frame to frame (the ghost handing over to the copy's).
+	var jump := 0.0
+	var was: Variant = null
+	for at: Variant in r.probes.slice(probed):
+		if at != null and was != null:
+			var here: Vector3 = at
+			var there: Vector3 = was
+			jump = maxf(jump, here.distance_to(there))
+		was = at
+	r.frame_probe = Callable()
+	r.idle(roundi(NetOwnShots.WAIT / STEP))
+	var most := 0
+	for n: int in flying:
+		most = maxi(most, n)
+	var ghosts_left := 0
+	for s: GameState.Shot in r.g.shots:
+		ghosts_left += 1 if s.uid <= 0 else 0
+	if refused:
+		_check(
+			(
+				r.pred.own.made == 1
+				and r.pred.own.matched == 0
+				and r.pred.own.ghosts.is_empty()
+				and flying[0] == 1
+				and r.copy_shots == 0
+				and ghosts_left == 0
+				and r.own_put_back
+			),
+			(
+				"a bolt the host refuses: its ghost drawn from the press (%d), gone after %.1f s"
+				% [flying[0], NetOwnShots.WAIT]
+			)
+		)
+		return
+	_check(
+		(
+			r.pred.own.made == 1
+			and r.pred.own.matched == 1
+			and flying[0] == 1
+			and most == 1
+			and r.copy_shots == 1
+			and ghosts_left == 0
+			and r.own_put_back
+			and jump < .4
+		),
+		(
+			(
+				"a crossbow bolt: drawn from the press (%d), never two at once (most %d),"
+				+ " the ghost matched by the copy's (%d), the copy's shots put back; its"
+				+ " biggest step a frame %.2f cells (%.2f a tick in flight)"
+			)
+			% [flying[0], most, r.pred.own.matched, jump, 10.8 * STEP]
 		)
 	)
 

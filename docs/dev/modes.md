@@ -595,6 +595,30 @@ walk starts from the inputs the host really played (the echoed rows) and a
 correction fades over 90 ms (`NetPredict.Smoother`); `tools/net_lag.gd`
 measures it (multiplayer.md, "Lag: what a player feels").
 
+Pass 12 (`tools/net_feel.gd`, multiplayer.md
+["Frame by frame"](multiplayer.md#frame-by-frame-pass-12-net_feelgd)):
+
+- **Between ticks.** The game ticks 60 times a second online; the drawn
+  player is carried into the next tick by the frame's share of it with the
+  keys held now (`NetPredict.ahead`, from `main.net_accum`), turned by all
+  of the mouse not sent yet, so it moves every frame on any screen. The
+  host's own player gets the same (`main.gd _host_aim`; before, the host's
+  view turned only at the tick). Everyone else is drawn between the copy's
+  last two ticks (`NetBlend`, below).
+- **The others who block us** (co-op, the versus modes) stand where the
+  host will have them when each input is played, carried on by their speed
+  (`NetPredict._mates`, at most `MATES_AHEAD` ticks), not where the copy has
+  them a round trip back: two co-op bots following each other were
+  corrected 950 to 1,360 times a minute, now 90 to 260.
+- **The walk matches the host's**: mud (`Mud.pace`) and a knock-down
+  (`Player.knocked`: no walk, the eye low) are in it, and while the world
+  holds on the copy (COUNTY RUN's cards, the tally, a gate taken, everyone
+  down: `NetPredict.held`) our inputs are not walked on, as the host plays
+  none of them (the drawn player ran and turned through a card pick and was
+  put back when it ended).
+- Still walked as plain walking: a ladder or ledge (`Climbing.player_step`)
+  and a drunk's wobble; both put right by the Smoother.
+
 ### Shots, reloads and pickups
 
 Pass 7, `src/net/net_gun_lead.gd`, `net_shot_predict.gd`, `net_echo_sound.gd`,
@@ -652,6 +676,19 @@ when its copy played it: a round trip and the play-out later (350 ms on a
   and put back; the copy's own boot is drawn at our press too, so it does
   not start again). A finisher is the copy's to show (its move is off the
   dice); so are the landing's jolt, doors and every other USE.
+- **A thrown shot** (pass 12, `src/net/net_own_shots.gd`): a projectile
+  gun's shot (the crossbow's bolt, the ripsaw's blade, the bottle rocket,
+  the bowling ball...) came into the copy a round trip and the playout
+  after the press, from where our player stood back then, behind the drawn
+  one. Now a ghost of it flies from the press, from where our screen shows
+  us, along our aim with the shot's speed, lift and fall (no bounce, no
+  wind; it stops at a wall or the floor); once the copy fires its own the
+  oldest ghost of that kind goes and the copy's shot is drawn as far on as
+  our inputs lead the copy (`NetOwnShots.begin`'s `ahead`, the ticks not
+  played), so it carries on where the ghost was (predict_check: one bolt
+  in the picture every frame, its biggest step a frame its flight's). A
+  ghost the host never matches goes after `WAIT`. Dynamite and anything
+  that rolls or rests stays the copy's.
 - **Every online mode gets it** (County Run co-op, the 5v5 rounds, tag
   team, and any mode added online later): it reads only Game.Controls, the
   copy and `NetSync.Client`. Nothing carried is touched; `net_lag`,
@@ -703,10 +740,11 @@ a 10-character join code or an address stays desktop only.
 
 - UDP hole punching (the party line relays instead; a desktop player still
   goes straight to a host whose router opened the port).
-- Client prediction of a stick of dynamite in flight, the saw's grind, a
-  projectile in flight, the scope going up, finishers, the boot's jolt,
-  USE on anything but a boot, and items (each still shows when the copy
-  plays it).
+- Client prediction of a stick of dynamite in flight, the saw's grind, the
+  scope going up, finishers, the boot's jolt, USE on anything but a boot,
+  items, a blast and what it breaks (wreck pieces, ragdolls: pass 11's
+  looks start when the copy plays the blast, a round trip and the playout
+  late), and a thrown shot's hit (each still shows when the copy plays it).
 - A second local input set (split keyboard).
 - Spawn points from the plans outside the 5v5 maps (only worked out).
 - Versus pickups other than the level's own.

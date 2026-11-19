@@ -24,7 +24,7 @@
 ##
 ##   godot --headless --path godot --script res://tools/net_lag.gd
 ##       [-- lags=50,120,250] [jitter=0.2] [loss=0.02] [seconds=50]
-##       [map=grainyard] [mode=bomb] [people=4] [quick]
+##       [map=grainyard] [mode=bomb] [people=4] [quick] [old | nofeel]
 ##
 ## jitter is a share of the latency (or `jitter_ms=`). quick: one 120 ms link
 ## for 30 s with limits (tools/check_all.gd). Prints NET LAG OK.
@@ -83,6 +83,24 @@ func _run() -> void:
 			NetPredict.Smoother.enabled = false
 			NetSession.throttle = true
 			NetShotPredict.enabled = false
+			# Pass 12's (tools/net_feel.gd measures those frame by frame).
+			NetSync.Client.smooth_clock = false
+			NetPlay.county_by_clock = false
+			NetPredict.mates_ahead = false
+			NetPredict.holds_aware = false
+			NetOwnShots.enabled = false
+			NetPredict.between = false
+			NetBlend.enabled = false
+			continue
+		if arg == "nofeel":
+			# Only pass 12's off (net_feel.gd's `old`): v3.9.0's netcode.
+			NetSync.Client.smooth_clock = false
+			NetPlay.county_by_clock = false
+			NetPredict.mates_ahead = false
+			NetPredict.holds_aware = false
+			NetOwnShots.enabled = false
+			NetPredict.between = false
+			NetBlend.enabled = false
 			continue
 		if arg == "noshots":
 			# Only the shots' prediction off (net_shot_predict.gd).
@@ -318,6 +336,8 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 			"copy_at": [],
 			"drawn_at": [],
 			"shots": NetShotPredict.new(),
+			# Everyone else as that screen draws them (net_blend.gd).
+			"blend": NetBlend.new(),
 		}
 	var down0: int = lobby_net.session.sent
 	var heard0: int = lobby_net.session.received_packets
@@ -358,8 +378,11 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 					bots[net] = TacticalBot.new(net.my_slot())
 				# A person aims at what the screen shows: their own player led
 				# by the prediction (the copy alone is a round trip behind
-				# their own turns, and a bot steering it never got on target).
+				# their own turns, and a bot steering it never got on target),
+				# everyone else between the copy's ticks as drawn.
 				var led := NetPredict.lead(copy, me, net.client_sync.unplayed_inputs())
+				var blend: NetBlend = stats[net]["blend"]
+				blend.begin(copy, net.client_sync.game_tick, net.client_sync.view_at, me)
 				copy.focus(me)
 				c = bots[net].steer(copy)
 				if c.fire and String(Modes.feature(copy).phase) == "live":
@@ -368,6 +391,7 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 					NetPredict.step(copy, me, c, STEP)
 					stats[net]["looked"][net.client_sync.input_seq] = _aimed_at(copy, me)
 				copy.focus(copy.local_player)
+				blend.end()
 				NetPredict.restore(me, led)
 			net.client_input(c)
 			var shots: NetShotPredict = stats[net]["shots"]
