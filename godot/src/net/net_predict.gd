@@ -40,6 +40,9 @@ static var mates_ahead := true
 ## Off: our inputs walked on through a hold of the world, and the walk
 ## without mud and a knock-down (the old way).
 static var holds_aware := true
+## Off: the drawn player stands at its newest tick between ticks (the old
+## way: net_lag/net_feel `old`).
+static var between := true
 
 
 ## Steps `me` through `inputs` (Game.Controls, oldest first); returns what to
@@ -198,11 +201,6 @@ class Smoother:
 	func reset() -> void:
 		_prev = {}
 		offset = Vector2.ZERO
-
-
-## Off: the drawn player stands at its newest tick between ticks (the old
-## way: net_lag/net_feel `old`).
-static var between := true
 
 
 ## Our player carried on into the next tick by `share` (0 to 1: how far this

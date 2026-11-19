@@ -742,6 +742,7 @@ class Recording:
 	var turn_ms := PackedFloat32Array()
 	var mark_ms := PackedFloat32Array()
 	var _t := 0.0
+	var shots := 0
 	var _probe_at := -1.0
 	var _probe_moved := false
 	var _probe_turned := false
@@ -749,7 +750,6 @@ class Recording:
 	var _probe_angle := 0.0
 	var _fire_at := -1.0
 	var _flash_was := 0.0
-	var shots := 0
 	var _mark_was := false
 
 	func frame(g: Game, me: Player, dt: float, c: Game.Controls, live: bool, offset: float) -> void:
