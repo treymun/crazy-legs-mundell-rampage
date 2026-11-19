@@ -29,7 +29,7 @@ static func schedule(subs: Array, inputs: Array) -> Array:
 	var d := RandomNumberGenerator.new()
 	d.seed = inputs[5]
 	d.randi()
-	var early := Shape.num("looks", "early", .2) + .3 * weak + (.25 if blasted else 0.0)
+	var early := Shape.num("looks", "early", .2) + .3 * weak + (.15 if blasted else 0.0)
 	var kick := Shape.num("looks", "kick", 1.0) * (.7 + .6 * weak)
 	var lowest := -1
 	var highest := -1
@@ -153,3 +153,30 @@ static func long_axis(h: Vector3) -> int:
 static func fall_time(z0: float, vz: float, z: float, g: float) -> float:
 	var under := vz * vz + 2.0 * g * (z0 - z)
 	return maxf(.04, (vz + sqrt(maxf(0.0, under))) / g)
+
+
+## The turn it lies in on the pile from the turn it lands in: its thinnest
+## way up (of a stick, the thinner one nearer up), a little askew.
+static func flat(b: SetPieceWreck.Bit, q: Quaternion, d: RandomNumberGenerator) -> Quaternion:
+	var basis := Basis(q)
+	var thin := SetPieceBits.thin(b.half)
+	var long := SetPieceBits.long_axis(b.half)
+	var other := 3 - thin - long
+	if b.half[other] < b.half[thin] * 1.6 and absf(basis[other].z) > absf(basis[thin].z):
+		thin = other
+	var up := basis[thin].normalized()
+	var to := Vector3(0, 0, 1.0 if up.z >= 0.0 else -1.0)
+	var flat := (Quaternion(up, to) * q).normalized()
+	var roll := d.randf_range(-.08, .08) if not b.tin else d.randf_range(-.16, .16)
+	var axis := Basis(flat)[long]
+	axis.z = 0.0
+	if axis.length() > .1:
+		flat = (Quaternion(axis.normalized(), roll) * flat).normalized()
+	# Knocked askew as it comes down (tin skates round as it slides).
+	var yaw := (.55 if b.tin else .3) * clampf(b.kick, .5, 1.6)
+	return (Quaternion(Vector3(0, 0, 1), d.randf_range(-yaw, yaw)) * flat).normalized()
+
+
+## A random turning, up to `most` each way, from `d`.
+static func spin(most: float, d: RandomNumberGenerator) -> Vector3:
+	return Vector3(d.randf_range(-1, 1), d.randf_range(-1, 1), d.randf_range(-1, 1)) * most

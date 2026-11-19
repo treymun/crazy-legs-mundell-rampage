@@ -93,7 +93,7 @@ func tick(dt: float) -> void:
 ## Looks-only specks (game.specks; this feature's dice).
 func specks(x: float, y: float, z: float, kind: String, n: int, speed: float, up: float) -> void:
 	for m in n:
-		if game.specks.size() >= 150 or m >= most_specks:
+		if game.specks.size() >= 100 or m >= most_specks:
 			return
 		var a := dice.randf() * TAU
 		var s := dice.randf_range(.3, speed)

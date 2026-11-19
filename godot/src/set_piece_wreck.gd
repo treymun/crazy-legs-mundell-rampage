@@ -40,7 +40,9 @@ const REST := 2
 ## The pile's height map: cells this many metres a side.
 const CELL := .4
 ## Pieces at rest merged into a mesh at a time.
-const MERGE_AT := 24
+const MERGE_AT := 12
+## Merged meshes a ruin keeps before it is merged whole again.
+const MERGED_MOST := 6
 const DUST := SetPieceFx.DUST
 const GUSH := SetPieceFx.GUSH
 const BOOM := SetPieceFx.BOOM
@@ -117,6 +119,11 @@ class Ruin:
 	var merged: Array = []
 	var still := false
 	var merges := 0
+	## Its pieces dropped back into their places this tick (merged at once:
+	## they never move again), and whether it has been merged whole since it
+	## last took a part.
+	var slotted: Array = []
+	var whole := false
 	## Each part's pieces that ride it to the ground together, drawn as one
 	## mesh while they all ride: part -> [key, sprite, still together].
 	var groups := {}
@@ -156,6 +163,7 @@ var _merge_job := -1
 var _merge_ruin: Ruin
 var _merge_n := 0
 var _merge_bits: Array = []
+var _merge_whole := false
 var _merge_src: Array = []
 var _merge_in: Array = []
 var _merge_out: Array = []
@@ -437,6 +445,7 @@ func _bits(sets: SetPiecesFeature, i: int, k: int, warned: bool, key: String, we
 		taken[code] = true
 		version += 1
 	r.still = false
+	r.whole = false
 	var inputs := _inputs(sets, r, i, k, weak)
 	var sched_key := "%s:%s" % [key, str(inputs)]
 	var sched: Array = _scheds.get(sched_key, [])
@@ -623,7 +632,7 @@ func _burst_part(sets: SetPiecesFeature, i: int, k: int) -> void:
 					+ Vector3(r.lean.x, r.lean.y, 0) * 1.5
 					+ Vector3(0, 0, dice.randf_range(2.0, 4.0))
 				)
-				_launch(r, b, game.clock, v, _spin(9.0))
+				_launch(r, b, game.clock, v, SetPieceBits.spin(9.0, dice))
 			taken[i * 1000 + k] = true
 			version += 1
 			fx.sound("hoop_ring", c.x, c.y, .8, .1)
@@ -761,6 +770,8 @@ func _jobs(sets: SetPiecesFeature) -> void:
 		var r := _merge_ruin
 		_merge_ruin = null
 		if r != null and r.merges == _merge_n and ruins.get(r.i) == r:
+			if _merge_whole:
+				r.merged.clear()
 			_merged(r, _merge_src, _merge_out, _merge_bits)
 		_merge_bits = []
 
@@ -833,8 +844,15 @@ func tick(dt: float) -> void:
 		all_still = all_still and not sets._any_moving(st) and not _cutting(i)
 		if loose >= MERGE_AT or (all_still and loose > 0):
 			_finish(sets, r)
+		elif r.merged.size() >= MERGED_MOST and _merge_job < 0 and loose == 0:
+			# Each landing's merge is a mesh (a draw) of its own: past a few,
+			# all of it merged into a mesh a tile on the worker.
+			_finish(sets, r, false, true)
 		elif all_still and loose == 0 and _merge_ruin != r:
-			r.still = true
+			if not r.whole and r.merged.size() > 3:
+				_finish(sets, r, false, true)
+			else:
+				r.still = true
 	fx.tick(dt)
 
 
@@ -860,10 +878,24 @@ func _due(sets: SetPiecesFeature, r: Ruin, t: float, live: bool) -> void:
 			due.append(b)
 	if due.size() > 1:
 		due.sort_custom(func(a: Bit, c: Bit) -> bool: return a.tb < c.tb)
+	var flying := 0
+	for b: Bit in r.bits:
+		flying += 1 if b.state == FLY else 0
+	var most := int(Shape.num("looks", "flying", 36.0))
 	for b: Bit in due:
+		if live and b.share < 1.0 and not b.fixed and not b.stub and flying >= most:
+			# Enough in the air: it rides its part to the ground instead.
+			b.share = 1.0
+			b.move_t0 = NAN
+			continue
+		flying += 1
 		if b.grouped:
 			_leave(r, b)
 		_go(sets, r, b, live)
+	if not r.slotted.is_empty():
+		if live:
+			_merge_now(r, r.slotted)
+		r.slotted = []
 	if not live:
 		for b: Bit in due:
 			b.state = REST
@@ -930,7 +962,7 @@ func _go(sets: SetPiecesFeature, r: Ruin, b: Bit, live: bool) -> void:
 		# strike spent.
 		v = Vector3(v.x * .3, v.y * .3, absf(v.z) * .1)
 		v += out * d.randf_range(.1, .9) * b.kick + Vector3(0, 0, d.randf_range(.3, 1.6) * b.kick)
-		w = w * .25 + _spin(4.0 * b.kick, d)
+		w = w * .25 + SetPieceBits.spin(4.0 * b.kick, d)
 		if b.tin and r.lean.length() > .05:
 			# The tin skates off the way it fell.
 			var way := r.lean.normalized() * d.randf_range(.6, 2.2)
@@ -942,7 +974,7 @@ func _go(sets: SetPiecesFeature, r: Ruin, b: Bit, live: bool) -> void:
 			(out * d.randf_range(.2, 1.1) + spread) * b.kick
 			+ Vector3(0, 0, d.randf_range(.2, 1.4) * b.kick)
 		)
-		w += _spin(4.5 * b.kick, d)
+		w += SetPieceBits.spin(4.5 * b.kick, d)
 	if r.blasted:
 		var away := b.p0 - r.blast
 		var dist := away.length()
@@ -960,8 +992,9 @@ func _go(sets: SetPiecesFeature, r: Ruin, b: Bit, live: bool) -> void:
 			fx.sound("plank_crack", b.p0.x, b.p0.y, .55, .12)
 
 
-## b jumps from where its part struck and drops back into its own place in
-## the part as it lies, a little off and askew.
+## b shakes loose where its part struck and lies in its own place in the part
+## as it lies, a little off and askew (in the strike's dust: merged with the
+## rest of its part's at once, so a landing costs a mesh, not a piece each).
 func _slot(sets: SetPiecesFeature, r: Ruin, b: Bit, d: RandomNumberGenerator) -> void:
 	var at := _ride(sets, r, b, INF)
 	var place := Quaternion(at.basis.orthonormalized())
@@ -979,19 +1012,12 @@ func _slot(sets: SetPiecesFeature, r: Ruin, b: Bit, d: RandomNumberGenerator) ->
 	var under := _height(r, b.rest_p.x, b.rest_p.y) + b.half[SetPieceBits.thin(b.half)]
 	b.rest_p.z = maxf(at.origin.z, under) + d.randf_range(0.0, .04)
 	_above(b)
-	var hang := d.randf_range(.2, .38)
-	var g := Shape.num("all", "gravity", 14.0)
-	b.v = (b.rest_p - b.p0) / hang + Vector3(0, 0, .5 * g * hang)
-	var turn := (b.rest_q * b.q0.inverse()).normalized()
-	b.w = Vector3.ZERO
-	if absf(turn.w) < .99999:
-		b.w = turn.get_axis() * turn.get_angle() / hang
-	b.land = b.tb + hang
+	b.land = b.tb
 	b.pl = b.rest_p
-	b.ql = _turned(b, hang)
-	b.settle = .1
-	b.hop = .02
-	b.state = FLY
+	b.ql = b.rest_q
+	b.state = REST
+	b.landed = true
+	r.slotted.append(b)
 	_raise(r, b)
 
 
@@ -1031,7 +1057,7 @@ func _launch(
 	var fall := SetPieceBits.fall_time(b.p0.z, v.z, _ground(b.p0.x, b.p0.y) + b.half[thin], g)
 	var where := b.p0 + v * fall
 	var q := _turned(b, fall)
-	var rest := _flat(b, q, d)
+	var rest := SetPieceBits.flat(b, q, d)
 	var top := _pile(r, where, rest, b.half)
 	fall = SetPieceBits.fall_time(b.p0.z, v.z, top.x, g)
 	b.land = t + fall
@@ -1076,28 +1102,6 @@ func _turned(b: Bit, after: float) -> Quaternion:
 	if spin < .001:
 		return b.q0
 	return (Quaternion(b.w / spin, spin * after) * b.q0).normalized()
-
-
-## The turn it lies in on the pile from the turn it lands in: its thinnest
-## way up (of a stick, the thinner one nearer up), a little askew.
-func _flat(b: Bit, q: Quaternion, d: RandomNumberGenerator) -> Quaternion:
-	var basis := Basis(q)
-	var thin := SetPieceBits.thin(b.half)
-	var long := SetPieceBits.long_axis(b.half)
-	var other := 3 - thin - long
-	if b.half[other] < b.half[thin] * 1.6 and absf(basis[other].z) > absf(basis[thin].z):
-		thin = other
-	var up := basis[thin].normalized()
-	var to := Vector3(0, 0, 1.0 if up.z >= 0.0 else -1.0)
-	var flat := (Quaternion(up, to) * q).normalized()
-	var roll := d.randf_range(-.08, .08) if not b.tin else d.randf_range(-.16, .16)
-	var axis := Basis(flat)[long]
-	axis.z = 0.0
-	if axis.length() > .1:
-		flat = (Quaternion(axis.normalized(), roll) * flat).normalized()
-	# Knocked askew as it comes down (tin skates round as it slides).
-	var yaw := (.55 if b.tin else .3) * clampf(b.kick, .5, 1.6)
-	return (Quaternion(Vector3(0, 0, 1), d.randf_range(-yaw, yaw)) * flat).normalized()
 
 
 ## Where a piece turned `rest` lies on the pile at `at`: [its middle's height,
@@ -1295,10 +1299,11 @@ func _gush(r: Ruin, at: Vector3, n: int) -> void:
 
 
 ## r lies still: its pieces merged into a mesh a tile (one a tick at most).
-func _finish(sets: SetPiecesFeature, r: Ruin, now := false) -> void:
+func _finish(sets: SetPiecesFeature, r: Ruin, now := false, whole := false) -> void:
 	if _merge_job >= 0 and (not now or _merge_ruin == r):
 		return
 	r.merges += 1
+	r.whole = whole or now
 	var groups := {}
 	var bits: Array = []
 	for b: Bit in r.bits:
@@ -1307,7 +1312,7 @@ func _finish(sets: SetPiecesFeature, r: Ruin, now := false) -> void:
 			b.rest_p = xf.origin
 			b.rest_q = Quaternion(xf.basis.orthonormalized())
 			b.state = REST
-		if b.state != REST or b.merging or b.merged:
+		if b.state != REST or b.merging or (b.merged and not whole and not now):
 			continue
 		b.merging = true
 		bits.append(b)
@@ -1331,6 +1336,8 @@ func _finish(sets: SetPiecesFeature, r: Ruin, now := false) -> void:
 	var out: Array = []
 	if now or not _threads:
 		SetPieceBits.merge_all(into, Vector3(r.reach, r.reach, 2.0), out)
+		if whole or now:
+			r.merged.clear()
 		_merged(r, srcs, out, bits)
 		if now:
 			r.still = true
@@ -1341,11 +1348,37 @@ func _finish(sets: SetPiecesFeature, r: Ruin, now := false) -> void:
 	_merge_in = into
 	_merge_out = out
 	_merge_bits = bits
+	_merge_whole = whole
 	_merge_job = WorkerThreadPool.add_task(
 		SetPieceBits.merge_all.bind(into, Vector3(r.reach, r.reach, 2.0), out),
 		false,
 		"set piece merge"
 	)
+
+
+## Pieces `bits` (at rest) merged here and now into a mesh a tile.
+func _merge_now(r: Ruin, bits: Array) -> void:
+	var groups := {}
+	for item: Variant in bits:
+		var b: Bit = item
+		b.merging = true
+		var src := b.key.get_slice("|", 0)
+		if not groups.has(src):
+			groups[src] = []
+		var list: Array = groups[src]
+		var subs := WreckCuts.parts(game.art, b.key)
+		if b.index < subs.size():
+			list.append([subs[b.index], b.rest_p - r.mid, Basis(b.rest_q)])
+	var srcs: Array = []
+	var into: Array = []
+	for src: String in groups:
+		srcs.append(src)
+		into.append(groups[src])
+	var out: Array = []
+	SetPieceBits.merge_all(into, Vector3(r.reach, r.reach, 2.0), out)
+	r.merges += 1
+	r.whole = false
+	_merged(r, srcs, out, bits)
 
 
 ## r's merged parts made: drawn from now on instead of those pieces.
@@ -1361,12 +1394,6 @@ func _merged(r: Ruin, srcs: Array, parts: Array, bits: Array) -> void:
 		var b: Bit = item
 		b.merging = false
 		b.merged = true
-
-
-func _spin(most: float, d: RandomNumberGenerator = null) -> Vector3:
-	if d == null:
-		d = dice
-	return Vector3(d.randf_range(-1, 1), d.randf_range(-1, 1), d.randf_range(-1, 1)) * most
 
 
 # ------------------------------------------------------------------ drawing

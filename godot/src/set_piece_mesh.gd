@@ -320,11 +320,11 @@ static func split(size: Vector3, mode: int, seed: int, detail: float) -> Array:
 		BOARDS:
 			# Boards across x, z up: runs of one to three boards, each snapped.
 			var cols := clampi(roundi(size.x / .3 * detail), 2, 12)
-			for strip: Vector2 in _runs(dice, -h.x, h.x, cols, 3 if detail >= .9 else 4):
+			for strip: Vector2 in _runs(dice, -h.x, h.x, cols, 3):
 				_snap(dice, out, size, 2, 0, strip, Vector2(-h.y, h.y), -h.z, h.z, .5, .13, detail)
 		SHEETS:
 			# Tin: whole sheets across x (seams), torn across down the slope.
-			var cols := 2 if detail >= .7 and size.x > 1.2 else 1
+			var cols := 2 if detail >= .5 and size.x > 1.2 else 1
 			for strip: Vector2 in _runs(dice, -h.x, h.x, cols, 1):
 				_snap(dice, out, size, 1, 0, strip, Vector2(-h.z, h.z), -h.y, h.y, .9, .16, detail)
 		STICK:
@@ -342,7 +342,7 @@ static func split(size: Vector3, mode: int, seed: int, detail: float) -> Array:
 				Vector2(-h[t], h[t]),
 				-h[a],
 				h[a],
-				.45,
+				-.45,
 				jag,
 				detail
 			)
@@ -385,8 +385,11 @@ static func _snap(
 ) -> void:
 	var length := a1 - a0
 	var breaks := 0
+	# A `snap` below 0: its first break is sure (a post always snaps).
+	var sure := snap < 0.0
+	snap = absf(snap)
 	for n in 2:
-		if length / (breaks + 2) > .35 and dice.randf() < snap * detail:
+		if length / (breaks + 2) > .35 and ((sure and n == 0) or dice.randf() < snap * detail):
 			breaks += 1
 	var cuts: Array = []
 	for n in breaks:

@@ -2115,15 +2115,17 @@ away, so a barn no longer swings down in whole flat walls and roof slopes:
   each snapped once or twice on a jagged line (a splinter point or a notch);
   the tin in separate sheets torn across; a post, a plate, the ridge, a leg, a
   brace, a pipe snapped along its length on splintered ends; the deck in
-  planks. A hickston barn is about 130 pieces (`detail`; a phone or LOW
-  `detail_low`).
+  planks. A hickston barn is about 100 pieces (`detail`; a phone or LOW
+  `detail_low`); a post always snaps.
 - **When each goes**: a share of its part's move (`early`, more where it was
   weak) breaks away in the fall: a post's top snaps off, the ridge and plates
   break and fold, sheets of tin tumble off, boards peel off a wall going over,
-  a tower's legs on the leaning side snap. The rest come apart where the part
-  lands: most jump and drop back into their own place in the part as it
-  lies, knocked askew and onto whatever came down there first (so the pile
-  keeps play's layers, and its cover is where its pieces are); `scatter` of
+  a tower's legs on the leaning side snap (at most `flying` of a set piece
+  in the air on their own at once: more ride their part down). The rest
+  come apart where the part lands: most shake loose into their own place in
+  the part as it lies, knocked askew and onto whatever came down there first
+  (so the pile keeps play's layers, and its cover is where its pieces are),
+  merged at once into a mesh with the rest of that landing's; `scatter` of
   them are thrown off onto the pile, `propped` of those left leaning on it.
   A post's foot stays standing, snapped. Every flight is worked out once when
   the piece goes (ballistic to the pile's height, a hop and a slide to rest;
@@ -2164,8 +2166,9 @@ away, so a barn no longer swings down in whole flat walls and roof slopes:
 - **Drawn**: the pieces of a part that ride it to the ground together are one
   mesh (`spgroup`) until the first of them goes; the rest are each a sprite
   (`~<spsplit key>#<n>`); pieces at rest are merged on a worker into a mesh a
-  tile (`sprest`), `MERGE_AT` at a time and the last when all of it lies
-  still. Dust and gushes are pooled sprites blended as a blast's smoke (hard
+  tile (`sprest`), `MERGE_AT` at a time, and once a ruin holds `MERGED_MOST`
+  merges (or all of it lies still) all of it is merged again whole, a mesh a
+  tile (every mesh is a draw of its own). Dust and gushes are pooled sprites blended as a blast's smoke (hard
   edged), flares glowing (at most `puffs`, fewer on a phone); splinters and
   hay are looks specks (at most `specks`).
 - **Cost**: see the pass 11 numbers in [checks.md](checks.md#benchmarks).
