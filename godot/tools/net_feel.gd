@@ -29,7 +29,9 @@
 ## mates_ahead and holds_aware, NetOwnShots, NetSync.Client.smooth_clock,
 ## NetPlay.county_by_clock), so both run on one build; noblend, noahead,
 ## noclock, nomates, noholds turn one off; v390 is old with the server's
-## side of pass 12 off too (v3.9.0 as it was). `snaps=N`: a snapshot every
+## side of pass 12 off too (v3.9.0 as it was); r1 only NETSERVER's second
+## round off (echo rows by ticks, rows from a first part, the host's input
+## buffer). `snaps=N`: a snapshot every
 ## N ticks. quick (check_all): the 5v5 as a client and co-op as its host, at
 ## 120 ms for 10 s, new only, held to QUICK_LIMITS. Prints NET FEEL OK.
 extends SceneTree
@@ -175,6 +177,12 @@ static func _way(old: bool, way := "") -> void:
 	LobbyServer.paced = way != "v390"
 	NetWire.pack_rows = way != "v390"
 	NetSync.Host.split_big = way != "v390"
+	# r1: NETSERVER's second round off (the server as pass 12 first merged it).
+	var r1 := way in ["v390", "r1"]
+	NetSync.Host.echo_by_ticks = not r1
+	NetSync.Client.rows_from_parts = not r1
+	NetSync.Host.rows_in_wholes = not r1
+	NetSync.Host.buffer_inputs = not r1 and way != "nobuffer"
 
 
 ## A frame's length: the screen's, wobbling a little as real frames do.

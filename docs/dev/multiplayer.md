@@ -1105,6 +1105,48 @@ match of bots with 1.5 ms of extra work a tick, on the real clock: no
 snapshot bunched, the gaps' p99 under 45 ms at the server and 50 at a probe,
 the arrivals' wander p95 under 20 ms and no snapshot packet over the MTU.
 
+**The second round** (after NETFEEL's `net_feel.gd` found three more on
+the host's side; `r1` there and net_lag's `oldserver` turn these off):
+
+- **Rows by ticks, not snapshots.** A snapshot repeats `Host.ECHO_TICKS` (9)
+  ticks of rows past the last sent, whatever the snapshot rate
+  (`echo_by_ticks`); at 60 a second the old three snapshots' worth was
+  three ticks.
+- **Co-op and County Run lost rows** because their deltas (a world of
+  hands, 8 to 14 KB) went in 7 to 12 parts: with 2% loss one in six or so
+  never came whole, the client's base fell behind until it left the host's
+  history, and the whole snapshot it then got carried **no rows at all**, so
+  the copy was put back on it. A whole snapshot now carries the rows since
+  the last it was sent (`rows_in_wholes`), and a split snapshot's first part
+  alone gives its rows (they come before the payload: `rows_from_parts`), so
+  a lost later part loses the state, not the inputs. 5v5 and deathmatch
+  deltas are one or two parts, which is why only those two modes showed it.
+- **An input buffer on the host** (`buffer_inputs`): a person's inputs are
+  played 0 to `BUFFER_MOST` (2) ticks behind their arrival, by how much
+  their arrivals wander (`Remote.arrivals`, their spread over the quickest
+  less a tick), and after running dry it fills again before they play on.
+  It used to play each as soon as it came: a late one was held (the person
+  stopped turning), then the pile merged (a lurch). The rewind follows (the
+  tick they showed against the tick it is played).
+
+`net_feel.gd -- scenes=coop,county lags=250` (50 ms of jitter, 2% loss),
+seeds 7, 11 and 23, `r1` against new: copies put back in 20 s 4, 7, 6 ->
+2, 2, 2 in co-op and 7, 9, 10 -> 1, 3, 2 in County Run; everyone else
+frozen 12.9, 13.1, 13.6 -> 13.0, 11.3, 9.8% in co-op and 11.1, 7.5, 7.9 ->
+7.6, 8.4, 6.5% in County Run (single-player's own bar at 144 Hz is 17%).
+The input buffer alone (`nobuffer` against new) is within the noise there
+(20% jitter: the buffer is a tick and the host held as many inputs either
+way) and costs 10 to 25 ms on the input's round trip; at 100 ms of jitter
+(`net_lag -- lags=250 jitter=0.4`, `nobuffer` against new) the host held a
+person's late input 12.9 -> 2.4 times a second and merged a pile 12.0 ->
+1.4 times, for 33 ms more on the round trip (650 -> 683 ms).
+
+At 60 snapshots a second (`snaps=1`, 250 ms) the rows by ticks took the
+copies put back from 43 to 1 in 20 s (5v5 and co-op), but the others
+still showed frozen in 86% of frames with or without them (the same
+number in both: the client's drawing at that rate, not the rows), so 60
+a second is not worth it yet; 30 stays.
+
 ### Player maps in a lobby
 
 `src/net/net_maps.gd` (`NetMaps`); the maps themselves are
