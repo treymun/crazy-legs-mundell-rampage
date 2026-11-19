@@ -1047,6 +1047,18 @@ What it found and fixed:
   106, County Run 222, campaign co-op 602 -> 265.
 - **An engine error** when a packet for a WebSocket player that had just
   gone left the lag queue (`NetSession._ws_open`).
+- **Past about a second of round trip** a client's acknowledged base fell
+  out of the host's `KEEP` (32 snapshots, 1.07 s at 30 a second) and it got
+  whole snapshots (7 to 30 KB, no input rows, a put back each) until the
+  trip came down. With NETSERVER's `NetSession.resend_lost` (a lost packet
+  holds a WebSocket up a round trip, as TCP does) the browser's player at
+  250 ms was put back 76 to 83 times in 90 s in every 5v5 mode, the party
+  line's at 120 ms 22 times in 30 s. `Host.KEEP` and `Client.KEEP` are 120
+  (4 s); none since (net_check holds them together).
+- **A copy's snapshots leaked**: `Client` let go only of the one exactly
+  `KEEP` older than the newest, so one that came after a lost one stayed for
+  ever (about one in fifty at 2% loss, each holding its game's whole
+  snapshot): 260 kept after a minute; `KEEP` at most now.
 - County Run's card picks: [county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed).
 
 Known and left (each puts a copy back once or twice more, never for long):
@@ -1065,12 +1077,6 @@ Known and left (each puts a copy back once or twice more, never for long):
 - **A leave and a join in the party modes** (`Modes.went_away`,
   `join_late`) change the server's game between ticks: every other copy is
   put back once for each (a hitch of 10 to 130 ms on a busy co-op map).
-- **Past about a second of round trip** a client's acknowledged base falls
-  out of the host's `KEEP` (32 snapshots, 1.07 s at 30 a second) and it
-  gets whole snapshots (25 to 30 KB, no input rows, a put back each) until
-  the trip comes down: the party line over WebSocket at 120 ms a leg with
-  2% loss (each loss holding TCP up a round trip, `NetSession.resend_lost`)
-  got 22 whole snapshots in 30 s. A bigger KEEP is the host's to choose.
 
 ### Player maps in a lobby
 

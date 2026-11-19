@@ -686,6 +686,9 @@ func _play() -> Dictionary:
 	var serve_us := 0
 	var serve_n := 0
 	var worst_serve := 0
+	var stalls := 0
+	var last_tick := -1
+	var still := 0
 	_sample("start")
 	for t in ticks:
 		var s0 := Time.get_ticks_usec()
@@ -704,12 +707,44 @@ func _play() -> Dictionary:
 			late_note = r[1]
 		if _match_over():
 			_restart()
+		# The server's match must go on: its tick moves (a held world still
+		# ticks), and a copy's newest snapshot with it.
+		var hs := _host_sync()
+		var at_tick: int = hs.tick if hs != null else -1
+		still = still + 1 if at_tick == last_tick else 0
+		last_tick = at_tick
+		if still == int(5.0 / STEP):
+			stalls += 1
+			print(
+				(
+					"    STALLED at tick %d: %s"
+					% [
+						at_tick,
+						nets.map(func(n: NetPlay) -> String: return "%s %s" % [n._my_name, n.phase])
+					]
+				)
+			)
 		if t % 16 == 0:
 			OS.delay_msec(1)
 	_sweep()
 	_sample("end")
 	var wall_s := (Time.get_ticks_msec() - wall) / 1000.0
+	_check(stalls == 0, "%s %.0f ms: the match never stood still (%d)" % [mode, lag, stalls])
+	var kept_most := 0
+	for net: NetPlay in nets:
+		if net.client_sync != null:
+			kept_most = maxi(kept_most, net.client_sync.snaps.size())
+	_check(
+		kept_most <= NetSync.Client.KEEP,
+		"%s %.0f ms: a copy keeps %d snapshots at most (KEEP)" % [mode, lag, kept_most]
+	)
 	return _report(ticks * STEP, wall_s, late_ok, late_note)
+
+
+func _host_sync() -> NetSync.Host:
+	if mode == "coop":
+		return main.net.host_sync if main.net != null else null
+	return lobby.host_sync if lobby != null else null
 
 
 ## The lobby took everyone back (rounds, frag or time limit): play again.
@@ -907,11 +942,26 @@ func _sample(when: String) -> void:
 		_lists("server", sg, lists)
 	if not nets.is_empty() and nets[0].match_game() != null:
 		_lists("copy", nets[0].match_game(), lists)
+		var hw: Variant = nets[0].match_game().get("hands_watch")
+		if hw is Object:
+			_measure("copy:hands_watch", hw, lists)
+		if nets[0].client_sync != null:
+			_measure("client_sync", nets[0].client_sync, lists)
+		if nets[0].has_meta("shots"):
+			_measure("shown", nets[0].get_meta("shots"), lists)
+		_measure("netplay", nets[0], lists)
+	if lobby != null:
+		_measure("lobby", lobby, lists)
+		if lobby.host_sync != null:
+			_measure("host_sync", lobby.host_sync, lists)
+			if lobby.host_sync.track != null:
+				_measure("track", lobby.host_sync.track, lists)
 	var s := {
 		"when": when,
 		"mb": OS.get_static_memory_usage() / 1048576.0,
 		"objects": int(Performance.get_monitor(Performance.OBJECT_COUNT)),
 		"orphans": int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
+		"resources": int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)),
 		"lists": lists,
 		"wrecked": _wrecked(sg),
 	}
@@ -927,11 +977,13 @@ func _sample(when: String) -> void:
 	samples.append(s)
 	print(
 		(
-			"    %s: %.0f MB, %d objects, %d orphan nodes; %s%s"
+			"    %s: %.0f MB, %d objects (%d resources, cuts kept %d), %d orphan nodes; %s%s"
 			% [
 				when,
 				s["mb"],
 				s["objects"],
+				s["resources"],
+				WreckCuts._cache.size(),
 				s["orphans"],
 				s["wrecked"],
 				(

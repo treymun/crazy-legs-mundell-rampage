@@ -778,7 +778,7 @@ class Client:
 			return
 		var tick: int = msg["tick"]
 		snaps[seq] = [tick, data]
-		snaps.erase(seq - KEEP)
+		_forget_before(seq - KEEP + 1)
 		if keep_rebuilt:
 			rebuilt[seq] = data
 		latest = seq
@@ -799,6 +799,14 @@ class Client:
 			GameSnapshot.apply(game, data)
 			game_tick = tick
 			_after_apply()
+
+	## Lets go of every snapshot before `seq`. (Only `seq - KEEP` itself went
+	## until pass 12: one that came after a lost one stayed for ever, about
+	## one in fifty with 2% loss, each holding its whole game; net_soak_all.)
+	func _forget_before(seq: int) -> void:
+		for old: int in snaps.keys():
+			if old < seq:
+				snaps.erase(old)
 
 	func _catch_up(most := 1 << 30, behind := 0) -> void:
 		if latest < 0:
