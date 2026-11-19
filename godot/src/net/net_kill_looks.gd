@@ -51,7 +51,8 @@ const NEVER := ["skeeter", "saucer", "drone", "lantern", "bessie"]
 var kills: Array = []
 ## For tools: kills drawn at the press, given by the copy, taken back, and
 ## killing hits that reeled instead.
-var stats := {"sure": 0, "given": 0, "withdrawn": 0, "reels": 0}
+## (`reels_missed`: of those, judged a miss by the host.)
+var stats := {"sure": 0, "given": 0, "withdrawn": 0, "reels": 0, "reels_missed": 0}
 var _feel := Tumble.Feel.new(.24, .12, .2, 2.6)
 var _flung := Tumble.Feel.new(.24, .18, .28, 2.2)
 

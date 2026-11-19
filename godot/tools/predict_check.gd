@@ -39,7 +39,7 @@
 ##   the game's fields, a feature or an enemy found by its own part;
 ## - pass 13 (predict_check_kills.gd): a sure kill drawn dead from the press
 ##   and never up again, one that is not sure reeling till the copy's kill,
-##   a refused one taken back; a finisher; a sure break;
+##   a refused one taken back; a finisher; a sure break; a pocket item;
 ## - nothing on a game nobody watches (single player, a host).
 ##
 ##   godot --headless --path godot --script res://tools/predict_check.gd
@@ -241,6 +241,7 @@ func _run() -> void:
 	Kills.finisher(self, main, Rig, LAG, false)
 	Kills.sure_break(self, main, Rig, LAG, true)
 	Kills.sure_break(self, main, Rig, LAG, false)
+	Kills.item(self, main, Rig, LAG)
 	_check_parts(main)
 	_nobody_watching(main)
 	print("")

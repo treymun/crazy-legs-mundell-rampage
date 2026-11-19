@@ -176,6 +176,9 @@ static func _way(old: bool, way := "") -> void:
 	NetOwnShots.blasts = not old
 	NetHitLooks.enabled = not old
 	NetUseLooks.enabled = not old
+	NetKillLooks.enabled = not old and way != "nokills"
+	NetFinishLooks.enabled = not old
+	NetBreakLooks.enabled = not old
 	NetGunLead.scopes = not old
 	NetSync.Client.spread_check = not old
 	NetSync.Client.wait_rows = not old and way != "nowait"
@@ -253,6 +256,13 @@ func _online(scene: String, lag: float, jitter: float, loss: float) -> Dictionar
 			)
 		)
 	out["fire_shown_ms"] = Recording.median(main.net_shots.show_ms)
+	var kills: Dictionary = main.net_shots.kills.stats
+	for key: String in ["sure", "given", "withdrawn", "reels", "reels_missed"]:
+		out["kills_" + key] = kills[key]
+	out["finish_shown"] = main.net_shots.finishes.stats["shown"]
+	out["finish_withdrawn"] = main.net_shots.finishes.stats["withdrawn"]
+	out["break_shown"] = main.net_shots.breaks.stats["shown"]
+	out["break_withdrawn"] = main.net_shots.breaks.stats["withdrawn"]
 	if rig.has("kit"):
 		var kit: Kit = rig["kit"]
 		out["kit_shown"] = 0
@@ -779,8 +789,21 @@ func _table(heads: Array, cols: Array) -> void:
 		["kit: USE to the door moving (ms)", "%.0f", "kit_door", 1.0],
 		["kit: a shot to the hand's flinch (ms)", "%.0f", "kit_flinch", 1.0],
 		["kit: a stick's blast, past its fuse (ms)", "%.0f", "kit_tnt", 1.0],
+		["kit: a sure kill to the hand down (ms)", "%.0f", "kit_kill", 1.0],
+		["kit: a kill on a hand free to walk (ms)", "%.0f", "kit_reel", 1.0],
+		["kit: USE to a finisher's man down, past its wind (ms)", "%.0f", "kit_finish", 1.0],
+		["kit: a .38 to the crate broken (ms)", "%.0f", "kit_break", 1.0],
 		["  kit presses shown / missed", "%.0f", "kit_shown", 1.0],
 		["", "%.0f", "kit_missed", 1.0],
+		["kills drawn at the press / given", "%.0f", "kills_sure", 1.0],
+		["", "%.0f", "kills_given", 1.0],
+		["  ... taken back (a body up again)", "%.0f", "kills_withdrawn", 1.0],
+		["killing hits reeled / judged a miss", "%.0f", "kills_reels", 1.0],
+		["", "%.0f", "kills_reels_missed", 1.0],
+		["finishers drawn / taken back", "%.0f", "finish_shown", 1.0],
+		["", "%.0f", "finish_withdrawn", 1.0],
+		["breaks drawn / taken back", "%.0f", "break_shown", 1.0],
+		["", "%.0f", "break_withdrawn", 1.0],
 		["delay: input to the host's word (ms)", "%.0f", "confirm_ms", 1.0],
 		["copy: put back / parted", "%.0f", "rebuilds", 1.0],
 		["", "%.0f", "parted", 1.0],

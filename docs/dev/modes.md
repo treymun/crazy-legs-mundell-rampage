@@ -548,10 +548,13 @@ An always-open lobby has no host to lead a campaign: no CAMPAIGN CO-OP there
   person left, else a new player (`Modes.join_late`: co-op beside a partner
   up with the lead's guns; versus at the spawn point farthest from everyone
   with the kit, team deathmatch on the side with fewer up), and gets START
-  for it; the clients' copies get the new player from the next snapshot.
+  for it; every other copy makes the same join before the same tick (it
+  rides that tick's row of inputs, `NetWire.event`; until pass 13 each copy
+  was put back on the next snapshot).
 - **Leaving**: the slot lies out of play (`Player.away`, `Modes.went_away`:
   down, never stood up or respawned, not drawn, no tag) until someone takes
-  it. Nobody leaving ends the match but the host.
+  it, on every copy at the same tick (`NetWire.event`). Nobody leaving ends
+  the match but the host.
 - **Keys online** (`src/net/net_keys.gd`, host and clients alike): nothing a
   key does may change a game between ticks, so the gun keys, ; ', reload,
   USE, the pockets (Q [ ] pick one: `Controls.item` past `Game.POCKET_PICK`;
@@ -674,8 +677,9 @@ when its copy played it: a round trip and the play-out later (350 ms on a
   fresh press: the grunt, the boot drawn and the gun ducking, timed from
   our press (brawl's `kicked_at` and our `weapon_lag` set for the frame
   and put back; the copy's own boot is drawn at our press too, so it does
-  not start again). A finisher is the copy's to show (its move is off the
-  dice); so are the landing's jolt, doors and every other USE.
+  not start again). A finisher shows at the press too since pass 13
+  (below); the landing's jolt and USE on anything but a door, a note, a
+  boot or a finisher are still the copy's.
 - **A thrown shot** (pass 12, `src/net/net_own_shots.gd`): a projectile
   gun's shot (the crossbow's bolt, the ripsaw's blade, the bottle rocket,
   the bowling ball...) came into the copy a round trip and the playout
@@ -721,6 +725,73 @@ when its copy played it: a round trip and the play-out later (350 ms on a
   the copy's until it catches up (a USE never played lets it go back after
   `WAIT`); a note's words show at once. The copy's door sound is dropped
   (net_echo_sound.gd).
+- **Kills, finishers and breaks** (pass 13, `src/net/net_kill_looks.gd`,
+  `net_finish_looks.gd`, `net_break_looks.gd`). Each waited a round trip
+  because a wrong one could not be taken back (a body standing up, a crate
+  coming back whole), so each is drawn at the press only when it is sure,
+  and anything else shows as before:
+  - **A sure kill falls at the press.** Sure: the hand cannot be anywhere
+    else by the host's turn for our input (a stun or a wind-up without a
+    lunge past it, or a body that never walks; not sliding from a boot, not
+    climbing or thrown), our line passes inside it by `MARGIN` with the
+    gun's whole spread, every round of the shot on it, the least it can do
+    (every round on the weakest zone) is more than its health on the copy
+    (health only goes down, so the host's is no more), it would not take
+    the body apart (an overkill's gibs are the copy's), nothing can step or
+    stands in front (another hand or player with room for their walk, a
+    breakable, a drum, a prop, a set piece), it is no boss, no shield, no
+    metal and not in COUNTY RUN (its cards change a hit's damage). From the
+    press it is drawn dead as the copy will have it (health 0, the moment
+    it fell, how and from where it was killed, its facing), sliding as
+    corpses.gd throws it (Tumble's steps on our own body); its death cry,
+    the kill's mark and tick and its blood show then, and the copy's are
+    dropped. When the copy's kill lands, the body keeps our moment for as
+    long as it lies there (a fall's dice, a scripted fall's mirror and a
+    ragdoll are keyed by it: changing it began the fall again) and where it
+    lies eases onto the copy's once both have stopped sliding. A kill the
+    host never gives (the shot refused, judged a miss) is taken back: the
+    only way a body stands up again, never seen in the checks' runs.
+  - **Any other killing hit reels**: the hand's flinch (net_hit_looks.gd)
+    is held from the press until the host's word (at most a second), so it
+    never stands unhurt; the copy's kill starts the ragdoll from that pose
+    (actor_view.gd starts a fall from the pose drawn), a miss lets it go as
+    a flinch ends. Measured both ways (`net_feel -- scenes=kit`), drawing
+    every killing hit's fall at the press would be a third of a second
+    sooner for the walking ones too, but a fifth of the marks shown on
+    hands are withdrawn in County Run co-op (no rewind for hands): a fifth
+    of those bodies would get up again.
+  - **A finisher shows at the press.** Its move was the host's dice; with
+    more than one player it now comes from the man's uid and the player's
+    slot (`brawl.gd party_move`; alone it stays the dice, so single-player
+    play is exact), which a client knows at the press. When our screen has
+    a man the host will surely finish (down to `low` of his health, or
+    reeling or dazed past our input's turn; in reach and in the cone with
+    room for where he can get to; no other man who could be nearer), the
+    gun's path and frames, the boot's cels and the man reeling are drawn
+    from the press, and at the blow (`wind` on) its jolt, sound, call and
+    blood and the man's fall (a move that takes him apart leaves its gibs
+    to the copy). The copy's own blow asks `hands_watch.finish_shown` and
+    leaves out its sounds, blood, specks and call (`game.speaker` a
+    QuietSound and `own_quiet` round its hurt, the dice spent as ever);
+    brawl_looks gives no second jolt.
+  - **A sure break comes apart at the press**: the piece stands still, our
+    line is well inside it with the whole spread, every round strikes it
+    and together they beat its health, nothing could be in front by the
+    host's turn, no sign that cracks first, and nothing under it (a piece
+    on furniture: its real pieces would start inside the volume the copy
+    still has, and wreckage.gd leaves those out). It is drawn broken
+    (`breakables.drawn_broken`: its broken picture, its sound and bits),
+    its real pieces fly (`wreckage.break_early`, our shot as the hit that
+    broke it), and an explosive one goes up `FUSE_SHOT` later with the
+    blast's looks (net_own_shots.gd `_boom`); the copy's break leaves out
+    its sounds, bits and specks (`hands_watch.break_shown`), wreckage.gd
+    throws nothing more and the copy's blast is kept quiet (`blast_shown`
+    for a blast nobody threw, matched to our piece). The floor it frees,
+    its volume, `prop_broken`'s listeners (drops, spills) and any chain it
+    sets off stay the copy's, a round trip later.
+  Every one is drawn whatever our own player is doing (down, dead, the
+  tally: `NetShotPredict.world_begin`, called by main.gd for every client
+  frame), so a body never stands up while we watch from the floor.
 - **Every online mode gets it** (County Run co-op, the 5v5 rounds, tag
   team, and any mode added online later): it reads only Game.Controls, the
   copy and `NetSync.Client`. Nothing carried is touched; `net_lag`,
@@ -772,15 +843,16 @@ a 10-character join code or an address stays desktop only.
 
 - UDP hole punching (the party line relays instead; a desktop player still
   goes straight to a host whose router opened the port).
-- Client prediction of finishers (the move is game.rng's on the host's
-  tick, which no copy knows ahead: a wrong move drawn could not be taken
-  back), a break and its wreck pieces from our shots (a break changes the
-  level's walls; drawn wrongly it would have to come back whole), a kill's
-  fall and ragdoll (the hand's health on the host decides it; one drawn
-  falling cannot get up again), the saw's grind, the boot's jolt, USE on
-  anything but a door, a note or a boot (stations, the jukebox, gates),
-  items, a thrown shot's blood and tick, and the blasts of things that
-  roll (each still shows when the copy plays it).
+- Client prediction of a kill that is not sure (it reels till the host's
+  word; see "Kills, finishers and breaks"), a finisher that is not sure, a
+  break that is not sure or stands on furniture, what a blast or a thrown
+  shot kills or breaks, the saw's grind, the boot's jolt, USE on anything
+  but a door, a note, a boot or a finisher (stations, the jukebox, gates),
+  items, a thrown shot's blood and tick (the copy's blood is not in our
+  watched step, so ours would show twice), and the blasts of things that
+  roll (each still shows when the copy plays it). Rewinding the hands for
+  a client's shots, as the players are, would make far more kills sure, but
+  it changes play online.
 - A second local input set (split keyboard).
 - Spawn points from the plans outside the 5v5 maps (only worked out).
 - Versus pickups other than the level's own.

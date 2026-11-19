@@ -305,7 +305,8 @@ static func join_beside(game: Game, anchor: Player) -> Player:
 ## new player (MAX_FREE_FOR_ALL at most; null: no room). Co-op: beside a
 ## partner up, on their feet with the lead's guns; versus: on the spawn point
 ## farthest from everyone with the kit (team deathmatch: on the team with
-## fewer up). Called between ticks, on the host only.
+## fewer up). Called between ticks on the host, and on every copy before
+## the tick whose row carries it (NetWire.event, NetSync.play_event).
 static func join_late(game: Game, name: String) -> Player:
 	var st := feature(game)
 	if st == null or not (String(st.mode) in [COOP, DEATHMATCH, TEAM]):
@@ -353,7 +354,8 @@ static func join_late(game: Game, name: String) -> Player:
 
 ## The person playing `p` left an online co-op or deathmatch match: they lie
 ## out of play (down, never stood up again, not drawn) until a late joiner
-## takes the slot. On the host, between ticks.
+## takes the slot. On the host between ticks, and on every copy before the
+## tick whose row carries it (NetWire.event).
 static func went_away(game: Game, p: Player) -> void:
 	p.away = true
 	p.health = 0

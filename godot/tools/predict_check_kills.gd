@@ -403,3 +403,37 @@ static func sure_break(check: Object, main: Object, rig_class: Script, lag: int,
 			)
 		)
 	)
+
+
+## A pocket item used (pass 13): its sound heard at the press, once in all,
+## the copy taking it LAG frames on.
+static func item(check: Object, main: Object, rig_class: Script, lag: int) -> void:
+	var made := _scene(check, main, 100.0, 0.0)
+	if made.is_empty():
+		return
+	var g: Game = made[0]
+	var a: Player = made[1]
+	var name: String = HUD.ITEMS[1]
+	a.inventory[name] = 2
+	var r: Object = rig_class.new(g)
+	r.call("idle", lag + 4)
+	var ears: Object = r.get("ears")
+	var cue: String = GameWorld.ITEM_CUES[1]
+	var before: int = ears.call("count", cue)
+	var c := Game.Controls.new()
+	c.item = 1
+	r.call("step", c)
+	var then: int = ears.call("count", cue) - before
+	var had: int = a.inventory[name]
+	r.call("settle")
+	var heard: int = ears.call("count", cue) - before
+	var left: int = a.inventory[name]
+	check.call(
+		"_check",
+		then == 1 and heard == 1 and had == 2 and left == 1,
+		(
+			"a pocket item used: its sound heard at the press (%d), once in all (%d), the copy"
+			+ " taking it after (%d -> %d)"
+		)
+		% [then, heard, had, left]
+	)

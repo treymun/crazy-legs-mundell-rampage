@@ -1359,11 +1359,25 @@ Round 2 (after NETFEEL's and NETSERVER's second rounds were merged):
   host has shut and waits with the rest (set_piece_check: a snapshot put on
   mid-fall plays on the same; it parted three ticks on before).
 
-Known and left (each puts a copy back once or twice more, never for long):
-
-- **A leave and a join in the party modes** (`Modes.went_away`,
-  `join_late`) change the server's game between ticks: every other copy is
-  put back once for each (a hitch of 10 to 130 ms on a busy co-op map).
+**A leave and a join in the party modes** (pass 13, NETLAST): `Modes.went_away`
+and `join_late` changed the server's game between ticks, so every other
+copy was put back once for each (a hitch of 10 to 130 ms on a busy co-op
+map), and a 5v5 late joiner taking over a bot renamed it the same way. Now
+the change rides the next tick's row of inputs: an entry keyed
+`NetWire.EVENT_SLOT` (240) or past it holds a leave, a join (with the
+name) or a new name instead of controls (`NetWire.event`), the host notes
+it as it makes the change (`Host.note_event`, sent with the tick it
+precedes), and a copy makes the same call before playing that tick
+(`NetSync.play_event`; one a snapshot already holds is not made again).
+The copy plays a tick only once it has that tick's row, so it always has
+the change in time. A copy of an older build reads the entry as controls
+for a slot nobody plays (and is put back as before); PROTOCOL stays 5.
+`net_soak_all -- modes=coop,deathmatch people=3 minutes=1 lags=120`, the
+old way (`events=0`) against new, back to back: co-op 2 partings (the
+remaining partner's copy, one each for the leave and the join) -> 0,
+deathmatch 4 (two copies, two each) -> 0; with two people team
+deathmatch 2 -> 0. net_soak_all now allows none for them (`events=0`
+allows the old two each).
 
 ### Player maps in a lobby
 

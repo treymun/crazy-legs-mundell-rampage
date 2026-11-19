@@ -103,6 +103,10 @@ var _world_kept: Array = []
 var _world_ms := -1.0
 ## Our last USE press looked at (an input number).
 var _use_seq := -1
+## Our last pocket item used looked at (an input number), and those shown
+## the copy has not played yet (pocket -> how many).
+var _item_seq := -1
+var _items_due := {}
 
 
 func _init() -> void:
@@ -129,7 +133,11 @@ func clear_stats() -> void:
 		"boots": 0,
 	}
 	if kills != null:
-		kills.stats = {"sure": 0, "given": 0, "withdrawn": 0, "reels": 0}
+		kills.stats = {"sure": 0, "given": 0, "withdrawn": 0, "reels": 0, "reels_missed": 0}
+	if finishes != null:
+		finishes.stats = {"shown": 0, "matched": 0, "withdrawn": 0}
+	if breaks != null:
+		breaks.stats = {"shown": 0, "given": 0, "withdrawn": 0, "booms": 0}
 	show_ms = PackedFloat32Array()
 	copy_ms = PackedFloat32Array()
 
@@ -178,6 +186,8 @@ func forget() -> void:
 	_world_breaks = []
 	_world_ms = -1.0
 	_use_seq = -1
+	_item_seq = -1
+	_items_due.clear()
 
 
 func _client_now() -> NetSync.Client:
@@ -225,6 +235,7 @@ func frame(game: Game, me: Player, client: NetSync.Client) -> Dictionary:
 		out["boot"] = boot
 	out["finish"] = finishes.begin(game, me, played, now, kills)
 	_use(game, me, client, inputs, now)
+	_items(game, me, client, inputs, played)
 	out["doors"] = uses.begin(now)
 	var hidden := _pickups(game, me, client.input_seq - 1)
 	if not hidden.is_empty():
@@ -248,8 +259,17 @@ static func _hold_start(client: NetSync.Client, seq: int) -> int:
 func restore(game: Game, me: Player, kept: Dictionary) -> void:
 	if kept.is_empty():
 		return
-	var gun: Dictionary = kept.get("gun", {})
-	NetGunLead.restore(me, gun)
+	# Last put on, first put back (the hit's flinch over a finisher's reel,
+	# the finisher's swing over the boot's duck over the gun's lead).
+	if kept.has("hits"):
+		var reactions: Array = kept["hits"]
+		NetHitLooks.end(reactions)
+	if kept.has("pickups"):
+		var lying: Array = kept["pickups"]
+		game.pickups = lying
+	if kept.has("doors"):
+		var swung: Array = kept["doors"]
+		NetUseLooks.end(swung)
 	if kept.has("finish"):
 		var finish: Dictionary = kept["finish"]
 		NetFinishLooks.end(game, me, finish)
@@ -263,15 +283,8 @@ func restore(game: Game, me: Player, kept: Dictionary) -> void:
 				brawl.kicked_at.erase(me.slot)
 		var lag: Vector2 = boot["lag"]
 		me.weapon_lag = lag
-	if kept.has("pickups"):
-		var lying: Array = kept["pickups"]
-		game.pickups = lying
-	if kept.has("hits"):
-		var reactions: Array = kept["hits"]
-		NetHitLooks.end(reactions)
-	if kept.has("doors"):
-		var swung: Array = kept["doors"]
-		NetUseLooks.end(swung)
+	var gun: Dictionary = kept.get("gun", {})
+	NetGunLead.restore(me, gun)
 
 
 ## The kills drawn falling (net_kill_looks.gd), for this frame whatever our
@@ -649,6 +662,7 @@ func _kills(
 		var head: float = HitZones.HEAD.get(name, HitZones.HEAD_DEFAULT)
 		if e.hostile and each * maxf(1.0, head) > e.hp:
 			hits.reel(shown)
+			shown["reel"] = true
 			kills.stats["reels"] += 1
 		return false
 	kills.shown(game, e, name, Vector2(me.x, me.y), seq, each)
@@ -685,6 +699,8 @@ func _kills(
 func _withdraw_hit(game: Game, shown: Dictionary) -> void:
 	stats["hits_withdrawn"] += 1
 	hits.withdraw(shown)
+	if shown.get("reel", false):
+		kills.stats["reels_missed"] += 1
 	var killed: Variant = shown.get("kill")
 	if killed is Enemy:
 		var e: Enemy = killed
@@ -826,6 +842,47 @@ func _use(game: Game, me: Player, client: NetSync.Client, inputs: Array, now: fl
 				}
 			)
 		)
+
+
+## A pocket item used (pass 13): its sound, its word and the HUD's line at
+## the press (game_world.gd use_item's), the copy's sound not heard again.
+## Its health, gut and drunk are the copy's when it plays it.
+func _items(game: Game, me: Player, client: NetSync.Client, inputs: Array, played: int) -> void:
+	var first := client.input_seq - inputs.size()
+	for pocket: int in _items_due.keys():
+		var row: Array = _items_due[pocket]
+		var until: int = row[1]
+		if played > until:
+			_items_due.erase(pocket)  # played (or let go)
+	for i in inputs.size():
+		var c: Game.Controls = inputs[i]
+		var seq := first + i
+		if c.item < 0 or c.item >= HUD.ITEMS.size() or seq <= _item_seq:
+			continue
+		_item_seq = seq
+		var name: String = HUD.ITEMS[c.item]
+		var row: Array = _items_due.get(c.item, [0, seq])
+		var due: int = row[0]
+		var have: int = me.inventory.get(name, 0)
+		if have - due <= 0 or me.health <= 0:
+			continue  # the copy says OUT OF, as ever
+		_items_due[c.item] = [due + 1, seq + WINDOW]
+		var cue: String = GameWorld.ITEM_CUES[c.item]
+		var text: String = GameWorld.ITEM_WORDS[c.item]
+		var shown := {
+			"kind": "item",
+			"key": "item:%d" % c.item,
+			"seq": seq,
+			"gun": -1,
+			"cues": [],
+			"matched": false,
+			"hit": false,
+			"marker_at": -1.0,
+			"specks": [],
+		}
+		pending.append(shown)
+		_say(game, shown, cue, 1.0)
+		game.message(text)
 
 
 ## brawl.gd use()'s choice for `me` as our screen has them, `ahead` seconds
