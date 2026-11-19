@@ -94,6 +94,30 @@ func poll(now_ms: float) -> void:
 			s["state"] = "silent"
 			s["info"] = {}
 			_hang_up(s)
+	_drop_unserved()
+
+
+## A lobby server says which ports it runs lobbies on (its INFO answer's
+## "ports"): a listed lobby at that address on another port is not run
+## there any more (server/lobbies.json has fewer lobbies than
+## servers.json), so it leaves the list instead of showing NOT ANSWERING.
+func _drop_unserved() -> void:
+	var gone: Array = []
+	for s: Dictionary in servers.slice(0, _listed):
+		var info: Dictionary = s["info"]
+		var ports: Array = info.get("ports", [])
+		if ports.is_empty():
+			continue
+		for other: Dictionary in servers.slice(0, _listed):
+			if other != s and other["address"] == s["address"] and not ports.has(other["port"]):
+				if not gone.has(other):
+					gone.append(other)
+	for other: Dictionary in gone:
+		_hang_up(other)
+		servers.erase(other)
+		_listed -= 1
+	if not gone.is_empty():
+		row = clampi(row, 0, servers.size())
 
 
 ## The party line's rooms, asked every ASK_EVERY seconds; each is a row

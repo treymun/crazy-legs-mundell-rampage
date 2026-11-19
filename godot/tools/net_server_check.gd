@@ -169,7 +169,8 @@ func _play() -> void:
 	browser = NetBrowser.new(
 		[
 			{"name": "TEST", "address": "127.0.0.1", "port": lobby.port},
-			{"name": "NOBODY", "address": "127.0.0.1", "port": (lobby.port + 7) % 65535 + 1}
+			{"name": "NOBODY", "address": "127.0.0.2", "port": (lobby.port + 7) % 65535 + 1},
+			{"name": "GONE", "address": "127.0.0.1", "port": (lobby.port + 9) % 65535 + 1}
 		]
 	)
 	var asked := func() -> bool:
@@ -186,6 +187,13 @@ func _play() -> void:
 			and browser.why_not_join(0) == ""
 		),
 		"the server list sees the lobby live: name, ALICE in it running it (%s)" % [seen]
+	)
+	_check(
+		(
+			browser.servers.size() == 2
+			and browser.servers.all(func(s: Dictionary) -> bool: return s["name"] != "GONE")
+		),
+		"a lobby the server does not run (its INFO's ports) leaves the list"
 	)
 	_check(
 		browser.servers[1]["state"] == "silent" and browser.why_not_join(1) != "",

@@ -41,8 +41,10 @@ enum Role { NONE, HOST, CLIENT }
 ## COUNTY RUN's feature (features/county_run.gd has no class_name).
 const CountyRunScript := preload("res://src/features/county_run.gd")
 
-## The host's snapshots: every this many ticks (30 a second).
+## The host's snapshots: every this many ticks (30 a second); `snap_every`
+## is what a host uses (net_lag.gd's `snaps=1` measures 60 a second).
 const SNAP_EVERY := 2
+static var snap_every := SNAP_EVERY
 ## Seconds a client is given to say HELLO, and to reach a host.
 const HELLO_WAIT := 6.0
 const CONNECT_WAIT := 12.0
@@ -116,6 +118,9 @@ var changes: Array = []
 var upnp: NetUpnp = null
 ## An always-open lobby (no host player; this machine is the server).
 var dedicated := false
+## A lobby server's lobbies' ports, every one of them (its INFO answer says
+## them, so COUNTY SERVERS shows only the lobbies that server runs).
+var server_ports: Array[int] = []
 ## Who runs an always-open lobby (0: nobody in it).
 var admin_id := 0
 ## An always-open lobby's own settings, put back when it empties.
@@ -385,7 +390,7 @@ func poll(now_ms: float) -> void:
 		var kind := bytes[0]
 		if kind == NetWire.INPUTS:
 			inputs.append(packet)
-		elif kind == NetWire.SNAP:
+		elif kind == NetWire.SNAP or kind == NetWire.SNAP_PART:
 			snaps.append(packet)
 		elif role == Role.HOST:
 			var from: int = packet[0]
@@ -604,6 +609,7 @@ func summary() -> Dictionary:
 		"locked": str(settings.get("password", "")) != "",
 		"admin": str(boss.get("name", "")),
 		"version": version,
+		"ports": server_ports,
 	}
 
 
@@ -1021,7 +1027,7 @@ func start_match() -> String:
 		return "THE MAP WOULD NOT LOAD"
 	match_info = info
 	tally_at = -1.0
-	host_sync = NetSync.Host.new(session, game, func() -> int: return -1, SNAP_EVERY)
+	host_sync = NetSync.Host.new(session, game, func() -> int: return -1, snap_every)
 	for p: Dictionary in players:
 		var pid: int = p["id"]
 		p["ready"] = pid == NetSession.HOST_ID
@@ -1160,7 +1166,7 @@ func switch_match(game: Game, extra := {}) -> void:
 		options.erase(key)
 	options.merge(extra, true)
 	match_info["seq_from"] = next_seq
-	host_sync = NetSync.Host.new(session, game, func() -> int: return -1, SNAP_EVERY)
+	host_sync = NetSync.Host.new(session, game, func() -> int: return -1, snap_every)
 	host_sync.seq = next_seq - 1
 	tally_at = -1.0
 	for p: Dictionary in players:
