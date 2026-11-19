@@ -168,6 +168,20 @@ func _same(a: Variant, b: Variant, beast: bool) -> bool:
 			same = absf(float(a) - float(b)) <= BEAST_EPS
 		TYPE_VECTOR3:
 			same = (a as Vector3).distance_to(b as Vector3) <= BEAST_EPS
+		TYPE_VECTOR2:
+			same = (a as Vector2).distance_to(b as Vector2) <= BEAST_EPS
+		TYPE_QUATERNION:
+			var qa: Quaternion = a
+			var qb: Quaternion = b
+			same = absf(absf(qa.dot(qb)) - 1.0) <= BEAST_EPS
+		TYPE_BASIS:
+			var ba: Basis = a
+			var bb: Basis = b
+			same = _same([ba.x, ba.y, ba.z], [bb.x, bb.y, bb.z], true)
+		TYPE_TRANSFORM3D:
+			var ta: Transform3D = a
+			var tb: Transform3D = b
+			same = _same([ta.basis, ta.origin], [tb.basis, tb.origin], true)
 		TYPE_PACKED_VECTOR3_ARRAY, TYPE_PACKED_FLOAT32_ARRAY, TYPE_PACKED_FLOAT64_ARRAY, TYPE_ARRAY:
 			same = a.size() == b.size()
 			for i in a.size() if same else 0:
