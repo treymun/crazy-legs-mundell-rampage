@@ -6,7 +6,7 @@
 
 <p align="center">
   A 1997-style first-person shooter about one delivery man, a .38, a bag of pork rinds, a bluetick hound and the county's prize hog.<br>
-  Eight chapters, nine bosses that fight dirty, sixteen guns, online co-op and deathmatch, 5v5 rounds and County Run survival.
+  Eight chapters, nine bosses that fight dirty, sixteen guns, online co-op and deathmatch with voice chat, 5v5 rounds and County Run survival.
 </p>
 
 <p align="center">
@@ -68,8 +68,9 @@ it is original.
 - **Dirty fighting.** USE at a man's face is a boot that slides him into a wall, the next feller,
   a well, the hogs or the wood chipper; a reeling hand gets finished with whatever is in your hand.
   Pick things up and throw them, kick in doors, and watch the bodies go down the way they were
-  hit: knees folding, going slack, thrown off their feet by buckshot from the side.
-  <!-- 3.11 DEATHS -->Gators, crawlers, hogs and the bosses too.<!-- /3.11 -->
+  hit: knees folding, going slack, thrown off their feet by buckshot from the side. Gators,
+  crawlers, stampede hogs and cows fall the same way (a dead gator floats), and the sheriff,
+  Jerry, Rudy, the foreman and the Revenue Man finish their falls as bodies.
 - **Behind the wheel.** The Swamp King's airboat, a stock car and a riding mower, with the bayou's
   CHANNEL RUN, the speedway's HEAT RACE and Granny's load down the Moonshine blacktop.
 - **The county happens to you.** Twisters, hog stampedes, revenue raids and, in the night chapters,
@@ -93,8 +94,9 @@ it is original.
 
 - **Online, through the party line.** Title, MULTIPLAYER. HOST A GAME gives you a short code like
   `HKP-427`; friends type it in and the game's relay puts them in your lobby, with no port forwarding,
-  behind any router, on a phone or in the browser. PLAY ONLINE lists the two always-open county
-  lobbies (bots fill them; the first one in runs the lobby) and every open player lobby.
+  behind any router, on a phone or in the browser. PLAY ONLINE lists the always-open county lobby
+  (60 updates a second; bots fill it; the first one in runs it and picks the 5v5 or tag team) and
+  every open player lobby.
   - **CAMPAIGN CO-OP** for two to four, from a chapter the host has reached or THE PARTY SAVE.
   - **DEATHMATCH** and **TEAM DEATHMATCH** for two to four, in the boss arenas, the Crossroads, the
     range, the versus maps or your own.
@@ -105,10 +107,17 @@ it is original.
 
   The host's game is the real one; everyone else's copy is drawn between the ticks on a steady
   clock, so it plays as smooth online as alone. Your own aim, walking, shots, reloads, hits,
-  pickups, dynamite, blasts, scope, boot and doors show the moment you press<!-- 3.11 NETLAST -->, and
-  so do your finishers, what your rounds break and the fall of a man you drop<!-- /3.11 -->, and the host
-  judges your shots where your screen showed them. Everyone needs the same version. There is no
-  split screen: a friend in the same house joins from his own machine. The details are in [docs/online.md](docs/online.md).
+  pickups, dynamite, blasts, scope, boot, doors and pocket items show the moment you press, and so
+  do a sure kill, a finisher and what your rounds break; the host judges your shots where your
+  screen showed them, further back for a slow line. Everyone needs the same version. There is no
+  split screen: a friend in the same house joins from his own machine. The details are in
+  [docs/online.md](docs/online.md).
+
+  **Proximity voice chat** in every online game, the browser and the phone too: turn MICROPHONE on
+  under SETTINGS, AUDIO (it starts off), then hold **T** (a pad's share button, the phone's TALK
+  button) or pick OPEN MIC. Voices carry about eighteen steps, placed where the talker stands,
+  muffled through walls and given a CB radio's crackle; the lobby hears everybody, and in a 5v5
+  round only the dead hear the dead. Click a name in the lobby to mute him. Nothing said is kept.
 - **COUNTY RUN.** Endless survival on three big maps (Hickston, the quarry, Gator Bayou): XP from the
   dead, three cards at every level, a milestone every tenth, a storm front closing in, and a DAILY
   RUN with the same dice for everybody and a board. See [COUNTY_RUN.md](COUNTY_RUN.md).
@@ -127,7 +136,7 @@ it is original.
   <img src="site/img/feature_barn.png" width="24%" alt="An orchard shed coming down in Hickston">
   <img src="site/img/feature_blast.png" width="24%" alt="A powder keg going up, its smoke column rising">
   <img src="site/img/feature_wreck.png" width="24%" alt="The stock car wrecked, a panel flying">
-  <img src="site/img/feature_ragdoll.png" width="24%" alt="A coot thrown off his feet by buckshot">
+  <img src="site/img/feature_gator.png" width="24%" alt="A gator thrown into the air by dynamite">
 </p>
 <p align="center">
   <img src="site/img/feature_coop.png" width="24%" alt="A co-op partner on the road into Hickston">
@@ -138,15 +147,10 @@ it is original.
 
 ## Lately
 
-<!-- 3.11: one line per pass 13 track; drop any that did not land. -->
-- **3.11**
-  - <!-- 3.11 HEAVY -->A big fire, a barn coming down onto its own wreckage and a County Run
-    horde all run quicker.
-  - <!-- 3.11 DEATHS -->Gators, crawlers and hogs go down the way they were hit, and the bosses
-    fall for real.
-  - <!-- 3.11 BOSSART -->Jerry, Rudy and the foreman got their paint baked fresh.
-  - <!-- 3.11 NETLAST -->Online, finishers, breaks and death falls show at once, and a party
-    leave or join no longer jolts everybody.
+- **3.11** Proximity voice chat online; one always-open lobby at 60 updates a second; sure kills,
+  breaks, finishers and pocket items at the press online and no jolt on a leave or join; gators,
+  crawlers, hogs and cows die as bodies (gators float) and five bosses finish their falls as
+  ragdolls; heavy scenes 5 to 11 percent faster.
 - **3.10** Online as smooth as single-player (drawn between ticks on a render clock, shots,
   blasts and doors at the press, County Run co-op on the clock); Blue calm and readable; tips for
   new players; a boss's checkpoint taken on the way to his door.
@@ -185,6 +189,7 @@ Saves stay on your machine.
 | Tab / P | County map / photo mode | | |
 | F6 / F9 / F5 | Quicksave, quickload, save slots | | |
 | F11, F4, F12 | Fullscreen, music, screenshot | | |
+| T, held | Talk online (push to talk) | Share button | Talk online |
 
 Every play key can be changed on SETUP's KEYS page, and CONTROLS on the menu names them as you set
 them. USE picks up loose junk; fire chucks it and alt fire sets it down. NEW PLAYER TIPS on SETUP's

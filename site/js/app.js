@@ -432,7 +432,7 @@
         ['Where', 'The boss arenas, the Crossroads, the range, the versus maps or your own.'],
         ['Ends', 'At the frag limit or the time limit, then back to the lobby.']] },
     { name: '5v5 and tag team', bill: 'Up to ten', img: 'feature_fivev5', alt: 'A 5v5 round on the holler: the shine bomb just planted on B, the outlaws holding it, the team radio and the kill feed up top',
-      rows: [['The deal', 'Outlaws against deputies: SEARCH AND DESTROY with a shine bomb, or HOSTAGE RESCUE. Bots fill the empty places.'],
+      rows: [['The deal', 'Outlaws against deputies: SEARCH AND DESTROY with a shine bomb, or HOSTAGE RESCUE. Bots fill the empty places, and the dead talk only to the dead.'],
         ['The store', 'Ten side guns, a vest and four throwables, bought between rounds. RULES can make it shotguns only, a pistol party or big money.'],
         ['TAG TEAM 2V2', 'Two a side on three small maps, first to nine. PLAY VS BOTS runs any of it offline.']] },
     { name: 'County Run co-op', bill: 'Two to four', img: 'feature_county', alt: 'County Run\'s level-up cards: an upgrade, a new gun and a perk',
@@ -490,19 +490,17 @@
       text: 'A blast looks like what went up: a stick of dynamite, a powder keg, a fuel drum, a gas can, the propane, a cow. The fireball rolls up through its own smoke and leaves a column standing over the yard.' },
     { title: 'Totaled', img: 'feature_wreck', alt: 'The stock car blown up by a stick of dynamite, a body panel flying off through the fire',
       text: 'Blow up the stock car, the airboat or the mower and it throws its panels and parts across the lot, then sits there burning.' },
-    { title: 'Fire down the line', img: 'feature_fuel', alt: 'A shot fuel line burning along the ground at the Hickston gas station, its pump torn open',
-      text: 'Shoot open a fuel pump and the gas runs down the line and catches, drum to drum, till it finds the propane. Stand somewhere else.' },
     { title: 'Down they go', img: 'feature_ragdoll', alt: 'A coot thrown backwards off his feet by buckshot in front of the gas pumps',
-      text: 'Hands go down the way they were hit: buckshot from the side throws a man off his feet, the knees fold the way knees do and the body goes slack. Billy, the millhands and the tin guards fall right again.',
-      // 3.11 DEATHS: drop this line if it did not land.
-      more: ' Gators, crawlers and hogs go down the same way now, and so do the bosses.' },
+      text: 'Hands go down the way they were hit: buckshot from the side throws a man off his feet, the knees fold the way knees do and the body goes slack. Billy, the millhands and the tin guards fall right again.' },
+    { title: 'Gator in the air', img: 'feature_gator', alt: 'A gator thrown up off the road by a stick of dynamite, tail and jaws flung wide, outside Hickston',
+      text: 'New in 3.11: gators, crawlers, the stampede\'s hogs and the cows die as bodies too, knees folding their own way, landing on the belly, the side or the back, and a dead gator floats. The sheriff, Jerry, Rudy, the foreman and the Revenue Man finish their falls the same way.' },
   ];
   const wrecksBoard = $('#wrecks');
   if (wrecksBoard) {
     WRECKS.forEach((wreck) => {
       wrecksBoard.append(el('article', { class: 'handbill' },
         el('img', { src: `img/${wreck.img}.png`, alt: wreck.alt, loading: 'lazy', width: '640', height: '480' }),
-        el('h3', { text: wreck.title }), el('p', { text: wreck.text + (wreck.more || '') })));
+        el('h3', { text: wreck.title }), el('p', { text: wreck.text })));
     });
   }
 
