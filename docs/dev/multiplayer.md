@@ -1061,6 +1061,31 @@ What it found and fixed:
   snapshot): 260 kept after a minute; `KEEP` at most now.
 - County Run's card picks: [county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed).
 
+Measured after all of it on the integrated transport (NETSERVER's), this PC
+loaded by other work (the client's milliseconds are a guide only; headless:
+the copy's ticks, its snapshots and its drawing led, no 3D), a minute each
+of two players with the director on, 2% loss, jitter a fifth of the
+latency (campaign co-op's round trip is through the party line, so about
+twice the others'):
+
+| 120 ms | partings (inputs lost) | trip p50/p95 | down KB/s (p95 quiet/breaking) | client frame quiet p50/p99 | breaking p50/p99/worst | checking (once a second) p50/worst |
+| --- | --- | --- | --- | --- | --- | --- |
+| County Run co-op | 0 (0) | 333/600 | 204 (107/227) | 6.7/22.6 | 9.9/35/129 | 23/55 |
+| search and destroy | 0 (0) | 317/517 | 42 (12/55) | 2.6/5.9 | 2.9/8.4/18 | 6.9/15 |
+| hostage | 0 (0) | 317/517 | 42 (12/53) | 2.5/6.2 | 3.0/8.0/15 | 6.8/14 |
+| tag team | 0 (1) | 317/450 | 25 (10/29) | 2.0/3.5 | 2.4/4.5/8.9 | 5.0/7.4 |
+| deathmatch | 2, the late join's (0) | 333/550 | 69 (41/113) | 5.1/15 | 8.0/25/159 | 14/65 |
+| team deathmatch | 2, the late join's (0) | 333/550 | 64 (39/103) | 4.9/16 | 7.5/23/125 | 14/31 |
+| campaign co-op | 0 (3) | 750/933 | 203 (45/261) | 8.5/44 | 11/51/116 | 40/87 |
+
+At 250 ms (1.2 min each): search and destroy 0 partings (1 input lost),
+deathmatch 2 (the put back after a lost row, below), County Run 0 (2),
+campaign co-op 0 (6, its trip through the line 1.7 s). Four players at
+120 ms: search and destroy 0 (0), County Run 0 (6), campaign co-op 4 (the
+late join's, 6 allowed). The host's own frame in campaign co-op (its game
+with the same scene, as one player's machine) 12.5 ms median, 41 p99, where
+a partner's frame is 8.5 / 44 and a check of the copy 40 ms (NETFEEL's).
+
 Known and left (each puts a copy back once or twice more, never for long):
 
 - **`game.place_log` is not carried** (multiplayer.md "Lag", 3.2): after a
