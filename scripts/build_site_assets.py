@@ -29,7 +29,19 @@ The captures come from the game in a window, run with a scratch APPDATA and
               (run_heat_1_turn), hound_frames.gd (hound_bay), events_frames.gd
               (event_twister_far, event_breaker), set_piece_frames.gd
               (hickston_town-tower_3_burst) and ``--opener=moonshine
-              --opener-out=<dir>`` (moonshine_line)
+              --opener-out=<dir>`` (moonshine_line). Pass 13 (3.8 to 3.11):
+              break_frames.gd (barrel_gun_2: feature_break), blast_frames.gd
+              (wreck_side_15: feature_wreck), onboard_walk.gd
+              (onboard_07_tip_fire: feature_tips), ROW_FULL=1 death_frames.gd
+              audit rows=gator_blast (full_gator_blast_5: feature_gator);
+              feature_blue, _barn,
+              _blast, _ragdoll and _fivev5 from a throwaway script built on
+              hound_frames (the trot posed, gait 0), set_piece_frames
+              (Hickston's orchard shed 102 ticks after its posts go, from the
+              tool's own spot), blast_frames (a powder keg six cells off, 54
+              ticks on), death_frames (a coot, buckshot from his side, 30
+              ticks on, each tick drawn) and tactical_frames (bots playing a
+              holler round, the shine bomb just planted)
 
 Copy the ones wanted into one folder under the site's names (shot_hickston.png
 and so on) and pass it to --take: each is cut to the 4:3 picture the game
@@ -97,7 +109,11 @@ FIGHTS = ("fight_sheriff", "fight_jerry", "fight_rudy", "fight_foreman", "fight_
 # The "what's in it" board: the modes and the newer features.
 FEATURES = ("feature_coop", "feature_deathmatch", "feature_showdown", "feature_county",
             "feature_vehicle", "feature_blue", "feature_twister", "feature_blackout",
-            "feature_destruction", "feature_opener", "feature_county_xp")
+            "feature_destruction", "feature_opener", "feature_county_xp",
+            # Pass 13: the site brought up to 3.11 (breaking, blasts, wrecks,
+            # bodies, the tips, a 5v5 round).
+            "feature_break", "feature_barn", "feature_blast", "feature_wreck",
+            "feature_ragdoll", "feature_tips", "feature_fivev5", "feature_gator")
 TRACKS = ("title", "music", "county_line", "porchlight_stomp", "fair_score", "tickets_after_dark",
           "closing_time_shuffle", "mill_score", "green_chain", "apron_run", "quarry_score",
           "copper_and_steam", "last_load", "bayou_score", "cypress_crawl", "crawdad_boil_hop",

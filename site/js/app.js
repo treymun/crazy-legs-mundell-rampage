@@ -431,13 +431,13 @@
       rows: [['The deal', 'Every man for himself, or TEAM DEATHMATCH, red against blue.'],
         ['Where', 'The boss arenas, the Crossroads, the range, the versus maps or your own.'],
         ['Ends', 'At the frag limit or the time limit, then back to the lobby.']] },
-    { name: '5v5 and tag team', bill: 'Up to ten', img: 'feature_showdown', alt: 'Two outlaws heading for a bomb site at the start of a 5v5 round',
-      rows: [['The deal', 'Outlaws against deputies: SEARCH AND DESTROY with a shine bomb, or HOSTAGE RESCUE. Bots fill the empty places.'],
+    { name: '5v5 and tag team', bill: 'Up to ten', img: 'feature_fivev5', alt: 'A 5v5 round on the holler: the shine bomb just planted on B, the outlaws holding it, the team radio and the kill feed up top',
+      rows: [['The deal', 'Outlaws against deputies: SEARCH AND DESTROY with a shine bomb, or HOSTAGE RESCUE. Bots fill the empty places, and the dead talk only to the dead.'],
         ['The store', 'Ten side guns, a vest and four throwables, bought between rounds. RULES can make it shotguns only, a pistol party or big money.'],
         ['TAG TEAM 2V2', 'Two a side on three small maps, first to nine. PLAY VS BOTS runs any of it offline.']] },
     { name: 'County Run co-op', bill: 'Two to four', img: 'feature_county', alt: 'County Run\'s level-up cards: an upgrade, a new gun and a perk',
       rows: [['The deal', 'The endless survival mode with a posse: one build and one pile of XP for the lot of you.'],
-        ['Cards', 'The first one up picks; everybody sees who is picking.'],
+        ['Cards', 'The first one up picks; everybody sees who is picking, and the game runs on smooth around it.'],
         ['Over', 'When the last of you is down. Then back to the lobby for another.']] },
   ];
   const modes = $('#modes');
@@ -458,16 +458,18 @@
       text: 'Endless survival on three big maps: Hickston, the quarry and Gator Bayou. Kills drop bottle-cap XP; every level stops the clock for three cards, every tenth for a big milestone, while a storm front closes in. DAILY RUN gives everybody the same dice and keeps a board. Alone, or online with three friends.' },
     { title: 'Behind the wheel', img: 'feature_vehicle', alt: 'The stock car in the HEAT RACE, forty-three miles an hour, the .38 out of the window',
       text: 'Three rides with the keys in them: the Swamp King\'s airboat, a stock car and a riding mower. Run the bayou\'s CHANNEL RUN, three laps of the HEAT RACE at Buzzard Bend, or Granny\'s load down the Moonshine blacktop. A partner rides along and shoots, and a one-handed gun comes out the car\'s window.' },
-    { title: 'Blue', img: 'feature_blue', alt: 'Blue the bluetick coonhound baying at the gate of the Possum County Fairgrounds',
-      text: 'Mundell\'s bluetick coonhound comes along on every chapter. He bays at secret doors and new guns, points at loot, pins a hurt man down, fetches, and minds the whistle: G, BACK held on a pad, or WHISTLE on a phone. Every co-op player gets a dog of his own.' },
+    { title: 'Blue', img: 'feature_blue', alt: 'Blue the bluetick coonhound trotting past the gate of the Possum County Fairgrounds, his badge at lower left',
+      text: 'Mundell\'s bluetick coonhound, built new from nose to tail, comes along on every chapter. He trots at your heel or ranges out ahead like a hunting dog, keeps out of your sights, hops in when you drive, bays at secret doors and new guns, points at loot, pins a hurt man down, fetches, and minds the whistle: G, BACK held on a pad, or WHISTLE on a phone. His badge says how he feels and what he\'s up to. Every co-op player gets a dog of his own.' },
     { title: 'Twister weather', img: 'feature_twister', alt: 'A twister touching down beyond the trees outside Hickston',
       text: 'Some runs through a chapter get something nobody planned. The civil defence siren and a twister that flings whatever is loose and tears down barns; a hog stampede; a revenue raid that comes in shooting at everybody, the county\'s hands included.' },
     { title: 'Lights out', img: 'feature_blackout', alt: 'A flashlight beam on the main breaker in a blackout',
       text: 'In the night chapters the power can die in stutters. Every player has a flashlight on L, with a battery that runs down, some hands carry lanterns, and the main breaker is out there somewhere if you can find it.' },
     { title: 'The big breaks', img: 'feature_destruction', alt: 'A water tower going over in the rain, its tank bursting',
-      text: 'Barns and hay sheds come down in their own boards and tin when you shoot out their posts, water towers topple and flood the yard, and a shot fuel line burns from the drums to the propane. Crates, windows, fences and walls break too, and the bosses wreck their own arenas.' },
+      text: 'Shoot the legs out from under a water tower and it topples, bursts and floods the yard. Barns and sheds come down, fuel lines burn and the bosses wreck their own arenas: more in the wrecking yard below.' },
     { title: 'Coming attractions', img: 'feature_opener', alt: 'The Revenue Man in silhouette between a red and a blue police light',
-      text: 'Every chapter opens on a short cutscene the way they did in 1997: the camera over the county, a painted title card, the boss in silhouette and an old storyteller with two lines. FIRST TIME, ALWAYS or OFF; any key skips it.' },
+      text: 'Every chapter opens on a short cutscene the way they did in 1997: the camera gliding over the county to the chapter\'s own song, a painted title card, the boss in silhouette and an old storyteller with two lines. FIRST TIME, ALWAYS or OFF; any key skips it.' },
+    { title: 'Greenhorns welcome', img: 'feature_tips', alt: 'The first hand coming at the gas station, a chalk-green tip at the top: left click shoots, R reloads, right click is the gun\'s other fire',
+      text: 'New to the county? The first time something comes up, a hand drawing on you, a locked door, a reeling man in reach, loose junk, the junk bench or Blue, a short tip says what to do with your own keys, pad or thumbs. Each shows once. NEW PLAYER TIPS on SETUP\'s PLAY page turns them off.' },
   ];
   const flyers = $('#flyers');
   if (flyers) {
@@ -475,6 +477,30 @@
       flyers.append(el('article', { class: 'handbill' },
         el('img', { src: `img/${flyer.img}.png`, alt: flyer.alt, loading: 'lazy', width: '640', height: '480' }),
         el('h3', { text: flyer.title }), el('p', { text: flyer.text })));
+    });
+  }
+
+  // The wrecking yard (index.html #wreckage): what 3.9 did to breaking things.
+  const WRECKS = [
+    { title: 'Shot apart', img: 'feature_break', alt: 'A barrel blown apart by the sawed-off in Hickston\'s yard, its staves in the air and its stump still standing',
+      text: 'Crates, barrels, coolers, mash tubs and mailboxes come apart where the round lands and the way it pushed, and the pieces tumble by what they are made of: wood, tin, glass or straw. Plank walls lose the boards you shoot, windows crack fresh and every round leaves its own hole.' },
+    { title: 'Barn raising, backwards', img: 'feature_barn', alt: 'An orchard shed coming down behind a scarecrow, its roof sliding off and dust coming up',
+      text: 'Shoot out a barn\'s posts and it comes down in its own boards, beams and tin, in a cloud of dust, onto whatever was under it. Hay sheds and lumber sheds too.' },
+    { title: 'What blew', img: 'feature_blast', alt: 'A powder keg going up in Hickston\'s yard, the fireball rolling up round its smoke column',
+      text: 'A blast looks like what went up: a stick of dynamite, a powder keg, a fuel drum, a gas can, the propane, a cow. The fireball rolls up through its own smoke and leaves a column standing over the yard.' },
+    { title: 'Totaled', img: 'feature_wreck', alt: 'The stock car blown up by a stick of dynamite, a body panel flying off through the fire',
+      text: 'Blow up the stock car, the airboat or the mower and it throws its panels and parts across the lot, then sits there burning.' },
+    { title: 'Down they go', img: 'feature_ragdoll', alt: 'A coot thrown backwards off his feet by buckshot in front of the gas pumps',
+      text: 'Hands go down the way they were hit: buckshot from the side throws a man off his feet, the knees fold the way knees do and the body goes slack. Billy, the millhands and the tin guards fall right again.' },
+    { title: 'Gator in the air', img: 'feature_gator', alt: 'A gator thrown up off the road by a stick of dynamite, tail and jaws flung wide, outside Hickston',
+      text: 'New in 3.11: gators, crawlers, the stampede\'s hogs and the cows die as bodies too, knees folding their own way, landing on the belly, the side or the back, and a dead gator floats. The sheriff, Jerry, Rudy, the foreman and the Revenue Man finish their falls the same way.' },
+  ];
+  const wrecksBoard = $('#wrecks');
+  if (wrecksBoard) {
+    WRECKS.forEach((wreck) => {
+      wrecksBoard.append(el('article', { class: 'handbill' },
+        el('img', { src: `img/${wreck.img}.png`, alt: wreck.alt, loading: 'lazy', width: '640', height: '480' }),
+        el('h3', { text: wreck.title }), el('p', { text: wreck.text })));
     });
   }
 

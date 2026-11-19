@@ -6,7 +6,7 @@
 
 <p align="center">
   A 1997-style first-person shooter about one delivery man, a .38, a bag of pork rinds, a bluetick hound and the county's prize hog.<br>
-  Eight chapters, nine bosses that fight dirty, sixteen guns, online co-op and deathmatch, 5v5 rounds and County Run survival.
+  Eight chapters, nine bosses that fight dirty, sixteen guns, online co-op and deathmatch with voice chat, 5v5 rounds and County Run survival.
 </p>
 
 <p align="center">
@@ -50,11 +50,15 @@ it is original.
   lagoon, the derby bowl, the Revenue Man's still cave and Maw's throne in the core. They make an
   entrance, talk trash, mark where the next hit lands, wreck their own arenas, lose their gear to
   your shots, call in backup and, at a fifth of their health, get *plum desperate* with one last
-  trick. Every boss has a weak spot, HOG WILD saves one extra attack for you, and dying in a fight
-  puts you back at the arena door. **BOSS REMATCH** races any boss you have beaten against the
-  clock for a blue, red or white ribbon.
-- **Blue.** Mundell's bluetick coonhound heels, bays at secret doors and guns you ain't got, pins a
-  hurt man down, fetches, and minds the whistle: sic 'em, fetch, stay, come.
+  trick. Every boss has a weak spot, HOG WILD saves one extra attack for you, and when one goes
+  down the camera stays on the fall, slowed, before the tally. Dying in a fight, or on the way up
+  to one, puts you back at the arena door. **BOSS REMATCH** races any boss you have beaten
+  against the clock for a blue, red or white ribbon.
+- **Blue.** Mundell's bluetick coonhound, built new from nose to tail in 3.8 and calmed down in
+  3.10, trots at your heel or ranges out ahead like a hunting dog, keeps out of your sights, hops
+  in when you drive, bays at secret doors and guns you ain't got, pins a hurt man down, fetches,
+  and minds the whistle: sic 'em, fetch, stay, come. His badge says how he feels and what he's up
+  to.
 - **Sixteen guns and a junk bench.** A rusted crowbar, the .38, a sawed-off with both barrels, a
   dynamite crossbow, the Ranch Rifle, the Rip Saw, an alien arm gun, hand-thrown dynamite, the
   Sling Blade, a bottle rocket launcher, the Mill Riveter, the Copperhead, a bowling ball, a powder
@@ -63,15 +67,25 @@ it is original.
   which also has a games row: horseshoes, a dunk tank, skee-ball and knock 'em down.
 - **Dirty fighting.** USE at a man's face is a boot that slides him into a wall, the next feller,
   a well, the hogs or the wood chipper; a reeling hand gets finished with whatever is in your hand.
-  Pick things up and throw them, kick in doors, and watch the bodies go down as ragdolls.
+  Pick things up and throw them, kick in doors, and watch the bodies go down the way they were
+  hit: knees folding, going slack, thrown off their feet by buckshot from the side. Gators,
+  crawlers, stampede hogs and cows fall the same way (a dead gator floats), and the sheriff,
+  Jerry, Rudy, the foreman and the Revenue Man finish their falls as bodies.
 - **Behind the wheel.** The Swamp King's airboat, a stock car and a riding mower, with the bayou's
   CHANNEL RUN, the speedway's HEAT RACE and Granny's load down the Moonshine blacktop.
 - **The county happens to you.** Twisters, hog stampedes, revenue raids and, in the night chapters,
   a blackout with a flashlight on L. KPSM, the Possum, plays cowpunk records between Dub Tillery's
   talk about what you just blew up, and the police scanner calls in your trouble.
-- **Things break.** Crates, barrels, windows, fences and walls break into real pieces; fuel drums,
-  propane and nitro chain-explode; barns come down board by board, water towers topple and flood,
-  fuel lines burn, and a rifle round punches through thin planks and tin to the man behind.
+- **Things break the way they were hit.** Crates, barrels, coolers and mailboxes come apart where
+  the round lands and the way it pushed, never the same twice, the pieces tumbling by what they
+  are made of. Plank walls lose the boards you shoot, windows crack fresh and every round leaves
+  its own hole; a rifle round punches through thin planks and tin to the man behind. Barns and
+  sheds come down in their own boards and tin in a cloud of dust, water towers topple and flood,
+  fuel lines burn, a blast looks like what went up and leaves its smoke column standing, and a
+  wrecked car throws its parts across the lot.
+- **A hand for greenhorns.** The first time something comes up, a short tip says what to do with
+  your own keys, pad or thumbs, once a profile (NEW PLAYER TIPS on SETUP's PLAY page turns them
+  off).
 - **A county you can hear.** Rain on the roof over your head, a sound for every surface a round
   hits, a soundtrack of cowpunk records for every chapter with fight music and boss loops, and more
   than eight hundred voiced lines from Mundell, the bosses, the hands and the narrator.
@@ -80,8 +94,9 @@ it is original.
 
 - **Online, through the party line.** Title, MULTIPLAYER. HOST A GAME gives you a short code like
   `HKP-427`; friends type it in and the game's relay puts them in your lobby, with no port forwarding,
-  behind any router, on a phone or in the browser. PLAY ONLINE lists the two always-open county
-  lobbies (bots fill them; the first one in runs the lobby) and every open player lobby.
+  behind any router, on a phone or in the browser. PLAY ONLINE lists the always-open county lobby
+  (60 updates a second; bots fill it; the first one in runs it and picks the 5v5 or tag team) and
+  every open player lobby.
   - **CAMPAIGN CO-OP** for two to four, from a chapter the host has reached or THE PARTY SAVE.
   - **DEATHMATCH** and **TEAM DEATHMATCH** for two to four, in the boss arenas, the Crossroads, the
     range, the versus maps or your own.
@@ -90,10 +105,19 @@ it is original.
     BOTS plays them offline.
   - **COUNTY RUN CO-OP** for two to four, sharing one build.
 
-  The host's game is the real one; your own aim, walking, shots, reloads, hits, pickups, dynamite and
-  boot show the moment you press, and the host judges your shots where your screen showed them. Everyone
-  needs the same version. There is no split screen: a friend in the same house joins from his own
-  machine. The details are in [docs/online.md](docs/online.md).
+  The host's game is the real one; everyone else's copy is drawn between the ticks on a steady
+  clock, so it plays as smooth online as alone. Your own aim, walking, shots, reloads, hits,
+  pickups, dynamite, blasts, scope, boot, doors and pocket items show the moment you press, and so
+  do a sure kill, a finisher and what your rounds break; the host judges your shots where your
+  screen showed them, further back for a slow line. Everyone needs the same version. There is no
+  split screen: a friend in the same house joins from his own machine. The details are in
+  [docs/online.md](docs/online.md).
+
+  **Proximity voice chat** in every online game, the browser and the phone too: turn MICROPHONE on
+  under SETTINGS, AUDIO (it starts off), then hold **T** (a pad's share button, the phone's TALK
+  button) or pick OPEN MIC. Voices carry about eighteen steps, placed where the talker stands,
+  muffled through walls and given a CB radio's crackle; the lobby hears everybody, and in a 5v5
+  round only the dead hear the dead. Click a name in the lobby to mute him. Nothing said is kept.
 - **COUNTY RUN.** Endless survival on three big maps (Hickston, the quarry, Gator Bayou): XP from the
   dead, three cards at every level, a milestone every tenth, a storm front closing in, and a DAILY
   RUN with the same dice for everybody and a board. See [COUNTY_RUN.md](COUNTY_RUN.md).
@@ -109,17 +133,38 @@ it is original.
   <img src="site/img/fight_boggs.png" width="24%" alt="Bumper Boggs in the derby bowl">
 </p>
 <p align="center">
-  <img src="site/img/feature_coop.png" width="24%" alt="A co-op partner on the road into Hickston">
-  <img src="site/img/feature_vehicle.png" width="24%" alt="The stock car in the HEAT RACE">
-  <img src="site/img/feature_blue.png" width="24%" alt="Blue the coonhound at the fair gate">
-  <img src="site/img/feature_twister.png" width="24%" alt="A twister outside Hickston">
+  <img src="site/img/feature_barn.png" width="24%" alt="An orchard shed coming down in Hickston">
+  <img src="site/img/feature_blast.png" width="24%" alt="A powder keg going up, its smoke column rising">
+  <img src="site/img/feature_wreck.png" width="24%" alt="The stock car wrecked, a panel flying">
+  <img src="site/img/feature_gator.png" width="24%" alt="A gator thrown into the air by dynamite">
 </p>
+<p align="center">
+  <img src="site/img/feature_coop.png" width="24%" alt="A co-op partner on the road into Hickston">
+  <img src="site/img/feature_fivev5.png" width="24%" alt="A 5v5 round, the shine bomb just planted">
+  <img src="site/img/feature_blue.png" width="24%" alt="Blue the coonhound trotting at the fair gate">
+  <img src="site/img/feature_tips.png" width="24%" alt="A new player's first tip at the gas station">
+</p>
+
+## Lately
+
+- **3.11** Proximity voice chat online; one always-open lobby at 60 updates a second; sure kills,
+  breaks, finishers and pocket items at the press online and no jolt on a leave or join; gators,
+  crawlers, hogs and cows die as bodies (gators float) and five bosses finish their falls as
+  ragdolls; heavy scenes 5 to 11 percent faster.
+- **3.10** Online as smooth as single-player (drawn between ticks on a render clock, shots,
+  blasts and doors at the press, County Run co-op on the clock); Blue calm and readable; tips for
+  new players; a boss's checkpoint taken on the way to his door.
+- **3.9** Destruction: breaks driven by the hit, pieces by material, barns, water towers and fuel
+  lines coming apart, plank walls and windows broken where shot, blasts by what blew, wrecks
+  throwing parts, ragdolls fixed and driven by the hit.
+- **3.8** Blue rebuilt; music and a smooth camera under the chapter openers; boss endings; about
+  twice as fast in normal play, quicker loads and smaller hitches.
 
 ## Play
 
 | Where | What you get |
 | --- | --- |
-| **Browser** | <https://treymun.github.io/crazy-legs-mundell-rampage/>: desktop Chrome, Edge or Firefox. About 77 MB on the first visit (the title and Hickston); each later chapter comes down while you play, and the browser keeps it all. Plays online by party line code. iPhone and iPad get a lighter build. |
+| **Browser** | <https://treymun.github.io/crazy-legs-mundell-rampage/>: desktop Chrome, Edge or Firefox. About 78 MB on the first visit (the title and Hickston); each later chapter comes down while you play, and the browser keeps it all. Plays online by party line code. iPhone and iPad get a lighter build. |
 | **Windows** | `CrazyLegsMundellRampage.exe` (one file, no install) or `CrazyLegsMundellRampage_Setup.exe` (Start-menu shortcut and uninstaller). Windows 10 or 11, 64-bit, OpenGL 3.3. |
 | **Android** | `CrazyLegsMundellRampage.apk`: Android 7.0 or newer, arm64, held sideways. Touch controls, or plug in a gamepad. |
 
@@ -144,12 +189,17 @@ Saves stay on your machine.
 | Tab / P | County map / photo mode | | |
 | F6 / F9 / F5 | Quicksave, quickload, save slots | | |
 | F11, F4, F12 | Fullscreen, music, screenshot | | |
+| T, held | Talk online (push to talk) | Share button | Talk online |
 
-Every play key can be changed on SETUP's KEYS page. On a touch screen the left thumb walks and a drag
-on the right half aims; FIRE, ALT, USE (hold it to revive), NEXT, JUMP and DUCK sit on the right, and
-RIND, BEER, SHINE, MAP, PHOTO and MENU along the top, with LIGHT and WHISTLE when there is a flashlight
-or a hound to work. Rinds fill the gut and mend you, beer mends you and makes the county sway, and
-moonshine sobers you up and buys seven seconds of running like you stole it.
+Every play key can be changed on SETUP's KEYS page, and CONTROLS on the menu names them as you set
+them. USE picks up loose junk; fire chucks it and alt fire sets it down. NEW PLAYER TIPS on SETUP's
+PLAY page shows a short tip the first time something comes up (on by default).
+
+On a touch screen the left thumb walks and a drag on the right half aims; FIRE, ALT, USE (hold it
+to revive), NEXT, JUMP and DUCK sit on the right, and RIND, BEER, SHINE, MAP, PHOTO and MENU along
+the top, with LIGHT and WHISTLE when there is a flashlight or a hound to work. Rinds fill the gut
+and mend you, beer mends you and makes the county sway, and moonshine sobers you up and buys seven
+seconds of running like you stole it.
 
 ## Building it
 
