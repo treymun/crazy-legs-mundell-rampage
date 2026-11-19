@@ -160,11 +160,20 @@ def _frames(kind):
 NEAR = .1
 
 
-def _match(rest, parts, root):
+def _match(rest, parts, root, ordered=False):
     """For each rest part, its place in this frame (or None): parts are paired
     in order within each print; a part left over then takes the nearest
     left-over print within NEAR of its own, the nearest to where it sits on
-    the body (under the frame's `root`) when there are more."""
+    the body (under the frame's `root`) when there are more. `ordered` (a
+    kind whose look says `same_parts`: every frame builds the same parts in
+    the same order, the hound) pairs them by that order when the frame has
+    them all: by print, his sixteen toes (one print, four feet) were paired
+    across feet whenever a turned paw rounded a toe's print otherwise, and
+    flew from foot to foot between keys (pass 12)."""
+    if ordered and len(parts) == len(rest) and all(
+        a[1][0] == b[1][0] for a, b in zip(rest, parts)
+    ):
+        return [w for _ob, _fp, w in parts]
     pool = {}
     for _ob, fp, world in parts:
         pool.setdefault(fp, []).append(world)
@@ -412,7 +421,9 @@ def export(kind, meta):
     skeleton = LAST_J
     tracks = [[w for _ob, _fp, w in rest]]
     for frame, wound, name in frames[1:]:
-        tracks.append(_match(rest, places[(frame, wound)], _root_for(S, frame, own)))
+        tracks.append(
+            _match(rest, places[(frame, wound)], _root_for(S, frame, own), S.get("same_parts", False))
+        )
     # Bones: parts whose motion from the rest frame is the same in every frame.
     # A boss's gear (enemy_actors.py gear()) is a bone of its own, so the game
     # can shoot it off (src/features/boss_gear.gd).

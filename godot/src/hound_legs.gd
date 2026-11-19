@@ -18,8 +18,15 @@ const VIEW_NEAR := 1.6
 ## How far apart a straight walk is tested (cells), and the longest tested.
 const PROBE := .4
 const PROBE_MOST := 14.0
-## Turns tried, in order, when the way ahead is shut or dangerous.
-const TURNS := [0.0, .45, -.45, .9, -.9, 1.4, -1.4, 2.0, -2.0, 2.7, -2.7]
+## Turns tried, in order, when the way ahead is shut or dangerous (pass 12:
+## and straight back, the way he faces now turning no quicker than he can).
+const TURNS := [0.0, .45, -.45, .9, -.9, 1.4, -1.4, 2.0, -2.0, 2.7, -2.7, PI]
+## The least step he takes once stalled (cells): tucked against something
+## the level settles him back out of, a little step goes nowhere every way
+## (pass 12: at a walk at 120 ticks a second he stood stuck).
+const STEP_LEAST := .06
+## He goes round a player closer than this (cells) in his way.
+const CLEAR_PLAYER := 1.3
 
 
 ## The level's standing hazards he keeps clear of, read once a game: (x, y,
@@ -236,7 +243,9 @@ static func step(
 		var was := Vector2(d.x, d.y)
 		var was_z := d.floor_z
 		var moved := move(g, body, d, cos(h) * length, sin(h) * length, r)
-		if moved > length * .3:
+		# (Gone that way: the level's settling can push him back the other.)
+		var along := (d.x - was.x) * cos(h) + (d.y - was.y) * sin(h)
+		if moved > length * .3 and along > 0.0:
 			if in_harm or not harm(g, danger, d.x, d.y):
 				return [moved, h]
 		# Not that way: back where he stood.
@@ -383,12 +392,42 @@ static func heel_spot(
 		return Vector2(
 			v.x - cos(v.h) * tail - sin(v.h) * aside, v.y - sin(v.h) * tail + cos(v.h) * aside
 		)
-	var a := p.angle + PI - d.side * .5
+	# Behind the way they go (pass 12: not where they look, which swung him
+	# round behind them every time they looked about); standing, where they look.
+	var way := p.angle
+	if d.p_v.length() >= .6:
+		way = d.p_v.angle()
+	var a := way + PI - d.side * .5
 	var spot := Vector2(p.x + cos(a) * back, p.y + sin(a) * back)
 	if g.world.blocked(spot.x, spot.y, r) or g.world.deep_at(spot.x, spot.y):
-		var b := p.angle + PI
+		var b := way + PI
 		spot = Vector2(p.x + cos(b) * back * .7, p.y + sin(b) * back * .7)
 	return spot
+
+
+## Where he goes back to by player p (pass 12): his heel spot behind the way
+## they go; they standing, the nearest easy spot on his own side of them
+## (`back` off, kept between `near` and `far`), not round behind them, unless
+## he is right in front of their face.
+static func home(
+	g: Game,
+	d: Game.HoundScript.Dog,
+	p: Player,
+	gap: float,
+	back: float,
+	r: float,
+	near: float,
+	far: float
+) -> Vector2:
+	if d.p_v.length() >= .6 or gap < .05:
+		return heel_spot(g, d, p, back, r)
+	var from := Vector2(d.x - p.x, d.y - p.y) / gap
+	if from.dot(Vector2(cos(p.angle), sin(p.angle))) > .7:
+		return heel_spot(g, d, p, back, r)
+	var at := Vector2(p.x, p.y) + from * clampf(back, near + .2, far - .4)
+	if g.world.blocked(at.x, at.y, r) or g.world.deep_at(at.x, at.y):
+		return heel_spot(g, d, p, back, r)
+	return at
 
 
 ## A vehicle's second seat (where a rider sits: vehicles.gd _place, k 1).
@@ -431,6 +470,33 @@ static func beside(g: Game, v: VehicleDrive.Ride, near: Vector2, r: float) -> Ve
 			best_d = gap
 			best = at
 	return best
+
+
+## His `heading` bent round any player close in front of him (pass 12: he
+## no longer walks through his player's legs, right under the eye).
+static func round_players(g: Game, d: Game.HoundScript.Dog, heading: float) -> float:
+	var way := Vector2(cos(heading), sin(heading))
+	for q: Player in g.players:
+		if q.away or q.health <= 0:
+			continue
+		var to := Vector2(q.x - d.x, q.y - d.y)
+		var gap := to.length()
+		if gap > CLEAR_PLAYER or gap < .01 or way.dot(to / gap) < .2:
+			continue
+		var past := Vector2(-to.y, to.x) / gap
+		if past.dot(way) < 0.0:
+			past = -past
+		way = (way + past * 2.0 * (CLEAR_PLAYER - gap + .3)).normalized()
+		if gap < CLEAR_PLAYER * .6:
+			way = (way - to / gap).normalized()  # right on them: off them first
+	return way.angle()
+
+
+## How fast he can turn (radians a second) at `speed` (cells a second):
+## `slow` at a walk down to `fast` at a run, so he runs wide arcs and walks
+## tight ones (pass 12; he turned 10 a second at any speed, pivoting at a run).
+static func turn_rate(speed: float, slow: float, fast: float) -> float:
+	return lerpf(slow, fast, clampf((speed - .5) / 5.5, 0.0, 1.0))
 
 
 static func turn(from: float, to: float, most: float) -> float:

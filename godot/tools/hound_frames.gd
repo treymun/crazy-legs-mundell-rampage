@@ -36,10 +36,10 @@ const POSES := [
 	],
 	["getup", "hickston", 0, 1.3, {"up": .45}],
 	["shake", "hickston", 0, 1.3, {"up": 1.0}],
-	["trot", "hickston", 0, 1.57, {"pace": 2.6, "gait": 1.4}],
-	["gallop", "hickston", 0, 1.57, {"pace": 7.4, "gait": 0.0}],
+	["trot", "hickston", 0, 1.57, {"pace": 2.0, "gait": 1.4}],
+	["gallop", "hickston", 0, 1.57, {"pace": 4.0, "gait": 0.0}],
 	["track", "hickston", 6, 1.3, {"pace": 1.0, "gait": 2.0, "tracking": true}],
-	["limp", "hickston", 0, 1.57, {"pace": 2.6, "gait": 1.0, "health": 20.0}],
+	["limp", "hickston", 0, 1.57, {"pace": 2.0, "gait": 1.0, "health": 20.0}],
 	["lunge", "hickston", 2, 1.57, {"bite": .05}],
 	["howl", "quarry", 6, 1.0, {}],
 	["dusk", "quarry", 0, 2.2, {}],
@@ -110,6 +110,11 @@ func _run() -> void:
 		d.angle = p.angle + PI + turn
 		d.pace = float(more.get("pace", 0.0))
 		d.gait = float(more.get("gait", 0.0))
+		# (pass 12: his looks read his legs' speed and the gait it holds; just
+		# stood, so not yet settled sitting by his player)
+		d.stride_v = d.pace
+		d.gait_kind = HoundLooks.gait_of(-1, d.pace)
+		d.still_at = g.clock
 		if more.has("look"):
 			# what he points at: in the view, off to the side of him
 			var reach: float = more["look"]

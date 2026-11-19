@@ -305,6 +305,25 @@ a shop lamp falling in the saw floor's arena.
      cel names stay for the pictures (`_CEL_POSE`). export_actors.py labels
      his head's parts `head` (`_label`: within `head_box` of the head's
      middle, `LAST_J`'s `dog_head`), so his face gets more of the texture.
+     Pass 12 (`docs/godot3d/blue12/`): his toes (sixteen balls of one
+     print, four feet) were paired across feet by export_actors.py's
+     print matching whenever a turned paw rounded a toe's print otherwise,
+     and flew from foot to foot between keys; his look says `same_parts`
+     and `_match` pairs his parts by the order every frame builds them.
+     Godot's import optimizer dropped keys from his motions (65 position
+     and 43 rotation keys of 80 on a foot: a forefoot in the walk's first
+     key stood where the second had it); `hound.glb.import` turns it off
+     for his AnimationPlayer (`_subresources`, `optimizer/enabled`), every
+     key kept. Strides: the walk .15 (was .11), the trot .21 (.16), the
+     tracking walk and the limp .13 (.08, .09), the shoulder blade swinging
+     with the foreleg (`reach`) so the forefoot gets there; the gallop's
+     keys are now a lope (`_hd_lope_foot`: each foot struck out in front and
+     swept back `_HD_LOPE_SWEEP` .28 over a whole beat on the ground, left
+     hind, right hind, right fore, left fore; the back stretching and
+     gathering), where each foot was down a sixteenth of the stride.
+     `HoundLooks.STRIDE` is what `tools/hound_pace.gd` measures a planted
+     foot going back a beat off the model (.15, .21, .277); change it with
+     the keys. A `rig-only` run, pack, `--import`, `bake_rigs.gd`.
      `hound_face` is his HUD badge's head, three-quarters so the long muzzle
      and the ears read at 28 pixels, cels only (`cels_only`: export_actors.py
      makes no model of it), lit with the rims down and no road dirt

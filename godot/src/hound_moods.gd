@@ -7,6 +7,15 @@
 class_name HoundMoods
 extends RefCounted
 
+## Radians a second he goes round a still or scrap (pass 12).
+const TREAT_ROUND := 1.2
+## Settled, he turns toward his player when he faces further off than this
+## (radians), and then only part way (pass 12).
+const SETTLE_OFF := 1.2
+## His player walking at him closer than this share of heel_near, he gets out
+## of their way (pass 12).
+const MAKE_WAY := 1.3
+
 
 ## What he hears this tick (a twister, a siren): true when it took him off
 ## what he was doing.
@@ -39,7 +48,7 @@ static func hear(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player) -> boo
 ## Howling at a siren, or growling at a hand he smells round a corner: he
 ## stands, his nose to it, till it is done.
 static func standing(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, dt: float) -> void:
-	d.speed = 0.0
+	h.halt(d, dt)
 	if d.look != Vector2.INF:
 		d.angle = HoundLegs.turn(d.angle, atan2(d.look.y - d.y, d.look.x - d.x), dt * 6.0)
 	var far := Vector2(p.x - d.x, p.y - d.y).length() > h.n("catch_far")
@@ -81,9 +90,9 @@ static func greet(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, dt: f
 		to = g.players[d.goal_uid]
 	var gap := Vector2(to.x - d.x, to.y - d.y).length()
 	if gap > .9:
-		h.head(d, p, Vector2(to.x, to.y), h.n("run"), dt)
+		h.head(d, p, Vector2(to.x, to.y), h.n("lope"), dt, true)
 	else:
-		d.speed = 0.0
+		h.halt(d, dt)
 		d.angle = HoundLegs.turn(d.angle, atan2(to.y - d.y, to.x - d.x), dt * 6.0)
 		if g.clock - d.bark_at > .7:
 			d.bark_at = g.clock
@@ -102,7 +111,7 @@ static func treat(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, dt: f
 	var gap := Vector2(d.look.x - d.x, d.look.y - d.y).length()
 	if d.bark_at < d.since:
 		if gap > 1.3 and g.clock < d.since + 5.0 and d.stall < 1.0:
-			h.head(d, p, d.goal, h.n("run"), dt)
+			h.head(d, p, d.goal, h.n("lope"), dt)
 			return
 		d.bark_at = g.clock
 		d.until = g.clock + h.n("treat_for")
@@ -110,10 +119,12 @@ static func treat(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, dt: f
 		g.sound_at("hound_yip", d.x, d.y, .9)
 		return
 	# Round it, a little circle at his nose's length.
-	var a := atan2(d.y - d.look.y, d.x - d.look.x) + dt * 2.4 * d.side
+	# (pass 12: at an amble, once round in about five seconds; he spun round
+	# it at a trot)
+	var a := atan2(d.y - d.look.y, d.x - d.look.x) + dt * TREAT_ROUND * d.side
 	var round_at := d.look + Vector2(cos(a), sin(a)) * 1.0
-	d.speed = h.n("trot")
-	h.stride(d, atan2(round_at.y - d.y, round_at.x - d.x), h.n("trot") * dt, dt)
+	d.speed = move_toward(d.speed, h.n("amble"), h.n("accel") * dt)
+	h.stride(d, atan2(round_at.y - d.y, round_at.x - d.x), maxf(d.speed, .4) * dt, dt)
 	if g.clock - d.bark_at > .9:
 		d.bark_at = g.clock
 		g.sound_at("hound_yip", d.x, d.y, .7)
@@ -220,9 +231,16 @@ static func clear_of_rides(h: Game.HoundScript, d: Game.HoundScript.Dog, dt: flo
 		var away := 1.0 if side > 0.0 or (side == 0.0 and d.slot % 2 == 0) else -1.0
 		var step := h.n("ride_hop") * dt * away
 		var moved := h.shove(d, -heading.y * step, heading.x * step)
+		var fled := Vector2(-heading.y, heading.x) * away
 		if moved < absf(step) * .3:
 			# A wall that side: the other.
-			h.shove(d, heading.y * step, -heading.x * step)
+			moved = h.shove(d, heading.y * step, -heading.x * step)
+			fled = -fled
+		# He bounds off that way (pass 12: he slid off sideways, standing).
+		d.angle = HoundLegs.turn(d.angle, fled.angle(), dt * h.n("turn_slow") * 2.0)
+		d.pace = moved / maxf(dt, .0001)
+		d.speed = maxf(d.speed, d.pace)
+		d.gait += moved * HoundLooks.beats_per_cell(d.gait_kind, d.stride_v) * PI * .5
 		if g.clock - d.bark_at > 1.2:
 			d.bark_at = g.clock
 			g.sound_at("hound_bark", d.x, d.y, .9)
@@ -231,7 +249,7 @@ static func clear_of_rides(h: Game.HoundScript, d: Game.HoundScript.Dog, dt: flo
 ## In a player's sights, or in his own player's as they swing round toward
 ## him: he steps aside, off their line (across it against the swing, the
 ## quickest way out of it).
-static func aside(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player) -> void:
+static func aside(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, dt: float) -> void:
 	var g := h.game
 	var q := HoundLegs.in_sights(g, d, h.n("clear_reach"), h.n("clear_cone"))
 	var swing := absf(d.p_turn) > .6
@@ -243,6 +261,12 @@ static func aside(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player) -> vo
 			if signf(on_side) == signf(d.p_turn):
 				q = p  # the sights come his way
 	if q == null:
+		d.sighted = 0.0
+		return
+	# A moment first (pass 12): a look sweeping past him no longer sends him
+	# darting off.
+	d.sighted += dt
+	if d.sighted < h.n("aside_after") and d.job != Game.HoundScript.ASIDE:
 		return
 	var look := Vector2(cos(q.angle), sin(q.angle))
 	var to_q := Vector2(d.x - q.x, d.y - q.y)
@@ -292,3 +316,36 @@ static func shot(h: Game.HoundScript, gun: int) -> void:
 		if d.state != Game.HoundScript.FOLLOW:
 			h.into(d, Game.HoundScript.FOLLOW)
 		d.job = Game.HoundScript.TRAIL
+
+
+## Settled by a standing player (pass 12): he eases to a stop and turns his
+## head to them only when he faces well away (no turning on the spot after
+## every look they take); his looks sit him down, then lay him down.
+static func settle(h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, dt: float) -> void:
+	if d.speed > .05:
+		h.halt(d, dt)
+		return
+	var to_p := atan2(p.y - d.y, p.x - d.x)
+	var off := wrapf(to_p - d.angle, -PI, PI)
+	if absf(off) > SETTLE_OFF:
+		d.angle = HoundLegs.turn(d.angle, to_p - signf(off) * SETTLE_OFF * .5, dt * 2.2)
+
+
+## His player walking into him (pass 12): off their path, the side he is
+## on, and on ahead of them. True when that was his tick.
+static func make_way(
+	h: Game.HoundScript, d: Game.HoundScript.Dog, p: Player, gap: float, dt: float
+) -> bool:
+	var pv := d.p_v.length()
+	var off := Vector2(d.x - p.x, d.y - p.y)
+	var coming := d.p_v.dot(off) > 0.0
+	if pv <= .6 or gap >= h.n("heel_near") * (MAKE_WAY if coming else .8):
+		return false
+	var perp := Vector2(-d.p_v.y, d.p_v.x) / pv
+	if perp.dot(off) < 0.0:
+		perp = -perp
+	# Off their path and on ahead of them a little quicker than they walk (a
+	# wall that side: on ahead).
+	d.speed = move_toward(d.speed, pv + h.n("amble") * .5, h.n("accel") * 1.5 * dt)
+	h.stride(d, (perp * .7 + d.p_v / pv).angle(), maxf(d.speed, .4) * dt, dt, 1.2)
+	return true

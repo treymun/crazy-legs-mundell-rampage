@@ -741,21 +741,26 @@ func _poses() -> void:
 	d.state = Hound.FOLLOW
 	d.item = ""
 	d.health = h.n("health")
-	for pace: Array in [[1.0, "w0"], [2.6, "t0"], [7.4, "r0"]]:
-		d.pace = pace[0]
+	# (pass 12: by how fast his legs go, Dog.stride_v, in the gait it holds)
+	var legs := func(v: float) -> void:
+		d.stride_v = v
+		d.gait_kind = HoundLooks.gait_of(-1, v)
+		d.still_at = g.clock
+	for pace: Array in [[1.0, "w0"], [2.0, "t0"], [4.0, "r0"]]:
+		legs.call(pace[0])
 		want.call("pace %.1f" % pace[0], pace[1])
 	d.health = h.n("health") * .2
-	d.pace = 2.6
+	legs.call(2.0)
 	want.call("sore at a trot", "l0")
-	d.pace = 0.0
+	legs.call(0.0)
 	want.call("sore, standing", "l0")
 	d.health = h.n("health")
 	d.state = Hound.BAY
 	d.since = g.clock
 	d.bark_at = g.clock - 1.0
-	d.pace = 1.0
+	legs.call(1.0)
 	want.call("tracking to a secret", "n0")
-	d.pace = 0.0
+	legs.call(0.0)
 	d.bark_at = g.clock
 	want.call("baying (the howl)", "bay")
 	d.state = Hound.POINT
@@ -783,16 +788,33 @@ func _poses() -> void:
 	d.bark_at = -10.0
 	# Now and then at heel he tracks, nose down.
 	g.clock = HoundLooks.TRACK_ROUND * 3.0 + 1.0
-	d.pace = 1.0
+	legs.call(1.0)
 	want.call("tracking at heel", "n0")
-	d.pace = 0.0
+	legs.call(0.0)
 	g.clock = 13.0
 	# Idle: the wag, and in his round a scratch and a sniff.
 	var idle := {}
 	var clock := g.clock
 	for t in 300:
 		g.clock = clock + t * .1
+		d.still_at = g.clock - 2.0  # stood a moment, not yet settled
 		idle[h.frame(d)] = true
+	g.clock = clock
+	# Pass 12: by his player standing he settles: sits, then lies down; just
+	# stopped, no idle round's scratch flashes up.
+	d.p_v = Vector2.ZERO
+	d.still_at = g.clock - HoundLooks.SIT_AFTER - .5
+	want.call("settled by his player", "sit")
+	d.still_at = g.clock - HoundLooks.LIE_DOWN_AFTER - .5
+	want.call("settled a good while", "rest")
+	d.p_v = Vector2(2.0, 0.0)
+	want.call("his player walking, he does not sit", "i0")
+	d.p_v = Vector2.ZERO
+	d.still_at = g.clock
+	var round_at := fmod(g.clock + d.slot * 5.1, HoundLooks.IDLE_ROUND)
+	g.clock += HoundLooks.IDLE_ROUND - round_at + .2  # in his round's scratch
+	d.still_at = g.clock - .3
+	want.call("just stopped, no scratch yet", "i0")
 	g.clock = clock
 	for frame: String in ["i0", "c0", "sniff"]:
 		_check(idle.has(frame), "idle at heel he shows %s now and then (%s)" % [frame, idle.keys()])
@@ -911,6 +933,13 @@ func _legs() -> void:
 	var open := _spot(g, p.x, p.y, 6.0)
 	_put_player(g, open, open + Vector2(4.0, 0.0))
 	_put_dog(g, d, open - Vector2(1.2, 0.0))
+	# Pass 12: by his player standing he settles first, a good while.
+	var settled := true
+	for t in 60 * 6:
+		g.tick(STEP, Game.Controls.new())
+		settled = settled and d.job == Hound.HEEL
+	_check(settled, "by his player standing he settles, no ranging straight off")
+	h._n["range_rest_still"] = 0.0  # (then he ranges round them)
 	var ranged := 0.0
 	var jobs := {}
 	var faced_out := true
