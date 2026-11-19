@@ -164,10 +164,19 @@ address and port (or join code) and its password if it has one.
   fit), and an empty lobby goes back to its own. `most_matches` (2) caps
   matches across the server; a START past that is told to wait. One 5v5 with
   four people and six bots measured about a fifth of a core on the owner's PC
-  (`tools/net_lag.gd`). Before 3.2 the bots' route cache was shared by
-  every game in the process and cleared itself whenever two took turns (two
-  matches on the server): 6 to 9 ms a tick for the bots then, about 1 now
-  (not measured with two real matches).
+  (`tools/net_lag.gd`); both lobbies in a match on one core of it with most
+  of that core taken by something else, about a fifth of what was left
+  (`tools/net_pace.gd`, pass 12). Before 3.2 the bots' route cache was
+  shared by every game in the process and cleared itself whenever two took
+  turns: 6 to 9 ms a tick for the bots then, about 1 now.
+- Fewer lobbies is only `server/lobbies.json`: the game's list asks each
+  server which lobbies it runs and leaves out the rest. `"snap_every": 1`
+  there sends 60 snapshots a second instead of 30 (others shown a tick
+  sooner, about half as much again of the server's work and twice the
+  bandwidth; for a server of one lobby). The status line in the log has
+  each lobby's tick cost and how evenly its snapshots go out (`snaps 33.3 ms
+  apart (p99 ..., worst ..., N bunched)`: p99 near 33 and nothing bunched is
+  right).
 - Players need the same version as the server: update the server with each
   release.
 

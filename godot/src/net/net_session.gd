@@ -11,8 +11,9 @@
 ##
 ## poll() must be called often (each tick). For tests it can add latency,
 ## jitter and loss to what this side sends (lag_ms, jitter_ms, loss, timed by
-## the now_ms handed to poll); loss only drops unreliable packets, as the
-## network would (ENet resends reliable ones itself).
+## the now_ms handed to poll); loss drops unreliable packets and makes a
+## reliable one late by a resend, holding up its channel, as the network
+## would (ENet resends reliable ones itself).
 class_name NetSession
 extends RefCounted
 
@@ -40,6 +41,11 @@ const THROTTLE_INTERVAL := 1
 const THROTTLE_BACK := 32
 ## On: ENet's throttle as it comes (net_lag.gd's before).
 static var throttle := false
+## The test's loss also hits reliable packets (pass 12): one "lost" is
+## resent after a round trip and RESEND_MS, holding up its channel. Off: a
+## reliable packet is never lost (the old test, blind to that stall).
+static var resend_lost := true
+const RESEND_MS := 20.0
 ## A lobby server's WebSocket players (the browser) come through `also`, their
 ## ids raised past the 31 bits either transport hands out, so they never meet.
 const ALSO_IDS := 1 << 32
@@ -68,6 +74,8 @@ var sent_packets := 0
 var received := 0
 var received_packets := 0
 var dropped := 0
+## Reliable packets the test's loss made late (resend_lost).
+var resent := 0
 ## Peers that joined or left since take_events() was last called.
 var joined: Array[int] = []
 var left: Array[int] = []
@@ -263,6 +271,13 @@ func send(to: int, channel: int, bytes: PackedByteArray) -> void:
 		dropped += 1
 		return
 	var due := _now + lag_ms + _dice.randf() * jitter_ms
+	if reliable and resend_lost and loss > 0.0 and _dice.randf() < loss:
+		# A reliable packet the network loses comes a retransmit timeout
+		# later (ENet: about the round trip and four times its spread), and
+		# everything after it on its channel waits for it (below): the
+		# head-of-line stall a reliable snapshot stream suffers.
+		due += lag_ms * 2.0 + jitter_ms * 2.0 + RESEND_MS
+		resent += 1
 	if reliable:
 		# Reliable packets keep their order whatever the jitter.
 		var last_due: float = _last_due.get(channel, 0.0)
@@ -355,6 +370,8 @@ func cut(id: int) -> void:
 ## Sends what was put out this frame now, not at the next poll (the party
 ## line forwards into other sessions than the one it read from).
 func flush() -> void:
+	if also != null:
+		also.flush()
 	if peer is ENetMultiplayerPeer:
 		var host_of := (peer as ENetMultiplayerPeer).host
 		if host_of != null:

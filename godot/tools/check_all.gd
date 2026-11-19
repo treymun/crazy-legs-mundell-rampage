@@ -84,15 +84,17 @@ const CHECKS := [
 	["net_errors_check", "NET ERRORS OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 	["net_feel", "NET FEEL OK", ["quick"]],
+	["net_pace", "NET PACE OK"],
 	["load_check", "LOAD CHECK OK"],
 	["load_speed_check", "LOAD SPEED OK"],
 	["user_map_check", "USER MAP CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 ## Rows that measure timing (net_lag's limits on hits that looked like hits,
-## stalls, rubber band): they run last, with nothing beside them. Beside
-## another check on a 4-core runner net_lag went over its 12% limit.
-const ALONE := ["net_lag", "net_feel"]
+## stalls, rubber band; net_pace's on snapshot gaps, net_feel's on frames): they run last, one at
+## a time, with nothing beside them. Beside another check on a 4-core runner
+## net_lag went over its 12% limit.
+const ALONE := ["net_lag", "net_pace", "net_feel"]
 const QUICK := [
 	"check_shader",
 	"view3d_check",
@@ -152,6 +154,7 @@ const CI_SECONDS := {
 	"set_piece_check": 45,
 	"net_lag": 25,
 	"net_feel": 25,
+	"net_pace": 30,
 	"bot_campaign": 22,
 	"quest_reach": 20,
 	"net_showdown_check": 20,

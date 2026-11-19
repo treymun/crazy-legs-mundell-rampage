@@ -149,11 +149,24 @@ class Host:
 	var rewind := true
 	var sizes_full := PackedInt32Array()
 	var sizes_delta := PackedInt32Array()
+	## Every SNAP packet's size, and how many went in parts.
+	var sizes_packet := PackedInt32Array()
+	var split_count := 0
+	## Off: a SNAP over the MTU goes reliable (the 3.9.0 way, net_lag's
+	## `oldserver`).
+	static var split_big := true
 	var capture_us := 0
 	var delta_us := 0
 	var tick_us := 0
 	## base seq -> what changed from it to the newest snapshot (_carry_since).
 	var _since := {}
+	## Snapshots go out on ticks where (tick + snap_phase) % snap_every is 0
+	## (-1 until a lobby server sets it: then 0); with `hold` a tick keeps a
+	## due one for the next tick without hold (a server catching up sends
+	## one snapshot, not a burst).
+	var snap_phase := -1
+	var hold := false
+	var _owed := false
 
 	func _init(s: NetSession, g: Game, seat_with: Callable, every := 3) -> void:
 		session = s
@@ -215,8 +228,12 @@ class Host:
 		tick += 1
 		played[tick] = NetWire.tick_row(rows)
 		played.erase(tick - MAX_ECHO * 2)
-		if tick % snap_every == 0:
-			_send_snapshots()
+		if (tick + maxi(0, snap_phase)) % snap_every == 0 or _owed:
+			if hold:
+				_owed = true
+			else:
+				_owed = false
+				_send_snapshots()
 
 	## What changed from snapshot `base` to this one (null: send it whole).
 	func _change_since(base: int, now: Dictionary) -> Variant:
@@ -256,6 +273,19 @@ class Host:
 				kept[base] = next
 		kept[seq] = {}
 		_since = kept
+
+	## The remotes with a base to make a delta from first, then those that
+	## need a whole snapshot.
+	func _deltas_first() -> Array[Remote]:
+		var out: Array[Remote] = []
+		var whole: Array[Remote] = []
+		for r: Remote in remotes.values():
+			if history.has(r.acked) and r.acked < seq:
+				out.append(r)
+			else:
+				whole.append(r)
+		out.append_array(whole)
+		return out
 
 	## The tick a client was showing when it sent the input played now: its
 	## own packet's, or worked out a tick an input from the nearest one known
@@ -380,12 +410,18 @@ class Host:
 			_carry_since(newest)
 			delta_us += Time.get_ticks_usec() - t0
 		var by_base := {}
-		for r: Remote in remotes.values():
+		var flushed := false
+		for r: Remote in _deltas_first():
 			if r.slot < 0:
 				continue
 			var base := r.acked if history.has(r.acked) and r.acked < seq else -1
 			if base < 0 and tick - r.full_at < FULL_GAP:
 				continue
+			if base < 0 and not flushed:
+				# Everyone's delta is on its way before a whole snapshot (a
+				# joiner's: 5 to 15 ms to capture and pack) holds this up.
+				session.flush()
+				flushed = true
 			if not by_base.has(base):
 				t0 = Time.get_ticks_usec()
 				var change: Variant = _change_since(base, now) if base >= 0 else null
@@ -412,7 +448,16 @@ class Host:
 			var packet := NetWire.snap(
 				seq, base, tick, r.next - 1 if r.next > 0 else -1, [first, rows], snap_bytes
 			)
-			session.send(r.id, NetSession.CH_SNAPS, packet)
+			sizes_packet.append(packet.size())
+			if base >= 0 and packet.size() > NetWire.PART_MOST and split_big:
+				# Too big for one packet: in parts, still unreliable (a
+				# reliable snapshot lost held up every one after it for a
+				# resend, the whole stream frozen for a round trip or more).
+				for part in NetWire.split(packet, seq):
+					session.send(r.id, NetSession.CH_SNAPS, part)
+				split_count += 1
+			else:
+				session.send(r.id, NetSession.CH_SNAPS, packet)
 
 
 class Client:
@@ -501,6 +546,9 @@ class Client:
 	## Paced by the clock (playout); off for COUNTY RUN co-op, whose world
 	## holds for the party's card picks and parted from the host when paced so.
 	var by_clock := true
+	## Snapshots that came in SNAP_PARTs, and the parts of those still coming.
+	var parts_joined := 0
+	var _parts := {}
 	var _depth := PLAYOUT_LEAST
 	var _lower_since := -1.0
 	var _now := 0.0
@@ -541,6 +589,38 @@ class Client:
 				level = str(info.get("level", ""))
 			elif bytes[0] == NetWire.SNAP:
 				_snap(NetWire.read_snap(bytes))
+			elif bytes[0] == NetWire.SNAP_PART:
+				var whole := _joined(bytes)
+				if not whole.is_empty():
+					_snap(NetWire.read_snap(whole))
+
+	## A SNAP_PART kept until its snapshot's parts are all in: then the SNAP
+	## they make (empty until then, or for a malformed part).
+	func _joined(part: PackedByteArray) -> PackedByteArray:
+		if part.size() <= NetWire.PART_HEADER:
+			return PackedByteArray()
+		var seq := part.decode_u32(1)
+		var index := part[5]
+		var count := part[6]
+		if count == 0 or index >= count or count > NetWire.PARTS_MOST:
+			return PackedByteArray()
+		var got: Dictionary = _parts.get(seq, {})
+		got[index] = part.slice(NetWire.PART_HEADER)
+		_parts[seq] = got
+		for old: int in _parts.keys():
+			if old < seq - KEEP:
+				_parts.erase(old)
+		if got.size() < count:
+			return PackedByteArray()
+		_parts.erase(seq)
+		var whole := PackedByteArray()
+		for i in count:
+			if not got.has(i):
+				return PackedByteArray()
+			var piece: PackedByteArray = got[i]
+			whole.append_array(piece)
+		parts_joined += 1
+		return whole
 
 	## Steps the copy toward the newest snapshot: at most `most` ticks, and no
 	## nearer to it than `behind` ticks unless it has fallen far back (then it
