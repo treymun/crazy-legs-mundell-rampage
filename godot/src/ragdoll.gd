@@ -206,6 +206,9 @@ var _back := R.BACK
 ## Other balls held in the torso, lifted with its belly and back by its shape
 ## (a beast's legs' roots).
 var _torso_more: Array[int] = []
+## How far its torso may lag play's body (SLACK; a boss's handed-over fall
+## lies where the scripted fall took it, off its body's spot).
+var slack := SLACK
 ## The share of its balls on the floor that make it lying (its motion dies
 ## away, a tremble is rest): half a person's; a beast on its side has its
 ## legs up off it.
@@ -661,8 +664,8 @@ func follow(at: Vector3, up: float, dt: float) -> void:
 		return
 	var off := Vector2(at.x, at.y) - Vector2(middle().x, middle().y)
 	var far := off.length()
-	if far > SLACK:
-		var k := (far - SLACK) / far * minf(1.0, dt * PULL)
+	if far > slack:
+		var k := (far - slack) / far * minf(1.0, dt * PULL)
 		_nudge += Vector3(off.x * k, off.y * k, 0.0)
 
 
@@ -1063,13 +1066,17 @@ func _hull_floor(touching: PackedByteArray) -> void:
 				lift.append_array([(1.0 - t) * .5, (1.0 - t) * .5, t])
 				lifted.append_array([one, two, b])
 				wsum = 1.0
+			elif _torso_more.has(a) and t < .5:
+				# Near a root held in the torso: the torso lifts, by its
+				# corners (the root lifted against the torso's links, or the
+				# knee levered high, shook for ever).
+				for c: int in [R.HIP_L, R.HIP_R, R.SH_L, R.SH_R]:
+					var w := 1.0 / (.02 + _up[c].distance_squared_to(at))
+					lift.append(w)
+					lifted.append(c)
+					wsum += w
 			elif _torso_more.has(a):
-				# From a root held in the torso: only its free end lifts, and
-				# only for a point out along it (near the root the torso holds
-				# it up; the root lifted against the torso's links, or the knee
-				# levered high, shook for ever).
-				if t < .5:
-					continue
+				# Out along it: only its free end lifts.
 				lift.append(t)
 				lifted.append(b)
 				wsum = 1.0

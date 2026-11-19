@@ -73,7 +73,7 @@ var _lie := Vector3.ZERO
 var _roll_side := Vector3.ZERO
 ## Each leg's knee's way to fold, in the torso's frame at rest.
 var _bend_rest := PackedVector3Array()
-## Its belly's height over the floor standing (map).
+## Its torso's lowest ball's height over the floor standing (map).
 var _stand_high := 1.0
 ## Which balls are in water this step, and play's body's height (the water's
 ## surface and its bob, for one afloat).
@@ -256,7 +256,10 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 		floor_y = minf(floor_y, rest[foot].y - radius[foot])
 	if floor_y == INF:
 		floor_y = rest[B.BELLY_B].y - radius[B.BELLY_B] * 2.0
-	_stand_high = maxf(.02, rest[B.BELLY_B].y - radius[B.BELLY_B] - floor_y)
+	var low := INF
+	for i in B.TORSO_BALLS:
+		low = minf(low, rest[i].y - radius[i])
+	_stand_high = maxf(.02, low - floor_y)
 	down_share = .3
 	awake = true
 	still = 0.0
@@ -271,6 +274,16 @@ func _torso_basis(at: PackedVector3Array) -> Basis:
 	var across := ((at[R.SH_R] - at[R.SH_L]) + (at[R.HIP_R] - at[R.HIP_L])).normalized()
 	across = (across - ahead * across.dot(ahead)).normalized()
 	return Basis(across, ahead, across.cross(ahead)).orthonormalized()
+
+
+## How high its torso's lowest ball is over its floor (map).
+func torso_up() -> float:
+	var floors := _fl.floor
+	var low := INF
+	for i in B.TORSO_BALLS:
+		var under := floors[i] if i < floors.size() else -INF
+		low = minf(low, pos[i].z - radius[i] - under)
+	return low
 
 
 ## The way its back points (map), out of its belly.
@@ -396,11 +409,7 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 ## belly stands high, and it is turned about its length till its back points
 ## the way it is to lie (_lie). True when it lies.
 func _slump(tone: float) -> bool:
-	var floors := _fl.floor
-	var belly_up := pos[B.BELLY_B].z - radius[B.BELLY_B]
-	if floors.size() > B.BELLY_B:
-		belly_up -= floors[B.BELLY_B]
-	var standing := belly_up > _stand_high * STAND
+	var standing := torso_up() > _stand_high * STAND
 	if tone > HOLD * .5 or age > SLUMP_FOR:
 		return not standing
 	var torso := _torso_basis(pos)

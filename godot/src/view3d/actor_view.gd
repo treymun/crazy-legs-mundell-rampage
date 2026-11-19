@@ -35,6 +35,12 @@ const HANDOVER := .12
 const BOSS_HANDOVER := .6
 ## The fastest a part goes on at the hand-over (map units a second).
 const HANDOVER_FAST := 8.0
+## How far its body may lie from the boss's spot (its scripted fall carries
+## it a cell and more back; pulled to the spot it slid back across the floor).
+const BOSS_SLACK := 3.0
+## A boss's model eases from its scripted fall's pose onto its ragdoll over
+## this long from the hand-over.
+const BOSS_EASE := .22
 
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
@@ -59,6 +65,10 @@ var _fall_dt := 0.0
 ## The bones' poses the ragdoll took over from (_capture), eased off over
 ## HANDOVER (empty: done).
 var _hand_from: Array = []
+## When and over how long it eases (HANDOVER from its death; a boss's from
+## its hand-over).
+var _hand_at := 0.0
+var _hand_for := HANDOVER
 ## The ragdoll's step count and transform the parts were last posed for.
 var _posed := -1
 var _posed_dead := false
@@ -213,9 +223,9 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	)
 	if dead and handed and _ragdolls(e):
 		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
-		# (A beast lies at play's body's own height: lifted for the lying cel,
-		# a small one was carried over its floor.)
-		_flop(e, level, clock, Vector3(s.x, s.y, s.z if _rig is BeastRig else z))
+		# (A beast or a boss lies at play's body's own height: lifted for the
+		# lying cel, a small one was carried over its floor, a boss shook.)
+		_flop(e, level, clock, Vector3(s.x, s.y, s.z if _rig is BeastRig or boss else z))
 		_shade(s, level, look, tint, down)
 		return
 	doll = null
@@ -378,6 +388,15 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 				start = _rig.posed_points(_skeletons[0])
 				from = transform
 				_hand_from = _capture()
+				_hand_at = e.died_at
+				_hand_for = HANDOVER
+				if Enemy.BOSS_TITLES.has(e.kind):
+					_hand_at = clock
+					_hand_for = BOSS_EASE
+					# Posed under the turn its scripted fall had (its twist to
+					# open floor): the pose eased from was the model's under it.
+					var ahead := transform.basis.z
+					turn = atan2(ahead.x, ahead.z)
 		if _rig is BeastRig:
 			doll = BeastDoll.made_beast(_rig as BeastRig, from, start, kind)
 		else:
@@ -393,6 +412,7 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 				# A boss's scripted fall hands over: no blow, every part going
 				# on as it went.
 				doll.carry_on(_fall_speeds(doll.pos.size()))
+				doll.slack = BOSS_SLACK
 			else:
 				if _shown_alive:
 					doll.drift(Vector3(_going.x, _going.y, 0.0))
@@ -431,7 +451,7 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 	for skeleton in _skeletons:
 		_rig.pose(skeleton, model, dead)
 	if easing:
-		_ease_over(clampf((clock - e.died_at) / HANDOVER, 0.0, 1.0))
+		_ease_over(clampf((clock - _hand_at) / _hand_for, 0.0, 1.0))
 
 
 ## Each part's speed in the scripted fall's last drawn step (map units a

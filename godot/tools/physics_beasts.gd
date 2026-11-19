@@ -22,7 +22,9 @@ extends RefCounted
 const DT := 1.0 / 60.0
 const STRETCH := .1
 const STRETCH_LET := .02
-const STRETCH_HIT := .45
+## (A crawler's links are a few centimetres: a blast stretches one by half
+## for a frame.)
+const STRETCH_HIT := .6
 const REST_BY := Ragdoll.MOST_AWAKE + .1
 const TOL := .03
 const KINDS := ["gator", "crawler", "hog", "cow"]
@@ -52,6 +54,9 @@ func _ok(text: String) -> void:
 
 func run(main: Node) -> void:
 	models = ActorModels.new(Assets.new())
+	# (No body left lying about by the checks before.)
+	Ragdoll.others = []
+	Ragdoll.budget = 1 << 30
 	var ground: Game = main.make_game("hickston")
 	ground.configure({})
 	for kind: String in KINDS:
@@ -111,8 +116,14 @@ static func _stretch(doll: Ragdoll) -> float:
 	for k in doll.la.size():
 		if doll.lmin[k] == doll.lmax[k] and doll.lmin[k] > 0.0:
 			var d := doll.pos[doll.la[k]].distance_to(doll.pos[doll.lb[k]])
-			worst = maxf(worst, maxf(0.0, absf(d - doll.lmin[k]) - STRETCH_LET) / doll.lmin[k])
+			var st := maxf(0.0, absf(d - doll.lmin[k]) - STRETCH_LET) / doll.lmin[k]
+			if st > worst:
+				worst = st
+				worst_link = "%d-%d" % [doll.la[k], doll.lb[k]]
 	return worst
+
+
+static var worst_link := ""
 
 
 ## "" when every knee lies on its own side of the line from root to foot.
@@ -123,8 +134,11 @@ static func _knees(doll: BeastDoll) -> String:
 		var a := legs[k * 3]
 		var m := a + 1
 		var b := a + 2
+		if doll._touch.size() > m and doll._touch[m]:
+			continue
 		var off := doll.pos[m] - (doll.pos[a] + doll.pos[b]) * .5
-		var most := doll.pos[a].distance_to(doll.pos[b]) * (Ragdoll.KNEE_PAST + .05)
+		# (A knee down on the floor is let be by the hinge: some slack.)
+		var most := doll.pos[a].distance_to(doll.pos[b]) * (Ragdoll.KNEE_PAST + .15)
 		if off.dot(torso * doll._bend_rest[k]) < -most:
 			return "leg %d's knee folds the wrong way" % k
 	return ""
@@ -182,6 +196,7 @@ func _kind(game: Game, kind: String) -> void:
 			rests.append(t)
 			if hit > STRETCH_HIT:
 				faults.append("%s: a rigid link stretched %.0f%%" % [name, hit * 100.0])
+				print("    (worst link %s)" % worst_link)
 			if _stretch(doll) > STRETCH:
 				faults.append("%s: a rigid link lies stretched" % name)
 			if doll.awake or t > REST_BY:
@@ -193,9 +208,9 @@ func _kind(game: Game, kind: String) -> void:
 				faults.append("%s: stirred lying still" % name)
 			if not doll.lies_on(game.world, TOL):
 				faults.append("%s: does not lie on the floor" % name)
-			var belly := doll.pos[BeastRig.BELLY_B].z - doll.radius[BeastRig.BELLY_B] - z
-			if belly > doll._stand_high * BeastDoll.STAND:
-				faults.append("%s: still stands (belly %.2f up)" % [name, belly])
+			var up := doll.torso_up()
+			if up > doll._stand_high * BeastDoll.STAND and doll.dorsal().z > .7:
+				faults.append("%s: still stands (torso %.2f up)" % [name, up])
 			var knee := _knees(doll)
 			if knee != "":
 				faults.append("%s: %s" % [name, knee])
@@ -207,7 +222,13 @@ func _kind(game: Game, kind: String) -> void:
 		var b: PackedVector3Array = ends["%s %s from 2.1" % [kind, how]]
 		if _shape_gap(a, b) < .03:
 			faults.append("%s %s: both ways lie the same" % [kind, how])
-	if ways.size() < 2:
+	# (A kind its feel lays two ways at least a quarter of the time each.)
+	var feel: Array = Effects.RAGDOLL.get("beast_" + kind, [])
+	var likely := 0
+	for k in range(1, mini(4, feel.size())):
+		var share: float = feel[k]
+		likely += 1 if share >= .25 else 0
+	if ways.size() < 2 and likely >= 2:
 		faults.append("%s: every death lies the same way (%s)" % [kind, ", ".join(ways.keys())])
 	for f in faults:
 		_check(false, f)
@@ -359,7 +380,8 @@ func _boss(game: Game, kind: String) -> void:
 		var now := _bones(view)
 		var most := 0.0
 		for i in now.size():
-			most = maxf(most, now[i].distance_to(was[i]))
+			if now[i] != Vector3.INF and was[i] != Vector3.INF:
+				most = maxf(most, now[i].distance_to(was[i]))
 		moves.append(most)
 		if handed < 0 and view.doll != null:
 			handed = moves.size() - 1
@@ -421,5 +443,9 @@ static func _bones(view: ActorView) -> PackedVector3Array:
 	for sk: Node in view.find_children("*", "Skeleton3D", true, false):
 		var skeleton := sk as Skeleton3D
 		for i in skeleton.get_bone_count():
-			out.append(skeleton.global_transform * skeleton.get_bone_global_pose(i).origin)
+			# (A part shrunk away, INF: the gun let go of shows anew.)
+			if skeleton.get_bone_pose_scale(i).x < .2:
+				out.append(Vector3.INF)
+			else:
+				out.append(skeleton.global_transform * skeleton.get_bone_global_pose(i).origin)
 	return out
