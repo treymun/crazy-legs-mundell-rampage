@@ -311,6 +311,8 @@ func _puff(at: Vector3, out: Vector3, kind: String, size: float) -> void:
 
 
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:
+	if game.blast_quiet:
+		return  # shown already by an online client's own blast (net_own_shots.gd)
 	if energy:
 		return
 	wrecks.blasted(x, y)

@@ -321,6 +321,8 @@ func _thing_hit(from: Vector3, to: Vector3) -> void:
 
 ## A blast against a wall scorches it: the nearest faces round it, up to two.
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:
+	if game.blast_quiet:
+		return  # shown already by an online client's own blast (net_own_shots.gd)
 	if energy:
 		return
 	_thing_hit(Vector3(x, y, z), Vector3(x, y, z))

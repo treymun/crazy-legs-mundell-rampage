@@ -389,6 +389,9 @@ var own_step := false
 ## single-player game and a host.
 var hands_watch: HandsWatch = null
 var own_quiet := false
+## Inside explode() for a blast that machine showed already (hands_watch's
+## blast_shown): its sounds, flash and looks are left out, its play is not.
+var blast_quiet := false
 ## How many of `enemies` name_new() has looked at.
 var _named_enemies := 0
 ## The controls of a player nobody steers this tick (never changed).

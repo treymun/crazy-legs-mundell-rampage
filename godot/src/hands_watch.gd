@@ -33,3 +33,10 @@ func defer(_call: Callable, _kind: String) -> void:
 ## spent as ever): shown later off the watcher's own dice, or dropped.
 func held_burst(_x: float, _y: float, _z: float, _kind: String, _count: int, _speed: float) -> void:
 	pass
+
+
+## Asked by explode() for a blast of a shot of the watched player's: true
+## when this machine showed that blast already (net_own_shots.gd), so its
+## looks are not shown again (game.blast_quiet); its play goes as ever.
+func blast_shown(_shot: GameState.Shot) -> bool:
+	return false

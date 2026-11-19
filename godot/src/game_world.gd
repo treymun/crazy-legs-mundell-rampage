@@ -917,6 +917,8 @@ func burst(
 		if players.size() < 2:
 			return
 		keep = false
+	if blast_quiet:
+		keep = false  # a blast this machine showed already (explode)
 	if own_quiet and keep:
 		# An online client's own shot it showed already (hands_watch.gd):
 		# the dice go as ever, the specks are the watcher's to show or drop.

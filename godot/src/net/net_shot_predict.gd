@@ -86,6 +86,12 @@ var _boot_seq := -1
 var _lit_hold := -1
 ## Our projectile guns' shots flown from the press (net_own_shots.gd).
 var own := NetOwnShots.new()
+## The hands our hits struck, flinching at the press (net_hit_looks.gd).
+var hits := NetHitLooks.new()
+## Doors and notes answered at a USE press (net_use_looks.gd).
+var uses := NetUseLooks.new()
+## Our last USE press looked at (an input number).
+var _use_seq := -1
 
 
 func _init() -> void:
@@ -150,6 +156,9 @@ func forget() -> void:
 	_boot_seq = -1
 	_lit_hold = -1
 	own.forget()
+	hits.forget()
+	uses.forget()
+	_use_seq = -1
 
 
 func _client_now() -> NetSync.Client:
@@ -195,9 +204,12 @@ func frame(game: Game, me: Player, client: NetSync.Client) -> Dictionary:
 	var boot := _boot(game, me, client, inputs, played)
 	if not boot.is_empty():
 		out["boot"] = boot
+	_use(game, me, client, inputs, now)
+	out["doors"] = uses.begin(now)
 	var hidden := _pickups(game, me, client.input_seq - 1)
 	if not hidden.is_empty():
 		out["pickups"] = hidden
+	out["hits"] = hits.begin(game, now)
 	return out
 
 
@@ -231,6 +243,12 @@ func restore(game: Game, me: Player, kept: Dictionary) -> void:
 	if kept.has("pickups"):
 		var lying: Array = kept["pickups"]
 		game.pickups = lying
+	if kept.has("hits"):
+		var reactions: Array = kept["hits"]
+		NetHitLooks.end(reactions)
+	if kept.has("doors"):
+		var swung: Array = kept["doors"]
+		NetUseLooks.end(swung)
 
 
 func _key(ev: Dictionary) -> String:
@@ -290,6 +308,8 @@ func _show(game: Game, me: Player, ev: Dictionary) -> void:
 	elif kind == "throw":
 		stats["throws"] += 1
 		game.set_face("yell_fire", .3)
+		var fuse: float = ev.get("fuse", 0.0)
+		own.throw(game, me, fuse)
 	elif kind == "blow":
 		_blow(game, me, gun, ev, shown)
 	if kind != "shot":
@@ -493,6 +513,8 @@ func _ring(game: Game, shown: Dictionary, gun: int, kind: String, end: Vector3) 
 func _hit(game: Game, me: Player, gun: int, shown: Dictionary, who: Object, at: Vector3) -> void:
 	stats["hits"] += 1
 	shown["hit"] = true
+	var damage: float = Weapons.DAMAGE.get(gun, 10)
+	hits.struck(who, damage, shown, _now())
 	if game.hit_feedback:
 		if game.clock >= game.hit_mark_until:
 			game.hit_mark_kill = false
@@ -538,6 +560,7 @@ func _specks(
 ## and its blood with it.
 func _withdraw_hit(game: Game, shown: Dictionary) -> void:
 	stats["hits_withdrawn"] += 1
+	hits.withdraw(shown)
 	var marker_at: float = shown["marker_at"]
 	if marker_at >= 0.0 and game.hit_mark_at == marker_at and game.hit_mark_until > game.clock:
 		game.hit_mark_until = game.clock
@@ -635,6 +658,41 @@ func _boot(
 	me.weapon_lag += looks.DUCK * (duck - duck_copy)
 	brawl.kicked_at[me.slot] = game.clock - age
 	return kept
+
+
+## A fresh USE press the boot did not take: a door or a note answered at
+## once (net_use_looks.gd), its sound noted so the copy's is not heard again.
+func _use(game: Game, me: Player, client: NetSync.Client, inputs: Array, now: float) -> void:
+	var first := client.input_seq - inputs.size()
+	var held := me.use_held
+	for i in inputs.size():
+		var c: Game.Controls = inputs[i]
+		var fresh := c.use and not held
+		held = c.use
+		if not fresh or first + i <= _use_seq:
+			continue
+		_use_seq = first + i
+		if _boot_seq == first + i:
+			continue  # the boot's
+		var cue := uses.press(game, me, now)
+		if cue == "":
+			continue
+		(
+			pending
+			. append(
+				{
+					"kind": "use",
+					"key": "use",
+					"seq": first + i,
+					"gun": -1,
+					"cues": [cue],
+					"matched": false,
+					"hit": false,
+					"marker_at": -1.0,
+					"specks": [],
+				}
+			)
+		)
 
 
 ## brawl.gd use()'s choice for `me` as our screen has them, `ahead` seconds
@@ -765,6 +823,12 @@ func _expire(game: Game, played: int) -> void:
 				stats["pickups_taken"] += 1
 
 
+func blast_shown(shot: GameState.Shot) -> bool:
+	if shot.enemy or shot.slot != slot:
+		return false
+	return own.blast_shown(shot)
+
+
 func before_hands(g: GameState, p: Player, _controls: GameState.Controls) -> void:
 	var game := g as Game
 	_played = played_seq(_client_now())
@@ -852,6 +916,7 @@ func after_hands(g: GameState, p: Player, _controls: GameState.Controls) -> void
 			drop["hit"] = true
 			if hit_now:
 				stats["hits_confirmed"] += 1
+				hits.confirmed(game, shot)
 				if not (game.hit_mark_kill and not _before["kill"]):
 					# Ours stands; a kill the host gave shows as the host has it.
 					game.hit_mark_until = _before["until"]
@@ -872,6 +937,7 @@ func after_hands(g: GameState, p: Player, _controls: GameState.Controls) -> void
 				drop["hit"] = true
 				if hit_now:
 					stats["blows_confirmed"] += 1
+					hits.confirmed(game, blow)
 					if not (game.hit_mark_kill and not _before["kill"]):
 						game.hit_mark_until = _before["until"]
 						game.hit_mark_kill = _before["kill"]

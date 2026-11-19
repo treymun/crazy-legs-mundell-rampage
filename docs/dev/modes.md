@@ -687,8 +687,40 @@ when its copy played it: a round trip and the play-out later (350 ms on a
   our inputs lead the copy (`NetOwnShots.begin`'s `ahead`, the ticks not
   played), so it carries on where the ghost was (predict_check: one bolt
   in the picture every frame, its biggest step a frame its flight's). A
-  ghost the host never matches goes after `WAIT`. Dynamite and anything
-  that rolls or rests stays the copy's.
+  ghost the host never matches goes after `WAIT`. Anything that rolls or
+  rests (the bowling ball) stays the copy's.
+- **Blasts, a stick in flight, a thrown thing's hit** (pass 12 round 2,
+  `net_own_shots.gd`). Where the ghost (or the copy's shot drawn on) lands,
+  a shot that blows up blows up at once (`_boom`: explode()'s looks only,
+  its sounds, flash, shake and duck, the blast drawn, specks off our own
+  dice, and the looks features' answers: debris's scorch and embers,
+  weapon_fx's grit, gun_fx's fireball and wreck bits, impacts' marks,
+  water's rings); a stick of dynamite's ghost leaves at the release with
+  what is left of its fuse (the "throw" event's `fuse`), tumbles as the
+  copy's does (`Tumble.step`, no wind) and goes up when the fuse is out, the
+  copy's stick hidden meanwhile. When the copy's own blast comes,
+  `explode()` asks `hands_watch.blast_shown(shot)` (same kind, within
+  `BLAST_NEAR`): `game.blast_quiet` leaves out its sounds, flash, shake,
+  the blast drawn, burst()'s specks (the dice go as ever) and the looks
+  features' answers; its hurt, its breaks and everything the simulation's
+  features do go as ever, a round trip later. A shot that blows up is not
+  drawn after its blast. A ghost that meets a hand or another player shows
+  the hit mark (its tick and blood are the copy's).
+- **The scope** (`NetGunLead.scopes`): ALT FIRE on a scoped gun puts it up
+  and down in the lead, game.gd's rule (a fresh press, not while
+  reloading; a reload or another gun takes it down); `Player.scoped` and
+  `alt_held` put back after the frame.
+- **The hand flinches** (`net_hit_looks.gd`): a hit shown at the press draws
+  the hand with Enemy.hurt's flash and flinch for the gun's damage from the
+  press; when the copy's hurt lands its own flash and flinch are not drawn
+  again for their length (`muted`); a hit withdrawn stops at once.
+- **USE on a door or a note** (`net_use_looks.gd`): a fresh USE the boot
+  did not take, on what interact() would open (no remote switch, the key
+  held, not a powder store, the hatch crouched under), plays the door's
+  sound and draws it swinging from the press at the copy's speed, ahead of
+  the copy's until it catches up (a USE never played lets it go back after
+  `WAIT`); a note's words show at once. The copy's door sound is dropped
+  (net_echo_sound.gd).
 - **Every online mode gets it** (County Run co-op, the 5v5 rounds, tag
   team, and any mode added online later): it reads only Game.Controls, the
   copy and `NetSync.Client`. Nothing carried is touched; `net_lag`,
@@ -740,11 +772,15 @@ a 10-character join code or an address stays desktop only.
 
 - UDP hole punching (the party line relays instead; a desktop player still
   goes straight to a host whose router opened the port).
-- Client prediction of a stick of dynamite in flight, the saw's grind, the
-  scope going up, finishers, the boot's jolt, USE on anything but a boot,
-  items, a blast and what it breaks (wreck pieces, ragdolls: pass 11's
-  looks start when the copy plays the blast, a round trip and the playout
-  late), and a thrown shot's hit (each still shows when the copy plays it).
+- Client prediction of finishers (the move is game.rng's on the host's
+  tick, which no copy knows ahead: a wrong move drawn could not be taken
+  back), a break and its wreck pieces from our shots (a break changes the
+  level's walls; drawn wrongly it would have to come back whole), a kill's
+  fall and ragdoll (the hand's health on the host decides it; one drawn
+  falling cannot get up again), the saw's grind, the boot's jolt, USE on
+  anything but a door, a note or a boot (stations, the jukebox, gates),
+  items, a thrown shot's blood and tick, and the blasts of things that
+  roll (each still shows when the copy plays it).
 - A second local input set (split keyboard).
 - Spawn points from the plans outside the 5v5 maps (only worked out).
 - Versus pickups other than the level's own.

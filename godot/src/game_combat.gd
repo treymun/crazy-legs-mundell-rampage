@@ -518,24 +518,32 @@ func explode(shot: Shot) -> void:
 	strength *= benched[1]
 	var middle_share: float = tuned[2]
 	var edge_share: float = tuned[3]
-	if spec.has("also_sound"):
-		sound_at(str(spec["also_sound"]), x, y, .9)
-	var flash: float = spec["flash"]
-	blast_flash = maxf(blast_flash, flash)
-	var ear := local_player
-	var near := sqrt((ear.x - x) * (ear.x - x) + (ear.y - y) * (ear.y - y))
-	shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
-	var duck_by: float = spec["duck"]
-	duck = maxf(duck, duck_by)
-	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
+	# An online client's own blast it showed already (net_own_shots.gd): the
+	# looks are left out, the play below goes as ever.
+	var quiet := hands_watch != null and hands_watch.blast_shown(shot)
+	var was_quiet := blast_quiet
+	blast_quiet = quiet
+	if not quiet:
+		if spec.has("also_sound"):
+			sound_at(str(spec["also_sound"]), x, y, .9)
+		var flash: float = spec["flash"]
+		blast_flash = maxf(blast_flash, flash)
+		var ear := local_player
+		var near := sqrt((ear.x - x) * (ear.x - x) + (ear.y - y) * (ear.y - y))
+		shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
+		var duck_by: float = spec["duck"]
+		duck = maxf(duck, duck_by)
+		blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
 	# Listeners may ask what went up (features/fire.gd lights what a keg reaches).
 	var was_kind := blast_kind
 	blast_kind = shot.kind
 	events.exploded.emit(x, y, z, energy)
 	blast_kind = was_kind
-	sound_at(str(spec["cue"]), x, y)
+	if not quiet:
+		sound_at(str(spec["cue"]), x, y)
 	burst(x, y, z, "plasma" if energy else "spark", 12 if energy else 23, 2.2 if energy else 3.3)
 	burst(x, y, z, "dust", 6 if energy else 16, 2.3)
+	blast_quiet = was_quiet
 	var wake: float = spec["wake"]
 	wake_nearby(wake, x, y)
 	if not energy:
