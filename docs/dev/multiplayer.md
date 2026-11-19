@@ -775,6 +775,37 @@ scene moves our player, shuts the door and stands the hand in front on
 the host's game between ticks, so its copies are put back often: its
 other rows are not the feel of play. predict_check holds each case.
 
+**Round 3 (pass 13): kills, finishers and breaks** (`net_kill_looks.gd`,
+`net_finish_looks.gd`, `net_break_looks.gd`; the rules in
+[modes.md](modes.md#shots-reloads-and-pickups)). The kit gained four
+phases, pressed 2.2 s in (the copy is put back on the host's setup by its
+check, a part at a time): `kill` (the .38 at a hand low on health held by
+a stun: a sure kill), `reel` (the same hand free to walk: not sure),
+`finish` (USE on a hand down to its last in reach, timed to the man drawn
+down less the move's own `wind` before the blow), `break` (the .38 at a
+crate with a round's health left, nothing under it). `net_feel.gd --
+scenes=kit seconds=90 lags=50,120,250`, `ways=old` (every pass 13 look
+off) and new run side by side, medians of each phase's presses:
+
+| 144 Hz | 50 ms | 120 ms | 250 ms |
+| --- | --- | --- | --- |
+| a sure kill to the hand drawn down | 214 -> 0 ms | 388 -> 0 | 701 -> 0 |
+| a kill on a hand free to walk (reels, then falls) | 222 -> 201 | 396 -> 375 | 702 -> 681 |
+| USE to a finisher's man down, past its wind | 230 -> 0 | 403 -> 0 | 714 -> 0 |
+| a .38 to the crate drawn broken | 221 -> 7 | 396 -> 7 | 700 -> 7 |
+| kills / finishers / breaks drawn early, taken back | | 3, 2, 2: none | |
+
+The walking hand's fall still waits for the host's word (its flinch is
+held meanwhile, so it never stands unhurt); 7 ms is the next frame. Every
+press was shown (18 a run, none missed), no copy parted beyond the
+scene's own setup, and nothing was ever taken back. In ordinary play
+(`net_feel -- scenes=coop,county`, the bots shooting hands as they find
+them) no kill there was sure (a minute each at 120 and 250 ms) and every
+killing hit reeled: of those the host judged a miss co-op 7 of 7 and 8 of
+8, County Run 5 of 9 and 6 of 12 (the hands walk on for the round trip and
+are not rewound). A fall drawn at every killing hit's press would have
+stood that many bodies up again, which is why only sure kills fall early.
+
 **The copy's check, a part at a time** (`src/net/net_check_parts.gd`,
 `NetSync.Client.spread_check`): the client compared its whole copy with
 the host's snapshot once a second, a whole capture and its walk in one
@@ -1235,7 +1266,9 @@ that ends starts again.
   whole snapshots and delta sizes, memory and objects. `why=1` says why each
   whole snapshot went and what a delta carries after each blast. `quick`
   (check_all): County Run co-op and campaign co-op for 30 s at 120 ms, put
-  back every 5 s.
+  back every 5 s; since pass 13 co-op has the host and two partners
+  (`coop_people=3`), so the partner who stays must keep through the other's
+  leave and join with no put back.
 
 What it found and fixed:
 

@@ -44,7 +44,9 @@
 ## copies paced by the clock (NetSync.Client by_clock on: 1, the default
 ## here) or the old playout (0). `quick`: County Run co-op and campaign co-op
 ## at 120 ms, put back every 5 s, County Run for two minutes (its objects
-## and memory flat over the second), co-op for 30 s (check_all).
+## and memory flat over the second), co-op for 30 s with the host and two
+## partners (`coop_people=3`: the one who stays keeps through the other's
+## leave and join), check_all.
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
@@ -79,6 +81,7 @@ var opts := {
 	"fullcheck": 0,
 	"bunch": 1,
 	"events": 1,
+	"coop_people": 0,
 }
 var rows: Array = []
 
@@ -143,6 +146,9 @@ func _run() -> void:
 		opts["coop_minutes"] = .5
 		opts["lags"] = "120"
 		opts["putback"] = 5.0
+		# The host and two partners: the one who stays sees the other
+		# leave and join again (NetWire.event: no put back for either).
+		opts["coop_people"] = 3
 	opts["people"] = clampi(int(opts["people"]), 2, 4)
 	# Off: the old packets, no place rows sent (a measurement's before).
 	NetSync.Host.send_places = int(opts["places"]) != 0
@@ -1296,6 +1302,8 @@ func _open_coop() -> bool:
 	host.set_setting("map", "hickston")
 	host.set_meta("code", line.code)
 	var people := int(opts["people"])
+	if int(opts["coop_people"]) > 0:
+		people = clampi(int(opts["coop_people"]), 2, 4)
 	for i in range(1, people):
 		var over_ws := int(opts["ws"]) != 0 and i == people - 1
 		var net := _join_coop("P%d" % (i + 1), over_ws)

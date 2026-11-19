@@ -432,8 +432,10 @@ static func item(check: Object, main: Object, rig_class: Script, lag: int) -> vo
 		"_check",
 		then == 1 and heard == 1 and had == 2 and left == 1,
 		(
-			"a pocket item used: its sound heard at the press (%d), once in all (%d), the copy"
-			+ " taking it after (%d -> %d)"
+			(
+				"a pocket item used: its sound heard at the press (%d), once in all (%d), the copy"
+				+ " taking it after (%d -> %d)"
+			)
+			% [then, heard, had, left]
 		)
-		% [then, heard, had, left]
 	)

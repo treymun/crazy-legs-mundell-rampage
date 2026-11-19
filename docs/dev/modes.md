@@ -755,11 +755,12 @@ when its copy played it: a round trip and the play-out later (350 ms on a
     is held from the press until the host's word (at most a second), so it
     never stands unhurt; the copy's kill starts the ragdoll from that pose
     (actor_view.gd starts a fall from the pose drawn), a miss lets it go as
-    a flinch ends. Measured both ways (`net_feel -- scenes=kit`), drawing
-    every killing hit's fall at the press would be a third of a second
-    sooner for the walking ones too, but a fifth of the marks shown on
-    hands are withdrawn in County Run co-op (no rewind for hands): a fifth
-    of those bodies would get up again.
+    a flinch ends. Drawing every killing hit's fall at the press would be
+    a round trip sooner for the walking ones too, but in ordinary play
+    (`net_feel -- scenes=coop,county`) the host judged a miss on half to
+    all of the killing hits that reeled (hands walk on and are not
+    rewound): that many bodies would have stood up again (multiplayer.md,
+    "Round 3").
   - **A finisher shows at the press.** Its move was the host's dice; with
     more than one player it now comes from the man's uid and the player's
     slot (`brawl.gd party_move`; alone it stays the dice, so single-player
