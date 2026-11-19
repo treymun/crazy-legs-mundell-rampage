@@ -450,7 +450,9 @@ func _row_in(
 ## `radius` on the wall along (ux, uy)) and ground marks (View.GroundMark:
 ## a rectangle at z, `reach` along `angle` and `width` across, both halves),
 ## as far as the old renderer drew them (15 and 26 cells).
-func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> void:
+func show_marks(
+	walls: Array, grounds: Array, cam: Vector3, angle: float, everywhere := false
+) -> void:
 	var fx := cos(angle)
 	var fy := sin(angle)
 	var buf := PackedFloat32Array()
@@ -492,6 +494,14 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 		var gx := g.x
 		var gy := g.y
 		if Vector2(gx - cam_flat.x, gy - cam_flat.y).length() > 26.0:
+			continue
+		# Wholly behind the eye (its far corner too, and a little more): the
+		# view cannot show it, so it is left out (pass 13; a mirror's view
+		# may, so not where one is).
+		if (
+			not everywhere
+			and (gx - cam_flat.x) * fx + (gy - cam_flat.y) * fy < -(g.reach + g.width + .25)
+		):
 			continue
 		var image := g.image
 		var slot: int = _slot_of.get(image, -1)

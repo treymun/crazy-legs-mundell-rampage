@@ -1018,25 +1018,30 @@ func _pair_points(a: Body, o: Body, least: Vector3, turned: PackedVector3Array, 
 	var top := o.extent(n)
 	var inverse := o.turn.transposed()
 	var found := 0
+	# (Both places and o's size read once: pass 13.)
+	var ap := a.p
+	var op := o.p
+	var oh := o.half
+	var disc := o.round == 1
 	for r: Vector3 in turned:
-		var at := a.p + r
-		var l := inverse * (at - o.p)
-		var gap := o.half - l.abs()
+		var at := ap + r
+		var l := inverse * (at - op)
+		var gap := oh - l.abs()
 		if gap.x <= 0.0 or gap.y <= 0.0 or gap.z <= 0.0:
 			continue
-		if o.round == 1:
+		if disc:
 			# A disc is round, a ring hollow: a corner of its box past its rim, or
 			# a point in a ring's hole, is not in it (a lid lies inside a hoop).
 			var across := Vector2(l[(o.axis + 1) % 3], l[(o.axis + 2) % 3]).length()
 			if across > o.radius or (o.form == "ring" and across < o.radius * RING_HOLE):
 				continue
-		var deep := minf(o.p.dot(n) + top - at.dot(n), least.length())
+		var deep := minf(op.dot(n) + top - at.dot(n), least.length())
 		if deep <= 0.0:
 			continue
 		if not a.awake or not o.awake:
 			# A sleeping piece wakes when it is struck hard, not when one comes
 			# to lie on it.
-			var closing := (a.velocity_at(r) - o.velocity_at(at - o.p)).dot(n)
+			var closing := (a.velocity_at(r) - o.velocity_at(at - op)).dot(n)
 			if closing < -.5:
 				a.wake()
 				o.wake()
@@ -1044,7 +1049,7 @@ func _pair_points(a: Body, o: Body, least: Vector3, turned: PackedVector3Array, 
 		c.a = a
 		c.b = o
 		c.ra = r
-		c.rb = at - o.p
+		c.rb = at - op
 		c.n = n
 		c.depth = deep
 		c.e = E_BODY

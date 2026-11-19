@@ -59,6 +59,7 @@ const SKIP_FIELDS := {
 		"_z",
 		"_rain",
 		"_lights",
+		"_flame_spots",
 		"_spills",
 		"_at",
 		"_seen",

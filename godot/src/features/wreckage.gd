@@ -165,6 +165,7 @@ var _walked := {}
 ## Each piece's place this tick (_kick).
 var _kick_x := PackedFloat64Array()
 var _kick_y := PackedFloat64Array()
+var _kick_read := false
 var _wake_at := 0
 var _models: PropModels
 ## The big breaks coming apart in their own pieces (src/set_piece_wreck.gd):
@@ -1291,18 +1292,10 @@ func _kick(dt: float) -> void:
 		return
 	var lo := Vector2(INF, INF)
 	var hi := -lo
-	# Every piece's place read once a tick (pass 13: each walker passed over
-	# every piece's body and place again, a County Run horde forty times).
-	_kick_x.resize(wrecks.size())
-	_kick_y.resize(wrecks.size())
-	var i := 0
 	for w: Wreck in wrecks:
-		var at := w.body.p
-		lo = lo.min(Vector2(at.x, at.y))
-		hi = hi.max(Vector2(at.x, at.y))
-		_kick_x[i] = at.x
-		_kick_y[i] = at.y
-		i += 1
+		lo = lo.min(Vector2(w.body.p.x, w.body.p.y))
+		hi = hi.max(Vector2(w.body.p.x, w.body.p.y))
+	_kick_read = false
 	lo -= Vector2(2.0, 2.0)
 	hi += Vector2(2.0, 2.0)
 	var seen := {}
@@ -1362,6 +1355,17 @@ func _walker(
 	var push := WreckPhysics.tuned("knock", how, .6) * speed
 	var kind := "ram" if how == "kick_ride" else "kick"
 	var near := reach + .3
+	if not _kick_read:
+		# Every piece's place read once a tick, when a walker first needs them
+		# (pass 13: each walker passed over every piece's body and place, a
+		# County Run horde forty times).
+		_kick_read = true
+		_kick_x.resize(wrecks.size())
+		_kick_y.resize(wrecks.size())
+		for i in wrecks.size():
+			var piece: Wreck = wrecks[i]
+			_kick_x[i] = piece.body.p.x
+			_kick_y[i] = piece.body.p.y
 	var xs := _kick_x
 	var ys := _kick_y
 	for i in wrecks.size():
