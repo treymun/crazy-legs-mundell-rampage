@@ -471,7 +471,9 @@ kbd {
 .handbill img { display: block; width: 100%; aspect-ratio: 4 / 3; image-rendering: pixelated; border: 3px solid #2b1d12; }
 .handbill h3 { margin-top: 10px; font: 900 22px/1.05 var(--slab); text-transform: uppercase; }
 .handbill p { margin-top: 6px; font-size: 13.5px; line-height: 1.45; }
+#wrecks { grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); }   /* six bills: 3, 2 or 1 a row */
 #partyline .notes { margin-top: 26px; }
+#manual .notes { grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); }   /* four notes: two by two */
 
 /* -------------------------------------------------------------- footer */
 .footer { max-width: 1180px; margin: 0 auto; padding: 34px 20px 70px; color: #a98d66; font-size: 13.5px; text-align: center; }
