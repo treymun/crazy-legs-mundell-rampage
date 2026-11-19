@@ -150,7 +150,7 @@ it is original.
 - **3.11** Proximity voice chat online; one always-open lobby at 60 updates a second; sure kills,
   breaks, finishers and pocket items at the press online and no jolt on a leave or join; gators,
   crawlers, hogs and cows die as bodies (gators float) and five bosses finish their falls as
-  ragdolls; heavy scenes 5 to 11 percent faster.
+  ragdolls; Jerry, Rudy and the foreman re-baked sharp; heavy scenes 5 to 11 percent faster.
 - **3.10** Online as smooth as single-player (drawn between ticks on a render clock, shots,
   blasts and doors at the press, County Run co-op on the clock); Blue calm and readable; tips for
   new players; a boss's checkpoint taken on the way to his door.
