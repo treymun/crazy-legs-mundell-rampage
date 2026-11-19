@@ -10,14 +10,22 @@ const STEP := 1.0 / 60.0
 const NOTICE := "THE KING'S BOYS SEEN YOU TAKE HIS BOAT! RUN THE CHANNEL. LAGOON OR BUST, BOY!"
 const CAPTION := "DUB ON THE RADIO: FOLKS, IF YOU SEE A FELLA IN OVERALLS WITH A SHOTGUN, WAVE."
 const NAMES := ["MUNDELL", "BUBBA", "CLETUS", "EARLENE"]
+## A new player's tip (lessons.gd), as long as one gets.
+const TIP := (
+	"LOOSE JUNK CAN BE TOTED: E PICKS IT UP, LEFT CLICK CHUCKS IT, " + "RIGHT CLICK SETS IT DOWN."
+)
 
 ## Every moment: [name, what it must show (piece names)].
 const MOMENTS := [
 	["campaign", ["notice", "caption", "prompt", "badge", "light", "callout", "item", "hurt"]],
 	["campaign_small", ["notice", "caption", "prompt", "badge", "light", "item"]],
-	["campaign_minimal", ["notice", "caption", "prompt", "badge"]],
+	# An urgent tip shows over a notice (lessons.gd URGENT).
+	["campaign_minimal", ["notice", "tip", "caption", "prompt", "badge"]],
 	# The touch buttons take a good share of the view: the caption may wait.
 	["campaign_touch", ["notice", "prompt", "badge", "light"]],
+	# A tip waits out a notice unless it is urgent: the tip in the notice's place.
+	["campaign_tip", ["tip", "caption", "prompt", "badge", "light", "callout", "item", "hurt"]],
+	["campaign_tip_touch", ["tip", "prompt", "badge", "light"]],
 	# The feed gives way to the caption when there is no room for both.
 	["drive", ["notice", "caption", "prompt", "badge", "drive", "run"]],
 	["drive_minimal", ["notice", "drive", "run", "feed", "badge"]],
@@ -46,7 +54,9 @@ static func make(main: Node, name: String) -> Game:
 	main.touch.offer("whistle", main.touch.showing)
 	var g: Game
 	match name:
-		"campaign", "campaign_small", "campaign_minimal", "campaign_touch":
+		"campaign", "campaign_small", "campaign_minimal", "campaign_touch", "campaign_tip":
+			g = _campaign(main)
+		"campaign_tip_touch":
 			g = _campaign(main)
 		"drive", "drive_minimal":
 			g = _drive(main)
@@ -70,6 +80,13 @@ static func make(main: Node, name: String) -> Game:
 		return null
 	g.hud.minimal = main.hud.minimal
 	_talk(g)
+	if name == "campaign_minimal" or name.begins_with("campaign_tip"):
+		# A new player's tip under the notice, or alone (lessons.gd).
+		g.tips = 1
+		g.tip = TIP
+		g.tip_until = g.clock + 30.0
+	if name.begins_with("campaign_tip"):
+		g.message_until = 0.0
 	return g
 
 

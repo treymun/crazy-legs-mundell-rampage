@@ -134,6 +134,11 @@ static func bind(options: Dictionary, action: String, code: int) -> void:
 	options[mine] = code
 
 
+## The key `action` has by default (KEY_NONE: no such action).
+static func default_key(action: String) -> int:
+	return _default_of(action)
+
+
 static func _default_of(action: String) -> int:
 	for entry: Array in ACTIONS:
 		if entry[0] == action:

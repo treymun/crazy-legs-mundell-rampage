@@ -99,6 +99,7 @@ func configure(options: Dictionary) -> void:
 	shake_scale = [0.0, .5, 1.0][clampi(shaking, 0, 2)]
 	district_labels = options.get("district_labels", 1)
 	hints = options.get("hints", 1)
+	tips = options.get("tips", 1)
 	hud_style = options.get("hud_style", 0)
 	var tint: int = options.get("crosshair_color", 0)
 	crosshair_tint = [

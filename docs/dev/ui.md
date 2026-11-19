@@ -77,8 +77,10 @@ this order (first come keeps its place):
    bottom left, the 5v5 strip, cash and kill list, versus's frags line,
    COUNTY RUN's clock, XP bar and storm ring).
 3. The top stack: the notice or place name (`banner`, narrowed round what is
-   beside it, or moved down rather than grow more than a line), the boss
-   bar, the objective pin's row (the whole width, it swings).
+   beside it, or moved down rather than grow more than a line), a new
+   player's tip under it (`tip`, chalk green, lessons.gd; a place's name
+   waits while one is up), the boss bar, the objective pin's row (the whole
+   width, it swings).
 4. `GameFeature.hud_flow`: pieces that hang under the top or stack on the
    corners (the driving and run plates, the lap timer, station and gallery
    cards, the flashlight over the badge, the revive line, the watching
@@ -183,6 +185,14 @@ What each v3.6.0 screen and feature takes from a finger (`src/touch_controls.gd`
 | The 5v5 store, County Run's cards and end | their own taps (`TacticalScreens.tap`, `CountyInput.tap`) |
 
 Not checked by hand: none of it has been tried on a real phone.
+
+## HOW TO RAISE HELL (the CONTROLS page)
+
+`ControlsScreen.rows_of(page)`: the keyboard page's rows name each key as
+bound on the KEYS page (`{action}` in `MainState.CONTROL_ROWS`, filled by
+`Lessons.key`); since pass 12 they say that USE also picks things up and
+boots a hand, how to throw what you tote, the mouse wheel and the dynamite.
+`onboard_check.gd` holds every row to its column (108 and 162 pixels).
 
 ## Menu text
 

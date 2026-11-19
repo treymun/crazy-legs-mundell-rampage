@@ -30,8 +30,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (75 now;
-  JUNK BENCH and COUNTY EVENTS are the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (77 now;
+  NEW PLAYER TIPS is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -2719,6 +2719,72 @@ chapter until its pictures are there. A new enemy kind used in more than one
 level must not be in `CHAPTER_KINDS` (`verify_assets.gd` checks). A browser
 cannot rename files in its storage and HTTPRequest's `download_file` does not
 write there: keep writing packs from memory.
+
+## A new player's first minutes (pass 12, ONBOARD)
+
+The owner: "the first 10 minutes for new players. After eleven updates
+there's a lot to learn". `tools/onboard_walk.gd` plays a fresh profile from
+NEW GAME into Hickston with the PLAY page's defaults (BLUE, the bench, the
+events, the tips), as `tools/newbie_pilot.gd`: the balance bot at ROOKIE (or
+`skill=-1`, GREENHORN: slower, wilder, eats later) that only does what the
+game has shown it (it follows the objective pin, which points along
+`Game.route`; it opens a door only when OPEN DOOR shows; it eats, boots or
+finishes only once a tip has said how). It writes down every notice, tip
+and prompt, each objective and its time, where it got lost (no nearer the
+objective for 20 s with nothing to fight), its deaths (retried as the death
+screen does), damage by half minute and by whom; with a window and
+`out=<dir>` it takes a picture at each (`docs/godot3d/onboard/`).
+
+What the audit of v3.9.0 found (ROOKIE and GREENHORN at NORMAL, seeds 1-12,
+and ROOKIE at HARD):
+
+- **The first hand comes in 3.4 s** (the gas station's coot) and lands a hit
+  at 4.6 s, but the fire lesson came at 12-26 s: the old lessons waited for
+  any notice to clear, and the opening objective, then five pickups'
+  notices, held it back. The walk lesson came at 3.3 s, the arrow at 50 s.
+- **Never explained**: USE kicks and finishes (BLUE's FINISH HIM! with no
+  word of how), picking things up and throwing them (the prompt shows only
+  with the crosshair on one), the vehicles, the junk bench and what scrap is
+  for (ten pieces picked up by the sheriff), BLUE's whistle and his badge,
+  the dynamite's fuse, the mouse wheel. The CONTROLS page named fixed keys
+  whatever the KEYS page said, and "1-9 0 - =  WEAPONS / WHEEL / R LOAD".
+- **Nobody got lost**: the arrow leads well; the brass key took 53-81 s, the
+  steel key 78-112, Bessie's pasture 52-78; the sheriff was in sight at
+  194-236 s.
+- **The deaths** were all at the sheriff (RODEO GROUNDS): see [boss_retry]
+  below. On the way there nothing killed a ROOKIE at NORMAL in 11 runs.
+
+**The tips** (`src/lessons.gd`, a LOOKS feature, `lessons_feature.gd`): one
+short tip the first time something comes up, once a profile
+(`user://lessons.json`, never in a save), in its own banner under the
+notice (`game.tip`, `tip_until`, VIEW fields; `game_view.gd _lay_hud`,
+chalk green `Lessons.INK`; it outranks a place's name). Each names the key
+as bound, the pad button or the touch button for the device last used
+(`game.input_device`, set by main.gd each frame; `Lessons.glyph`). The
+moments: a hand after you (fire), the start (walk; the arrow seven seconds
+in), one reeling in reach (finish), one in boot reach (kick), a locked door,
+health under 55 with food (heal), the mower or a rig to drive (ride), the
+crosshair on loose junk (carry), the junk bench, the dynamite in hand, BLUE
+(14 s in), three guns, food in the pockets, scrap, BLUE hurt, his badge,
+gut, drink. `ORDER` is who goes first; `URGENT` (fire, finish, kick) shows
+at once, over a notice, cutting any other tip short after a second; `QUIET`
+ones wait out a fight; `CALM` ones keep `CALM_GAP` (9 s) clear after the
+last tip; the rest wait for a notice to clear. Five say a line of
+Mundell's (`tip_*` in barks.gd and mundell_lines.json). Off in tools,
+tours, benches, demos (`game.lessons`), in the Crossroads and with NEW
+PLAYER TIPS off (PLAY page, `tips`). `Lessons.reset()` forgets them all.
+The touch and pad words differ where the buttons do (the pad's D-pad eats,
+the touch WHISTLE is BLUE's badge).
+
+`tools/onboard_check.gd` (ONBOARD CHECK OK, check_all): every tip at its
+moment set up on Hickston, once, not again (also after the file is read
+again), nothing before its moment; none with the setting off or in a
+tool's game; the keys, pad and touch words, a key moved on the KEYS page;
+the CONTROLS rows fit and name the bound keys; play the same with tips on,
+off and in a tool's game (`Replay.state_hash` after a minute of the bot);
+and the new player's first minutes: the fire tip within a second and a half
+of the first fight, no tip twice, the sheriff reached within 300 s on
+NORMAL with at most one death.
 
 ## Difficulty and pacing as numbers (polish pass 9)
 

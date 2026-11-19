@@ -145,6 +145,12 @@ const LINES := {
 	"event_raid": ["REVENUERS! HIDE THE JUGS!", "REVENUE MEN. FIGURES."],
 	"event_dark": ["WHO FORGOT THE LIGHT BILL?", "DARK AS THE INSIDE OF A COW."],
 	"event_light": ["LET THERE BE LIGHT."],
+	# Pass 12: a word with a new player's tip (lessons.gd SPOKEN), once each.
+	"tip_hound": ["BEST NOSE IN THE COUNTY, THAT DOG."],
+	"tip_carry": ["IF IT AIN'T NAILED DOWN, CHUCK IT."],
+	"tip_ride": ["SHE AIN'T PURTY, BUT SHE RUNS."],
+	"tip_bench": ["DUCT TAPE FIXES EVERYTHING."],
+	"tip_locked": ["LOCKED TIGHT. FIGURES."],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -183,7 +189,12 @@ const COOLDOWN := {
 	"event_hogs": 2.0,
 	"event_raid": 2.0,
 	"event_dark": 2.0,
-	"event_light": 2.0
+	"event_light": 2.0,
+	"tip_hound": 1.0,
+	"tip_carry": 1.0,
+	"tip_ride": 1.0,
+	"tip_bench": 1.0,
+	"tip_locked": 1.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

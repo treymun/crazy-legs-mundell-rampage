@@ -1,0 +1,40 @@
+{
+ "text": "Best nose in the county, that dog",
+ "words": [
+  {
+   "text": "Best",
+   "start": 0.06,
+   "end": 0.44
+  },
+  {
+   "text": "nose",
+   "start": 0.58,
+   "end": 1.02
+  },
+  {
+   "text": "in",
+   "start": 1.1,
+   "end": 1.18
+  },
+  {
+   "text": "the",
+   "start": 1.22,
+   "end": 1.28
+  },
+  {
+   "text": "county,",
+   "start": 1.44,
+   "end": 1.9
+  },
+  {
+   "text": "that",
+   "start": 2.04,
+   "end": 2.38
+  },
+  {
+   "text": "dog",
+   "start": 2.54,
+   "end": 3.22
+  }
+ ]
+}

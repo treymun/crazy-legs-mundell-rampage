@@ -45071,6 +45071,216 @@
    },
    "validation": "ok"
   },
+  "mundell_tip_hound_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_tip_hound_0.mp3",
+   "prompt": "Best nose in the county, that dog.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/mundell_tip_hound_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     3.22
+    ],
+    "natural_seconds": 3.14,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.343
+   },
+   "measured": {
+    "seconds": 3.343,
+    "peak_db": -0.8,
+    "loud_db": -6.6,
+    "dc": 0.0,
+    "onset_ms": 6.2,
+    "centroid_hz": 1718,
+    "end_db": -169.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_tip_carry_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_tip_carry_0.mp3",
+   "prompt": "If it ain't nailed down, chuck it.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/mundell_tip_carry_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.28,
+     2.44
+    ],
+    "natural_seconds": 2.42,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.42
+   },
+   "measured": {
+    "seconds": 2.35,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 1722,
+    "end_db": -90.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_tip_ride_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_tip_ride_0.mp3",
+   "prompt": "She ain't purty, but she runs.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/mundell_tip_ride_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.98
+    ],
+    "natural_seconds": 2.025,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.07
+   },
+   "measured": {
+    "seconds": 2.07,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0013,
+    "onset_ms": 1.8,
+    "centroid_hz": 1589,
+    "end_db": -160.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_tip_bench_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_tip_bench_0.mp3",
+   "prompt": "Duct tape fixes everything.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/mundell_tip_bench_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.32,
+     2.2
+    ],
+    "natural_seconds": 1.965,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.027
+   },
+   "measured": {
+    "seconds": 2.027,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.008,
+    "onset_ms": 10.6,
+    "centroid_hz": 1357,
+    "end_db": -162.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_tip_locked_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_tip_locked_0.mp3",
+   "prompt": "Locked tight. Figures.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/mundell_tip_locked_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.66
+    ],
+    "natural_seconds": 1.741,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.754
+   },
+   "measured": {
+    "seconds": 1.754,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0056,
+    "onset_ms": 3.9,
+    "centroid_hz": 1708,
+    "end_db": -156.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "metal_down": {
    "purpose": "no runtime reference (superseded by actor_*_down)",
    "refs": [],
@@ -45554,6 +45764,155 @@
     "onset_ms": 0.0,
     "centroid_hz": 236,
     "end_db": -144.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "break_splinter": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/break_splinter.mp3",
+   "prompt": "An old oak barrel blown apart by a shotgun at close range: staves splintering with a loud dry crunch, wood pieces clattering down.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/break_splinter.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -11.8,
+    "dc": 0.0025,
+    "onset_ms": 0.0,
+    "centroid_hz": 2705,
+    "end_db": -137.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tin_tear": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tin_tear.mp3",
+   "prompt": "A thin tin mailbox torn open by a gunshot: a sharp metallic rip and crumple, then a tinny rattle.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/tin_tear.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.9
+   },
+   "measured": {
+    "seconds": 0.88,
+    "peak_db": -0.8,
+    "loud_db": -8.8,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 3276,
+    "end_db": -138.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "shard_rain": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/shard_rain.mp3",
+   "prompt": "A clay moonshine jug and glass shattered: shards raining down onto dirt and planks in a scattered tinkling patter.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/shard_rain.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.2
+   },
+   "measured": {
+    "seconds": 1.2,
+    "peak_db": -0.8,
+    "loud_db": -9.4,
+    "dc": 0.0016,
+    "onset_ms": 0.0,
+    "centroid_hz": 7383,
+    "end_db": -132.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "straw_burst": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/straw_burst.mp3",
+   "prompt": "A hay bale burst by a shotgun: a soft dry whump and loose straw rustling down.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/straw_burst.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 117,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.883,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0006,
+    "onset_ms": 2.8,
+    "centroid_hz": 5969,
+    "end_db": -139.6,
     "problems": []
    },
    "validation": "ok"
@@ -51555,6 +51914,159 @@
     "onset_ms": 189.2,
     "centroid_hz": 582,
     "end_db": -155.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "fuel_whoomp": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/fuel_whoomp.mp3",
+   "prompt": "A drum of gasoline going up: a deep rushing whoomp as a fireball rolls up into the sky, a low roar swelling and dying away.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/fuel_whoomp.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.6
+   },
+   "measured": {
+    "seconds": 1.6,
+    "peak_db": -0.8,
+    "loud_db": -1.8,
+    "dc": 0.0036,
+    "onset_ms": 0.0,
+    "centroid_hz": 112,
+    "end_db": -143.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "wreck_crash": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/wreck_crash.mp3",
+   "prompt": "A stock car blown apart by its own gas tank: a heavy metal crunch, its windows shattering, a hubcap ringing away and sheet tin clanging down.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/wreck_crash.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -2.8,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 4159,
+    "end_db": -153.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "blast_debris": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/blast_debris.mp3",
+   "prompt": "Debris raining down in a dirt yard after an explosion: clods of dirt, splinters of wood and scraps of tin pattering and clattering down, thinning out.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/blast_debris.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "lead_trimmed_ms": 376,
+    "level": "-5.0 dB (new cue)",
+    "tail_trimmed_s": 0.375,
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 1.378,
+    "peak_db": -0.8,
+    "loud_db": -16.4,
+    "dc": 0.0001,
+    "onset_ms": 5.9,
+    "centroid_hz": 4847,
+    "end_db": -147.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "wreck_pop": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/wreck_pop.mp3",
+   "prompt": "A burning wrecked car: one sharp pop as a tire bursts in the flames, a small whump of fuel and crackling.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/wreck_pop.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "lead_trimmed_ms": 19,
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.98,
+    "peak_db": -0.8,
+    "loud_db": -6.9,
+    "dc": 0.0019,
+    "onset_ms": 4.1,
+    "centroid_hz": 226,
+    "end_db": -149.6,
     "problems": []
    },
    "validation": "ok"
@@ -60548,308 +61060,6 @@
     "problems": []
    },
    "validation": "ok"
-  },
-  "fuel_whoomp": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "boom",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/fuel_whoomp.mp3",
-   "prompt": "A drum of gasoline going up: a deep rushing whoomp as a fireball rolls up into the sky, a low roar swelling and dying away.",
-   "credits": 23,
-   "destination": "audio_src/final/sfx/fuel_whoomp.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "boom",
-    "chain": {
-     "hp": 30,
-     "lp": 9500,
-     "low": 4.0,
-     "pres": 0.0,
-     "fade": 0.4,
-     "level": -1.0,
-     "drive": 1.8
-    },
-    "level": "-1.0 dB (new cue)",
-    "keep_seconds": 1.6
-   },
-   "measured": {
-    "seconds": 1.6,
-    "peak_db": -0.8,
-    "loud_db": -1.8,
-    "dc": 0.0036,
-    "onset_ms": 0.0,
-    "centroid_hz": 112,
-    "end_db": -143.4,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "wreck_crash": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "boom",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/wreck_crash.mp3",
-   "prompt": "A stock car blown apart by its own gas tank: a heavy metal crunch, its windows shattering, a hubcap ringing away and sheet tin clanging down.",
-   "credits": 25,
-   "destination": "audio_src/final/sfx/wreck_crash.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "boom",
-    "chain": {
-     "hp": 30,
-     "lp": 9500,
-     "low": 4.0,
-     "pres": 0.0,
-     "fade": 0.4,
-     "level": -1.0,
-     "drive": 1.8
-    },
-    "level": "-1.0 dB (new cue)",
-    "keep_seconds": 1.8
-   },
-   "measured": {
-    "seconds": 1.8,
-    "peak_db": -0.8,
-    "loud_db": -2.8,
-    "dc": 0.0001,
-    "onset_ms": 0.0,
-    "centroid_hz": 4159,
-    "end_db": -153.6,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "blast_debris": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "impact",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/blast_debris.mp3",
-   "prompt": "Debris raining down in a dirt yard after an explosion: clods of dirt, splinters of wood and scraps of tin pattering and clattering down, thinning out.",
-   "credits": 25,
-   "destination": "audio_src/final/sfx/blast_debris.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "impact",
-    "chain": {
-     "hp": 70,
-     "lp": 10500,
-     "low": 1.0,
-     "pres": 2.0,
-     "fade": 0.3,
-     "level": -5.0
-    },
-    "lead_trimmed_ms": 376,
-    "level": "-5.0 dB (new cue)",
-    "tail_trimmed_s": 0.375,
-    "keep_seconds": 2.2
-   },
-   "measured": {
-    "seconds": 1.378,
-    "peak_db": -0.8,
-    "loud_db": -16.4,
-    "dc": 0.0001,
-    "onset_ms": 5.9,
-    "centroid_hz": 4847,
-    "end_db": -147.1,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "wreck_pop": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "impact",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/wreck_pop.mp3",
-   "prompt": "A burning wrecked car: one sharp pop as a tire bursts in the flames, a small whump of fuel and crackling.",
-   "credits": 12,
-   "destination": "audio_src/final/sfx/wreck_pop.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "impact",
-    "chain": {
-     "hp": 70,
-     "lp": 10500,
-     "low": 1.0,
-     "pres": 2.0,
-     "fade": 0.3,
-     "level": -5.0
-    },
-    "lead_trimmed_ms": 19,
-    "level": "-5.0 dB (new cue)",
-    "keep_seconds": 1.0
-   },
-   "measured": {
-    "seconds": 0.98,
-    "peak_db": -0.8,
-    "loud_db": -6.9,
-    "dc": 0.0019,
-    "onset_ms": 4.1,
-    "centroid_hz": 226,
-    "end_db": -149.6,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "break_splinter": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "scene",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/break_splinter.mp3",
-   "prompt": "An old oak barrel blown apart by a shotgun at close range: staves splintering with a loud dry crunch, wood pieces clattering down.",
-   "credits": 12,
-   "destination": "audio_src/final/sfx/break_splinter.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "scene",
-    "chain": {
-     "hp": 70,
-     "lp": 10500,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
-     "level": -4.0
-    },
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.0
-   },
-   "measured": {
-    "seconds": 1.0,
-    "peak_db": -0.8,
-    "loud_db": -11.8,
-    "dc": 0.0025,
-    "onset_ms": 0.0,
-    "centroid_hz": 2705,
-    "end_db": -137.3,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "tin_tear": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "scene",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/tin_tear.mp3",
-   "prompt": "A thin tin mailbox torn open by a gunshot: a sharp metallic rip and crumple, then a tinny rattle.",
-   "credits": 11,
-   "destination": "audio_src/final/sfx/tin_tear.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "scene",
-    "chain": {
-     "hp": 70,
-     "lp": 10500,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
-     "level": -4.0
-    },
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 0.9
-   },
-   "measured": {
-    "seconds": 0.88,
-    "peak_db": -0.8,
-    "loud_db": -8.8,
-    "dc": 0.0001,
-    "onset_ms": 0.0,
-    "centroid_hz": 3276,
-    "end_db": -138.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "shard_rain": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "scene",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/shard_rain.mp3",
-   "prompt": "A clay moonshine jug and glass shattered: shards raining down onto dirt and planks in a scattered tinkling patter.",
-   "credits": 14,
-   "destination": "audio_src/final/sfx/shard_rain.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "scene",
-    "chain": {
-     "hp": 70,
-     "lp": 10500,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
-     "level": -4.0
-    },
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.2
-   },
-   "measured": {
-    "seconds": 1.2,
-    "peak_db": -0.8,
-    "loud_db": -9.4,
-    "dc": 0.0016,
-    "onset_ms": 0.0,
-    "centroid_hz": 7383,
-    "end_db": -132.3,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "straw_burst": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "scene",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/straw_burst.mp3",
-   "prompt": "A hay bale burst by a shotgun: a soft dry whump and loose straw rustling down.",
-   "credits": 12,
-   "destination": "audio_src/final/sfx/straw_burst.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "scene",
-    "chain": {
-     "hp": 70,
-     "lp": 10500,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
-     "level": -4.0
-    },
-    "lead_trimmed_ms": 117,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.0
-   },
-   "measured": {
-    "seconds": 0.883,
-    "peak_db": -0.8,
-    "loud_db": -9.8,
-    "dc": 0.0006,
-    "onset_ms": 2.8,
-    "centroid_hz": 5969,
-    "end_db": -139.6,
-    "problems": []
-   },
-   "validation": "ok"
   }
  },
  "music": {
@@ -62404,6 +62614,11 @@
   "mundell_event_dark_0",
   "mundell_event_dark_1",
   "mundell_event_light_0",
+  "mundell_tip_hound_0",
+  "mundell_tip_carry_0",
+  "mundell_tip_ride_0",
+  "mundell_tip_bench_0",
+  "mundell_tip_locked_0",
   "cuss_coot_brawl_0_clean",
   "cuss_coot_brawl_1_clean",
   "cuss_coot_cover_0_clean",
@@ -62592,6 +62807,10 @@
   "collapse_rumble",
   "hoop_ring",
   "pipe_burst",
+  "break_splinter",
+  "tin_tear",
+  "shard_rain",
+  "straw_burst",
   "tornado_siren",
   "tornado_roar",
   "hog_stampede",
@@ -62742,10 +62961,6 @@
   "fuel_whoomp",
   "wreck_crash",
   "blast_debris",
-  "wreck_pop",
-  "break_splinter",
-  "tin_tear",
-  "shard_rain",
-  "straw_burst"
+  "wreck_pop"
  ]
 }

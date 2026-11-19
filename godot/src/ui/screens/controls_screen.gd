@@ -81,7 +81,7 @@ func draw_back(c: Canvas) -> void:
 			HUD.INK if on else Menu.FADED,
 			true
 		)
-	var rows: Array = PAGES[main.controls_page][1]
+	var rows := rows_of(main.controls_page)
 	# Eleven rows close up a pixel to keep clear of the line at the foot.
 	var step := 12 if rows.size() <= 10 else 11
 	for i in rows.size():
@@ -98,3 +98,25 @@ func draw_back(c: Canvas) -> void:
 	)
 	HUD.text(c, other, 24, 181, "mini", Menu.PAINT, false, false)
 	Menu.plate_button(c, Menu.BACK, "BACK", _back.has_focus())
+
+
+## A page's rows, the keyboard's with the keys as bound (KEYS page), each
+## {action} its key's name, a run of single letters (WASD) written together.
+static func rows_of(page: int) -> Array:
+	var rows: Array = PAGES[page][1]
+	if page != 0:
+		return rows
+	var out: Array = []
+	for row: Array in rows:
+		var left := str(row[0])
+		var at := left.find("{")
+		while at >= 0:
+			var end := left.find("}", at)
+			left = (
+				left.substr(0, at)
+				+ Lessons.key(left.substr(at + 1, end - at - 1))
+				+ left.substr(end + 1)
+			)
+			at = left.find("{")
+		out.append([left, row[1]])
+	return out

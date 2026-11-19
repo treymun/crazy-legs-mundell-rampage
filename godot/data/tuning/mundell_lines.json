@@ -194,6 +194,11 @@
 		],
 		"event_light": [
 			"Let there be light."
-		]
+		],
+		"tip_hound": ["Best nose in the county, that dog."],
+		"tip_carry": ["If it ain't nailed down, chuck it."],
+		"tip_ride": ["She ain't purty, but she runs."],
+		"tip_bench": ["Duct tape fixes everything."],
+		"tip_locked": ["Locked tight. Figures."]
 	}
 }
