@@ -547,6 +547,12 @@ func _my_controls(rig: Dictionary, net: NetPlay, dt: float, rec: Recording) -> G
 		g.focus(g.local_player)
 		NetPredict.restore(me, kept)
 	_pick_card(g, me, c)
+	if Modes.holds(g):
+		# A card on offer (County Run): the pointer is free to pick it, the
+		# mouse and the keys are off the player, as on a person's screen.
+		var picking := Game.Controls.new()
+		picking.buy = c.buy
+		c = picking
 	var k := dt / STEP_MS
 	c.turn *= k
 	c.look *= k

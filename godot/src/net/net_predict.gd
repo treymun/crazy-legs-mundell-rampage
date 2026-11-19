@@ -43,8 +43,11 @@ static var holds_aware := true
 
 
 ## Steps `me` through `inputs` (Game.Controls, oldest first); returns what to
-## hand to `restore`.
-static func lead(game: Game, me: Player, inputs: Array) -> Dictionary:
+## hand to `restore`. `echoed`: how many of them the host has played already
+## (its echoed rows, first in the list; -1 all): while the world holds on
+## the copy (held) those are not walked, the host having played them in its
+## own hold.
+static func lead(game: Game, me: Player, inputs: Array, echoed := -1) -> Dictionary:
 	var kept := {}
 	for field: String in KEPT:
 		kept[field] = me.get(field)
@@ -52,10 +55,11 @@ static func lead(game: Game, me: Player, inputs: Array) -> Dictionary:
 	# In a vehicle (features/vehicles.gd) only the aim leads: the copy drives.
 	var rides: Game.VehiclesScript = game.features.get("vehicles")
 	var seated := rides != null and rides.seated(me)
+	var first := maxi(0, inputs.size() - MOST)
 	if held(game):
-		return kept
+		first = maxi(first, inputs.size() if echoed < 0 else echoed)
 	var mates := _mates(game, me) if not seated else []
-	for i in range(maxi(0, inputs.size() - MOST), inputs.size()):
+	for i in range(first, inputs.size()):
 		var controls: Game.Controls = inputs[i]
 		if seated:
 			me.angle = fposmod(me.angle + controls.turn, TAU)
@@ -69,9 +73,13 @@ static func lead(game: Game, me: Player, inputs: Array) -> Dictionary:
 
 ## The world holds on the copy (COUNTY RUN's cards on offer, the tally, a
 ## gate taken, everyone down: game.gd tick returns before anyone moves or
-## turns): the host holds those ticks too, so our inputs are not walked on.
-## Walked, the drawn player ran and turned through a card pick and was put
-## back when it ended.
+## turns): the host held it on the ticks it has echoed since, so the inputs
+## it played then are not walked (lead's `echoed`). Walked, the drawn player
+## ran and turned through a card pick and was put back when it ended. The
+## ones it has not played yet are walked: by the time they reach it the hold
+## is over (the copy shows the hold a one-way trip and the playout late, and
+## the pick that ends it is on its way), and freezing them froze the view for
+## a round trip after every pick.
 static func held(game: Game) -> bool:
 	if not holds_aware:
 		return false
@@ -147,7 +155,7 @@ class Smoother:
 		var guess := Vector2.INF
 		var inputs := client.unplayed_inputs()
 		last_inputs = inputs.size()
-		if not _prev.is_empty() and not NetPredict.held(game):
+		if not _prev.is_empty():
 			NetPredict.restore(me, _prev)
 			var mates := NetPredict._mates(game, me)
 			for n in range(_prev_seq, client.input_seq):
@@ -159,7 +167,7 @@ class Smoother:
 			NetPredict._place_mates(game, mates, 0)
 			guess = Vector2(me.x, me.y)
 			NetPredict.restore(me, copy_state)
-		var kept := NetPredict.lead(game, me, inputs)
+		var kept := NetPredict.lead(game, me, inputs, client.latest_tick - client.game_tick)
 		var drawn := Vector2(me.x, me.y)
 		_prev = {}
 		for field: String in KEPT:
@@ -210,8 +218,6 @@ static var between := true
 static func ahead(
 	game: Game, me: Player, keys: Game.Controls, turn: float, look: float, share: float, ticks := 1
 ) -> void:
-	if between and held(game):
-		return  # the world holds: neither the keys nor the mouse move us
 	var rides: Game.VehiclesScript = game.features.get("vehicles")
 	if not between or keys == null or share <= 0.0 or (rides != null and rides.seated(me)):
 		me.angle = fposmod(me.angle + turn, TAU)
