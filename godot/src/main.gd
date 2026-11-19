@@ -716,6 +716,8 @@ func _process(delta: float) -> void:
 		console.tick(delta)
 	if net != null or not net_old.is_empty() or browser != null:
 		_net_frame()
+	if net != null or voice_chat != null:
+		_voice_frame()
 	CountyScreens.board_frame(self)
 	RangeBoard.frame(self)
 	dt *= time_scale
@@ -1121,6 +1123,20 @@ func _net_frame() -> void:
 		_online_autostart()
 
 
+## Voice chat (net/voice_chat.gd) while an online lobby is up; the mic and
+## every voice let go when it closes.
+func _voice_frame() -> void:
+	if voice_chat == null:
+		voice_chat = VoiceChat.new()
+		add_child(voice_chat)
+	if net == null:
+		voice_chat.stop()
+		voice_chat.queue_free()
+		voice_chat = null
+		return
+	voice_chat.frame(self)
+
+
 ## A match's ticks online, at the network's rate (NetSync.STEP): the host
 ## plays its own player and the bots and sends snapshots; a client sends its
 ## controls and plays its copy on toward the host's newest snapshot.
@@ -1204,10 +1220,15 @@ func net_draw_begin(dt: float) -> Array:
 		if client:
 			# Our thrown shots at our own time (net_own_shots.gd).
 			net_shots.own.begin(game, me, net_smooth.last_inputs, dt)
+	if net != null and net.role == NetPlay.Role.CLIENT and state == "play" and game != null:
+		# The hands our sure kills drew falling (net_kill_looks.gd), whatever
+		# our own player is doing.
+		net_shots.world_begin(game, net.client_sync)
 	return aimed
 
 
 func net_draw_end(aimed: Array) -> void:
+	net_shots.world_end()
 	net_shots.own.end(game)
 	if not aimed.is_empty():
 		var aimed_player: Player = aimed[0]

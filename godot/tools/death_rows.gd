@@ -46,6 +46,33 @@ const ROWS := [
 	["shield_deputy_pistol", "shield_deputy", "revolver", "body", "flat", 3.0, 0.0],
 	["gator_shotgun", "gator", "shotgun", "body", "flat", 3.2, 0.0],
 	["crawler_shotgun", "crawler", "shotgun", "body", "flat", 3.2, 0.0],
+	# Pass 13: the beasts (gators, crawlers, the cow, the herd's hogs) by
+	# pistol, buckshot near, rifle, a head shot and a blast, on flat ground, a
+	# ramp, a water's edge and in the water.
+	["gator_pistol", "gator", "revolver", "body", "flat", 3.0, 0.0],
+	["gator_pistol_b", "gator", "revolver", "body", "flat", 3.0, 1.4],
+	["gator_shotgun_near", "gator", "shotgun", "body", "flat", 1.3, 0.0],
+	["gator_rifle", "gator", "rifle", "body", "flat", 6.0, 0.0],
+	["gator_head", "gator", "revolver", "head", "flat", 3.0, 0.0],
+	["gator_blast", "gator", "blast", "body", "flat", 2.0, 0.0],
+	["gator_slope", "gator", "shotgun", "body", "ramp", 2.0, 0.0],
+	["gator_bank", "gator", "shotgun", "body", "bank", 1.8, 0.0],
+	["gator_water", "gator", "revolver", "body", "water", 3.0, 0.0],
+	["crawler_pistol", "crawler", "revolver", "body", "flat", 3.0, 0.0],
+	["crawler_pistol_b", "crawler", "revolver", "body", "flat", 3.0, 1.2],
+	["crawler_shotgun_near", "crawler", "shotgun", "body", "flat", 1.3, 0.0],
+	["crawler_rifle", "crawler", "rifle", "body", "flat", 6.0, 0.0],
+	["crawler_head", "crawler", "revolver", "head", "flat", 3.0, 0.0],
+	["crawler_blast", "crawler", "blast", "body", "flat", 2.0, 0.0],
+	["crawler_slope", "crawler", "shotgun", "body", "ramp", 2.0, 0.6],
+	["crawler_ramp", "crawler", "revolver", "body", "ramp", 3.0, 0.0],
+	["cow_pistol", "cow", "revolver", "body", "flat", 3.0, 1.57],
+	["cow_shotgun_near", "cow", "shotgun", "body", "flat", 1.6, 1.57],
+	["cow_rifle", "cow", "rifle", "head", "flat", 6.0, 1.2],
+	["cow_blast", "cow", "blast", "body", "flat", 2.0, 0.0],
+	["cow_slope", "cow", "shotgun", "body", "ramp", 2.4, 1.57],
+	["hog_blast", "hog", "blast", "body", "herd", 0.0, 0.0],
+	["hog_blast_b", "hog", "blast", "body", "herd", 0.0, 1.0],
 ]
 ## Each zone's height on the body (shares of its height) and how far off its
 ## middle across the shot (shares of its radius).
@@ -76,6 +103,9 @@ func run(row: Array) -> void:
 	var place: String = row[4]
 	var far: float = row[5]
 	var turn: float = row[6]
+	if place == "herd":
+		await _herd(name, turn)
+		return
 	var spot := _place(place)
 	if spot.is_empty():
 		print("  %s: no %s to stand on" % [name, place])
@@ -94,7 +124,9 @@ func run(row: Array) -> void:
 	g.enemies.append(e)
 	e.alerted = false
 	var shooter := at - way * far
-	var cam := _camera(g, at, way, top)
+	# Small bodies (a gator, a crawler) are watched from nearer.
+	var near := clampf(maxf(e.height * e.variant / 1.2, e.radius * 2.2), .55, 1.0)
+	var cam := _camera(g, at, way, top, near)
 	_way = way
 	_body = e
 	_look = Vector2.INF
@@ -163,6 +195,8 @@ func _place(place: String) -> Dictionary:
 			return _open("hickston", false)
 		"wall":
 			return _open("hickston", true)
+		"bank", "water":
+			return _wet("bayou", place == "water")
 		"ramp", "deck":
 			for id: String in ["hickston", "quarry", "sawmill", "feedstore"]:
 				var found := _slab(id, place)
@@ -242,15 +276,15 @@ func _slab(id: String, what: String) -> Dictionary:
 
 ## Where the camera stands: side on to the shot, 3.2 off, on open floor that
 ## sees the body (else behind the shooter's shoulder).
-func _camera(g: Game, at: Vector2, way: Vector2, top: float) -> Vector3:
+func _camera(g: Game, at: Vector2, way: Vector2, top: float, near := 1.0) -> Vector3:
 	var w := g.world
 	var across := Vector2(-way.y, way.x)
 	for c: Vector2 in [
-		at + across * 4.0 + way * .8,
-		at - across * 4.0 + way * .8,
-		at + across * 2.4 - way * 1.6,
-		at - across * 2.4 - way * 1.6,
-		at - way * 3.4 + across * .8,
+		at + (across * 4.0 + way * .8) * near,
+		at - (across * 4.0 - way * .8) * near,
+		at + (across * 2.4 - way * 1.6) * near,
+		at - (across * 2.4 + way * 1.6) * near,
+		at - (way * 3.4 - across * .8) * near,
 	]:
 		if c.x < 1 or c.y < 1 or c.x > w.width - 1 or c.y > w.height - 1:
 			continue
@@ -268,12 +302,14 @@ func _ticks(g: Game, n: int, cam: Vector3, at: Vector2, top: float) -> void:
 	for i in n:
 		var body := Vector2(_body.x, _body.y) if _body != null else at
 		_look = body if _look == Vector2.INF else _look.lerp(body, .2)
-		var lz := top + .6
+		# (Looked at a little under its top: a gator's back, a man's chest.)
+		var high := .6 if _body == null else clampf(_body.height * _body.variant * .6, .2, .6)
+		var lz := top + high
 		if _body != null:
 			var bz: float = (
 				g.world.floor_under(_body.x, _body.y, g.world.stand(_body) + .3) + _body.toss
 			)
-			_look_z = bz + .6 if is_nan(_look_z) else lerpf(_look_z, bz + .6, .2)
+			_look_z = bz + high if is_nan(_look_z) else lerpf(_look_z, bz + high, .2)
 			lz = _look_z
 		var look := _look
 		g.tick(1.0 / 60.0, held)
@@ -372,3 +408,89 @@ func _probe(g: Game) -> void:
 			]
 		)
 	)
+
+
+## Gator Bayou's water: a body on the bank with the water a cell behind it
+## (shot toward it), or one out in the water.
+func _wet(id: String, in_water: bool) -> Dictionary:
+	var g: Game = tool.call("_level", id, [])
+	var w := g.world
+	var start := Vector2(g.player.x, g.player.y)
+	var best := {}
+	var best_d := INF
+	for y in range(3, w.height - 3):
+		for x in range(3, w.width - 3):
+			var at := Vector2(x + .5, y + .5)
+			var d := at.distance_to(start)
+			if d > best_d or BayouBrains.wet_at(w, at.x, at.y) != in_water:
+				continue
+			var z := w.elevation(at.x, at.y)
+			if w.blocked(at.x, at.y, .35, z + .4):
+				continue
+			for k in 4:
+				var way := Vector2.from_angle(k * PI * .5)
+				var behind := at + way * 1.1
+				var front := at - way * 2.0
+				if w.blocked(front.x, front.y, .3, z + .4) or w.blocked(behind.x, behind.y, .3):
+					continue
+				var ok := (
+					(
+						BayouBrains.wet_at(w, behind.x, behind.y)
+						and BayouBrains.wet_at(w, behind.x + way.x, behind.y + way.y)
+					)
+					if not in_water
+					else (
+						BayouBrains.wet_at(w, behind.x, behind.y)
+						and BayouBrains.wet_at(w, front.x, front.y)
+					)
+				)
+				if ok:
+					best = {"level": id, "at": at, "top": z, "way": way}
+					best_d = d
+					break
+	return best
+
+
+## The herd's hogs (event_herd.gd): a stampede let go on Hickston, watched
+## side on halfway down its run, and a blast set off by the lead hog (`turn`
+## the blast's way round it).
+func _herd(name: String, turn: float) -> void:
+	var main: Node = tool.get("main")
+	var opts: Dictionary = main.get("options")
+	opts["events"] = 2
+	var g: Game = tool.call("_level", "hickston", [])
+	opts.erase("events")
+	g.spawn_grace = 99.0
+	g.weapon_view = 2
+	g.finish_slowmo = false
+	for _k in 4:
+		g.tick(1.0 / 60.0, Game.Controls.new())
+	var ev: CountyEvents = g.features.get("events")
+	if ev == null or not ev.begin("hogs"):
+		print("  %s: no stampede" % name)
+		return
+	var mid := ev.herd_from + ev.herd_way * minf(ev.herd_len * .5, 10.0)
+	var top := g.world.elevation(mid.x, mid.y)
+	var cam := _camera(g, mid, ev.herd_way, top, 1.1)
+	_frames.clear()
+	_body = null
+	_look = Vector2.INF
+	# The last of them, the rest gone by.
+	var lead: Array = ev.herd[ev.herd.size() - 1]
+	for _t in 60 * 10:
+		var at := Vector2(EventHerd.f(lead, 0), EventHerd.f(lead, 1))
+		if (at - ev.herd_from).dot(ev.herd_way) > minf(ev.herd_len * .5, 10.0) - .6:
+			break
+		await _ticks(g, 1, cam, mid, top)
+	await _snap()
+	var hog := Vector2(EventHerd.f(lead, 0), EventHerd.f(lead, 1))
+	var way := Vector2.from_angle(EventHerd.f(lead, 2) + PI * .5 + turn)
+	var blast := hog - way * .8
+	g.events.exploded.emit(blast.x, blast.y, 0.5, false)
+	print("  %s: hog down %s" % [name, lead[EventHerd.STATE] == EventHerd.DOWN])
+	var done := 0
+	for t: int in TICKS.slice(1):
+		await _ticks(g, t - done, cam, hog, top)
+		done = t
+		await _snap()
+	_save(name)

@@ -109,6 +109,33 @@ crossroads, the range or a 5v5 or 2v2 map), FRAG LIMIT and TIME LIMIT end
 it. In team deathmatch you pick RED or BLUE with TEAM. After the results
 the host's ENTER takes everyone back to the lobby.
 
+## Talking (voice chat)
+
+Every online game has proximity voice chat: the 5v5 and tag team lobbies,
+co-op, deathmatch, team deathmatch, County Run, a lobby you host (straight
+or through the party line), the browser build and the phone.
+
+- **Turn your mic on:** SETTINGS, AUDIO, VOICE CHAT ONLINE, MICROPHONE ON
+  (it is off to begin with). A phone asks for the microphone then, a
+  browser shows its own prompt; say yes. Your own row in the lobby says MIC
+  OFF, NO MIC (nothing comes from it), ALLOW MIC or MIC REFUSED when nobody
+  can hear you.
+- **PUSH TO TALK** (the default): hold **T** (change it on the KEYS page,
+  PUSH TO TALK), a pad's share, touchpad or first paddle button, or the
+  phone's TALK button. **OPEN MIC** (TALK) sends whenever you talk louder
+  than MIC SENSITIVITY lets through; turn it down if the TV gets through.
+  ON THE AIR shows top left while you are heard.
+- **Who hears you:** in the lobby, everyone. In a match, whoever stands
+  near you (18 steps or so), louder up close, from your side, muffled
+  through a wall. In the 5v5 rounds the dead hear the living near their
+  team, and only the dead hear the dead. Who is talking shows top left and
+  as a mark over their head when you can see them (and on the scoreboard).
+- **Quiet:** click or tap someone's name in the lobby to mute them (MUTED);
+  VOICE CHAT OFF hears nobody; VOICE CHAT VOLUME sets how loud everyone is.
+- Nothing anyone says is recorded or kept anywhere, on the server or a
+  game. It costs about 4 KB/s up while you talk and 4 KB/s down for each
+  voice you hear (four at most at once).
+
 ## Custom maps
 
 A map made in the MAP SHED (title, **CUSTOM MAPS**) can be played online:
@@ -158,27 +185,33 @@ address and port (or join code) and its password if it has one.
   once); when every person has left a match it ends.
 - An empty lobby goes back to its own settings. The lobby's name and
   password are the server's: the admin cannot change them.
-- Two lobbies (COUNTY LOBBY 1 on UDP 47197, 2 on 47198), each a match at a
-  time; whoever runs one switches its MODE between SEARCH AND DESTROY,
-  HOSTAGE RESCUE and TAG TEAM 2V2 (which moves it to a map and format that
-  fit), and an empty lobby goes back to its own. `most_matches` (2) caps
-  matches across the server; a START past that is told to wait. One 5v5 with
-  four people and six bots measured about a fifth of a core on the owner's PC
-  (`tools/net_lag.gd`); both lobbies in a match on one core of it with most
-  of that core taken by something else, about a fifth of what was left
-  (`tools/net_pace.gd`, pass 12). Before 3.2 the bots' route cache was
-  shared by every game in the process and cleared itself whenever two took
-  turns: 6 to 9 ms a tick for the bots then, about 1 now.
-- Fewer lobbies is only `server/lobbies.json`: the game's list asks each
-  server which lobbies it runs and leaves out the rest. `"snap_every": 1`
-  there sends 60 snapshots a second instead of 30 (others shown a tick
-  sooner, about half as much again of the server's work and twice the
-  bandwidth; for a server of one lobby). The status line in the log has
-  each lobby's tick cost and how evenly its snapshots go out (`snaps 33.3 ms
-  apart (p99 ..., worst ..., N bunched)`: p99 near 33 and nothing bunched is
-  right).
+- One lobby since pass 13 (COUNTY LOBBY 1 on UDP 47197, the browser's wss on
+  443), a match at a time, at **60 snapshots a second**; whoever runs it
+  switches its MODE between SEARCH AND DESTROY, HOSTAGE RESCUE and TAG TEAM
+  2V2 (which moves it to a map and format that fit), and an empty lobby goes
+  back to the 5v5. The server has one slow core: one lobby sending twice as
+  many snapshots draws everyone else sooner and smoother on every link than
+  two lobbies at 30 a second could (the numbers are in
+  `docs/dev/multiplayer.md`, "One server"). `most_matches` (1) caps matches
+  across the server; a START past that is told to wait.
+- A second lobby is only `server/lobbies.json` again (its port, `ws_port`
+  8443, and `most_matches` 2; setup.sh's firewall still opens 47198 and
+  8443): the game's list asks each server which lobbies it runs and leaves
+  out the rest, so `godot/data/tuning/servers.json` keeps listing both.
+  Two lobbies on that core should go back to `"snap_every": 2` (30 a
+  second). The status line in the log has each lobby's tick cost and how
+  evenly its snapshots go out (`snaps 16.7 ms apart (p99 ..., worst ..., N
+  bunched)`: p99 near the beat, 16.7 ms at 60 a second or 33.3 at 30, and
+  nothing bunched is right).
 - Players need the same version as the server: update the server with each
   release.
+- **Voice chat** goes through the server, which sends each talker on only
+  to the players near them (four voices at most to one player): a full 5v5
+  of ten all talking at once added about 170 KB/s out and two to four
+  percent of a core on the owner's PC (`tools/voice_chat_check.gd -- bench`);
+  six talking a whole minute beside a busy process on one core, about one
+  percent and no change to how evenly the snapshots went out. It decodes
+  and keeps nothing.
 
 **Running one** (`server/`): `lobbies.json` lists the lobbies (port plus any
 of `NetPlay.DEFAULTS`: `lobby_name`, `password`, `mode`, `map`, `team_size`,
@@ -187,7 +220,8 @@ on the owner's PC, with the server's SSH key in `~/.ssh/clmr_oracle`) exports
 the "Linux Server" preset, copies it with the config and runs `setup.sh` on
 the server: a `clmr` user, `/opt/clmr`, the `clmr-lobbies` systemd service
 (restarts on a crash, starts at boot, its log in `journalctl -u
-clmr-lobbies`), the firewall (SSH and UDP 47197-47198) and SSH by key only.
+clmr-lobbies`), the firewall (SSH and UDP 47197-47198, room for a second
+lobby) and SSH by key only.
 Run the same command to update it. Locally:
 
 ```
@@ -201,8 +235,11 @@ The server's address is kept out of this public repository.
 The relay is part of the lobby server: `server/lobbies.json`'s `"relay"`
 turns it on (rooms at once, players a room, bytes a second a room, minutes an
 empty room stays open; `src/net/net_relay.gd`). It answers on the lobbies'
-own ports (UDP 47197 and 47198, and the browser's wss on 443 and 8443), so it
-needs no new port or firewall rule; it comes with the next `deploy.sh`.
+own ports (UDP 47197 and the browser's wss on 443; a second lobby's 47198
+and 8443 too when it runs), so it needs no new port or firewall rule. A
+player's hosted lobby on the line still sends 30 snapshots a second from
+the host's own machine: a home connection's upload, and every player's
+bytes pass through the server twice.
 `godot/data/tuning/servers.json` marks the servers the game calls for it
 (`"relay": true`). The log has a line for each room opened and closed (how
 long, how many joined, the bytes each way) and the status line counts rooms,
@@ -306,6 +343,14 @@ over the internet (through the party line on the VPS or straight), a real
 router's UPnP answering (the test PC's router did not), CGNAT, phones, and
 the browser build hosting or joining by a code in a real page.
 
+`tools/voice_chat_check.gd` (in check_all and CI) sends a made-up voice
+through a lobby server with test lag, jitter and loss (one player on the
+WebSocket side) and through a hosted lobby's party line: who hears whom in
+the lobby and in a match, the dead, muting, VOICE CHAT off, PUSH TO TALK, how
+it is placed left and right and through a wall, and that the game's own
+packets go on as before. **Not checked:** a real mic, anyone listening, a
+phone, a browser page, the VPS.
+
 `tools/user_map_check.gd` hosts a lobby on a custom map in one process and
 has a client join: the map arrives, its hash checked, the match starts on
 the same level on both machines, a new map picked in the lobby reaches the
@@ -321,11 +366,12 @@ server and `relay_link.gd` a game's end of it; `lobby_screens.gd` the screens.
 - **The host plays the one real game.** It runs at 60 ticks a second with
   its own player, the bots and every client's controls (buys, reloads, gun
   picks and USE travel in the controls), and sends each client 30 snapshots
-  a second: the change since the newest snapshot that client has, plus every
-  player's controls since then.
+  a second (the always-open lobby 60): the change since the newest snapshot
+  that client has, plus every player's controls since then.
 - **Each client keeps a copy.** It steps the copy with the controls the host
-  played, a couple of ticks behind the newest snapshot so the world moves
-  smoothly, and checks it against the snapshots once a second; a copy that
+  played, as far behind the host as the link's late rows need (it learns
+  that from when they come) so the world moves smoothly, and checks it
+  against the snapshots about once a second; a copy that
   parts from the host is put back on the newest snapshot. Everything a copy
   shows (shots, blood, sounds) comes from stepping it, so it looks and sounds
   like a local game.

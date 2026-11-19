@@ -24,6 +24,10 @@ boot_splash/show_image=false
 ; Browsers default to sample playback, which skips bus effects, so the web
 ; build streams through the mixer like the desktop one.
 general/default_playback_type.web=0
+; Online voice chat reads the mic (src/net/voice_chat.gd): the device is only
+; opened when MICROPHONE is turned on in a lobby (a phone and a browser ask
+; then), never at start.
+driver/enable_input=true
 
 [display]
 

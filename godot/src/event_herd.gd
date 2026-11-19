@@ -232,6 +232,20 @@ static func blast(ev: CountyEvents, x: float, y: float) -> void:
 		if Vector2(f(row, X) - x, f(row, Y) - y).length() < n(ev, "blast_reach"):
 			row[STATE] = DOWN
 			g.burst(f(row, X), f(row, Y), f(row, FLOOR) + .4, "gore", 14, 2.2)
+			# Looks only: its stand-in falls from here, thrown from the blast
+			# (its ragdoll, src/beast_doll.gd; never carried, no dice).
+			var e := ModeBodies.stand_in(g, "hog%d" % ev.herd.find(row), "hog")
+			_fell(e, g.clock, Vector2(x, y))
+
+
+## A hog's stand-in dead from `at` (game clock), a blast at `from` (INF:
+## none known): its model falls as a ragdoll (looks only).
+static func _fell(e: Enemy, at: float, from: Vector2) -> void:
+	e.hp = 0.0
+	e.died_at = at
+	e.killed_by = "blast"
+	e.blast_at = from
+	e.killed_from = from if from != Vector2.INF else Vector2(e.x, e.y)
 
 
 ## The hogs as the view draws them: each its model through a stand-in.
@@ -247,10 +261,18 @@ static func sprites(ev: CountyEvents) -> Array:
 		e.x = f(row, X)
 		e.y = f(row, Y)
 		e.angle = f(row, ANGLE)
-		e.gait = f(row, GAIT)
 		e.height = .9
 		e.variant = .94 + fmod(i * .37, 1.0) * .12
-		e.died_at = -1.0
+		if state != DOWN:
+			e.hp = maxf(e.max_hp, 1.0)
+			e.died_at = -1.0
+		elif e.alive:
+			# Down and never seen fall (a client, a save loaded, a hog that
+			# came into view dead): seen alive last frame it falls from now,
+			# else it lies as it fell long ago. (A stand-in shown running has
+			# its gait; a new one none.)
+			_fell(e, g.clock if e.gait != 0.0 else g.clock - 1000.0, Vector2.INF)
+		e.gait = f(row, GAIT)
 		var frame := "down" if state == DOWN else "r0"
 		var s := g.pooled(e.x, e.y, "hog_" + frame, .9, f(row, FLOOR))
 		s.who = e

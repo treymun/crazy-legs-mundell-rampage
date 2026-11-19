@@ -25,7 +25,7 @@
 ##   godot --headless --path godot --script res://tools/net_lag.gd
 ##       [-- lags=50,120,250] [jitter=0.2] [loss=0.02] [seconds=50]
 ##       [map=grainyard] [mode=bomb] [people=4] [quick] [old] [oldserver]
-##       [nofeel]
+##       [nofeel] [p12] [snaps=N] [rewind=N] [allbases]
 ##
 ## jitter is a share of the latency (or `jitter_ms=`). quick: one 120 ms link
 ## for 30 s with limits (tools/check_all.gd). Prints NET LAG OK.
@@ -104,6 +104,23 @@ func _run() -> void:
 		if arg == "oldserver":
 			# Only pass 12's server side off (the 3.9.0 server).
 			_old_server()
+			continue
+		if arg.begins_with("rewind="):
+			# Ticks a shot is rewound by at most (NetSync.max_rewind).
+			NetSync.max_rewind = int(arg.substr(7))
+			continue
+		if arg.begins_with("bases="):
+			# Bases for deltas a second at most (NetSync.Host.bases_a_second).
+			NetSync.Host.bases_a_second = int(arg.substr(6))
+			continue
+		if arg == "allbases":
+			# Every snapshot a base for deltas (NetSync.Host.coarse_bases off).
+			NetSync.Host.coarse_bases = false
+			continue
+		if arg == "p12":
+			# Only pass 13's playout off (net_feel.gd's p12).
+			NetSync.Client.fine_depth = false
+			NetSync.Client.rows_ahead = false
 			continue
 		if arg == "nobuffer":
 			# Only the host's input buffer off (NetSync.Host.buffer_inputs).
@@ -410,6 +427,8 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 	var tick_us0 := host.tick_us
 	var capture_us0 := host.capture_us
 	var delta_us0 := host.delta_us
+	host.rewind_most = 0
+	host.rewind_capped = 0
 	var full0 := host.sizes_full.size()
 	var delta0 := host.sizes_delta.size()
 	var packet0 := host.sizes_packet.size()
@@ -583,6 +602,8 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 	out["looked_hits"] = looked_hits
 	out["ghost_share"] = ghosts / maxf(1.0, looked_hits)
 	out["ghost_no_rewind"] = ghosts_no_rewind / maxf(1.0, looked_hits)
+	out["rewind_most"] = host.rewind_most
+	out["rewind_capped"] = host.rewind_capped
 	out["lucky"] = lucky
 	out["repeats"] = repeats
 	# Bandwidth and the server.
@@ -765,6 +786,8 @@ func _table(rows: Array) -> void:
 	line.call("hits: looked like a hit", "%.0f", "looked_hits")
 	line.call("hits: looked a hit, judged a miss (%)", "%.1f", "ghost_share", 100.0)
 	line.call("  the same without the rewind (%)", "%.1f", "ghost_no_rewind", 100.0)
+	line.call("hits: longest rewind asked (ticks)", "%.0f", "rewind_most")
+	line.call("  ticks it was cut to MAX_REWIND", "%.0f", "rewind_capped")
 	line.call("hits: looked a miss, judged a hit", "%.0f", "lucky")
 	line.call("hits: fired on a held input (late)", "%.0f", "repeats")
 	line.call("down per client (KB/s, headers)", "%.1f", "down_kbs")

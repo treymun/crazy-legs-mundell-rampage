@@ -170,7 +170,7 @@ class Smoother:
 			NetPredict._place_mates(game, mates, 0)
 			guess = Vector2(me.x, me.y)
 			NetPredict.restore(me, copy_state)
-		var kept := NetPredict.lead(game, me, inputs, client.latest_tick - client.game_tick)
+		var kept := NetPredict.lead(game, me, inputs, client.input_ack_tick - client.game_tick)
 		var drawn := Vector2(me.x, me.y)
 		_prev = {}
 		for field: String in KEPT:

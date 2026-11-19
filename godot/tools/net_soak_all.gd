@@ -9,7 +9,7 @@
 ##       [-- modes=county,bomb,hostage,tagteam,deathmatch,team_deathmatch,coop]
 ##       [people=2] [minutes=1] [lags=120] [jitter=.2] [loss=.02]
 ##       [wreck=1] [every=4] [late=1] [ws=1] [clock=1] [grow=.15] [putback=0]
-##       [why=1] [fullcheck=1] [places=0] [bunch=0] [quick]
+##       [why=1] [fullcheck=1] [places=0] [bunch=0] [events=0] [snaps=2] [quick]
 ##
 ## - **Modes**: the always-open lobby's (5v5 SEARCH AND DESTROY and HOSTAGE
 ##   RESCUE with bots filling, TAG TEAM 2V2, DEATHMATCH and TEAM DEATHMATCH,
@@ -44,7 +44,9 @@
 ## copies paced by the clock (NetSync.Client by_clock on: 1, the default
 ## here) or the old playout (0). `quick`: County Run co-op and campaign co-op
 ## at 120 ms, put back every 5 s, County Run for two minutes (its objects
-## and memory flat over the second), co-op for 30 s (check_all).
+## and memory flat over the second), co-op for 30 s with the host and two
+## partners (`coop_people=3`: the one who stays keeps through the other's
+## leave and join), check_all.
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
@@ -78,6 +80,9 @@ var opts := {
 	"places": 1,
 	"fullcheck": 0,
 	"bunch": 1,
+	"events": 1,
+	"coop_people": 0,
+	"snaps": 2,
 }
 var rows: Array = []
 
@@ -142,9 +147,16 @@ func _run() -> void:
 		opts["coop_minutes"] = .5
 		opts["lags"] = "120"
 		opts["putback"] = 5.0
+		# The host and two partners: the one who stays sees the other
+		# leave and join again (NetWire.event: no put back for either).
+		opts["coop_people"] = 3
 	opts["people"] = clampi(int(opts["people"]), 2, 4)
+	# Snapshots every this many ticks (1: the always-open lobby's 60 a
+	# second, server/lobbies.json), the server's and a hosting front end's.
+	NetPlay.snap_every = int(opts["snaps"])
 	# Off: the old packets, no place rows sent (a measurement's before).
 	NetSync.Host.send_places = int(opts["places"]) != 0
+	NetSync.Host.tick_events = int(opts["events"]) != 0
 	# The engine's frames (awaited in the soak) without their sleep or cap.
 	OS.low_processor_usage_mode_sleep_usec = 0
 	Engine.max_fps = 0
@@ -271,7 +283,9 @@ func _open_server() -> bool:
 		var lb := _lobby_config()
 		lb["port"] = base + k
 		lb["ws_port"] = base + k + 3000
-		var config := {"bind": "127.0.0.1", "relay": {}, "lobbies": [lb]}
+		var config := {
+			"bind": "127.0.0.1", "relay": {}, "lobbies": [lb], "snap_every": int(opts["snaps"])
+		}
 		server = LobbyServer.new(config, {"difficulty": 1})
 		if not server.rooms.is_empty() and server.rooms[0].net.session.also != null:
 			port = base + k
@@ -1108,10 +1122,15 @@ func _report(seconds: float, wall_s: float, late_ok: bool, late_note: String) ->
 		print("    grew in the second half: %s" % ", ".join(g[1].slice(0, 8)))
 	# The checks.
 	# In the party modes the server lays a leaver out of play and seats them
-	# again between ticks (Modes.went_away, join_late): every other copy is
-	# put back on a snapshot for each, once.
+	# again between ticks (Modes.went_away, join_late); since pass 13 every
+	# copy makes the same change before the same tick (NetWire.event), so
+	# none is put back for it. `events=0` (the old way): once each.
 	var allowed := 0
-	if int(opts["late"]) != 0 and mode in ["coop", "deathmatch", "team_deathmatch"]:
+	if (
+		int(opts["late"]) != 0
+		and int(opts["events"]) == 0
+		and mode in ["coop", "deathmatch", "team_deathmatch"]
+	):
 		allowed = 2 * (tallies.size() - 1)
 	_check(drops.is_empty(), "%s %.0f ms: nobody dropped %s" % [mode, lag, drops])
 	_check(
@@ -1289,6 +1308,8 @@ func _open_coop() -> bool:
 	host.set_setting("map", "hickston")
 	host.set_meta("code", line.code)
 	var people := int(opts["people"])
+	if int(opts["coop_people"]) > 0:
+		people = clampi(int(opts["coop_people"]), 2, 4)
 	for i in range(1, people):
 		var over_ws := int(opts["ws"]) != 0 and i == people - 1
 		var net := _join_coop("P%d" % (i + 1), over_ws)

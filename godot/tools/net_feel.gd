@@ -31,9 +31,15 @@
 ## noclock, nomates, noholds turn one off; v390 is old with the server's
 ## side of pass 12 off too (v3.9.0 as it was); r1 only NETSERVER's second
 ## round off (echo rows by ticks, rows from a first part, the host's input
-## buffer). `snaps=N`: a snapshot every
-## N ticks. quick (check_all): the 5v5 as a client and co-op as its host, at
-## 120 ms for 10 s, new only, held to QUICK_LIMITS. Prints NET FEEL OK.
+## buffer); p12 pass 13's playout off (the depth in whole ticks from the
+## newest snapshots' arrivals, slow to come down, the copy held to the newest
+## whole snapshot; `depth12`, `noahead12` one of those). `snaps=N`: a
+## snapshot every N ticks; `share=`, `margin=` the playout's
+## NetSync.Client.spread_share and depth_margin; `seed=` the frames' dice.
+## quick (check_all): the 5v5 as a client and co-op as its host, at 120 ms
+## for 10 s, and the 5v5 again at 60 snapshots a second (the always-open
+## lobby's rate), new only, held to QUICK_LIMITS and QUICK_BEHIND, and the
+## others drawn sooner at 60 than at 30. Prints NET FEEL OK.
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
@@ -59,6 +65,11 @@ const QUICK_LIMITS := {
 	"others_jerk": .2,
 	"view_snaps": 6.0,
 }
+
+## The quick part's 5v5: the others drawn at most this far behind the host
+## (ms; one way 120 ms + 24 jitter, the playout depth: v3.10.0 was 266 at 30
+## snapshots a second, pass 13 about 199 at 30 and 172 at 60).
+const QUICK_BEHIND := 240.0
 
 var failures: Array = []
 var main: Control
@@ -93,6 +104,10 @@ func _run() -> void:
 			opts[key] = parts[1] if key in ["scenes", "lags", "ways"] else float(parts[1])
 			if key == "snaps":
 				NetPlay.snap_every = int(parts[1])
+			if key == "share":
+				NetSync.Client.spread_share = float(parts[1])
+			if key == "margin":
+				NetSync.Client.depth_margin = float(parts[1])
 	if quick:
 		opts["scenes"] = "5v5,host"
 		opts["lags"] = "120"
@@ -130,6 +145,19 @@ func _run() -> void:
 		print("")
 		print("  %s at %d Hz, %d s each" % [scene, opts["hz"], opts["seconds"]])
 		_table(heads, cols)
+	if quick:
+		# The always-open lobby's own rate (server/lobbies.json): 60 a second.
+		opts["snaps"] = 1.0
+		_way(false, "new")
+		dice.seed = int(opts.get("seed", 7))
+		var r60 := _online("5v5", 120.0, 120.0 * float(opts["jitter"]), float(opts["loss"]))
+		opts.erase("snaps")
+		NetPlay.snap_every = NetPlay.SNAP_EVERY
+		if not r60.is_empty():
+			checked["5v5 at 60"] = r60
+			print("")
+			print("  5v5 at 60 snapshots a second, %d Hz, %d s" % [opts["hz"], opts["seconds"]])
+			_table(["120 new"], [r60])
 	tally.stop()
 	print("")
 	_check(
@@ -140,7 +168,7 @@ func _run() -> void:
 		)
 	)
 	if quick:
-		for scene: String in ["5v5", "host"]:
+		for scene: String in ["5v5", "host", "5v5 at 60"]:
 			_check(checked.has(scene), "%s at 120 ms played" % scene)
 			if not checked.has(scene):
 				continue
@@ -150,6 +178,25 @@ func _run() -> void:
 				var got: float = r[key]
 				_check(got <= most, "%s: %s %.3f <= %.3f" % [scene, key, got, most])
 			_check(r["parted"] == 0, "%s: the copy keeps with the host (%d)" % [scene, r["parted"]])
+			if scene.begins_with("5v5"):
+				var behind: float = r["behind_ms"]
+				_check(
+					behind <= QUICK_BEHIND,
+					(
+						"%s: the others drawn %.0f ms behind the host <= %.0f"
+						% [scene, behind, QUICK_BEHIND]
+					)
+				)
+		if checked.has("5v5") and checked.has("5v5 at 60"):
+			var at30: float = checked["5v5"]["behind_ms"]
+			var at60: float = checked["5v5 at 60"]["behind_ms"]
+			_check(
+				at60 + 8.0 <= at30,
+				(
+					"at 60 snapshots a second the others are drawn sooner (%.0f ms, at 30 %.0f)"
+					% [at60, at30]
+				)
+			)
 	print("")
 	print("NET FEEL OK" if failures.is_empty() else "NET FEEL FAILED (%d)" % failures.size())
 	main.queue_free()
@@ -176,9 +223,16 @@ static func _way(old: bool, way := "") -> void:
 	NetOwnShots.blasts = not old
 	NetHitLooks.enabled = not old
 	NetUseLooks.enabled = not old
+	NetKillLooks.enabled = not old and way != "nokills"
+	NetFinishLooks.enabled = not old
+	NetBreakLooks.enabled = not old
 	NetGunLead.scopes = not old
 	NetSync.Client.spread_check = not old
 	NetSync.Client.wait_rows = not old and way != "nowait"
+	# p12: pass 13's client side for 60 snapshots a second off (the playout
+	# depth in whole ticks, slow to come down).
+	NetSync.Client.fine_depth = not old and way not in ["p12", "depth12"]
+	NetSync.Client.rows_ahead = not old and way not in ["p12", "noahead12"]
 	# v390: the server's side of pass 12 off too (NETSERVER's: net_lag's oldserver).
 	LobbyServer.paced = way != "v390"
 	NetWire.pack_rows = way != "v390"
@@ -235,8 +289,16 @@ func _online(scene: String, lag: float, jitter: float, loss: float) -> Dictionar
 	var settle := 2.0
 	var t_end := now + (settle + float(opts["seconds"])) * 1000.0
 	var t_rec := now + settle * 1000.0
+	var waited_from := -1
+	var short_from := 0
+	var checks_from := 0
 	while now < t_end:
+		if now >= t_rec and waited_from < 0 and me_net.client_sync != null:
+			waited_from = me_net.client_sync.rows_waited
+			short_from = me_net.client_sync.short
+			checks_from = me_net.client_sync.checks
 		_frame(rig, rec if now >= t_rec else null)
+	waited_from = maxi(0, waited_from)
 	var cs: NetSync.Client = me_net.client_sync
 	var out := rec.report()
 	if cs == null:
@@ -245,6 +307,9 @@ func _online(scene: String, lag: float, jitter: float, loss: float) -> Dictionar
 	out["parted"] = cs.mismatches if cs != null else 0
 	out["rebuilds"] = cs.rebuilds if cs != null else 0
 	out["rebuilds_lost"] = cs.rebuilds_lost if cs != null else 0
+	out["rows_waited"] = cs.rows_waited - waited_from if cs != null else 0
+	out["short"] = cs.short - short_from if cs != null else 0
+	out["checks"] = cs.checks - checks_from if cs != null else 0
 	if cs != null and cs.rebuilds > 2:
 		print(
 			(
@@ -253,6 +318,13 @@ func _online(scene: String, lag: float, jitter: float, loss: float) -> Dictionar
 			)
 		)
 	out["fire_shown_ms"] = Recording.median(main.net_shots.show_ms)
+	var kills: Dictionary = main.net_shots.kills.stats
+	for key: String in ["sure", "given", "withdrawn", "reels", "reels_missed"]:
+		out["kills_" + key] = kills[key]
+	out["finish_shown"] = main.net_shots.finishes.stats["shown"]
+	out["finish_withdrawn"] = main.net_shots.finishes.stats["withdrawn"]
+	out["break_shown"] = main.net_shots.breaks.stats["shown"]
+	out["break_withdrawn"] = main.net_shots.breaks.stats["withdrawn"]
 	if rig.has("kit"):
 		var kit: Kit = rig["kit"]
 		out["kit_shown"] = 0
@@ -455,6 +527,7 @@ func _frame(rig: Dictionary, rec: Recording, joining: Array = []) -> void:
 		if hs != null and cs != null and on:
 			var shown: float = cs.view_at if cs.view_at >= 0.0 else float(cs.game_tick)
 			rec.behind.append((hs.tick - shown) * STEP_MS)
+			rec.depth.append(cs.depth_ticks())
 	main.net_draw_end(aimed)
 	if _ready(me_net):
 		var g: Game = main.game
@@ -767,6 +840,10 @@ func _table(heads: Array, cols: Array) -> void:
 		["others: jerk (%)", "%.1f", "others_jerk", 100.0],
 		["others: snaps a 1000 frames", "%.2f", "others_snaps", 1.0],
 		["others: drawn behind the host (ms)", "%.0f", "behind_ms", 1.0],
+		["  the playout depth, median (ticks)", "%.2f", "depth", 1.0],
+		["  frames the copy waited for rows", "%.0f", "rows_waited", 1.0],
+		["  frames the copy fell short of the clock", "%.0f", "short", 1.0],
+		["copy: parts checked against the host", "%.0f", "checks", 1.0],
 		["delay: key to a move shown (ms)", "%.1f", "move_ms", 1.0],
 		["delay: mouse to a turn shown (ms)", "%.1f", "turn_ms", 1.0],
 		["own shots: flashes drawn", "%.0f", "shots", 1.0],
@@ -779,8 +856,21 @@ func _table(heads: Array, cols: Array) -> void:
 		["kit: USE to the door moving (ms)", "%.0f", "kit_door", 1.0],
 		["kit: a shot to the hand's flinch (ms)", "%.0f", "kit_flinch", 1.0],
 		["kit: a stick's blast, past its fuse (ms)", "%.0f", "kit_tnt", 1.0],
+		["kit: a sure kill to the hand down (ms)", "%.0f", "kit_kill", 1.0],
+		["kit: a kill on a hand free to walk (ms)", "%.0f", "kit_reel", 1.0],
+		["kit: USE to a finisher's man down, past its wind (ms)", "%.0f", "kit_finish", 1.0],
+		["kit: a .38 to the crate broken (ms)", "%.0f", "kit_break", 1.0],
 		["  kit presses shown / missed", "%.0f", "kit_shown", 1.0],
 		["", "%.0f", "kit_missed", 1.0],
+		["kills drawn at the press / given", "%.0f", "kills_sure", 1.0],
+		["", "%.0f", "kills_given", 1.0],
+		["  ... taken back (a body up again)", "%.0f", "kills_withdrawn", 1.0],
+		["killing hits reeled / judged a miss", "%.0f", "kills_reels", 1.0],
+		["", "%.0f", "kills_reels_missed", 1.0],
+		["finishers drawn / taken back", "%.0f", "finish_shown", 1.0],
+		["", "%.0f", "finish_withdrawn", 1.0],
+		["breaks drawn / taken back", "%.0f", "break_shown", 1.0],
+		["", "%.0f", "break_withdrawn", 1.0],
 		["delay: input to the host's word (ms)", "%.0f", "confirm_ms", 1.0],
 		["copy: put back / parted", "%.0f", "rebuilds", 1.0],
 		["", "%.0f", "parted", 1.0],
@@ -805,6 +895,9 @@ class Recording:
 	var gaps := PackedFloat32Array()
 	## How far behind the host's tick now the others were drawn (ms).
 	var behind := PackedFloat32Array()
+	## The client's playout depth each frame (ticks behind the host's tick
+	## now, less the one-way trip: NetSync.Client.playout_depth).
+	var depth := PackedFloat32Array()
 	var gap_by_enemy := 0
 	var gap_by_mate := 0
 	var on := []
@@ -941,6 +1034,7 @@ class Recording:
 			sum += o
 		out["offset"] = sum / maxf(1.0, offsets.size())
 		out["behind_ms"] = Recording.median(behind)
+		out["depth"] = Recording.median(depth)
 		out["gaps_min"] = gaps.size() / maxf(1e-3, _t / 60000.0)
 		out["gap_enemy"] = gap_by_enemy / maxf(1.0, gaps.size())
 		out["gap_mate"] = gap_by_mate / maxf(1.0, gaps.size())

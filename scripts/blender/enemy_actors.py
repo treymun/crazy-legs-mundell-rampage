@@ -2338,7 +2338,9 @@ def maker(S):
 # ---------------------------------------------------------------- creatures
 SKEETER = dict(canvas=(1.0, .76), px=84)
 SAUCER = dict(canvas=(2.0, .86), px=62)
-CRAWLER = dict(canvas=(1.5, .96), px=80)
+# same_order: export_actors.py pairs its parts by the order it builds them
+# (pass 13: its six legs' pieces swapped legs between keys).
+CRAWLER = dict(canvas=(1.5, .96), px=80, same_order=True)
 LANTERN = dict(canvas=(1.4, 1.1), px=84)
 FLYER = [-1, 0, 1, "aim", "fire", "pain"]
 GROUND = [-1, 0, 1, "aim", "fire", "pain", "die_0", "die_1", "down"]

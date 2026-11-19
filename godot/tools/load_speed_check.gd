@@ -53,6 +53,7 @@ const VIEW_MS := 12000.0
 ## the second round may add to the first's.
 const MEMORY_MB := 900.0
 const GROWTH_MB := 40.0
+const BEAST_FIELDS := ["ends", "parents", "rides", "legs", "head", "tail", "bend"]
 
 var failures: Array = []
 var report := false
@@ -117,12 +118,18 @@ func _rigs() -> void:
 		var view := packed.instantiate()
 		var baked := RagdollRig.baked(kind, view, info)
 		var found: Object = RigReference.new()
-		found.call("_build", view, info)
+		var fields: Array = RIG_FIELDS
+		if info.has("beast"):
+			# A beast's rig (pass 13) against the BeastRig found anew.
+			baked = BeastRig.read(kind, view, info)
+			found = BeastRig.new()
+			fields = RIG_FIELDS + BEAST_FIELDS
+		found.call("build" if info.has("beast") else "_build", view, info)
 		view.free()
 		if baked == null:
 			stale.append(kind + " (none)")
 			continue
-		for field: String in RIG_FIELDS if baked.ok else ["ok"]:
+		for field: String in fields if baked.ok else ["ok"]:
 			var a: Variant = baked.get(field)
 			var b: Variant = found.get(field)
 			if a != b or var_to_bytes(a) != var_to_bytes(b):

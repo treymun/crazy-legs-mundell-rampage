@@ -563,7 +563,11 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 		cooking.append([pieces.find(p), fuse])
 	if quiet:
 		return
-	if cook and p.spec.has("blast"):
+	# An online client that drew this break at its press (net_break_looks.gd)
+	# does not show it again: its sounds, bits and specks (the play, the dice
+	# and the listeners go as ever).
+	var seen := game.hands_watch != null and game.hands_watch.break_shown(pieces.find(p))
+	if cook and p.spec.has("blast") and not seen:
 		game.sound_at("fuse_short", p.x, p.y, .7)
 	var stuff := str(p.spec.get("stuff", "wood"))
 	var z: float = game.world.stand(p) + p.z + p.height * .5
@@ -573,15 +577,56 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 	var loud: bool = game.clock >= _crash_next
 	if loud:
 		_crash_next = game.clock + .05
+	if loud and not seen:
 		var crash := "sign_shot" if sign else "impact_wood"
 		game.sound_at(str(p.spec.get("cue", crash)), p.x, p.y, .8)
-	if loud and p.spec.has("cue2"):
+	if loud and p.spec.has("cue2") and not seen:
 		game.sound_at(str(p.spec["cue2"]), p.x, p.y, .6)
 	var bit_count: int = p.spec.get("bits", 6)
-	_throw(p.x, p.y, z, stuff, 2 if sign else bit_count, ax, ay)
-	game.burst(p.x, p.y, z, str(SPECKS.get(stuff, "spark")), 4 if sign else 9, 1.2)
+	if not seen:
+		_throw(p.x, p.y, z, stuff, 2 if sign else bit_count, ax, ay)
+	game.burst(p.x, p.y, z, str(SPECKS.get(stuff, "spark")), 4 if sign else 9, 1.2, not seen)
 	# Breaking things is loud: whoever is near and can see it comes to look.
 	game.disturb(p.x, p.y, 4.5, z)
+
+
+## Piece i drawn broken for one frame (an online client's sure break,
+## net_break_looks.gd: looks only): its broken picture where it stands, and
+## its sound, bits and specks once (`first`, off our own dice: the bits').
+## Returns what drawn_back() puts back.
+func drawn_broken(i: int, first: bool, ax: float, ay: float) -> Array:
+	var p: Piece = pieces[i]
+	if p.broken:
+		return []
+	var broken := str(p.spec["broken"])
+	var tall := _tall(broken, p.height, p.image) if broken != "" else p.height
+	var shown := _shown(p)
+	var kept: Array = [p, shown]
+	for s: Object in [p.board, p.sprite, shown]:
+		if s != null:
+			kept.append([s, s.get("image"), s.get("height")])
+			s.set("image", broken)
+			s.set("height", tall)
+	if first:
+		var stuff := str(p.spec.get("stuff", "wood"))
+		var sign: bool = p.spec.get("sign", false)
+		var z: float = game.world.stand(p) + p.z + p.height * .5
+		if p.spec.has("blast"):
+			game.sound_at("fuse_short", p.x, p.y, .7)
+		game.sound_at(str(p.spec.get("cue", "sign_shot" if sign else "impact_wood")), p.x, p.y, .8)
+		if p.spec.has("cue2"):
+			game.sound_at(str(p.spec["cue2"]), p.x, p.y, .6)
+		var bit_count: int = p.spec.get("bits", 6)
+		_throw(p.x, p.y, z, stuff, 2 if sign else bit_count, ax, ay)
+	return kept
+
+
+func drawn_back(kept: Array) -> void:
+	for i in range(kept.size() - 1, 1, -1):
+		var row: Array = kept[i]
+		var s: Object = row[0]
+		s.set("image", row[1])
+		s.set("height", row[2])
 
 
 ## A sign that would break on a round smaller than `crack_most` cracks

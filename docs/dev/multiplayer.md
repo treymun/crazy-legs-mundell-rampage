@@ -488,7 +488,8 @@ refused at HELLO; controls in 14 bytes, buys, reloads and the host's rewind
 among them; inputs sent redundantly with the tick the client shows;
 snapshots with their base, tick, input ack and the inputs played since the
 base, those rows zstd'd; a snapshot too big for a packet in unreliable
-`SNAP_PART`s; the lobby's messages). See [pacing](#pacing-packets-and-the-one-core-server-pass-12).
+`SNAP_PART`s; the lobby's messages; voice chat's frames on `CH_VOICE`,
+[voice chat](#voice-chat-pass-13)). See [pacing](#pacing-packets-and-the-one-core-server-pass-12).
 
 - `NetSync.Host` plays the authoritative game and sends deltas from each
   client's acknowledged snapshot (whole while it has none).
@@ -573,9 +574,11 @@ What it found and what changed:
   in `main.gd _net_aim`) keeps a correction as an offset on the picture that
   fades over 90 ms instead of jumping; looks only, put back after the frame.
 - **Everyone else paced by the clock.** `Client.playout` shows the host's tick
-  now (judged from the quickest arrivals) less `playout_depth` (the
-  snapshots' gap plus their arrivals' 95th-percentile spread, up at once, down
-  after 3 s): a tick a frame however the snapshots bunch. It used to stand two
+  now (judged from the quickest arrivals) less `playout_depth` (since pass
+  13 how much later than the quickest 99% of the rows come, plus a tick; it
+  was the snapshots' gap plus their arrivals' 95th-percentile spread, whole
+  ticks, down a tick every 3 s: [one server](#one-server-pass-13)): a tick a
+  frame however the snapshots bunch. It used to stand two
   ticks behind the newest snapshot, so every late snapshot froze everyone for
   a frame and the catch-up hurried them. The echo is taken from stale
   snapshots too (big ones go reliable and can pass small ones).
@@ -598,8 +601,9 @@ What it found and what changed:
   each input packet reported for its newest input (`Remote.views`,
   `_view_of`, worked out a tick an input from the nearest when a packet was
   lost); it used the newest tick reported by anything before the input was
-  played, so a buffered shot was judged too late. `MAX_REWIND` is 64 ticks
-  (under `REWIND_KEEP`, 72).
+  played, so a buffered shot was judged too late. `MAX_REWIND` is 96 ticks
+  since pass 13 (under `REWIND_KEEP`, 104; 64 and 72 before: [one
+  server](#one-server-pass-13)).
 - `game.place_log` is not in a snapshot: a copy put back on one kept its
   own log, so a rewound shot in the next half second could play otherwise
   and part it. Since pass 12 each tick's row travels with the echoed inputs
@@ -775,6 +779,37 @@ scene moves our player, shuts the door and stands the hand in front on
 the host's game between ticks, so its copies are put back often: its
 other rows are not the feel of play. predict_check holds each case.
 
+**Round 3 (pass 13): kills, finishers and breaks** (`net_kill_looks.gd`,
+`net_finish_looks.gd`, `net_break_looks.gd`; the rules in
+[modes.md](modes.md#shots-reloads-and-pickups)). The kit gained four
+phases, pressed 2.2 s in (the copy is put back on the host's setup by its
+check, a part at a time): `kill` (the .38 at a hand low on health held by
+a stun: a sure kill), `reel` (the same hand free to walk: not sure),
+`finish` (USE on a hand down to its last in reach, timed to the man drawn
+down less the move's own `wind` before the blow), `break` (the .38 at a
+crate with a round's health left, nothing under it). `net_feel.gd --
+scenes=kit seconds=90 lags=50,120,250`, `ways=old` (every pass 13 look
+off) and new run side by side, medians of each phase's presses:
+
+| 144 Hz | 50 ms | 120 ms | 250 ms |
+| --- | --- | --- | --- |
+| a sure kill to the hand drawn down | 214 -> 0 ms | 388 -> 0 | 701 -> 0 |
+| a kill on a hand free to walk (reels, then falls) | 222 -> 201 | 396 -> 375 | 702 -> 681 |
+| USE to a finisher's man down, past its wind | 230 -> 0 | 403 -> 0 | 714 -> 0 |
+| a .38 to the crate drawn broken | 221 -> 7 | 396 -> 7 | 700 -> 7 |
+| kills / finishers / breaks drawn early, taken back | | 3, 2, 2: none | |
+
+The walking hand's fall still waits for the host's word (its flinch is
+held meanwhile, so it never stands unhurt); 7 ms is the next frame. Every
+press was shown (18 a run, none missed), no copy parted beyond the
+scene's own setup, and nothing was ever taken back. In ordinary play
+(`net_feel -- scenes=coop,county`, the bots shooting hands as they find
+them) no kill there was sure (a minute each at 120 and 250 ms) and every
+killing hit reeled: of those the host judged a miss co-op 7 of 7 and 8 of
+8, County Run 5 of 9 and 6 of 12 (the hands walk on for the round trip and
+are not rewound). A fall drawn at every killing hit's press would have
+stood that many bodies up again, which is why only sure kills fall early.
+
 **The copy's check, a part at a time** (`src/net/net_check_parts.gd`,
 `NetSync.Client.spread_check`): the client compared its whole copy with
 the host's snapshot once a second, a whole capture and its walk in one
@@ -805,7 +840,8 @@ What it does not fix, and why:
   and 50 of jitter it breaks down: 43 copies put back in 20 s for input
   rows that never came, everyone else frozen 86% of frames (the host
   repeats only `ECHO_AGAIN` snapshots' worth of rows, 3 ticks at that
-  rate). Not worth it as it stands.
+  rate). Not worth it as it stands (pass 13: fixed on the client, and the
+  always-open lobby sends 60: [one server](#one-server-pass-13)).
 - **Other people at 250 ms** (deathmatch, co-op, County Run: 6 to 11% of
   frames frozen, 12 to 22% jerk; the 5v5's server bots none): the host
   plays a person's late input held and then merges the pile, so they move
@@ -904,7 +940,8 @@ the how-to. The 5v5 rules themselves are in
 - MODE includes TAG TEAM 2V2 (`tagteam`, `play_mode()` makes it search and
   destroy; picking it or a 2v2 map moves the lobby to the other's map and
   format, `_mode_fits_map`), and a new online mode goes on that row.
-- `server/lobbies.json` has two lobbies (how many is only that file: the
+- `server/lobbies.json` has one lobby at 60 snapshots a second since pass
+  13 ([one server](#one-server-pass-13); how many is only that file: the
   INFO answer's `ports` let COUNTY SERVERS drop a listed lobby the server
   does not run); server lines reach every lobby screen with the next LOBBY
   (`_tell`).
@@ -1121,7 +1158,8 @@ either way. The new loop's part shows in a stall: it is caught up with one
 snapshot a room and the server keeps its time (net_pace's check), which a
 clean minute rarely has.
 
-**The snapshot rate** stays 30 a second. `net_lag -- lags=50 seconds=30`, twice
+**The snapshot rate** stayed 30 a second (pass 13: one lobby at 60,
+[one server](#one-server-pass-13)). `net_lag -- lags=50 seconds=30`, twice
 each: at 30 a second 34 KB/s down a client and 18 to 19% of a core on this
 PC (the snapshots 1.25 to 1.40 ms a tick), everyone else still in 1.3% of
 frames; at 60 a second (`snaps=1`) 63 KB/s, 28 to 29% (2.9 to 3.0 ms), 0%,
@@ -1129,7 +1167,7 @@ and the others shown a tick (17 ms) sooner. With two lobbies on one slow
 core that is too much; the config's `"snap_every": 1` turns it on (a server
 of one lobby could afford it). The clients take either rate as it comes.
 
-**One lobby or two.** Two, at 30 snapshots a second. The jitter was the
+**One lobby or two.** Two, at 30 snapshots a second, until pass 13. The jitter was the
 packets and the loop, not the core: with both lobbies in a match lobby 1's
 snapshots came no worse than with it alone (the same runs with lobby 2
 empty: wander p95 17 ms, depth 4 ticks, against 12 to 16 and 3 to 4), and
@@ -1196,7 +1234,8 @@ At 60 snapshots a second (`snaps=1`, 250 ms) the rows by ticks took the
 copies put back from 43 to 1 in 20 s (5v5 and co-op), but the others
 still showed frozen in 86% of frames with or without them (the same
 number in both: the client's drawing at that rate, not the rows), so 60
-a second is not worth it yet; 30 stays.
+a second is not worth it yet; 30 stays. (Pass 13 found the rest on the
+client: [one server](#one-server-pass-13).)
 ### Soaking every mode (pass 12)
 
 `tools/net_soak_all.gd` soaks every online mode in one process on its own
@@ -1235,7 +1274,9 @@ that ends starts again.
   whole snapshots and delta sizes, memory and objects. `why=1` says why each
   whole snapshot went and what a delta carries after each blast. `quick`
   (check_all): County Run co-op and campaign co-op for 30 s at 120 ms, put
-  back every 5 s.
+  back every 5 s; since pass 13 co-op has the host and two partners
+  (`coop_people=3`), so the partner who stays must keep through the other's
+  leave and join with no put back.
 
 What it found and fixed:
 
@@ -1359,11 +1400,193 @@ Round 2 (after NETFEEL's and NETSERVER's second rounds were merged):
   host has shut and waits with the rest (set_piece_check: a snapshot put on
   mid-fall plays on the same; it parted three ticks on before).
 
-Known and left (each puts a copy back once or twice more, never for long):
+**A leave and a join in the party modes** (pass 13, NETLAST): `Modes.went_away`
+and `join_late` changed the server's game between ticks, so every other
+copy was put back once for each (a hitch of 10 to 130 ms on a busy co-op
+map), and a 5v5 late joiner taking over a bot renamed it the same way. Now
+the change rides the next tick's row of inputs: an entry keyed
+`NetWire.EVENT_SLOT` (240) or past it holds a leave, a join (with the
+name) or a new name instead of controls (`NetWire.event`), the host notes
+it as it makes the change (`Host.note_event`, sent with the tick it
+precedes), and a copy makes the same call before playing that tick
+(`NetSync.play_event`; one a snapshot already holds is not made again).
+The copy plays a tick only once it has that tick's row, so it always has
+the change in time. A copy of an older build reads the entry as controls
+for a slot nobody plays (and is put back as before); PROTOCOL stays 5.
+`net_soak_all -- modes=coop,deathmatch people=3 minutes=1 lags=120`, the
+old way (`events=0`) against new, back to back: co-op 2 partings (the
+remaining partner's copy, one each for the leave and the join) -> 0,
+deathmatch 4 (two copies, two each) -> 0; with two people team
+deathmatch 2 -> 0. net_soak_all now allows none for them (`events=0`
+allows the old two each).
 
-- **A leave and a join in the party modes** (`Modes.went_away`,
-  `join_late`) change the server's game between ticks: every other copy is
-  put back once for each (a hitch of 10 to 130 ms on a busy co-op map).
+### One server (pass 13)
+
+The VPS has one slow core and ran two always-open lobbies at 30 snapshots a
+second. The owner's call: one server for speed. `server/lobbies.json` runs
+one lobby (COUNTY LOBBY 1: UDP 47197, the browser's wss on 443, the party
+line on both; MODE still switches between search and destroy, hostage
+rescue and tag team 2v2) at 60 snapshots a second (`"snap_every": 1`), one
+match at a time (`"most_matches": 1`). The game's COUNTY SERVERS list drops
+the second lobby by itself (the INFO answer's ports), so servers.json still
+lists both and a second lobby is only the config again (setup.sh's firewall
+still opens 47198 and 8443). A player's own lobby (HOST A GAME, the party
+line) stays at 30 a second (`NetPlay.SNAP_EVERY`): its snapshots leave a
+home connection's upload, and through the party line every byte crosses the
+server twice. `net_server_check` holds the shipped config to servers.json
+(one lobby, its ports the party line server's, snapshots every tick, one
+match, it opens); `net_feel -- quick` plays the 5v5 at 60 a second too.
+
+**The client at 60 a second.** Pass 12's playout was barely sooner at 60 a
+second than at 30 (5v5, 120 ms: 258 against 266 ms behind the host) and
+held co-op and County Run still whenever a split snapshot lost a part.
+Three things, all on the client (`NetSync.Client`; `fine_depth` and
+`rows_ahead` off, net_feel's and net_lag's `p12`, is the pass 12 way):
+
+- **The depth from the rows' own arrivals** (`_arrived`, `_measure`,
+  `playout_depth`). Each tick's row is noted when it first comes (a snapshot
+  brings the rows since the last, so at 30 a second every other row is a
+  tick late, and the rows a lost snapshot held back come with the next), and
+  the depth is how much later than the quickest 99% of them come
+  (`SPREAD_SHARE`), plus the tick the copy plays ahead of the clock, in
+  ticks and their fraction. It was the newest snapshots' 95th-percentile
+  spread rounded up to whole ticks plus their gap: a lost snapshot was not
+  in it, and the rounding put everyone up to a tick later than needed.
+- **Down in seconds, not half a minute**: a lower depth that holds
+  `PLAYOUT_EASE` (1 s) closes at `PLAYOUT_CLOSE` (1.5) ticks a second, or
+  half the gap a second when far off; it came down a tick every 3 s, so the
+  match's first seconds or a spike left everyone 2 to 8 ticks later than
+  the link needed for half a minute (net_feel's depth stayed at 13 ticks
+  through a 20 s run at 250 ms). The arrivals are the last
+  `ARRIVAL_SECONDS` (3) whatever the rate (90 snapshots was 1.5 s at 60 a
+  second). When they spread past `PLAYOUT_MOST` the clock goes by the
+  slower ones: a link that got slower has lost its quick arrivals for good,
+  and the clock ran ahead of every snapshot until they left the window.
+- **The copy plays as far as the rows go** (`head()`, `rows_tick`, `_head`):
+  a snapshot's first part carries its tick's rows and input ack, so the copy
+  no longer waits for the last part of a split delta (co-op and County Run:
+  7 to 12 parts), or for good when one is lost; the round trip is timed from
+  it too. A copy past the newest whole snapshot that misses a row waits for
+  a whole one past it before it is put back (never back in time). The
+  checks find a snapshot at the copy's tick as often as before (net_feel's
+  "parts checked").
+
+`net_feel.gd -- seconds=20 seed=7|11|23 ways=p12,new snaps=2|1` (`share=`
+and `margin=` try other depths: .95 and .98 drew the others 5 to 27 ms
+sooner at 30 a second and froze them up to 1.5% of frames), 144 Hz, 2% loss, jitter 20 or
+40% of the latency, medians of the three seeds; each cell is v3.10.0's
+client at 30 a second / the new client at 30 / the new client at 60. The
+5v5 is the always-open lobby's scene; the others are the party modes'
+(hosted at 30), measured for the client's sake:
+
+| scene | link | others frozen % | others jerk % | others behind ms | view frozen % | view jerk % |
+| --- | --- | --- | --- | --- | --- | --- |
+| 5v5 | 50 ms, 20% | 0.2 / 0 / 0 | 0.9 / 0.3 / 0.2 | 112 / 119 / 89 | 0.1 / 0.1 / 0.1 | 2.2 / 2.1 / 2.4 |
+| 5v5 | 120 ms, 20% | 0 / 0.1 / 0 | 0.2 / 0.6 / 0.2 | 266 / 197 / 169 | 0 / 0 / 0.1 | 2.2 / 2.1 / 2.4 |
+| 5v5 | 250 ms, 20% | 0 / 0 / 0 | 0.2 / 0.4 / 0.2 | 433 / 340 / 317 | 0.1 / 0 / 0.2 | 2.2 / 2.2 / 2.5 |
+| 5v5 | 50 ms, 40% | 0.1 / 0 / 0 | 0.6 / 0.4 / 0.3 | 121 / 124 / 95 | 0.1 / 0 / 0.1 | 2.3 / 2.1 / 2.4 |
+| 5v5 | 120 ms, 40% | 0 / 0 / 0 | 0.2 / 0.5 / 0.2 | 284 / 211 / 189 | 0 / 0 / 0.2 | 2.2 / 2.3 / 2.4 |
+| 5v5 | 250 ms, 40% | 0 / 0.1 / 0 | 0.2 / 0.5 / 0.2 | 445 / 380 / 354 | 0.1 / 0.2 / 0.1 | 3.1 / 3.2 / 3.6 |
+| coop | 50 ms, 20% | 2.8 / 1 / 0.9 | 7.6 / 2.6 / 2.7 | 105 / 121 / 92 | 0.8 / 0.9 / 1 | 7.3 / 5.9 / 6.2 |
+| coop | 120 ms, 20% | 1.6 / 1.1 / 0.9 | 4.7 / 3.1 / 2.4 | 258 / 200 / 170 | 0.7 / 0.9 / 0.9 | 6.7 / 7.4 / 6.4 |
+| coop | 250 ms, 20% | 9.3 / 1.3 / 1 | 19.2 / 4.7 / 3.2 | 455 / 348 / 321 | 1.8 / 2.1 / 1.5 | 10 / 8.5 / 7.7 |
+| coop | 50 ms, 40% | 1.5 / 1.1 / 1 | 4.1 / 3.9 / 2.8 | 128 / 123 / 96 | 1 / 1.3 / 0.7 | 8.1 / 7.5 / 6.7 |
+| coop | 120 ms, 40% | 1.3 / 1.1 / 0.8 | 3.9 / 3.8 / 3.2 | 301 / 216 / 187 | 0.8 / 1.2 / 0.5 | 6.7 / 7.3 / 6.1 |
+| coop | 250 ms, 40% | 10.7 / 0.9 / 1.3 | 21.1 / 2.9 / 4.6 | 478 / 382 / 356 | 1.9 / 2.6 / 1.5 | 10 / 11.2 / 7.4 |
+| county | 50 ms, 20% | 1.6 / 1.6 / 1.6 | 4.6 / 4.6 / 4.6 | 117 / 116 / 91 | 0.4 / 0.3 / 0.3 | 2.8 / 3 / 2.9 |
+| county | 120 ms, 20% | 1.6 / 1.5 / 1.6 | 5.3 / 3.7 / 4.5 | 269 / 199 / 172 | 0.1 / 0.1 / 0.3 | 2.8 / 2.8 / 3.7 |
+| county | 250 ms, 20% | 5.7 / 1 / 1.2 | 12.4 / 3.5 / 3.6 | 440 / 345 / 321 | 0.3 / 0.3 / 0.3 | 3.3 / 3.6 / 3.5 |
+| county | 50 ms, 40% | 2.3 / 0.8 / 1.3 | 5.9 / 3.1 / 4.4 | 121 / 125 / 96 | 0.1 / 0.2 / 0.2 | 2.4 / 2.5 / 2.7 |
+| county | 120 ms, 40% | 1.1 / 1 / 1 | 3.4 / 3.7 / 3.3 | 302 / 205 / 188 | 0.7 / 0.2 / 0.2 | 5.9 / 3.3 / 3 |
+| county | 250 ms, 40% | 8.6 / 0.8 / 0.8 | 16.7 / 3 / 2.9 | 440 / 384 / 357 | 0.4 / 0.4 / 0.3 | 5.7 / 5.2 / 4.8 |
+| dm | 50 ms, 20% | 0.8 / 0.5 / 0.2 | 3.9 / 2.5 / 2.1 | 117 / 117 / 91 | 0.5 / 0.7 / 0.7 | 3.9 / 3.8 / 4.3 |
+| dm | 120 ms, 20% | 0.1 / 0.2 / 0.1 | 1.6 / 1.8 / 1.5 | 270 / 200 / 170 | 0.9 / 0.7 / 0.7 | 4.4 / 4.1 / 4.4 |
+| dm | 250 ms, 20% | 5.8 / 0.4 / 0.2 | 12.2 / 2.1 / 1.7 | 439 / 342 / 320 | 0.7 / 0.7 / 0.8 | 4.4 / 4.4 / 4.5 |
+| dm | 50 ms, 40% | 0.7 / 0.3 / 0.2 | 3.5 / 2.2 / 2.2 | 121 / 121 / 96 | 0.6 / 0.5 / 0.6 | 4 / 3.9 / 4.2 |
+| dm | 120 ms, 40% | 0.1 / 0.2 / 0.1 | 1.6 / 1.7 / 1.5 | 291 / 207 / 189 | 0.4 / 0.8 / 0.8 | 3.7 / 4.2 / 4.3 |
+| dm | 250 ms, 40% | 7.8 / 0.4 / 0.2 | 15.7 / 2.1 / 1.6 | 446 / 387 / 359 | 0.6 / 0.9 / 1 | 5.3 / 5.9 / 6.3 |
+
+At 60 a second everyone else is drawn 17 to 30 ms sooner than by the new
+client at 30, and 13 to 122 ms sooner than by v3.10.0, on every link and in
+every scene, as smoothly or more so (5v5: nobody frozen on any link). Not
+better: our own view's jerk is 0.1 to 0.4 points higher at 60 a second in
+the 5v5 (2.4 against 2.1 to 2.3%; single-player's own is 35%), and at
+250 ms with 100 ms of jitter the prediction's eased corrections are 144 a
+minute against 102: the host holds a late input and then merges two, and
+at 30 a second both often fall between two snapshots and are never seen.
+Two party-mode rows are a little behind the new client's own 30 (co-op at
+250 ms and 40% jitter others frozen 1.3 against 0.9%, County Run at 50 ms
+1.3 against 0.8), both far under v3.10.0's (10.7 and 2.3). The new client
+at 30 a second, for home hosts, draws the others 56 to 107 ms sooner than
+v3.10.0 at 120 and 250 ms, and freezes them far less at 250 ms (0.4 to
+1.3% against 5.7 to 10.7); at 50 ms it is up to 16 ms later (it now covers
+the snapshots the loss drops) and as smooth.
+
+**Deltas from fewer bases** (`Host.coarse_bases`, `BASES_A_SECOND` 15): the
+host merges each new change onto every base a client may still acknowledge
+(`_carry_since`), so its work grows with the round trip times the rate:
+net_lag's 5v5 server at 60 a second spent 3.3, 6.7 and 9.4 ms a tick on
+snapshots at 120, 250 and 400 ms (30, 52 and 68% of this PC's core). Now
+only every 4th snapshot is a base at 60 a second (every other at 30): a
+client keeps every snapshot it acknowledged (`Client.KEEP`), so it is sent
+a delta from the newest of those that is a base (`Remote.acks`,
+`_base_for`), hardly bigger (a round trip's change either way: 1.01 against
+0.97 KB median at 120 ms). At 60 a second: 2.5, 2.9, 4.0 ms (27, 28, 36% of
+the core); at 30: 1.35, 2.1, 2.5 -> 1.0, 1.5, 1.7 ms. No snapshot went
+without its base and no copy parted (`allbases` is the old way).
+
+**The server on one core.** `net_pace` against a lobby server pinned to one
+core of this PC beside a busy process taking 60% of that core (the real
+Godot program pinned: `Godot_v4.7.2-stable_win64_console.exe` is only a
+launcher, and pass 12's harness pinned the launcher, so its "one core" may
+not have been one), 30 ms, 6 of jitter and 2% loss each way, two 60 s runs
+of each: v3.10.0's config (a 5v5 with four people and six bots, a 2v2 with
+three people, 30 a second) against one 5v5 at 60:
+
+| | two lobbies at 30 | one lobby at 60 |
+| --- | --- | --- |
+| the server's CPU over the run | 16.1, 16.1% of the core | 14.8, 14.9% |
+| a tick's work (status medians, the busy process's slices in it) | 5v5 1.4 to 2.2 ms + 2v2 0.9 to 1.0 | 2.1 to 3.0 |
+| snapshot gaps at the server, p99 (beat) | 48 to 57 ms (33.3) | 32 to 35 (16.7) |
+| snapshot gaps at a probe, p99 | 67 to 73 ms | 39 to 42 |
+| arrivals' wander p95 (the 5v5) | 17 to 19 ms | 14 to 16 |
+| a playing client's playout depth (net_pace) | 4 ticks | 2 |
+| down a client | 31 to 33 KB/s | 61 to 64 |
+
+One lobby at 60 a second costs the core no more than the two at 30 did.
+The bandwidth doubles (a delta is a round trip's change whatever the rate:
+1.0 KB either way): about 0.6 MB/s for a full lobby of nine people. With
+laggy players the snapshot work grows (net_lag above: 27 to 36% of this
+PC's core at 120 to 400 ms; the VPS's core is slower, its 3.6.0 log had a
+5v5 with four people at 4.9 ms a tick), still well under the core.
+net_soak_all at 60 a second (`snaps=1`, the 5v5 modes and tag team, a
+minute each at 120 ms with four players and at 250 ms with two, one over
+WebSocket, the director blowing things up): no parting, no input lost, no
+whole snapshot but the joins'.
+
+**What else the core could buy:**
+
+- **A longer rewind for laggy shooters, kept.** net_lag now prints the
+  longest rewind a client's shot asked for and how many ticks were cut to
+  `MAX_REWIND`: at 250 ms 59 to 61 of 64 ticks, at 320 ms 71 (39 cut in a
+  minute at 30 a second), at 400 ms 70 to 77 (650 ticks cut at 60 a second,
+  1,360 at 30): their shots were judged against the others later than they
+  saw them. `MAX_REWIND` is 96 ticks (1.6 s) and `GameState.REWIND_KEEP`
+  104; none cut at 320 or 400 ms. It costs nothing measurable (a longer
+  place log on every copy; the server's share the same). The hit samples
+  of a bot match are too few to show the misses it saves.
+- **The bots' thinking, not changed.** The nine 5v5 bots steer in 0.2 to
+  0.35 ms a tick (net_lag, net_pace): the core was never what held them
+  back, and how often they look (`TacticalBot.LOOK_EVERY`, `SIGHT_EVERY`)
+  is part of their skill in every mode, single-player included. Smarter
+  bots are their own piece of work.
+- **The tick's margin** needs nothing: one match at 60 a second leaves most
+  of the core free, and the paced loop already sends each tick's snapshots
+  first and steers the bots after.
+- The always-open lobby hosts no County Run or co-op (MODE is the 5v5 modes
+  and tag team), so nothing of theirs moved to the server.
+
+Voice chat (below) rides the same loop and the same lobby.
 
 ### Player maps in a lobby
 
@@ -1452,6 +1675,119 @@ These are UiScreens now (`OnlineScreen`, a `ZonedScreen`; see
   `net_join` like the JOIN form. The party line's listed rooms (no password)
   follow the servers, asked with a LIST knock as often; the list shows three
   rows at a time and scrolls with the cursor.
+
+### Voice chat (pass 13)
+
+The owner asked for proximity voice chat in every online mode. One path
+serves them all: the always-open lobbies (5v5, tag team 2v2, and their
+co-op, deathmatch and County Run), a player's own lobby (HOST A GAME)
+straight or through the party line, the browser over wss, a phone.
+
+- **The files.** `src/net/voice_codec.gd` (`VoiceCodec`: the sound squeezed),
+  `src/net/net_voice.gd` (`NetVoice`, `net.voice` on every NetPlay: the
+  packets, the routing, the jitter buffers), `src/net/voice_chat.gd`
+  (`VoiceChat`, the front end's: the mic, the voices played and placed, the
+  marks). Numbers in `data/tuning/voice.cfg`. Hooks elsewhere are a few
+  lines each: `NetWire.VOICE` (13), `NetSession.CH_VOICE` (3), NetPlay's
+  `poll` (a VOICE packet to `voice.take`, `voice.flush` after) and its ASK
+  (`NetVoice.note`), `LobbyServer._rest` (wakes every `VOICE_POLL_MS` while
+  voices go), `main.gd _voice_frame`, `main_state.gd` (the field, the draw,
+  the HUD pins), the lobby's rows and the 5v5 scoreboard's marks.
+- **The codec.** Godot 4.7 has no Opus. The mic's sound at the mixer's rate
+  goes through a high-pass (120 Hz) and two Butterworth low-pass stages
+  (3.5 kHz, 24 dB an octave) down to 8 kHz, then IMA-ADPCM at 4 bits a
+  sample: 32 kbit/s. A 16 kHz codec at these bits would be 8 KB/s, twice the
+  aim, and 3 bits at 8 kHz loses too much; the telephone band is the CB
+  radio's too. A frame is 40 ms (320 samples, 163 bytes with the state it
+  starts from, so a lost one costs only itself). Measured: a made-up voice
+  comes back at 25 to 27 dB SNR (a chirp across the band about 19 dB); 4,175
+  bytes a second up while talking (167 a packet, 25 a second), 4,275 down a
+  voice; nothing at all while quiet. GDScript cost on this PC: the filter
+  about 7 ms a second of sound, a frame 90 us to encode and 60 to decode.
+- **The wire.** VOICE packets go unreliable on their own channel
+  `CH_VOICE`. Godot's ENet keeps two channels below ours and sends ours
+  unsequenced, so a voice packet never holds a snapshot or an input up and
+  is never dropped for arriving after one (channel 3 is index 4 of the 5 a
+  peer of `CHANNELS` 3 has: no new channel count, an older peer takes it
+  too). Up: kind, seq (u16), flags, frame. Down: kind, seq, flags, the
+  talker's id (u32; a lobby's second session's ids keep their top bit),
+  frame. An older build ignores the kind; no PROTOCOL bump (a version that
+  differs is refused at HELLO anyway). Over WebSocket everything is
+  reliable and in order; the jitter buffer catches a burst up.
+- **The routing** (`NetVoice.listeners`, on whoever runs the lobby: the
+  lobby server, a player's own lobby, a host behind the party line; the
+  line itself only passes bytes and needed nothing): never back to the
+  talker; in the lobby everyone, flat; in a match everyone within `radius`
+  (18 cells, with height) of the talker; at most `heard_most` (4) voices to
+  one player at once (the first talking keep their place); a talker past
+  `frames_a_second` (30, burst 10) is cut off; a player with VOICE CHAT off
+  is sent nothing, and nobody they muted (ASK `voice`, `mutes`). **The
+  dead** in the 5v5 round modes (dead until the round ends) hear the living
+  near where they fell or near any living teammate (they watch one of
+  those), placed, and only the dead hear the dead, flat: nothing goes from
+  the grave to the living. Co-op, deathmatch and County Run deaths are
+  short, so everyone talks as the living do; a player who left (`away`) or
+  has no place in the match is with the dead. The server never decodes,
+  keeps or writes a frame; it reads positions it already has. Routing a
+  frame: about 20 us (the check).
+- **Playback** (`VoiceChat._play`): each voice is a `Talker` (jitter
+  buffer by sequence: `start_frames` 2 or `start_ms` 90 before it plays,
+  `most_frames` 8 at most, the oldest thrown past that; a lost frame is the
+  last one again at half then a fifth, fading; a late one dropped), pulled
+  into an `AudioStreamGenerator` at 8 kHz on a bus of its own (`voice_out_N`:
+  panner, low-pass) kept `LEAD` (900 samples, about 110 ms) ahead of the
+  mixer. `VoiceChat.placement` gives left, right and cutoff from where this
+  copy has the talker against the local player (the one watched, when
+  dead): full within `full_within` (3), falling off by `falloff`, fading to
+  nothing over the radius's last quarter, `Hearing`'s gain and cutoff
+  through walls and floors, panned as `game_world.gd sound_position` pans
+  (STEREO WIDTH). Flat voices are whole on both sides. It sends to Master
+  (MASTER VOLUME counts), outside the world's reverb, and ducks nothing.
+- **The mic** (`VoiceChat._open_mic`): an `AudioStreamMicrophone` on the
+  muted `voice_mic` bus, read through its `AudioEffectCapture` each frame
+  (`project.godot`'s `audio/driver/enable_input` is on; the device is opened
+  only when MICROPHONE is on in a lobby, and let go when it goes off or the
+  lobby closes). Android: RECORD_AUDIO (export preset) is asked for then
+  (`OS.request_permission`), MIC REFUSED if denied. The browser asks with
+  its getUserMedia prompt then. A mic that gives only silence for 3 s is NO
+  MIC; the others are still heard. PUSH TO TALK (`Gate`): held, then
+  `release_frames` (3) after; nothing is read while it is not held. OPEN MIC:
+  over MIC SENSITIVITY's level (`gate_db_low` -28 dB at 0 to `gate_db_high`
+  -58 at 100), then `hangover_frames` (8); the frame before the gate opened
+  goes too (a word's start). No voice in single-player: VoiceChat exists
+  only while `main.net` is a lobby or a match.
+- **Marks.** Down the left from row 22 (under the 5v5 cash; the right is the
+  ping's, the frags', the kill feed's and the storm ring's): ON THE AIR (ours), NO MIC, ALLOW
+  THE MIC, MIC REFUSED, then each talker's name with the talking mark (a
+  7x5 mouth with sound off both sides, `VoiceChat.MARK`); the mark over a
+  talker's head when this player can see them (not through walls, not over
+  the store or scoreboard); on the 5v5 scoreboard beside the name (amber
+  talking, grey muted: `VoiceChat.marks`); in the lobby left of the name,
+  MUTED after it, our own row's MIC OFF / NO MIC / VOICE OFF. A click or tap
+  on someone's name in the lobby mutes them (`NetVoice.toggle_mute`).
+- **Cost on the one-core server.** `voice_chat_check -- bench` (a 5v5 of ten
+  people in one process, all close and all talking: every player sent four
+  voices): the server's frames 6.9 to 9.1% of a core with nobody talking,
+  10.9 to 11.0% with ten talking; out 99 to 102 KB/s, 269 KB/s with them
+  (17 KB/s more down each player). On the real clock, `net_pace`'s pinned
+  server (one core of this PC with 60% of it taken by a busy process, both
+  lobbies in a match; lobby 1 a 5v5 of ten people: net_pace's four and six
+  from `voice_chat_check -- bench server=127.0.0.1:47497 talkers=6`, all six
+  talking the whole minute or none), three 60 s runs of each, quiet and
+  talking alternated: the server process's CPU 12.0, 14.1, 13.1 s against
+  14.4, 13.8, 12.5 s over 84 s (median 15.6% of a core against 16.4%); the
+  snapshot gaps' p99 at a probe 46.4, 38.0, 37.0 ms against 44.0, 39.0, 36.4;
+  wander and bunching alike; a probe near three talkers 17 KB/s down
+  against 30. So voices cost the VPS about a percent of its core and
+  nothing in snapshot pacing. (Godot's `_console.exe` is a launcher: pin the
+  real `Godot_v4.7.2-stable_win64.exe`, or the affinity and CPU time are the
+  launcher's.)
+- `tools/voice_chat_check.gd` (VOICE CHAT OK, check_all) holds it all;
+  `tools/voice_frames.gd` takes the marks' pictures in a window.
+- **Not checked:** anyone's ears. Nobody on the agent side can hear it, so
+  how it sounds (the codec, the level, the falloff, the placing) is
+  unheard; a real mic on Windows, a phone, a browser (getUserMedia over
+  wss) and the VPS are untried.
 
 ### Still open
 

@@ -396,16 +396,13 @@ func gun_class(p: Player) -> String:
 ## Start a finisher on `e`: the move by the gun in hand (game.rng among them).
 func start_finish(p: Player, e: Enemy) -> void:
 	var cls := gun_class(p)
-	var picks: Array = []
-	var list: Array = MOVES.get(cls, MOVES.get("boot", []))
-	for move: String in list:
-		var row: Dictionary = MOVE[move]
-		if _b(row.get("round", false)) and p.armory.loaded[p.armory.active] <= 0:
-			continue
-		picks.append(move)
-	if picks.is_empty():
-		picks = MOVES.get("boot", [])
-	var move: String = game.rng.choice(picks)
+	var picks := picks_for(p)
+	# Alone, off the dice; with more than one player off the man and the
+	# player (pass 13), which every copy knows at the press, so a client
+	# draws the move then (net_finish_looks.gd).
+	var move: String = (
+		game.rng.choice(picks) if game.players.size() < 2 else party_move(picks, e, p)
+	)
 	moves.append([p.slot, e.uid, move, game.clock, game.clock + _num(FINISH, "wind")])
 	last_moves[p.slot] = [move, game.clock]
 	dazed.erase(e.uid)
@@ -427,6 +424,26 @@ func start_finish(p: Player, e: Enemy) -> void:
 		# Its own slow motion comes with the blow (_blow), not the shot's.
 		f.set("again_at", game.clock + Finishers.REST)
 	wake()
+
+
+## The move a finisher on `e` by `p` takes with more than one player: one of
+## `picks` by the man's uid and the player's slot.
+static func party_move(picks: Array, e: Enemy, p: Player) -> String:
+	return str(picks[posmod(e.uid * 7 + p.slot * 3, picks.size())])
+
+
+## The moves `p` may finish with now (start_finish's list).
+func picks_for(p: Player) -> Array:
+	var picks: Array = []
+	var list: Array = MOVES.get(gun_class(p), MOVES.get("boot", []))
+	for move: String in list:
+		var row: Dictionary = MOVE[move]
+		if _b(row.get("round", false)) and p.armory.loaded[p.armory.active] <= 0:
+			continue
+		picks.append(move)
+	if picks.is_empty():
+		picks = MOVES.get("boot", [])
+	return picks
 
 
 func _blow(m: Array) -> void:
@@ -464,18 +481,32 @@ func _blow(m: Array) -> void:
 		game.slowmo_for = game.slowmo
 		game.slowmo_pace = _num(FINISH, "pace")
 	_hush_kill_bark(p)
+	# An online client that drew this blow from its press (net_finish_looks.gd)
+	# does not show it again: its sounds, blood and specks and its call are
+	# left out, the play goes as ever (the dice too).
+	var shown := game.hands_watch != null and game.hands_watch.finish_shown(p.slot, e.uid, move)
+	var loud: Array = [game.speaker, game.own_quiet]
+	if shown:
+		game.speaker = QuietSound.new()
+		game.own_quiet = true
 	_strike(p, e, amount, up, how)
 	if e.alive:
 		e.hurt(e.hp + 1.0, game, false, false, null, how)
+	if shown:
+		game.own_quiet = loud[1]
 	if end == "gib" and not e.explosive and game.gore:
 		e.explosive = true
 		game.events.enemy_gibbed.emit(e)
 	var base: float = game.world.stand(e)
 	game.sound_at(cue, e.x, e.y, 1.0)
 	game.sound_at("gib_splat" if end != "fall" else "body_thud", e.x, e.y, .8)
-	game.burst(e.x, e.y, base + e.height * up, "gore", _i(row.get("gore", 10)), 2.2)
+	game.burst(e.x, e.y, base + e.height * up, "gore", _i(row.get("gore", 10)), 2.2, not shown)
+	if shown:
+		game.speaker = loud[0]
+		game.focus(game.local_player)
 	finished[move] = _i(finished.get(move, 0)) + 1
-	_call(p, str(row.get("name", "")))
+	if not shown:
+		_call(p, str(row.get("name", "")))
 	game.focus(p)
 	game.barks.say(game, "finisher", true)
 	game.focus(game.local_player)

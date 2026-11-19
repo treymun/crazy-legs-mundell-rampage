@@ -42,7 +42,18 @@ const HEAD_MIN := 110.0
 const TEXEL_FREE := ["hog"]
 const LABELS := ["head", "arm_r", "arm_l", "leg_r", "leg_l", "body"]
 const FIT_KEYS := [
-	"light", "scale", "min_px", "ragdoll", "tips", "flat", "down_high", "down_cel", "blend"
+	"light",
+	"scale",
+	"min_px",
+	"ragdoll",
+	"tips",
+	"flat",
+	"down_high",
+	"down_cel",
+	"blend",
+	"yaw",
+	"beast",
+	"hand_over"
 ]
 const HAND_FRAMES := [
 	"0",

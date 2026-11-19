@@ -1,7 +1,7 @@
 {
 	"bind": "*",
-	"most_matches": 2,
-	"snap_every": 2,
+	"most_matches": 1,
+	"snap_every": 1,
 	"relay": {"rooms": 24, "players": 15, "room_bytes": 1000000, "idle_minutes": 30},
 	"tls_cert": "/etc/clmr/tls/fullchain.pem",
 	"tls_key": "/etc/clmr/tls/privkey.pem",
@@ -14,17 +14,6 @@
 			"map": "grainyard",
 			"team_size": 5,
 			"rounds": 7
-		},
-		{
-			"port": 47198,
-			"ws_port": 8443,
-			"lobby_name": "COUNTY LOBBY 2",
-			"mode": "tagteam",
-			"map": "pumpngo",
-			"team_size": 2,
-			"rounds": 9,
-			"round_seconds": 90.0,
-			"buy_seconds": 15.0
 		}
 	]
 }

@@ -699,10 +699,13 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   floating) the torso is carried at its height. The kill strikes it where the
   hit landed (pass 11, below). `budget` caps every ragdoll's steps in a frame.
 - **Which bodies**: every kind whose labelled parts stand on two legs gets a
-  rig (`RagdollRig.ok`). Bosses keep their scripted falls (their falls are
-  set pieces); kinds without legs (gator, crawler, drone saucers, the derby
-  champ's truck, the swamp king's boat, the Maw, lanterns, valve rats,
-  boilerbacks, hogs, the cow, the hound) as ever. Since pass 11 big Billy,
+  rig (`RagdollRig.ok`); since pass 13 the beasts too (the gator, the
+  crawler, the herd's hogs, the cow: a `BeastRig`, below) and the bosses on
+  two legs from part way through their scripted falls (below). The derby
+  champ's truck, the swamp king's boat and Maw keep their scripted falls
+  (their bodies at rest are cels of their own, fit.json `down_cel`), and so
+  do the floating kinds (lanterns, probes; saucers and skeeters leave no
+  body) and the hound, who never dies. Since pass 11 big Billy,
   the millhand and the tin guard have rigs again (fit.json no longer says
   `"ragdoll": false` for them): the parts the dead body loses (the gun, the
   saw, the shield) are left out of the limbs' shape (`_build`, and
@@ -763,6 +766,73 @@ for something that can be up on one; use `floor_under(x, y, z)` or
     8,800 in all); `budget` still caps a frame. County Run's horde frame
     median 7.52 / 7.52 ms against 7.29 / 7.16 at v3.8.0 (actors 0.95 against
     0.83 ms).
+- **Pass 13: the beasts and the bosses' falls** (looks only; audit and
+  pictures in `docs/godot3d/deaths13/`, before and after). Before, a gator
+  rolled stiffly onto its back and was flattened to half its height, a
+  crawler sank into a flat shell with its legs stuck straight up, a shot cow
+  stood for half a second and popped onto its side, and a hog of the herd
+  snapped straight to its lying key where it ran; the gator's model also
+  walked crabwise (built side on for its cels: fit.json `yaw` turns it to
+  its heading) and the gator's and crawler's shins swapped legs from key to
+  key (export_actors.py's `same_order`, art.md).
+  - **The rig** (`view3d/beast_rig.gd`, `BeastRig` under `RagdollRig`,
+    baked like a person's; fit.json `beast`: legs, head and tail balls and
+    the way the head points): every part is labelled "body", so it is found
+    from where the parts are. The torso is six balls as a person's (its
+    corners at its legs' roots, its belly and back), so the person's code
+    holds it; each leg is three balls (its root held in the torso, its knee
+    the part standing furthest off the line from root to foot, its foot);
+    the head a skull and a snout; the tail `tail` balls cut along it. Each
+    part rides the nearest segment of its own group.
+  - **The doll** (`src/beast_doll.gd`, `BeastDoll` under `Ragdoll`: its
+    steps, floor, walls, friction, sleep and the model's shape against the
+    floor are the person's, with hooks `_before_passes`, `_rest_floor`,
+    `_floors_now`, `_keep_out` and per-ball `_limb`/`_core` flags). Knees
+    fold only their own way (`_hinges`, the rig's `bend`), legs no further
+    than `FOLD` and within `SWING` of the back, the head nods, each tail ball
+    bends `TAIL_BEND` at most on the last; legs are light against the body
+    (heavy legs out to one side rolled a hog on its side back onto them).
+    The kill strikes the part standing toward the shot (a blast the nearest
+    ball), divided by its heft; the tail lashes and the snout jerks up. It
+    comes to lie belly down, on its side away from the shot or on its back
+    by effects.cfg `[ragdoll] beast_<kind>` (a blast or buckshot at arm's
+    length likelier over): `_slump` gives its knees while it stands and
+    turns it about its length (`ROLL_RATE`) till its back points that way,
+    then lets it be. A ball in water floats `DUNK` of its radius under the
+    surface, bobbing with play's body, and one under it rises at
+    `FLOAT_RISE` (shot set at the surface at once, a swimming gator leapt
+    out of the water). Its legs' roots are lifted with the torso by its
+    shape (`_torso_more`): lifted against the torso's links they shook it
+    awake for ever.
+  - **The herd's hogs**: `EventHerd.blast` kills the hog's stand-in (looks:
+    `died_at`, `blast_at`); one first seen down (a client, a save) lies long
+    dead. Play's rows are as before.
+  - **The bosses** (`ActorView.BOSS_HANDOVER`): the scripted fall runs to
+    .6 of its span (boss_ending.gd's camera, slow motion and tally as
+    before), then its ragdoll takes the pose drawn, under the turn the fall
+    had, every ball going on at the speed its part went (`_fall_speeds`,
+    `Ragdoll.carry_on`), no blow; the model eases onto it over `BOSS_EASE`;
+    its torso may lie `BOSS_SLACK` from the boss's spot (the fall carries it
+    back; pulled to the spot it slid). That fall is no longer flattened.
+    Not the Copper Baron (fit.json `hand_over` false): on his back his
+    great gut stood up and his bent legs propped him, reading as a man
+    squatting; his set fall lays him out flat.
+  - Cost (headless, twenty bodies shot and stepped to rest, medians of
+    three runs back to back against v3.10.0): a person's step is unchanged
+    (billy 232 against 238 us, tin guard 231 against 242; the same steps to
+    the step), a gator's 315, a crawler's 318, a hog's 264, the cow's 223 us
+    (more balls, fewer links than they could have); `budget` still caps
+    every ragdoll's steps in a frame. County Run's stress scene (no beasts)
+    8.59 against 8.33 ms frame median over five noisy rounds.
+  - Checks: `physics_check`'s `tools/physics_beasts.gd` (each beast shot
+    five ways from two sides: no jump at the start, rigid links held, at
+    rest with no step after, on the floor, not standing, knees their way,
+    two ways two bodies, more than one way of lying; on ramps and stairs; a
+    gator floating in Gator Bayou's water; the herd's stand-in; the
+    sheriff's, Jerry's and the foreman's hand-over: no part jumps, at rest
+    on the floor, near where the fall laid it, sliding no further);
+    physics_ragdolls' "no part up, none sunk" now holds every beast too;
+    load_speed_check holds the beasts' baked rigs.
 - **Slow-mo finishers** (`features/finishers.gd`, play): the kill of an
   alerted hand that leaves nobody of the county's hands within hits.cfg
   `[finisher] reach` (and none alerted within twice that) sets
@@ -2120,6 +2190,10 @@ carry and the bowling pins' exact solver are untouched).
   break's knocks walk only its own pieces (newest first), and a piece
   leaning in a pile on chunks that merely stand (`SLENDER`) is held, so piles
   do not keep jiggling.
+  Pass 13 (HEAVY) took a fifth off the tick, exactly (the pairs both ways
+  from one set of dots in `src/wreck_pairs.gd`, each piece's corners turned
+  once a step, `way_out` asking no table twice for one cell's furniture):
+  [view3d.md](view3d.md#keeping-the-frame-cheap-track-r-before-v330).
 - `tools/wreck_motion_check.gd` (check_all, quick) holds all of it;
   `tools/wreck_motion_frames.gd` pictures it (`bare` leaves out what stays
   standing where a thing broke); `docs/godot3d/destruction/PHYSICS/`.

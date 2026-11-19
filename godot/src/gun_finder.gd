@@ -157,11 +157,14 @@ static func looked_at(g: Game, p: Player, far: float, facing: float) -> int:
 	var best := -1
 	var best_dot := -INF
 	var look := Vector2(cos(p.angle), sin(p.angle))
-	for i in g.pickups.size():
-		var entry: Array = g.pickups[i]
+	var px := p.x
+	var py := p.y
+	var pickups := g.pickups
+	for i in pickups.size():
+		var entry: Array = pickups[i]
 		var x: float = entry[1]
 		var y: float = entry[2]
-		if absf(x - p.x) > far or absf(y - p.y) > far:
+		if absf(x - px) > far or absf(y - py) > far:
 			continue
 		var item := str(entry[0])
 		if not _is_gun(item):
@@ -196,10 +199,12 @@ static func far_prompt(g: Game) -> String:
 static func shines(g: Game, out: Array) -> void:
 	var armory := g.local_player.armory
 	var size := tuned("shine_size")
+	_is_gun("")  # (the set made fresh if the guns changed; read below, inline)
+	var guns := _guns
 	for entry: Array in g.pickups:
 		# (A gun at all asked first: most pickups are not.)
 		var item := str(entry[0])
-		if not _is_gun(item):
+		if not guns.has(item):
 			continue
 		var x: float = entry[1]
 		var y: float = entry[2]
@@ -219,10 +224,12 @@ static func shines(g: Game, out: Array) -> void:
 static func lights(g: Game, p: Player) -> Array:
 	var out: Array = []
 	var armory := g.local_player.armory
+	var px := p.x
+	var py := p.y
 	for entry: Array in g.pickups:
 		var x: float = entry[1]
 		var y: float = entry[2]
-		if absf(x - p.x) > 12.0 or absf(y - p.y) > 12.0:
+		if absf(x - px) > 12.0 or absf(y - py) > 12.0:
 			continue
 		var item := str(entry[0])
 		if not _is_gun(item):

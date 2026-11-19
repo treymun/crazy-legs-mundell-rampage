@@ -17,7 +17,9 @@ chown -R clmr:clmr /opt/clmr
 install -m 644 "$src/clmr-lobbies.service" /etc/systemd/system/clmr-lobbies.service
 systemctl daemon-reload
 systemctl enable clmr-lobbies >/dev/null
-# Firewall: SSH and the two lobbies' UDP ports only.
+# Firewall: SSH and the lobbies' UDP ports only. lobbies.json runs one lobby
+# (47197, wss 443) since pass 13; 47198 and 8443 stay open for a second one,
+# which is only lobbies.json again (nothing listens there meanwhile).
 if ! command -v ufw >/dev/null; then apt-get install -y ufw >/dev/null; fi
 ufw allow 22/tcp >/dev/null
 ufw delete allow 47197:47199/udp >/dev/null 2>&1 || true

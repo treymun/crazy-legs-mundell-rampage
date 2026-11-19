@@ -70,6 +70,14 @@ const LIT := Color(82 / 255.0, 49 / 255.0, 31 / 255.0)
 const PLAIN := Color(34 / 255.0, 23 / 255.0, 17 / 255.0)
 const EDGE := Color(141 / 255.0, 102 / 255.0, 65 / 255.0)
 const REFRESH := Rect2i(14, 177, 70, 13)
+## Our own row's word on our mic (voice_chat.gd's state; "deaf": VOICE CHAT off).
+const MIC_TAGS := {
+	"off": "MIC OFF",
+	"none": "NO MIC",
+	"asking": "ALLOW MIC",
+	"refused": "MIC REFUSED",
+	"deaf": "VOICE OFF",
+}
 ## Servers (and party line rooms) the list shows at once.
 const SERVERS_SHOWN := 3
 
@@ -603,7 +611,14 @@ static func draw_lobby(
 		_note(c, note, 167)
 	elif why != "":
 		_note(c, why, 167, RED if cursor == "start" else SOFT)
-	footer(c, "CLICK A SETTING TO CHANGE IT" if net.is_admin() else "PICK A TEAM, THEN READY")
+	footer(
+		c,
+		(
+			"CLICK A SETTING TO CHANGE IT, A NAME TO MUTE"
+			if net.is_admin()
+			else "PICK A TEAM, THEN READY. CLICK A NAME TO MUTE"
+		)
+	)
 	back_button(c, "CLOSE" if net.role == NetPlay.Role.HOST else "LEAVE")
 
 
@@ -645,7 +660,8 @@ static func _teams(c: Canvas, net: NetPlay) -> void:
 		elif served and pid == net.admin_of():
 			tag = "ADMIN"
 		if tag != "":
-			HUD.text(c, tag, drawn.end.x + 4, y + 1, "mini", SOFT)
+			drawn = drawn.merge(HUD.text(c, tag, drawn.end.x + 4, y + 1, "mini", SOFT))
+		_voice_row(c, net, pid, drawn, x - 10, y, x + 116)
 		var ready: bool = p.get("ready", false)
 		HUD.text(
 			c,
@@ -702,7 +718,8 @@ static func _posse(c: Canvas, net: NetPlay) -> void:
 		elif served and pid == net.admin_of():
 			tag = "ADMIN"
 		if tag != "":
-			HUD.text(c, tag, drawn.end.x + 4, y + 1, "mini", SOFT)
+			drawn = drawn.merge(HUD.text(c, tag, drawn.end.x + 4, y + 1, "mini", SOFT))
+		_voice_row(c, net, pid, drawn, 13, y, 146)
 		var ready: bool = p.get("ready", false)
 		HUD.text(
 			c,
@@ -728,6 +745,28 @@ static func _posse(c: Canvas, net: NetPlay) -> void:
 	said.append("LATE JOIN: JUMP IN ANY TIME." if late else "LATE JOIN OFF.")
 	for k in said.size():
 		HUD.text(c, str(said[k]), 178, 67 + k * 9, "mini", SOFT)
+
+
+## Voice chat on a player's row: the talking mark at `mark_x` while they
+## talk (ourselves while we send), MUTED after the name (up to `room_end`),
+## and a click on someone else's name mutes or unmutes them (net_voice.gd).
+static func _voice_row(
+	c: Canvas, net: NetPlay, pid: int, drawn: Rect2i, mark_x: int, y: int, room_end: int
+) -> void:
+	var now := Time.get_ticks_usec() / 1000.0
+	if pid == net.my_id:
+		# Our own row: why nobody hears us, when nobody can.
+		var said: String = MIC_TAGS.get(net.voice.mic if net.voice.hearing else "deaf", "")
+		if said != "" and drawn.end.x + 4 + PixelType.text_width(said, "mini") <= room_end:
+			HUD.text(c, said, drawn.end.x + 4, y + 1, "mini", Menu.DIM)
+	if net.voice.muted.has(pid):
+		if drawn.end.x + 4 + PixelType.text_width("MUTED", "mini") <= room_end:
+			HUD.text(c, "MUTED", drawn.end.x + 4, y + 1, "mini", Menu.DIM)
+		VoiceChat.wave_mark(c, mark_x, y + 1, Menu.DIM)
+	elif net.voice.talking(pid, net.my_id, now):
+		VoiceChat.wave_mark(c, mark_x, y + 1, HUD.AMBER)
+	if pid != net.my_id:
+		zone(Rect2i(mark_x, y - 1, drawn.end.x - mark_x + 2, 9), "mute", pid)
 
 
 ## The lobby's main settings in two columns, MODE MAP RULES | BOTS SKILL.

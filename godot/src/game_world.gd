@@ -415,6 +415,18 @@ func collect(name: String) -> bool:
 	return true
 
 
+## Each pocket item's sound and word as it goes down (HUD.ITEMS order; an
+## online client shows them at its press, net_shot_predict.gd).
+const ITEM_CUES := ["crunch", "gulp", "moonshine", "whiskey_glug", "cowpie_pick"]
+const ITEM_WORDS := [
+	"PORK RINDS. GOOD EATIN'.",
+	"COLD BEER. EASY ON THE STEERING.",
+	"THAT'LL PUT HAIR ON THE TRACTOR.",
+	"WHISKEY. HAIR ON YER CHEST.",
+	"COW PIE. DON'T ASK.",
+]
+
+
 func use_item(slot := -1) -> void:
 	if slot >= 0:
 		inventory_slot = slot
@@ -434,32 +446,32 @@ func use_item(slot := -1) -> void:
 		p.health = mini(100, p.health + 28)
 		if p.drunk > 52:
 			p.drunk -= 13
-		text = "PORK RINDS. GOOD EATIN'."
+		text = ITEM_WORDS[0]
 		state = "FULL GUT" if p.gut >= 86 else ""
 	elif i == 1:
 		p.drunk = minf(100.0, p.drunk + 36.0)
 		p.health = mini(100, p.health + 16)
-		text = "COLD BEER. EASY ON THE STEERING."
+		text = ITEM_WORDS[1]
 		state = "WOBBLY" if p.drunk > 82 else "BUZZED"
 	elif i == 3:
 		p.drunk = minf(100.0, p.drunk + 55.0)
 		p.health = mini(100, p.health + 34)
-		text = "WHISKEY. HAIR ON YER CHEST."
+		text = ITEM_WORDS[3]
 		state = "LOOSE" if p.drunk > 70 else "WARM"
 	elif i == 4:
 		p.gut = minf(100.0, p.gut + 48.0)
 		p.drunk = maxf(0.0, p.drunk - 12.0)
 		p.health = mini(100, p.health + 12)
-		text = "COW PIE. DON'T ASK."
+		text = ITEM_WORDS[4]
 		state = "FULL GUT" if p.gut >= 86 else ""
 	else:
 		p.drunk = maxf(0.0, p.drunk - 70.0)
 		p.gut = maxf(0.0, p.gut - 55.0)
 		p.health = mini(100, p.health + 24)
 		sprint = 7.0
-		text = "THAT'LL PUT HAIR ON THE TRACTOR."
+		text = ITEM_WORDS[2]
 		state = "SPEED UP"
-	var cue: String = ["crunch", "gulp", "moonshine", "whiskey_glug", "cowpie_pick"][i]
+	var cue: String = ITEM_CUES[i]
 	sound.play(cue)
 	message(text)
 	var change := "+%d HP" % (p.health - health) if p.health > health else ""

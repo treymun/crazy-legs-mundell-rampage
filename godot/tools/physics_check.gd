@@ -20,6 +20,7 @@ extends SceneTree
 
 const PhysicsRagdolls := preload("res://tools/physics_ragdolls.gd")
 const PhysicsWater := preload("res://tools/physics_water.gd")
+const PhysicsBeasts := preload("res://tools/physics_beasts.gd")
 const PhysicsCore := preload("res://tools/physics_core.gd")
 const DT := 1.0 / 60.0
 const TOL := .03
@@ -63,6 +64,8 @@ func _run() -> void:
 	if levels != LEVELS:
 		rag_levels = levels
 	PhysicsRagdolls.new(self).run(main, rag_levels)
+	print("\nBEASTS AND BOSSES")
+	PhysicsBeasts.new(self).run(main)
 	print("\nTHE SHARED CORE")
 	PhysicsCore.new(self).run(main)
 	print("\nSLOW-MO FINISHERS")

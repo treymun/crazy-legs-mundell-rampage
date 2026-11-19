@@ -189,6 +189,28 @@ What each v3.6.0 screen and feature takes from a finger (`src/touch_controls.gd`
 
 Not checked by hand: none of it has been tried on a real phone.
 
+## Voice chat's pieces (pass 13)
+
+Online voice chat ([multiplayer.md](multiplayer.md#voice-chat-pass-13)) adds:
+
+- **Settings**, AUDIO page under VOICE CHAT ONLINE: VOICE CHAT (on), MICROPHONE
+  (off), TALK (PUSH TO TALK or OPEN MIC), MIC SENSITIVITY (open mic's gate),
+  VOICE CHAT VOLUME (80); the KEYS page's PUSH TO TALK (T). A pad talks with
+  its share, touchpad or first paddle button held (pads are not bound).
+- **Touch:** a TALK button (`TouchControls` role `talk`, held, at the left
+  edge above the move stick, for the left thumb) offered in play while the
+  mic is on PUSH TO TALK.
+- **In play:** `VoiceChat.pins` takes the rows down the left from row 22 in
+  `main_state.gd _pin_hud`, so the layout keeps clear; `VoiceChat.draw`
+  draws ON THE AIR or the mic's trouble and who is talking there, and the
+  talking mark (a 7x5 mouth with sound off both sides) over a talker this
+  player can see. The 5v5 scoreboard shows the mark beside a name.
+- **The lobby:** the mark left of whoever talks, MUTED after a muted name,
+  our own row's MIC OFF, NO MIC, ALLOW MIC, MIC REFUSED or VOICE OFF; a click
+  or tap on someone's name mutes or unmutes them (zone `mute`,
+  `OnlineInput._tap_lobby`); the footer says so.
+- `tools/voice_frames.gd` pictures them in a window.
+
 ## HOW TO RAISE HELL (the CONTROLS page)
 
 `ControlsScreen.rows_of(page)`: the keyboard page's rows name each key as

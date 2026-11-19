@@ -111,6 +111,11 @@ static func _tap_lobby(main: MainInput, id: String, arg: int) -> void:
 	if id == "copy":
 		main.key(KEY_C)
 		return
+	if id == "mute":
+		# A click on someone's name: voice chat mutes or unmutes them.
+		main.net.voice.toggle_mute(main.net, arg)
+		main.sound.play("menu_move")
+		return
 	var list := LobbyScreens.rows(main.net)
 	if id == "kick_left" or id == "kick_right":
 		main.lobby_row = list.find("kick")

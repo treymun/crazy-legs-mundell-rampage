@@ -86,6 +86,20 @@ decision here comes from measurement and from the code.
   run time (barks, boss lines, enemy cries, guns, floors, materials,
   `metal_down`) is in the bank or `Assets.MADE_CUES`.
 
+## Voice chat (online, pass 13)
+
+The players' own voices online are not cues: `src/net/voice_chat.gd` plays
+each talker through an `AudioStreamGenerator` on a bus of its own
+(`voice_out_N`: a panner and a low-pass like a placed sound's), sent to
+Master, outside the world's reverb, ducking nothing. Where it is heard from
+uses the same `Hearing` as the game's sounds (through a wall .43 and 1300
+Hz, a floor .32 and 800 Hz, round a corner .72 and 3600 Hz) and the same
+pan as `sound_position` (STEREO WIDTH), with its own falloff (full within 3
+cells, gone at 18: `data/tuning/voice.cfg`). The sound is 8 kHz IMA-ADPCM,
+telephone band. The mic is read from the muted `voice_mic` bus. The rest is
+in [multiplayer.md](multiplayer.md#voice-chat-pass-13). Not heard by anyone
+on the agent side.
+
 ## Voices
 
 Every spoken line is a `V` cue: an ElevenLabs line in one of the designed

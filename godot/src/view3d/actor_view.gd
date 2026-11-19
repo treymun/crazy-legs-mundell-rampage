@@ -26,6 +26,21 @@ const SETTLE := 10
 ## The model eases from the pose it was last shown in onto its ragdoll over
 ## HANDOVER seconds of its death (no pop where the animation lets go).
 const HANDOVER := .12
+## A boss's scripted fall (its set piece, boss_ending.gd's camera on it)
+## hands over to its ragdoll this far through (pass 13): over its balance and
+## going fast, it lands and settles as a body would, from the pose drawn and
+## every part going on at the speed it was (nothing pops, nothing slides);
+## that fall is not flattened. Not a boss whose body at rest is a cel of its
+## own (the truck, the boat, Maw: fit.json "down_cel").
+const BOSS_HANDOVER := .6
+## The fastest a part goes on at the hand-over (map units a second).
+const HANDOVER_FAST := 8.0
+## How far its body may lie from the boss's spot (its scripted fall carries
+## it a cell and more back; pulled to the spot it slid back across the floor).
+const BOSS_SLACK := 3.0
+## A boss's model eases from its scripted fall's pose onto its ragdoll over
+## this long from the hand-over.
+const BOSS_EASE := .22
 
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
@@ -41,9 +56,19 @@ var _doll_clock := 0.0
 var _was_at := Vector3.INF
 var _was_clock := 0.0
 var _going := Vector3.ZERO
+## A boss's scripted fall's points last drawn and the ones before (map), and
+## the time between (its parts' speeds at the hand-over).
+var _fall_now := PackedVector3Array()
+var _fall_was := PackedVector3Array()
+var _fall_at := -1.0
+var _fall_dt := 0.0
 ## The bones' poses the ragdoll took over from (_capture), eased off over
 ## HANDOVER (empty: done).
 var _hand_from: Array = []
+## When and over how long it eases (HANDOVER from its death; a boss's from
+## its hand-over).
+var _hand_at := 0.0
+var _hand_for := HANDOVER
 ## The ragdoll's step count and transform the parts were last posed for.
 var _posed := -1
 var _posed_dead := false
@@ -163,6 +188,9 @@ func revive() -> void:
 	_was_at = Vector3.INF
 	_going = Vector3.ZERO
 	_hand_from = []
+	_fall_now = PackedVector3Array()
+	_fall_was = PackedVector3Array()
+	_fall_at = -1.0
 	for skeleton in _skeletons:
 		skeleton.reset_bone_poses()
 	visible = true
@@ -181,30 +209,42 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	var tint: Color = pose[2]
 	var z := s.z + (.07 if frame == "down" else 0.0)
 	var down := 0.0
-	if not e.alive and e.died_at >= 0.0 and _ragdolls(e):
+	var info: Dictionary = models.kinds[kind]
+	var tips: float = info.get("tips", 0.0)
+	# A scripted fall's own dice: which way it goes and how quick.
+	var death := hash([e.uid, e.died_at]) if not e.alive and e.died_at >= 0.0 else 0
+	var span := Enemy.DEATH_TIME * (1.0 - FALL_QUICK * float((death >> 1) & 255) / 255.0)
+	var boss := Enemy.BOSS_TITLES.has(e.kind)
+	var dead := not e.alive and e.died_at >= 0.0
+	var handed := (
+		not boss
+		or (doll != null and doll.died_at == e.died_at)
+		or clock - e.died_at >= span * BOSS_HANDOVER
+	)
+	if dead and handed and _ragdolls(e):
 		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
-		_flop(e, level, clock, Vector3(s.x, s.y, z))
+		# (A beast or a boss lies at play's body's own height: lifted for the
+		# lying cel, a small one was carried over its floor, a boss shook.)
+		_flop(e, level, clock, Vector3(s.x, s.y, s.z if _rig is BeastRig or boss else z))
 		_shade(s, level, look, tint, down)
 		return
 	doll = null
 	if e.alive:
 		_track(Vector3(s.x, s.y, z), clock)
-	var turn := PI * .5 - e.angle
+	var turn := PI * .5 - e.angle + _yaw()
 	var size := _size(e)
-	var info: Dictionary = models.kinds[kind]
-	var tips: float = info.get("tips", 0.0)
-	# A scripted fall's own dice: which way it goes and how quick.
-	var death := hash([e.uid, e.died_at]) if not e.alive and e.died_at >= 0.0 else 0
 	var mirror := 1.0
 	if (death & 1) == 1 and tips == 0.0 and not info.get("down_cel", false):
-		mirror = 1.0 if Enemy.BOSS_TITLES.has(e.kind) else -1.0
-	var span := Enemy.DEATH_TIME * (1.0 - FALL_QUICK * float((death >> 1) & 255) / 255.0)
+		mirror = 1.0 if boss else -1.0
 	if frame == "down":
 		down = 1.0
 	elif frame.begins_with("die_") and not ActorView.held(e):
 		down = clampf((clock - e.died_at) / span, 0.0, 1.0)
 	var flat_at: float = info.get("flat", FLAT)
 	var flat := lerpf(1.0, flat_at, down * down) if not e.alive else 1.0
+	var handing := boss and dead and _ragdolls(e)
+	if handing:
+		flat = 1.0
 	if not e.alive and e.died_at >= 0.0 and Enemy.BOSS_TITLES.has(e.kind):
 		# A boss twists as it goes down so it lies on open floor.
 		var twist := _fall_twist(e, level, size, turn)
@@ -239,6 +279,14 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	if _blend_at >= 0.0:
 		_blend(clock)
 	_shown_alive = true
+	if handing and clock > _fall_at:
+		# Where the scripted fall has each part now, for the hand-over.
+		_fall_was = _fall_now
+		_fall_dt = clock - _fall_at
+		_fall_at = clock
+		_fall_now = PackedVector3Array()
+		for p in _rig.posed_points(_skeletons[0]):
+			_fall_now.append(Ragdoll.to_map(transform, p))
 	_shade(s, level, look, tint, down)
 
 
@@ -266,6 +314,15 @@ func _due(s: View.Sprite) -> bool:
 	return every == 1 or (ActorView.draws + get_instance_id()) % every == 0
 
 
+## How far the model is turned about its feet to face its heading (fit.json
+## "yaw": the gator's model was built side on for its cels, head along +x
+## turned toward the camera; it walked crabwise before pass 13).
+func _yaw() -> float:
+	var info: Dictionary = models.kinds[kind]
+	var yaw: float = info.get("yaw", 0.0)
+	return yaw
+
+
 ## The model's size for enemy `e` (its height against the model's canvas).
 func _size(e: Enemy) -> float:
 	var info: Dictionary = models.kinds[kind]
@@ -276,13 +333,22 @@ func _size(e: Enemy) -> float:
 
 
 ## Whether dead enemy `e` falls as a ragdoll: RAGDOLLS on, a model standing
-## on two legs (RagdollRig), not a boss (its fall is a set piece of its own)
-## and not a kind fit.json keeps off ("ragdoll": false).
+## on two legs (RagdollRig) or a beast's (BeastRig), not a kind fit.json
+## keeps off ("ragdoll": false); a boss from part way through its scripted
+## fall (BOSS_HANDOVER), not one whose body at rest is a cel of its own nor
+## one fit.json keeps to his scripted fall ("hand_over": false: the Copper
+## Baron, on his back his great gut stood up and his bent legs propped him,
+## reading as a man squatting; his set fall lays him out flat).
 func _ragdolls(e: Enemy) -> bool:
-	if not View.ragdolls or Enemy.BOSS_TITLES.has(e.kind):
+	if not View.ragdolls:
 		return false
 	var info: Dictionary = models.kinds[kind]
 	if not info.get("ragdoll", true):
+		return false
+	if (
+		Enemy.BOSS_TITLES.has(e.kind)
+		and (info.get("down_cel", false) or not info.get("hand_over", true))
+	):
 		return false
 	if _rig == null:
 		_rig = RagdollRig.of(kind, self, info)
@@ -312,7 +378,7 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 	var up := maxf(0.0, at.z - level.floor_under(at.x, at.y, at.z + .05))
 	if doll == null or doll.died_at != e.died_at:
 		var size := _size(e)
-		var turn := PI * .5 - e.angle
+		var turn := PI * .5 - e.angle + _yaw()
 		var xf := Transform3D(
 			Basis(Vector3.UP, turn).scaled(Vector3(size, size, size)), Vector3(at.x, at.z, at.y)
 		)
@@ -328,7 +394,19 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 				start = _rig.posed_points(_skeletons[0])
 				from = transform
 				_hand_from = _capture()
-		doll = Ragdoll.made(_rig, from, start)
+				_hand_at = e.died_at
+				_hand_for = HANDOVER
+				if Enemy.BOSS_TITLES.has(e.kind):
+					_hand_at = clock
+					_hand_for = BOSS_EASE
+					# Posed under the turn its scripted fall had (its twist to
+					# open floor): the pose eased from was the model's under it.
+					var ahead := transform.basis.z
+					turn = atan2(ahead.x, ahead.z)
+		if _rig is BeastRig:
+			doll = BeastDoll.made_beast(_rig as BeastRig, from, start, kind)
+		else:
+			doll = Ragdoll.made(_rig, from, start)
 		doll.died_at = e.died_at
 		doll.turn = turn
 		doll.follow(at, up, 0.0)
@@ -336,9 +414,15 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 			var dice := RandomNumberGenerator.new()
 			dice.seed = hash([e.kind, e.died_at, e.uid])
 			doll.fit()
-			if _shown_alive:
-				doll.drift(Vector3(_going.x, _going.y, 0.0))
-			doll.knock(e, dice)
+			if Enemy.BOSS_TITLES.has(e.kind) and _shown_alive:
+				# A boss's scripted fall hands over: no blow, every part going
+				# on as it went.
+				doll.carry_on(_fall_speeds(doll.pos.size()))
+				doll.slack = BOSS_SLACK
+			else:
+				if _shown_alive:
+					doll.drift(Vector3(_going.x, _going.y, 0.0))
+				doll.knock(e, dice)
 		else:
 			# Lying already: a few steps fit it to the floor, the rest as it is drawn.
 			doll.settle(level, SETTLE, true)
@@ -373,7 +457,19 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 	for skeleton in _skeletons:
 		_rig.pose(skeleton, model, dead)
 	if easing:
-		_ease_over(clampf((clock - e.died_at) / HANDOVER, 0.0, 1.0))
+		_ease_over(clampf((clock - _hand_at) / _hand_for, 0.0, 1.0))
+
+
+## Each part's speed in the scripted fall's last drawn step (map units a
+## second, at most HANDOVER_FAST), `n` of them (none known: still).
+func _fall_speeds(n: int) -> PackedVector3Array:
+	var out := PackedVector3Array()
+	out.resize(n)
+	if _fall_now.size() != n or _fall_was.size() != n or _fall_dt < 1e-4:
+		return out
+	for i in n:
+		out[i] = ((_fall_now[i] - _fall_was[i]) / _fall_dt).limit_length(HANDOVER_FAST)
+	return out
 
 
 ## The pose the ragdoll took over from (_hand_from) eased onto the one just

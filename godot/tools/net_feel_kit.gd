@@ -11,11 +11,22 @@
 ## - door: USE on a shut door, to the door drawn moving;
 ## - flinch: the .38 at a hand two steps off, to its flinch drawn;
 ## - tnt: a stick held a moment and let go, to its blast drawn, less the
-##   fuse it had left (0 when the blast shows when the fuse is out).
+##   fuse it had left (0 when the blast shows when the fuse is out);
+## - kill (pass 13): the .38 at a hand two steps off, low on health and held
+##   by a stun, to it drawn dead (net_kill_looks.gd);
+## - reel: the same at a hand free to walk (no sure kill: its flinch held),
+##   to it drawn dead;
+## - finish: USE on a dazed hand in reach, to it drawn down at the blow (less
+##   the move's own wind before the blow lands);
+## - break: the .38 at a crate two and a half steps off, to it drawn broken.
+## The pass 13 phases press later (PRESS_LATE): the copy is put back on the
+## host's changes by its check, a part at a time, within about a second.
 extends RefCounted
 
 const PHASE := 5.0
-const PHASES := ["scope", "bolt", "door", "flinch", "tnt"]
+const PHASES := ["scope", "bolt", "door", "flinch", "tnt", "kill", "reel", "finish", "break"]
+const LATE := ["kill", "reel", "finish", "break"]
+const PRESS_LATE := 2.2
 ## Seconds into a phase the button goes down (the gun is up by then).
 const PRESS := 1.2
 ## Seconds a press waits to be shown before it counts as missed.
@@ -40,6 +51,9 @@ var _expect := 0.0
 var _base := 0.0
 var _flash_was := 0.0
 var _ready := false
+## The crate the break phase shoots (its index), and those used.
+var _piece := -1
+var _broken := {}
 
 
 func _init() -> void:
@@ -92,6 +106,7 @@ func controls(host: Game, copy: Game, me: Player, dt_ms: float, now_ms: float) -
 		_waiting = ""
 		_begin(host, PHASES[phase])
 	var kind: String = PHASES[phase]
+	var press_at := PRESS_LATE if LATE.has(kind) else PRESS
 	var c := Game.Controls.new()
 	if at - dt_ms / 1000.0 <= 0.0:
 		# The gun key, as main.gd hands it to the next tick (net_keys.gd).
@@ -101,6 +116,10 @@ func controls(host: Game, copy: Game, me: Player, dt_ms: float, now_ms: float) -
 			"door": Weapons.REVOLVER,
 			"flinch": Weapons.REVOLVER,
 			"tnt": Weapons.DYNAMITE,
+			"kill": Weapons.REVOLVER,
+			"reel": Weapons.REVOLVER,
+			"finish": Weapons.REVOLVER,
+			"break": Weapons.REVOLVER,
 		}[kind]
 	var want := me.angle
 	var pitch := 0.0
@@ -112,7 +131,19 @@ func controls(host: Game, copy: Game, me: Player, dt_ms: float, now_ms: float) -
 			pitch = 8.0
 		"door":
 			want = _door_face
-		"flinch":
+		"break":
+			if _piece >= 0:
+				var bk: Object = copy.features.get("breakables")
+				var list: Array = bk.get("pieces")
+				var p: Object = list[_piece]
+				var px: float = p.get("x")
+				var py: float = p.get("y")
+				var gap0 := maxf(.5, Vector2(px - me.x, py - me.y).length())
+				want = atan2(py - me.y, px - me.x)
+				var foot: float = copy.world.stand(p) + float(p.get("z"))
+				var tall: float = p.get("height")
+				pitch = (foot + tall * .5 - me.eye) / gap0 * View.base_focal
+		"flinch", "kill", "reel", "finish":
 			var man := _enemy(copy, _man)
 			if man != null:
 				var gap := maxf(.5, Vector2(man.x - me.x, man.y - me.y).length())
@@ -120,7 +151,7 @@ func controls(host: Game, copy: Game, me: Player, dt_ms: float, now_ms: float) -
 				pitch = (copy.world.stand(man) + man.height * .55 - me.eye) / gap * View.base_focal
 	c.turn = angle_difference(me.angle, want)
 	c.look = clampf(pitch - me.pitch, -6.0, 6.0)
-	var pressing := at >= PRESS and at - dt_ms / 1000.0 < PRESS
+	var pressing := at >= press_at and at - dt_ms / 1000.0 < press_at
 	if kind == "tnt":
 		c.fire = at >= PRESS and at < PRESS + HOLD
 		if at >= PRESS + HOLD and at - dt_ms / 1000.0 < PRESS + HOLD:
@@ -128,17 +159,20 @@ func controls(host: Game, copy: Game, me: Player, dt_ms: float, now_ms: float) -
 			_expect = (me.armory.fuse_time() - HOLD) * 1000.0
 	else:
 		# Held a moment, as a finger does (a frame between ticks sends nothing).
-		var down := at >= PRESS and at < PRESS + TAP
+		var down := at >= press_at and at < press_at + TAP
 		match kind:
 			"scope":
 				c.alt_fire = down
-			"door":
+			"door", "finish":
 				if pressing:
 					TacticalScreens.pending_use = true  # USE goes once (net_keys.gd)
 			_:
 				c.fire = down
 	if pressing and kind != "tnt":
 		_press(kind, now_ms, copy)
+		if kind == "finish":
+			var wind: float = Game.BrawlScript.FINISH["wind"]
+			_expect = wind * 1000.0
 		if kind == "bolt":
 			var how: Dictionary = Weapons.FIRING[Weapons.CROSSBOW]
 			var speed: float = how["shot_speed"]
@@ -166,6 +200,17 @@ func observe(copy: Game, me: Player, now_ms: float) -> void:
 		"flinch":
 			var man := _enemy(copy, _man)
 			shown = man != null and man.hit_flash > 0.0
+		"kill", "reel", "finish":
+			var man := _enemy(copy, _man)
+			shown = man != null and not man.alive
+		"break":
+			if _piece >= 0:
+				var bk: Object = copy.features.get("breakables")
+				var list: Array = bk.get("pieces")
+				var p: Object = list[_piece]
+				var spec: Dictionary = p.get("spec")
+				var board: Object = p.get("board")
+				shown = board != null and str(board.get("image")) == str(spec["broken"])
 	var waited := now_ms - _pressed
 	if shown:
 		var list: PackedFloat32Array = delays[_waiting]
@@ -204,21 +249,73 @@ func _begin(host: Game, kind: String) -> void:
 				p.vy = 0.0
 				host.toggle_door(host.world.doors[_door], false)
 				host.world.doors[_door].progress = 0.0
-		"flinch":
-			var spot := Vector2(p.x, p.y) + Vector2(cos(p.angle), sin(p.angle)) * 2.2
+		"break":
+			_pick_piece(host, p)
+		"flinch", "kill", "reel", "finish":
+			var gap := .9 if kind == "finish" else 2.2
+			var spot := Vector2(p.x, p.y) + Vector2(cos(p.angle), sin(p.angle)) * gap
 			for k in 8:
 				var a := p.angle + k * TAU / 8.0
-				spot = Vector2(p.x, p.y) + Vector2(cos(a), sin(a)) * 2.2
+				spot = Vector2(p.x, p.y) + Vector2(cos(a), sin(a)) * gap
 				if not host.world.blocked(spot.x, spot.y, .4):
 					break
 			_man = -1
 			for e: Enemy in host.enemies:
-				if e.alive and e.hostile and e.hp > 40.0 and e.brain != "bessie":
-					e.x = spot.x
-					e.y = spot.y
-					e.dormant = false
-					_man = e.uid
-					break
+				if not (e.alive and e.hostile and e.hp > 40.0 and e.brain != "bessie"):
+					continue
+				if kind != "flinch" and (not HitZones.limbs(e) or HitZones.metal(e)):
+					continue
+				if kind != "flinch" and (e.kind == "tin_guard" or Variants.DOORS.has(e.kind)):
+					continue
+				e.x = spot.x
+				e.y = spot.y
+				e.dormant = false
+				_man = e.uid
+				if kind != "flinch":
+					# Low on health; held still by a stun (but the reel's).
+					e.hp = 8.0
+					e.stun = 0.0 if kind == "reel" else 4.0
+				break
+			# Nobody else near to take the shot.
+			for e: Enemy in host.enemies:
+				if e.uid != _man and e.alive and Vector2(e.x - spot.x, e.y - spot.y).length() < 6.0:
+					e.dormant = true
+
+
+## The break phase's crate: the next one standing whole in nobody's way, our
+## player put two and a half steps from it, its health down to a round's.
+func _pick_piece(host: Game, p: Player) -> void:
+	_piece = -1
+	var bk: Object = host.features.get("breakables")
+	if bk == null:
+		return
+	var list: Array = bk.get("pieces")
+	for i in list.size():
+		var q: Object = list[i]
+		var spec: Dictionary = q.get("spec")
+		var base: PackedFloat32Array = q.get("base")
+		if _broken.has(i) or q.get("broken") or not base.is_empty() or q.get("board") == null:
+			continue
+		if spec.get("sign", false) or spec.has("blast") or str(spec.get("broken", "")) == "":
+			continue
+		var qx: float = q.get("x")
+		var qy: float = q.get("y")
+		for k in 16:
+			var at := Vector2(qx, qy) + Vector2(cos(k * TAU / 16.0), sin(k * TAU / 16.0)) * 2.5
+			if host.world.blocked(at.x, at.y, .3) or not host.world.visible(at.x, at.y, qx, qy):
+				continue
+			_piece = i
+			_broken[i] = true
+			p.x = at.x
+			p.y = at.y
+			p.vx = 0.0
+			p.vy = 0.0
+			q.set("hp", 1.0)
+			bk.set("net_version", int(bk.get("net_version")) + 1)
+			for e: Enemy in host.enemies:
+				if e.alive and Vector2(e.x - at.x, e.y - at.y).length() < 8.0:
+					e.dormant = true
+			return
 
 
 static func _enemy(g: Game, uid: int) -> Enemy:
