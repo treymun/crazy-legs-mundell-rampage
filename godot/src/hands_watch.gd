@@ -40,3 +40,17 @@ func held_burst(_x: float, _y: float, _z: float, _kind: String, _count: int, _sp
 ## looks are not shown again (game.blast_quiet); its play goes as ever.
 func blast_shown(_shot: GameState.Shot) -> bool:
 	return false
+
+
+## Asked by brawl.gd as a finisher's blow by player `slot` on the man `uid`
+## lands: true when this machine drew that blow already (its move `move`,
+## net_finish_looks.gd), so its sounds, blood and call are left out.
+func finish_shown(_slot: int, _uid: int, _move: String) -> bool:
+	return false
+
+
+## Asked by breakables.gd as piece `index` breaks: true when this machine
+## drew that break already (net_break_looks.gd), so its sounds, bits and
+## specks are left out.
+func break_shown(_index: int) -> bool:
+	return false

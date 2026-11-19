@@ -700,6 +700,8 @@ func _gone(id: int) -> void:
 			var gone_slot: int = p["slot"]
 			if gone_slot < host_sync.game.players.size():
 				Modes.went_away(host_sync.game, host_sync.game.players[gone_slot])
+				# Every copy makes it before the next tick too (NetWire.event).
+				host_sync.note_event(NetWire.event(NetWire.EVENT_AWAY, gone_slot))
 		elif p.has("slot") and not county():
 			var slot: int = p["slot"]
 			changes.append({"bot": slot, "name": str(p["name"])})
@@ -1095,6 +1097,7 @@ func _seat_late(p: Dictionary) -> void:
 		var q := Modes.join_late(host_sync.game, str(p["name"]))
 		if q == null:
 			return
+		host_sync.note_event(NetWire.event(NetWire.EVENT_JOIN, q.slot, q.name))
 		p["slot"] = q.slot
 		p["ready"] = true
 		var joined_id: int = p["id"]
@@ -1110,6 +1113,7 @@ func _seat_late(p: Dictionary) -> void:
 	p["ready"] = true
 	var q: Player = host_sync.game.players[slot]
 	q.name = str(p["name"])
+	host_sync.note_event(NetWire.event(NetWire.EVENT_NAME, slot, q.name))
 	var pid: int = p["id"]
 	host_sync.add_remote(pid, slot)
 	_send_start(pid, slot)

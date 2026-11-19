@@ -90,6 +90,17 @@ var own := NetOwnShots.new()
 var hits := NetHitLooks.new()
 ## Doors and notes answered at a USE press (net_use_looks.gd).
 var uses := NetUseLooks.new()
+## Hands our sure kills drew falling at the press (net_kill_looks.gd).
+var kills := NetKillLooks.new()
+## Finishers drawn from our USE press (net_finish_looks.gd).
+var finishes := NetFinishLooks.new()
+## What our bullets surely break, drawn broken from the press (net_break_looks.gd).
+var breaks := NetBreakLooks.new()
+var _world_breaks: Array = []
+var _world_game: Game = null
+## What world_begin() put on for this frame, and the clock it last ran at.
+var _world_kept: Array = []
+var _world_ms := -1.0
 ## Our last USE press looked at (an input number).
 var _use_seq := -1
 
@@ -117,6 +128,8 @@ func clear_stats() -> void:
 		"blows_confirmed": 0,
 		"boots": 0,
 	}
+	if kills != null:
+		kills.stats = {"sure": 0, "given": 0, "withdrawn": 0, "reels": 0}
 	show_ms = PackedFloat32Array()
 	copy_ms = PackedFloat32Array()
 
@@ -158,6 +171,12 @@ func forget() -> void:
 	own.forget()
 	hits.forget()
 	uses.forget()
+	kills.forget()
+	finishes.forget()
+	breaks.forget()
+	_world_kept = []
+	_world_breaks = []
+	_world_ms = -1.0
 	_use_seq = -1
 
 
@@ -204,6 +223,7 @@ func frame(game: Game, me: Player, client: NetSync.Client) -> Dictionary:
 	var boot := _boot(game, me, client, inputs, played)
 	if not boot.is_empty():
 		out["boot"] = boot
+	out["finish"] = finishes.begin(game, me, played, now, kills)
 	_use(game, me, client, inputs, now)
 	out["doors"] = uses.begin(now)
 	var hidden := _pickups(game, me, client.input_seq - 1)
@@ -230,6 +250,9 @@ func restore(game: Game, me: Player, kept: Dictionary) -> void:
 		return
 	var gun: Dictionary = kept.get("gun", {})
 	NetGunLead.restore(me, gun)
+	if kept.has("finish"):
+		var finish: Dictionary = kept["finish"]
+		NetFinishLooks.end(game, me, finish)
 	if kept.has("boot"):
 		var boot: Dictionary = kept["boot"]
 		var brawl: Game.BrawlScript = game.features.get("brawl")
@@ -249,6 +272,31 @@ func restore(game: Game, me: Player, kept: Dictionary) -> void:
 	if kept.has("doors"):
 		var swung: Array = kept["doors"]
 		NetUseLooks.end(swung)
+
+
+## The kills drawn falling (net_kill_looks.gd), for this frame whatever our
+## player is doing (down, dead, the tally: a body never stands back up);
+## world_end() puts them back. Called after frame().
+func world_begin(game: Game, client: NetSync.Client) -> void:
+	_world_kept = []
+	if game.hands_watch != self:
+		return
+	var now := _now()
+	var dt := 0.0 if _world_ms < 0.0 else clampf((now - _world_ms) / 1000.0, 0.0, .1)
+	_world_ms = now
+	var played := played_seq(client)
+	_world_kept = kills.begin(game, played, now, dt)
+	_world_breaks = breaks.begin(game, played, now, own)
+	_world_game = game
+
+
+func world_end() -> void:
+	NetKillLooks.end(_world_kept)
+	_world_kept = []
+	if _world_game != null:
+		NetBreakLooks.end(_world_game, _world_breaks)
+	_world_breaks = []
+	_world_game = null
 
 
 func _key(ev: Dictionary) -> String:
@@ -396,8 +444,22 @@ func _line(game: Game, me: Player, gun: int, ev: Dictionary, shown: Dictionary) 
 			if sure.get("who") == who:
 				struck_one = who
 				at = end
+	# What our bullets surely break comes apart now (net_break_looks.gd); a
+	# hit shown behind it was not ours to show.
+	var client := _client_now()
+	var seq: int = shown["seq"]
+	var ahead := maxi(1, seq - played_seq(client) + 1)
+	if client != null and client.view_at >= 0.0:
+		ahead += maxi(0, ceili(float(client.game_tick) - client.view_at))
+	var found := NetBreakLooks.sure(game, me, gun, spent, aim, slope, ahead)
+	if not found.is_empty():
+		var each := me.armory.num(gun, "damage")
+		breaks.press(game, me, found, seq, each, _now())
+		var d: float = found["d"]
+		if struck_one != null and Vector2(at.x - me.x, at.y - me.y).length() > d:
+			struck_one = null
 	if struck_one != null:
-		_hit(game, me, gun, shown, struck_one, at)
+		_hit(game, me, gun, shown, struck_one, at, {"angle": aim, "slope": slope, "spent": spent})
 
 
 ## The first thing a line from `me` along (angle, slope) meets within `reach`
@@ -510,11 +572,15 @@ func _ring(game: Game, shown: Dictionary, gun: int, kind: String, end: Vector3) 
 
 ## Our line on someone: the crosshair's mark and tick (as game.struck), and
 ## blood where it went in, all of it ours to take back if the host says no.
-func _hit(game: Game, me: Player, gun: int, shown: Dictionary, who: Object, at: Vector3) -> void:
+func _hit(
+	game: Game, me: Player, gun: int, shown: Dictionary, who: Object, at: Vector3, line := {}
+) -> void:
 	stats["hits"] += 1
 	shown["hit"] = true
 	var damage: float = Weapons.DAMAGE.get(gun, 10)
 	hits.struck(who, damage, shown, _now())
+	if who is Enemy and not line.is_empty() and _kills(game, me, gun, shown, who as Enemy, line):
+		return
 	if game.hit_feedback:
 		if game.clock >= game.hit_mark_until:
 			game.hit_mark_kill = false
@@ -556,11 +622,73 @@ func _specks(
 		)
 
 
+## A hit that kills (net_kill_looks.gd): sure, the hand falls now with its
+## death cry, the kill's mark and tick and its blood; else, if it might,
+## its flinch is held until the host's word. True when the kill is shown.
+func _kills(
+	game: Game, me: Player, gun: int, shown: Dictionary, e: Enemy, line: Dictionary
+) -> bool:
+	if not NetKillLooks.enabled:
+		return false
+	var client := _client_now()
+	var seq: int = shown["seq"]
+	var ahead := maxi(1, seq - played_seq(client) + 1)
+	if client != null and client.view_at >= 0.0:
+		ahead += maxi(0, ceili(float(client.game_tick) - client.view_at))
+	var spent: int = line["spent"]
+	var angle: float = line["angle"]
+	var slope: float = line["slope"]
+	var how: Dictionary = Weapons.FIRING[gun]
+	var each := me.armory.num(gun, "damage")
+	if str(how.get("fire", "")) == "pellets":
+		var pellet: float = how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)
+		var pellets: int = how.get("pellets", Weapons.SHOTGUN_PELLETS)
+		each = pellet * pellets * spent
+	var name := str(Weapons.NAMES[gun])
+	if not NetKillLooks.sure(game, me, e, gun, spent, angle, slope, ahead):
+		var head: float = HitZones.HEAD.get(name, HitZones.HEAD_DEFAULT)
+		if e.hostile and each * maxf(1.0, head) > e.hp:
+			hits.reel(shown)
+			kills.stats["reels"] += 1
+		return false
+	kills.shown(game, e, name, Vector2(me.x, me.y), seq, each)
+	shown["kill"] = e
+	var material := (
+		"shell"
+		if Enemy.SHELL_ACTORS.has(e.kind)
+		else "tool" if Enemy.TOOL_ACTORS.has(e.kind) else "cloth"
+	)
+	var cry := "skeeter_pop" if e.brain == "skeeter" else e.voice_cue("down", material)
+	game.sound_at(cry, e.x, e.y, .83)
+	var heard: Array = shown["cues"]
+	heard.append(cry)
+	if game.hit_feedback:
+		if game.clock >= game.hit_mark_until:
+			game.hit_mark_head = false
+			game.hit_mark_at = game.clock
+		game.hit_mark_kill = true
+		game.hit_mark_until = maxf(game.hit_mark_until, game.clock + .24)
+		shown["marker_at"] = game.hit_mark_at
+		game.hit_tick_next = game.clock + .06
+		_say(game, shown, "kill_tick", .55)
+	if game.gore:
+		var before := game.specks.size()
+		var base: float = game.world.stand(e)
+		var green := Enemy.PLASMA.has(e.kind)
+		_specks(game, e.x, e.y, base + e.z + .5 * e.height, "plasma" if green else "gore", 9, 1.5)
+		shown["specks"] = game.specks.slice(before)
+	return true
+
+
 ## A shown hit the host did not give: the mark goes (if it is still ours)
 ## and its blood with it.
 func _withdraw_hit(game: Game, shown: Dictionary) -> void:
 	stats["hits_withdrawn"] += 1
 	hits.withdraw(shown)
+	var killed: Variant = shown.get("kill")
+	if killed is Enemy:
+		var e: Enemy = killed
+		kills.withdraw(e)
 	var marker_at: float = shown["marker_at"]
 	if marker_at >= 0.0 and game.hit_mark_at == marker_at and game.hit_mark_until > game.clock:
 		game.hit_mark_until = game.clock
@@ -617,6 +745,11 @@ func _boot(
 		held = c.use
 		if not fresh or first + i <= _boot_seq:
 			continue
+		var ahead := maxi(1, first + i - played + 1)
+		if client.view_at >= 0.0:
+			ahead += maxi(0, ceili(float(client.game_tick) - client.view_at))
+		if finishes.press(game, me, first + i, ahead, _now()):
+			break  # a finisher, drawn from the press (net_finish_looks.gd)
 		if _would_kick(game, brawl, me, (inputs.size() - 1 - i) * STEP):
 			_boot_seq = first + i
 			stats["boots"] += 1
@@ -672,8 +805,8 @@ func _use(game: Game, me: Player, client: NetSync.Client, inputs: Array, now: fl
 		if not fresh or first + i <= _use_seq:
 			continue
 		_use_seq = first + i
-		if _boot_seq == first + i:
-			continue  # the boot's
+		if _boot_seq == first + i or finishes.has(first + i):
+			continue  # the boot's, or a finisher's
 		var cue := uses.press(game, me, now)
 		if cue == "":
 			continue
@@ -823,10 +956,25 @@ func _expire(game: Game, played: int) -> void:
 				stats["pickups_taken"] += 1
 
 
+func finish_shown(slot_of: int, uid: int, move: String) -> bool:
+	var game: Game = _game.get_ref() if _game != null else null
+	return game != null and finishes.finish_shown(game, slot_of, uid, move, slot)
+
+
 func blast_shown(shot: GameState.Shot) -> bool:
-	if shot.enemy or shot.slot != slot:
+	if shot.enemy:
+		return false
+	if shot.owner == -1:
+		# A piece we broke going up (net_break_looks.gd).
+		var game: Game = _game.get_ref() if _game != null else null
+		return game != null and breaks.boom_shown(shot, game)
+	if shot.slot != slot:
 		return false
 	return own.blast_shown(shot)
+
+
+func break_shown(index: int) -> bool:
+	return breaks.break_shown(index)
 
 
 func before_hands(g: GameState, p: Player, _controls: GameState.Controls) -> void:
@@ -868,11 +1016,15 @@ func before_hands(g: GameState, p: Player, _controls: GameState.Controls) -> voi
 
 
 func defer(call: Callable, kind: String) -> void:
+	if not _quiet:
+		return  # a finisher's blow drawn at the press (brawl.gd _blow)
 	var impact := _watched.impact_kind if _watched != null else ""
 	_held.append([call, kind, impact])
 
 
 func held_burst(x: float, y: float, z: float, kind: String, count: int, speed: float) -> void:
+	if not _quiet:
+		return
 	_held.append(
 		[_burst_later.bind(x, y, z, kind, count, speed), "hit" if kind == "gore" else "trace", ""]
 	)

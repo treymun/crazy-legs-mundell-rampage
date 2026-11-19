@@ -37,6 +37,9 @@
 ##   from the press, never back, its sound heard once;
 ## - the client's check of its copy a part at a time: all clean, a change in
 ##   the game's fields, a feature or an enemy found by its own part;
+## - pass 13 (predict_check_kills.gd): a sure kill drawn dead from the press
+##   and never up again, one that is not sure reeling till the copy's kill,
+##   a refused one taken back; a finisher; a sure break;
 ## - nothing on a game nobody watches (single player, a host).
 ##
 ##   godot --headless --path godot --script res://tools/predict_check.gd
@@ -45,6 +48,7 @@
 extends SceneTree
 
 const STEP := NetSync.STEP
+const Kills := preload("res://tools/predict_check_kills.gd")
 ## Ticks between a press and the host playing it (100 ms).
 const LAG := 12
 
@@ -144,6 +148,7 @@ class Rig:
 		pred.now_ms += STEP * 1000.0
 		var walked := NetPredict.lead(g, me, client.unplayed_inputs())
 		var kept := pred.frame(g, me, client)
+		pred.world_begin(g, client)
 		# Our thrown shots at our time (net_own_shots.gd), as main.gd draws them.
 		var copy_shots_at := []
 		for s: GameState.Shot in g.shots:
@@ -163,6 +168,7 @@ class Rig:
 		if frame_probe.is_valid():
 			probes.append(frame_probe.call())
 		pred.own.end(g)
+		pred.world_end()
 		var back := g.shots.size() == copy_shots_at.size()
 		for row: Array in copy_shots_at:
 			var s: GameState.Shot = row[0]
@@ -227,6 +233,14 @@ func _run() -> void:
 	_flinch(main, false)
 	_door(main, true)
 	_door(main, false)
+	Kills.sure_kill(self, main, Rig, LAG, true)
+	Kills.sure_kill(self, main, Rig, LAG, false)
+	Kills.reel(self, main, Rig, LAG)
+	Kills.refused(self, main, Rig, LAG)
+	Kills.finisher(self, main, Rig, LAG, true)
+	Kills.finisher(self, main, Rig, LAG, false)
+	Kills.sure_break(self, main, Rig, LAG, true)
+	Kills.sure_break(self, main, Rig, LAG, false)
 	_check_parts(main)
 	_nobody_watching(main)
 	print("")

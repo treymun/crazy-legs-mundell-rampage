@@ -389,6 +389,41 @@ static func _read_places(rows: PackedByteArray, at: int, ticks: int) -> Array:
 	return out
 
 
+## Who plays changing (pass 13): a row entry keyed EVENT_SLOT or past it
+## carries a leave, a join or a new name instead of controls, on the tick
+## the host made it, so every copy makes it before playing that tick as the
+## host did (a leave and a join changed the host's game between ticks, and
+## every other copy was put back once for each). CONTROL_BYTES: the kind,
+## the player's slot, the name (ASCII, NetPlay.MAX_NAME at most). A copy of
+## an older build reads it as controls for a slot nobody plays.
+const EVENT_SLOT := 240
+const EVENT_AWAY := 1
+const EVENT_JOIN := 2
+const EVENT_NAME := 3
+
+
+static func event(kind: int, slot: int, name := "") -> PackedByteArray:
+	var out := PackedByteArray()
+	out.resize(CONTROL_BYTES)
+	out[0] = kind
+	out[1] = clampi(slot, 0, 255)
+	var text := name.to_ascii_buffer()
+	for i in mini(text.size(), CONTROL_BYTES - 2):
+		out[2 + i] = text[i]
+	return out
+
+
+## {"kind", "slot", "name"} of an event entry.
+static func event_of(bytes: PackedByteArray) -> Dictionary:
+	if bytes.size() < CONTROL_BYTES:
+		return {}
+	var text := bytes.slice(2, CONTROL_BYTES)
+	var end := text.find(0)
+	if end >= 0:
+		text = text.slice(0, end)
+	return {"kind": int(bytes[0]), "slot": int(bytes[1]), "name": text.get_string_from_ascii()}
+
+
 ## The inputs every player played on one tick: slot byte + controls each.
 static func tick_row(by_slot: Dictionary) -> PackedByteArray:
 	var out := PackedByteArray()

@@ -38,6 +38,29 @@ const MAX_REWIND := 64
 const LOCAL_ONLY := ["visited"]
 
 
+## A change to who plays from a tick's row (NetWire.event_of), made on a
+## copy before it plays that tick, as the host made it before playing it:
+## the same calls, so the same result. One already in the copy (a snapshot
+## taken after it) is not made again.
+static func play_event(game: Game, ev: Dictionary) -> void:
+	if ev.is_empty():
+		return
+	var kind: int = ev["kind"]
+	var slot: int = ev["slot"]
+	var name: String = ev["name"]
+	var here: Player = game.players[slot] if slot < game.players.size() else null
+	match kind:
+		NetWire.EVENT_AWAY:
+			if here != null and not here.away:
+				Modes.went_away(game, here)
+		NetWire.EVENT_JOIN:
+			if here == null or here.away:
+				Modes.join_late(game, name)
+		NetWire.EVENT_NAME:
+			if here != null:
+				here.name = name
+
+
 ## A snapshot of `game` as the host takes it: player one acting. (A capture
 ## copies the game's packed arrays itself, so no deep copy here: it was a
 ## third of a client's check every second.)
@@ -202,6 +225,13 @@ class Host:
 	var snap_phase := -1
 	var hold := false
 	var _owed := false
+	## Changes to who plays made on the host's game since the last tick (a
+	## leave, a join, a new name: NetWire.event), sent in the next tick's row
+	## so every copy makes them before that tick as the host did. Off
+	## (`tick_events`): none sent, and every other copy is put back once for
+	## each (the old way).
+	var events: Array[PackedByteArray] = []
+	static var tick_events := true
 
 	func _init(s: NetSession, g: Game, seat_with: Callable, every := 3) -> void:
 		session = s
@@ -238,6 +268,12 @@ class Host:
 	func drop_remote(id: int) -> void:
 		remotes.erase(id)
 
+	## A change to who plays, just made on the host's game between ticks
+	## (Modes.went_away, join_late, a new name): it rides the next tick's row.
+	func note_event(bytes: PackedByteArray) -> void:
+		if tick_events and events.size() < 255 - NetWire.EVENT_SLOT:
+			events.append(bytes)
+
 	## One tick with `own` (slot -> Controls, the host's own players) and
 	## every client's next input; snapshots when one is due.
 	func play(own: Dictionary) -> void:
@@ -257,6 +293,9 @@ class Host:
 				bytes = NetWire.with_rewind(bytes, clampi(tick + 1 - view, 0, MAX_REWIND))
 			rows[r.slot] = bytes
 			given[r.slot] = NetWire.unpack_controls(bytes)
+		for i in events.size():
+			rows[NetWire.EVENT_SLOT + i] = events[i]
+		events.clear()
 		var t0 := Time.get_ticks_usec()
 		game.tick(STEP, given)
 		tick_us += Time.get_ticks_usec() - t0
@@ -653,6 +692,8 @@ class Client:
 	var stale := 0
 	var no_base := 0
 	var rebuilds := 0
+	## Leaves, joins and names made on the copy from the rows (NetWire.event).
+	var events_played := 0
 	var checks := 0
 	var mismatches := 0
 	var first_mismatch := ""
@@ -1071,6 +1112,10 @@ class Client:
 			for s: Variant in row_dict:
 				var s_slot: int = s
 				var s_bytes: PackedByteArray = row_dict[s]
+				if s_slot >= NetWire.EVENT_SLOT:
+					NetSync.play_event(game, NetWire.event_of(s_bytes))
+					events_played += 1
+					continue
 				given[s_slot] = NetWire.unpack_controls(s_bytes)
 			game.tick(STEP, given)
 			echo.erase(game_tick)

@@ -379,6 +379,24 @@ func _watch() -> void:
 		_watch_sets(sets)
 
 
+## Breakable `i` thrown apart now by a shot from `from` to `to` (an online
+## client's sure break, net_break_looks.gd), and not again when the copy
+## breaks it; asked again each frame until then (a snapshot put on forgets
+## what was seen).
+func break_early(i: int, from: Vector3, to: Vector3, damage: float, first: bool) -> void:
+	var pieces: Breakables = game.features.get("breakables")
+	if not on or pieces == null or i < 0 or i >= pieces.pieces.size():
+		return
+	if _seen_pieces.has(i):
+		return
+	_seen_pieces[i] = true
+	if not first:
+		return
+	_shots.append([from, to, game.clock, damage])
+	var p: Breakables.Piece = pieces.pieces[i]
+	_break_piece(p)
+
+
 ## A set piece's tank burst throws its staves (those not torn out in the fall
 ## already), its cap and its name as real pieces; its hoops, its deck and the
 ## barns come apart in SetPieceWreck's own scripted pieces (real pieces

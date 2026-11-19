@@ -20,6 +20,13 @@ var muted := {}
 ## For net_feel.gd: reactions drawn at the press.
 var drawn := 0
 
+## A hit that may kill (net_kill_looks.gd) holds the flinch until the
+## host's word, at most REEL_MOST: the hand never stands unhurt meanwhile,
+## and the copy's kill starts its fall from that pose.
+const REEL_MOST := 1.0
+## The pain pose held (seconds of flinch it is drawn at).
+const REEL_FLINCH := .12
+
 
 ## Our hit on `who` shown at the press (`from`: net_shot_predict.gd's
 ## shown dictionary), `amount` the gun's damage.
@@ -38,10 +45,18 @@ func struck(who: Object, amount: float, from: Dictionary, now_ms: float) -> void
 				"flash": .075 + minf(.06, amount * .0016),
 				"flinch": .14 + minf(.16, amount * .004),
 				"from": from,
+				"hold": false,
 			}
 		)
 	)
 	drawn += 1
+
+
+## The flinch of the hit shown as `from` held until the host's word.
+func reel(from: Dictionary) -> void:
+	for r: Dictionary in shown:
+		if r["from"] == from:
+			r["hold"] = true
 
 
 ## The host said no: the flinch stops.
@@ -55,6 +70,7 @@ func withdraw(from: Dictionary) -> void:
 func confirmed(game: Game, from: Dictionary) -> void:
 	for r: Dictionary in shown:
 		if r["from"] == from:
+			r["hold"] = false
 			var e: Enemy = r["who"]
 			muted[e] = game.clock + maxf(e.flinch, e.hit_flash) + NetSync.STEP
 
@@ -73,6 +89,9 @@ func begin(game: Game, now_ms: float) -> Array:
 		var age := (now_ms - at) / 1000.0
 		var flash := flash0 - age
 		var flinch := flinch0 - age
+		var hold: bool = r["hold"]
+		if hold and age < REEL_MOST:
+			flinch = maxf(flinch, REEL_FLINCH)
 		if flash <= 0.0 and flinch <= 0.0:
 			shown.erase(r)
 			continue

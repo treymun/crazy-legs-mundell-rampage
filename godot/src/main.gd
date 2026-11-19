@@ -1204,10 +1204,15 @@ func net_draw_begin(dt: float) -> Array:
 		if client:
 			# Our thrown shots at our own time (net_own_shots.gd).
 			net_shots.own.begin(game, me, net_smooth.last_inputs, dt)
+	if net != null and net.role == NetPlay.Role.CLIENT and state == "play" and game != null:
+		# The hands our sure kills drew falling (net_kill_looks.gd), whatever
+		# our own player is doing.
+		net_shots.world_begin(game, net.client_sync)
 	return aimed
 
 
 func net_draw_end(aimed: Array) -> void:
+	net_shots.world_end()
 	net_shots.own.end(game)
 	if not aimed.is_empty():
 		var aimed_player: Player = aimed[0]
