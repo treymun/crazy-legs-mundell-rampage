@@ -1023,41 +1023,44 @@ def hound(frame):
 
 
 def hound_face(frame):
-    """The badge's head: turned most of the way to profile and a little to
-    the camera, so the long muzzle, the hound's droop, an eye and the long
-    ear read at 28 pixels; the red collar's edge under the jaw."""
-    # A portrait's light: the dusk stage's rims turned down, so his black
-    # hood and ears read black at the badge's size, not rim-lit grey.
+    """The badge's head (pass 12: a bust off his own model, where it was a lone
+    head on a stump with the collar lying flat round it, which read at 28
+    pixels as a grey boot): his whole body built and framed so his head and
+    neck fill the canvas, three-quarters to the camera, muzzle to the right,
+    the long black ears hanging past the jaw, the tan brows and muzzle, the
+    ticked neck and the red collar round it, the chest going off the bottom.
+    The faces: 0 easy (panting), 1 riled (mouth shut, brows up, ears
+    forward), 2 hurt (eyes half shut, ears back, mouth open), down (eyes
+    shut, head hung)."""
+    # A portrait's light: the dusk stage's rims a touch down (his black hood
+    # still reads black) but kept, so ears and head cut out of the badge's
+    # dark well.
     if "rim" in LIGHTS:
-        LIGHTS["rim"][0].energy = 2.2
-        LIGHTS["rim2"][0].energy = 1.4
-        LIGHTS["key"][0].energy = 5.4
+        LIGHTS["rim"][0].energy = 4.6
+        LIGHTS["rim2"][0].energy = 3.0
+        LIGHTS["key"][0].energy = 5.6
         LIGHTS["bg"].inputs[1].default_value = .3
     _HD_CLEAN[0] = True
     K = _hd_kit()
-    P = _hd_rest()
-    P.update(ears=.1, flare=.0, jaw=.2, tongue=1.)
+    P = _hd_pose("i0")
+    P.update(neck=.8, nod=.06, head_yaw=0., neck_yaw=0., ears=-.05, flare=0., ear_l=0., ear_r=0.,
+             jaw=.2, tongue=1., lids=.22, brows=0.)
     if frame == 1:
-        P.update(jaw=.04, tongue=0., ears=-.15, brows=1.)
+        P.update(jaw=.03, tongue=0., ears=-.25, brows=1., nod=0., neck=.86)
     elif frame == 2:
-        P.update(jaw=.34, tongue=0., ears=.5, lids=.55, brows=1.)
+        P.update(jaw=.3, tongue=0., ears=.45, lids=.55, brows=1., nod=.14)
     elif frame == "down":
-        P.update(jaw=.1, tongue=.5, ears=.25, lids=1.)
-    # (the camera looks along +y; his muzzle to the right, toward it a touch)
-    Hm = (T((-.0, 0, .215)) @ R(0, 0, -.62) @ R(0, .14, 0) @ T((-.12, 0, 0))
-          @ Matrix.Diagonal((.86, .86, .86, 1)))
-    _hd_head(Hm, P, K)
-    _hd_ears(Hm, P, K)
-    # a short stump of the neck under it, the red collar's edge round it
-    neck = Hm @ Vector((-.02, 0, -.03))
-    _hd_limb(neck + Vector((-.01, .02, -.09)), neck, .076, .066, K["body"], None, P=T((.4, 0, .66)))
-    collar = neck + Vector((-.005, .01, -.075))
-    for k in range(24):
-        a0, a1 = k / 24 * math.tau, (k + 1) / 24 * math.tau
-        p0 = collar + Vector((math.cos(a0), math.sin(a0), 0)) * .078
-        p1 = collar + Vector((math.cos(a1), math.sin(a1), 0)) * .078
-        _hd_limb(p0, p1, .013, .013, K["collar"], None, seg=8)
-    _hd_ball(collar + Vector((.035, -.074, -.022)), (.015, .006, .017), K["tag"])
+        P.update(jaw=.08, tongue=.5, ears=.3, lids=1., nod=.18, neck=.7, brows=1.)
+    # Where his head is in his own frame (hound()'s dog_head), put a little
+    # above the canvas's middle (the camera looks at .17 up, .42 across),
+    # turned three-quarters to the camera, big enough that the head and the
+    # collar fill the canvas (the badge fits what shows into 28 pixels).
+    # (a down cel's camera looks from 20 degrees up, not 4: he is tipped
+    # toward it to match the others)
+    tip = R(math.radians(-16), 0, 0) if frame == "down" else Matrix.Identity(4)
+    M = (T((-.03, 0, .185)) @ tip @ R(0, 0, -1.22) @ Matrix.Diagonal((1.4, 1.4, 1.4, 1))
+         @ T((-.6, 0, -.72)))
+    _hd_body(P, K, M)
     _HD_CLEAN[0] = False
 
 

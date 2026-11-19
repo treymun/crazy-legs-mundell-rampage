@@ -324,7 +324,15 @@ a shop lamp falling in the saw floor's arena.
      `HoundLooks.STRIDE` is what `tools/hound_pace.gd` measures a planted
      foot going back a beat off the model (.15, .21, .277); change it with
      the keys. A `rig-only` run, pack, `--import`, `bake_rigs.gd`.
-     `hound_face` is his HUD badge's head, three-quarters so the long muzzle
+     `hound_face` (pass 12, `docs/godot3d/blue12/badge_before_after.png`:
+     the lone head on a neck stump with the collar lying flat round it read
+     as a grey boot at the badge's size) is a bust off his own body now: his
+     whole model built and framed so the head and the red collar fill the
+     canvas, three-quarters to the camera, the black ears hanging past the
+     jaw; the faces 0 (panting), 1 (mouth shut, brows up), 2 (eyes half
+     shut, ears back) and down (eyes shut; tipped to match its higher
+     camera). `build_enemy_actors.gd -- kinds=hound_face` (seconds), then
+     `pack_assets.gd`. Before it, `hound_face` was his HUD badge's head, three-quarters so the long muzzle
      and the ears read at 28 pixels, cels only (`cels_only`: export_actors.py
      makes no model of it), lit with the rims down and no road dirt
      (`_HD_CLEAN`). `build_enemy_actors.gd -- kinds=hound,hound_face`, then
