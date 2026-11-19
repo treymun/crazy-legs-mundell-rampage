@@ -625,6 +625,129 @@ pass 9 ([county_run.md](county_run.md#copies-that-parted-after-a-card-pick-onlin
 pass 12 paces it by the clock like every other mode (`NetPlay.county_by_clock`;
 county_net_check passed every run with it).
 
+### Frame by frame (pass 12, `net_feel.gd`)
+
+net_lag steps one frame a tick, so it could not see what a screen faster
+than the tick shows. `tools/net_feel.gd` draws one client the way main.gd
+does (its own `advance()`, `net_draw_begin()`, `net_draw_end()`) at a
+screen's rate (`hz=144` or `60`, a quarter millisecond of wobble a frame),
+the others bots on their own copies, over 127.0.0.1 ENet with latency,
+jitter (a fifth of it) and 2% loss on both sides, in a 5v5 round, online
+deathmatch, campaign co-op as a client (`coop`) and as the host's own view
+(`host`, main.gd hosting), and County Run co-op; the same scene
+single-player is the bar (SP: the game's own 120 ticks). Per frame it
+records our eye, every other player and hand near us, the gun's flash, the
+hit mark and the correction drawn; a moving thing's step is held against
+its own pace over the 7 frames round it (frozen: under a quarter of it;
+uneven: off by over 35%; jerk: the mean of how far off), the view's turn
+against the mouse's that frame, key and mouse to screen (the bot is stopped
+for a few frames now and then and let go), and how far behind the host's
+tick now the others are drawn. `ways=old,new` runs v3.9.0's way and the new
+one on one build; `quick` (check_all, ALONE) holds the 5v5 client and the
+co-op host at 120 ms to `QUICK_LIMITS`.
+
+What it found:
+
+- **Online ticks at 60, single-player at 120, and neither drew between
+  ticks.** On a 144 Hz screen a client's own player and everyone else held
+  still for one or two frames and then stepped two ticks' worth: 55 to 58%
+  of frames frozen and every frame off its pace (single-player: 17% frozen,
+  a third uneven). The host's own view (online co-op, deathmatch) turned
+  only at the tick (60% of turning frames held; the mouse took 7 to 14 ms
+  to show).
+- **Fixed, looks only, put back after the frame:** our player is carried
+  into the next tick by the frame's share of it with the keys held now and
+  turned by all of the mouse not sent (`NetPredict.ahead`; the host's own
+  player too, `main.gd _host_aim`). Everyone else is drawn between the
+  copy's last two ticks (`NetBlend`) at the fraction of a **render clock**
+  (`NetSync.Client.view_at`, `_view_clock`): it runs with the frame's own
+  time (`client_play(steps, elapsed)`) and eases toward the host's tick
+  less the playout depth by at most 8% faster or 15% slower (it jumps only
+  when 10 ticks off), so a quicker arrival, a late snapshot or a deeper
+  playout bends its pace instead of freezing or hurrying everyone; the copy
+  is played to the tick at or just past it (`_paced`). Our inputs report
+  the tick shown, rounded (`shown_tick`), for the rewind. The front end's
+  online clock is to the microsecond (`_net_frame`). The host blends its
+  others a tick back by `net_accum`.
+- **Co-op partners bumped.** The prediction walked us into the copy's
+  partner, a round trip and the playout behind the host's: two co-op bots
+  following each other were corrected 950 to 1,360 times a minute. The
+  walk now meets the others who block where the host will have them
+  (`NetPredict._mates`): 220 to 340 a minute (the rest is the partner
+  turning), and the correction drawn is a fifth of what it was.
+- **The walk missed mud and knock-downs, and walked through holds** (County
+  Run's card picks, where the host plays nobody's input): `NetPredict.step`
+  has both now, and while the copy holds the inputs the host echoed for
+  those ticks are not walked (`held()`, lead's `echoed`); ours it has not
+  played are, since they reach it after the pick (freezing them froze the
+  view for a round trip after every pick).
+- **County Run co-op** is paced by the clock like the rest
+  (`NetPlay.county_by_clock`).
+- **A thrown shot** showed a round trip late from behind us; now a ghost
+  from the press, then the copy's own drawn on to our time
+  (`NetOwnShots`, [modes.md](modes.md#shots-reloads-and-pickups)).
+
+The pass 12 numbers (`net_feel.gd -- seconds=20 ways=old,new`, and `hz=60`;
+the tool's clock is its own, so runs repeat nearly to the frame; old is
+v3.9.0's way on this build). At 144 Hz, old -> new; SP is single-player:
+
+| 144 Hz | SP | 50 ms | 120 ms | 250 ms |
+| --- | --- | --- | --- | --- |
+| 5v5: view frozen frames | 16.6% | 58.3 -> 0.0 | 58.3 -> 0.0 | 57.7 -> 0.1 |
+| 5v5: view jerk | 35% | 114 -> 2.3 | 114 -> 2.4 | 113 -> 2.6 |
+| 5v5: turn held against the mouse | 17% | 0 -> 0 | 0 -> 0 | 0 -> 0 |
+| 5v5: others frozen | 16.5% | 58.2 -> 0.0 | 58.2 -> 0.0 | 58.2 -> 0.0 |
+| 5v5: others jerk | 34% | 114 -> 0.2 | 113 -> 0.2 | 114 -> 0.2 |
+| 5v5: others drawn behind the host | | 117 -> 112 ms | 267 -> 265 | 433 -> 430 |
+| deathmatch: view frozen | 16.7% | 55.6 -> 0.6 | 55.0 -> 0.4 | 54.8 -> 0.7 |
+| deathmatch: others frozen | 16.7% | 58.2 -> 0.2 | 58.2 -> 0.1 | 58.6 -> 6.9 |
+| deathmatch: others jerk | 35% | 114 -> 1.7 | 113 -> 1.4 | 115 -> 14 |
+| deathmatch: marks with the shot's frame | 100% | 46 -> 62% | 29 -> 60 | 62 -> 60 |
+| co-op client: view frozen | 17.5% | 26.8 -> 1.1 | 27.9 -> 0.7 | 26.0 -> 2.3 |
+| co-op client: view jerk | 37% | 67 -> 8.7 | 74 -> 6.8 | 61 -> 10 |
+| co-op client: corrections a minute | 0 | 903 -> 219 | 1146 -> 222 | 1170 -> 336 |
+| co-op client: correction drawn (cells) | 0 | .081 -> .022 | .090 -> .017 | .099 -> .031 |
+| co-op client: others frozen | 17.8% | 58.3 -> 1.0 | 58.4 -> 0.7 | 59.8 -> 9.8 |
+| co-op host's own view: frozen | | 58.3 -> 0.5 | 58.2 -> 0.9 | 58.3 -> 0.6 |
+| co-op host: turn held against the mouse | | 59.8 -> 0 | 59.9 -> 0 | 59.8 -> 0 |
+| co-op host: mouse to the turn shown | | 7.2 -> 0 ms | 13.4 -> 0 | 13.7 -> 0 |
+| co-op host: others frozen | | 58.6 -> 0.9 | 58.6 -> 1.4 | 58.4 -> 1.2 |
+| County Run: view frozen | 16.9% | 56.9 -> 0.1 | 53.0 -> 0.0 | 55.4 -> 0.0 |
+| County Run: others frozen | 17.3% | 59.1 -> 0.7 | 58.4 -> 1.8 | 60.1 -> 9.7 |
+| County Run: others drawn behind the host | | 100 -> 118 ms | 183 -> 266 | 317 -> 434 |
+| County Run: copies put back | | 1 -> 1 | 2 -> 2 | 11 -> 3 |
+
+At 60 Hz one tick a frame already, so old was close: the view frozen 1 to
+2% either way (single-player 0.5 to 1.6%), but the others stepped unevenly
+(5v5 frozen 2.4 to 3.8% -> 0.0, jerk 8 to 11% -> 0.6; County Run 5.9, 14.4,
+30.2% -> 3.6, 2.6, 5.0) and the host's turn was held now and then (0.4 to
+1.4% -> 0). Key and mouse to screen are the same frame everywhere (0 ms;
+single-player's own is under a tick), an own shot's flash shows at the
+press, and the round trip to the host's word is the link's (153, 311,
+595 ms).
+
+What it does not fix, and why:
+
+- **How far behind the others are drawn** is the one-way trip, the
+  snapshot gap (3 ticks) and the arrivals' jitter: 112, 265, 430 ms in the
+  5v5. County Run's are 20 to 120 ms more than before: its old playout
+  stood two ticks behind the newest snapshot whatever the jitter, which
+  froze them 15 to 30% of the frames at 60 Hz. A higher snapshot rate
+  would take a tick or two off (the server's to decide).
+- **Other people at 250 ms** (deathmatch, co-op, County Run: 7 to 10% of
+  frames frozen, 14 to 20% jerk; the 5v5's server bots none): the host
+  plays a person's late input held and then merges the pile, so they move
+  unevenly on the host itself; a small input buffer per client on the host
+  would even it out.
+- **Copies put back for input rows that never came** at 250 ms in co-op
+  and County Run (3 to 11 in 20 s; none in the 5v5 and deathmatch), each a
+  visible jump of the world.
+- **Hit marks**: a centre line well on the body is marked at the press
+  (`NetShotPredict.SURE`); a grazing one is marked when the host's word
+  comes. The rewind judges at the shown tick rounded, at most half a tick
+  (8 ms) off what the blend draws: net_lag's "looked a hit, judged a miss"
+  was 0 / 4.8 / 21% at 50 / 120 / 250 ms with this, 0 / 13.6 / 20% without.
+
 ## Online 5v5
 
 `src/net/net_play.gd`, `lobby_screens.gd`, `net_upnp.gd`; `docs/online.md` is
