@@ -48,9 +48,15 @@ TEXTURE = 512
 # The bosses with the most parts bake their looks twice as fine: at 512 their
 # hundreds of parts each got a few texels, blocky and dark at the seams up
 # close against their cels.
+# Jerry, Rudy and the foreman joined them in pass 13 (at 512 they had 73 to 86
+# texels a metre, the regular hands 90 to 170: plaid, stripes and faces went
+# to blocks up close).
 # The county events' razorback (actors_hog.py) bakes half as fine: one of a
 # herd, seldom near, and its looks are in the browser's first download.
-FINE = {"baron": 1024, "derby_champ": 1024, "swamp_king": 1024, "maw": 1024, "maw_bare": 1024, "hog": 256, "revenue_man": 1024}
+FINE = {
+    "baron": 1024, "derby_champ": 1024, "swamp_king": 1024, "maw": 1024, "maw_bare": 1024, "hog": 256,
+    "revenue_man": 1024, "jerry": 1024, "rudy": 1024, "foreman": 1024,
+}
 RECORD = []
 _place = place
 

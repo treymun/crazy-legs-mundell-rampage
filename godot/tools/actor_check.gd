@@ -12,8 +12,8 @@
 ## its wind-up and recover; a critter its -1, 0, 1). TEXELS: each model's
 ## texels a metre over its whole body and over its head (the triangles bound to
 ## head bones): every model at least TEXEL_MIN, a hand (a kind with the hurt
-## look) HAND_MIN and its head HEAD_MIN, so no face or belly is a few blocky
-## texels beside the crisp ones. MOTION: ActorView's looks-only motion:
+## look) HAND_MIN and its head HEAD_MIN, a boss BOSS_MIN and BOSS_HEAD_MIN,
+## so no face or belly is a few blocky texels beside the crisp ones. MOTION: ActorView's looks-only motion:
 ## a jump between poses blends (part way at half the blend, exactly the new
 ## key after it), the walk does not blend between its beats, a hit rocks the
 ## body by where it struck and is still again after ActorView.FLINCH, no two
@@ -34,10 +34,15 @@ const VehiclesFeature := preload("res://src/features/vehicles.gd")
 ## The regular hands kept their v3.0.0 unwrap (smart project's .01 gaps) until
 ## pass 9, 41 to 73 a metre; packed (export_actors.py GAP, the head given
 ## HEAD more across) they are 90 to 145, their heads 120 to 190. The biggest
-## bosses at 512 (Jerry, the foreman) are about 73.
+## bosses at 512 (Jerry, the foreman) were about 73 until pass 13 baked them
+## (and Rudy, 86) again at 1024: a boss (a kind with the p2 look) now has
+## BOSS_MIN over its body and BOSS_HEAD_MIN over its head, so no boss is
+## blurrier than the hands round it.
 const TEXEL_MIN := 70.0
 const HAND_MIN := 85.0
 const HEAD_MIN := 110.0
+const BOSS_MIN := 90.0
+const BOSS_HEAD_MIN := 90.0
 ## The razorback bakes at 256 for the browser's first download: no floor.
 const TEXEL_FREE := ["hog"]
 const LABELS := ["head", "arm_r", "arm_l", "leg_r", "leg_l", "body"]
@@ -246,17 +251,21 @@ func _texels(models: ActorModels, assets: Assets) -> void:
 		if kind in TEXEL_FREE:
 			continue
 		var hand := "hurt" in (info.get("textures", []) as Array)
-		var least := HAND_MIN if hand else HOUND_MIN if kind == "hound" else TEXEL_MIN
+		var boss := "p2" in (info.get("textures", []) as Array)
+		var least := (
+			HAND_MIN if hand else BOSS_MIN if boss else HOUND_MIN if kind == "hound" else TEXEL_MIN
+		)
 		_check(body >= least, "%s: %d texels a metre (at least %d)" % [kind, body, least])
 		if kind == "hound":
 			_check(
 				sums[2] > 0.0 and head >= HOUND_HEAD_MIN,
 				"hound: head %d texels a metre (at least %d)" % [head, HOUND_HEAD_MIN]
 			)
-		if hand and sums[2] > 0.0:
+		if (hand or boss) and sums[2] > 0.0:
+			var head_least := HEAD_MIN if hand else BOSS_HEAD_MIN
 			_check(
-				head >= HEAD_MIN,
-				"%s: head %d texels a metre (at least %d)" % [kind, head, HEAD_MIN]
+				head >= head_least,
+				"%s: head %d texels a metre (at least %d)" % [kind, head, head_least]
 			)
 	print("  %d models measured" % rows.size())
 
