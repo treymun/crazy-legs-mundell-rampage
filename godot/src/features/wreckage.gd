@@ -108,6 +108,11 @@ class Wreck:
 	var wakes := 0
 	## When a hand last kicked it (_walker).
 	var kicked := -9.0
+	## The turn and shrink its sprite was last given (sprites(): asked
+	## again only when the piece turned or shrank since).
+	var drawn_q := Quaternion(0.0, 0.0, 0.0, 0.0)
+	var drawn_k := -1.0
+	var drawn_shape := Basis()
 
 
 ## How a thing was struck when it broke: where (map), which way the push
@@ -157,6 +162,10 @@ var _heard := PackedFloat64Array()
 var _shots: Array = []
 ## Where walkers stood last tick (instance id -> Vector3), for their kicks.
 var _walked := {}
+## Each piece's place this tick (_kick).
+var _kick_x := PackedFloat64Array()
+var _kick_y := PackedFloat64Array()
+var _kick_read := false
 var _wake_at := 0
 var _models: PropModels
 ## The big breaks coming apart in their own pieces (src/set_piece_wreck.gd):
@@ -1304,6 +1313,7 @@ func _kick(dt: float) -> void:
 	for w: Wreck in wrecks:
 		lo = lo.min(Vector2(w.body.p.x, w.body.p.y))
 		hi = hi.max(Vector2(w.body.p.x, w.body.p.y))
+	_kick_read = false
 	lo -= Vector2(2.0, 2.0)
 	hi += Vector2(2.0, 2.0)
 	var seen := {}
@@ -1363,9 +1373,27 @@ func _walker(
 	var push := WreckPhysics.tuned("knock", how, .6) * speed
 	var kind := "ram" if how == "kick_ride" else "kick"
 	var near := reach + .3
-	for w: Wreck in wrecks:
+	if not _kick_read:
+		# Every piece's place read once a tick, when a walker first needs them
+		# (pass 13: each walker passed over every piece's body and place, a
+		# County Run horde forty times).
+		_kick_read = true
+		_kick_x.resize(wrecks.size())
+		_kick_y.resize(wrecks.size())
+		for i in wrecks.size():
+			var piece: Wreck = wrecks[i]
+			_kick_x[i] = piece.body.p.x
+			_kick_y[i] = piece.body.p.y
+	var xs := _kick_x
+	var ys := _kick_y
+	for i in wrecks.size():
+		# Across first (cheap, from the places read this tick: a kick moves
+		# only the piece kicked, never one not yet passed): most pieces are
+		# nowhere near this walker.
+		if absf(xs[i] - x) > near or absf(ys[i] - y) > near:
+			continue
+		var w: Wreck = wrecks[i]
 		var b := w.body
-		# Across first (cheap): most pieces are nowhere near this walker.
 		if absf(b.p.x - x) > near or absf(b.p.y - y) > near:
 			continue
 		if w.fading >= 0.0 or b.p.z > feet + KNEES + b.half.length() * .5 or b.p.z < feet - .3:
@@ -1407,7 +1435,11 @@ func sprites() -> Array:
 		var k := w.size
 		if w.fading >= 0.0:
 			k *= clampf(1.0 - (game.clock - w.fading) / maxf(.01, fade), 0.0, 1.0)
-		s.turn = Basis(b.q) * w.shape * Basis.from_scale(Vector3.ONE * k)
+		if b.q != w.drawn_q or k != w.drawn_k or w.shape != w.drawn_shape:
+			w.drawn_q = b.q
+			w.drawn_k = k
+			w.drawn_shape = w.shape
+			s.turn = Basis(b.q) * w.shape * Basis.from_scale(Vector3.ONE * k)
 		out.append(s)
 	if not debris.bits.is_empty():
 		out.append(_fine_sprite)

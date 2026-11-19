@@ -38,6 +38,7 @@ const LABELS := {
 	"photo": "PHOTO",
 	"torch": "LIGHT",
 	"whistle": "WHISTLE",
+	"talk": "TALK",
 }
 ## One-shot roles: a press counts once, however long the finger rests there.
 const TAPPED := [
@@ -70,8 +71,9 @@ var use_custom := false
 var editing := false
 var _moving := {}
 ## Buttons shown only when they do something (offer): LIGHT while this
-## player has a flashlight, WHISTLE while BLUE is along. MOVE THEM shows all.
-var kept_off := {"torch": true, "whistle": true}
+## player has a flashlight, WHISTLE while BLUE is along, TALK online with the
+## mic on PUSH TO TALK (held, voice_chat.gd). MOVE THEM shows all.
+var kept_off := {"torch": true, "whistle": true, "talk": true}
 var _done_rect := Rect2()
 var _reset_rect := Rect2()
 
@@ -123,6 +125,7 @@ func layout(rect: Rect2, again := false) -> void:
 		# the pocket's buttons.
 		["torch", _place("torch", Vector2(.40, .10)), tiny],
 		["whistle", _place("whistle", Vector2(.31, .10)), tiny],
+		["talk", _place("talk", Vector2(.07, .36)), small],
 	]
 	_done_rect = Rect2(rect.position + Vector2(w * .30, h * .40), Vector2(w * .18, h * .12))
 	_reset_rect = Rect2(rect.position + Vector2(w * .52, h * .40), Vector2(w * .18, h * .12))
@@ -313,6 +316,11 @@ func drag(event: InputEventScreenDrag) -> void:
 		look += event.relative.y * LOOK_RATE
 	state["last"] = event.position
 	queue_redraw()
+
+
+## Whether a finger rests on `role`'s button (TALK: voice_chat.gd).
+func pressing(role: String) -> bool:
+	return _held(role) and not _hides(role)
 
 
 func _held(role: String) -> bool:

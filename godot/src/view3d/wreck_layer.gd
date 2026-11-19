@@ -25,13 +25,33 @@ const FINE_MOST := 256
 ## New piece meshes made in a frame at most.
 const MESHES_FRAME := 8
 
+
+## A node drawing a piece, and what it was last handed (pass 13: kept here,
+## not as the node's metadata read every frame, and its transform set only
+## when the piece moved).
+class Drawn:
+	var node: MeshInstance3D
+	## The piece ("~<key>#<i>"), the source its material is a copy of, the
+	## cell it was lit in, whether it is a part blown off a vehicle.
+	var solid := ""
+	var source := ""
+	var cell := -1
+	var vehicle := false
+	## The sprite's turn and place it was last stood by.
+	var turn := Basis()
+	var at := Vector3.INF
+
+
+## Transforms set on pieces (each a piece that moved; heavy_check counts).
+static var placed := 0
+
 var _assets: Assets
 var _shader: Shader
 var _meshes := {}
 var _materials := {}
-## sprite -> MeshInstance3D shown for it; the spare nodes.
+## sprite -> Drawn shown for it; the spare ones.
 var _shown := {}
-var _spare: Array[MeshInstance3D] = []
+var _spare: Array[Drawn] = []
 ## The fine debris: one MultiMesh of boxes, and its material.
 var _fine: MultiMeshInstance3D
 var _fine_material: ShaderMaterial
@@ -95,7 +115,10 @@ func fine_material() -> ShaderMaterial:
 
 ## The pieces shown now (what shots and fire mark: thing_marks.gd).
 func shown() -> Array:
-	return _shown.values()
+	var nodes: Array = []
+	for d: Drawn in _shown.values():
+		nodes.append(d.node)
+	return nodes
 
 
 static func takes(s: View.Sprite) -> bool:
@@ -116,8 +139,8 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 			if _show_fine(s.who as WreckDebris, level):
 				fresh.append(_fine_material)
 			continue
-		var node: MeshInstance3D = _shown.get(s)
-		if node == null or node.get_meta("solid", "") != s.solid:
+		var drawn: Drawn = _shown.get(s)
+		if drawn == null or drawn.solid != s.solid:
 			# A break's pieces are made a few a frame (the frame it breaks
 			# would make them all); one not made yet shows the next frame.
 			if not _meshes.has(s.solid):
@@ -127,9 +150,9 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 			var mesh := _mesh(s.solid)
 			if mesh == null:
 				continue
-			if node == null:
-				node = _spare.pop_back() if not _spare.is_empty() else _node()
-				_shown[s] = node
+			if drawn == null:
+				drawn = _spare.pop_back() if not _spare.is_empty() else _drawn()
+				_shown[s] = drawn
 			var source := s.solid.substr(1).get_slice("|", 0)
 			var had := _materials.size()
 			var material := _material(source)
@@ -137,44 +160,60 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 				continue
 			if _materials.size() > had:
 				fresh.append(material)
+			var node := drawn.node
 			node.mesh = mesh
-			if node.get_meta("source", "") != source:
-				node.set_meta("source", source)
+			if drawn.source != source:
+				drawn.source = source
 				OwnMaterial.give(node, material)
 			# A set piece's parts (a barn, a water tower: src/set_piece_mesh.gd)
 			# stand big and are seen from far off.
 			node.visibility_range_end = FAR if s.solid.contains("|sp") else REACH
-			node.set_meta("solid", s.solid)
-			node.set_meta("cell", -1)
+			drawn.solid = s.solid
+			drawn.vehicle = s.solid.contains("|vw#")
+			drawn.cell = -1
+			drawn.at = Vector3.INF
 			node.visible = true
 			ThingMarks.clear(node)
 		seen[s] = true
+		var piece := drawn.node
 		if s.hurt > 0.0:
 			# A vehicle's hulk chars as it burns (src/vehicle_wreck_looks.gd).
-			ThingMarks._char_to(node, s.hurt)
-		elif s.solid.contains("|vw#"):
+			ThingMarks._char_to(piece, s.hurt)
+		elif drawn.vehicle:
 			# A part blown off a vehicle comes off scorched.
-			ThingMarks._char_to(node, VehicleWreckLooks.PART_CHAR)
-		node.transform = Transform3D(SolidLayer3D.godot_basis(s.turn), Vector3(s.x, s.z, s.y))
-		var cell := level.cell(
-			clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01)
-		)
-		if node.get_meta("cell", -1) != cell:
-			node.set_meta("cell", cell)
-			OwnMaterial.put(node, "tone", SpriteLayer3D.tone_at(level, s.x, s.y, false))
+			ThingMarks._char_to(piece, VehicleWreckLooks.PART_CHAR)
+		var at := Vector3(s.x, s.z, s.y)
+		if at != drawn.at or s.turn != drawn.turn:
+			drawn.at = at
+			drawn.turn = s.turn
+			piece.transform = Transform3D(SolidLayer3D.godot_basis(s.turn), at)
+			placed += 1
+			var cell := level.cell(
+				clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01)
+			)
+			if drawn.cell != cell:
+				drawn.cell = cell
+				OwnMaterial.put(piece, "tone", SpriteLayer3D.tone_at(level, s.x, s.y, false))
 	if not fine_shown and _fine != null:
 		_fine.multimesh.visible_instance_count = 0
-	for s: View.Sprite in _shown.keys():
-		if not seen.has(s):
-			var idle: MeshInstance3D = _shown[s]
-			_shown.erase(s)
-			if _spare.size() >= SPARE:
-				idle.queue_free()
-				continue
-			idle.visible = false
-			idle.set_meta("solid", "")
-			_spare.append(idle)
+	if seen.size() != _shown.size():
+		for s: View.Sprite in _shown.keys():
+			if not seen.has(s):
+				var idle: Drawn = _shown[s]
+				_shown.erase(s)
+				if _spare.size() >= SPARE:
+					idle.node.queue_free()
+					continue
+				idle.node.visible = false
+				idle.solid = ""
+				_spare.append(idle)
 	return fresh
+
+
+func _drawn() -> Drawn:
+	var d := Drawn.new()
+	d.node = _node()
+	return d
 
 
 func _node() -> MeshInstance3D:

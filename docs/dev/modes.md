@@ -494,7 +494,9 @@ the how-to is `docs/online.md`), hosted through the party line like the rest
 four at most (`most_players()`), no bots; MAP steps through the mode's own
 maps (`NetPlay.maps()`; a map only one mode lists moves the lobby to it).
 An always-open lobby has no host to lead a campaign: no CAMPAIGN CO-OP there
-(`modes()`).
+(`modes()`). Every online mode has proximity voice chat (pass 13): who hears
+whom by mode, the dead in the 5v5 rounds included, is in
+[multiplayer.md](multiplayer.md#voice-chat-pass-13).
 
 - **Deathmatch, team deathmatch**: the arenas of `Modes.ARENAS` (the rodeo
   grounds, the Hogs' field, Rudy's big top, the saw floor, the crossroads, the

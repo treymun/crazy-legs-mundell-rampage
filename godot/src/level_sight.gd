@@ -52,6 +52,21 @@ static func visible(
 	)
 	var z0 := LevelData._float(z) if banded else 0.0
 	var z1 := LevelData._float(zz) if banded else 0.0
+	# (Pass 13: the heights read once; a step's own blocked() written out
+	# where its corners were just tested, its cell's lists kept while the
+	# steps stay in it; _past_cell written out. The same answers.)
+	var heights := z != null
+	var za := LevelData._float(z) if heights else 0.0
+	var zb := LevelData._float(zz) if heights else 0.0
+	var own := plain and glassless and lv.index_radius >= .023
+	var near_fixtures := lv.near_fixtures
+	var near_doors := lv.near_doors
+	var geo_cells := geo.cells if geo != null else PackedByteArray()
+	var listed_cell := -1
+	var fixtures: Array = LevelData.NOTHING
+	var doors: Array = LevelData.NOTHING
+	var dx := xx - x
+	var dy := yy - y
 	var i := 1
 	while i < n:
 		var t := float(i) / float(n)
@@ -64,7 +79,25 @@ static func visible(
 			if glass and pane_cells[cy * w + cx] != 0:
 				pass
 			elif cx < w and cy < hgt and clear_cells[cy * w + cx] != 0:
-				i = _past_cell(x, y, xx, yy, n, i, cx, cy)
+				# _past_cell(x, y, xx, yy, n, i, cx, cy), written out.
+				var j := n
+				if dx > 0.0:
+					j = mini(j, ceili((float(cx + 1) - x) / dx * n))
+				elif dx < 0.0:
+					j = mini(j, ceili((float(cx) - x) / dx * n))
+				if dy > 0.0:
+					j = mini(j, ceili((float(cy + 1) - y) / dy * n))
+				elif dy < 0.0:
+					j = mini(j, ceili((float(cy) - y) / dy * n))
+				j = clampi(j, i + 1, n)
+				while j - 1 > i:
+					var tj := float(j - 1) / float(n)
+					var jx := x + (xx - x) * tj
+					var jy := y + (yy - y) * tj
+					if jx >= 0.0 and jy >= 0.0 and int(jx) == cx and int(jy) == cy:
+						break
+					j -= 1
+				i = j
 				continue
 			elif boxed and cx < w and cy < hgt and box_cells[cy * w + cx] != 0:
 				var j := _past_cell(x, y, xx, yy, n, i, cx, cy)
@@ -104,15 +137,51 @@ static func visible(
 					i += 1
 					continue
 		var wz: Variant = null
-		if z != null:
-			wz = LevelData._float(z) + (LevelData._float(zz) - LevelData._float(z)) * t
-		if lv.blocked(sx, sy, .023, wz):
+		if heights:
+			wz = za + (zb - za) * t
+		var cell_at := int(sy) * w + int(sx)
+		if own:
+			# blocked(sx, sy, .023, wz) past its corners (just tested: none
+			# in a wall; no pane, no locked gate on this level).
+			if geo != null and geo_cells[cell_at] != 0:
+				if not heights:
+					var g := lv.ground[cell_at]
+					if geo.blocks(sx, sy, .023, g + LevelGeometry.STEP, g + LevelGeometry.BODY):
+						return false
+				elif geo.solid_point(sx, sy, za + (zb - za) * t, .023, false):
+					return false
+			if index_cells[cell_at] != 0:
+				if cell_at != listed_cell:
+					listed_cell = cell_at
+					var tile := Vector2i(int(sx), int(sy))
+					fixtures = near_fixtures.get(tile, LevelData.NOTHING)
+					doors = near_doors.get(tile, LevelData.NOTHING)
+				for fixture: PackedFloat32Array in fixtures:
+					var f: PackedFloat32Array = fixture
+					if (
+						f[0] - .023 < sx
+						and sx < f[2] + .023
+						and f[1] - .023 < sy
+						and sy < f[3] + .023
+						and (
+							not heights
+							or (
+								f[7] - .023 < za + (zb - za) * t
+								and za + (zb - za) * t < f[4] + .023
+							)
+						)
+					):
+						return false
+				for door: LevelData.Door in doors:
+					if door.blocks(sx, sy, .023):
+						return false
+		elif lv.blocked(sx, sy, .023, wz):
 			return false
-		if geo != null and wz != null and geo.cells[int(sy) * w + int(sx)] != 0:
+		if geo != null and heights and geo_cells[cell_at] != 0:
 			# A steep look can step over a deck thinner than one step climbs.
 			var bt := float(i - 1) / float(n)
-			var bz := LevelData._float(z) + (LevelData._float(zz) - LevelData._float(z)) * bt
-			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, LevelData._float(wz)):
+			var bz := za + (zb - za) * bt
+			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, za + (zb - za) * t):
 				return false
 		i += 1
 	return true

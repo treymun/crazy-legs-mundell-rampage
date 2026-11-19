@@ -794,7 +794,7 @@ func frame(game: Game) -> void:
 		sprites.show_reflection(reflection, level, angle)
 	var marks: Array = view["marks"]
 	var ground: Array = view["ground"]
-	sprites.show_marks(marks, ground, Vector3(x, y, z), angle)
+	sprites.show_marks(marks, ground, Vector3(x, y, z), angle, mirror)
 	var t10 := Time.get_ticks_usec()
 	_uniforms(game, view, r, Vector3(x, y, z), angle, at_hub)
 	if _warm > 0:

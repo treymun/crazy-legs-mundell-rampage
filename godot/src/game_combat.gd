@@ -1072,14 +1072,19 @@ func ground_marks() -> Array:
 			dress_at.append(r0)
 			dress_at.append(r1)
 			dress_at.append(14.0 if image == "fx_shadow" else 9.49)
+	# (The player's place read once: these loops run for every mark every frame.)
+	var px := p.x
+	var py := p.y
 	for i in dress_list.size():
 		var x := dress_at[i * 3]
 		var y := dress_at[i * 3 + 1]
 		var reach := dress_at[i * 3 + 2]
-		if (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y) < reach * reach:
+		if (x - px) * (x - px) + (y - py) * (y - py) < reach * reach:
 			marks.append(dress_list[i])
 	for stain: View.GroundMark in gore_fx.blood_marks:
-		if (stain.x - p.x) * (stain.x - p.x) + (stain.y - p.y) * (stain.y - p.y) < 81.0:
+		var sx := stain.x
+		var sy := stain.y
+		if (sx - px) * (sx - px) + (sy - py) * (sy - py) < 81.0:
 			marks.append(stain)
 	var me: Game = self as Object
 	marks.append_array(Features.ground_marks(me))

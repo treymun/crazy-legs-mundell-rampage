@@ -1,7 +1,7 @@
 {
 	"alien": {"light": 1.04},
 	"barker": {"light": 1.04},
-	"baron": {"light": 1.05},
+	"baron": {"light": 1.05, "hand_over": false},
 	"big_billy": {"light": 1.11},
 	"billy": {"light": 1.06},
 	"boilerback": {"light": 1.11},

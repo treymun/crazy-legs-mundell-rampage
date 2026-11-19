@@ -814,6 +814,9 @@ for something that can be up on one; use `floor_under(x, y, z)` or
     `Ragdoll.carry_on`), no blow; the model eases onto it over `BOSS_EASE`;
     its torso may lie `BOSS_SLACK` from the boss's spot (the fall carries it
     back; pulled to the spot it slid). That fall is no longer flattened.
+    Not the Copper Baron (fit.json `hand_over` false): on his back his
+    great gut stood up and his bent legs propped him, reading as a man
+    squatting; his set fall lays him out flat.
   - Cost (headless, twenty bodies shot and stepped to rest, medians of
     three runs back to back against v3.10.0): a person's step is unchanged
     (billy 232 against 238 us, tin guard 231 against 242; the same steps to
@@ -2187,6 +2190,10 @@ carry and the bowling pins' exact solver are untouched).
   break's knocks walk only its own pieces (newest first), and a piece
   leaning in a pile on chunks that merely stand (`SLENDER`) is held, so piles
   do not keep jiggling.
+  Pass 13 (HEAVY) took a fifth off the tick, exactly (the pairs both ways
+  from one set of dots in `src/wreck_pairs.gd`, each piece's corners turned
+  once a step, `way_out` asking no table twice for one cell's furniture):
+  [view3d.md](view3d.md#keeping-the-frame-cheap-track-r-before-v330).
 - `tools/wreck_motion_check.gd` (check_all, quick) holds all of it;
   `tools/wreck_motion_frames.gd` pictures it (`bare` leaves out what stays
   standing where a thing broke); `docs/godot3d/destruction/PHYSICS/`.

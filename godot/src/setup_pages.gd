@@ -10,7 +10,13 @@ extends RefCounted
 const HEADERS := {
 	"INPUT": {"sensitivity": "MOUSE", "pad_look": "GAMEPAD", "autorun": "HABITS"},
 	"DISPLAY": {"brightness": "SCREEN", "crosshair": "SIGHTS AND GAUGES"},
-	"AUDIO": {"master": "VOLUME", "voice_captions": "SOUND", "menu_music": "MENUS AND WINDOW"},
+	"AUDIO":
+	{
+		"master": "VOLUME",
+		"voice_captions": "SOUND",
+		"menu_music": "MENUS AND WINDOW",
+		"voice_chat": "VOICE CHAT ONLINE",
+	},
 	"PLAY":
 	{
 		"difficulty": "THE RUN",
@@ -287,6 +293,54 @@ static func build() -> Array:
 					"bg_mute",
 					0,
 					"SILENCE THE GAME WHILE ANOTHER WINDOW OR APP HAS THE FOCUS"
+				),
+				SessionStore.toggle(
+					"VOICE CHAT",
+					"voice_chat",
+					1,
+					(
+						"HEAR THE OTHER PLAYERS ONLINE FROM WHERE THEY STAND."
+						+ " CLICK A NAME IN THE LOBBY TO MUTE IT"
+					)
+				),
+				SessionStore.toggle(
+					"MICROPHONE",
+					"voice_mic",
+					0,
+					(
+						"LET THE OTHERS HEAR YOU. A PHONE OR BROWSER ASKS FIRST."
+						+ " NOTHING IS EVER RECORDED"
+					)
+				),
+				SessionStore.choices(
+					"TALK",
+					"voice_talk",
+					0,
+					["PUSH TO TALK", "OPEN MIC"],
+					(
+						"PUSH TO TALK: HOLD THE TALK KEY, THE PAD'S SHARE BUTTON OR THE"
+						+ " PHONE'S TALK. OPEN MIC: JUST HOLLER"
+					)
+				),
+				SessionStore.Setting.new(
+					"MIC SENSITIVITY",
+					"voice_gate",
+					50,
+					0,
+					100,
+					10,
+					[],
+					"OPEN MIC: HOW SOFT A VOICE STILL GOES OUT. TURN IT DOWN IF THE TV GETS THROUGH"
+				),
+				SessionStore.Setting.new(
+					"VOICE CHAT VOLUME",
+					"voice_chat_volume",
+					80,
+					0,
+					100,
+					10,
+					[],
+					"HOW LOUD THE OTHER PLAYERS ARE"
 				),
 			]
 		],

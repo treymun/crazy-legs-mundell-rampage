@@ -980,7 +980,11 @@ static func draw_board(
 			if p.team != team:
 				continue
 			var name := Modes.tag(p) + (" YOU" if p.slot == human else "")
-			HUD.text(c, name, x, y, "mini", HUD.INK if p.health > 0 else GREY)
+			var drawn := HUD.text(c, name, x, y, "mini", HUD.INK if p.health > 0 else GREY)
+			# Online voice chat: talking now (amber) or muted by us (grey).
+			var heard: int = VoiceChat.marks.get(p.slot, 0)
+			if heard != 0 and drawn.end.x + 2 + VoiceChat.MARK_W < x + 58:
+				VoiceChat.wave_mark(c, drawn.end.x + 2, y, HUD.AMBER if heard == 1 else GREY)
 			HUD.text(c, "%d/%d" % [p.frags, p.deaths], x + 60, y, "mini", HUD.DIM)
 			if p.team == game.local_player.team:
 				var money: int = st.money[p.slot]

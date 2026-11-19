@@ -488,7 +488,8 @@ refused at HELLO; controls in 14 bytes, buys, reloads and the host's rewind
 among them; inputs sent redundantly with the tick the client shows;
 snapshots with their base, tick, input ack and the inputs played since the
 base, those rows zstd'd; a snapshot too big for a packet in unreliable
-`SNAP_PART`s; the lobby's messages). See [pacing](#pacing-packets-and-the-one-core-server-pass-12).
+`SNAP_PART`s; the lobby's messages; voice chat's frames on `CH_VOICE`,
+[voice chat](#voice-chat-pass-13)). See [pacing](#pacing-packets-and-the-one-core-server-pass-12).
 
 - `NetSync.Host` plays the authoritative game and sends deltas from each
   client's acknowledged snapshot (whole while it has none).
@@ -1674,6 +1675,119 @@ These are UiScreens now (`OnlineScreen`, a `ZonedScreen`; see
   `net_join` like the JOIN form. The party line's listed rooms (no password)
   follow the servers, asked with a LIST knock as often; the list shows three
   rows at a time and scrolls with the cursor.
+
+### Voice chat (pass 13)
+
+The owner asked for proximity voice chat in every online mode. One path
+serves them all: the always-open lobbies (5v5, tag team 2v2, and their
+co-op, deathmatch and County Run), a player's own lobby (HOST A GAME)
+straight or through the party line, the browser over wss, a phone.
+
+- **The files.** `src/net/voice_codec.gd` (`VoiceCodec`: the sound squeezed),
+  `src/net/net_voice.gd` (`NetVoice`, `net.voice` on every NetPlay: the
+  packets, the routing, the jitter buffers), `src/net/voice_chat.gd`
+  (`VoiceChat`, the front end's: the mic, the voices played and placed, the
+  marks). Numbers in `data/tuning/voice.cfg`. Hooks elsewhere are a few
+  lines each: `NetWire.VOICE` (13), `NetSession.CH_VOICE` (3), NetPlay's
+  `poll` (a VOICE packet to `voice.take`, `voice.flush` after) and its ASK
+  (`NetVoice.note`), `LobbyServer._rest` (wakes every `VOICE_POLL_MS` while
+  voices go), `main.gd _voice_frame`, `main_state.gd` (the field, the draw,
+  the HUD pins), the lobby's rows and the 5v5 scoreboard's marks.
+- **The codec.** Godot 4.7 has no Opus. The mic's sound at the mixer's rate
+  goes through a high-pass (120 Hz) and two Butterworth low-pass stages
+  (3.5 kHz, 24 dB an octave) down to 8 kHz, then IMA-ADPCM at 4 bits a
+  sample: 32 kbit/s. A 16 kHz codec at these bits would be 8 KB/s, twice the
+  aim, and 3 bits at 8 kHz loses too much; the telephone band is the CB
+  radio's too. A frame is 40 ms (320 samples, 163 bytes with the state it
+  starts from, so a lost one costs only itself). Measured: a made-up voice
+  comes back at 25 to 27 dB SNR (a chirp across the band about 19 dB); 4,175
+  bytes a second up while talking (167 a packet, 25 a second), 4,275 down a
+  voice; nothing at all while quiet. GDScript cost on this PC: the filter
+  about 7 ms a second of sound, a frame 90 us to encode and 60 to decode.
+- **The wire.** VOICE packets go unreliable on their own channel
+  `CH_VOICE`. Godot's ENet keeps two channels below ours and sends ours
+  unsequenced, so a voice packet never holds a snapshot or an input up and
+  is never dropped for arriving after one (channel 3 is index 4 of the 5 a
+  peer of `CHANNELS` 3 has: no new channel count, an older peer takes it
+  too). Up: kind, seq (u16), flags, frame. Down: kind, seq, flags, the
+  talker's id (u32; a lobby's second session's ids keep their top bit),
+  frame. An older build ignores the kind; no PROTOCOL bump (a version that
+  differs is refused at HELLO anyway). Over WebSocket everything is
+  reliable and in order; the jitter buffer catches a burst up.
+- **The routing** (`NetVoice.listeners`, on whoever runs the lobby: the
+  lobby server, a player's own lobby, a host behind the party line; the
+  line itself only passes bytes and needed nothing): never back to the
+  talker; in the lobby everyone, flat; in a match everyone within `radius`
+  (18 cells, with height) of the talker; at most `heard_most` (4) voices to
+  one player at once (the first talking keep their place); a talker past
+  `frames_a_second` (30, burst 10) is cut off; a player with VOICE CHAT off
+  is sent nothing, and nobody they muted (ASK `voice`, `mutes`). **The
+  dead** in the 5v5 round modes (dead until the round ends) hear the living
+  near where they fell or near any living teammate (they watch one of
+  those), placed, and only the dead hear the dead, flat: nothing goes from
+  the grave to the living. Co-op, deathmatch and County Run deaths are
+  short, so everyone talks as the living do; a player who left (`away`) or
+  has no place in the match is with the dead. The server never decodes,
+  keeps or writes a frame; it reads positions it already has. Routing a
+  frame: about 20 us (the check).
+- **Playback** (`VoiceChat._play`): each voice is a `Talker` (jitter
+  buffer by sequence: `start_frames` 2 or `start_ms` 90 before it plays,
+  `most_frames` 8 at most, the oldest thrown past that; a lost frame is the
+  last one again at half then a fifth, fading; a late one dropped), pulled
+  into an `AudioStreamGenerator` at 8 kHz on a bus of its own (`voice_out_N`:
+  panner, low-pass) kept `LEAD` (900 samples, about 110 ms) ahead of the
+  mixer. `VoiceChat.placement` gives left, right and cutoff from where this
+  copy has the talker against the local player (the one watched, when
+  dead): full within `full_within` (3), falling off by `falloff`, fading to
+  nothing over the radius's last quarter, `Hearing`'s gain and cutoff
+  through walls and floors, panned as `game_world.gd sound_position` pans
+  (STEREO WIDTH). Flat voices are whole on both sides. It sends to Master
+  (MASTER VOLUME counts), outside the world's reverb, and ducks nothing.
+- **The mic** (`VoiceChat._open_mic`): an `AudioStreamMicrophone` on the
+  muted `voice_mic` bus, read through its `AudioEffectCapture` each frame
+  (`project.godot`'s `audio/driver/enable_input` is on; the device is opened
+  only when MICROPHONE is on in a lobby, and let go when it goes off or the
+  lobby closes). Android: RECORD_AUDIO (export preset) is asked for then
+  (`OS.request_permission`), MIC REFUSED if denied. The browser asks with
+  its getUserMedia prompt then. A mic that gives only silence for 3 s is NO
+  MIC; the others are still heard. PUSH TO TALK (`Gate`): held, then
+  `release_frames` (3) after; nothing is read while it is not held. OPEN MIC:
+  over MIC SENSITIVITY's level (`gate_db_low` -28 dB at 0 to `gate_db_high`
+  -58 at 100), then `hangover_frames` (8); the frame before the gate opened
+  goes too (a word's start). No voice in single-player: VoiceChat exists
+  only while `main.net` is a lobby or a match.
+- **Marks.** Down the left from row 22 (under the 5v5 cash; the right is the
+  ping's, the frags', the kill feed's and the storm ring's): ON THE AIR (ours), NO MIC, ALLOW
+  THE MIC, MIC REFUSED, then each talker's name with the talking mark (a
+  7x5 mouth with sound off both sides, `VoiceChat.MARK`); the mark over a
+  talker's head when this player can see them (not through walls, not over
+  the store or scoreboard); on the 5v5 scoreboard beside the name (amber
+  talking, grey muted: `VoiceChat.marks`); in the lobby left of the name,
+  MUTED after it, our own row's MIC OFF / NO MIC / VOICE OFF. A click or tap
+  on someone's name in the lobby mutes them (`NetVoice.toggle_mute`).
+- **Cost on the one-core server.** `voice_chat_check -- bench` (a 5v5 of ten
+  people in one process, all close and all talking: every player sent four
+  voices): the server's frames 6.9 to 9.1% of a core with nobody talking,
+  10.9 to 11.0% with ten talking; out 99 to 102 KB/s, 269 KB/s with them
+  (17 KB/s more down each player). On the real clock, `net_pace`'s pinned
+  server (one core of this PC with 60% of it taken by a busy process, both
+  lobbies in a match; lobby 1 a 5v5 of ten people: net_pace's four and six
+  from `voice_chat_check -- bench server=127.0.0.1:47497 talkers=6`, all six
+  talking the whole minute or none), three 60 s runs of each, quiet and
+  talking alternated: the server process's CPU 12.0, 14.1, 13.1 s against
+  14.4, 13.8, 12.5 s over 84 s (median 15.6% of a core against 16.4%); the
+  snapshot gaps' p99 at a probe 46.4, 38.0, 37.0 ms against 44.0, 39.0, 36.4;
+  wander and bunching alike; a probe near three talkers 17 KB/s down
+  against 30. So voices cost the VPS about a percent of its core and
+  nothing in snapshot pacing. (Godot's `_console.exe` is a launcher: pin the
+  real `Godot_v4.7.2-stable_win64.exe`, or the affinity and CPU time are the
+  launcher's.)
+- `tools/voice_chat_check.gd` (VOICE CHAT OK, check_all) holds it all;
+  `tools/voice_frames.gd` takes the marks' pictures in a window.
+- **Not checked:** anyone's ears. Nobody on the agent side can hear it, so
+  how it sounds (the codec, the level, the falloff, the placing) is
+  unheard; a real mic on Windows, a phone, a browser (getUserMedia over
+  wss) and the VPS are untried.
 
 ### Still open
 

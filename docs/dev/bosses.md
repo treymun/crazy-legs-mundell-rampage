@@ -125,7 +125,8 @@ curlers still landed) and the backup kept shooting.
   The view: a boss's scripted fall ends on its last step (`die_4`) instead of
   sliding on into `down`, and twists a quarter or half turn as it goes so the
   body lies on open floor (`ActorView._fall_twist`). Since pass 13 a boss on
-  two legs (not the truck, the boat or Maw, whose bodies at rest are cels)
+  two legs (not the truck, the boat or Maw, whose bodies at rest are cels,
+  nor the Copper Baron, fit.json `hand_over` false)
   hands over to its ragdoll .6 of the way through that fall, its pose and
   every part's speed carried on, and lands and settles as a body
   ([gameplay.md](gameplay.md#ragdolls-and-finishing-shots-v320)).

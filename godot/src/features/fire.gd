@@ -60,6 +60,8 @@ var _catch := PackedFloat32Array()
 var _z := PackedFloat32Array()
 var _rain := 0.0
 var _lights := {}
+## Each burning cell's three flames' places about its middle (sprites()).
+var _flame_spots := {}
 var _spills := {}
 ## Burning cells by cell (worked out from `burning`), bodies by cell (looked
 ## for at each bite), the marks drawn (by cell) and when it last crackled.
@@ -584,11 +586,22 @@ func sprites() -> Array:
 		var grow := clampf((life - left) / .5, .35, 1.0)
 		var fade := clampf(left / 1.5, .25, 1.0)
 		var big := .55 + (.45 if _fuel[c] >= 7.0 else .15)
+		# Its three flames' places about the cell's middle, worked out once a
+		# cell (pass 13: six sines a burning cell every frame).
+		var spots: Variant = _flame_spots.get(c)
+		if spots == null:
+			var made := PackedFloat64Array()
+			for k in 3:
+				var a := k * 2.39996 + c * .7
+				var r := .18 + .1 * k
+				made.append(cos(a) * r)
+				made.append(sin(a) * r)
+			_flame_spots[c] = made
+			spots = made
+		var off: PackedFloat64Array = spots
 		for k in 3:
-			var a := k * 2.39996 + c * .7
-			var r := .18 + .1 * k
-			var fx := x + cos(a) * r
-			var fy := y + sin(a) * r
+			var fx := x + off[k * 2]
+			var fy := y + off[k * 2 + 1]
 			var tall := big * grow * fade * (1.0 - k * .18)
 			var s: View.Sprite = game.pooled(fx, fy, FLAMES[(frame + k + c) % 4], tall, z)
 			s.glow = true

@@ -518,29 +518,40 @@ class Grid:
 	static func _key(cx: int, cy: int) -> int:
 		return (cy + 8192) * 16384 + cx + 8192
 
-	## Body `i` at (x, y), reaching r.
+	## Body `i` at (x, y), reaching r. (Each cell's list an Array, added to
+	## where it lies; _key written out: pass 13.)
 	func add(i: int, x: float, y: float, r: float) -> void:
+		var x0 := floori((x - r) / GRID)
+		var x1 := floori((x + r) / GRID)
 		for cy in range(floori((y - r) / GRID), floori((y + r) / GRID) + 1):
-			for cx in range(floori((x - r) / GRID), floori((x + r) / GRID) + 1):
-				var k := _key(cx, cy)
-				var list: PackedInt32Array = _cells.get(k, PackedInt32Array())
-				list.append(i)
-				_cells[k] = list
+			var row := (cy + 8192) * 16384 + 8192
+			for cx in range(x0, x1 + 1):
+				var k := row + cx
+				var list: Variant = _cells.get(k)
+				if list == null:
+					_cells[k] = [i]
+				else:
+					var ids: Array = list
+					ids.append(i)
 
 	## The bodies sharing a cell with the square r round (x, y), each once,
 	## in the order they were added within a cell.
 	func near(x: float, y: float, r: float) -> PackedInt32Array:
 		_ask += 1
+		var ask := _ask
 		var out := PackedInt32Array()
+		var x0 := floori((x - r) / GRID)
+		var x1 := floori((x + r) / GRID)
 		for cy in range(floori((y - r) / GRID), floori((y + r) / GRID) + 1):
-			for cx in range(floori((x - r) / GRID), floori((x + r) / GRID) + 1):
-				var list: Variant = _cells.get(_key(cx, cy))
+			var row := (cy + 8192) * 16384 + 8192
+			for cx in range(x0, x1 + 1):
+				var list: Variant = _cells.get(row + cx)
 				if list == null:
 					continue
-				var ids: PackedInt32Array = list
-				for i in ids:
-					if _mark[i] != _ask:
-						_mark[i] = _ask
+				var ids: Array = list
+				for i: int in ids:
+					if _mark[i] != ask:
+						_mark[i] = ask
 						out.append(i)
 		return out
 
@@ -762,9 +773,17 @@ static func way_out(world: LevelData, at: Vector3) -> Vector3:
 	# furniture held, the answer (1 solid, 0 clear).
 	var lists := {}
 	var answers := {}
+	# Each way's last cell and its list, and the last (cell, furniture held)
+	# it found solid (pass 13: a probe still in the cell and the furniture of
+	# the one before it asks no table: its answer is that one's, solid, or it
+	# would have returned).
+	var last_c := PackedInt32Array([-1, -1, -1, -1])
+	var last_list: Array = [null, null, null, null]
+	var last_key := PackedInt64Array([-1, -1, -1, -1])
 	var s := WALL_STEP
 	while s <= WALL_REACH:
-		for dir: Vector3 in WAYS:
+		for d in 4:
+			var dir: Vector3 = WAYS[d]
 			var probe := at + dir * s
 			if probe.x < 0.0 or probe.y < 0.0 or probe.x >= w or probe.y >= hgt:
 				continue
@@ -773,9 +792,15 @@ static func way_out(world: LevelData, at: Vector3) -> Vector3:
 			var c := iy * w + ix
 			if cells[c] >= 0:
 				continue
-			if not lists.has(c):
-				lists[c] = _held_list(world, plain_world, ix, iy, c)
-			var listed: Variant = lists[c]
+			var listed: Variant
+			if c == last_c[d]:
+				listed = last_list[d]
+			else:
+				if not lists.has(c):
+					lists[c] = _held_list(world, plain_world, ix, iy, c)
+				listed = lists[c]
+				last_c[d] = c
+				last_list[d] = listed
 			if listed == null:
 				if not _in_something(world, probe):
 					return dir * s
@@ -787,12 +812,15 @@ static func way_out(world: LevelData, at: Vector3) -> Vector3:
 				if f[0] < probe.x and probe.x < f[2] and f[1] < probe.y and probe.y < f[3]:
 					held |= 1 << k
 			var key := c * HELD_KINDS + held
+			if key == last_key[d]:
+				continue
 			var answer: int = answers.get(key, -1)
 			if answer < 0:
 				answer = 1 if _in_something(world, probe) else 0
 				answers[key] = answer
 			if answer == 0:
 				return dir * s
+			last_key[d] = key
 		s += WALL_STEP
 	return Vector3.ZERO
 
