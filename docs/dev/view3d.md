@@ -892,6 +892,47 @@ Rules that keep it cheap, none of which changes a picture:
   1024 with the same margin, every frame. Not run on a phone or in the
   browser itself (the desktop's Compatibility renderer with the small
   buffer stands in).
+- **The heavy scenes' leftovers** (pass 13, HEAVY; all exact: `stress_bench
+  -- check hash` and the wreck bench print the same as v3.10.0, and
+  `tools/heavy_check.gd` holds the rewritten sums to v3.10.0's own):
+  - The wreck pieces' pair test works out both ways' least overlap at once
+    (`WreckPairs.leasts`, moved out of `wreck_physics.gd`): the six face
+    axes' overlaps are the same numbers either way, each extent from the nine
+    dots of one turn's axes on the other's and each turn's own
+    (`Body.own_extents`, once a step), not twelve `extent()` calls of three
+    dots each, twice; the cheap tests (itself, met already, `APART`) are
+    asked before the call. Each piece's corners are turned once a step
+    (`Body.rotated`), for the level's contacts and every pair. The grid adds
+    to a cell's list where it lies; the push-out walks the pieces' and the
+    level's contacts in two lists; `PhysCore.way_out` asks no table for a
+    probe still in the last cell and furniture of its way (it would be solid:
+    else it had returned). The kicks read every piece's place once a tick.
+  - `LevelSight.visible` reads the heights once, writes out `_past_cell`
+    and, where a step's corners were just tested on a plain level (no glass,
+    no locked gate), the rest of its `blocked()`, the cell's furniture and
+    doors kept while the steps stay in that cell: 20 to 30 % less a sight
+    line in County Run (2,849 recorded lines replayed).
+  - The wreck layer keeps each node's piece, material source and cell itself
+    (`WreckLayer3D.Drawn`), not as metadata read every frame, and sets a
+    transform only when the piece moved or turned (`placed` counts them);
+    `wreckage.sprites()` makes a piece's turn again only when it turned or
+    shrank.
+  - SHADOWS picks the nearest `MOST_PIECES` wreck pieces out instead of
+    sorting them all with a script call per comparison, and sorts its bodies
+    by `[distance, place]` in the engine's own sort (0.19 to 0.06 ms in
+    wreck48).
+  - `SpriteLayer3D.fill` hands a MultiMesh nothing when its rows are the
+    ones it was handed last (lying slabs, a still view: `uploads` counts
+    the others); the sprites' rows read the level's tables once a frame
+    (`_row_in`); the ground marks' rows are written out, and a ground mark
+    wholly behind the eye (its reach and width past the eye's plane) is left
+    out where there is no mirror.
+  - Fire keeps each burning cell's three flame places (`_flame_spots`);
+    the gun finder, the footprints and the dress and blood marks read the
+    player's place once a loop.
+  `heavy_check` also counts: a frame drawn again unchanged sets no piece's
+  transform and hands no MultiMesh its rows again.
+  The numbers: [checks.md](checks.md#measured-in-pass-13-heavy-2026-11-19).
 
 ## The warm-up (polish pass 9)
 

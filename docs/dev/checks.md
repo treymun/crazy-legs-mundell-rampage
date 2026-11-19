@@ -59,6 +59,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | --- | --- | --- | --- |
 | `check_shader` | SHADER OK | yes | texture counts: `display.gdshader` at most 9 (incl. TEXTURE), each view3d shader with its includes at most 10 |
 | `view_perf_check` | VIEW PERF CHECK OK | yes | the 3D view's frame stays cheap (pass 10): a line of HUD text draws with one texture a style (the canvas's letter pages); its global uniforms match `project.godot` and the shaders, no view3d shader keeps a uniform array, no frame number goes to a material; two to four turns round Hickston's spawn with its hands awake make no prop or model again after the first, nothing past where it shows gets a model, no view3d shader has instance uniforms and the parts with them stay in WebGL's room with margin; `frame()`'s lower quartile under 1.5 times a yardstick of plain GDScript |
+| `heavy_check` | HEAVY CHECK OK | yes | the heavy scenes' speed work stays exact and cheap (pass 13): `WreckPairs.leasts` gives exactly `WreckPhysics._least` both ways on 4,000 random box pairs; `LevelSight.visible` and `PhysCore.way_out` answer exactly as v3.10.0's own code (kept in the check) on random sight lines and points on five maps; on hickston with a few breaks drawn by a view made by hand, a frame drawn again unchanged sets no wreck piece's transform (`WreckLayer3D.placed`) and hands no MultiMesh its rows again (`SpriteLayer3D.uploads`) |
 | `stress_bench` (`check`) | STRESS CHECK OK | no | the busy scenes (wreck48, arena, county) built headless with a 3D view made by hand: every frame's model parts with instance uniforms under WebGL's room (60) less 20, and the global uniforms and their blocks under its 1024 slots with the same margin (none since pass 10: each part has its own material); each scene's tick under its budget in yardsticks (`TICK_YARDS`, a fixed piece of GDScript work timed in the same process); `hash` prints each frame's play as hashes, the same on two builds that play the same |
 | `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads (a station's with both looks, every quest picture modelled); every slab (pickups, loose things, range targets) builds at its picture's size; no fallen body's part stays up at `down` (fit.json `down_high` for the cow's raised legs); the hanging lamp is the shop_lamp model and a tipped cow rolls on her hooves (`ActorView.tipped`) |
 | `actor_check` | ACTOR CHECK OK | yes | the actors' models (polish pass 9): every actors.json kind's glb, scene and looks (square, a power of two), keys numbered once each, bone labels, canvas; fit.json names only models and numbers ActorModels reads; every kind has the frames the game asks for (walk with its closing `w4`, fall, hurt set, a boss's recover, a critter's -1/0/1); texels a metre over each body and head at least `TEXEL_MIN`/`HEAD_MIN` (`report` prints them), the hound's at least `HOUND_MIN`/`HOUND_HEAD_MIN`; the hound's fourteen motions and ten poses (pass 10), each motion's keys in a row, played on the gait, a one-shot ending on its last key, his own fit.json blend, and his drawn size (shoulder .33-.41 and head top .41-.52 of Mundell's drawn height, measured on his skinned model); ActorView's looks-only motion: pose blends, no blend between walk beats, hit flinches by zone with their own dice and still after `FLINCH`, idle breath, mirrored scripted falls (never a boss), game.rng untouched; specks between `View.SPECK_PX_MIN` and `SPECK_PX_MAX` pixels; a partner on the riding mower shows Mundell's `sit` ([view3d.md](view3d.md#actors)) |
@@ -337,6 +338,54 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   again (warm), the 3D level mesh's whole build, the wreck cutting alone
   (since the load pass not part of the load: it runs on a worker in the
   level's first frames).
+
+### Measured in pass 13, HEAVY (2026-11-19)
+
+v3.10.0 (`5cdc8d74`) against the HEAVY branch, back to back, alternating,
+three pairs (the PC shared with four other tracks' runs: the first pair ran
+busy, the medians of the three are given), `stress_bench.gd` in a window
+(1280x800, scratch `APPDATA`), frame median / p99 in ms. Play and the wreck
+pieces are exact: `stress_bench -- check hash` prints the same on both, the
+picture references did not move (94 of 94).
+
+| Scene | v3.10.0 | pass 13 | median x | p99 x |
+| --- | --- | --- | --- | --- |
+| idle | 2.91 / 5.57 | 2.78 / 6.56 | 1.05 | 0.85 |
+| strike | 3.81 / 6.22 | 3.81 / 6.95 | 1.00 | 0.89 |
+| wreck48 | 9.66 / 21.58 | 8.73 / 17.28 | 1.11 | 1.25 |
+| fire | 4.03 / 9.04 | 3.82 / 8.59 | 1.06 | 1.05 |
+| chain6 | 5.38 / 11.20 | 4.92 / 11.64 | 1.09 | 0.96 |
+| arena | 3.19 / 8.40 | 3.16 / 4.84 | 1.01 | 1.74 |
+| fivev5 | 3.59 / 5.29 | 3.59 / 4.95 | 1.00 | 1.07 |
+| county | 7.96 / 13.76 | 7.57 / 13.91 | 1.05 | 0.99 |
+
+(The p99s of the light scenes wander by 10 to 70 % from run to run on this
+PC; their medians are within 1 %.) `set_piece_frames.gd -- bench` (the CPU's
+share, the window is vsync-paced), the orchard shed coming down, median
+4.29, 4.22 -> 4.11, 3.60 ms; the town tower 3.67, 3.37 -> 3.42, 3.27.
+`tick_profile.gd -- 300 plain`, all chapters: 0.771, 0.747 -> 0.754,
+0.737 ms. Headless (`wreck_bench`'s scene with a hash of every piece each
+tick, the same both ways): wreckage's tick 2.7 -> 2.2 ms in wreck48 (-20 %),
+2.3 -> 2.0 in every; County Run's sight lines, 2,849 recorded and replayed,
+20 to 30 % less a line.
+
+Where the time goes (the frame's parts, `-d --profiling` in a window and
+`WorldView3D.parts_us`): wreck48 is the wreck physics (2.5 ms a tick: the
+contacts' solve, each piece's points against the level, the pairs), the
+breakables' bits tumbling, the view's sprite and slab rows, the wreck layer
+and the listing of 350 sprites; fire is the burning pallet's pieces settling
+(0.5 ms a tick) on top of a level's ordinary frame; County Run is the hands'
+thinking (sight lines, walking), their AnimationPlayer seeks and ragdolls
+(1 ms of the view) and 160 ground marks. Most of it is spread over many
+small costs: no single part of the three is over 15 % of its frame but the
+wreck physics. What did not help, or was left: inlining the contacts' solve
+into its loop (a field read from outside the contact costs what the call
+saved); a render thread (`--render-thread separate` is the engine's
+experimental mode: it warns, and is not for a release); trimming the actors'
+constant animation tracks (Blender's export leaves almost none exactly
+constant: 124 of 8,396); caching way_out across ticks or within one (no
+point is asked twice in a tick, and the level's furniture has no version to
+key on); a cheaper skeleton pose (the seeks are the engine's own).
 
 ### Measured in pass 11, the big breaks coming apart (COLLAPSE, 2026-11-18)
 

@@ -2120,6 +2120,10 @@ carry and the bowling pins' exact solver are untouched).
   break's knocks walk only its own pieces (newest first), and a piece
   leaning in a pile on chunks that merely stand (`SLENDER`) is held, so piles
   do not keep jiggling.
+  Pass 13 (HEAVY) took a fifth off the tick, exactly (the pairs both ways
+  from one set of dots in `src/wreck_pairs.gd`, each piece's corners turned
+  once a step, `way_out` asking no table twice for one cell's furniture):
+  [view3d.md](view3d.md#keeping-the-frame-cheap-track-r-before-v330).
 - `tools/wreck_motion_check.gd` (check_all, quick) holds all of it;
   `tools/wreck_motion_frames.gd` pictures it (`bare` leaves out what stays
   standing where a thing broke); `docs/godot3d/destruction/PHYSICS/`.
