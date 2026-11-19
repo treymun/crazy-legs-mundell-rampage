@@ -42,6 +42,9 @@ class Drawn:
 	var at := Vector3.INF
 
 
+## Transforms set on pieces (each a piece that moved; heavy_check counts).
+static var placed := 0
+
 var _assets: Assets
 var _shader: Shader
 var _meshes := {}
@@ -184,6 +187,7 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 			drawn.at = at
 			drawn.turn = s.turn
 			piece.transform = Transform3D(SolidLayer3D.godot_basis(s.turn), at)
+			placed += 1
 			var cell := level.cell(
 				clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01)
 			)

@@ -480,36 +480,60 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 			Color(float(slot), float(size.x), float(size.y), 0.0)
 		)
 		n += 1
+	var cam_flat := Vector2(cam.x, cam.y)
+	var cam_z := cam.z
 	for item: Variant in grounds:
 		if not item is View.GroundMark:
 			continue
 		var g: View.GroundMark = item
-		if cam.z <= g.z + .015:
+		var gz := g.z
+		if cam_z <= gz + .015:
 			continue
-		if Vector2(g.x - cam.x, g.y - cam.y).length() > 26.0:
+		var gx := g.x
+		var gy := g.y
+		if Vector2(gx - cam_flat.x, gy - cam_flat.y).length() > 26.0:
 			continue
-		var slot := _slot(g.image)
+		var image := g.image
+		var slot: int = _slot_of.get(image, -1)
+		if slot < 0:
+			slot = _slot(image)
+		else:
+			_slot_used[slot] = _frame
 		var size := _slot_size[slot]
-		var dir := Vector3(cos(g.angle), 0.0, sin(g.angle))
-		var across := Vector3(-sin(g.angle), 0.0, cos(g.angle))
+		var turn := g.angle
+		var dir := Vector3(cos(turn), 0.0, sin(turn))
+		var across := Vector3(-sin(turn), 0.0, cos(turn))
 		var bx := dir * (2.0 * g.reach)
 		var by := across * (-2.0 * g.width)
-		var at := Vector3(g.x, g.z, g.y) + across * g.width
+		var at := Vector3(gx, gz, gy) + across * g.width
 		if g.gx != 0.0 or g.gy != 0.0:
 			# On a slope: the rectangle tilted onto it (Godot y is up, z is map y).
 			bx.y = g.gx * bx.x + g.gy * bx.z
 			by.y = g.gx * by.x + g.gy * by.z
-			at.y += g.gx * (at.x - g.x) + g.gy * (at.z - g.y)
-		put_at(
-			buf,
-			n,
-			bx,
-			by,
-			Vector3(0.0, 1.0, 0.0),
-			at,
-			Color(1.0, 1.0, 1.0, 1.0),
-			Color(float(slot), float(size.x), float(size.y), 1.0)
-		)
+			at.y += g.gx * (at.x - gx) + g.gy * (at.z - gy)
+		# put_at(buf, n, bx, by, up, at, white, its slot), written out (pass 13:
+		# a row for every mark every frame, a County Run's blood by the hundred).
+		var k := n * FLOATS
+		buf[k] = bx.x
+		buf[k + 1] = by.x
+		buf[k + 2] = 0.0
+		buf[k + 3] = at.x
+		buf[k + 4] = bx.y
+		buf[k + 5] = by.y
+		buf[k + 6] = 1.0
+		buf[k + 7] = at.y
+		buf[k + 8] = bx.z
+		buf[k + 9] = by.z
+		buf[k + 10] = 0.0
+		buf[k + 11] = at.z
+		buf[k + 12] = 1.0
+		buf[k + 13] = 1.0
+		buf[k + 14] = 1.0
+		buf[k + 15] = 1.0
+		buf[k + 16] = slot
+		buf[k + 17] = size.x
+		buf[k + 18] = size.y
+		buf[k + 19] = 1.0
 		n += 1
 	buf.resize(n * FLOATS)
 	fill(marks, buf)
@@ -570,15 +594,17 @@ static func fill(node: MultiMeshInstance3D, buf: PackedFloat32Array) -> void:
 	# The same rows as handed over last time (things lying still, a still
 	# view): nothing handed over again (pass 13; `uploads` counts the others).
 	var key := mm.get_instance_id()
-	if n > 0 and mm.visible_instance_count == n and mm.instance_count >= n:
+	if n == 0:
+		_handed.erase(key)
+		if mm.visible_instance_count != 0:
+			mm.visible_instance_count = 0
+		return
+	if mm.visible_instance_count == n and mm.instance_count >= n:
 		var last: Variant = _handed.get(key)
 		if last != null and last == buf:
 			return
 	uploads += 1
-	if n > 0:
-		_handed[key] = buf
-	else:
-		_handed.erase(key)
+	_handed[key] = buf
 	if mm.instance_count < n:
 		mm.instance_count = maxi(maxi(n, mm.instance_count * 2), 64)
 	if n > 0:

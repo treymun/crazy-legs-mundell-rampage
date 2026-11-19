@@ -331,6 +331,8 @@ var _space: PhysCore.Space
 var _dolls: Array = []
 ## Counts the steps (Body.own_extents and Body.rotated keep theirs for one).
 var stamp := 0
+## WreckPairs.leasts' answer, kept for each pair (no array made a pair).
+var leasts_out: Array = [Vector3.ZERO, Vector3.ZERO]
 
 
 ## The stuff `name` with the form `form`'s shares (WreckStuff.of).

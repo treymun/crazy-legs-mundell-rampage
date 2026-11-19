@@ -59,6 +59,16 @@ static func pairs(phys: WreckPhysics, live: Array, contacts: Array) -> void:
 static func _pair_up(
 	phys: WreckPhysics, a: WreckPhysics.Body, o: WreckPhysics.Body, contacts: Array
 ) -> void:
+	if leasts(a, o, phys.stamp, phys.leasts_out):
+		var least_a: Vector3 = phys.leasts_out[0]
+		var least_o: Vector3 = phys.leasts_out[1]
+		phys.pair_with(a, o, least_a, contacts)
+		phys.pair_with(o, a, least_o, contacts)
+
+
+## WreckPhysics._least(a, o) into out[0] and _least(o, a) into out[1] (the
+## turns as of step `stamp`); false when the boxes do not overlap (both ZERO).
+static func leasts(a: WreckPhysics.Body, o: WreckPhysics.Body, stamp: int, out: Array) -> bool:
 	# WreckPhysics._least(a, o) and _least(o, a) at once (pass 13): the six
 	# face axes' overlaps are the same numbers both ways (the sums the same,
 	# the side flipped), each extent from the nine dots of one turn's axes on
@@ -74,8 +84,8 @@ static func _pair_up(
 	var b0 := tb.x
 	var b1 := tb.y
 	var b2 := tb.z
-	a.own_extents(phys.stamp)
-	o.own_extents(phys.stamp)
+	a.own_extents(stamp)
+	o.own_extents(stamp)
 	var d := a.p - o.p
 	# m_ij: a's axis i on o's axis j (o.extent along a's axes, a's along o's).
 	var m00 := absf(a0.dot(b0))
@@ -90,27 +100,27 @@ static func _pair_up(
 	var along0 := d.dot(a0)
 	var over0 := a.ex0 + (hb.x * m00 + hb.y * m01 + hb.z * m02) - absf(along0)
 	if over0 <= 0.0:
-		return
+		return false
 	var along1 := d.dot(a1)
 	var over1 := a.ex1 + (hb.x * m10 + hb.y * m11 + hb.z * m12) - absf(along1)
 	if over1 <= 0.0:
-		return
+		return false
 	var along2 := d.dot(a2)
 	var over2 := a.ex2 + (hb.x * m20 + hb.y * m21 + hb.z * m22) - absf(along2)
 	if over2 <= 0.0:
-		return
+		return false
 	var along3 := d.dot(b0)
 	var over3 := (ha.x * m00 + ha.y * m10 + ha.z * m20) + o.ex0 - absf(along3)
 	if over3 <= 0.0:
-		return
+		return false
 	var along4 := d.dot(b1)
 	var over4 := (ha.x * m01 + ha.y * m11 + ha.z * m21) + o.ex1 - absf(along4)
 	if over4 <= 0.0:
-		return
+		return false
 	var along5 := d.dot(b2)
 	var over5 := (ha.x * m02 + ha.y * m12 + ha.z * m22) + o.ex2 - absf(along5)
 	if over5 <= 0.0:
-		return
+		return false
 	# a pushed out of o: a's axes first, then o's (as _least(a, o)).
 	var best := over0
 	var axis := a0
@@ -160,6 +170,6 @@ static func _pair_up(
 		best = over2
 		axis = a2
 		along = along2
-	var least_o := (axis if -along >= 0.0 else -axis) * best
-	phys.pair_with(a, o, least_a, contacts)
-	phys.pair_with(o, a, least_o, contacts)
+	out[0] = least_a
+	out[1] = (axis if -along >= 0.0 else -axis) * best
+	return true
