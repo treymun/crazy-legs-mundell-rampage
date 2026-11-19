@@ -19,6 +19,11 @@ const ITEM := 32
 const SPIN_ONE := 65536
 const SPINS := 32
 
+## The rows each MultiMesh was last handed (fill()), by its id, and how many
+## times fill() handed rows over (a check counts them: view_perf_check).
+static var _handed := {}
+static var uploads := 0
+
 var art: Texture2DArray
 var solid: MultiMeshInstance3D
 var clear: MultiMeshInstance3D
@@ -205,6 +210,13 @@ func show_sprites(
 	clear_buf.resize(sprites.size() * FLOATS)
 	var rows := Vector2i.ZERO
 	var across := Vector3(-sin(angle), 0.0, cos(angle))
+	# The level's tables read once for every row (_row_in; pass 13).
+	var w := level.width
+	var h := level.height
+	var tints := level.tints
+	var tint_rows := maxi(0, tints.size() / 3 - 1)
+	var lights := level.light
+	var areas := level.area
 	for item: Variant in sprites:
 		if not item is View.Sprite:
 			continue
@@ -224,10 +236,10 @@ func show_sprites(
 		if board and dx * sin(s.plane) - dy * cos(s.plane) <= .02 and not everywhere:
 			continue
 		if s.translucent:
-			_row(clear_buf, rows.y, s, level, across)
+			_row_in(clear_buf, rows.y, s, w, h, tints, tint_rows, lights, areas, across)
 			rows.y += 1
 		else:
-			_row(solid_buf, rows.x, s, level, across)
+			_row_in(solid_buf, rows.x, s, w, h, tints, tint_rows, lights, areas, across)
 			rows.x += 1
 	solid_buf.resize(rows.x * FLOATS)
 	clear_buf.resize(rows.y * FLOATS)
@@ -329,6 +341,105 @@ func _row(
 	buf[k + 13] = tint.g
 	buf[k + 14] = tint.b
 	buf[k + 15] = tint.a
+	buf[k + 16] = slot
+	buf[k + 17] = size.x
+	buf[k + 18] = size.y
+	buf[k + 19] = flags + hurt * 256 + spin * SPIN_ONE
+
+
+## _row with the level's tables handed in (show_sprites reads them once a
+## frame, not once a row): the same numbers.
+func _row_in(
+	buf: PackedFloat32Array,
+	at: int,
+	s: View.Sprite,
+	w: int,
+	h: int,
+	tints: PackedFloat32Array,
+	tint_rows: int,
+	lights: PackedFloat32Array,
+	areas: PackedInt32Array,
+	across: Vector3
+) -> void:
+	var board := not is_nan(s.plane)
+	var image := s.image
+	var slot: int = _slot_of.get(image, -1)
+	if slot < 0:
+		slot = _slot(image)
+	else:
+		_slot_used[slot] = _frame
+	var size := _slot_size[slot]
+	var art_size: Variant = _sizes.get(image)
+	if art_size == null:
+		var a := _assets.art(image)
+		var aw: int = a["w"]
+		var ah: int = a["h"]
+		art_size = Vector2(aw, ah)
+		# A picture still coming (a blank stand-in) is asked again next time.
+		if _assets.art_ready(image):
+			_sizes[image] = art_size
+	var art_wh: Vector2 = art_size
+	var height := s.height
+	var width := height * art_wh.x / maxf(1.0, art_wh.y)
+	var axis := across
+	if board:
+		axis = Vector3(cos(s.plane), 0.0, sin(s.plane))
+	var sx := s.x
+	var sy := s.y
+	var z := s.z
+	if s.body:
+		z -= height * _drop_of(image)
+	var c := int(clampf(sy, 0.0, h - .01)) * w + int(clampf(sx, 0.0, w - .01))
+	var light: float = lights[c]
+	var tr := 1.0
+	var tg := 1.0
+	var tb := 1.0
+	var glow := s.glow
+	if tints.size() >= 3:
+		var ti := clampi(1 if glow else areas[c], 0, tint_rows) * 3
+		var tint := Color(tints[ti], tints[ti + 1], tints[ti + 2], light)
+		if s.translucent or image.begins_with("fx_billow"):
+			# Smoke and dust hang in the air (and a blast's billows, drawn
+			# solid): the area's hue turned neutral, its brightness kept
+			# (destruction pass 11).
+			var grey := (tint.r + tint.g + tint.b) / 3.0
+			tint = Color(grey, grey, grey, light)
+		tr = tint.r
+		tg = tint.g
+		tb = tint.b
+	var tone := Color(tr, tg, tb, light)
+	var flags := (
+		(FLIP if s.flip else 0)
+		| (GLOW if glow else 0)
+		| (BODY if s.body else 0)
+		| (BOARD if board else 0)
+	)
+	var hurt := 0
+	if s.hurt > 0.0:
+		hurt = int(minf(.46, s.hurt / .18 * .44) * 100.0)
+	var spin := 0
+	if s.spin != 0.0 and not board:
+		spin = posmod(roundi(s.spin / TAU * SPINS), SPINS)
+	var bx := axis * width
+	var by := Vector3(0.0, height, 0.0)
+	var bz := bx.cross(by).normalized()
+	var k := at * FLOATS
+	buf[k] = bx.x
+	buf[k + 1] = by.x
+	buf[k + 2] = bz.x
+	buf[k + 3] = sx
+	buf[k + 4] = bx.y
+	buf[k + 5] = by.y
+	buf[k + 6] = bz.y
+	buf[k + 7] = z
+	buf[k + 8] = bx.z
+	buf[k + 9] = by.z
+	buf[k + 10] = bz.z
+	buf[k + 11] = sy
+	buf[k + 12] = tone.r
+	buf[k + 13] = tone.g
+	buf[k + 14] = tone.b
+	buf[k + 15] = tone.a
 	buf[k + 16] = slot
 	buf[k + 17] = size.x
 	buf[k + 18] = size.y
@@ -456,6 +567,18 @@ static func put_at(
 static func fill(node: MultiMeshInstance3D, buf: PackedFloat32Array) -> void:
 	var mm := node.multimesh
 	var n := buf.size() / FLOATS
+	# The same rows as handed over last time (things lying still, a still
+	# view): nothing handed over again (pass 13; `uploads` counts the others).
+	var key := mm.get_instance_id()
+	if n > 0 and mm.visible_instance_count == n and mm.instance_count >= n:
+		var last: Variant = _handed.get(key)
+		if last != null and last == buf:
+			return
+	uploads += 1
+	if n > 0:
+		_handed[key] = buf
+	else:
+		_handed.erase(key)
 	if mm.instance_count < n:
 		mm.instance_count = maxi(maxi(n, mm.instance_count * 2), 64)
 	if n > 0:

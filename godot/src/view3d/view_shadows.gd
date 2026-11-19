@@ -92,20 +92,40 @@ func collect(
 		var half := maxf(0.0, tall * size * .5 - r)
 		var ground := _floor(level, s.x, s.y, s.z)
 		_body(middle - Vector3(0, 0, half), middle + Vector3(0, 0, half), r, eye, ground, false)
-	var pieces: Array = []
+	# The nearest MOST_PIECES, nearest first: picked out, not the whole list
+	# sorted each frame (pass 13; a busy break draws fifty).
+	var near := PackedFloat64Array()
+	var near_s: Array[View.Sprite] = []
 	for s: View.Sprite in wrecked:
 		var d := Vector3(s.x, s.y, s.z).distance_to(eye)
-		if d < REACH:
-			pieces.append([d, s])
-	pieces.sort_custom(nearer.bind(0))
-	for k in mini(MOST_PIECES, pieces.size()):
-		var row: Array = pieces[k]
-		var s: View.Sprite = row[1]
+		if d >= REACH:
+			continue
+		var k := near.size()
+		while k > 0 and near[k - 1] > d:
+			k -= 1
+		if k >= MOST_PIECES:
+			continue
+		near.insert(k, d)
+		near_s.insert(k, s)
+		if near.size() > MOST_PIECES:
+			near.resize(MOST_PIECES)
+			near_s.resize(MOST_PIECES)
+	for s: View.Sprite in near_s:
 		var at := Vector3(s.x, s.y, s.z)
 		_body(at, at, .22, eye, _floor(level, s.x, s.y, s.z), false)
-	_bodies.sort_custom(nearer.bind(3))
-	if _bodies.size() > MOST_BODIES:
-		_bodies.resize(MOST_BODIES)
+	# Nearest the eye first: sorted by [distance, place] in the engine's own
+	# sort, not a script call each comparison (pass 13: thirty-odd County
+	# Run hands).
+	var keyed: Array = []
+	for i in _bodies.size():
+		var row: Array = _bodies[i]
+		keyed.append([row[3], i])
+	keyed.sort()
+	var sorted: Array = []
+	for key: Array in keyed.slice(0, MOST_BODIES):
+		var i: int = key[1]
+		sorted.append(_bodies[i])
+	_bodies = sorted
 	_blobs()
 
 

@@ -205,6 +205,37 @@ class Body:
 	var walls := true
 	var wide := NAN
 	var clear := false
+	## How far it reaches along each of its own axes (extent(turn[k])) and
+	## the step they were worked out on (own_extents).
+	var ex0 := 0.0
+	var ex1 := 0.0
+	var ex2 := 0.0
+	var ex_step := -1
+	var rp := PackedVector3Array()
+	var rp_step := -1
+
+	## ex0..ex2 for step `stamp` (its turn is fixed through a step): the same
+	## sums extent() makes, once a step instead of once a pair.
+	func own_extents(stamp: int) -> void:
+		if ex_step == stamp:
+			return
+		ex_step = stamp
+		var tx := turn.x
+		var ty := turn.y
+		var tz := turn.z
+		ex0 = half.x * absf(tx.dot(tx)) + half.y * absf(ty.dot(tx)) + half.z * absf(tz.dot(tx))
+		ex1 = half.x * absf(tx.dot(ty)) + half.y * absf(ty.dot(ty)) + half.z * absf(tz.dot(ty))
+		ex2 = half.x * absf(tx.dot(tz)) + half.y * absf(ty.dot(tz)) + half.z * absf(tz.dot(tz))
+
+	## Its points turned by its turn this step (turn * points[i]), once a
+	## step: the level's contacts and the pairs' each turned them again.
+	func rotated(stamp: int) -> PackedVector3Array:
+		if rp_step != stamp or rp.size() != points.size():
+			rp_step = stamp
+			rp.resize(points.size())
+			for i in points.size():
+				rp[i] = turn * points[i]
+		return rp
 
 	func wake() -> void:
 		if not awake:
@@ -294,10 +325,12 @@ var knock_hard := 0.0
 ## (the breaks may split them).
 var cracked: Array = []
 var _pool := PhysCore.Pool.new()
-var _grid := PhysCore.Grid.new()
+var grid := PhysCore.Grid.new()
 var _space: PhysCore.Space
 ## The ragdolls near enough to touch this step: [doll, middle, reach].
 var _dolls: Array = []
+## Counts the steps (Body.own_extents and Body.rotated keep theirs for one).
+var stamp := 0
 
 
 ## The stuff `name` with the form `form`'s shares (WreckStuff.of).
@@ -406,6 +439,7 @@ func _wake_leaning_on(b: Body) -> void:
 
 
 func _step(h: float) -> void:
+	stamp += 1
 	_pool.reset()
 	for b: Body in bodies:
 		b.turned()
@@ -440,7 +474,7 @@ func _step(h: float) -> void:
 		_world_contacts(b, h, contacts)
 		if not _dolls.is_empty():
 			_doll_contacts(b, contacts)
-	_pairs(live, contacts)
+	WreckPairs.pairs(self, live, contacts)
 	PhysCore.prepare_fast(contacts, h, BOUNCE_FROM)
 	PhysCore.solve_fast(contacts, PASSES)
 	for c: PhysCore.Contact in contacts:
@@ -551,50 +585,6 @@ func _flutter(b: Body, h: float) -> void:
 			slide_way.normalized() * minf(b.half[(thin + 1) % 3], b.half[(thin + 2) % 3]) * .3
 		)
 		b.w += b.iw * lead.cross(n * across * loss / b.inv_m) * .5
-
-
-## Each awake piece against every other near it (two awake ones once): by
-## the core's grid when there are many, every other when few.
-func _pairs(live: Array, contacts: Array) -> void:
-	var count := bodies.size()
-	for i in count:
-		var o: Body = bodies[i]
-		o.order = i
-	var gridded := count > GRID_FROM
-	if gridded:
-		_grid.clear(count)
-		for i in count:
-			var o: Body = bodies[i]
-			_grid.add(i, o.p.x, o.p.y, o.reach)
-	for a: Body in live:
-		# _pair_up's reach test asked first, here (most pairs fail it).
-		var ap := a.p
-		var ar := a.reach
-		if gridded:
-			var near := _grid.near(ap.x, ap.y, ar)
-			near.sort()
-			for i in near:
-				var o: Body = bodies[i]
-				var r := ar + o.reach
-				if ap.distance_squared_to(o.p) <= r * r:
-					_pair_up(a, o, contacts)
-		else:
-			for o: Body in bodies:
-				var r := ar + o.reach
-				if ap.distance_squared_to(o.p) <= r * r:
-					_pair_up(a, o, contacts)
-
-
-func _pair_up(a: Body, o: Body, contacts: Array) -> void:
-	if o == a or (o.awake and o.order < a.order):
-		return
-	if a.group == o.group and (clock - a.born < APART or clock - o.born < APART):
-		return
-	var r := a.reach + o.reach
-	if a.p.distance_squared_to(o.p) > r * r:
-		return
-	_pair(a, o, contacts)
-	_pair(o, a, contacts)
 
 
 ## Whether a piece stands on an end or an edge: its axis nearest upright
@@ -792,13 +782,17 @@ func _world_contacts(b: Body, h: float, out: Array) -> void:
 	):
 		# In the air over everything under it: nothing to touch.
 		return
+	# (Its place, bounce and grounding read once: pass 13.)
+	var bp := b.p
+	var bounce := b.bounce
+	var grounded := b.grounded
 	if not is_nan(open):
-		for lp: Vector3 in b.points:
-			var r := b.turn * lp
-			var depth := open - (b.p.z + r.z)
+		for r: Vector3 in b.rotated(stamp):
+			var depth := open - (bp.z + r.z)
 			if depth > -margin:
-				_add(b, r, Vector3(0.0, 0.0, 1.0), depth, b.bounce, out)
-				b.grounded = b.grounded or depth > -.01
+				_add(b, r, Vector3(0.0, 0.0, 1.0), depth, bounce, out)
+				grounded = grounded or depth > -.01
+		b.grounded = grounded
 		return
 	var count := b.points.size()
 	var fl := b.floors
@@ -821,9 +815,10 @@ func _world_contacts(b: Body, h: float, out: Array) -> void:
 	var insides := fl.inside
 	var reask := PhysCore.REASK
 	var rising := b.v.z > -.5
+	var turned := b.rotated(stamp)
 	for i in count:
-		var r := b.turn * b.points[i]
-		var at := b.p + r
+		var r := turned[i]
+		var at := bp + r
 		if at.z > above:
 			continue
 		if (
@@ -844,12 +839,12 @@ func _world_contacts(b: Body, h: float, out: Array) -> void:
 			if at.x >= 0.0 and at.y >= 0.0 and at.x < wide and at.y < high:
 				var base := world.ground[int(at.y) * wide + int(at.x)]
 				if base - at.z > -margin and base - at.z < LEDGE:
-					_add(b, r, Vector3(0.0, 0.0, 1.0), base - at.z, b.bounce, out)
+					_add(b, r, Vector3(0.0, 0.0, 1.0), base - at.z, bounce, out)
 			continue
 		# The floor under it, looked for from the piece's middle (or the point,
 		# when it is higher): a fast fall never passes through a deck. Kept
 		# while the point stays put.
-		var from := maxf(at.z, b.p.z) + .02
+		var from := maxf(at.z, bp.z) + .02
 		var under: float
 		var flat := false
 		var was := asked[i]
@@ -867,19 +862,19 @@ func _world_contacts(b: Body, h: float, out: Array) -> void:
 		var depth := under - at.z
 		# Deeper than a step under a floor its middle is over (a fast corner
 		# swept in): still that floor, not a step's side.
-		if depth > -margin and (depth < LEDGE or b.p.z - under > DEEP_FLOOR):
-			_add(b, r, Vector3(0.0, 0.0, 1.0), depth, b.bounce, out)
-			b.grounded = b.grounded or depth > -.01
+		if depth > -margin and (depth < LEDGE or bp.z - under > DEEP_FLOOR):
+			_add(b, r, Vector3(0.0, 0.0, 1.0), depth, bounce, out)
+			grounded = grounded or depth > -.01
 			continue
 		if rising and r.z > 0.0:
 			var roof := roofs[i] if kept else NAN
 			if is_nan(roof):
-				roof = world.roof_over(at.x, at.y, minf(at.z, b.p.z) - .02)
+				roof = world.roof_over(at.x, at.y, minf(at.z, bp.z) - .02)
 				fl.roof[i] = roof
 			if roof > 0.0 and at.z > roof - margin:
 				_add(b, r, Vector3(0.0, 0.0, -1.0), at.z - roof, E_WALL, out)
 		# A step's side, or (where walls are near) furniture or a slab.
-		var into := depth >= LEDGE and b.p.z - under <= DEEP_FLOOR
+		var into := depth >= LEDGE and bp.z - under <= DEEP_FLOOR
 		if not into and walls and not flat:
 			var known := insides[i] if kept else 2
 			if known == 2:
@@ -890,6 +885,7 @@ func _world_contacts(b: Body, h: float, out: Array) -> void:
 			var way := PhysCore.way_out(world, at)
 			if way != Vector3.ZERO:
 				_add(b, r, way.normalized(), way.length(), E_WALL, out)
+	b.grounded = grounded
 
 
 ## What the level is round a piece as a whole (Body.seen and on): plain
@@ -996,23 +992,31 @@ func _doll_contacts(b: Body, out: Array) -> void:
 ## each a contact pushing a out of o along the way the two overlap least (a
 ## plank on a plank is pushed up, not off its side).
 func _pair(a: Body, o: Body, out: Array) -> void:
-	var least := _least(a, o)
+	pair_with(a, o, _least(a, o), out)
+
+
+## _pair with a's way out of o (_least) worked out already (WreckPairs).
+func pair_with(a: Body, o: Body, least: Vector3, out: Array) -> void:
 	if least == Vector3.ZERO:
 		return
-	var found := _pair_points(a, o, least, a.points, out)
+	var found := _pair_points(a, o, least, a.rotated(stamp), out)
 	# Lying face to face (one on the other): by its edges' middles too.
 	if found == 0 and absf(least.z) > PROP_N * least.length():
-		_pair_points(a, o, least, a.edges, out)
+		var edges := PackedVector3Array()
+		edges.resize(a.edges.size())
+		for i in a.edges.size():
+			edges[i] = a.turn * a.edges[i]
+		_pair_points(a, o, least, edges, out)
 
 
-func _pair_points(a: Body, o: Body, least: Vector3, points: PackedVector3Array, out: Array) -> int:
+## (`turned`: the points already turned by a's turn, a.turn * point.)
+func _pair_points(a: Body, o: Body, least: Vector3, turned: PackedVector3Array, out: Array) -> int:
 	var n := least.normalized()
 	# How far o reaches along n from its middle.
 	var top := o.extent(n)
 	var inverse := o.turn.transposed()
 	var found := 0
-	for lp: Vector3 in points:
-		var r := a.turn * lp
+	for r: Vector3 in turned:
 		var at := a.p + r
 		var l := inverse * (at - o.p)
 		var gap := o.half - l.abs()
@@ -1087,6 +1091,11 @@ static func _least(a: Body, o: Body) -> Vector3:
 ## contact's share split among a piece's contacts so four corners on the
 ## floor lift it once, not four times.
 func _push_out(contacts: Array) -> void:
+	# (Split once into the contacts with another piece and those with the
+	# level, each in its own order: pass 13, the same sums as walking them all
+	# on each pass.)
+	var with_pieces: Array = []
+	var with_level: Array = []
 	for c: PhysCore.Contact in contacts:
 		var a: Body = c.a
 		a.touching = 0
@@ -1102,38 +1111,37 @@ func _push_out(contacts: Array) -> void:
 			if c.b != null:
 				var o: Body = c.b
 				o.touching += 1
+				with_pieces.append(c)
+			else:
+				with_level.append(c)
 	# Pieces out of one another first, then out of the level, so the floor
 	# and the walls have the last word (a pile never squeezes one into them).
-	for world_pass in 2:
-		for c: PhysCore.Contact in contacts:
-			if (c.b == null) != (world_pass == 1):
-				continue
-			var d := c.depth - SLOP
-			if d <= 0.0:
-				continue
-			var a: Body = c.a
-			var ia := a.mass_inv()
-			var ib := 0.0 if c.b == null else c.b.mass_inv()
-			if ia + ib <= 0.0:
-				continue
-			if c.b == null:
-				# Out of the level by the deepest of its contacts each way (the
-				# level's are along the axes), not their sum.
-				var want := c.n * d * PUSH
-				a.out_up = a.out_up.max(want)
-				a.out_down = a.out_down.min(want)
-				continue
-			var o: Body = c.b
-			var move := c.n * d * PUSH / (ia + ib)
-			a.p += move * ia / maxi(1, a.touching)
-			o.p -= move * ib / maxi(1, o.touching)
-		if world_pass == 1:
-			for c: PhysCore.Contact in contacts:
-				var a: Body = c.a
-				if c.b == null and a.awake:
-					a.p += a.out_up + a.out_down
-					a.out_up = Vector3.ZERO
-					a.out_down = Vector3.ZERO
+	for c: PhysCore.Contact in with_pieces:
+		var d := c.depth - SLOP
+		var a: Body = c.a
+		var o: Body = c.b
+		var ia := a.mass_inv()
+		var ib := o.mass_inv()
+		if ia + ib <= 0.0:
+			continue
+		var move := c.n * d * PUSH / (ia + ib)
+		a.p += move * ia / maxi(1, a.touching)
+		o.p -= move * ib / maxi(1, o.touching)
+	for c: PhysCore.Contact in with_level:
+		var a: Body = c.a
+		if a.mass_inv() <= 0.0:
+			continue
+		# Out of the level by the deepest of its contacts each way (the
+		# level's are along the axes), not their sum.
+		var want := c.n * (c.depth - SLOP) * PUSH
+		a.out_up = a.out_up.max(want)
+		a.out_down = a.out_down.min(want)
+	for c: PhysCore.Contact in contacts:
+		var a: Body = c.a
+		if c.b == null and a.awake:
+			a.p += a.out_up + a.out_down
+			a.out_up = Vector3.ZERO
+			a.out_down = Vector3.ZERO
 
 
 ## A push at `at` (a blast's shove, a boot): wakes the piece.
