@@ -609,7 +609,7 @@ Pass 12 (`tools/net_feel.gd`, multiplayer.md
   host will have them when each input is played, carried on by their speed
   (`NetPredict._mates`, at most `MATES_AHEAD` ticks), not where the copy has
   them a round trip back: two co-op bots following each other were
-  corrected 950 to 1,360 times a minute, now 90 to 260.
+  corrected 1,200 to 1,530 times a minute, now 90 to 280.
 - **The walk matches the host's**: mud (`Mud.pace`) and a knock-down
   (`Player.knocked`: no walk, the eye low) are in it, and while the world
   holds on the copy (COUNTY RUN's cards, the tally, a gate taken, everyone

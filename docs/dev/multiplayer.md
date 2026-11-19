@@ -680,9 +680,9 @@ What it found:
   others a tick back by `net_accum`.
 - **Co-op partners bumped.** The prediction walked us into the copy's
   partner, a round trip and the playout behind the host's: two co-op bots
-  following each other were corrected 950 to 1,360 times a minute. The
+  following each other were corrected 1,200 to 1,530 times a minute. The
   walk now meets the others who block where the host will have them
-  (`NetPredict._mates`): 220 to 340 a minute (the rest is the partner
+  (`NetPredict._mates`): 90 to 280 a minute (the rest is the partner
   turning), and the correction drawn is a fifth of what it was.
 - **The walk missed mud and knock-downs, and walked through holds** (County
   Run's card picks, where the host plays nobody's input): `NetPredict.step`
@@ -696,66 +696,81 @@ What it found:
   from the press, then the copy's own drawn on to our time
   (`NetOwnShots`, [modes.md](modes.md#shots-reloads-and-pickups)).
 
-The pass 12 numbers (`net_feel.gd -- seconds=20 ways=old,new`, and `hz=60`;
-the tool's clock is its own, so runs repeat nearly to the frame; old is
-v3.9.0's way on this build). At 144 Hz, old -> new; SP is single-player:
+The pass 12 numbers, measured on the pass 12 server ([pacing, packets and
+the one-core server](#pacing-packets-and-the-one-core-server-pass-12): 30
+snapshots a second, big ones in unreliable parts): `net_feel.gd --
+seconds=20 ways=old,new`, and `hz=60`; the tool's clock is its own, so runs
+repeat nearly to the frame. Old is this track's fixes off on the same build
+and server; v390 (one 120 ms run) is old with the server's side off too, as
+3.9.0 played. At 144 Hz, old -> new; SP is single-player:
 
-| 144 Hz | SP | 50 ms | 120 ms | 250 ms |
-| --- | --- | --- | --- | --- |
-| 5v5: view frozen frames | 16.6% | 58.3 -> 0.0 | 58.3 -> 0.0 | 57.7 -> 0.1 |
-| 5v5: view jerk | 35% | 114 -> 2.3 | 114 -> 2.4 | 113 -> 2.6 |
-| 5v5: turn held against the mouse | 17% | 0 -> 0 | 0 -> 0 | 0 -> 0 |
-| 5v5: others frozen | 16.5% | 58.2 -> 0.0 | 58.2 -> 0.0 | 58.2 -> 0.0 |
-| 5v5: others jerk | 34% | 114 -> 0.2 | 113 -> 0.2 | 114 -> 0.2 |
-| 5v5: others drawn behind the host | | 117 -> 112 ms | 267 -> 265 | 433 -> 430 |
-| deathmatch: view frozen | 16.7% | 55.6 -> 0.6 | 55.0 -> 0.4 | 54.8 -> 0.7 |
-| deathmatch: others frozen | 16.7% | 58.2 -> 0.2 | 58.2 -> 0.1 | 58.6 -> 6.9 |
-| deathmatch: others jerk | 35% | 114 -> 1.7 | 113 -> 1.4 | 115 -> 14 |
-| deathmatch: marks with the shot's frame | 100% | 46 -> 62% | 29 -> 60 | 62 -> 60 |
-| co-op client: view frozen | 17.5% | 26.8 -> 1.1 | 27.9 -> 0.7 | 26.0 -> 2.3 |
-| co-op client: view jerk | 37% | 67 -> 8.7 | 74 -> 6.8 | 61 -> 10 |
-| co-op client: corrections a minute | 0 | 903 -> 219 | 1146 -> 222 | 1170 -> 336 |
-| co-op client: correction drawn (cells) | 0 | .081 -> .022 | .090 -> .017 | .099 -> .031 |
-| co-op client: others frozen | 17.8% | 58.3 -> 1.0 | 58.4 -> 0.7 | 59.8 -> 9.8 |
-| co-op host's own view: frozen | | 58.3 -> 0.5 | 58.2 -> 0.9 | 58.3 -> 0.6 |
-| co-op host: turn held against the mouse | | 59.8 -> 0 | 59.9 -> 0 | 59.8 -> 0 |
-| co-op host: mouse to the turn shown | | 7.2 -> 0 ms | 13.4 -> 0 | 13.7 -> 0 |
-| co-op host: others frozen | | 58.6 -> 0.9 | 58.6 -> 1.4 | 58.4 -> 1.2 |
-| County Run: view frozen | 16.9% | 56.9 -> 0.1 | 53.0 -> 0.0 | 55.4 -> 0.0 |
-| County Run: others frozen | 17.3% | 59.1 -> 0.7 | 58.4 -> 1.8 | 60.1 -> 9.7 |
-| County Run: others drawn behind the host | | 100 -> 118 ms | 183 -> 266 | 317 -> 434 |
-| County Run: copies put back | | 1 -> 1 | 2 -> 2 | 11 -> 3 |
+| 144 Hz | SP | v390 120 ms | 50 ms | 120 ms | 250 ms |
+| --- | --- | --- | --- | --- | --- |
+| 5v5: view frozen frames | 16.6% | 58.3 | 58.3 -> 0.1 | 58.3 -> 0.0 | 56.6 -> 0.0 |
+| 5v5: view jerk | 35% | 114 | 114 -> 2.2 | 114 -> 2.3 | 110 -> 2.7 |
+| 5v5: turn held against the mouse | 17% | 0 | 0 -> 0 | 0 -> 0 | 0 -> 0 |
+| 5v5: others frozen | 16.5% | 57.7 | 58.2 -> 0.4 | 58.3 -> 0.0 | 58.3 -> 0.0 |
+| 5v5: others jerk | 34% | 110 | 114 -> 1.4 | 114 -> 0.2 | 114 -> 0.2 |
+| 5v5: others drawn behind the host | | 367 ms | 117 -> 112 | 267 -> 269 | 450 -> 432 |
+| deathmatch: view frozen | 16.7% | 55.3 | 54.9 -> 0.5 | 54.3 -> 0.6 | 53.1 -> 0.7 |
+| deathmatch: others frozen | 16.7% | 57.3 | 58.2 -> 1.4 | 58.3 -> 0.2 | 58.5 -> 6.0 |
+| deathmatch: others jerk | 35% | 110 | 114 -> 5.0 | 114 -> 1.7 | 115 -> 12 |
+| deathmatch: marks with the shot's frame | 100% | | 62 -> 71% | 23 -> 56 | 58 -> 86 |
+| co-op client: view frozen | 17.5% | 7.3 | 16.7 -> 0.9 | 8.7 -> 1.3 | 33.2 -> 1.7 |
+| co-op client: view jerk | 37% | 40 | 56 -> 7.5 | 34 -> 8.1 | 77 -> 7.4 |
+| co-op client: corrections a minute | 0 | 1554 | 1269 -> 90 | 1530 -> 276 | 1203 -> 180 |
+| co-op client: correction drawn (cells) | 0 | | .105 -> .007 | .136 -> .029 | .086 -> .014 |
+| co-op client: others frozen | 17.9% | 57.6 | 58.2 -> 3.4 | 58.1 -> 1.9 | 59.2 -> 10.7 |
+| co-op host's own view: frozen | | 58.4 | 58.3 -> 0.4 | 58.2 -> 1.1 | 58.3 -> 0.6 |
+| co-op host: turn held against the mouse | | | 60.1 -> 0 | 59.9 -> 0 | 60.1 -> 0 |
+| co-op host: key / mouse to screen | | | 0 / 6.6 -> 0 / 0 ms | 7.0 / 7.2 -> 0 / 0 | 6.6 / 13.7 -> 0 / 0 |
+| co-op host: others frozen | | 58.8 | 58.7 -> 1.3 | 58.7 -> 1.2 | 58.4 -> 1.6 |
+| County Run: view frozen | 17.1% | 56.8 | 54.1 -> 0.2 | 52.6 -> 0.9 | 52.0 -> 2.5 |
+| County Run: others frozen | 17.4% | 61.3 | 59.4 -> 2.4 | 58.9 -> 1.9 | 60.2 -> 7.2 |
+| County Run: others jerk | 36% | 125 | 139 -> 6.4 | 129 -> 5.2 | 128 -> 16 |
+| County Run: others drawn behind the host | | 183 ms | 100 -> 118 | 183 -> 277 | 333 -> 450 |
 
-At 60 Hz one tick a frame already, so old was close: the view frozen 1 to
-2% either way (single-player 0.5 to 1.6%), but the others stepped unevenly
-(5v5 frozen 2.4 to 3.8% -> 0.0, jerk 8 to 11% -> 0.6; County Run 5.9, 14.4,
-30.2% -> 3.6, 2.6, 5.0) and the host's turn was held now and then (0.4 to
-1.4% -> 0). Key and mouse to screen are the same frame everywhere (0 ms;
-single-player's own is under a tick), an own shot's flash shows at the
-press, and the round trip to the host's word is the link's (153, 311,
-595 ms).
+At 60 Hz one tick a frame already, so old was close for the view (frozen 1
+to 2% either way; single-player 0.5 to 1.8%), but the others stepped
+unevenly: 5v5 frozen 2.7 to 3.0% -> 0.0 and jerk 8 to 10% -> 0.6; co-op 5.3,
+6.0, 16.1% -> 3.2, 1.8, 12.4; County Run 12.8, 19.7, 26.5% -> 3.3, 3.5,
+13.8; the host's turn held 0.5 to 1% -> 0. Key and mouse to screen are the
+same frame everywhere online now (single-player's own is up to a tick), an
+own shot's flash shows at the press, and the round trip to the host's word
+is the link's (151, 313, 603 ms).
+
+**Late input rows** (`Client._rows_late`, `ROWS_WAIT`): a missing row for
+the next tick may still be coming in a snapshot that a newer one passed
+(jitter reorders the unreliable ones); the copy waits for it while the
+newest is under 12 ticks ahead instead of jumping to the newest at once.
+At 250 ms: co-op put back 10 -> 5 times in 20 s, County Run 14 -> 6, the
+others' jerk 28 -> 26% and 18 -> 15%.
 
 What it does not fix, and why:
 
 - **How far behind the others are drawn** is the one-way trip, the
-  snapshot gap (3 ticks) and the arrivals' jitter: 112, 265, 430 ms in the
-  5v5. County Run's are 20 to 120 ms more than before: its old playout
-  stood two ticks behind the newest snapshot whatever the jitter, which
-  froze them 15 to 30% of the frames at 60 Hz. A higher snapshot rate
-  would take a tick or two off (the server's to decide).
-- **Other people at 250 ms** (deathmatch, co-op, County Run: 7 to 10% of
-  frames frozen, 14 to 20% jerk; the 5v5's server bots none): the host
+  snapshot gap and the arrivals' jitter: 112, 269, 432 ms in the 5v5 (3.9.0:
+  367 at 120 ms). County Run's are 20 to 120 ms more than its old playout's,
+  which stood two ticks behind the newest snapshot whatever the jitter and
+  froze them 13 to 27% of the frames at 60 Hz.
+- **60 snapshots a second** (`snaps=1`): at 120 ms the others are drawn
+  240 to 280 ms behind against 264 to 277 at 30, about a tick sooner, with
+  no other gain in smoothness (frozen 0.0 to 1.6% either way); at 250 ms
+  and 50 of jitter it breaks down: 43 copies put back in 20 s for input
+  rows that never came, everyone else frozen 86% of frames (the host
+  repeats only `ECHO_AGAIN` snapshots' worth of rows, 3 ticks at that
+  rate). Not worth it as it stands.
+- **Other people at 250 ms** (deathmatch, co-op, County Run: 6 to 11% of
+  frames frozen, 12 to 22% jerk; the 5v5's server bots none): the host
   plays a person's late input held and then merges the pile, so they move
   unevenly on the host itself; a small input buffer per client on the host
   would even it out.
-- **Copies put back for input rows that never came** at 250 ms in co-op
-  and County Run (3 to 11 in 20 s; none in the 5v5 and deathmatch), each a
-  visible jump of the world.
 - **Hit marks**: a centre line well on the body is marked at the press
-  (`NetShotPredict.SURE`); a grazing one is marked when the host's word
-  comes. The rewind judges at the shown tick rounded, at most half a tick
-  (8 ms) off what the blend draws: net_lag's "looked a hit, judged a miss"
-  was 0 / 4.8 / 21% at 50 / 120 / 250 ms with this, 0 / 13.6 / 20% without.
+  (`NetShotPredict.SURE`); a grazing one when the host's word comes. The
+  rewind judges at the shown tick rounded, at most half a tick (8 ms) off
+  what the blend draws: net_lag's "looked a hit, judged a miss" (before
+  the server's changes) was 0 / 4.8 / 21% at 50 / 120 / 250 ms with this,
+  0 / 13.6 / 20% without.
 
 ## Online 5v5
 
