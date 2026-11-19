@@ -92,6 +92,7 @@ func _run() -> void:
 			NetPredict.mates_ahead = false
 			NetPredict.holds_aware = false
 			NetOwnShots.enabled = false
+			NetSync.Client.wait_rows = false
 			NetPredict.between = false
 			NetBlend.enabled = false
 			continue
@@ -110,6 +111,7 @@ func _run() -> void:
 			NetPredict.mates_ahead = false
 			NetPredict.holds_aware = false
 			NetOwnShots.enabled = false
+			NetSync.Client.wait_rows = false
 			NetPredict.between = false
 			NetBlend.enabled = false
 			continue

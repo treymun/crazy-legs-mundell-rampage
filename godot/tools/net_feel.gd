@@ -170,6 +170,7 @@ static func _way(old: bool, way := "") -> void:
 	NetPredict.mates_ahead = not old and way != "nomates"
 	NetPredict.holds_aware = not old and way != "noholds"
 	NetOwnShots.enabled = not old
+	NetSync.Client.wait_rows = not old and way != "nowait"
 	# v390: the server's side of pass 12 off too (NETSERVER's: net_lag's oldserver).
 	LobbyServer.paced = way != "v390"
 	NetWire.pack_rows = way != "v390"
@@ -233,8 +234,8 @@ func _online(scene: String, lag: float, jitter: float, loss: float) -> Dictionar
 	if cs != null and cs.rebuilds > 2:
 		print(
 			(
-				"    put back %d (inputs lost %d), no base %d, stale %d"
-				% [cs.rebuilds, cs.rebuilds_lost, cs.no_base, cs.stale]
+				"    put back %d (inputs lost %d), no base %d, stale %d, waited %d"
+				% [cs.rebuilds, cs.rebuilds_lost, cs.no_base, cs.stale, cs.rows_waited]
 			)
 		)
 	out["fire_shown_ms"] = Recording.median(main.net_shots.show_ms)

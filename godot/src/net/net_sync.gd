@@ -500,6 +500,10 @@ class Client:
 	const CLOCK_FAST := .08
 	const CLOCK_SLOW := .15
 	const CLOCK_SNAP := 10.0
+	## Ticks the newest snapshot may be ahead while the copy waits for a
+	## late snapshot's inputs (_rows_late); off: put back at once.
+	const ROWS_WAIT := 12
+	static var wait_rows := true
 
 	var session: NetSession
 	## level id -> a fresh Game for it (configured as the host's).
@@ -548,6 +552,8 @@ class Client:
 	var by_clock := true
 	## Snapshots that came in SNAP_PARTs, and the parts of those still coming.
 	var parts_joined := 0
+	## Frames the copy waited for inputs on their way (_rows_late).
+	var rows_waited := 0
 	var _parts := {}
 	var _depth := PLAYOUT_LEAST
 	var _lower_since := -1.0
@@ -868,6 +874,8 @@ class Client:
 			var row: Variant = echo.get(game_tick + 1)
 			var row_dict: Dictionary = {} if row == null else row
 			if row_dict.is_empty():
+				if _rows_late():
+					return
 				# The inputs for the next tick never came (lost past the
 				# redundancy): start again from the newest snapshot.
 				if game_tick >= 0:
@@ -885,6 +893,19 @@ class Client:
 			if game_tick - checked_at >= CHECK_EVERY:
 				if not _check_at(game_tick):
 					return
+
+	## The next tick's inputs are missing but may still be on their way: a
+	## snapshot that carried them passed by a newer one (jitter reorders the
+	## unreliable ones; the newest repeats only the last few snapshots'
+	## rows). The copy waits for them (a frozen frame or two) while the
+	## newest snapshot is under ROWS_WAIT ticks ahead; it was put back on the
+	## newest at once, a jump of the whole world: 3 to 11 times in 20 s in
+	## co-op at 250 ms, 44 at 60 snapshots a second (net_feel.gd).
+	func _rows_late() -> bool:
+		if not wait_rows or game_tick < 0 or latest_tick - game_tick > ROWS_WAIT:
+			return false
+		rows_waited += 1
+		return true
 
 	## Compares the copy with the snapshot of the tick it is at, if one is
 	## kept; false when they parted (the copy is then put back on the newest).
