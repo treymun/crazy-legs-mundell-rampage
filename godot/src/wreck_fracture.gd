@@ -71,6 +71,8 @@ const THICK := {
 ## Solid stuff: a piece is a lump, its inside face set in this share of its
 ## narrowest half (hay, stuffing).
 const SOLID := {"straw": .7, "stuffing": .7}
+## Stuff as thin as a sheet: a piece is its skin alone (drawn both sides).
+const SHEER := ["tin", "glass", "rubber"]
 ## A piece with less skin than this (its area) is dropped.
 const SMALL := .002
 const THIN := .012
@@ -245,22 +247,25 @@ static func _cells(
 	for i in sites.size():
 		made.append(WreckCuts.Soup.new())
 	var s2 := scale * scale
+	var scaled := PackedVector3Array()
+	for site: Vector3 in sites:
+		scaled.append(site * scale)
 	for t in tris:
 		var a := soup.p[t * 3]
 		var b := soup.p[t * 3 + 1]
 		var c := soup.p[t * 3 + 2]
-		var near: Array[int] = []
-		for q: Vector3 in [a, b, c, (a + b + c) / 3.0, (a + b) * .5, (b + c) * .5, (c + a) * .5]:
-			var best := 0
-			var bd := INF
-			for i in sites.size():
-				var d := (q - sites[i]) * scale
-				var dd := d.length_squared()
-				if dd < bd:
-					bd = dd
-					best = i
-			if not near.has(best):
-				near.append(best)
+		# Its corners first: all in one cell, it lies there whole (a cell is
+		# convex); else its middle and edges' middles name the rest it
+		# touches.
+		var na := _nearest(a * scale, scaled)
+		var nb := _nearest(b * scale, scaled)
+		var nc := _nearest(c * scale, scaled)
+		var near: Array[int] = [na]
+		if nb != na or nc != na:
+			for q: Vector3 in [b, c, (a + b + c) / 3.0, (a + b) * .5, (b + c) * .5, (c + a) * .5]:
+				var best := _nearest(q * scale, scaled)
+				if not near.has(best):
+					near.append(best)
 		if near.size() == 1:
 			var whole: WreckCuts.Soup = made[near[0]]
 			for k in 3:
@@ -287,6 +292,18 @@ static func _cells(
 		raw.soup = made[i]
 		raw.form = form
 		raws.append(raw)
+
+
+## Which of `sites` (stretched already) is nearest `q` (stretched).
+static func _nearest(q: Vector3, sites: PackedVector3Array) -> int:
+	var best := 0
+	var bd := INF
+	for i in sites.size():
+		var dd := q.distance_squared_to(sites[i])
+		if dd < bd:
+			bd = dd
+			best = i
+	return best
 
 
 ## A polygon's triangles (a fan from its first corner) added to `into`.
@@ -811,8 +828,16 @@ static func finish(
 	skin: WreckCuts.Soup, basis: Basis, material: String, form: String
 ) -> WreckCuts.Part:
 	var faces := WreckCuts.Soup.new()
-	for i in skin.size():
-		faces.add(skin, i)
+	faces.p = skin.p.duplicate()
+	faces.n = skin.n.duplicate()
+	faces.uv = skin.uv.duplicate()
+	if SHEER.has(material):
+		# Thin as a sheet: its skin drawn both sides is all of it (an inside
+		# face and rims a few mm off would be triangles nobody sees).
+		var sheer := _framed(faces, basis)
+		sheer.material = material
+		sheer.form = form
+		return sheer
 	var box := skin.bounds()
 	var thick: float = THICK.get(material, .025)
 	if SOLID.has(material):
@@ -830,15 +855,25 @@ static func finish(
 			most = area
 			spot = (skin.uv[t * 3] + skin.uv[t * 3 + 1] + skin.uv[t * 3 + 2]) / 3.0
 	var mid := box.get_center()
-	var skin_count := faces.size()
+	var skin_count := skin.size()
 	# The inside face.
-	for i in skin.size():
+	var solid := SOLID.has(material)
+	var inner := PackedVector3Array()
+	var inner_n := PackedVector3Array()
+	inner.resize(skin_count)
+	inner_n.resize(skin_count)
+	for i in skin_count:
 		var into := -skin.n[i]
-		if SOLID.has(material):
+		if solid:
 			into = (mid - skin.p[i]).normalized() * .5 + into * .5
-		faces.p.append(skin.p[i] + into * thick)
-		faces.n.append(-skin.n[i])
-		faces.uv.append(spot)
+		inner[i] = skin.p[i] + into * thick
+		inner_n[i] = -skin.n[i]
+	faces.p.append_array(inner)
+	faces.n.append_array(inner_n)
+	var spots := PackedVector2Array()
+	spots.resize(skin_count)
+	spots.fill(spot)
+	faces.uv.append_array(spots)
 	# The rims: every edge of the skin no other triangle shares.
 	var codes := PackedInt64Array()
 	codes.resize(skin.size())
@@ -858,32 +893,38 @@ static func finish(
 				continue
 			var a := skin.p[ia]
 			var b := skin.p[ib]
-			var a_in := faces.p[skin_count + ia]
-			var b_in := faces.p[skin_count + ib]
+			var a_in := inner[ia]
+			var b_in := inner[ib]
 			var n := (b - a).cross(skin.n[ia] + skin.n[ib])
 			if n.length() < 1e-6:
 				continue
 			n = n.normalized()
 			if n.dot((a + b) * .5 - mid) < 0.0:
 				n = -n
-			for q: Vector3 in [a, b, b_in, a, b_in, a_in]:
-				faces.p.append(q)
-				faces.n.append(n)
-				faces.uv.append(spot)
+			faces.p.append_array(PackedVector3Array([a, b, b_in, a, b_in, a_in]))
+			faces.n.append_array(PackedVector3Array([n, n, n, n, n, n]))
+			faces.uv.append_array(PackedVector2Array([spot, spot, spot, spot, spot, spot]))
 	var part := _framed(faces, basis)
 	part.material = material
 	part.form = form
 	var index: int = MATERIALS.get(material, 0)
 	var inside := Color(float(index) / 16.0, 0.0, 0.0, 0.0)
 	var rim := Color(float(index) / 16.0, 1.0, 0.0, 0.0)
-	for i in part.verts.size():
-		if i < skin_count:
-			part.colors.append(Color(1, 1, 1, 1))
-			part.uv2s.append(Vector2.ZERO)
-		else:
-			var l := part.verts[i]
-			part.colors.append(inside if i < skin_count * 2 else rim)
-			part.uv2s.append(Vector2(l.x, l.y * .7 + l.z))
+	var total := part.verts.size()
+	var colors := PackedColorArray()
+	colors.resize(total)
+	colors.fill(rim)
+	var skin_colour := PackedColorArray()
+	skin_colour.resize(skin_count)
+	skin_colour.fill(Color(1, 1, 1, 1))
+	var inner_colour := PackedColorArray()
+	inner_colour.resize(skin_count)
+	inner_colour.fill(inside)
+	part.colors = skin_colour + inner_colour + colors.slice(skin_count * 2)
+	part.uv2s.resize(total)
+	for i in range(skin_count, total):
+		var l := part.verts[i]
+		part.uv2s[i] = Vector2(l.x, l.y * .7 + l.z)
 	return part
 
 
@@ -907,26 +948,23 @@ static func _framed(faces: WreckCuts.Soup, basis: Basis) -> WreckCuts.Part:
 	var part := WreckCuts.Part.new()
 	part.basis = basis
 	var inverse := basis.transposed()
+	# Whole arrays turned at once (the engine's loops, not ours).
+	var turned: PackedVector3Array = Transform3D(inverse, Vector3.ZERO) * faces.p
 	var lo := Vector3(INF, INF, INF)
 	var hi := -lo
-	for q: Vector3 in faces.p:
-		var l := inverse * q
-		lo = Vector3(minf(lo.x, l.x), minf(lo.y, l.y), minf(lo.z, l.z))
-		hi = Vector3(maxf(hi.x, l.x), maxf(hi.y, l.y), maxf(hi.z, l.z))
+	for l: Vector3 in turned:
+		lo = lo.min(l)
+		hi = hi.max(l)
 	var mid_local := (lo + hi) * .5
 	part.centre = basis * mid_local
 	var half := (hi - lo) * .5
 	part.half = Vector3(maxf(half.x, THIN), maxf(half.y, THIN), maxf(half.z, THIN))
-	part.verts.resize(faces.size())
-	part.normals.resize(faces.size())
-	part.shown.resize(faces.size())
-	part.shown_n.resize(faces.size())
-	for i in faces.size():
-		var v := inverse * faces.p[i] - mid_local
-		var n := inverse * faces.n[i]
-		part.verts[i] = v
-		part.normals[i] = n
-		part.shown[i] = Vector3(v.x, v.z, v.y)
-		part.shown_n[i] = Vector3(n.x, n.z, n.y)
+	part.verts = Transform3D(Basis.IDENTITY, -mid_local) * turned
+	part.normals = Transform3D(inverse, Vector3.ZERO) * faces.n
+	var swap := Transform3D(
+		Basis(Vector3(1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0)), Vector3.ZERO
+	)
+	part.shown = swap * part.verts
+	part.shown_n = swap * part.normals
 	part.uvs = faces.uv.duplicate()
 	return part

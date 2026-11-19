@@ -363,6 +363,15 @@ func _saves(game: Game) -> void:
 	while wreck.physics.moving() and waited < 1800:
 		_ticks(game, 10)
 		waited += 10
+	# The variants the breaks asked for are cut in the quiet that follows
+	# (WreckCuts.more, a few jobs on a worker, once): finished first, so the
+	# tick is timed alone.
+	var cut_wait := 0
+	while not WreckCuts.idle() and cut_wait < 600:
+		_ticks(game, 1)
+		OS.delay_usec(500)
+		cut_wait += 1
+	_check(WreckCuts.idle(), "the variants asked for are cut in the quiet (%d ticks)" % cut_wait)
 	var t0 := Time.get_ticks_usec()
 	for k in 120:
 		wreck._tick(DT)
@@ -471,7 +480,10 @@ func _breaks(game: Game) -> void:
 					raw = true
 					break
 		_check(named, "%s: every piece names its stuff and shape" % image)
-		_check(raw, "%s: its pieces have raw cut faces" % image)
+		var sheer := false
+		for part in parts:
+			sheer = sheer or WreckFracture.SHEER.has(part.material)
+		_check(raw or sheer, "%s: its pieces have raw cut faces (or are sheer)" % image)
 		print("  ok   %-22s %s vs %s, %d pieces" % [image, a[0], b[0], am.size()])
 	# A real break throws fine debris, capped.
 	var p = _piece_of(game, "prop_crate")

@@ -63,6 +63,10 @@ const PART := 1.1
 ## Wakings where it lies before a restless piece is laid down (_restless).
 const WAKES := 6
 const KICK_REACH := .12
+## Hands kick pieces only this near this machine's player (cells, across
+## plus along), each piece at most once in KICK_AGAIN seconds.
+const KICK_SEEN := 14.0
+const KICK_AGAIN := 1.0
 const KNEES := .45
 ## A breakable's fine debris, dust, second sound and chips.
 const BreakDebris := preload("res://src/features/wreck_burst.gd")
@@ -102,6 +106,8 @@ class Wreck:
 	## thrown or last knocked (_restless).
 	var asleep := false
 	var wakes := 0
+	## When a hand last kicked it (_walker).
+	var kicked := -9.0
 
 
 ## How a thing was struck when it broke: where (map), which way the push
@@ -190,6 +196,10 @@ func attach() -> void:
 	var few := phone or Quality.level() == Quality.LOW
 	most = cfg.get_value("pieces", "most_phone" if few else "most", 48)
 	per_break = cfg.get_value("pieces", "per_break_phone" if few else "per_break", 18)
+	if game.world.id.begins_with("county_"):
+		# County Run is one long fight: things break one on another.
+		var busy: int = cfg.get_value("pieces", "per_break_county", 10)
+		per_break = mini(per_break, busy)
 	debris.most = cfg.get_value("pieces", "fine_most_phone" if few else "fine_most", 80)
 	steps = cfg.get_value("pieces", "steps", 2)
 	fade = cfg.get_value("pieces", "fade", .5)
@@ -280,7 +290,8 @@ func restore(_state: Dictionary) -> void:
 
 
 func _tick(dt: float) -> void:
-	WreckCuts.pump(game.art)
+	# A kind's further variants are cut only while nothing flies.
+	WreckCuts.pump(game.art, not physics.moving())
 	_watch()
 	# Many in the air at once: one step a tick, not `steps` (the cost caps
 	# itself; they settle a little rougher).
@@ -490,7 +501,13 @@ func _break_piece(p: Breakables.Piece) -> void:
 	var hit := _impact_of(p, hits)
 	last_impact = hit
 	src["stuff"] = str(p.spec.get("stuff", "wood"))
-	_burst_apart(src, hit, hits, mini(count, per_break), .7 if is_sign else 1.0)
+	# Many already in the air (a fight's breaks one on another): this one
+	# throws half as many (the biggest still).
+	var flying := 0
+	for b: WreckPhysics.Body in physics.bodies:
+		flying += 1 if b.awake else 0
+	var most_now := per_break if flying < CROWD / 2 else maxi(4, per_break / 2)
+	_burst_apart(src, hit, hits, mini(count, most_now), .7 if is_sign else 1.0)
 	burst.broke(p, hit, _material(p))
 
 
@@ -639,6 +656,8 @@ func _burst_apart(src: Dictionary, hit: Impact, hits: Array, count: int, power: 
 	var picked := _variant(str(src["key"]), local)
 	var key: String = picked[0]
 	last_variant = key
+	# Broken: two more of its variants to be cut in a quiet moment.
+	WreckCuts.more(key)
 	var about: float = picked[1]
 	last_turn = about
 	var spin_about := Basis(Vector3(0, 0, 1), about)
@@ -1253,10 +1272,15 @@ func _kick(dt: float) -> void:
 	var seen := {}
 	for p: Player in game.players:
 		_walker(p, p.x, p.y, game.world.stand(p), .28, "kick_player", lo, hi, dt, seen)
+	# The county's hands kick only near this machine's player (where it is
+	# seen): a horde walking through a yard of pieces kept them all awake.
+	var eye := game.local_player if game.local_player != null else game.player
 	for e: Enemy in game.enemies:
+		if eye != null and absf(e.x - eye.x) + absf(e.y - eye.y) > KICK_SEEN:
+			continue
 		if e.x > lo.x and e.y > lo.y and e.x < hi.x and e.y < hi.y and e.alive:
-			var feet := game.world.stand(e)
-			_walker(e, e.x, e.y, feet, maxf(e.radius, .2), "kick_enemy", lo, hi, dt, seen)
+			# (Its feet asked only once it is seen to walk: NAN.)
+			_walker(e, e.x, e.y, NAN, maxf(e.radius, .2), "kick_enemy", lo, hi, dt, seen)
 	var hound: Hound = game.features.get("hound")
 	if hound != null:
 		for d: Hound.Dog in hound.dogs:
@@ -1295,12 +1319,18 @@ func _walker(
 	var speed := run.length()
 	if speed < .8 or speed > 40.0:
 		return
+	if is_nan(feet):
+		feet = game.world.stand(who)
 	var way := Vector3(run.x / speed, run.y / speed, 0.0)
 	var reach := radius + KICK_REACH
 	var push := WreckPhysics.tuned("knock", how, .6) * speed
 	var kind := "ram" if how == "kick_ride" else "kick"
+	var near := reach + .3
 	for w: Wreck in wrecks:
 		var b := w.body
+		# Across first (cheap): most pieces are nowhere near this walker.
+		if absf(b.p.x - x) > near or absf(b.p.y - y) > near:
+			continue
 		if w.fading >= 0.0 or b.p.z > feet + KNEES + b.half.length() * .5 or b.p.z < feet - .3:
 			continue
 		var off := Vector2(b.p.x - x, b.p.y - y)
@@ -1309,6 +1339,11 @@ func _walker(
 		# Already going its way faster than it walks: left alone.
 		if Vector2(b.v.x, b.v.y).dot(run / speed) > speed * .7:
 			continue
+		# A hand kicks a piece once in KICK_AGAIN (it walks on through).
+		if how == "kick_enemy":
+			if game.clock - w.kicked < KICK_AGAIN:
+				continue
+			w.kicked = game.clock
 		var at := Vector3(x, y, b.p.z) + Vector3(off.x, off.y, 0.0).normalized() * radius
 		w.wedged = false
 		w.wakes = 0

@@ -140,11 +140,18 @@ class Job:
 	var args := PackedFloat32Array()
 	var material := "wood"
 	var variant := 0
+	## A painted board's picture (its splinters are cut, not a soup), and
+	## the key read.
+	var pic: Array = []
+	var named: Named
 	var out: Array = []
 	var task := -1
 
 	func run() -> void:
-		out = WreckCuts._cut_model(soup, recipe, args, material, variant)
+		if not pic.is_empty():
+			out = WreckCuts._splinters(pic, named)
+		else:
+			out = WreckCuts._cut_model(soup, recipe, args, material, variant)
 
 
 ## A key read: its source, recipe name, numbers, stuff and variant, and the
@@ -162,9 +169,13 @@ static var _cache := {}
 static var _soups := {}
 ## Each source's bounds (fracture origins are round them).
 static var _boxes := {}
-## Keys waiting to be cut (prepare()), and the model cut on a worker now.
+## Keys waiting to be cut (prepare(): each kind's own), variants waiting
+## (more(): cut only while nothing flies), and the cut on a worker now.
 static var _waiting: Array[String] = []
+static var _later: Array[String] = []
 static var _job: Job = null
+## Pictures read for their solid pixels (_picture), by name.
+static var _pictures := {}
 
 
 ## A key taken apart (see the top).
@@ -225,6 +236,8 @@ static func origin(key: String) -> Vector3:
 ## now; each key's variants follow it. Without threads nothing is listed: a
 ## key is cut when first asked for.
 static func prepare(keys: Array) -> void:
+	# Variants an earlier level's breaks asked for are not this level's.
+	_later.clear()
 	if not OS.has_feature("threads"):
 		return
 	for item: Variant in keys:
@@ -238,23 +251,29 @@ static func prepare(keys: Array) -> void:
 ## then starts the next model on a worker (its model read here) or cuts the
 ## next picture or tile here (a millisecond or two). A key's variants are
 ## listed last once its own is taken. Cheap when nothing waits.
-static func pump(assets: Assets) -> void:
+static func pump(assets: Assets, quiet := true) -> void:
 	if _job != null:
 		if not WorkerThreadPool.is_task_completed(_job.task):
 			return
 		_settle()
-	while not _waiting.is_empty():
-		var key: String = _waiting.pop_front()
+	while not _waiting.is_empty() or (quiet and not _later.is_empty()):
+		var key: String = _waiting.pop_front() if not _waiting.is_empty() else _later.pop_front()
 		if _cache.has(key):
 			continue
 		var k := named(key)
-		if k.variant == 0:
-			# Its variants after every key's own (each kind has one soon).
-			var more := variants(key)
-			for v in range(1, more):
-				var other := "%s^%d" % [k.base, v]
-				if not _cache.has(other) and not _waiting.has(other):
-					_waiting.append(other)
+		if k.source.begins_with("p:") and k.recipe == "splinter":
+			var pic := _picture(assets, k.source.substr(2))
+			if pic.is_empty():
+				_cache[key] = []
+				continue
+			_boxes[k.source + "|" + k.recipe] = _splinter_box(pic)
+			var board := Job.new()
+			board.key = key
+			board.pic = pic
+			board.named = k
+			board.task = WorkerThreadPool.add_task(board.run, false, "wreck cuts")
+			_job = board
+			return
 		var soup := _worker_soup(assets, k)
 		if soup == null:
 			parts(assets, key)
@@ -274,6 +293,26 @@ static func pump(assets: Assets) -> void:
 		job.task = WorkerThreadPool.add_task(job.run, false, "wreck cuts")
 		_job = job
 		return
+
+
+## A kind broke as `key` (one of its variants): its next variants not cut yet
+## (up to `count`) are listed to be cut while nothing flies (pump(quiet)), so
+## only what breaks gets more of itself, never in a fight's thick. Without
+## threads nothing is listed (a break cuts its next itself).
+static func more(key: String, count := 2) -> void:
+	if not OS.has_feature("threads"):
+		return
+	var k := named(key)
+	var most := variants(key)
+	var listed := 0
+	for v in range(1, most):
+		if listed >= count:
+			return
+		var other := "%s^%d" % [k.base, v]
+		if _cache.has(other) or _later.has(other) or (_job != null and _job.key == other):
+			continue
+		_later.append(other)
+		listed += 1
 
 
 ## What a worker cuts for a key: a model's triangles, or a barrel's or a
@@ -298,9 +337,10 @@ static func has(key: String) -> bool:
 	return _cache.has(key)
 
 
-## Whether nothing is waiting to be cut or being cut.
+## Whether nothing is waiting to be cut or being cut (variants listed by
+## more() included).
 static func idle() -> bool:
-	return _job == null and _waiting.is_empty()
+	return _job == null and _waiting.is_empty() and _later.is_empty()
 
 
 ## Waits for the worker's cut and keeps it.
@@ -316,6 +356,8 @@ static func _settle() -> void:
 static func clear() -> void:
 	_settle()
 	_waiting.clear()
+	_later.clear()
+	_pictures.clear()
 	_cache.clear()
 	_soups.clear()
 	_boxes.clear()
@@ -332,6 +374,7 @@ static func parts(assets: Assets, key: String) -> Array:
 		var cut: Array = _cache[key]
 		return cut
 	_waiting.erase(key)
+	_later.erase(key)
 	var out: Array = []
 	var k := named(key)
 	if k.recipe != "":
@@ -597,25 +640,29 @@ static func _part(piece: Soup, cell: Dictionary, shell: bool) -> Part:
 # ------------------------------------------------------------- pictures, tiles
 
 
-## A picture's solid pixels: [w, h, the solid bounds' lo and hi corners (its
-## pixels), the RGBA data], or [] when it is not there or all clear.
+## A picture's drawn pixels: [w, h, their bounds' lo and hi corners (its
+## pixels), the RGBA data], or [] when it is not there or all clear; read
+## once a picture.
 static func _picture(assets: Assets, image: String) -> Array:
+	var kept: Variant = _pictures.get(image)
+	if kept != null:
+		var known: Array = kept
+		return known
 	if not assets.has_art(image):
 		return []
 	var art := assets.art(image)
 	var w: int = art["w"]
 	var h: int = art["h"]
 	var data: PackedByteArray = art["data"]
-	var lo := Vector2i(w, h)
-	var hi := Vector2i(-1, -1)
-	for y in h:
-		for x in w:
-			if data[(y * w + x) * 4 + 3] > 100:
-				lo = Vector2i(mini(lo.x, x), mini(lo.y, y))
-				hi = Vector2i(maxi(hi.x, x), maxi(hi.y, y))
-	if hi.x < 0:
+	# Its drawn pixels' bounds by the engine (a scan here cost milliseconds
+	# on the main thread as a level started).
+	var used := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, data).get_used_rect()
+	if used.size.x <= 0 or used.size.y <= 0:
+		_pictures[image] = []
 		return []
-	return [w, h, lo, hi, data]
+	var out := [w, h, used.position, used.end - Vector2i.ONE, data]
+	_pictures[image] = out
+	return out
 
 
 ## A picture cut by a recipe: a barrel or a crate stood up from it and cut as
@@ -640,6 +687,7 @@ static func _cut_picture(assets: Assets, k: Named) -> Array:
 		_boxes[k.source + "|" + recipe] = soup.bounds()
 		return WreckFracture.cut(soup, recipe, args, k.material, k.variant)
 	if recipe == "splinter":
+		_boxes[k.source + "|" + recipe] = _splinter_box(pic)
 		return _splinters(pic, k)
 	if recipe != "planks":
 		return []
@@ -815,20 +863,10 @@ static func _face(
 static func _splinters(pic: Array, k: Named) -> Array:
 	var w: int = pic[0]
 	var h: int = pic[1]
-	var lo: Vector2i = pic[2]
-	var hi: Vector2i = pic[3]
 	var data: PackedByteArray = pic[4]
 	var unit := 1.0 / h
-	var rect := Rect2(
-		(lo.x - w * .5) * unit,
-		(h - hi.y - 1) * unit,
-		(hi.x - lo.x + 1) * unit,
-		(hi.y - lo.y + 1) * unit
-	)
-	var box := AABB(
-		Vector3(rect.position.x, -.01, rect.position.y), Vector3(rect.size.x, .02, rect.size.y)
-	)
-	_boxes[k.source + "|" + k.recipe] = box
+	var box := _splinter_box(pic)
+	var rect := Rect2(box.position.x, box.position.z, box.size.x, box.size.z)
 	var at := WreckFracture.origin(box, k.variant)
 	var dice := RandomNumberGenerator.new()
 	dice.seed = hash(k.source) + 7919 * k.variant
@@ -895,6 +933,20 @@ static func _splinters(pic: Array, k: Named) -> Array:
 			)
 		)
 	return out
+
+
+## A painted board's bounds in picture heights (its splinters' origins are
+## round them).
+static func _splinter_box(pic: Array) -> AABB:
+	var w: int = pic[0]
+	var h: int = pic[1]
+	var lo: Vector2i = pic[2]
+	var hi: Vector2i = pic[3]
+	var unit := 1.0 / h
+	return AABB(
+		Vector3((lo.x - w * .5) * unit, -.01, (h - hi.y - 1) * unit),
+		Vector3((hi.x - lo.x + 1) * unit, .02, (hi.y - lo.y + 1) * unit)
+	)
 
 
 ## A 2D polygon cut by a line: the part where n.p <= d.

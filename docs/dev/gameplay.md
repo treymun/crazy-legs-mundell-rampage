@@ -1777,16 +1777,24 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   broke at once) is cut there and then, or waited for if the worker has it;
   a break otherwise uses only variants already cut. Looks only: the pieces
   are the same whichever thread cuts them (`load_check`).
-- **Never the same twice.** A fractured key is cut in `WreckCuts.VARIANTS`
-  (6; a model of more than `HEAVY` triangles 3) variants, "<key>^k", each
-  with its own dice and its own fracture origin (`WreckFracture.origin`:
-  round its sides at heights that change with k), all on the worker in the
-  level's first frames (every kind's own first, then their variants). A
-  break takes one of the two or three whose origin is nearest where it was
-  struck, never the one that kind broke as last; a barrel's is turned about
-  its axis to face the hit (`WreckCuts.round_about`). Without threads (the
-  lite browser build) each break of a kind cuts its next variant there and
-  then, up to `LITE` (2; heavy models keep one).
+- **Never the same twice.** A fractured key is cut in up to
+  `WreckCuts.VARIANTS` (6; a model of more than `HEAVY` triangles 3)
+  variants, "<key>^k", each with its own dice and its own fracture origin
+  (`WreckFracture.origin`: round its sides at heights that change with k).
+  Only each kind's own is cut in the level's first frames (as before, on the
+  worker; a painted board's splinters too). A kind that breaks asks for its
+  next two (`WreckCuts.more`), cut on the worker only while no piece flies
+  (`pump(quiet)`), so only what breaks gets more of itself and nothing is
+  cut in a fight's thick or in a quiet level (pass 11's first cut of every
+  variant at the start cost every frame of a level's first seconds up to
+  half again: a worker running GDScript slows the main thread). A level's
+  start drops what an earlier level asked for. A break takes one of the two
+  or three cut variants whose origin is nearest where it was struck, never
+  the one that kind broke as last; a barrel's is turned about its axis to
+  face the hit (`WreckCuts.round_about`). Without threads (the lite browser
+  build) each break of a kind cuts its next variant there and then, up to
+  `LITE` (2; heavy models keep one). Tin, glass and rubber pieces are their
+  skin alone (`SHEER`: drawn both sides, no inside face or rims).
 - **Thrown by the hit** (`wreckage.gd _break_piece`, `_burst_apart`): the
   hits that broke it (`_hits_for`: each pellet where it struck, or the blast
   gone off near it in the last `BLAST_TIME`) both pick the variant
@@ -1798,7 +1806,8 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   side facing this machine's player, .7. A revolver round chips it open,
   buckshot blows it apart. Each piece is `WreckPhysics.add`ed with the
   thing's stuff (a hoop iron) and its cut's form. One break throws at most
-  `per_break` pieces (18, `per_break_phone` 10; the biggest), none that would
+  `per_break` pieces (18, `per_break_phone` 10, `per_break_county` 10 on the
+  County Run maps, one long fight; the biggest), none that would
   start with three corners in a wall (`_walled`). A shot that does not break
   a thing knocks chips off where it struck (`prop_struck`, `wreck_burst.gd
   chips`; its hp untouched).
@@ -1975,7 +1984,10 @@ carry and the bowling pins' exact solver are untouched).
   their way, harder the faster (`_kick`: walkers near the pieces only, their
   speed from where they stood last tick). Fence boards shot off are knocked
   back toward the shot (not through the fence) and a broken-through cell's
-  boards out across the fence's line.
+  boards out across the fence's line. The county's hands kick only within `KICK_SEEN` (14 cells) of this
+  machine's player and each piece once in `KICK_AGAIN` (1 s): a County Run
+  horde walking through a yard of pieces kept them all awake (wreckage's
+  tick 0.76 ms to 0.29 there).
 - **Sounds**: the two hardest knocks a step are heard by the stuff's `cue`
   (`cue_hard` past half its `loud`), louder the harder, higher for small
   pieces, at most `sounds_most` a second and one a piece in `gap`; a metal
