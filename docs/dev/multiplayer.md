@@ -129,8 +129,10 @@ hitstop, footstep splashes spend `game.rng`, `cheats.god` is the game's.
 A carried field must never be decided by one that is not: a client's copy
 that is put back on a snapshot keeps its own presentation, so anything
 carried that read it parts the copies again (county_net_check found three).
-`game.bark_next` decides whether a hand's own `Mind.bark_next` is set, so it
-is a SIM field; a simulation feature's looks keep their own dice that the
+Play kept on an object goes in a field (an enemy's `notes` for a boss's
+moves and the like), never in its metas, which no snapshot carries (pass 12,
+net_check scans for them). `game.bark_next` decides whether a hand's own
+`Mind.bark_next` is set, so it is a SIM field; a simulation feature's looks keep their own dice that the
 snapshot skips (`SnapCodec.SKIP_FIELDS`: the specks of `hit_reads` and
 `critters`, whose count hangs on the specks already about), and what follows
 this machine's callouts (`hit_reads._call_at`, after the BARKS setting and
@@ -162,9 +164,11 @@ are shared by reference in Godot 4: encode and decode copy them):
 - "game" (SIM_FIELDS);
 - "world" (each door's progress, opened and discovered by its place in the
   level's list; the panes broken, in breaking order);
-- "facts" (`FACT_FEATURES`' own save(): what breakables and wall breaks broke,
-  which changes the level's walls and floor; the arena wreck; the boss arena
-  shut, `boss_lock`, whose restore lays its solid cells and gates on a copy);
+- "facts" (`FACT_FEATURES`' own save(), or its `net_facts()` where it has
+  one, `GameSnapshot.fact_of`: what breakables and wall breaks broke, which
+  changes the level's walls and floor; the arena wreck; the boss arena shut,
+  `boss_lock`, whose restore lays its solid cells and gates on a copy; the
+  breakables' leaves out the bits and fuses, pass 12);
 - "players" (every carried field by slot, each player's own, whoever is
   acting);
 - "enemies" (by uid) with "order";
@@ -182,15 +186,19 @@ carried field is set, and a finished station's lights follow `stations_done`
 full)` puts on only what a delta touches, each field from `full` (its patched
 snapshot).
 
-A flow field travels as the cells its last walk reached and their steps
-(`@flow`); a level's windows, fences, breakable pieces and boards carry only
+A flow field travels as the cells its last walk reached, in runs of
+neighbours in cell order, and their steps (`@flow`, pass 12: a County Run
+player's field was 6 KB of a 9 KB delta packed, under 2 KB now; a row of
+every cell, as before, still reads); a level's windows, fences, breakable pieces and boards carry only
 what can change (`SnapCodec.ONLY_FIELDS`), a feature's tuning and lookups not
 at all (`SKIP_FIELDS`). `to_bytes`/`from_bytes` (var_to_bytes, zstd),
 `delta(base, now)` (dictionaries walked, each value compared once, bit for
 bit; a changed dictionary is `{"@new": value}`, anything else travels as it
 is; gone keys under "@gone", a new key order under "@order"), `patch`,
 `patch_into` (into the caller's own copy), `merge(older, newer)` (two deltas
-as one), `same(a, b)` (bit for bit, key order too), `first_difference`
+as one; null only for "@order": until pass 12 a value gone to null, an
+enemy's `aim_mark`, came back as that null too, and the host sent every
+client a whole snapshot), `same(a, b)` (bit for bit, key order too), `first_difference`
 (each dictionary compared whole first, walked only where it differs: a
 client's check every second took 100 to 180 ms walking it all).
 
@@ -771,6 +779,11 @@ What it does not fix, and why:
   what the blend draws: net_lag's "looked a hit, judged a miss" (before
   the server's changes) was 0 / 4.8 / 21% at 50 / 120 / 250 ms with this,
   0 / 13.6 / 20% without.
+(`Client.by_clock` off): its copies parted from the host while the party's
+card picks held the world. Pass 12 found why (the check's own XP handed
+between ticks, and whole snapshots every second or two from the merge of a
+null; [county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed)):
+it can go by the clock like the rest.
 
 ## Online 5v5
 
@@ -1146,6 +1159,146 @@ copies put back from 43 to 1 in 20 s (5v5 and co-op), but the others
 still showed frozen in 86% of frames with or without them (the same
 number in both: the client's drawing at that rate, not the rows), so 60
 a second is not worth it yet; 30 stays.
+### Soaking every mode (pass 12)
+
+`tools/net_soak_all.gd` soaks every online mode in one process on its own
+clock: a lobby server of this build on 127.0.0.1 with latency, jitter and
+loss on every session (`lags=`, `jitter=` a share of it, `loss=`), two to
+four players (`people=`) each steered by a bot from its own copy and drawn
+as main.gd draws it (led by the prediction, own shots shown), the last of
+them over the lobby's WebSocket side. CAMPAIGN CO-OP is hosted by the real
+front end through the party line (the host's player one a bot too, one
+partner straight in, the last through the line over WebSocket). A match
+that ends starts again.
+
+- **Destruction on purpose** (`wreck`, `every`): a director on every game
+  alike, the server's and each copy (`Wrecker`, hooked to `ticked`, acting on
+  the game's clock and carried state only), sets off a chain of blasts
+  nobody threw every 4 s of game clock: through the breakables, at the
+  barns, the water tower and the fuel line until they come down, at the
+  vehicles, the fences and windows, among the hands. It is play, so every
+  copy must keep with the server through it.
+- **Late join** (`late`): half way the last player leaves and joins again
+  into what is broken; its copy must keep for 10 s, and its wreckage must
+  show every fallen set piece in its pieces.
+- **Put backs** (`putback=S`): every S seconds each copy is put back on the
+  newest snapshot, as a lost input row does, and must keep after it. This is
+  what found most of what follows: play a snapshot does not carry shows up
+  as a parting soon after a put back.
+- It fails on a parting (beyond the two put backs a leave and a join make in
+  the party modes, below), a drop, a script or engine error, a late joiner
+  wrong, a save of the broken co-op chapter that reads back otherwise, and
+  (runs of 3 minutes or more) objects or any game's list growing over the
+  second half past `grow`. It prints, per run: partings and where, put
+  backs, round trips, bandwidth down a player (the 95th percentile of a
+  second while things break and while not), the client's frame (its copy
+  played out, snapshots taken, the frame drawn led) median / p99 / worst,
+  quiet, breaking, at a check and at a put back, its parts, the server's
+  whole snapshots and delta sizes, memory and objects. `why=1` says why each
+  whole snapshot went and what a delta carries after each blast. `quick`
+  (check_all): County Run co-op and campaign co-op for 30 s at 120 ms, put
+  back every 5 s.
+
+What it found and fixed:
+
+- **Whole snapshots every second or two in County Run and co-op.**
+  `GameSnapshot.merge` takes null for "can't merge" (an "@order"), and a
+  value gone to null in the newer delta (an enemy's `aim_mark` let go) came
+  back as that null: the host sent every client a whole snapshot (12 to
+  27 KB) with no input rows, and every copy was put back on it (12 to 50 ms
+  each). County Run at 120 ms: 76 whole snapshots in 42 s and 35 copies put
+  back "for lost inputs", 1 and 0 after; 296 KB/s down a player before, 152
+  after with the two below.
+- **Play kept in an enemy's metas** (the bosses' move plans, the bayou
+  gators' homes and runs, the arena fire's next bite on each hand) was never
+  carried: a copy put back in a boss fight, or a late joiner's, parted at
+  every check after (each check put it back, which never brought the metas
+  back). Now `Enemy.notes` (`get_note`, `set_note`...), carried; net_check
+  fails on a `set_meta` in play code.
+- **A flood washing a body** set the flood's `hit` without moving
+  `set_pieces.net_version`, so snapshots never sent it: a copy put back
+  parted at every check while the flood ran.
+- **A late joiner saw a fallen barn land again** whole, dust and rumble and
+  all: a snapshot's set pieces now sync the wreckage's ruin
+  ([gameplay.md](gameplay.md#coming-apart-destruction-pass-11)).
+- **What a delta carried while things broke**: the breakables' flying bits
+  (play never reads them) twice over, in the feature and in its facts, and
+  the fuses burning down in the facts: 5 to 40 KB raw a delta (1.6 to 7.5 KB
+  packed) in a 5v5 while barrels went up, 1.2 to 1.3 KB now; the bits are
+  looks now and the facts are `net_facts()`. A player's flow field travels
+  as runs (County Run: 6 KB packed a field, under 2). 5v5 down a player
+  while things broke (p95 of a second) 293 KB/s -> 79, deathmatch 383 ->
+  106, County Run 222, campaign co-op 602 -> 265.
+- **An engine error** when a packet for a WebSocket player that had just
+  gone left the lag queue (`NetSession._ws_open`).
+- **Past about a second of round trip** a client's acknowledged base fell
+  out of the host's `KEEP` (32 snapshots, 1.07 s at 30 a second) and it got
+  whole snapshots (7 to 30 KB, no input rows, a put back each) until the
+  trip came down. With NETSERVER's `NetSession.resend_lost` (a lost packet
+  holds a WebSocket up a round trip, as TCP does) the browser's player at
+  250 ms was put back 76 to 83 times in 90 s in every 5v5 mode, the party
+  line's at 120 ms 22 times in 30 s. `Host.KEEP` and `Client.KEEP` are 120
+  (4 s); none since (net_check holds them together).
+- **A copy's snapshots leaked**: `Client` let go only of the one exactly
+  `KEEP` older than the newest, so one that came after a lost one stayed for
+  ever (about one in fifty at 2% loss, each holding its game's whole
+  snapshot): 260 kept after a minute; `KEEP` at most now.
+- County Run's card picks: [county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed).
+
+Measured after all of it on the integrated transport (NETSERVER's), this PC
+loaded by other work (the client's milliseconds are a guide only; headless:
+the copy's ticks, its snapshots and its drawing led, no 3D), a minute each
+of two players with the director on, 2% loss, jitter a fifth of the
+latency (campaign co-op's round trip is through the party line, so about
+twice the others'):
+
+| 120 ms | partings (inputs lost) | trip p50/p95 | down KB/s (p95 quiet/breaking) | client frame quiet p50/p99 | breaking p50/p99/worst | checking (once a second) p50/worst |
+| --- | --- | --- | --- | --- | --- | --- |
+| County Run co-op | 0 (0) | 333/600 | 204 (107/227) | 6.7/22.6 | 9.9/35/129 | 23/55 |
+| search and destroy | 0 (0) | 317/517 | 42 (12/55) | 2.6/5.9 | 2.9/8.4/18 | 6.9/15 |
+| hostage | 0 (0) | 317/517 | 42 (12/53) | 2.5/6.2 | 3.0/8.0/15 | 6.8/14 |
+| tag team | 0 (1) | 317/450 | 25 (10/29) | 2.0/3.5 | 2.4/4.5/8.9 | 5.0/7.4 |
+| deathmatch | 2, the late join's (0) | 333/550 | 69 (41/113) | 5.1/15 | 8.0/25/159 | 14/65 |
+| team deathmatch | 2, the late join's (0) | 333/550 | 64 (39/103) | 4.9/16 | 7.5/23/125 | 14/31 |
+| campaign co-op | 0 (3) | 750/933 | 203 (45/261) | 8.5/44 | 11/51/116 | 40/87 |
+
+At 250 ms (1.2 min each): search and destroy 0 partings (1 input lost),
+deathmatch 2 (the put back after a lost row, below), County Run 0 (2),
+campaign co-op 0 (6, its trip through the line 1.7 s). Four players at
+120 ms: search and destroy 0 (0), County Run 0 (6), campaign co-op 4 (the
+late join's, 6 allowed). The host's own frame in campaign co-op (its game
+with the same scene, as one player's machine) 12.5 ms median, 41 p99, where
+a partner's frame is 8.5 / 44 and a check of the copy 40 ms (NETFEEL's).
+
+Known and left (each puts a copy back once or twice more, never for long):
+
+- **`game.place_log` is not carried** (multiplayer.md "Lag", 3.2): after a
+  put back a copy's log lacks the ticks it skipped, so a shot rewound into
+  them in the next second can play otherwise. With the server's log handed
+  to the copy at each forced put back a deathmatch kept through 44 put
+  backs; without, 2 partings. Carrying it means its new rows in every
+  snapshot (a few hundred bytes for a 5v5), or the rewound places in the
+  shooter's echoed row: the transport's to choose.
+- **Rubble shut into the paths**: the host shuts a fallen barn's rubble
+  into the players' flow fields once nothing moves (`_to_shut`, not
+  carried); a copy put back on a snapshot mid-fall shuts it at once, so the
+  flow fields differ until the fall ends (a parting or two, then they agree).
+- **Objects and memory grow in the copies over a long County Run.** Twelve
+  minutes of a party of two at 120 ms with destruction on: the process went
+  from 460 MB and 13,500 objects to 1,280 MB and 77,500 (enemies 21 to 79,
+  so part of it is the horde). Split by where it happens: the server's game
+  (a host game) adds next to nothing, nor does the network (taking packets,
+  NetTrack on a County Run bot game for four minutes: flat); it is the
+  copies' own ticks (about 2,000 objects a copy a minute), and the
+  prediction's frame about a fifth as much again. A County Run party game
+  made as the front end makes one (its sound, its HUD) grows about 600
+  objects a minute with no network at all, one with `QuietSound` none. Not
+  found yet: no list in the game, its features, the sound or the HUD grows
+  with it. The soak's two copies share one front end, so a real player's
+  machine sees about half.
+- **A leave and a join in the party modes** (`Modes.went_away`,
+  `join_late`) change the server's game between ticks: every other copy is
+  put back once for each (a hitch of 10 to 130 ms on a busy co-op map).
 
 ### Player maps in a lobby
 

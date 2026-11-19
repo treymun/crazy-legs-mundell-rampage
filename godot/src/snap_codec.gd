@@ -9,8 +9,9 @@
 ##                       dictionary keyed by enemy): another machine's differ
 ##   {"@o": class, "f": {field: value}}    any other script object, by its
 ##                                         class's name (REGISTRY roots)
-##   {"@flow": [ox, oy, next_at, walked, cells, steps]}   a FlowField: only
-##                       the cells its last walk reached and their steps (the
+##   {"@flow": [ox, oy, next_at, walked, runs, steps, 1]}   a FlowField:
+##                       only the cells its last walk reached, in runs
+##                       [first, count] in cell order, and their steps (the
 ##                       rest is FAR; its open floor follows the level)
 ##   {"@skip": 1}        what a snapshot never carries (sprites, images,
 ##                       threads, callables): apply leaves it as it is.
@@ -39,7 +40,10 @@ const SKIP_FIELDS := {
 	"Player": ["voice", "weapon_lag", "weapon_turn", "weapon_pose"],
 	"Weapons.Armory": ["boxes", "drawn", "leaving"],
 	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
-	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty", "_crack_seen"],
+	# The bits and the dice that throw and shove them are looks (nothing in play
+	# reads them): each machine its own, never carried (pass 12 soak: they were
+	# most of a delta while things broke, 5 to 40 KB).
+	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty", "_crack_seen", "bits", "dice"],
 	# What the level makes the same everywhere (tuning, what each cell has to
 	# burn), this machine's view of it (what it last put in step, the held
 	# picture, the marks) and a furniture base each machine frees itself.
@@ -395,10 +399,25 @@ static func packer(names: Array[StringName]) -> GDScript:
 
 ## A flow field: where it was measured from and when next, whether its first
 ## walk is done, and the steps of the cells its last walk reached (every
-## other cell is FAR: flow_field.gd keeps it so).
+## other cell is FAR: flow_field.gd keeps it so). The cells go in cell order
+## as runs of neighbours, [first, count] each, the steps in that order: a
+## few hundred runs where the walk's own order took a number a cell (pass
+## 12 soak: a County Run player's field was 6 KB of a 9 KB delta packed,
+## now under 2). The order a field keeps its cells in is never play.
 static func encode_flow(f: FlowField) -> Dictionary:
-	var at := f._touched
+	var at := f._touched.duplicate()
+	at.sort()
 	var most := 0
+	var runs := PackedInt32Array()
+	var i := 0
+	while i < at.size():
+		var first := at[i]
+		var n := 1
+		while i + n < at.size() and at[i + n] == first + n:
+			n += 1
+		runs.append(first)
+		runs.append(n)
+		i += n
 	for cell in at:
 		most = maxi(most, f.steps[cell])
 	var steps: Variant = null
@@ -410,20 +429,27 @@ static func encode_flow(f: FlowField) -> Dictionary:
 		var wide := PackedInt32Array()
 		wide.resize(at.size())
 		steps = wide
-	for i in at.size():
-		steps[i] = f.steps[at[i]]
-	return {"@flow": [f.origin.x, f.origin.y, f.next_at, f._walked, at.duplicate(), steps]}
+	for k in at.size():
+		steps[k] = f.steps[at[k]]
+	return {"@flow": [f.origin.x, f.origin.y, f.next_at, f._walked, runs, steps, 1]}
 
 
 ## Puts an encode_flow() back: the steps it carries, FAR elsewhere, and no walk
 ## left half done (the scratch field a walk fills is all FAR, as update()
-## leaves it before every walk).
+## leaves it before every walk). (A row of six, before pass 12, lists every
+## cell.)
 static func decode_flow(f: FlowField, row: Array) -> void:
 	f.origin = Vector2i(_int(row[0]), _int(row[1]))
 	f.next_at = row[2]
 	f._walked = row[3]
 	var cells: PackedInt32Array = row[4]
-	var at: PackedInt32Array = cells.duplicate()
+	var at := PackedInt32Array()
+	if row.size() > 6:
+		for k in range(0, cells.size(), 2):
+			for n in cells[k + 1]:
+				at.append(cells[k] + n)
+	else:
+		at = cells.duplicate()
 	var steps: Variant = row[5]
 	f.steps.fill(FlowField.FAR)
 	for i in at.size():

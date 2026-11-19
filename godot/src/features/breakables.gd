@@ -892,6 +892,23 @@ func _shown_broken(p: Piece) -> View.Sprite:
 	return null
 
 
+## A snapshot's facts of it (GameSnapshot.fact_of): what broke and moved
+## and the shells, which change the level. Not the bits (looks: each machine
+## throws its own, never carried) nor the fuses (carried in the feature's own
+## block): with them every delta sent the whole of it while a bit flew or a
+## fuse burned.
+func net_facts() -> Dictionary:
+	var out := save()
+	out.erase("bits")
+	out.erase("cooking")
+	var broken: Array = out.get("broken", [])
+	var moved: Array = out.get("moved", [])
+	var shells: Array = out.get("wrecks", [])
+	if broken.is_empty() and moved.is_empty() and shells.is_empty():
+		return {}
+	return out
+
+
 func save() -> Dictionary:
 	var broken: Array = []
 	var moved: Array = []
@@ -949,7 +966,9 @@ func restore(state: Dictionary) -> void:
 				_place(moved, to_x, to_y)
 	# Listed again with what was broken and moved before the save.
 	game.fixed_sprites_key = []
-	bits.clear()
+	# (A snapshot's facts have no bits: this machine's own stay where they lie.)
+	if state.has("bits"):
+		bits.clear()
 	for item: Variant in state.get("bits", []):
 		if item is Array:
 			var row: Array = item

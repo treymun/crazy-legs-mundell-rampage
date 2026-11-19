@@ -30,16 +30,16 @@ static var RING_SHOTS: int = BossData.get_value("sheriff", "ring_shots")
 
 
 func fight_start(e: Enemy, _game: Game) -> void:
-	e.set_meta("vent_after", e.attacks + VENT_EVERY + 1)
-	e.set_meta("ring_after", e.attacks + RING_EVERY)
+	e.set_note("vent_after", e.attacks + VENT_EVERY + 1)
+	e.set_note("ring_after", e.attacks + RING_EVERY)
 
 
 func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 2:
-		e.set_meta("vent_after", e.attacks + 1)
+		e.set_note("vent_after", e.attacks + 1)
 	if phase != 3:
 		return
-	e.set_meta("strike_at", game.clock + 1.4)
+	e.set_note("strike_at", game.clock + 1.4)
 	game.message("THE SAUCER'S REACTOR IS GOIN' CRITICAL!", 2.6)
 	game.sound_at("saucer_charge", e.x, e.y, 1.0)
 	var f: BossArenaFeature = arena(game)
@@ -59,7 +59,7 @@ func tick(e: Enemy, dt: float, game: Game) -> bool:
 	var f: BossArenaFeature = arena(game)
 	if f != null and e.boss_phase >= 3:
 		_reactor(f, game)
-	var vent_until: float = e.get_meta("vent_until", -1.0)
+	var vent_until: float = e.get_note("vent_until", -1.0)
 	if game.clock < vent_until:
 		# Venting: back turned, the pack hissing.
 		var p: Player = game.player
@@ -76,17 +76,17 @@ func tick(e: Enemy, dt: float, game: Game) -> bool:
 		return false
 	if e.boss_phase >= 3 and due(e, game, "strike_at") and sees_player(e, game):
 		var hog := hog_wild(game)
-		e.set_meta("strike_at", game.clock + STRIKE_EVERY * (.75 if hog else 1.0))
+		e.set_note("strike_at", game.clock + STRIKE_EVERY * (.75 if hog else 1.0))
 		begin_own(e, game, "strike", STRIKE_CALL)
 		game.sound_at("saucer_charge", e.x, e.y, .9)
 		return true
-	var vent_after: int = e.get_meta("vent_after", 1 << 30)
+	var vent_after: int = e.get_note("vent_after", 1 << 30)
 	if e.boss_phase >= 2 and e.attacks >= vent_after:
 		_vent(e, game)
 		return true
-	var ring_after: int = e.get_meta("ring_after", 1 << 30)
+	var ring_after: int = e.get_note("ring_after", 1 << 30)
 	if hog_wild(game) and e.boss_phase >= 2 and e.attacks >= ring_after:
-		e.set_meta("ring_after", e.attacks + RING_EVERY)
+		e.set_note("ring_after", e.attacks + RING_EVERY)
 		begin_own(e, game, "ring", .8, [e.x, e.y, 1.0])
 		game.sound_at("sheriff_siren", e.x, e.y, 1.0)
 		return true
@@ -97,7 +97,7 @@ func act(e: Enemy, game: Game, name: String) -> void:
 	if name == "strike":
 		_call_strike(e, game)
 		# The call overheats the pack: he vents right after.
-		e.set_meta("vent_after", e.attacks)
+		e.set_note("vent_after", e.attacks)
 		e.recovery = .3
 	elif name == "ring":
 		_ring(e, game)
@@ -107,8 +107,8 @@ func act(e: Enemy, game: Game, name: String) -> void:
 
 ## The pack overheats: back turned for VENT seconds.
 func _vent(e: Enemy, game: Game) -> void:
-	e.set_meta("vent_until", game.clock + VENT)
-	e.set_meta("vent_after", e.attacks + VENT_EVERY)
+	e.set_note("vent_until", game.clock + VENT)
+	e.set_note("vent_after", e.attacks + VENT_EVERY)
 	e.cooldown = maxf(e.cooldown, VENT + .4)
 	game.sound_at("arm_vent", e.x, e.y, 1.0)
 	game.sound_at("pressure_vent", e.x, e.y, .7)
@@ -212,7 +212,7 @@ func telegraph(e: Enemy, game: Game) -> Array:
 
 func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
-	var vent_until: float = e.get_meta("vent_until", -1.0)
+	var vent_until: float = e.get_note("vent_until", -1.0)
 	var venting: bool = game.clock < vent_until
 	if not venting and e.boss_phase < 3:
 		return out

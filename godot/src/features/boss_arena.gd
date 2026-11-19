@@ -429,9 +429,9 @@ func _tick_fires(_dt: float) -> void:
 			if absf(e.x - f.x) > f.r + e.radius or absf(e.y - f.y) > f.r + e.radius:
 				continue
 			if Vector2(e.x - f.x, e.y - f.y).length() < f.r + e.radius * .5:
-				var burn_next: float = e.get_meta("burn_next", 0.0)
+				var burn_next: float = e.get_note("burn_next", 0.0)
 				if game.clock >= burn_next:
-					e.set_meta("burn_next", game.clock + FIRE_BITE)
+					e.set_note("burn_next", game.clock + FIRE_BITE)
 					# Its own: no weak spot, no hit mark on the crosshair.
 					e.hurt(FIRE_FOE, game, false, false, e, "fire")
 		if game.clock >= f.spread_at and fires.size() + born.size() < FIRES_MAX:

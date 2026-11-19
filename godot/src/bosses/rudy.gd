@@ -27,15 +27,15 @@ static var BALLOONS_EVERY: int = BossData.get_value("rudy", "balloons_every")
 
 
 func fight_start(e: Enemy, _game: Game) -> void:
-	e.set_meta("balloons_after", e.attacks + BALLOONS_EVERY)
+	e.set_note("balloons_after", e.attacks + BALLOONS_EVERY)
 
 
 func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 2:
-		e.set_meta("stack_at", game.clock + 2.0)
+		e.set_note("stack_at", game.clock + 2.0)
 	elif phase == 3:
-		e.set_meta("finale_at", game.clock + .9)
-		e.set_meta("stack_at", game.clock + 2.5)
+		e.set_note("finale_at", game.clock + .9)
+		e.set_note("stack_at", game.clock + 2.5)
 		game.message("THE GRAND FINALE! THE SPOTLIGHTS ARE ON YOU!", 2.6)
 		game.sound.play("crowd_cheer", .8)
 
@@ -49,23 +49,23 @@ func tick(e: Enemy, dt: float, game: Game) -> bool:
 		if e.boss_phase >= 3:
 			_spotlights(f, game)
 	if due(e, game, "wave2_at"):
-		e.remove_meta("wave2_at")
+		e.remove_note("wave2_at")
 		_ring(e, game, .5)
 	if run_own(e, game, dt):
 		return true
 	if not ready(e) or e.volley > 0:
 		return false
 	if e.boss_phase >= 3 and due(e, game, "finale_at"):
-		e.set_meta("finale_at", game.clock + FINALE_EVERY * (.8 if hog_wild(game) else 1.0))
+		e.set_note("finale_at", game.clock + FINALE_EVERY * (.8 if hog_wild(game) else 1.0))
 		begin_own(e, game, "finale", FINALE_WARN)
 		# The gap opens on the far side from the player: it must be run for.
-		e.set_meta("finale_gap", FINALE_SHOTS / 2 - 1)
+		e.set_note("finale_gap", FINALE_SHOTS / 2 - 1)
 		game.sound_at("rudy_warn", e.x, e.y, 1.0)
 		say_once(e, game, "finale_told", "HE'S BLOWIN' EVERY WHICH WAY! FIND THE GAP!")
 		return true
-	var balloons_after: int = e.get_meta("balloons_after", 1 << 30)
+	var balloons_after: int = e.get_note("balloons_after", 1 << 30)
 	if hog_wild(game) and e.boss_phase >= 2 and e.attacks >= balloons_after:
-		e.set_meta("balloons_after", e.attacks + BALLOONS_EVERY)
+		e.set_note("balloons_after", e.attacks + BALLOONS_EVERY)
 		begin_own(e, game, "balloons", .5)
 		return true
 	return false
@@ -74,7 +74,7 @@ func tick(e: Enemy, dt: float, game: Game) -> bool:
 func act(e: Enemy, game: Game, name: String) -> void:
 	if name == "finale":
 		_ring(e, game, 0.0)
-		e.set_meta("wave2_at", game.clock + .5)
+		e.set_note("wave2_at", game.clock + .5)
 		e.recovery = .9
 		e.cooldown = maxf(e.cooldown, 1.4)
 	elif name == "balloons":
@@ -99,7 +99,7 @@ func act(e: Enemy, game: Game, name: String) -> void:
 ## The bearings of the finale's ring, `turn` of a step round.
 func _bearings(e: Enemy, turn: float) -> Array:
 	var out: Array = []
-	var gap: int = e.get_meta("finale_gap", 0)
+	var gap: int = e.get_note("finale_gap", 0)
 	for k in FINALE_SHOTS:
 		if k == gap or k == (gap + 1) % FINALE_SHOTS or k == (gap + 2) % FINALE_SHOTS:
 			continue
@@ -128,12 +128,12 @@ func _stacks(e: Enemy, game: Game, f: BossArenaFeature) -> void:
 	if not due(e, game, "stack_at"):
 		return
 	var every := STACK_DESPERATE if e.boss_phase >= 3 else STACK_MAD
-	e.set_meta("stack_at", game.clock + every * (.8 if hog_wild(game) else 1.0))
+	e.set_note("stack_at", game.clock + every * (.8 if hog_wild(game) else 1.0))
 	var stacks: Array = f.spec("rudy").get("horns", [])
 	if stacks.is_empty():
 		return
 	var p: Player = game.player
-	var turn: int = e.get_meta("stack_turn", 0)
+	var turn: int = e.get_note("stack_turn", 0)
 	for tries in stacks.size():
 		var s: Array = stacks[(turn + tries) % stacks.size()]
 		var sx: float = s[0]
@@ -141,7 +141,7 @@ func _stacks(e: Enemy, game: Game, f: BossArenaFeature) -> void:
 		var d := Vector2(p.x - sx, p.y - sy).length()
 		if d > 15.0 or not game.world.visible(sx, sy, p.x, p.y):
 			continue
-		e.set_meta("stack_turn", turn + tries + 1)
+		e.set_note("stack_turn", turn + tries + 1)
 		f.lane(sx, sy, atan2(p.y - sy, p.x - sx), d + 3.0, 1.0)
 		game.sound_at("rudy_warn", sx, sy, .7)
 		say_once(e, game, "stack_told", "THE HORN STACKS! STAY OFF THE LANES!")
@@ -205,5 +205,5 @@ func looks(e: Enemy, game: Game) -> Array:
 
 
 func dying(e: Enemy, game: Game) -> void:
-	e.remove_meta("wave2_at")
+	e.remove_note("wave2_at")
 	game.burst(e.x, e.y, game.world.stand(e) + 1.2, "spark", 16, 2.2)

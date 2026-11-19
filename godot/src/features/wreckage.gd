@@ -267,6 +267,25 @@ func _sync() -> void:
 		ruin.sync()
 
 
+## The set pieces put on from a snapshot (set_pieces.gd restore, for a late
+## joiner's copy or one put back): what is down lies in its pieces at once
+## and nothing lands or bursts again, as after a load; the rest stays.
+func sync_sets() -> void:
+	if not on:
+		return
+	var sets: SetPiecesFeature = game.features.get("set_pieces")
+	if sets == null:
+		return
+	_set_version = sets.net_version
+	for i in sets.pieces.size():
+		var st: Dictionary = sets.pieces[i]
+		var outs: Array = st["out"]
+		for k in outs.size():
+			_set_out["%d:%d" % [i, k]] = outs[k]
+	if ruin != null:
+		ruin.sync()
+
+
 ## Gone with its game: the set pieces' workers waited for, nothing pointing
 ## back at the game.
 func detach() -> void:

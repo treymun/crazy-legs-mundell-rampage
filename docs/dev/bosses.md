@@ -18,7 +18,12 @@ Boss fights share a framework: `src/boss_kit.gd`, `features/boss_fight.gd`,
   `looks`, `dying`, `stagger_hit`/`stagger_rest`, `hog_wild(game)`.
 - `BossKit.moves(kind)` hands back one instance shared by every game (from
   `BossKit.MOVES`, or the `brain=` kind's), so keep a fight's state on the
-  enemy or in a feature's save.
+  enemy or in a feature's save. On the enemy that means a field or its
+  `notes` (`get_note`, `set_note`, `has_note`, `remove_note`: the bosses'
+  attack plans, the bayou gators' homes and runs, the arena fire's next
+  bite), carried in snapshots; never `set_meta`, which no snapshot carries
+  (until pass 12 an online copy put back, or a late joiner's, parted at the
+  next boss move; net_check fails on a `set_meta` in play code).
 - `Enemy.boss_phase` (2 under half, 3 under a fifth; Maw by her own lines) is
   worked out from health, never saved.
 - A player's hit sets `game.hit_point`/`hit_from` before `hurt()`, which asks

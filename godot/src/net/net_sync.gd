@@ -109,8 +109,12 @@ class Host:
 	extends RefCounted
 	## Whole snapshots no more often than this while a client has none.
 	const FULL_GAP := 30
-	## Snapshots kept as bases.
-	const KEEP := 32
+	## Snapshots kept as bases: 4 s at 30 a second. (32 until pass 12: past
+	## about a second of round trip, a browser player at 250 ms whose TCP
+	## held up a lost packet, a client's acknowledged base was gone and it
+	## got whole snapshots with no input rows, its copy put back on each,
+	## about one a second; net_soak_all.gd.)
+	const KEEP := 120
 	## A client's inputs waiting past this are caught up on.
 	const MAX_WAITING := 4
 	## Ticks of inputs carried in a snapshot at most.
@@ -540,7 +544,9 @@ class Client:
 	## Rebuild the copy from a snapshot every this many ticks (exercises
 	## apply; only with REBUILD_RUNNING off).
 	const REBUILD_EVERY := 600
-	const KEEP := 32
+	## Snapshots kept as bases for the host's deltas: as many as the host
+	## keeps (Host.KEEP; each shares what did not change with the one before).
+	const KEEP := 120
 	## Inputs remembered after they are confirmed (the view's prediction).
 	const SENT_KEEP := 120
 	## Partings kept in mismatch_log.
@@ -915,7 +921,7 @@ class Client:
 			return
 		var tick: int = msg["tick"]
 		snaps[seq] = [tick, data]
-		snaps.erase(seq - KEEP)
+		_forget_before(seq - KEEP + 1)
 		if keep_rebuilt:
 			rebuilt[seq] = data
 		latest = seq
@@ -936,6 +942,14 @@ class Client:
 			GameSnapshot.apply(game, data)
 			game_tick = tick
 			_after_apply()
+
+	## Lets go of every snapshot before `seq`. (Only `seq - KEEP` itself went
+	## until pass 12: one that came after a lost one stayed for ever, about
+	## one in fifty with 2% loss, each holding its whole game; net_soak_all.)
+	func _forget_before(seq: int) -> void:
+		for old: int in snaps.keys():
+			if old < seq:
+				snaps.erase(old)
 
 	func _catch_up(most := 1 << 30, behind := 0) -> void:
 		if latest < 0:

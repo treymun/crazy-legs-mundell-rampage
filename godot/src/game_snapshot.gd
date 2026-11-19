@@ -482,8 +482,20 @@ static func facts_of(game: Game) -> Dictionary:
 	for id: String in FACT_FEATURES:
 		var feature: GameFeature = game.features.get(id)
 		if feature != null:
-			out[id] = SnapCodec.plain(feature.save())
+			out[id] = SnapCodec.plain(fact_of(feature))
 	return out
+
+
+## A fact feature's facts: its `net_facts()` where it has one (what changes
+## the level, without what the feature carries anyway), else its save().
+## (Pass 12 soak: the breakables' save has the bits flying and the fuses
+## burning down, so their facts went whole in every delta while anything
+## broke.)
+static func fact_of(feature: GameFeature) -> Dictionary:
+	if feature.has_method("net_facts"):
+		var facts: Dictionary = feature.call("net_facts")
+		return facts
+	return feature.save()
 
 
 ## Play kept in static variables (every game in the program shares them, by
@@ -670,7 +682,7 @@ static func _apply_facts(game: Game, facts: Dictionary) -> void:
 		var had: GameFeature = game.features.get(id)
 		if had == null or game.net_facts.get(id) == var_to_bytes(facts[id]):
 			continue
-		var now := had.save()
+		var now := fact_of(had)
 		if now.is_empty():
 			continue
 		if var_to_bytes(SnapCodec.plain(now)) != var_to_bytes(facts[id]):
@@ -909,7 +921,10 @@ static func merge(older: Variant, newer: Variant) -> Variant:
 			continue
 		# (A key back again after it went stays under "@gone" too: patch()
 		# takes it away first, then puts it at the end, as it came.)
-		if out.has(key):
+		# A value that is not a dictionary simply replaces the older one: one
+		# gone to null (an enemy's aim_mark let go) used to come back from
+		# merge() as its "can't" and sent every client a whole snapshot.
+		if out.has(key) and newer_d[key] is Dictionary:
 			var merged: Variant = merge(out[key], newer_d[key])
 			if merged == null:
 				return null
