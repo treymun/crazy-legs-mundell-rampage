@@ -91,7 +91,10 @@ CHUMMER = cast(AVG, gut=.3, px=160, shirt=(90, 116, 140), plaid=1, apron=(214, 1
 
 
 # ---------------------------------------------------------------- the gator
-GATOR = dict(canvas=(2.9, .64), px=54)
+# same_order: every frame builds the same parts in the same order, its own
+# extras (the open mouth, the snap's spray, the wind-up's eyes) after them
+# (export_actors.py _match; pass 13: the shins swapped legs between keys).
+GATOR = dict(canvas=(2.9, .64), px=54, same_order=True)
 
 
 def gator(frame):
@@ -134,8 +137,6 @@ def gator(frame):
     J = H @ T((.08, 0, -.02)) @ R(0, open_jaw, 0)
     ball((.32, 0, -.03), (.32, .11, .04), hide, J)
     ball((.3, 0, -.005), (.28, .09, .015), mouth, J)
-    if open_jaw > .1:
-        ball((.3, 0, .0), (.27, .09, .012), mouth, H)
     tooth = TOOTH()
     for k in range(7):
         x = .16 + k * .07
@@ -171,6 +172,9 @@ def gator(frame):
         limb(knee, foot, .05, .035, hide)
         for t in (-1, 0, 1):
             limb(foot, foot + (M.to_3x3() @ Vector((.07, t * .04, 0))), .015, .006, scute, caps=False)
+    if open_jaw > .1:
+        # The mouth's roof, shown open (built after every part all frames have).
+        ball((.3, 0, .0), (.27, .09, .012), mouth, H)
     if frame == "fire":
         white = mat(220, 226, 220, .9, grime=0)
         for k in range(4):

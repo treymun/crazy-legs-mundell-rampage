@@ -537,9 +537,14 @@ Each enemy and boss with a model shows as an `ActorView` scene
   (`ActorModels.gear_mesh`, the triangles bound to the gear's bones), at the
   boss's size, turned by `turn`, with the boss's look.
 - Bones are labelled head, arm_r, arm_l, leg_r, leg_l, body.
+- fit.json `yaw` turns a model about its feet to face its heading (the
+  gator's, built side on for its cels, walked crabwise before pass 13);
+  `beast` gives a beast's rig plan ([gameplay.md](gameplay.md#ragdolls-and-finishing-shots-v320)).
 - A picture name's `~r.g.b` tint (`Assets.tinted_art`) tints the model too.
-- A dead body of a kind with a ragdoll rig (`RagdollRig`, not a boss, not
-  fit.json `"ragdoll": false`, RAGDOLLS on) is posed from its ragdoll
+- A dead body of a kind with a ragdoll rig (`RagdollRig`, a beast's
+  `BeastRig`; a boss from `BOSS_HANDOVER` of its scripted fall, not one with
+  a `down_cel`; not fit.json `"ragdoll": false`; RAGDOLLS on) is posed from
+  its ragdoll
   (`src/ragdoll.gd`): started from the pose it died in (or the model's own
   "down" when first seen long dead, settled at once), thrown by the kill,
   stepped as the view draws (`advance`, capped by effects.cfg `[ragdoll]

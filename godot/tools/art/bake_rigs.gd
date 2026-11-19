@@ -1,6 +1,7 @@
 ## Writes each actor kind's ragdoll rig beside its model
-## (assets3d/actors/<kind>.rig, RagdollRig.BAKED): the game reads it back at
-## a level's first frame instead of finding it from the model's vertices.
+## (assets3d/actors/<kind>.rig, RagdollRig.BAKED; a beast's BeastRig, pass
+## 13): the game reads it back at a level's first frame instead of finding it
+## from the model's vertices.
 ## Run after changing an actor's model or its actors.json labels or keys
 ## (tools/load_check.gd fails while a file is out of date and names this).
 ##
@@ -18,8 +19,8 @@ func _init() -> void:
 		if packed == null:
 			continue
 		var view := packed.instantiate()
-		var rig := RagdollRig.new()
-		rig._build(view, info)
+		var rig := RagdollRig.fresh(info)
+		rig.build(view, info)
 		view.free()
 		var bytes := rig.to_baked(info)
 		var file := FileAccess.open(RagdollRig.BAKED % kind, FileAccess.WRITE)
