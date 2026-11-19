@@ -814,6 +814,13 @@ for something that can be up on one; use `floor_under(x, y, z)` or
     `Ragdoll.carry_on`), no blow; the model eases onto it over `BOSS_EASE`;
     its torso may lie `BOSS_SLACK` from the boss's spot (the fall carries it
     back; pulled to the spot it slid). That fall is no longer flattened.
+  - Cost (headless, twenty bodies shot and stepped to rest, medians of
+    three runs back to back against v3.10.0): a person's step is unchanged
+    (billy 232 against 238 us, tin guard 231 against 242; the same steps to
+    the step), a gator's 315, a crawler's 318, a hog's 264, the cow's 223 us
+    (more balls, fewer links than they could have); `budget` still caps
+    every ragdoll's steps in a frame. County Run's stress scene (no beasts)
+    8.59 against 8.33 ms frame median over five noisy rounds.
   - Checks: `physics_check`'s `tools/physics_beasts.gd` (each beast shot
     five ways from two sides: no jump at the start, rigid links held, at
     rest with no step after, on the floor, not standing, knees their way,
