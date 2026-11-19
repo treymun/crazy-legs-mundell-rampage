@@ -25,12 +25,13 @@
 ##       [-- scenes=5v5,dm,coop,host,county] [lags=50,120,250] [hz=144]
 ##       [seconds=20] [ways=old,new] [jitter=0.2] [loss=0.02] [quick]
 ##
-## `ways`: old turns every fix of pass 12 off (NetBlend, NetPredict.between,
-## mates_ahead and holds_aware, NetSync.Client.smooth_clock,
+## `ways`: old turns this track's fixes off (NetBlend, NetPredict.between,
+## mates_ahead and holds_aware, NetOwnShots, NetSync.Client.smooth_clock,
 ## NetPlay.county_by_clock), so both run on one build; noblend, noahead,
-## noclock, nomates, noholds turn one off. quick (check_all): the 5v5 as a
-## client and co-op as its host, at 120 ms for 10 s, new only, held to
-## QUICK_LIMITS. Prints NET FEEL OK.
+## noclock, nomates, noholds turn one off; v390 is old with the server's
+## side of pass 12 off too (v3.9.0 as it was). `snaps=N`: a snapshot every
+## N ticks. quick (check_all): the 5v5 as a client and co-op as its host, at
+## 120 ms for 10 s, new only, held to QUICK_LIMITS. Prints NET FEEL OK.
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
@@ -87,6 +88,8 @@ func _run() -> void:
 		if parts.size() == 2:
 			var key := parts[0]
 			opts[key] = parts[1] if key in ["scenes", "lags", "ways"] else float(parts[1])
+			if key == "snaps":
+				NetPlay.snap_every = int(parts[1])
 	if quick:
 		opts["scenes"] = "5v5,host"
 		opts["lags"] = "120"
@@ -105,7 +108,7 @@ func _run() -> void:
 		for lag_text: String in str(opts["lags"]).split(","):
 			var lag := float(lag_text)
 			for way: String in str(opts["ways"]).split(","):
-				_way(way == "old", way)
+				_way(way == "old" or way == "v390", way)
 				dice.seed = int(opts.get("seed", 7))
 				var r := _online(scene, lag, lag * float(opts["jitter"]), float(opts["loss"]))
 				_way(false)
@@ -167,6 +170,10 @@ static func _way(old: bool, way := "") -> void:
 	NetPredict.mates_ahead = not old and way != "nomates"
 	NetPredict.holds_aware = not old and way != "noholds"
 	NetOwnShots.enabled = not old
+	# v390: the server's side of pass 12 off too (NETSERVER's: net_lag's oldserver).
+	LobbyServer.paced = way != "v390"
+	NetWire.pack_rows = way != "v390"
+	NetSync.Host.split_big = way != "v390"
 
 
 ## A frame's length: the screen's, wobbling a little as real frames do.
@@ -294,8 +301,11 @@ func _open(scene: String) -> Dictionary:
 		var server: LobbyServer = null
 		for k in 20:
 			var room := {"port": port + k, "lobby_name": "FEEL"}
+			var config := {"bind": "127.0.0.1", "lobbies": [room]}
+			if opts.has("snaps"):
+				config["snap_every"] = int(opts["snaps"])
 			room.merge(lobby, true)
-			server = LobbyServer.new({"bind": "127.0.0.1", "lobbies": [room]}, {"difficulty": 1})
+			server = LobbyServer.new(config, {"difficulty": 1})
 			if not server.rooms.is_empty():
 				port += k
 				break
