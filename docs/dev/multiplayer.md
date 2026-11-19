@@ -473,12 +473,14 @@ Play is deterministic, so a run is its start and each tick's controls:
 
 `src/net/`: `NetSession` wraps ENet or WebSocket (`MultiplayerPeer`, packets
 only), with test latency, jitter and loss on what it sends (on the clock
-handed to `poll`; loss only unreliable). `NetWire` is every packet's layout
-(protocol 4, snapshot version 3: an older client is refused at HELLO;
-controls in 14 bytes, buys, reloads and the host's rewind among them;
-inputs sent redundantly with the tick the client shows; snapshots with
-their base, tick, input ack and the inputs played since the base; the lobby's
-messages).
+handed to `poll`; a lost unreliable packet is dropped, a lost reliable one
+comes a resend later and holds up its channel, `resend_lost`). `NetWire` is
+every packet's layout (protocol 5, snapshot version 3: an older client is
+refused at HELLO; controls in 14 bytes, buys, reloads and the host's rewind
+among them; inputs sent redundantly with the tick the client shows;
+snapshots with their base, tick, input ack and the inputs played since the
+base, those rows zstd'd; a snapshot too big for a packet in unreliable
+`SNAP_PART`s; the lobby's messages). See [pacing](#pacing-packets-and-the-one-core-server-pass-12).
 
 - `NetSync.Host` plays the authoritative game and sends deltas from each
   client's acknowledged snapshot (whole while it has none).
@@ -536,8 +538,15 @@ and as the copy played it, and how many were withdrawn
 tick split into the game, the snapshots and the bots, as a share of one core.
 `old` turns every fix below off (statics on NetSync, NetPredict.Smoother,
 NetSession, Modes and TacticalNav), so before and after run on one build;
+`oldserver` only pass 12's server side (the 3.9.0 server: its loop, rows
+unpacked, a big snapshot reliable); `snaps=N` a snapshot every N ticks;
 `quick` (check_all) is one 120 ms link for 30 s with limits. The numbers are
-in [the 3.2 measurements](#the-32-lag-measurements) below.
+in [the 3.2 measurements](#the-32-lag-measurements) below. Until pass 12 the
+test's loss never touched a reliable packet, so the stalls a reliable
+snapshot stream has on a real network were invisible here (the 3.2 table's
+"frozen" column is low for that reason); it also prints the snapshot
+packets' sizes, how many were over the MTU and went in parts, and the
+reliable packets the loss made late.
 
 What it found and what changed:
 
@@ -703,8 +712,10 @@ the how-to. The 5v5 rules themselves are in
 - MODE includes TAG TEAM 2V2 (`tagteam`, `play_mode()` makes it search and
   destroy; picking it or a 2v2 map moves the lobby to the other's map and
   format, `_mode_fits_map`), and a new online mode goes on that row.
-- `server/lobbies.json` has two lobbies; server lines reach every lobby screen
-  with the next LOBBY (`_tell`).
+- `server/lobbies.json` has two lobbies (how many is only that file: the
+  INFO answer's `ports` let COUNTY SERVERS drop a listed lobby the server
+  does not run); server lines reach every lobby screen with the next LOBBY
+  (`_tell`).
 - One process runs every lobby with TacticalBot pilots on host games
   (`Game.new(..., true)`, which client copies match exactly), at most
   `most_matches` at once (`may_start`). A finished match's game is disposed
@@ -779,9 +790,10 @@ party line only passes bytes between it and its players.
   closes the room and tells its players (GONE "THE HOST HUNG UP"). The log
   has each room's opening and closing (minutes, joins, bytes each way,
   dropped) and a status part (rooms, players, bytes and packets a second).
-  While a room has players the server runs at `MATCH_FPS` (120), and the line
-  flushes every session after the frame (`NetSession.flush`), so a packet
-  waits for the next frame at most once each way.
+  While a room has players the server wakes every `RELAY_POLL_MS` (4 ms;
+  it was a 120 a second frame until pass 12), and the line flushes every
+  session after it (`NetSession.flush`), so a packet waits that long at
+  most once each way (not measured again since).
 - **Costs**, measured on the owner's PC (`tools/relay_check.gd`, others' work
   running): the line in process, polled flat out, adds about 0.07 ms to a
   round trip; at 120 frames a second it adds 9 to 11 ms median (13 to 14 p95),
@@ -826,6 +838,131 @@ starved, not the line). Memory: the process grew from about 290 to 360 MB
 over three minutes as the games' capped pools (bullet holes, specks,
 debris) filled, and much more slowly after; nothing found growing without
 a cap (`grew=1`).
+
+### Pacing, packets and the one-core server (pass 12)
+
+The owner found online play jittery. On the server's side three things
+made it so, found with `tools/net_pace.gd` against a lobby server in its
+own process pinned to one core of this PC with a busy process taking 60% of
+that core (standing for the VPS's one slower vCore), both lobbies in a
+match and the party line on, and probes on the other cores:
+
+- **Nearly every 5v5 snapshot went reliable.** A snapshot carries the inputs
+  every player played since the client's acknowledged base (with a real
+  round trip about 8 ticks of 10 players, 1.2 KB) and the delta (0.7 to
+  1.5 KB): about 2 KB, and `NetSession.send` turns anything over `MTU_SAFE`
+  (1200) on an unreliable channel reliable. So 97% of a 5v5's snapshots
+  went on ENet's reliable channel, where one lost packet holds up every one
+  after it until it is resent (a round trip and more). Clients got
+  snapshots in bunches with gaps of 125 ms, and their playout depth
+  (`NetSync.Client.playout_depth`) grew to 8 or 9 ticks to cover it:
+  everyone else shown about 140 ms late, and still jerky. None of the checks
+  saw it: their test loss dropped only unreliable packets.
+- **The loop.** `Engine.max_fps` 120 frames, each room's ticks from the
+  frame's delta: a snapshot left at the first frame after its tick, so its
+  time against its tick wandered by up to a frame (8 ms) and Godot's own
+  frame timing (p99 18 ms over the quickest); a late frame sent the snapshots
+  it owed back to back; a stall past 8 ticks lost the time for good (the
+  clients' reckoning of the server's tick then ran ahead for seconds).
+- The status line's memory always said 0 MB (a /proc file read whole is
+  empty).
+
+What changed:
+
+- **The rows packed** (`NetWire.snap`, zstd): a 5v5's 1.2 KB of rows are
+  about 200 bytes (`NetWire.pack_rows` off: as they were).
+- **A snapshot over `NetWire.PART_MOST` goes in `SNAP_PART`s**, unreliable
+  (`NetWire.split`, `NetSync.Client._joined`; `Host.split_big` off: the old
+  reliable way). A lost part loses that snapshot only; the next one is a
+  delta from a base the client has. Parts leave room for the party line's
+  header, so none turns reliable on the way. Only a whole snapshot (a
+  joiner's first) is still reliable, and it goes after everyone's delta of
+  that tick has been flushed (`_deltas_first`). A player's own lobby (the
+  front end hosting) sends its snapshots the same way.
+- **A paced loop** (`LobbyServer.paced`; the config's `"old": true` for the
+  3.9.0 server on this build): one schedule for every match, a tick every
+  `NetSync.STEP` from when the first began, and the loop sleeps itself to the
+  next tick (`_rest`: no frame cap, no headless frame sleep). A late wake
+  plays the ticks it owes (`MOST_STEPS` at most, the rest at once after) and
+  only the last sends snapshots (`Host.hold`: a stall never sends a burst);
+  behind by more than `SLIP_MS` it lets the time go and says so (`SLIPS` in
+  the status). Each tick's packets are flushed at once; the bots steer for
+  the next tick after that (the same controls as before: the state they
+  read is the same), off the snapshots' way. Two matches send their
+  snapshots on alternate ticks (`Host.snap_phase`). While the party line
+  has players the loop also wakes every `RELAY_POLL_MS` (4) to pass their
+  packets on (it was a frame, 8 ms).
+- The status line has each room's snapshot gaps (median, p99, worst,
+  bunched) and its ticks' p99, and the memory again.
+- **The test loss hits reliable packets** (`NetSession.resend_lost`): one
+  lost comes a round trip, twice the jitter and `RESEND_MS` later and holds
+  its channel up, as ENet's resend does.
+- Protocol 5 (an older client is told the server runs another version).
+- The service runs at `Nice=-10`, so nothing else on the one core (a daily
+  apt run) holds up a tick.
+
+The numbers. `net_pace` against the pinned server (lobby 1 a 5v5 with four
+people and six bots, lobby 2 a 2v2 with three people; 30 ms, up to 6 ms of
+jitter and 2% loss each way; two 60 s runs of each, old and new back to
+back; this PC also ran other tracks' checks):
+
+| lobby 1 (5v5) | 3.9.0 server | pass 12 |
+| --- | --- | --- |
+| gaps between snapshots, p99 | 125 to 131 ms | 67 to 70 ms |
+| snapshots bunched / missing a minute | 218 to 245 / 126 to 135 | 11 to 24 / 45 to 59 |
+| arrivals' wander over the quickest, p95 (p99) | 27 to 37 ms (60 to 91) | 12 to 17 ms (13 to 20) |
+| a playing client's playout depth | 8 to 9 ticks | 3 to 4 ticks |
+| frames everyone else stood still | 0.1 to 8.8% | 0.0 to 0.7% |
+| snapshot packet median, over the MTU | 1.8 KB, 97% (reliable) | 0.8 to 1.0 KB, 0% (parts) |
+| down a client | 51 to 53 KB/s | 28 to 31 KB/s |
+
+Lobby 2 (2v2): wander p95 15 to 18 -> 12 to 13 ms, depth 4 to 5 -> 3, down
+25 -> 17 KB/s. `net_lag -- lags=120 seconds=40` (`oldserver` for before; 120
+ms, 24 jitter, 2% loss, a 5v5 in one process): everyone else stood still in
+17.6% of frames -> 0.1%; down 66 -> 34 KB/s a client; snapshot packets 2.3
+-> 1.1 KB median; the server's snapshot work 1.79 -> 1.31 ms a tick, 20.5 ->
+16.8% of a core.
+
+On a clean link (127.0.0.1, no loss; three pairs of 45 s runs) old and new
+time their snapshots alike: gaps p99 37 to 40 ms, wander p95 4.5 to 8 ms
+either way. The new loop's part shows in a stall: it is caught up with one
+snapshot a room and the server keeps its time (net_pace's check), which a
+clean minute rarely has.
+
+**The snapshot rate** stays 30 a second. `net_lag -- lags=50 seconds=30`, twice
+each: at 30 a second 34 KB/s down a client and 18 to 19% of a core on this
+PC (the snapshots 1.25 to 1.40 ms a tick), everyone else still in 1.3% of
+frames; at 60 a second (`snaps=1`) 63 KB/s, 28 to 29% (2.9 to 3.0 ms), 0%,
+and the others shown a tick (17 ms) sooner. With two lobbies on one slow
+core that is too much; the config's `"snap_every": 1` turns it on (a server
+of one lobby could afford it). The clients take either rate as it comes.
+
+**One lobby or two.** Two, at 30 snapshots a second. The jitter was the
+packets and the loop, not the core: with both lobbies in a match lobby 1's
+snapshots came no worse than with it alone (the same runs with lobby 2
+empty: wander p95 17 ms, depth 4 ticks, against 12 to 16 and 3 to 4), and
+the two matches together took about 3.3 ms of each 16.7 ms tick on the
+shared core (the 5v5 2.1 ms, p99 4.5; the 2v2 1.1). The VPS's core is
+slower (its 3.6.0 log: a 5v5 with four people 4.9 ms a tick), so two busy
+matches there are still well under half of it, and its log shows two
+matches at once only rarely. One lobby is a config change: take it out of
+`server/lobbies.json`; the game's COUNTY SERVERS hides a listed lobby its
+server does not run (the INFO answer names the server's ports,
+`NetBrowser._drop_unserved`), so `servers.json` may keep both. One lobby
+with `"snap_every": 1` is the choice if the last tick of delay matters more
+than a second lobby.
+
+`tools/net_pace.gd` measures it again: `-- server=127.0.0.1:47197 watch=1
+people=3 start_when=4 [lag= jitter= loss=]` against a server run with
+`--lobby-server=<config>` (a config with `"status_every"`, `"old"` and
+`"test_link": {"lag_ms", "jitter_ms", "loss"}` for the server's own side);
+pin it to one core (`Start-Process ... -PassThru`, `.ProcessorAffinity`)
+beside a busy process to stand for the VPS. Without `server` it is the check
+(check_all, run alone): on a made-up clock a stall's ticks are caught up
+with one snapshot a room and a 2 s stall is let go; then two lobbies, each a
+match of bots with 2.5 ms of extra work a tick, on the real clock: no
+snapshot bunched, the gaps' p99 under 45 ms at the server and 50 at a probe,
+the arrivals' wander p95 under 20 ms and no snapshot packet over the MTU.
 
 ### Player maps in a lobby
 

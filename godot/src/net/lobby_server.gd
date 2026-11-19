@@ -13,9 +13,17 @@
 ## config's "tls_cert" and "tls_key" files when both load (a browser page on
 ## https may only open wss). The config's "relay" ({} for NetRelay.DEFAULTS,
 ## or any of them) runs THE PARTY LINE on the same ports: players' own lobbies
-## reached through the server by a short code (net_relay.gd). Prints a line for
+## reached through the server by a short code (net_relay.gd). "most_matches"
+## caps the matches on at once, "snap_every" the ticks between snapshots (2:
+## 30 a second), "status_every" the seconds between status lines; "old" and
+## "test_link" are for measuring (tools/net_pace.gd). Prints a line for
 ## everyone who comes and goes, each match, each party line room, and every
-## STATUS_EVERY seconds how busy it is.
+## status_every seconds how busy it is (each room's tick cost and how evenly
+## its snapshots went out).
+##
+## The loop is paced (docs/dev/multiplayer.md "Pacing"): one schedule of
+## ticks for every match, slept to, a late wake caught up with one snapshot
+## a room, never a burst.
 class_name LobbyServer
 extends Node
 
@@ -32,7 +40,7 @@ const SLIP_MS := 500.0
 const RELAY_POLL_MS := 4.0
 ## Off: the old loop (Engine.max_fps frames, each room's ticks from the
 ## frame's delta, every snapshot of a catch-up sent): net_pace.gd's `old`,
-## or the config's "paced": false.
+## or the config's "old" (a measurement's before: the 3.9.0 server).
 static var paced := true
 ## Matches on at once at most (the config's "most_matches"): one 5v5 with
 ## nine bots is about 15-20% of a small VPS core (40% before NetSync's
@@ -84,6 +92,10 @@ var _due := -1.0
 var slips := 0
 var ticks := 0
 var _rest_set := false
+## The config's "test_link" (a measurement's latency, jitter and loss on
+## what the lobbies send): the loop then wakes every millisecond to let the
+## held packets go on time.
+var test_link := false
 
 
 ## `config` is the parsed config; `sim_options` every match is configured
@@ -95,8 +107,17 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 	var tls := _tls(config)
 	most_matches = config.get("most_matches", MOST_MATCHES)
 	status_every = config.get("status_every", STATUS_EVERY)
-	if config.has("paced"):
-		paced = config["paced"]
+	if config.get("old", false):
+		# The 3.9.0 server on this build (a measurement's before): the old
+		# loop, the echoed rows unpacked, a big snapshot sent reliable.
+		paced = false
+		NetWire.pack_rows = false
+		NetSync.Host.split_big = false
+	# Snapshots every this many ticks (2: 30 a second; 1: 60, about half as
+	# much again of the server's work and twice the bandwidth).
+	var snap_every: int = config.get("snap_every", NetPlay.SNAP_EVERY)
+	NetPlay.snap_every = clampi(snap_every, 1, 6)
+	var link: Dictionary = config.get("test_link", {})
 	var relay_config: Variant = config.get("relay")
 	var line_peers := 0
 	if relay_config is Dictionary:
@@ -129,6 +150,12 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 					relay.tap(ws)
 		if relay != null:
 			relay.tap(net.session)
+		if not link.is_empty():
+			# A measurement's made-up network on what the lobby sends.
+			net.session.lag_ms = link.get("lag_ms", 0.0)
+			net.session.jitter_ms = link.get("jitter_ms", 0.0)
+			net.session.loss = link.get("loss", 0.0)
+			test_link = true
 		net.make_match = _make
 		net.may_start = _may_start
 		net.sim_options = sim
@@ -174,6 +201,11 @@ static func read_config(path: String) -> Dictionary:
 
 
 func _ready() -> void:
+	var ports: Array[int] = []
+	for room in rooms:
+		ports.append(room.net.port)
+	for room in rooms:
+		room.net.server_ports = ports
 	if rooms.is_empty() or _failed != "":
 		_log(
 			"COULD NOT OPEN EVERY LOBBY: %s" % (_failed if _failed != "" else "NONE IN THE CONFIG")
@@ -216,6 +248,8 @@ func _rest(now: float) -> void:
 		wake = minf(wake, _due)
 	if relay != null and relay.busy():
 		wake = minf(wake, now + RELAY_POLL_MS)
+	if test_link:
+		wake = minf(wake, now + 1.0)
 	if wake > now:
 		OS.delay_usec(int((wake - now) * 1000.0))
 
@@ -499,7 +533,7 @@ static func pacing(room: Room) -> Dictionary:
 	g.sort()
 	var c := room.costs.duplicate()
 	c.sort()
-	var beat := NetSync.STEP * 1000.0 * NetPlay.SNAP_EVERY
+	var beat := NetSync.STEP * 1000.0 * NetPlay.snap_every
 	var bunched := 0
 	for v in g:
 		if v < beat * .5:

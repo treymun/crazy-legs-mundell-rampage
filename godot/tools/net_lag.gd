@@ -90,6 +90,10 @@ func _run() -> void:
 			# Only pass 12's server side off (the 3.9.0 server).
 			_old_server()
 			continue
+		if arg.begins_with("snaps="):
+			# Snapshots every this many ticks (NetPlay.snap_every).
+			NetPlay.snap_every = int(arg.substr(6))
+			continue
 		if arg == "noshots":
 			# Only the shots' prediction off (net_shot_predict.gd).
 			NetShotPredict.enabled = false
@@ -224,7 +228,10 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 			"team_size": 2 if str(opts["mode"]) == "tagteam" else 5,
 			"rounds": 7,
 		}
-		server = LobbyServer.new({"bind": "127.0.0.1", "lobbies": [lobby]}, {"difficulty": 1})
+		server = LobbyServer.new(
+			{"bind": "127.0.0.1", "lobbies": [lobby], "snap_every": NetPlay.snap_every},
+			{"difficulty": 1}
+		)
 		if not server.rooms.is_empty():
 			port += k
 			break

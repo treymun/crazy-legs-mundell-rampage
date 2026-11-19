@@ -152,7 +152,8 @@ class Host:
 	## Every SNAP packet's size, and how many went in parts.
 	var sizes_packet := PackedInt32Array()
 	var split_count := 0
-	## Off: a SNAP over the MTU goes reliable (the old way, net_lag's `old`).
+	## Off: a SNAP over the MTU goes reliable (the 3.9.0 way, net_lag's
+	## `oldserver`).
 	static var split_big := true
 	var capture_us := 0
 	var delta_us := 0
@@ -272,6 +273,19 @@ class Host:
 				kept[base] = next
 		kept[seq] = {}
 		_since = kept
+
+	## The remotes with a base to make a delta from first, then those that
+	## need a whole snapshot.
+	func _deltas_first() -> Array[Remote]:
+		var out: Array[Remote] = []
+		var whole: Array[Remote] = []
+		for r: Remote in remotes.values():
+			if history.has(r.acked) and r.acked < seq:
+				out.append(r)
+			else:
+				whole.append(r)
+		out.append_array(whole)
+		return out
 
 	## The tick a client was showing when it sent the input played now: its
 	## own packet's, or worked out a tick an input from the nearest one known
@@ -396,12 +410,18 @@ class Host:
 			_carry_since(newest)
 			delta_us += Time.get_ticks_usec() - t0
 		var by_base := {}
-		for r: Remote in remotes.values():
+		var flushed := false
+		for r: Remote in _deltas_first():
 			if r.slot < 0:
 				continue
 			var base := r.acked if history.has(r.acked) and r.acked < seq else -1
 			if base < 0 and tick - r.full_at < FULL_GAP:
 				continue
+			if base < 0 and not flushed:
+				# Everyone's delta is on its way before a whole snapshot (a
+				# joiner's: 5 to 15 ms to capture and pack) holds this up.
+				session.flush()
+				flushed = true
 			if not by_base.has(base):
 				t0 = Time.get_ticks_usec()
 				var change: Variant = _change_since(base, now) if base >= 0 else null
@@ -582,6 +602,8 @@ class Client:
 		_parts.erase(seq)
 		var whole := PackedByteArray()
 		for i in count:
+			if not got.has(i):
+				return PackedByteArray()
 			var piece: PackedByteArray = got[i]
 			whole.append_array(piece)
 		parts_joined += 1

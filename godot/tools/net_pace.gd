@@ -9,7 +9,7 @@
 ##
 ##   godot --headless --path godot --script res://tools/net_pace.gd
 ##       [-- server=<address:port>] [people=3] [watch=1] [start_when=4]
-##       [seconds=60]
+##       [seconds=60] [lag=ms] [jitter=ms] [loss=share]
 ##
 ## With `server` (a lobby server of this build in another process, say one
 ## pinned to a single core: docs/dev/multiplayer.md "Pacing") it joins
@@ -18,6 +18,9 @@
 ## from their copies, loading the server as people do); the lobby's admin
 ## starts the match once `start_when` are in. A second process can join the
 ## server's other lobby the same way (start_when=0 there: it only joins).
+## `lag`, `jitter`, `loss` are a made-up network on what the probes send
+## (the server's own side is its config's "test_link"; "old": true there
+## runs the 3.9.0 server on this build).
 ##
 ## Without `server` it is the check (check_all): a lobby server of this
 ## build in this process, on its own paced loop (LobbyServer._rest), with
@@ -50,6 +53,9 @@ var opts := {
 	"start_when": 4,
 	"seconds": 60.0,
 	"load_us": float(CHECK_LOAD_US),
+	"lag": 0.0,
+	"jitter": 0.0,
+	"loss": 0.0,
 }
 var old := false
 var server: LobbyServer = null
@@ -164,6 +170,9 @@ func _join(where: String, name: String, light: bool) -> Probe:
 	if net == null:
 		return null
 	net.make_match = func(info: Dictionary) -> Game: return main.net_match_game(info)
+	net.session.lag_ms = opts["lag"]
+	net.session.jitter_ms = opts["jitter"]
+	net.session.loss = opts["loss"]
 	var p := Probe.new()
 	p.net = net
 	p.name = name
@@ -436,8 +445,7 @@ func _catch_up_check() -> void:
 	server = LobbyServer.new(
 		{
 			"bind": "127.0.0.1",
-			"lobbies":
-			[{"port": port, "lobby_name": "PACE", "mode": "tagteam", "map": "pumpngo"}]
+			"lobbies": [{"port": port, "lobby_name": "PACE", "mode": "tagteam", "map": "pumpngo"}]
 		},
 		{"difficulty": 1}
 	)
@@ -534,22 +542,25 @@ func _catch_up_check() -> void:
 ## bots with a light probe in it, CHECK_LOAD_US of extra work each tick.
 func _paced_check() -> void:
 	var port := NetPorts.pick("net_pace", [0, 1])
-	server = LobbyServer.new(
-		{
-			"bind": "127.0.0.1",
-			"lobbies":
-			[
-				{
-					"port": port,
-					"lobby_name": "PACE 1",
-					"mode": "bomb",
-					"map": "grainyard",
-					"team_size": 5
-				},
-				{"port": port + 1, "lobby_name": "PACE 2", "mode": "tagteam", "map": "pumpngo"},
-			]
-		},
-		{"difficulty": 1}
+	server = (
+		LobbyServer
+		. new(
+			{
+				"bind": "127.0.0.1",
+				"lobbies":
+				[
+					{
+						"port": port,
+						"lobby_name": "PACE 1",
+						"mode": "bomb",
+						"map": "grainyard",
+						"team_size": 5
+					},
+					{"port": port + 1, "lobby_name": "PACE 2", "mode": "tagteam", "map": "pumpngo"},
+				]
+			},
+			{"difficulty": 1}
+		)
 	)
 	if server.rooms.size() < 2:
 		_check(false, "two lobbies open")
@@ -581,7 +592,8 @@ func _paced_check() -> void:
 	var on := _wait(
 		func() -> bool:
 			return ears.all(
-				func(e: Probe) -> bool: return e.net.phase == "match" and e.net.client_sync.latest >= 0
+				func(e: Probe) -> bool:
+					return e.net.phase == "match" and e.net.client_sync.latest >= 0
 			),
 		20.0,
 		true
@@ -597,12 +609,17 @@ func _paced_check() -> void:
 	_reset_stats()
 	var seconds := minf(float(opts["seconds"]), 12.0)
 	_run_for(seconds, true)
-	print("  %.0f s, two matches, %d us more a tick%s:" % [seconds, load_us, " (old)" if old else ""])
+	print(
+		"  %.0f s, two matches, %d us more a tick%s:" % [seconds, load_us, " (old)" if old else ""]
+	)
 	for room in server.rooms:
 		var pc := LobbyServer.pacing(room)
 		print(
 			(
-				"  server %s: snapshots %.1f ms apart (p99 %.1f, worst %.1f), %d bunched; tick %.2f ms (p99 %.2f, worst %.1f)"
+				(
+					"  server %s: snapshots %.1f ms apart (p99 %.1f, worst %.1f), %d bunched;"
+					+ " tick %.2f ms (p99 %.2f, worst %.1f)"
+				)
 				% [
 					room.net.settings["lobby_name"],
 					pc["gap_med"],

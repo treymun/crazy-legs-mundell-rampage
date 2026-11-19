@@ -370,6 +370,8 @@ func cut(id: int) -> void:
 ## Sends what was put out this frame now, not at the next poll (the party
 ## line forwards into other sessions than the one it read from).
 func flush() -> void:
+	if also != null:
+		also.flush()
 	if peer is ENetMultiplayerPeer:
 		var host_of := (peer as ENetMultiplayerPeer).host
 		if host_of != null:
