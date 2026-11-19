@@ -57,17 +57,17 @@ func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 
 
 func tick(e: Enemy, dt: float, game: Game) -> bool:
-	if e.windup <= 0.0 and not e.has_meta("rain"):
+	if e.windup <= 0.0 and not e.has_note("rain"):
 		_pick_outlets(e, game)
-	var paced: int = e.get_meta("paced", 0)
+	var paced: int = e.get_note("paced", 0)
 	if e.attacks != paced:
 		# He comes again quicker than the hands do, quicker still as he weakens.
-		e.set_meta("paced", e.attacks)
+		e.set_note("paced", e.attacks)
 		var cool: float = COOLDOWN[clampi(e.boss_phase - 1, 0, 2)]
 		e.cooldown *= cool
 	if hog_wild(game):
 		_blowdown(e, game)
-	if e.has_meta("rain"):
+	if e.has_note("rain"):
 		e.windup = maxf(0.0, e.windup - dt)
 		e.angle = atan2(game.player.y - e.y, game.player.x - e.x)
 		if e.windup <= 0.0 or e.stun > .3:
@@ -93,8 +93,8 @@ func _pick_outlets(e: Enemy, game: Game) -> void:
 				a.distance_squared_to(Vector2(p.x, p.y)) < b.distance_squared_to(Vector2(p.x, p.y))
 			)
 	)
-	e.set_meta("ports_for", e.attacks)
-	e.set_meta("ports", order.slice(0, 3))
+	e.set_note("ports_for", e.attacks)
+	e.set_note("ports", order.slice(0, 3))
 
 
 func _rain_ready(e: Enemy, dt: float, game: Game) -> bool:
@@ -114,8 +114,8 @@ func _rain(e: Enemy, game: Game) -> void:
 	e.windup = RAIN_WINDUP * pace
 	e.aim_mark = null
 	e.angle = atan2(p.y - e.y, p.x - e.x)
-	e.set_meta("rain", true)
-	e.set_meta("tell", "COPPER RAIN")
+	e.set_note("rain", true)
+	e.set_note("tell", "COPPER RAIN")
 	var arenas: BossArenasFeature = game.features.get("boss_arenas")
 	var turn := e.attacks * .7
 	var spots: Array = [Vector2(p.x, p.y)]
@@ -137,11 +137,11 @@ func _rain(e: Enemy, game: Game) -> void:
 
 
 func _rain_done(e: Enemy, game: Game) -> void:
-	e.remove_meta("rain")
-	e.remove_meta("tell")
+	e.remove_note("rain")
+	e.remove_note("tell")
 	e.windup = 0.0
 	e.attacks += 1
-	e.set_meta("seen_attacks", e.attacks)
+	e.set_note("seen_attacks", e.attacks)
 	e.cooldown = 1.4 * PACE[clampi(game.difficulty, 0, 3)]
 	e.recovery = .7
 
@@ -149,9 +149,9 @@ func _rain_done(e: Enemy, game: Game) -> void:
 ## HOG WILD's blowdown: an outlet attack just went; every third one, the rest
 ## of the house's outlets go too, a beat later (their warning shows).
 func _blowdown(e: Enemy, game: Game) -> void:
-	var seen: int = e.get_meta("seen_attacks", e.attacks)
-	e.set_meta("seen_attacks", e.attacks)
-	if e.attacks == seen or e.has_meta("rain"):
+	var seen: int = e.get_note("seen_attacks", e.attacks)
+	e.set_note("seen_attacks", e.attacks)
+	if e.attacks == seen or e.has_note("rain"):
 		return
 	var ports_attack := outlets_next(e.attacks - 1, e.enraged)
 	if not ports_attack or int(e.attacks / 2) % 3 != 1:
@@ -178,7 +178,7 @@ func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -
 ## The boiler on his back venting harder as he weakens; red-hot in phase 3.
 func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
-	if e.boss_phase < 2 and not e.has_meta("rain"):
+	if e.boss_phase < 2 and not e.has_note("rain"):
 		return out
 	var floor_z: float = game.world.stand(e)
 	var back := Vector2(e.x - cos(e.angle) * .32, e.y - sin(e.angle) * .32)
@@ -194,7 +194,7 @@ func looks(e: Enemy, game: Game) -> Array:
 		)
 		s.translucent = true
 		out.append(s)
-	if e.boss_phase >= 3 or e.has_meta("rain"):
+	if e.boss_phase >= 3 or e.has_note("rain"):
 		var glow := View.Sprite.new(
 			back.x,
 			back.y,

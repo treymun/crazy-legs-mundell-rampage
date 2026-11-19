@@ -32,13 +32,13 @@ static var KICK_EVERY: int = BossData.get_value("jerry", "kick_every")
 
 
 func fight_start(e: Enemy, _game: Game) -> void:
-	e.set_meta("kick_after", e.attacks + KICK_EVERY)
+	e.set_note("kick_after", e.attacks + KICK_EVERY)
 
 
 func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase != 3:
 		return
-	e.set_meta("blitz_at", game.clock + .8)
+	e.set_note("blitz_at", game.clock + .8)
 	var f: BossArenaFeature = arena(game)
 	if f == null:
 		return
@@ -62,7 +62,7 @@ func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if not fighting(e, game):
 		return false
-	if e.has_meta("blitz"):
+	if e.has_note("blitz"):
 		if e.stun > 0.0:
 			# Staggered out of it.
 			_end_charge(e, 0.0)
@@ -82,15 +82,15 @@ func tick(e: Enemy, dt: float, game: Game) -> bool:
 		and gap < BLITZ_REACH + 1.0
 		and sees_player(e, game)
 	):
-		e.set_meta("blitz_at", game.clock + BLITZ_EVERY * (.75 if hog_wild(game) else 1.0))
+		e.set_note("blitz_at", game.clock + BLITZ_EVERY * (.75 if hog_wild(game) else 1.0))
 		begin_own(e, game, "blitz", BLITZ_WARN)
-		e.set_meta("blitz_line", e.angle)
+		e.set_note("blitz_line", e.angle)
 		game.sound_at("whistle", e.x, e.y, 1.0)
 		say_once(e, game, "blitz_told", "HE'S FIXIN' TO BLITZ! SIDESTEP HIM!")
 		return true
-	var kick_after: int = e.get_meta("kick_after", 1 << 30)
+	var kick_after: int = e.get_note("kick_after", 1 << 30)
 	if hog_wild(game) and e.boss_phase >= 2 and e.attacks >= kick_after and sees_player(e, game):
-		e.set_meta("kick_after", e.attacks + KICK_EVERY)
+		e.set_note("kick_after", e.attacks + KICK_EVERY)
 		var mark: Array = [p.x + p.vx * .8, p.y + p.vy * .8, p.eye]
 		begin_own(e, game, "kick", .65, mark)
 		return true
@@ -99,9 +99,9 @@ func tick(e: Enemy, dt: float, game: Game) -> bool:
 
 func act(e: Enemy, game: Game, name: String) -> void:
 	if name == "blitz":
-		var line: float = e.get_meta("blitz_line", e.angle)
+		var line: float = e.get_note("blitz_line", e.angle)
 		e.angle = line
-		e.set_meta("blitz", BLITZ_REACH)
+		e.set_note("blitz", BLITZ_REACH)
 		game.sound_at("jerry_rage", e.x, e.y, .8)
 	elif name == "kick":
 		var f: BossArenaFeature = arena(game)
@@ -128,7 +128,7 @@ func act(e: Enemy, game: Game, name: String) -> void:
 ## The charge: down his line until he meets the player, something solid or
 ## runs out of field.
 func _charge(e: Enemy, game: Game, dt: float) -> void:
-	var left: float = e.get_meta("blitz")
+	var left: float = e.get_note("blitz")
 	var step := BLITZ_SPEED * dt
 	var ox := e.x
 	var oy := e.y
@@ -160,7 +160,7 @@ func _charge(e: Enemy, game: Game, dt: float) -> void:
 		_end_charge(e, 0.0)
 		e.stun = BELL
 		e.flinch = BELL
-		e.set_meta("bell_until", game.clock + BELL)
+		e.set_note("bell_until", game.clock + BELL)
 		game.shake = minf(1.0, game.shake + .45)
 		game.sound_at("body_thud", e.x, e.y, 1.0)
 		game.sound_at("metal_down", e.x, e.y, .7)
@@ -169,11 +169,11 @@ func _charge(e: Enemy, game: Game, dt: float) -> void:
 	if left <= 0.0:
 		_end_charge(e, .5)
 		return
-	e.set_meta("blitz", left)
+	e.set_note("blitz", left)
 
 
 func _end_charge(e: Enemy, rest: float) -> void:
-	e.remove_meta("blitz")
+	e.remove_note("blitz")
 	e.recovery = maxf(e.recovery, rest)
 	e.cooldown = maxf(e.cooldown, .8)
 
@@ -195,7 +195,7 @@ func weak_spot(e: Enemy, game: Game, hit: Vector3, _from: Vector2, how: String) 
 func telegraph(e: Enemy, game: Game) -> Array:
 	if own(e) != "blitz":
 		return []
-	var line: float = e.get_meta("blitz_line", e.angle)
+	var line: float = e.get_note("blitz_line", e.angle)
 	var out := lane_marks(game, e.x, e.y, line, BLITZ_REACH, .55)
 	# Dust kicked up where he digs in.
 	var dig := View.Sprite.new(
@@ -212,7 +212,7 @@ func telegraph(e: Enemy, game: Game) -> Array:
 
 func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
-	var bell_until: float = e.get_meta("bell_until", -1.0)
+	var bell_until: float = e.get_note("bell_until", -1.0)
 	if game.clock >= bell_until:
 		return out
 	# Stars round his helmet.
@@ -228,7 +228,7 @@ func looks(e: Enemy, game: Game) -> Array:
 
 
 func dying(e: Enemy, game: Game) -> void:
-	e.remove_meta("blitz")
+	e.remove_note("blitz")
 	var f: BossArenaFeature = arena(game)
 	if f != null:
 		f.knock_tyres(e.x, e.y, 3.0)

@@ -104,6 +104,10 @@ func _run() -> void:
 			# Only pass 12's server side off (the 3.9.0 server).
 			_old_server()
 			continue
+		if arg == "nobuffer":
+			# Only the host's input buffer off (NetSync.Host.buffer_inputs).
+			NetSync.Host.buffer_inputs = false
+			continue
 		if arg.begins_with("snaps="):
 			# Snapshots every this many ticks (NetPlay.snap_every).
 			NetPlay.snap_every = int(arg.substr(6))
@@ -225,6 +229,10 @@ static func _old_server() -> void:
 	LobbyServer.paced = false
 	NetWire.pack_rows = false
 	NetSync.Host.split_big = false
+	NetSync.Host.echo_by_ticks = false
+	NetSync.Host.rows_in_wholes = false
+	NetSync.Host.buffer_inputs = false
+	NetSync.Client.rows_from_parts = false
 
 
 ## Whether a quick run's numbers are all within QUICK_LIMITS.

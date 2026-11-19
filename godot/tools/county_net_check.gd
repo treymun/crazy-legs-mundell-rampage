@@ -31,6 +31,15 @@ var shots := {}
 var seconds := 40.0
 var map_id := "county_hickston"
 var ws_port := 0
+## Test latency (ms one way, a fifth of it jitter, 2% loss) on every session.
+var lag := 0.0
+## -1: each copy paced as the front end paces it (NetPlay.client_play); 0 or
+## 1: NetSync.Client.by_clock forced off or on.
+var by_clock := -1
+## The game clock at which two levels' XP land, inside the tick on the
+## server and on every copy alike (_gift): -1 not yet.
+var gift_at := -1.0
+var gifts := 0
 
 
 func _init() -> void:
@@ -43,6 +52,10 @@ func _run() -> void:
 			seconds = float(arg.substr(8))
 		elif arg.begins_with("map="):
 			map_id = arg.substr(4)
+		elif arg.begins_with("lag="):
+			lag = float(arg.substr(4))
+		elif arg.begins_with("clock="):
+			by_clock = int(arg.substr(6))
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
@@ -90,7 +103,35 @@ func _make(info: Dictionary) -> Game:
 	var made: Game = main.net_match_game(info)
 	if made != null:
 		made.cheats.god = true
-	return made
+	return _gift(made)
+
+
+## Two levels' XP handed to the party when the game's clock passes
+## `gift_at`: inside the tick, after its features, with the leader acting,
+## on the server and every copy alike, as an orb picked up is. (Until pass
+## 12 the check handed them to the server's game between ticks, which every
+## copy then ran a tick or more past unheld: the one parting it allowed.)
+func _gift(g: Game) -> Game:
+	if g == null:
+		return g
+	g.events.ticked.connect(
+		func(dt: float) -> void:
+			if gift_at < 0.0 or not (g.clock - dt < gift_at and gift_at <= g.clock):
+				return
+			var f = CountyMode.run(g)
+			if f == null:
+				return
+			var acting: Player = g.player
+			var own: bool = g.own_step
+			g.focus(g.players[0], g.players[0] != g.local_player)
+			CountyMode.gain(
+				g, f, CountyData.xp_to_next(f.level) + CountyData.xp_to_next(f.level + 1)
+			)
+			g.focus(acting, own)
+			if g.host:
+				gifts += 1
+	)
+	return g
 
 
 ## One frame for the server and both clients: each client's bot steers its
@@ -129,7 +170,11 @@ func _frame() -> void:
 			shots[net] = NetShotPredict.new()
 		var sp: NetShotPredict = shots[net]
 		sp.now_ms = now
-		net.client_play(1)
+		if by_clock < 0 or net.client_sync == null:
+			net.client_play(1)
+		else:
+			net.client_sync.by_clock = by_clock == 1
+			net.client_sync.playout(1, now)
 		if net.client_ready():
 			var copy := net.match_game()
 			var me: Player = copy.players[net.my_slot()]
@@ -154,8 +199,19 @@ func _join(name: String, over_ws: bool) -> NetPlay:
 		where = "ws://127.0.0.1:%d" % ws_port
 	var net := NetPlay.join_lobby(where, name, "")
 	net.make_match = _make
+	_lag(net.session)
 	nets.append(net)
 	return net
+
+
+func _lag(s: NetSession) -> void:
+	if s == null or lag <= 0.0:
+		return
+	s.lag_ms = lag
+	s.jitter_ms = lag * .2
+	s.loss = .02
+	if s.also != null:
+		_lag(s.also)
 
 
 func _play() -> void:
@@ -179,6 +235,9 @@ func _play() -> void:
 	server.set_process(false)
 	var lobby: NetPlay = server.rooms[0].net
 	_check(lobby.county(), "a county map makes it a COUNTY RUN co-op lobby")
+	var served: Callable = lobby.make_match
+	lobby.make_match = func(info: Dictionary) -> Game: return _gift(served.call(info))
+	_lag(lobby.session)
 	var alice := _join("alice", false)
 	_wait(func() -> bool: return alice.phase == "lobby" and alice.is_admin(), 3000)
 	var bob := _join("bob", true)
@@ -207,11 +266,16 @@ func _play() -> void:
 		Vector2(g.players[0].x, g.players[0].y), Vector2(g.players[1].x, g.players[1].y)
 	]
 	_wait(func() -> bool: return f.run_time >= seconds * .5, int(seconds / STEP) + 2000)
-	# Two levels' XP at once on the server: the leader picks both cards, in turn,
-	# through her controls (whatever the bots managed by themselves).
+	# Two levels' XP at once, a second on (every copy is behind the server):
+	# the leader picks both cards, in turn, through her controls (whatever the
+	# bots managed by themselves).
 	var picked: int = f.picks.size()
 	var before := [alice.client_sync.mismatches, bob.client_sync.mismatches]
-	CountyMode.gain(g, f, CountyData.xp_to_next(f.level) + CountyData.xp_to_next(f.level + 1))
+	gift_at = g.clock + 1.0
+	_wait(func() -> bool: return gifts > 0, 600)
+	_check(
+		gifts == 1 and not f.pending.is_empty(), "two levels' XP land in a tick: the world holds"
+	)
 	# The world holds until the leader's two picks come in through her controls.
 	_wait(func() -> bool: return f.pending.is_empty(), 4000)
 	_wait(func() -> bool: return f.run_time >= seconds, int(seconds / STEP) + 4000)
@@ -294,13 +358,12 @@ func _play() -> void:
 		"both copies have the party's level (%s, server %d)" % [levels, f.level]
 	)
 	_check(same_guns, "everyone carries the party's guns on every copy")
-	# The XP handed to the server's game outside a tick parts the copies once
-	# (rebuilt from the next snapshot); before it, never.
+	# Never a parting: before the picks, through the held world and after.
 	for k in 2:
 		var net: NetPlay = [alice, bob][k]
 		var cs: NetSync.Client = net.client_sync
 		_check(
-			cs.checks > 3 and int(before[k]) == 0 and cs.mismatches - int(before[k]) <= 1,
+			cs.checks > 3 and int(before[k]) == 0 and cs.mismatches == 0,
 			(
 				"%s's copy keeps with the server's game (%d checks, %d mismatches%s)"
 				% [

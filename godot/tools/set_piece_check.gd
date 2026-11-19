@@ -700,6 +700,39 @@ func _looks(level_id: String) -> void:
 	check(
 		back[0] > made.size() * 3 and back[1], "a save put back shows the pile in its pieces, still"
 	)
+	# A snapshot put on (a late joiner online): the same, and nothing lands
+	# again (no dust, no rumble).
+	var joined := _brought_down_snapshot(level_id)
+	check(
+		joined[0] > made.size() * 3 and joined[1] and joined[2] == 0,
+		(
+			(
+				"a snapshot put on a fresh game shows the pile in its pieces, still,"
+				+ " nothing landing (%d pieces, %d puffs)"
+			)
+			% [joined[0], joined[2]]
+		)
+	)
+
+
+## The barn down, its snapshot put on a fresh game: [its pieces, all still,
+## dust puffs thrown].
+func _brought_down_snapshot(level_id: String) -> Array:
+	var g := _game(level_id)
+	var sp := _sets(g)
+	var i := _find(sp, "barn")
+	var posts := _codes(sp, i, "post")
+	sp.strike(posts[0], 300.0, 0.0, 1.0)
+	sp.strike(posts[1], 300.0, 0.0, 1.0)
+	_ticks(g, 7.0)
+	var back := _game(level_id)
+	GameSnapshot.apply(back, GameSnapshot.capture(g))
+	_ticks(back, .1)
+	var ruin := _ruin(back)
+	var r: SetPieceWreck.Ruin = ruin.ruins.get(i)
+	if r == null:
+		return [0, false, ruin.fx.puffs.size()]
+	return [r.bits.size(), r.still, ruin.fx.puffs.size()]
 
 
 ## The barn down, saved and read back: [its pieces, all still].

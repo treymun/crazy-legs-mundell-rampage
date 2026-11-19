@@ -30,7 +30,9 @@
 ## no clock: a server on a made-up clock is stalled and must catch the time
 ## up with one snapshot a room, never a burst, and let go of a stall past
 ## LobbyServer.SLIP_MS. `old` runs the old loop (LobbyServer.paced off).
-## Prints NET PACE OK.
+## Its made-up-clock part also holds the second round: a whole snapshot
+## carries its rows, a split one's first part gives its rows, the host's input
+## buffer fills before playing on. Prints NET PACE OK.
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
@@ -535,7 +537,85 @@ func _catch_up_check() -> void:
 			server.slips == slips0 + 1 and host.tick - tick0 <= 2,
 			"a 2 s stall is let go, not raced after (%d ticks)" % (host.tick - tick0)
 		)
+		_rows_check(host)
 	_close_all()
+
+
+## A session that keeps what is sent instead of sending it.
+class Keeper:
+	extends NetSession
+	var kept: Array = []
+
+	func send(to: int, channel: int, bytes: PackedByteArray) -> void:
+		kept.append([to, channel, bytes])
+
+	func flush() -> void:
+		pass
+
+
+## Pass 12's second round: a whole snapshot to a client that fell behind
+## carries its rows; a split snapshot's first part alone gives its rows; a
+## person's inputs wait in the host's buffer after running dry.
+func _rows_check(host: NetSync.Host) -> void:
+	var r: NetSync.Remote = host.remotes.values()[0]
+	var real := host.session
+	var keeper := Keeper.new()
+	host.session = keeper
+	r.acked = -1
+	r.full_at = -1000000
+	for i in host.snap_every:
+		host.play({})
+	host.session = real
+	var whole := {}
+	for k: Array in keeper.kept:
+		var bytes: PackedByteArray = k[2]
+		if bytes[0] == NetWire.SNAP:
+			whole = NetWire.read_snap(bytes)
+	var rows: Array = whole.get("echo", [])
+	var first: int = whole.get("echo_first", 0)
+	_check(
+		(
+			whole.get("base", 0) == -1
+			and rows.size() >= NetSync.Host.ECHO_TICKS
+			and first + rows.size() - 1 == int(whole.get("tick", -2))
+		),
+		(
+			"a whole snapshot to a client that fell behind carries its rows (%d, to tick %d)"
+			% [rows.size(), first + rows.size() - 1]
+		)
+	)
+	# A split snapshot: only its first part comes.
+	var row := NetWire.tick_row({0: NetWire.pack_controls(Game.Controls.new())})
+	var blob := PackedByteArray()
+	blob.resize(3000)
+	for i in blob.size():
+		blob[i] = (i * 7919) % 251
+	var big := NetWire.snap(900, 880, 2000, -1, [1990, [row, row, row]], blob)
+	var parts := NetWire.split(big, 900)
+	var cs := NetSync.Client.new(NetSession.new(), func(_id: String) -> Game: return null)
+	cs.take([[1, parts[0]]])
+	_check(
+		parts.size() >= 3 and cs.echo.has(1990) and cs.echo.has(1992) and cs.latest < 0,
+		"a split snapshot's first part alone gives its rows (%d parts)" % parts.size()
+	)
+	cs.take([[1, parts[2]], [1, parts[1]]])
+	_check(cs.parts_joined == 1, "and its parts in any order make it whole")
+	# The input buffer: dry, it fills to the buffer before playing on.
+	var q := NetSync.Remote.new()
+	q.slot = 0
+	q.buffer = 2
+	q.refill = true
+	q.next = 10
+	var one := NetWire.pack_controls(Game.Controls.new())
+	q.waiting = {10: one, 11: one}
+	host._next_input(q)
+	var held := q.played
+	q.waiting[12] = one
+	host._next_input(q)
+	_check(
+		held == -1 and q.played == 10 and q.waiting.size() == 2,
+		"the host's input buffer fills to %d after running dry, then plays evenly" % q.buffer
+	)
 
 
 ## The paced loop on the real clock, loaded: two lobbies, each a match of

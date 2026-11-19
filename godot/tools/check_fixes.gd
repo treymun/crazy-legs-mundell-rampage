@@ -228,9 +228,9 @@ func _parity(main: Control) -> void:
 		var toward := atan2(bayou.player.y - king.y, bayou.player.x - king.x)
 		check(BayouBrains.runs_on(king, 1, bayou.world, toward), "the king's first attack is a run")
 		king.attack(bayou, toward, 6.0, 1.2, null)
-		check(king.has_meta("run"), "the attack starts an airboat run")
+		check(king.has_note("run"), "the attack starts an airboat run")
 		king.attack(bayou, toward, 6.0, 1.2, null)
-		check(not king.has_meta("pair"), "a calm king makes no second run")
+		check(not king.has_note("pair"), "a calm king makes no second run")
 
 	print("\nSTATION LIGHTS AFTER A LOAD (were lost on quickload and slot load)")
 	# A campaign run in chapter two carries one finished chapter in its history;

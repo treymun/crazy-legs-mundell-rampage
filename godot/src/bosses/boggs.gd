@@ -48,7 +48,7 @@ func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if hog_wild(game):
 		_oil(e, game)
-	if e.has_meta("nitro"):
+	if e.has_note("nitro"):
 		_nitro(e, dt, game)
 		return true
 	if _nitro_ready(e, dt, game):
@@ -90,8 +90,8 @@ func _start_nitro(e: Enemy, game: Game) -> void:
 	e.aim_mark = null
 	e.angle = heading
 	e.face_left = cos(heading) < -.24
-	e.set_meta("nitro", {"legs": legs, "leg": 0, "hit": false, "from": Vector2(e.x, e.y)})
-	e.set_meta("tell", "NITRO RAM!")
+	e.set_note("nitro", {"legs": legs, "leg": 0, "hit": false, "from": Vector2(e.x, e.y)})
+	e.set_note("tell", "NITRO RAM!")
 	game.sound_at("derby_champ_warn", e.x, e.y, 1.0)
 	game.sound_at("fuse_hiss", e.x, e.y, .8)
 
@@ -130,7 +130,7 @@ static func legs_from(e: Enemy, game: Game, heading: float) -> Array:
 
 
 func _nitro(e: Enemy, dt: float, game: Game) -> void:
-	var run: Dictionary = e.get_meta("nitro")
+	var run: Dictionary = e.get_note("nitro")
 	var going: bool = run.get("going", false)
 	if not going:
 		e.windup = maxf(0.0, e.windup - dt)
@@ -205,8 +205,8 @@ func _ram(e: Enemy, run: Dictionary, game: Game, heading: float) -> void:
 
 
 func _end_nitro(e: Enemy, game: Game, stalled: bool) -> void:
-	e.remove_meta("nitro")
-	e.remove_meta("tell")
+	e.remove_note("nitro")
+	e.remove_note("tell")
 	e.windup = 0.0
 	e.aim_mark = null
 	e.attacks += 1
@@ -225,18 +225,18 @@ func _end_nitro(e: Enemy, game: Game, stalled: bool) -> void:
 
 ## HOG WILD: a charge leaves burning oil down its lane.
 func _oil(e: Enemy, game: Game) -> void:
-	var nitro: Dictionary = e.get_meta("nitro", {})
+	var nitro: Dictionary = e.get_note("nitro", {})
 	var going: bool = nitro.get("going", false)
 	if _mode(e) != "charge" and not going:
-		e.remove_meta("oil_at")
+		e.remove_note("oil_at")
 		return
-	var last: Vector2 = e.get_meta("oil_at", Vector2(e.x, e.y))
-	if not e.has_meta("oil_at"):
-		e.set_meta("oil_at", last)
+	var last: Vector2 = e.get_note("oil_at", Vector2(e.x, e.y))
+	if not e.has_note("oil_at"):
+		e.set_note("oil_at", last)
 		return
 	if last.distance_to(Vector2(e.x, e.y)) < 1.4:
 		return
-	e.set_meta("oil_at", Vector2(e.x, e.y))
+	e.set_note("oil_at", Vector2(e.x, e.y))
 	var arenas: BossArenasFeature = game.features.get("boss_arenas")
 	if arenas != null:
 		arenas.burn(last.x, last.y)
@@ -244,9 +244,9 @@ func _oil(e: Enemy, game: Game) -> void:
 
 func telegraph(e: Enemy, game: Game) -> Array:
 	var out: Array = []
-	if not e.has_meta("nitro"):
+	if not e.has_note("nitro"):
 		return out
-	var run: Dictionary = e.get_meta("nitro")
+	var run: Dictionary = e.get_note("nitro")
 	var legs: Array = run["legs"]
 	var going: bool = run.get("going", false)
 	var at: Vector2 = Vector2(e.x, e.y) if going else run["from"]
@@ -291,8 +291,8 @@ func looks(e: Enemy, game: Game) -> Array:
 		)
 		steam.translucent = true
 		out.append(steam)
-	if e.boss_phase >= 3 or e.has_meta("nitro"):
-		var big := 1.0 if e.has_meta("nitro") else .55
+	if e.boss_phase >= 3 or e.has_note("nitro"):
+		var big := 1.0 if e.has_note("nitro") else .55
 		for k in 2:
 			var side := (k - .5) * .5
 			var back := Vector2(

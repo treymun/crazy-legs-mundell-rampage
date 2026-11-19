@@ -79,9 +79,9 @@ static func _phase(game: Game, boss: Enemy) -> String:
 		var reach: float = Vector2(p.x - boss.x, p.y - boss.y).length()
 		var run := BayouBrains.runs_on(boss, boss.attacks + 1, game.world, toward, reach)
 		tell = "AIRBOAT RUN" if run else "PUNT GUN"
-	if boss.has_meta("tell"):
+	if boss.has_note("tell"):
 		# An attack of its own moves (src/bosses/) names itself.
-		tell = str(boss.get_meta("tell"))
+		tell = str(boss.get_note("tell"))
 	tell = ShipAliens.tell(game, boss, tell)
 	var phase: String = tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 	if boss.brain == "derby_champ" and phase == "RECOVERING":

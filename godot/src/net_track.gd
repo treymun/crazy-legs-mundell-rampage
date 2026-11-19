@@ -167,7 +167,7 @@ func reset() -> void:
 	for id: String in GameSnapshot.FACT_FEATURES:
 		var feature: GameFeature = game.features.get(id)
 		if feature != null:
-			_facts[id] = var_to_bytes(SnapCodec.plain(feature.save()))
+			_facts[id] = var_to_bytes(SnapCodec.plain(GameSnapshot.fact_of(feature)))
 	_statics = var_to_bytes(GameSnapshot.statics_of(codec))
 
 
@@ -288,7 +288,7 @@ func _world_changes(out: Dictionary, features: Dictionary) -> void:
 		if not features.has(id):
 			continue
 		var feature: GameFeature = game.features[id]
-		var doc: Variant = SnapCodec.plain(feature.save())
+		var doc: Variant = SnapCodec.plain(GameSnapshot.fact_of(feature))
 		var bytes := var_to_bytes(doc)
 		if bytes != _facts[id]:
 			_facts[id] = bytes

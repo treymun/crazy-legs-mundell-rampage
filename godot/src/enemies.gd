@@ -231,6 +231,12 @@ var spite_until := 0.0
 ## fallback x, y, ring]).
 var lod_since := -1.0
 var cover_hunt: Array = []
+## Play a boss's moves, a gator's runs and the arena's fire keep on it, by
+## name (plain values: get_note, set_note): carried like any field. Until
+## pass 12 they were the object's metas, which no snapshot carries: a copy
+## put back on one, or a late joiner's, parted at the next boss move or
+## arena fire bite (net_soak_all.gd found it in a co-op boss fight).
+var notes := {}
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -252,6 +258,27 @@ var z: float:
 		if brain == "lantern":
 			return .13 + .09 * sin(pose * 4.3)
 		return 0.0
+
+
+## A note kept on it (`fallback` when there is none), as get_meta was.
+func get_note(key: String, fallback: Variant = null) -> Variant:
+	return notes.get(key, fallback)
+
+
+## Keeps `value` under `key` (null takes it away, as set_meta did).
+func set_note(key: String, value: Variant) -> void:
+	if value == null:
+		notes.erase(key)
+	else:
+		notes[key] = value
+
+
+func has_note(key: String) -> bool:
+	return notes.has(key)
+
+
+func remove_note(key: String) -> void:
+	notes.erase(key)
 
 
 func _init(p_kind := "", px := 0.0, py := 0.0, p_angle := 0.0) -> void:

@@ -182,14 +182,14 @@ static func weak(e: Enemy, game: Game, how: String, amount := 0.0) -> float:
 static func _weak_feedback(e: Enemy, game: Game, hit: Vector3) -> void:
 	_sparks(game, hit.x, hit.y, hit.z, "spark", 7, 2.6)
 	# Once an instant (a load of buckshot is ten hits), then a call now and then.
-	var weak_at: float = e.get_meta("weak_at", -10.0)
+	var weak_at: float = e.get_note("weak_at", -10.0)
 	if game.clock - weak_at > .12:
-		e.set_meta("weak_at", game.clock)
+		e.set_note("weak_at", game.clock)
 		game.sound_at("ricochet_tin", hit.x, hit.y, .8)
 		game.events.boss_weak_hit.emit(e)
-	var weak_call: float = e.get_meta("weak_call", -100.0)
+	var weak_call: float = e.get_note("weak_call", -100.0)
 	if game.clock - weak_call >= WEAK_CALL_GAP:
-		e.set_meta("weak_call", game.clock)
+		e.set_note("weak_call", game.clock)
 		if game.barks.enabled:
 			game.callout = "WEAK SPOT!"
 			game.callout_until = game.clock + 1.0

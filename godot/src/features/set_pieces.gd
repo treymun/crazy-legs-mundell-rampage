@@ -223,6 +223,14 @@ func restore(state: Dictionary) -> void:
 	net_version += 1
 	_sprites.clear()
 	wake()
+	# A snapshot put on (a late joiner, a copy put back: _apply_facts notes
+	# it in game.net_facts first): the looks lay what is down in its pieces at
+	# once, as a load does (wreckage.gd sync_sets). Until pass 12 a late
+	# joiner saw every part land again, dust, rumble and all, and lie whole.
+	if game.net_facts.has(id()):
+		var wk: GameFeature = game.features.get("wreckage")
+		if wk != null and wk.has_method("sync_sets"):
+			wk.call("sync_sets")
 
 
 ## A piece's state read back (a save's numbers are all floats): its stage

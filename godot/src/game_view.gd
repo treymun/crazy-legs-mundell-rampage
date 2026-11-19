@@ -616,9 +616,6 @@ func feedback(c: Canvas) -> void:
 				if absf(turn2) > 2.41
 				else " LEFT" if turn2 < -.40 else " RIGHT" if turn2 > .40 else " FRONT"
 			)
-		if heading != null and not NO_MARK_SURFACE.has(cause):
-			# The arc first: the banners go over it.
-			_hurt_arc(c, fposmod(_view_num(heading) - player.view_angle() + PI, TAU) - PI, end2)
 		var hurt := hud.layout.banner("hurt", cause + side, 87)
 		if hurt.size.x > 0:
 			HudLayout.begin(c, "hurt")
@@ -812,6 +809,13 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			HudLayout.end(c)
 		# A boss's entrance: its name slammed onto a fair ribbon (boss_kit.gd).
 		BossKit.draw_intro(me, c)
+		# Marks over the view go under every banner (pass 12: a hit from in
+		# front drew the hurt arc across the notice and the tip).
+		var marked: bool = top_note.get("mark", false)
+		if marked:
+			_use_mark(c)
+		if not map:
+			_hurt_arc_now(c)
 		for top_piece: String in ["notice", "tip"]:
 			if top_note.has(top_piece):
 				var note: Array = top_note[top_piece]
@@ -827,11 +831,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			HudLayout.begin(c, "boss")
 			BossBar.draw(me, c, boss_at.position.y)
 			HudLayout.end(c)
-		var marked: bool = top_note.get("mark", false)
-		if marked:
-			_use_mark(c)
 		if not map:
-			# Under the prompt and the caption: the hurt arc runs under them.
 			feedback(c)
 		# The prompt and the caption (or a hand's bark), laid out in _lay_hud.
 		for piece: String in ["prompt", "caption"]:
@@ -1025,6 +1025,17 @@ func effect_lights() -> Array:
 func gun_light() -> Color:
 	var me: Game = self as Object
 	return ViewLights.gun_light(me)
+
+
+## The hurt arc of the hit now marked, if any (drawn before every banner).
+func _hurt_arc_now(c: Canvas) -> void:
+	if damage_feedback == null:
+		return
+	var heading: Variant = damage_feedback[0]
+	var end: float = damage_feedback[2]
+	if clock >= end or heading == null or NO_MARK_SURFACE.has(str(damage_feedback[1])):
+		return
+	_hurt_arc(c, fposmod(_view_num(heading) - player.view_angle() + PI, TAU) - PI, end)
 
 
 ## A red arc at the edge of the view on the side the hurt came from, fading.

@@ -43,12 +43,12 @@ func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 
 
 func tick(e: Enemy, dt: float, game: Game) -> bool:
-	var running := e.has_meta("run")
-	var was_running: bool = e.get_meta("was_running", false)
+	var running := e.has_note("run")
+	var was_running: bool = e.get_note("was_running", false)
 	if was_running and not running:
 		_run_over(e, game)
-	e.set_meta("was_running", running)
-	if e.has_meta("dynamite"):
+	e.set_note("was_running", running)
+	if e.has_note("dynamite"):
 		e.windup = maxf(0.0, e.windup - dt)
 		e.angle = atan2(game.player.y - e.y, game.player.x - e.x)
 		if e.windup <= 0.0 or e.stun > .3:
@@ -97,7 +97,7 @@ func _run_over(e: Enemy, game: Game) -> void:
 func _dynamite_ready(e: Enemy, dt: float, game: Game) -> bool:
 	if e.boss_phase < 3 or not e.alerted or e.windup > 0.0 or e.stun > 0.0:
 		return false
-	if e.has_meta("run") or e.recovery > .17 or e.attacks % 3 != 2:
+	if e.has_note("run") or e.recovery > .17 or e.attacks % 3 != 2:
 		return false
 	if e.cooldown > dt * float(game.sharpness):
 		return false
@@ -113,8 +113,8 @@ func _dynamite(e: Enemy, game: Game) -> void:
 	var pace: float = PACE[clampi(game.difficulty, 0, 3)]
 	e.windup = DYNAMITE_WINDUP * pace
 	e.aim_mark = null
-	e.set_meta("dynamite", true)
-	e.set_meta("tell", "DYNAMITE!")
+	e.set_note("dynamite", true)
+	e.set_note("tell", "DYNAMITE!")
 	var arenas: BossArenasFeature = game.features.get("boss_arenas")
 	var toward := atan2(p.y - e.y, p.x - e.x)
 	var side := Vector2(-sin(toward), cos(toward))
@@ -132,8 +132,8 @@ func _dynamite(e: Enemy, game: Game) -> void:
 
 
 func _thrown(e: Enemy, game: Game) -> void:
-	e.remove_meta("dynamite")
-	e.remove_meta("tell")
+	e.remove_note("dynamite")
+	e.remove_note("tell")
 	e.windup = 0.0
 	e.attacks += 1
 	var pace: float = PACE[clampi(game.difficulty, 0, 3)]

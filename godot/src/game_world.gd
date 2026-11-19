@@ -949,9 +949,9 @@ func pressure_ports(attacks: int) -> Array:
 	# The baron picks the outlets nearest where the player stood as he wound up
 	# (bosses/baron.gd keeps them on him); otherwise they go in turn.
 	if finale != null:
-		var ports_for: int = finale.get_meta("ports_for", -1)
+		var ports_for: int = finale.get_note("ports_for", -1)
 		if ports_for == attacks:
-			var picked: Array = finale.get_meta("ports")
+			var picked: Array = finale.get_note("ports")
 			return picked.slice(0, mini(count, picked.size()))
 	var offset := int(attacks / 2) % ports.size()
 	var out: Array = []

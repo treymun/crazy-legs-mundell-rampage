@@ -299,6 +299,10 @@ static func flood_tick(sp: SetPiecesFeature, dt: float) -> void:
 			var key := "p%d" % p.slot
 			if not hit.has(key):
 				hit[key] = g.clock
+				# (A snapshot sends the floods only when net_version moves: a
+				# body washed without it left a copy put back without it,
+				# parting again at every check, pass 12 soak.)
+				sp.net_version += 1
 				p.knocked = maxf(p.knocked, Shape.num("tower", "wash_knock", .7))
 				g.damage(Shape.num("tower", "wash_hurt", 6.0), [src.x, src.y], "WASHED OUT", p)
 		for e: Enemy in g.enemies:
@@ -309,6 +313,7 @@ static func flood_tick(sp: SetPiecesFeature, dt: float) -> void:
 			var key := "e%d" % e.uid
 			if not hit.has(key) and e.hostile:
 				hit[key] = g.clock
+				sp.net_version += 1
 				e.stun = maxf(e.stun, Shape.num("tower", "wash_stun", 1.6))
 				Players.world_hurt(
 					g, e, Shape.num("tower", "wash_hurt", 6.0) * 1.5, false, "washed"

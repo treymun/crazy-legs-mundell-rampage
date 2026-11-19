@@ -90,6 +90,7 @@ static func run(
 	_two_players(main, check, String(levels[0]), ticks if ticks <= QUICK_TICKS else 10800)
 	# The host and its mirrors (game_host.gd, game_mirror.gd).
 	_merge_rules(check)
+	_soak_fixes(main, check, String(levels[0]))
 	_put_back(main, check, String(levels[0]))
 	_host_game(main, check, String(levels[0]))
 	var host_ticks := QUICK_HOST if ticks <= QUICK_TICKS else ticks
@@ -622,6 +623,176 @@ static func _merge_rules(check: Callable) -> void:
 		),
 		"deltas merge: patch(a, merge(delta(a, b), delta(b, c))) == c"
 	)
+
+
+## What the pass 12 soak (tools/net_soak_all.gd) found in what snapshots
+## carry; each check failed on the old code.
+static func _soak_fixes(main, check: Callable, id: String) -> void:
+	# A value gone to null in the newer delta (an enemy's aim_mark let go):
+	# merge() took the null for its "can't", so the host sent every client a
+	# whole snapshot, with no inputs, and every copy was put back on it.
+	var a := {"e": {"aim": {"x": 1}, "hp": 3}, "n": 1}
+	var b := {"e": {"aim": null, "hp": 3}, "n": 1}
+	var c := {"e": {"aim": null, "hp": 2}, "n": null}
+	var merged = GameSnapshot.merge(GameSnapshot.delta(a, b), GameSnapshot.delta(b, c))
+	check.call(
+		merged != null and GameSnapshot.same(GameSnapshot.patch(a, merged), c),
+		"deltas merge across a value gone to null (no whole snapshot for it)"
+	)
+	# A flow field travels as runs of cells; a row of every cell (before
+	# pass 12: a replay's keyframe) still reads.
+	var g := _made(main, id, 2)
+	var walk := Game.Controls.new()
+	walk.forward = 1.0
+	for i in 90:
+		g.tick(STEP, {0: walk, 1: walk})
+	var f: FlowField = g.players[0].flow
+	var row: Dictionary = SnapCodec.encode_flow(f)
+	var steps := PackedInt32Array()
+	for cell in f._touched:
+		steps.append(f.steps[cell])
+	var old_row := [f.origin.x, f.origin.y, f.next_at, f._walked, f._touched.duplicate(), steps]
+	var back := FlowField.new(g.world, f)
+	SnapCodec.decode_flow(back, row["@flow"])
+	var back_old := FlowField.new(g.world, f)
+	SnapCodec.decode_flow(back_old, old_row)
+	var old_size := GameSnapshot.to_bytes({"@flow": old_row}).size()
+	var new_size := GameSnapshot.to_bytes(row).size()
+	(
+		check
+		. call(
+			(
+				f._touched.size() > 100
+				and back.steps == f.steps
+				and back_old.steps == f.steps
+				and back.origin == f.origin
+				and SnapCodec.encode_flow(back) == row
+				and new_size < old_size
+			),
+			(
+				"a flow field of %d cells travels as runs (%d B packed, was %d) and an old row still reads"
+				% [f._touched.size(), new_size, old_size]
+			)
+		)
+	)
+	# The breakables' bits are looks: neither carried nor in the facts (they
+	# were most of every delta while things broke), and a copy put back
+	# keeps its own.
+	var pieces = g.features.get("breakables")
+	var at := -1
+	for i in pieces.pieces.size():
+		if int(pieces.pieces[i].spec.get("bits", 0)) > 0 and not pieces.pieces[i].spec.has("blast"):
+			at = i
+			break
+	if at < 0:
+		check.call(false, "%s has a breakable that throws bits" % id)
+		return
+	var p0 = pieces.pieces[at]
+	var shot := Game.Shot.new(p0.x + .3, p0.y, .4, 0.0, 0.0, 0.0, "tnt", 0.0, false, 0)
+	shot.owner = -1
+	g.explode(shot)
+	for i in 20:
+		g.tick(STEP, {})
+	var facts: Dictionary = GameSnapshot.facts_of(g).get("breakables", {})
+	var snap := GameSnapshot.capture(g)
+	var carried: Dictionary = snap["features"].get("breakables", {})
+	var copy := _made(main, id, 2)
+	copy.features["breakables"]._throw(p0.x, p0.y, .5, "wood", 5, 0.0, 0.0)
+	var own: int = copy.features["breakables"].bits.size()
+	GameSnapshot.apply(copy, snap.duplicate(true))
+	check.call(
+		(
+			pieces.pieces[at].broken
+			and not pieces.bits.is_empty()
+			and facts.has("broken")
+			and not facts.has("bits")
+			and not facts.has("cooking")
+			and not carried.has("bits")
+			and not carried.has("dice")
+			and copy.features["breakables"].pieces[at].broken
+			and copy.features["breakables"].bits.size() == own
+			and GameSnapshot.same(GameSnapshot.capture(copy), GameSnapshot.capture(g))
+		),
+		(
+			(
+				"a breakable's bits (%d) are neither carried nor in the facts;"
+				+ " a copy put back keeps its own (%d)"
+			)
+			% [pieces.bits.size(), own]
+		)
+	)
+	# Play kept on an enemy (a boss's next move, a gator's run, the arena
+	# fire's next bite) is its `notes`, carried; it was its metas, which no
+	# snapshot carries, so a copy put back kept its own and parted.
+	var e: Enemy = null
+	for one: Enemy in g.enemies:
+		if one.alive:
+			e = one
+			break
+	var held := _made(main, id, 2)
+	if e != null:
+		e.set_note("burn_next", 12.5)
+		e.set_note("run", [1, 3.0, false, true])
+		var cap := GameSnapshot.capture(g)
+		for one: Enemy in held.enemies:
+			if one.uid == e.uid:
+				one.set_note("rain", true)
+		GameSnapshot.apply(held, cap.duplicate(true))
+	var back_e: Enemy = null
+	for one: Enemy in held.enemies:
+		if e != null and one.uid == e.uid:
+			back_e = one
+	check.call(
+		(
+			back_e != null
+			and back_e.get_note("burn_next", 0.0) == 12.5
+			and back_e.get_note("run") == [1, 3.0, false, true]
+			and not back_e.has_note("rain")
+		),
+		"an enemy's notes travel in a snapshot, and a copy put back keeps none of its own"
+	)
+	# A client a round trip of more than a second behind (a browser player at
+	# 250 ms whose TCP held up a lost packet) still has a base the host
+	# keeps: no whole snapshots, no put backs for it (net_soak_all.gd).
+	var kept_s := NetSync.Host.KEEP * NetPlay.SNAP_EVERY * NetSync.STEP
+	check.call(
+		NetSync.Client.KEEP >= NetSync.Host.KEEP and kept_s >= 3.0,
+		"host and client keep %.1f s of snapshots as bases (at least 3)" % kept_s
+	)
+	var metas := _play_metas("res://src")
+	check.call(
+		metas.is_empty(),
+		(
+			"no play is kept in an object's metas (never carried)"
+			+ ("" if metas.is_empty() else ": " + ", ".join(metas.slice(0, 6)))
+		)
+	)
+	g.dispose()
+	copy.dispose()
+	held.dispose()
+
+
+## Lines in the game's code that keep something in an object's metas, but
+## for the view, the menus, the network's own and two caches (a world's
+## physics space, a sound's level), which no snapshot needs.
+static func _play_metas(dir: String) -> Array:
+	var out: Array = []
+	for name: String in DirAccess.get_files_at(dir):
+		if not name.ends_with(".gd"):
+			continue
+		var path := dir.path_join(name)
+		if path.get_file() in ["phys_core.gd", "sound.gd", "snap_codec.gd"]:
+			continue
+		var n := 0
+		for line: String in FileAccess.get_file_as_string(path).split("\n"):
+			n += 1
+			if line.contains("set_meta(") and not line.strip_edges().begins_with("#"):
+				out.append("%s:%d" % [path.trim_prefix("res://"), n])
+	for sub_dir: String in DirAccess.get_directories_at(dir):
+		if sub_dir in ["view3d", "ui", "net"]:
+			continue
+		out.append_array(_play_metas(dir.path_join(sub_dir)))
+	return out
 
 
 # ------------------------------------------------------ a copy put back

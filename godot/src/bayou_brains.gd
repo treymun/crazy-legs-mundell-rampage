@@ -46,7 +46,7 @@ static func runs_on(e: Enemy, number: int, world: LevelData, bearing: float, rea
 	var room := lane(e, world, bearing)
 	if room < 3.0 or (reach > 0.0 and room < minf(RUN_LENGTH, reach) - 1.2):
 		return false
-	return e.has_meta("pair") or number % 2 == 1 or (e.enraged and number % 3 != 0)
+	return e.has_note("pair") or number % 2 == 1 or (e.enraged and number % 3 != 0)
 
 
 ## How far a run along `bearing` would go: open water, up to RUN_LENGTH.
@@ -86,14 +86,14 @@ static func tick(e: Enemy, dt: float, game: Game) -> bool:
 			if lurks and not e.alerted:
 				want = e.height * .8
 		var calls_gators: bool = spec.get("calls_gators", false)
-		if calls_gators and e.alerted and not e.has_meta("called"):
-			e.set_meta("called", true)
+		if calls_gators and e.alerted and not e.has_note("called"):
+			e.set_note("called", true)
 			if call_gators(game, e.x, e.y, 13.0) > 0:
 				game.message("CHUM'S IN THE WATER! GATORS COMIN'.", 2.4)
 				game.sound_at("chum_holler", e.x, e.y, .9)
-	if not e.has_meta("settled"):
+	if not e.has_note("settled"):
 		# Already down in the water when the chapter starts, not sinking into it.
-		e.set_meta("settled", true)
+		e.set_note("settled", true)
 		e.sunk = want
 	var was := e.sunk
 	e.sunk = move_toward(e.sunk, want, dt * (4.0 if want < e.sunk else 1.2))
@@ -119,25 +119,25 @@ static func call_gators(game: Game, x: float, y: float, reach: float) -> int:
 
 
 static func _king(e: Enemy, dt: float, game: Game, wet: bool) -> bool:
-	if not e.has_meta("home"):
-		e.set_meta("home", Vector2(e.x, e.y))
+	if not e.has_note("home"):
+		e.set_note("home", Vector2(e.x, e.y))
 	e.sunk = 0.0
 	var base: float = Enemy.KINDS[e.kind][1]
 	e.speed = base * (1.25 if e.enraged else 1.0)
 	# An airboat keeps to the water: a step onto planks or a bank is taken back.
 	if wet:
-		e.set_meta("wet_at", Vector2(e.x, e.y))
-	elif not e.has_meta("run") and e.has_meta("wet_at"):
-		var back: Vector2 = e.get_meta("wet_at")
+		e.set_note("wet_at", Vector2(e.x, e.y))
+	elif not e.has_note("run") and e.has_note("wet_at"):
+		var back: Vector2 = e.get_note("wet_at")
 		e.x = back.x
 		e.y = back.y
-	if e.has_meta("run"):
-		var run: Array = e.get_meta("run")
+	if e.has_note("run"):
+		var run: Array = e.get_note("run")
 		_run(e, dt, game, run, wet)
 		return true
 	if e.stun > 0.0 or e.windup > 0.0 or not e.alerted:
 		return false
-	var home: Vector2 = e.get_meta("home")
+	var home: Vector2 = e.get_note("home")
 	if Vector2(e.x, e.y).distance_to(home) > LEASH:
 		e.follow(dt, game, atan2(home.y - e.y, home.x - e.x), 1.1)
 		return true
@@ -190,7 +190,7 @@ static func _run(e: Enemy, dt: float, game: Game, run: Array, wet: bool) -> void
 		game.sound_at("king_ram", e.x, e.y, 1.0)
 	if moved >= step * .35 and left > 0.0:
 		return
-	e.remove_meta("run")
+	e.remove_note("run")
 	e.recovery = .55
 	e.cooldown = .8 if e.enraged else 1.3
 	hit = run[2]
@@ -205,7 +205,7 @@ static func _run(e: Enemy, dt: float, game: Game, run: Array, wet: bool) -> void
 		game.message("HE BEACHED IT! LIGHT HIM UP!", 2.0)
 	elif e.enraged and not second and e.stun <= 0.0:
 		# Fightin' mad: straight round and back at you.
-		e.set_meta("pair", true)
+		e.set_note("pair", true)
 		e.windup = .6
 		e.aim_mark = [p.x, p.y, p.eye]
 		game.sound_at("king_rev", e.x, e.y, .8)
@@ -216,9 +216,9 @@ static func attack(e: Enemy, game: Game, direction: float, distance: float, eye:
 	if not is_king(e):
 		return false
 	if runs_on(e, e.attacks, game.world, direction, distance):
-		var second := e.has_meta("pair")
-		e.remove_meta("pair")
-		e.set_meta("run", [direction, RUN_LENGTH, false, second])
+		var second := e.has_note("pair")
+		e.remove_note("pair")
+		e.set_note("run", [direction, RUN_LENGTH, false, second])
 		game.sound_at("king_charge", e.x, e.y, 1.0)
 		game.shake = minf(1.0, game.shake + .25)
 		return true
