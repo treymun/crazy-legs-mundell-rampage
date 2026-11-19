@@ -286,6 +286,8 @@ static func split(packet: PackedByteArray, seq: int) -> Array[PackedByteArray]:
 
 ## {seq, base (-1: whole), tick, input_ack (-1: none), echo_first, echo:
 ## [{slot: packed controls}], payload} of a SNAP packet (empty if malformed).
+## The start of one is enough for its rows (the first SNAP_PART of a big
+## one: they come before the payload), which is all it reads then.
 static func read_snap(bytes: PackedByteArray) -> Dictionary:
 	if bytes.size() < SNAP_HEADER:
 		return {}

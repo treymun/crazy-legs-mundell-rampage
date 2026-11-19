@@ -96,6 +96,13 @@ class Remote:
 	var heard := 0
 	## input number -> the tick it was showing when it sent that one.
 	var views := {}
+	## The host's input buffer for it (Host.buffer_inputs): how late each
+	## newest input came against its number (ticks), the ticks it is played
+	## behind them, and whether it is filling up again after running dry.
+	var arrivals := PackedInt32Array()
+	var newest := -1
+	var buffer := 0
+	var refill := true
 
 
 class Host:
@@ -111,8 +118,15 @@ class Host:
 	## Snapshots' worth of inputs sent again (a lost snapshot's are in the
 	## next ones). Every row since the client's acknowledged base used to go
 	## in each snapshot: a round trip's worth, the biggest part of a 5v5's
-	## bandwidth.
+	## bandwidth. Pass 12: ECHO_TICKS ticks' worth whatever the rate (at 60
+	## snapshots a second three snapshots were three ticks, and at 250 ms
+	## with jitter the copies were put back 43 times in 20 s for rows that
+	## never came); `echo_by_ticks` off: ECHO_AGAIN snapshots' worth.
 	const ECHO_AGAIN := 3
+	const ECHO_TICKS := 9
+	static var echo_by_ticks := true
+	## Off: a whole snapshot carries no rows (the old way).
+	static var rows_in_wholes := true
 	## Off: every row since the base (the old way, for net_lag.gd's comparison).
 	static var trim_echo := true
 	## Off: each client's change merged from its base every snapshot (the old way).
@@ -123,6 +137,17 @@ class Host:
 	static var per_input_view := true
 	## Inputs whose shown tick is remembered.
 	const VIEWS_KEPT := 64
+	## A person's inputs are played a little behind their arrival, by how
+	## much they wander (0 to BUFFER_MOST ticks: their spread over the
+	## quickest, ARRIVALS_KEPT of them, less a tick), and after running dry
+	## the buffer fills again before they play on: they are played evenly,
+	## where a late one used to be held, the pile then merged, and everyone
+	## else saw them stop and lurch (net_feel.gd at 250 ms). The rewind
+	## follows (_view_of: the tick they showed, the tick it is played).
+	## Off: each input played as soon as it is there (the old way).
+	static var buffer_inputs := true
+	const BUFFER_MOST := 2
+	const ARRIVALS_KEPT := 120
 
 	var session: NetSession
 	var game: Game
@@ -307,9 +332,10 @@ class Host:
 		return mini(view, tick)
 
 	func _next_input(r: Remote) -> PackedByteArray:
-		if r.waiting.size() > MAX_WAITING:
+		var keep := r.buffer + 1 if buffer_inputs else 1
+		if r.waiting.size() > MAX_WAITING + keep - 1:
 			# Fallen behind (a burst after a stall): play on from the newest few.
-			while r.waiting.size() > 1:
+			while r.waiting.size() > keep:
 				if not r.waiting.has(r.next):
 					r.next += 1
 					continue
@@ -320,18 +346,47 @@ class Host:
 					var later: PackedByteArray = r.waiting[r.next]
 					r.waiting[r.next] = NetWire.merged(dropped, later)
 				r.skipped += 1
+		if buffer_inputs and r.refill and r.buffer > 0:
+			var have := 0
+			while r.waiting.has(r.next + have):
+				have += 1
+			if have <= r.buffer:
+				return _held(r)
+		r.refill = false
 		if r.waiting.has(r.next):
 			r.last = r.waiting[r.next]
 			r.waiting.erase(r.next)
 			r.played = r.next
 			r.next += 1
 			return r.last
+		r.refill = true
+		return _held(r)
+
+	## No input of its own this tick: the last one held (without its
+	## one-shot actions, turn and look).
+	func _held(r: Remote) -> PackedByteArray:
 		r.played = -1
 		r.starved += 1
 		if r.last.is_empty():
 			return NetWire.pack_controls(Game.Controls.new())
 		r.last = NetWire.held_only(r.last)
 		return r.last
+
+	## How late its newest input came (ticks behind its number), and the
+	## buffer that covers how much that wanders.
+	func _arrival(r: Remote, newest: int) -> void:
+		if newest <= r.newest:
+			return
+		r.newest = newest
+		r.arrivals.append(tick - newest)
+		if r.arrivals.size() > ARRIVALS_KEPT:
+			r.arrivals = r.arrivals.slice(r.arrivals.size() - ARRIVALS_KEPT)
+		if r.arrivals.size() < 30 or r.arrivals.size() % 15 != 0:
+			return
+		var sorted := r.arrivals.duplicate()
+		sorted.sort()
+		var spread := sorted[int(sorted.size() * .95)] - sorted[0]
+		r.buffer = clampi(spread - 1, 0, BUFFER_MOST)
 
 	func _receive(packets: Array) -> void:
 		var events := session.take_events()
@@ -386,6 +441,8 @@ class Host:
 			r.views[first + list.size() - 1] = view
 		if r.next < 0:
 			r.next = first
+		if not list.is_empty():
+			_arrival(r, first + list.size() - 1)
 		for i in list.size():
 			if first + i >= r.next and not r.waiting.has(first + i):
 				r.waiting[first + i] = list[i]
@@ -436,10 +493,18 @@ class Host:
 				by_base[base] = payload
 			if base < 0:
 				r.full_at = tick
+			var again := ECHO_TICKS if echo_by_ticks else ECHO_AGAIN * snap_every
 			var since: int = tick if base < 0 else history[base][0]
+			if base < 0 and r.echo_sent >= 0 and rows_in_wholes:
+				# A client that fell behind gets a whole snapshot: with the
+				# rows since the last it was sent, so its copy plays on to it
+				# instead of being put back (co-op and County Run at 250 ms:
+				# their big deltas went missing in parts until the base was
+				# too old, and the whole one carried no rows at all).
+				since = r.echo_sent - again
 			var first := maxi(since + 1, tick - MAX_ECHO + 1)
 			if trim_echo and r.echo_sent >= 0 and base >= 0:
-				first = maxi(first, r.echo_sent + 1 - ECHO_AGAIN * snap_every)
+				first = maxi(first, r.echo_sent + 1 - again)
 			r.echo_sent = tick
 			var rows: Array = []
 			for t in range(first, tick + 1):
@@ -551,6 +616,8 @@ class Client:
 	## holds for the party's card picks and parted from the host when paced so.
 	var by_clock := true
 	## Snapshots that came in SNAP_PARTs, and the parts of those still coming.
+	## `rows_from_parts` off: a split snapshot's rows only once it is whole.
+	static var rows_from_parts := true
 	var parts_joined := 0
 	## Frames the copy waited for inputs on their way (_rows_late).
 	var rows_waited := 0
@@ -600,6 +667,19 @@ class Client:
 				if not whole.is_empty():
 					_snap(NetWire.read_snap(whole))
 
+	## The inputs played on each tick are the host's word whatever the
+	## snapshot: kept from a late one too (big snapshots go reliable, the
+	## rest not, so they can pass each other), and from a split one's first
+	## part.
+	func _take_rows(msg: Dictionary) -> void:
+		if not msg.has("echo"):
+			return
+		var first: int = msg["echo_first"]
+		var rows: Array = msg["echo"]
+		for i in rows.size():
+			if not echo.has(first + i) and first + i > game_tick:
+				echo[first + i] = rows[i]
+
 	## A SNAP_PART kept until its snapshot's parts are all in: then the SNAP
 	## they make (empty until then, or for a malformed part).
 	func _joined(part: PackedByteArray) -> PackedByteArray:
@@ -612,6 +692,11 @@ class Client:
 			return PackedByteArray()
 		var got: Dictionary = _parts.get(seq, {})
 		got[index] = part.slice(NetWire.PART_HEADER)
+		if index == 0 and rows_from_parts:
+			# The rows come first in a snapshot: the first part alone has
+			# them, so a later part lost loses the state, not the inputs.
+			var head: PackedByteArray = got[0]
+			_take_rows(NetWire.read_snap(head))
 		_parts[seq] = got
 		for old: int in _parts.keys():
 			if old < seq - KEEP:
@@ -810,14 +895,7 @@ class Client:
 		if msg.is_empty():
 			return
 		var seq: int = msg["seq"]
-		# The inputs played on each tick are the host's word whatever the
-		# snapshot: kept from a late one too (big snapshots go reliable, the
-		# rest not, so they can pass each other).
-		var first: int = msg["echo_first"]
-		var rows: Array = msg["echo"]
-		for i in rows.size():
-			if not echo.has(first + i) and first + i > game_tick:
-				echo[first + i] = rows[i]
+		_take_rows(msg)
 		var arrived_tick: int = msg["tick"]
 		_arrived(arrived_tick)
 		if seq <= latest:
