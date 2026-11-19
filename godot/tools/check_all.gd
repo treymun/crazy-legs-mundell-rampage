@@ -69,6 +69,7 @@ const CHECKS := [
 	["boss_end_check", "BOSS END OK"],
 	["bark_check", "BARK CHECK OK"],
 	["hud_layout_check", "HUD LAYOUT OK"],
+	["onboard_check", "ONBOARD CHECK OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK", ["seconds=30"]],
 	["net_party_check", "NET PARTY OK"],
@@ -187,6 +188,7 @@ const CI_SECONDS := {
 	"pack_check": 30,
 	"tune_check": 15,
 	"user_map_check": 20,
+	"onboard_check": 60,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and

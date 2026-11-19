@@ -581,6 +581,9 @@ var use_key := "E"
 ## The FLASHLIGHT key's name for the blackout's word (main.gd sets it each
 ## frame): the bound key, "" on a controller or a touch screen (none there).
 var torch_key := "L"
+## What this machine's player last played with ("keys", "pad" or "touch"; main.gd
+## sets it each frame), so a tip names the right key or button (lessons.gd).
+var input_device := "keys"
 ## The aim point (x, y, height) of the device use_target() last chose, for the
 ## marker drawn round it; INF when it chose none or a door.
 var use_aim := Vector3.INF
@@ -747,6 +750,11 @@ var triggers_fired := {}
 var triggers_inside := {}
 var district_labels := true
 var hints := true
+## NEW PLAYER TIPS (setting `tips`): the one-time tips (lessons.gd), and the
+## tip up now and until when (its own banner, game_view.gd).
+var tips := 1
+var tip := ""
+var tip_until := 0.0
 var hud_style := 0
 var weapon_view := 0
 var voice_captions := true

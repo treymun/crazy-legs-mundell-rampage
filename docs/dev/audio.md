@@ -350,6 +350,16 @@ sets are, and captions it; the words are `data/tuning/radio_lines.json`.
   rates; the account's own counter fell 2,437. Not listened to.
 - `tools/radio_check.gd` (check_all, quick) holds it.
 
+### Pass 12: Mundell with the new player's tips (2026-11-18)
+
+Five lines in his voice, said once each with a tip (`tip_hound`,
+`tip_carry`, `tip_ride`, `tip_bench`, `tip_locked` in barks.gd and
+mundell_lines.json; cues `mundell_tip_*_0`). Three matched as made; "If it
+ain't nailed down, chuck it" came back with a "huh?" after it and "Duct tape
+fixes everything" with a "Yeah," before it (both cut off at the caption's
+words by audio_build); "Locked tight. Figures." was heard "Lock tight,
+figures" (`heard`). 70 credits (79,114 to 79,184). Not listened to.
+
 ## The county events' sounds (content pass 8)
 
 The county events ([gameplay.md](gameplay.md#county-events-content-pass-8),

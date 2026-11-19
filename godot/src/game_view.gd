@@ -812,15 +812,16 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			HudLayout.end(c)
 		# A boss's entrance: its name slammed onto a fair ribbon (boss_kit.gd).
 		BossKit.draw_intro(me, c)
-		if top_note.has("notice"):
-			var note: Array = top_note["notice"]
-			var note_text: String = note[0]
-			var note_top: int = note[1]
-			var note_wrap: int = note[2]
-			var note_ink: Color = note[3]
-			HudLayout.begin(c, "notice")
-			HUD.banner(c, note_text, note_top, note_wrap, note_ink)
-			HudLayout.end(c)
+		for top_piece: String in ["notice", "tip"]:
+			if top_note.has(top_piece):
+				var note: Array = top_note[top_piece]
+				var note_text: String = note[0]
+				var note_top: int = note[1]
+				var note_wrap: int = note[2]
+				var note_ink: Color = note[3]
+				HudLayout.begin(c, top_piece)
+				HUD.banner(c, note_text, note_top, note_wrap, note_ink)
+				HudLayout.end(c)
 		var boss_at := lay.find("boss")
 		if boss_at.size.x > 0:
 			HudLayout.begin(c, "boss")
@@ -867,11 +868,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		else:
 			HUD.text(
 				c,
-				(
-					"ENTER CROSSROADS  /  ESC TITLE"
-					if revisiting
-					else "ENTER RETRY  /  F9 QUICKLOAD  /  ESC TITLE"
-				),
+				"ENTER CROSSROADS  /  ESC TITLE" if revisiting else _retry_words(),
 				160,
 				90,
 				"body",
@@ -906,17 +903,24 @@ func _lay_hud(practice: bool, posing: bool) -> Dictionary:
 	if p.health > 0 and not map:
 		var text := ""
 		var ink := HUD.INK
+		# A new player's tip (lessons.gd) outranks a place's name.
+		var tip_up := tip_until > clock and tip != "" and tips != 0 and not practice
 		if practice:
 			text = gallery.hud()
 		elif message_until > clock and (hints or notice != level.introduction):
 			text = notice
-		elif district_labels and district_until > clock:
+		elif district_labels and district_until > clock and not tip_up:
 			text = level.districts[district]
 			ink = Canvas.rgb(245, 196, 122)
 		if text != "":
 			var at := lay.banner("notice", text, 5)
 			if at.size.x > 0:
 				out["notice"] = [text, at.position.y, lay.limit, ink]
+		if tip_up:
+			# A new player's tip (lessons.gd): its own banner, under the notice.
+			var tip_at := lay.banner("tip", tip, 5)
+			if tip_at.size.x > 0:
+				out["tip"] = [tip, tip_at.position.y, lay.limit, Lessons.INK]
 		var boss := BossBar.height(me)
 		if boss > 0:
 			lay.down("boss", HudLayout.panel_rect(0, 0, 122, boss).size, 193, 5)
@@ -990,6 +994,16 @@ func _item_icon(name: String, data: PackedByteArray, iw: int, ih: int) -> Textur
 func _item_label() -> String:
 	var text := str(item_feedback[1])
 	return text if text != "" else str(HUD.ITEM_LABELS[HUD.ITEMS.find(str(item_feedback[0]))])
+
+
+## The death screen's way on, in the words of the device last used (pass 12:
+## a pad or a touch screen was told ENTER and F9).
+func _retry_words() -> String:
+	if input_device == "pad":
+		return "A  RETRY  /  B  TITLE"
+	if input_device == "touch":
+		return "TAP  RETRY"
+	return "ENTER RETRY  /  F9 QUICKLOAD  /  ESC TITLE"
 
 
 ## A banner risen from the view's foot into the room the layout has left.

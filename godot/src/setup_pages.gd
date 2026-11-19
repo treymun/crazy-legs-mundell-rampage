@@ -447,6 +447,12 @@ static func build() -> Array:
 					"TOOLTIPS / OBJECTIVES", "hints", 1, "SHOW USE PROMPTS AND OBJECTIVES"
 				),
 				SessionStore.toggle(
+					"NEW PLAYER TIPS",
+					"tips",
+					1,
+					"A SHORT TIP THE FIRST TIME SOMETHING NEW COMES UP, ONCE A PROFILE. OFF: NONE"
+				),
+				SessionStore.toggle(
 					"REPLAYS",
 					"replays",
 					1,

@@ -707,6 +707,7 @@ func _process(delta: float) -> void:
 		game.touch_aim = touch.active
 		game.use_key = use_button()
 		game.torch_key = torch_button()
+		game.input_device = input_device
 	if touch != null:
 		touch.offer("torch", has_torch())
 		touch.offer("whistle", hound_along())

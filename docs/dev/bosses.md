@@ -417,7 +417,12 @@ hands back the moment the boss falls, under the end sting (the boss ending).
   player where it starts, `started_at`) `features/boss_checkpoint.gd` saves the
   game, in SessionStore's own format (no new version), to
   `boss-checkpoint-<chapter>[-replay].json` in the profile; the door is the
-  last spot the player stood clear of the arena and its doorways. On the death screen ENTER then retries the fight (`main_flow.gd
+  last spot the player stood clear of the arena and its doorways. Since
+  pass 12 it is also taken on the way in: the first time the player, on the
+  ground outside the arena, is within `[boss_retry] approach` (12) cells of an
+  awake boss that sees them (`_coming`). New players shot down at the
+  sheriff's gate before his fight began went back to Hickston's start, 3.5
+  minutes, up to three times running (`tools/onboard_walk.gd`, GREENHORN). On the death screen ENTER then retries the fight (`main_flow.gd
   retry_fight`, `boss_door.gd`: boss whole, player at the door, health and
   rounds as they were, but never under bosses.cfg `[boss_retry]`: 60 health
   and 24 rounds for the revolver, 12 for the shotgun when carried,

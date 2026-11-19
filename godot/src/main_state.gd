@@ -17,25 +17,27 @@ const SLOT_TOP := 51
 const SLOT_ROW := 25
 const TITLE := "Crazy Legs Mundell Rampage | The Hickston Incident"
 
+## The keyboard page: {action} is the key bound to it (KEYS page), filled in
+## by ControlsScreen.rows_of().
 const CONTROL_ROWS := [
-	["WASD / MOUSE", "MOVE / AIM"],
-	["SHIFT / J / Z", "RUN / JUMP / CROUCH"],
-	["MOUSE 1 / 2", "FIRE / WEAPON ALT FIRE"],
-	["1-9  0  -  =", "WEAPONS / WHEEL / R LOAD"],
-	["8 + HOLD FIRE", "LIGHT TNT / RELEASE THROW"],
-	["Q / F", "SELECT ITEM / USE ITEM"],
+	["{forward}{strafe_left}{back}{strafe_right} / MOUSE", "MOVE / AIM"],
+	["{run} / {jump} / {crouch}", "RUN / JUMP / CROUCH"],
+	["MOUSE 1 / 2", "FIRE / THE GUN'S OTHER FIRE"],
+	["1-9 0 - = / WHEEL", "PICK A GUN / NEXT GUN"],
+	["{reload} / 8 + HOLD", "RELOAD / LIGHT TNT, LET GO"],
+	["{use} / SPACE / MMB", "USE: OPEN, TOTE, BOOT"],
+	["TOTING: MOUSE 1/2", "CHUCK IT / SET IT DOWN"],
+	["{next_item} / {use_item}", "PICK AN ITEM / HAVE IT"],
 	["C / B / M", "RINDS / BEER / MOONSHINE"],
-	["E / SPACE / MMB", "USE / OPEN / RESCUE"],
-	["G / L", "WHISTLE FOR BLUE / FLASHLIGHT"],
-	["TAB / F4 / F11", "MAP / MUSIC / FULLSCREEN"],
-	["F5 / F6 / F9", "SLOTS / QUICKSAVE / QUICKLOAD"],
+	["{whistle} / {flashlight}", "WHISTLE FOR BLUE / FLASHLIGHT"],
+	["{map} / F5 F6 F9", "MAP / SLOTS, SAVE, LOAD"],
 ]
 const PAD_ROWS := [
 	["LEFT / RIGHT STICK", "MOVE / AIM"],
 	["RIGHT TRIGGER", "FIRE"],
 	["LEFT TRIGGER", "WEAPON ALT FIRE"],
 	["A / B", "JUMP / CROUCH"],
-	["X / Y", "RELOAD / USE"],
+	["X / Y", "RELOAD / USE, TOTE, BOOT"],
 	["BUMPERS", "PREVIOUS / NEXT WEAPON"],
 	["L3 / R3 STICK CLICK", "RUN / FLASHLIGHT"],
 	["D-PAD UP LEFT RIGHT", "RINDS / BEER / MOONSHINE"],
@@ -47,7 +49,7 @@ const TOUCH_ROWS := [
 	["LEFT THUMB STICK", "MOVE"],
 	["DRAG RIGHT HALF", "AIM"],
 	["FIRE / ALT", "FIRE / WEAPON ALT FIRE"],
-	["USE", "OPEN / RESCUE"],
+	["USE", "OPEN / TOTE / BOOT"],
 	["NEXT", "NEXT WEAPON"],
 	["JUMP / DUCK", "JUMP / CROUCH"],
 	["RIND BEER SHINE", "EAT OR DRINK"],

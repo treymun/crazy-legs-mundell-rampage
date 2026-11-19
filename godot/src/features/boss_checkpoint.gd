@@ -22,6 +22,9 @@ const SCAN := .25
 const KEEP := 240
 ## Longest wait for the player to land before the checkpoint is taken anyway.
 const SETTLE := 3.0
+## Cells from an awake boss that sees the player where the checkpoint is
+## taken on the way in (bosses.cfg [boss_retry] approach).
+static var APPROACH: float = BossData.get_value("boss_retry", "approach")
 
 var samples: Array = []
 var scan_left := 0.0
@@ -97,10 +100,26 @@ func _tick(dt: float) -> void:
 	if foe != null and not taken.has(foe.kind) and BossFight.started_at(game, foe, p.x, p.y):
 		fight_began(foe)
 		return
+	var near := BossFight.awake(game)
+	if near != null and not taken.has(near.kind) and _coming(near):
+		fight_began(near)  # shot at on the way in: a death there retries the fight
+		return
 	if p.air == 0.0 and p.vertical_speed == 0.0:
 		samples.append([p.x, p.y, p.angle])
 		if samples.size() > KEEP:
 			samples.pop_front()
+
+
+## Pass 12 (ONBOARD): the player comes within [boss_retry] `approach` of
+## an awake boss that sees them, on the ground outside its arena. A new
+## player shot down at the sheriff's gate used to start Hickston over.
+func _coming(foe: Enemy) -> bool:
+	var p := game.player
+	if p.air != 0.0 or not BossFight.clear_of(game, foe, p.x, p.y):
+		return false
+	if Vector2(foe.x - p.x, foe.y - p.y).length() > APPROACH:
+		return false
+	return game.world.visible(foe.x, foe.y, p.x, p.y)
 
 
 ## The fight with `foe` has begun: this is the one place it is noticed, so the
