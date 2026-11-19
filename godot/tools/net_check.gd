@@ -799,6 +799,26 @@ static func _soak_fixes(main, check: Callable, id: String) -> void:
 			+ ("" if metas.is_empty() else ": " + ", ".join(metas.slice(0, 6)))
 		)
 	)
+	# A body the game has let go of (County Run clears its dead) is let go
+	# by the corpses too: a snapshot names it by a uid no copy has any more.
+	var bodies = g.features.get("corpses")
+	var victim: Enemy = null
+	for one: Enemy in g.enemies:
+		if one.alive and one.hostile:
+			victim = one
+			break
+	if victim != null:
+		victim.hurt(9999.0, g)
+		for k in 3:
+			g.tick(STEP, {})
+		var seen: bool = bodies._known.has(victim)
+		g.enemies.erase(victim)
+		for k in 3:
+			g.tick(STEP, {})
+		check.call(
+			seen and not bodies._known.has(victim),
+			"the corpses let go of a body the game has let go (seen %s)" % seen
+		)
 	g.dispose()
 	copy.dispose()
 	held.dispose()

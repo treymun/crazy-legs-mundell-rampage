@@ -1336,6 +1336,13 @@ Round 2 (after NETFEEL's and NETSERVER's second rounds were merged):
   destroy 39 -> 43 KB/s, County Run 167 -> 174 (`places=0` sends none). A
   reader that does not know them stops at the rows' end, so PROTOCOL stays
   5.
+- **The corpses kept every enemy ever killed** (`corpses._known`, keyed by
+  the enemy): County Run clears its dead from the game's list, so the
+  dictionary grew all run and held them all, and a snapshot names an enemy
+  by a uid a copy put back no longer had: it parted at every check after
+  (`/features/corpses/_known`: 39 against 37, 56 times in a two-minute
+  County Run put back every 5 s). It lets go of the enemies the game has
+  let go (`_forget_gone`, when the list's length changes).
 - **Rubble shut into the paths after a mid-fall put back**: a snapshot's
   facts of the set pieces now list the rubble still waiting
   (`net_facts()`, `to_shut`, carried); a copy put back on one shuts what the

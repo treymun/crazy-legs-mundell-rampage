@@ -624,6 +624,10 @@ func _play() -> Dictionary:
 			# frame: until then nothing it frees at a frame's end goes (the
 			# sound's finished playbacks piled up: 2,000 objects a copy a
 			# minute that a real client never holds).
+			# (Whatever capped the frames meanwhile, a lobby server or the
+			# front end's own FPS setting, the soak's frames run flat out.)
+			Engine.max_fps = 0
+			OS.low_processor_usage_mode_sleep_usec = 0
 			await process_frame
 	_sweep()
 	_sample("end")

@@ -110,7 +110,7 @@ const SKIP_FIELDS := {
 	# The arena lights this machine's player is near (looks: each machine its own).
 	"boss_arena": ["_lights", "_light_used"],
 	# How bodies move (set in attach, the same everywhere; a body names its own).
-	"corpses": ["_feel", "_slick", "_flung"],
+	"corpses": ["_feel", "_slick", "_flung", "_counted"],
 	# The hazard props of the level (worked out the same everywhere).
 	"brawl": ["_spots", "_spots_of"],
 	# Looks kept in a simulation feature: the specks' own dice (how many a

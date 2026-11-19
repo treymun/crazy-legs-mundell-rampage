@@ -112,6 +112,8 @@ var floating: Array = []
 ## Each body seen down, and the moment it died (one brought back and killed
 ## again is knocked again).
 var _known := {}
+## The game's enemies when _known was last pruned of the gone (never carried).
+var _counted := -1
 var _floats := {}
 var _feel := Tumble.Feel.new(.24, .12, .2, 2.6)
 ## The teat gun's milk: a body slides a long way on it.
@@ -253,6 +255,19 @@ func shove(x: float, y: float, reach: float, power: float) -> void:
 			_push(e, push.x, push.y, push.z)
 
 
+## The bodies a game no longer has (County Run clears the dead from its
+## list): kept, they held every enemy ever killed, and a snapshot names an
+## enemy by its uid, so a copy put back on one could not find them and
+## parted at every check after (pass 12 soak: 39 against 37).
+func _forget_gone() -> void:
+	var here := {}
+	for e: Enemy in game.enemies:
+		here[e] = true
+	for e: Enemy in _known.keys():
+		if not here.has(e):
+			_known.erase(e)
+
+
 func feel_of(b: Body) -> Tumble.Feel:
 	return _slick if b.how == SLICK else _flung if b.how == FLUNG else _feel
 
@@ -263,6 +278,9 @@ func _settle(b: Body) -> void:
 
 
 func _tick(dt: float) -> void:
+	if game.enemies.size() != _counted:
+		_counted = game.enemies.size()
+		_forget_gone()
 	for e: Enemy in game.enemies:
 		if e.died_at >= 0.0 and not e.alive:
 			var known_at: float = _known.get(e, -1.0)
