@@ -149,7 +149,7 @@ static func _third(main, check: Callable, kind: String) -> void:
 			"boss":
 				seen = seen or not f.strikes.is_empty()
 			"jerry":
-				seen = seen or e.has_meta("blitz")
+				seen = seen or e.has_note("blitz")
 			"rudy":
 				var horns := 0
 				for s in g.shots:

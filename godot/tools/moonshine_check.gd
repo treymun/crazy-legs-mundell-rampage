@@ -417,15 +417,15 @@ func _boss(main: Control) -> void:
 	boss.attacks = 3
 	boss.angle = 0.0
 	RevenueManMoves.charge(boss, g, PI * .5)
-	_check(boss.has_meta("charge"), "AXE CHARGE: he runs")
+	_check(boss.has_note("charge"), "AXE CHARGE: he runs")
 	var stuck := false
 	for k in 120:
 		boss.tick(STEP, g)
-		stuck = stuck or boss.has_meta("stuck")
+		stuck = stuck or boss.has_note("stuck")
 	_check(stuck, "into the rock, and the axe sticks")
 	# The shades: front and high counts double, from behind not.
 	var moves := BossKit.moves("revenue_man")
-	boss.remove_meta("stuck")
+	boss.remove_note("stuck")
 	boss.angle = 0.0
 	var top := g.world.stand(boss) + boss.height * .9
 	var front: float = moves.weak_spot(

@@ -96,7 +96,8 @@ godot --headless --path godot --script res://tools/bot_check.gd   # BOT CHECK OK
 godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET SHOWDOWN OK (online 5v5 lobby to lobby; lag= loss= seconds=)
 godot --headless --path godot --script res://tools/net_server_check.gd     # NET SERVER OK (always-open lobby, no host player)
 godot --headless --path godot --script res://tools/county_check.gd     # COUNTY CHECK OK (COUNTY RUN: rules, maps, a death and a retry)
-godot --headless --path godot --script res://tools/county_net_check.gd # COUNTY NET CHECK OK
+godot --headless --path godot --script res://tools/county_net_check.gd # COUNTY NET CHECK OK (lag=120, clock=1)
+godot --headless --path godot --script res://tools/net_soak_all.gd -- modes=county,bomb,coop people=2 minutes=30 lags=120   # NET SOAK ALL OK (every online mode, destruction on purpose; putback=5, quick)
 godot --headless --path godot --script res://tools/net_party_check.gd  # NET PARTY OK (online co-op and deathmatch)
 godot --headless --path godot --script res://tools/relay_check.gd       # RELAY CHECK OK (the party line; -- ping=<address>:<port> times one elsewhere)
 godot --headless --path godot --script res://tools/wall_break_check.gd # every level's breakable cells opened at once

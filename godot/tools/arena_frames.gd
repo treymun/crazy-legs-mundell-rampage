@@ -169,7 +169,7 @@ func _hazards(g: Game, e: Enemy, kind: String) -> void:
 		if not stacks.is_empty():
 			f.knock_tyres(float(stacks[0][0]) - .5, float(stacks[0][1]), 2.0)
 	elif kind == "rudy":
-		e.set_meta("stack_at", g.clock)
+		e.set_note("stack_at", g.clock)
 
 
 ## Start its phase-three attack now.
@@ -177,11 +177,11 @@ func _third(g: Game, e: Enemy, kind: String) -> void:
 	var moves := BossKit.moves(kind)
 	match kind:
 		"boss":
-			e.set_meta("strike_at", g.clock)
+			e.set_note("strike_at", g.clock)
 		"jerry":
-			e.set_meta("blitz_at", g.clock)
+			e.set_note("blitz_at", g.clock)
 		"rudy":
-			e.set_meta("finale_at", g.clock)
+			e.set_note("finale_at", g.clock)
 		"foreman":
-			e.set_meta("cut_at", g.clock)
+			e.set_note("cut_at", g.clock)
 	moves.tick(e, 1.0 / 60.0, g)

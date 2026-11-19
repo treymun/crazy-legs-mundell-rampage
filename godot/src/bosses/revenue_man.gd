@@ -69,18 +69,18 @@ func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 
 
 func tick(e: Enemy, dt: float, game: Game) -> bool:
-	e.set_meta("tell", str(TELLS.get(pick(e.attacks, e.boss_phase), "TOMMY GUN")))
-	var paced: int = e.get_meta("paced", 0)
+	e.set_note("tell", str(TELLS.get(pick(e.attacks, e.boss_phase), "TOMMY GUN")))
+	var paced: int = e.get_note("paced", 0)
 	if e.attacks != paced:
-		e.set_meta("paced", e.attacks)
+		e.set_note("paced", e.attacks)
 		var cool: float = COOLDOWN[clampi(e.boss_phase - 1, 0, 2)]
 		e.cooldown *= cool
-	if e.has_meta("stuck"):
-		var until: float = e.get_meta("stuck")
+	if e.has_note("stuck"):
+		var until: float = e.get_note("stuck")
 		if game.clock < until and e.alive:
 			return true
-		e.remove_meta("stuck")
-	if e.has_meta("charge"):
+		e.remove_note("stuck")
+	if e.has_note("charge"):
 		_charge(e, dt, game)
 		return true
 	return false
@@ -88,14 +88,14 @@ func tick(e: Enemy, dt: float, game: Game) -> bool:
 
 ## The axe charge begins: at where the player stands now.
 static func charge(e: Enemy, game: Game, direction: float) -> void:
-	e.set_meta("charge", [direction, game.clock + CHARGE_TIME])
+	e.set_note("charge", [direction, game.clock + CHARGE_TIME])
 	e.angle = direction
 	e.cooldown = 1.5
 	game.sound_at("revenue_man_rage", e.x, e.y, .7)
 
 
 func _charge(e: Enemy, dt: float, game: Game) -> void:
-	var row: Array = e.get_meta("charge")
+	var row: Array = e.get_note("charge")
 	var heading: float = row[0]
 	var until: float = row[1]
 	var p := game.player
@@ -111,7 +111,7 @@ func _charge(e: Enemy, dt: float, game: Game) -> void:
 		return
 	if moved < e.speed * CHARGE_SPEED * dt * .25:
 		# Into the rock or a barrel: the axe stays in it a moment.
-		e.set_meta("stuck", game.clock + STUCK)
+		e.set_note("stuck", game.clock + STUCK)
 		game.sound_at("impact_stone", e.x, e.y, 1.0)
 		game.shake = minf(1.0, game.shake + .3)
 		var fight: BossFightFeature = game.features.get("boss_fight")
@@ -129,14 +129,14 @@ func _charge(e: Enemy, dt: float, game: Game) -> void:
 
 
 func _end(e: Enemy) -> void:
-	e.remove_meta("charge")
+	e.remove_note("charge")
 
 
 ## His shades: a hit from in front, high on him. Stuck in the rock, anything.
 func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -> float:
 	if how == "blast" or how == "fire" or how == "steam" or how == "energy":
 		return 1.0
-	if e.has_meta("stuck"):
+	if e.has_note("stuck"):
 		return STUCK_WEAK
 	var toward_shooter := atan2(from.y - e.y, from.x - e.x)
 	if absf(Enemy.angle_delta(toward_shooter, e.angle)) > FRONT:
@@ -167,8 +167,8 @@ func looks(e: Enemy, game: Game) -> Array:
 
 
 func dying(e: Enemy, game: Game) -> void:
-	e.remove_meta("charge")
-	e.remove_meta("stuck")
+	e.remove_note("charge")
+	e.remove_note("stuck")
 	var floor_z: float = game.world.stand(e)
 	var fight: BossFightFeature = game.features.get("boss_fight")
 	if fight != null:

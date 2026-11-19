@@ -259,3 +259,25 @@ most, always on BOB's copy (the WebSocket client, player two):
 under hands and a barrel's blast; it parted on the old code), `net_check`
 holds the other two (`_put_back`; each failed on the old code) and
 county_net_check prints each copy's rebuilds.
+
+**Pass 12 (NETSOAK): the "one-tick body offset" was the check, and the
+playout can go by the clock.** The last parting county_net_check allowed
+(`/game/clock` one tick or more apart, then a body a slide further on) was
+the check's own doing: it handed the server's game two levels of XP between
+ticks, which no copy saw, so every copy ran on unheld until its next check
+and was put back. In play the XP comes inside the tick (an orb taken with the
+taker acting), the hold starts on the same tick on every machine, and the
+leader's card rides the controls into `hold_controls`: nothing parts. The
+check now hands the XP inside the tick on the server and every copy alike
+(`_gift`: a `ticked` hook at a clock a second ahead, the leader acting) and
+holds every copy to no parting at all, before, through and after the held
+world; `lag=120` plays it over 120 ms with jitter and 2% loss, `clock=1` or
+`0` forces `NetSync.Client.by_clock` either way. It passed 20 of 20 alone at
+CI's 30 s, and over 120 ms with the clock playout on and off. What did make
+copies put back over and over in a party (and so made the old check flaky
+whenever a put back met presentation that decided play) was the host's
+`GameSnapshot.merge` taking an enemy's `aim_mark` gone to null for "can't
+merge" and sending everyone a whole snapshot with no inputs every second or
+two ([multiplayer.md](multiplayer.md#soaking-every-mode-pass-12)). So
+`by_clock` can be on for County Run co-op too (NETFEEL's switch,
+`net_play.gd client_play`).

@@ -129,8 +129,10 @@ hitstop, footstep splashes spend `game.rng`, `cheats.god` is the game's.
 A carried field must never be decided by one that is not: a client's copy
 that is put back on a snapshot keeps its own presentation, so anything
 carried that read it parts the copies again (county_net_check found three).
-`game.bark_next` decides whether a hand's own `Mind.bark_next` is set, so it
-is a SIM field; a simulation feature's looks keep their own dice that the
+Play kept on an object goes in a field (an enemy's `notes` for a boss's
+moves and the like), never in its metas, which no snapshot carries (pass 12,
+net_check scans for them). `game.bark_next` decides whether a hand's own
+`Mind.bark_next` is set, so it is a SIM field; a simulation feature's looks keep their own dice that the
 snapshot skips (`SnapCodec.SKIP_FIELDS`: the specks of `hit_reads` and
 `critters`, whose count hangs on the specks already about), and what follows
 this machine's callouts (`hit_reads._call_at`, after the BARKS setting and
@@ -162,9 +164,11 @@ are shared by reference in Godot 4: encode and decode copy them):
 - "game" (SIM_FIELDS);
 - "world" (each door's progress, opened and discovered by its place in the
   level's list; the panes broken, in breaking order);
-- "facts" (`FACT_FEATURES`' own save(): what breakables and wall breaks broke,
-  which changes the level's walls and floor; the arena wreck; the boss arena
-  shut, `boss_lock`, whose restore lays its solid cells and gates on a copy);
+- "facts" (`FACT_FEATURES`' own save(), or its `net_facts()` where it has
+  one, `GameSnapshot.fact_of`: what breakables and wall breaks broke, which
+  changes the level's walls and floor; the arena wreck; the boss arena shut,
+  `boss_lock`, whose restore lays its solid cells and gates on a copy; the
+  breakables' leaves out the bits and fuses, pass 12);
 - "players" (every carried field by slot, each player's own, whoever is
   acting);
 - "enemies" (by uid) with "order";
@@ -182,15 +186,19 @@ carried field is set, and a finished station's lights follow `stations_done`
 full)` puts on only what a delta touches, each field from `full` (its patched
 snapshot).
 
-A flow field travels as the cells its last walk reached and their steps
-(`@flow`); a level's windows, fences, breakable pieces and boards carry only
+A flow field travels as the cells its last walk reached, in runs of
+neighbours in cell order, and their steps (`@flow`, pass 12: a County Run
+player's field was 6 KB of a 9 KB delta packed, under 2 KB now; a row of
+every cell, as before, still reads); a level's windows, fences, breakable pieces and boards carry only
 what can change (`SnapCodec.ONLY_FIELDS`), a feature's tuning and lookups not
 at all (`SKIP_FIELDS`). `to_bytes`/`from_bytes` (var_to_bytes, zstd),
 `delta(base, now)` (dictionaries walked, each value compared once, bit for
 bit; a changed dictionary is `{"@new": value}`, anything else travels as it
 is; gone keys under "@gone", a new key order under "@order"), `patch`,
 `patch_into` (into the caller's own copy), `merge(older, newer)` (two deltas
-as one), `same(a, b)` (bit for bit, key order too), `first_difference`
+as one; null only for "@order": until pass 12 a value gone to null, an
+enemy's `aim_mark`, came back as that null too, and the host sent every
+client a whole snapshot), `same(a, b)` (bit for bit, key order too), `first_difference`
 (each dictionary compared whole first, walked only where it differs: a
 client's check every second took 100 to 180 ms walking it all).
 
@@ -618,9 +626,12 @@ At 250 ms the prediction stopped at 40 unplayed inputs (`NetPredict.MOST`, now
 `GameState.REWIND_KEEP` 72): that was the 1009 jumps a minute. The server's
 match tick includes the bots' steering of the six bot slots; with one match
 of a full 5v5 it is about a fifth of a core here (the VPS's core is slower
-than this PC's, so allow more). County Run co-op keeps the old playout
+than this PC's, so allow more). County Run co-op kept the old playout
 (`Client.by_clock` off): its copies parted from the host while the party's
-card picks held the world.
+card picks held the world. Pass 12 found why (the check's own XP handed
+between ticks, and whole snapshots every second or two from the merge of a
+null; [county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed)):
+it can go by the clock like the rest.
 
 ## Online 5v5
 

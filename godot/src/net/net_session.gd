@@ -279,6 +279,8 @@ func _put(to: int, channel: int, reliable: bool, bytes: PackedByteArray) -> void
 		var other := (peer as ENetMultiplayerPeer).get_peer(to)
 		if other == null or other.get_state() != ENetPacketPeer.STATE_CONNECTED:
 			return
+	if hosting and to != 0 and not _ws_open(to):
+		return
 	peer.set_target_peer(to)
 	if transport == Transport.ENET:
 		peer.transfer_channel = channel
@@ -288,6 +290,16 @@ func _put(to: int, channel: int, reliable: bool, bytes: PackedByteArray) -> void
 			else MultiplayerPeer.TRANSFER_MODE_UNRELIABLE
 		)
 	peer.put_packet(bytes)
+
+
+## Whether a WebSocket player `to` is still open (pass 12 soak: one going
+## while a packet for it waited printed the engine's "ready_state !=
+## STATE_OPEN" error into every log). Anything not a WebSocket host: true.
+func _ws_open(to: int) -> bool:
+	if not (peer is WebSocketMultiplayerPeer):
+		return true
+	var other := (peer as WebSocketMultiplayerPeer).get_peer(to)
+	return other != null and other.get_ready_state() == WebSocketPeer.STATE_OPEN
 
 
 ## Sends what the test's latency held back and is now due, services the

@@ -592,6 +592,13 @@ through `build_town_props.gd`; signs' `<name>_shot` and the bits `fx_brk_*`:
   the floor sampled .45 each way, drag). Bodies take a knock from
   `Enemy.killed_by`/`killed_from` (an overkill still gibs); their place is the
   enemy's saved x, y.
+- **The bits are looks** (pass 12): what flies and lies about of a broken
+  thing (`bits`, thrown and shoved by the feature's own `dice`) is never
+  carried in a snapshot (`SnapCodec.SKIP_FIELDS`), and a snapshot's facts of
+  the breakables (`net_facts()`) leave out the bits and the fuses (carried in
+  the feature's block): every delta online sent all of them while anything
+  flew or cooked (5 to 40 KB raw a delta while things broke). Each machine
+  throws its own; a save still keeps them.
 - Breakables save in the features block. Sounds wanted for them:
   `docs/physics_audio.md`. `tools/break_check.gd` (in check_fixes) and
   `tools/physics_frames.gd` (window pictures of each effect) cover it.
@@ -2162,7 +2169,11 @@ away, so a barn no longer swings down in whole flat walls and roof slopes:
   leg out near it, a blast near, fire): more pieces there, breaking away
   sooner and harder, thrown away from the blast.
 - **A save or a snapshot** put on (`sync()`): what is down lies in its pieces
-  at once, nothing thrown.
+  at once, nothing thrown. A snapshot reaches it through `set_pieces.gd
+  restore()` (only when its facts changed, `game.net_facts`) calling
+  `wreckage.gd sync_sets()`: until pass 12 a late joiner online (or a copy
+  put back) saw every part of a fallen barn land again, dust and rumble and
+  all, and lie whole (`set_piece_check`, `net_soak_all.gd`'s late join).
 - **Drawn**: the pieces of a part that ride it to the ground together are one
   mesh (`spgroup`) until the first of them goes; the rest are each a sprite
   (`~<spsplit key>#<n>`); pieces at rest are merged on a worker into a mesh a

@@ -2,7 +2,7 @@
 ## arena's hazards (features/boss_arena.gd), a wind-up of their own (an attack
 ## the generic brain does not know: the boss stands in its "aim" pose, the
 ## framework's pulse on it, then act() runs) and a few measures of a hit for
-## their weak spots. State lives on the enemy (set_meta), as BossMoves asks.
+## their weak spots. State lives on the enemy (Enemy.notes), as BossMoves asks.
 extends BossMoves
 
 const BossArenaFeature := preload("res://src/features/boss_arena.gd")
@@ -50,13 +50,13 @@ func body_height(e: Enemy, game: Game, hit: Vector3) -> float:
 
 ## The name of its own wind-up under way ("" for none).
 func own(e: Enemy) -> String:
-	return str(e.get_meta("own", ""))
+	return str(e.get_note("own", ""))
 
 
 ## Start a wind-up of its own: `secs` in its aim pose, then act(e, game, name).
 ## `mark` is where the shared ring closes in (null: none).
 func begin_own(e: Enemy, game: Game, name: String, secs: float, mark: Variant = null) -> void:
-	e.set_meta("own", name)
+	e.set_note("own", name)
 	e.windup = secs
 	e.aim_mark = mark
 	var p: Player = game.player
@@ -72,11 +72,11 @@ func run_own(e: Enemy, game: Game, dt: float) -> bool:
 		return false
 	if e.stun > 0.0 or e.windup <= 0.0:
 		if e.windup <= 0.0 and e.stun <= 0.0:
-			e.set_meta("own", "")
+			e.set_note("own", "")
 			e.aim_mark = null
 			act(e, game, name)
 			return true
-		e.set_meta("own", "")
+		e.set_note("own", "")
 		e.windup = 0.0
 		e.aim_mark = null
 		return false
@@ -96,7 +96,7 @@ func ready(e: Enemy) -> bool:
 
 ## A timer kept on the boss: true once the clock passes it (unset: never).
 func due(e: Enemy, game: Game, key: String) -> bool:
-	var at: float = e.get_meta(key, INF)
+	var at: float = e.get_note(key, INF)
 	return game.clock >= at
 
 
@@ -109,9 +109,9 @@ func sees_player(e: Enemy, game: Game) -> bool:
 
 ## Say something once a fight (the meta key remembers).
 func say_once(e: Enemy, game: Game, key: String, text: String, secs := 2.4) -> void:
-	if e.has_meta(key):
+	if e.has_note(key):
 		return
-	e.set_meta(key, true)
+	e.set_note(key, true)
 	game.message(text, secs)
 
 
