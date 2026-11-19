@@ -1146,6 +1146,12 @@ func _report(seconds: float, wall_s: float, late_ok: bool, late_note: String) ->
 			]
 		)
 	)
+	print(
+		(
+			"    a client frame checking its copy (once a second), median / worst: %.2f / %.2f ms"
+			% [row["check_50"], row["check_max"]]
+		)
+	)
 	if not parts["host"].is_empty():
 		print(
 			(

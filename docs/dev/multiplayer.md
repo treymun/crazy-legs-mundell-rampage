@@ -1074,6 +1074,19 @@ Known and left (each puts a copy back once or twice more, never for long):
   into the players' flow fields once nothing moves (`_to_shut`, not
   carried); a copy put back on a snapshot mid-fall shuts it at once, so the
   flow fields differ until the fall ends (a parting or two, then they agree).
+- **Objects and memory grow in the copies over a long County Run.** Twelve
+  minutes of a party of two at 120 ms with destruction on: the process went
+  from 460 MB and 13,500 objects to 1,280 MB and 77,500 (enemies 21 to 79,
+  so part of it is the horde). Split by where it happens: the server's game
+  (a host game) adds next to nothing, nor does the network (taking packets,
+  NetTrack on a County Run bot game for four minutes: flat); it is the
+  copies' own ticks (about 2,000 objects a copy a minute), and the
+  prediction's frame about a fifth as much again. A County Run party game
+  made as the front end makes one (its sound, its HUD) grows about 600
+  objects a minute with no network at all, one with `QuietSound` none. Not
+  found yet: no list in the game, its features, the sound or the HUD grows
+  with it. The soak's two copies share one front end, so a real player's
+  machine sees about half.
 - **A leave and a join in the party modes** (`Modes.went_away`,
   `join_late`) change the server's game between ticks: every other copy is
   put back once for each (a hitch of 10 to 130 ms on a busy co-op map).
