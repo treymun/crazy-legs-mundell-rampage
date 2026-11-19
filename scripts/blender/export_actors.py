@@ -48,9 +48,15 @@ TEXTURE = 512
 # The bosses with the most parts bake their looks twice as fine: at 512 their
 # hundreds of parts each got a few texels, blocky and dark at the seams up
 # close against their cels.
+# Jerry, Rudy and the foreman joined them in pass 13 (at 512 they had 73 to 86
+# texels a metre, the regular hands 90 to 170: plaid, stripes and faces went
+# to blocks up close).
 # The county events' razorback (actors_hog.py) bakes half as fine: one of a
 # herd, seldom near, and its looks are in the browser's first download.
-FINE = {"baron": 1024, "derby_champ": 1024, "swamp_king": 1024, "maw": 1024, "maw_bare": 1024, "hog": 256, "revenue_man": 1024}
+FINE = {
+    "baron": 1024, "derby_champ": 1024, "swamp_king": 1024, "maw": 1024, "maw_bare": 1024, "hog": 256,
+    "revenue_man": 1024, "jerry": 1024, "rudy": 1024, "foreman": 1024,
+}
 RECORD = []
 _place = place
 
@@ -233,6 +239,27 @@ TURNS = (0, 180, 90, 270)
 NORMALS = None
 
 
+# The bake in tiles (one launch for a whole 1024 texture held the graphics
+# card past what Windows allows and its context was lost: Jerry's bake in
+# pass 9 and again in pass 13); if the card's context is lost all the same,
+# the bake goes on on the processor (the same light, more slowly).
+BAKE_TILE = 256
+
+
+def _bake_op(**kw):
+    scene = bpy.context.scene
+    scene.cycles.use_auto_tile = True
+    scene.cycles.tile_size = BAKE_TILE
+    try:
+        bpy.ops.object.bake(**kw)
+    except RuntimeError as err:
+        if scene.cycles.device != "GPU":
+            raise
+        print("ACTOR BAKE: the graphics card failed (%s), on the processor from here" % str(err).strip())
+        scene.cycles.device = "CPU"
+        bpy.ops.object.bake(**kw)
+
+
 def _bake(ob, image, sources=None):
     for slot in ob.material_slots:
         m = slot.material
@@ -281,7 +308,7 @@ def _bake(ob, image, sources=None):
         # A finer texture takes fewer samples a texel (four texels share a
         # pixel of the coarse one; the palette takes the rest of the noise).
         scene.cycles.samples = (24 if k == 0 else 16) * 512 // TEXTURE + 4 * (TEXTURE > 512)
-        bpy.ops.object.bake(
+        _bake_op(
             type="COMBINED",
             pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
             margin=TEXTURE // 128,
@@ -368,7 +395,7 @@ def _bake_normals(ob):
     bpy.ops.object.select_all(action="DESELECT")
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
-    bpy.ops.object.bake(type="NORMAL", normal_space="OBJECT", margin=TEXTURE // 128, use_clear=True)
+    _bake_op(type="NORMAL", normal_space="OBJECT", margin=TEXTURE // 128, use_clear=True)
     px = numpy.empty(len(image.pixels), dtype=numpy.float32)
     image.pixels.foreach_get(px)
     NORMALS = px.reshape(-1, 4)
@@ -394,7 +421,7 @@ def _bake_ao(ob, image):
     bpy.ops.object.select_all(action="DESELECT")
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
-    bpy.ops.object.bake(type="AO", margin=TEXTURE // 128, use_clear=True, use_selected_to_active=False)
+    _bake_op(type="AO", margin=TEXTURE // 128, use_clear=True, use_selected_to_active=False)
 
 
 def _shaded(image, shade):
