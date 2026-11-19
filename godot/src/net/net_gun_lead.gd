@@ -32,6 +32,9 @@ const KEPT := [
 	"fuse",
 ]
 
+## Off: the scope goes up when the copy plays ALT FIRE (net_feel `old`).
+static var scopes := true
+
 
 ## Steps `me`'s gun through `inputs` (Game.Controls, oldest first; the first
 ## is our input number `first_seq`). Returns {"kept": what restore() wants,
@@ -53,6 +56,8 @@ static func lead(game: Game, me: Player, inputs: Array, first_seq: int) -> Dicti
 	kept["loaded"] = arms.loaded
 	kept["reserve"] = arms.reserve
 	kept["pitch"] = me.pitch
+	kept["scoped"] = me.scoped
+	kept["alt_held"] = me.alt_held
 	arms.loaded = arms.loaded.duplicate()
 	arms.reserve = arms.reserve.duplicate()
 	var events: Array = []
@@ -103,6 +108,11 @@ static func restore(me: Player, kept: Dictionary) -> void:
 	arms.reserve = reserve
 	var pitch: float = kept["pitch"]
 	me.pitch = pitch
+	if kept.has("scoped"):
+		var scoped: bool = kept["scoped"]
+		var alt_held: bool = kept["alt_held"]
+		me.scoped = scoped
+		me.alt_held = alt_held
 
 
 ## One tick of game.gd `_step_hands`' gun for `me` (the actions, the gun's
@@ -125,11 +135,25 @@ static func step(
 		_start_reload(arms, seq, events)
 	_tick(me, arms, dt, seq, events)
 	if busy:
+		if scopes:
+			me.alt_held = c.alt_fire
 		return true
 	var alt := c.alt_fire
 	var firing: Dictionary = Weapons.FIRING[arms.active]
 	if firing.has("scope"):
 		alt = false  # ALT FIRE puts the scope up: not a shot
+		if scopes:
+			# game.gd _step_hands: the scope up or down on a fresh ALT FIRE
+			# (pass 12: drawn at the press, not a round trip later), down for
+			# a reload or another gun.
+			if c.alt_fire and not me.alt_held and arms.reload <= 0.0:
+				me.scoped = not me.scoped
+			if arms.reload > 0.0 or arms.switch > 0.0:
+				me.scoped = false
+			me.alt_held = c.alt_fire
+	elif scopes:
+		me.scoped = false
+		me.alt_held = c.alt_fire
 	if c.fire or alt:
 		_fire(me, alt, seq, events)
 	else:
@@ -327,9 +351,11 @@ static func _light(arms: Weapons.Armory, seq: int, events: Array) -> void:
 ## Armory.release_dynamite: the trigger up with a stick lit throws it.
 static func _release(arms: Weapons.Armory, seq: int, events: Array) -> void:
 	if arms.fuse > 0.0:
+		var throw := _event("throw", seq, Weapons.DYNAMITE, [["tnt_throw", 1.0]])
+		throw["fuse"] = arms.fuse  # what is left of it (net_own_shots.gd)
 		arms.fuse = 0.0
 		arms.cooldown = Weapons.FIRE_TIME[Weapons.DYNAMITE]
 		arms.recoil = Weapons.RECOIL[Weapons.DYNAMITE]
 		arms.shot_age = 0.0
-		events.append(_event("throw", seq, Weapons.DYNAMITE, [["tnt_throw", 1.0]]))
+		events.append(throw)
 	arms.tnt_latched = false

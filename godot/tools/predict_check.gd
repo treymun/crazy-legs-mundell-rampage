@@ -29,6 +29,12 @@
 ##   copy's own drawn on to our time, one in the picture at every frame and
 ##   no step bigger than its flight's; one the host refuses goes after
 ##   NetOwnShots.WAIT;
+## - pass 12 round 2: the scope up at the press (and, off, LAG frames on); a
+##   crossbow bolt's blast where its ghost lands, LAG frames before the
+##   copy's, heard once (the copy's quiet); a stick of dynamite drawn from the
+##   release, one at a time, gone off when its fuse is out, heard once; a
+##   hand's flinch drawn at the press and once only; USE on a door swinging
+##   from the press, never back, its sound heard once;
 ## - nothing on a game nobody watches (single player, a host).
 ##
 ##   godot --headless --path godot --script res://tools/predict_check.gd
@@ -210,6 +216,15 @@ func _run() -> void:
 	_boot(main)
 	_thrown(main, false)
 	_thrown(main, true)
+	_scope(main, true)
+	_scope(main, false)
+	var copy_blast := _bolt_blast(main, false, -1)
+	_bolt_blast(main, true, copy_blast)
+	_dynamite_flight(main)
+	_flinch(main, true)
+	_flinch(main, false)
+	_door(main, true)
+	_door(main, false)
 	_nobody_watching(main)
 	print("")
 	print("PREDICT CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
@@ -803,6 +818,288 @@ func _thrown(main, refused: bool) -> void:
 				+ " biggest step a frame %.2f cells (%.2f a tick in flight)"
 			)
 			% [flying[0], most, r.pred.own.matched, jump, 10.8 * STEP]
+		)
+	)
+
+
+## The scope up at the press (pass 12, NetGunLead.scopes; off: when the copy
+## plays ALT FIRE, LAG frames on).
+func _scope(main, on: bool) -> void:
+	NetGunLead.scopes = on
+	var r := _rig(main)
+	var a := r.me
+	a.armory.owned[Weapons.HUNTER] = true
+	a.armory.select(Weapons.HUNTER, r.g)
+	a.armory.reserve[Weapons.HUNTER] = 20
+	a.armory.loaded[Weapons.HUNTER] = Weapons.CAPACITY[Weapons.HUNTER]
+	r.idle(60)
+	r.frame_probe = func() -> bool: return a.scoped
+	var from := r.probes.size()
+	var alt := Game.Controls.new()
+	alt.alt_fire = true
+	r.step(alt)
+	var copy_then := a.scoped
+	r.idle(LAG + 4)
+	var drawn: Array = r.probes.slice(from)
+	var first := drawn.find(true)
+	var steady := first >= 0 and not drawn.slice(first).has(false)
+	NetGunLead.scopes = true
+	_check(
+		steady and a.scoped and not copy_then and (first == 0) == on,
+		(
+			"the scope (%s): drawn up %d frames after ALT FIRE (the copy's %d on), down never after"
+			% ["led" if on else "the copy's", first, LAG]
+		)
+	)
+
+
+## A direction from `a` with a wall 1.5 to 4 cells off (an angle, or NAN).
+static func _wall_dir(g: Game, a: Player) -> float:
+	for k in 32:
+		var angle := k * TAU / 32.0
+		for step in range(15, 41):
+			var d := step / 10.0
+			var x := a.x + cos(angle) * d
+			var y := a.y + sin(angle) * d
+			if g.world.blocked(x, y, .05):
+				if d <= 4.0:
+					return angle
+				break
+	return NAN
+
+
+## The dynamite crossbow's bolt into a wall (pass 12, net_own_shots.gd): its
+## blast heard and drawn where the ghost lands, before the copy's bolt gets
+## there, and the copy's own blast not heard or drawn again (blast_quiet).
+## Off: when the copy's bolt goes off (returned, frames from the press);
+## on, held against that: LAG frames sooner.
+func _bolt_blast(main, on: bool, copy_at: int) -> int:
+	NetOwnShots.blasts = on
+	var r := _rig(main)
+	var a := r.me
+	a.armory.owned[Weapons.CROSSBOW] = true
+	a.armory.select(Weapons.CROSSBOW, r.g)
+	a.armory.reserve[Weapons.CROSSBOW] = 8
+	var dir := _wall_dir(r.g, a)
+	if is_nan(dir):
+		_check(false, "a wall near the range's spawn for the bolt")
+		NetOwnShots.blasts = true
+		return -1
+	a.angle = dir
+	a.pitch = 0.0
+	r.idle(90)
+	var heard0 := r.ears.count("explosion")
+	r.frame_probe = func() -> int: return r.ears.count("explosion") - heard0
+	var from := r.probes.size()
+	r.step(_fire())
+	r.idle(LAG + 30)
+	var heard: Array = r.probes.slice(from)
+	var first := heard.find(1)
+	var copy_quiet: bool = (
+		not r.pred.own.shown_blasts.is_empty() and r.pred.own.shown_blasts[0]["used"]
+	)
+	NetOwnShots.blasts = true
+	if on:
+		_check(
+			(
+				first >= 0
+				and first <= copy_at - LAG + 1
+				and heard[-1] == 1
+				and r.pred.own.boomed == 1
+				and copy_quiet
+			),
+			(
+				(
+					"a bolt's blast heard and drawn %d frames after the press (the copy's own"
+					+ " %d), once in all (%d), the copy's kept quiet"
+				)
+				% [first, copy_at, heard[-1]]
+			)
+		)
+	else:
+		_check(
+			first >= LAG and heard[-1] == 1,
+			"(off) the bolt's blast heard when the copy's goes off, %d frames on" % first
+		)
+	return first
+
+
+## A stick of dynamite lit and thrown (pass 12): its ghost tumbles from the
+## release, one stick in the picture at every frame (the copy's hidden), and
+## it goes off when its fuse is out, heard once in all (the copy's quiet).
+func _dynamite_flight(main) -> void:
+	var r := _rig(main)
+	var a := r.me
+	a.armory.owned[Weapons.DYNAMITE] = true
+	a.armory.reserve[Weapons.CROSSBOW] = 3  # the sticks come out of the bolts' pouch
+	a.armory.select(Weapons.DYNAMITE, r.g)
+	a.angle = fposmod(a.angle + PI, TAU)
+	a.pitch = 8.0
+	r.idle(60)
+	var heard0 := r.ears.count("explosion")
+	r.frame_probe = func() -> Array:
+		var sticks := 0
+		for s: GameState.Shot in r.g.shots:
+			sticks += 1 if s.kind == "tnt" else 0
+		return [sticks, r.ears.count("explosion") - heard0]
+	for i in 20:
+		r.step(_fire())  # the match struck, the fuse burning
+	var from := r.probes.size()
+	r.step(Game.Controls.new())  # let go
+	r.idle(roundi(Weapons.DYNAMITE_FUSE / STEP) + LAG + 10)
+	var rows: Array = r.probes.slice(from)
+	var most := 0
+	var drawn_first := -1
+	var boom_at := -1
+	for i in rows.size():
+		var row: Array = rows[i]
+		most = maxi(most, row[0])
+		if drawn_first < 0 and row[0] > 0:
+			drawn_first = i
+		if boom_at < 0 and row[1] > 0:
+			boom_at = i
+	var last: Array = rows[-1]
+	_check(
+		drawn_first == 0 and most == 1 and last[1] == 1 and boom_at >= 0 and r.pred.own.boomed == 1,
+		(
+			(
+				"a stick thrown: drawn from the release (%d), never two (most %d), gone off"
+				+ " %d frames on, heard once in all (%d)"
+			)
+			% [drawn_first, most, boom_at, last[1]]
+		)
+	)
+
+
+## Our shot on a hand (pass 12, net_hit_looks.gd): it flinches at the press
+## (its flash and pain pose drawn), and not again when the copy's hurt lands;
+## off: LAG frames on, when the copy plays it.
+func _flinch(main, on: bool) -> void:
+	NetHitLooks.enabled = on
+	var g: Game = main.make_game("hickston")
+	g.configure({"difficulty": 1})
+	Modes.setup(g, Modes.COOP, 2)
+	g.cheats.god = true
+	g.tick(STEP, Game.Controls.new())
+	var a: Player = g.players[0]
+	var man: Enemy = null
+	for e: Enemy in g.enemies:
+		if e.alive and e.hostile and e.hp > 60.0 and not Game.BrawlScript.FLYING.has(e.brain):
+			man = e
+			break
+	if man == null:
+		_check(false, "a hand to shoot in Hickston")
+		NetHitLooks.enabled = true
+		return
+	var spot := Vector2(a.x, a.y) + Vector2(cos(a.angle), sin(a.angle)) * 2.2
+	if g.world.blocked(spot.x, spot.y, .4):
+		a.angle += PI
+		spot = Vector2(a.x, a.y) + Vector2(cos(a.angle), sin(a.angle)) * 2.2
+	a.armory.select(Weapons.REVOLVER, g)
+	a.armory.loaded[Weapons.REVOLVER] = 6
+	var r := Rig.new(g)
+	var place := func() -> void:
+		man.x = spot.x
+		man.y = spot.y
+		man.dormant = false
+		man.alerted = false
+		man.windup = 0.0
+		a.angle = atan2(man.y - a.y, man.x - a.x)
+		a.pitch = (g.world.stand(man) + man.height * .55 - a.eye) / 2.2 * View.base_focal
+	place.call()
+	r.idle(LAG + 4)
+	place.call()
+	r.frame_probe = func() -> bool: return man.hit_flash > 0.0
+	var from := r.probes.size()
+	r.step(_fire())
+	for i in LAG + 20:
+		r.step(Game.Controls.new())
+	var drawn: Array = r.probes.slice(from)
+	var first := drawn.find(true)
+	var rises := 0
+	for i in drawn.size():
+		if drawn[i] and (i == 0 or not drawn[i - 1]):
+			rises += 1
+	NetHitLooks.enabled = true
+	_check(
+		first >= 0 and rises == 1 and (first == 0) == on and (first >= LAG) == (not on),
+		(
+			"a hand shot (%s): its flinch drawn %d frames after the press, once (%d)"
+			% ["led" if on else "the copy's", first, rises]
+		)
+	)
+
+
+## USE on a shut door (pass 12, net_use_looks.gd): it swings from the press,
+## never back, its sound heard once in all (the copy's dropped); off: when
+## the copy plays USE, LAG frames on.
+func _door(main, on: bool) -> void:
+	NetUseLooks.enabled = on
+	var g: Game = main.make_game("hickston")
+	g.configure({"difficulty": 1})
+	Modes.setup(g, Modes.COOP, 2)
+	g.cheats.god = true
+	g.tick(STEP, Game.Controls.new())
+	var a: Player = g.players[0]
+	var door: LevelData.Door = null
+	for d: LevelData.Door in g.world.doors:
+		var cell := Vector2i(d.x, d.y)
+		if (
+			not d.opened
+			and d.key == ""
+			and not d.secret
+			and not d.blast_only
+			and not g.world.controlled_doors.has(cell)
+			and not g.world.crouch_doors.has(cell)
+		):
+			for side: Vector2 in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				var at := d.center() + side * 1.1
+				if not g.world.blocked(at.x, at.y, .3):
+					door = d
+					a.x = at.x
+					a.y = at.y
+					a.angle = atan2(-side.y, -side.x)
+					a.pitch = 0.0
+					break
+		if door != null:
+			break
+	if door == null:
+		_check(false, "a plain shut door in Hickston")
+		NetUseLooks.enabled = true
+		return
+	for e: Enemy in g.enemies:
+		e.dormant = true  # nothing in the way, nothing to boot
+	var r := Rig.new(g)
+	r.idle(LAG + 4)
+	var heard0 := r.ears.count("door")
+	r.frame_probe = func() -> float: return door.progress
+	var from := r.probes.size()
+	var use := Game.Controls.new()
+	use.use = true
+	r.step(use)
+	r.idle(LAG + 50)
+	var drawn: Array = r.probes.slice(from)
+	var first := -1
+	var back := false
+	for i in drawn.size():
+		var p: float = drawn[i]
+		if first < 0 and p > 0.0:
+			first = i
+		if i > 0 and p < float(drawn[i - 1]) - 1e-6:
+			back = true
+	NetUseLooks.enabled = true
+	_check(
+		(
+			door.opened
+			and first >= 0
+			and (first <= 1) == on
+			and (first >= LAG) == (not on)
+			and not back
+			and r.ears.count("door") - heard0 == 1
+		),
+		(
+			"USE on a door (%s): it swings %d frames after the press, never back, heard once (%d)"
+			% ["led" if on else "the copy's", first, r.ears.count("door") - heard0]
 		)
 	)
 

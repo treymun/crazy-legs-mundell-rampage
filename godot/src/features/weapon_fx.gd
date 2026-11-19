@@ -330,6 +330,8 @@ func _milk(end: Vector3, struck: String) -> void:
 
 
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:
+	if game.blast_quiet:
+		return  # shown already by an online client's own blast (net_own_shots.gd)
 	var at := Vector3(x, y, z)
 	# The floor the blast was over (a loft's boards, a ramp, the ground).
 	var floor_z: float = game.world.floor_under(x, y, z)

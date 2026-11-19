@@ -266,6 +266,8 @@ func _wake(key: int, e: Enemy, size: float, spread: float) -> void:
 
 
 func _blast(x: float, y: float, _z: float, _energy: bool) -> void:
+	if game.blast_quiet:
+		return  # shown already by an online client's own blast (net_own_shots.gd)
 	if wet_at(x, y):
 		ring(x, y, 2.6)
 		ring(x + .3, y - .2, 1.5)

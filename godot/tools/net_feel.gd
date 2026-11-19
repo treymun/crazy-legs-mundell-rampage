@@ -37,6 +37,7 @@ extends SceneTree
 const NetPorts := preload("res://tools/net_ports.gd")
 const ModeBot := preload("res://tools/mode_bot.gd")
 const CountyBot := preload("res://tools/county_bot.gd")
+const Kit := preload("res://tools/net_feel_kit.gd")
 const STEP_MS := NetSync.STEP * 1000.0
 ## The bot is stopped for PROBE_STILL frames every PROBE_EVERY (key to screen).
 const PROBE_EVERY := 180
@@ -170,6 +171,10 @@ static func _way(old: bool, way := "") -> void:
 	NetPredict.mates_ahead = not old and way != "nomates"
 	NetPredict.holds_aware = not old and way != "noholds"
 	NetOwnShots.enabled = not old
+	NetOwnShots.blasts = not old
+	NetHitLooks.enabled = not old
+	NetUseLooks.enabled = not old
+	NetGunLead.scopes = not old
 	NetSync.Client.wait_rows = not old and way != "nowait"
 	# v390: the server's side of pass 12 off too (NETSERVER's: net_lag's oldserver).
 	LobbyServer.paced = way != "v390"
@@ -239,6 +244,17 @@ func _online(scene: String, lag: float, jitter: float, loss: float) -> Dictionar
 			)
 		)
 	out["fire_shown_ms"] = Recording.median(main.net_shots.show_ms)
+	if rig.has("kit"):
+		var kit: Kit = rig["kit"]
+		out["kit_shown"] = 0
+		out["kit_missed"] = 0
+		for k: String in Kit.PHASES:
+			out["kit_shown"] += kit.delays[k].size()
+			out["kit_missed"] += kit.missed[k]
+			var list: PackedFloat32Array = kit.delays[k]
+			out["kit_" + k] = Recording.median(list)
+			out["kit_" + k + "_n"] = list.size()
+			out["kit_" + k + "_missed"] = kit.missed[k]
 	if cs != null:
 		last_info = me_net.match_info.duplicate(true)
 	_close(rig)
@@ -259,7 +275,7 @@ func _open(scene: String) -> Dictionary:
 			people = 3
 		"county":
 			lobby = {"map": "county_hickston"}
-		"coop", "host":
+		"coop", "host", "kit":
 			people = 1
 		_:
 			return {}
@@ -278,7 +294,7 @@ func _open(scene: String) -> Dictionary:
 		hosting.make_match = _make
 		main.net = hosting
 		rig["hosted"] = hosting
-	elif scene == "coop":
+	elif scene == "coop" or scene == "kit":
 		var host: NetPlay = null
 		for k in 20:
 			host = NetPlay.host_lobby(
@@ -341,7 +357,7 @@ func _open(scene: String) -> Dictionary:
 		var why := me_net.start_match()
 		if why != "":
 			print("  host: ", why)
-	elif scene == "coop":
+	elif scene == "coop" or scene == "kit":
 		var host: NetPlay = rig["host"]
 		me_net.ask({"ready": true})
 		for w in 120:
@@ -411,9 +427,14 @@ func _frame(rig: Dictionary, rec: Recording, joining: Array = []) -> void:
 		OS.delay_msec(1)
 		return
 	var c := _my_controls(rig, me_net, dt, rec)
+	if str(rig["scene"]) == "kit" and rec != null:
+		c = _kit_controls(rig, me_net, dt)
 	var given := _given(c)
 	main.advance(dt / 1000.0, c)
 	var aimed: Array = main.net_draw_begin(dt / 1000.0)
+	if rig.has("kit") and rec != null and me_net.client_ready():
+		var kit: Kit = rig["kit"]
+		kit.observe(main.game, main.game.players[me_net.my_slot()], now)
 	if rec != null and _ready(me_net):
 		var g: Game = main.game
 		var mine: int = me_net.my_slot()
@@ -435,6 +456,30 @@ func _frame(rig: Dictionary, rec: Recording, joining: Array = []) -> void:
 			g.focus(g.local_player)
 	if int(now / STEP_MS) % 2 == 0:
 		OS.delay_msec(1)
+
+
+## The kit scene's controls (net_feel_kit.gd): from our player as this screen
+## draws it (led by the prediction and the mouse not sent yet).
+func _kit_controls(rig: Dictionary, net: NetPlay, dt: float) -> Game.Controls:
+	if not net.client_ready():
+		return Game.Controls.new()
+	if not rig.has("kit"):
+		var made := Kit.new()
+		made.slot = net.my_slot()
+		rig["kit"] = made
+	var kit: Kit = rig["kit"]
+	var host: NetPlay = rig["host"]
+	var g: Game = main.game
+	var me: Player = g.players[net.my_slot()]
+	var kept := {}
+	for field: String in NetPredict.KEPT:
+		kept[field] = me.get(field)
+	NetPredict.lead(g, me, net.client_sync.unplayed_inputs())
+	me.angle = fposmod(me.angle + main.net_turn, TAU)
+	me.pitch = clampf(me.pitch + main.net_look, -53.0, 53.0)
+	var c: Game.Controls = kit.controls(host.match_game(), g, me, dt, now)
+	NetPredict.restore(me, kept)
+	return c
 
 
 ## Our side has the match: a client's copy has its first snapshot, a host its game.
@@ -720,6 +765,13 @@ func _table(heads: Array, cols: Array) -> void:
 		["hit marks drawn", "%.0f", "marks", 1.0],
 		["hit marks: with the shot's frame (%)", "%.0f", "marks_at_once", 100.0],
 		["hit marks: shot to mark, median (ms)", "%.1f", "mark_ms", 1.0],
+		["kit: ALT FIRE to the scope up (ms)", "%.0f", "kit_scope", 1.0],
+		["kit: a bolt's blast, past its flight (ms)", "%.0f", "kit_bolt", 1.0],
+		["kit: USE to the door moving (ms)", "%.0f", "kit_door", 1.0],
+		["kit: a shot to the hand's flinch (ms)", "%.0f", "kit_flinch", 1.0],
+		["kit: a stick's blast, past its fuse (ms)", "%.0f", "kit_tnt", 1.0],
+		["  kit presses shown / missed", "%.0f", "kit_shown", 1.0],
+		["", "%.0f", "kit_missed", 1.0],
 		["delay: input to the host's word (ms)", "%.0f", "confirm_ms", 1.0],
 		["copy: put back / parted", "%.0f", "rebuilds", 1.0],
 		["", "%.0f", "parted", 1.0],
