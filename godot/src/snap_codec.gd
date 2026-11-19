@@ -81,7 +81,6 @@ const SKIP_FIELDS := {
 		"_drawn_version",
 		"mark_cache",
 		"_hiss_at",
-		"_to_shut",
 		"ray_d",
 		"ray_hit"
 	],

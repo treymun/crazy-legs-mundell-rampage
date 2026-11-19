@@ -600,11 +600,11 @@ What it found and what changed:
   lost); it used the newest tick reported by anything before the input was
   played, so a buffered shot was judged too late. `MAX_REWIND` is 64 ticks
   (under `REWIND_KEEP`, 72).
-- `game.place_log` is still not carried: a copy put back on a snapshot keeps
-  its own log, so a rewound shot in the next half second can play otherwise
-  and part it (put back at the next check). With the inputs arriving, copies
-  are put back for lost inputs about never (0 in the runs below), so it was
-  left.
+- `game.place_log` is not in a snapshot: a copy put back on one kept its
+  own log, so a rewound shot in the next half second could play otherwise
+  and part it. Since pass 12 each tick's row travels with the echoed inputs
+  and a copy put back takes the ticks it skipped from them
+  ([below](#soaking-every-mode-pass-12)).
 
 ### The 3.2 lag measurements
 
@@ -1270,32 +1270,42 @@ late join's, 6 allowed). The host's own frame in campaign co-op (its game
 with the same scene, as one player's machine) 12.5 ms median, 41 p99, where
 a partner's frame is 8.5 / 44 and a check of the copy 40 ms (NETFEEL's).
 
+Round 2 (after NETFEEL's and NETSERVER's second rounds were merged):
+
+- **The copies' "growth" over a long County Run was the soak's own.** Twelve
+  minutes had taken the process from 460 MB and 13,500 objects to 1,280 MB
+  and 77,500. Split by where it happened, it was the copies' ticks, and a
+  County Run game made as the front end makes one grew 600 objects a
+  minute with no network, one with `QuietSound` none, one with the sound's
+  effects muted none: the sound's finished playbacks. The engine lets them
+  go at a frame's end, and the soak (like every tool that runs one long
+  loop) never let a frame run. A game that awaits a frame every few ticks
+  stays flat (7,000 to 7,200 objects over two minutes); the soak now does
+  (`await process_frame` every 4 ticks, no frame cap or sleep), and five
+  minutes of County Run go 455 -> 497 MB, 11,800 -> 16,500 objects with the
+  horde growing 21 -> 58. `quick` plays County Run two minutes and fails if
+  the second minute's objects grow past 25% or memory past 40 MB a minute
+  (before: +40% and +100 MB). A real client runs a frame each frame: it
+  never had this. `NetSync.Client.lag_samples` grew without end (one float a
+  confirmed input): the newest 8,192 now.
+- **The place rows travel with the inputs** (`NetSync.Host._places_for`,
+  `NetWire._put_places`): each tick's `game.place_log` row once, after the
+  echoed rows in their packed block, each row's float bits xored with the
+  one before. A copy put back on a snapshot ahead of it takes the ticks it
+  skipped from them (`Client._put_places`), so a shot rewound into them
+  plays as the host's did: a deathmatch put back every 4 s parted twice in
+  90 s before, never after (44 put backs). Cost, down a player: search and
+  destroy 39 -> 43 KB/s, County Run 167 -> 174 (`places=0` sends none). A
+  reader that does not know them stops at the rows' end, so PROTOCOL stays
+  5.
+- **Rubble shut into the paths after a mid-fall put back**: a snapshot's
+  facts of the set pieces now list the rubble still waiting
+  (`net_facts()`, `to_shut`, carried); a copy put back on one shuts what the
+  host has shut and waits with the rest (set_piece_check: a snapshot put on
+  mid-fall plays on the same; it parted three ticks on before).
+
 Known and left (each puts a copy back once or twice more, never for long):
 
-- **`game.place_log` is not carried** (multiplayer.md "Lag", 3.2): after a
-  put back a copy's log lacks the ticks it skipped, so a shot rewound into
-  them in the next second can play otherwise. With the server's log handed
-  to the copy at each forced put back a deathmatch kept through 44 put
-  backs; without, 2 partings. Carrying it means its new rows in every
-  snapshot (a few hundred bytes for a 5v5), or the rewound places in the
-  shooter's echoed row: the transport's to choose.
-- **Rubble shut into the paths**: the host shuts a fallen barn's rubble
-  into the players' flow fields once nothing moves (`_to_shut`, not
-  carried); a copy put back on a snapshot mid-fall shuts it at once, so the
-  flow fields differ until the fall ends (a parting or two, then they agree).
-- **Objects and memory grow in the copies over a long County Run.** Twelve
-  minutes of a party of two at 120 ms with destruction on: the process went
-  from 460 MB and 13,500 objects to 1,280 MB and 77,500 (enemies 21 to 79,
-  so part of it is the horde). Split by where it happens: the server's game
-  (a host game) adds next to nothing, nor does the network (taking packets,
-  NetTrack on a County Run bot game for four minutes: flat); it is the
-  copies' own ticks (about 2,000 objects a copy a minute), and the
-  prediction's frame about a fifth as much again. A County Run party game
-  made as the front end makes one (its sound, its HUD) grows about 600
-  objects a minute with no network at all, one with `QuietSound` none. Not
-  found yet: no list in the game, its features, the sound or the HUD grows
-  with it. The soak's two copies share one front end, so a real player's
-  machine sees about half.
 - **A leave and a join in the party modes** (`Modes.went_away`,
   `join_late`) change the server's game between ticks: every other copy is
   put back once for each (a hitch of 10 to 130 ms on a busy co-op map).

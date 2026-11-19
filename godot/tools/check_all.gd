@@ -149,7 +149,7 @@ const CI_SECONDS := {
 	"save_fixtures": 40,
 	"county_check": 42,
 	"county_net_check": 30,
-	"net_soak_all": 150,
+	"net_soak_all": 300,
 	"net_party_check": 60,
 	"relay_check": 25,
 	"wreck_check": 30,

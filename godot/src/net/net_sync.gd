@@ -94,6 +94,8 @@ class Remote:
 	var echo_sent := -1
 	## INPUTS packets taken from it.
 	var heard := 0
+	## The newest tick whose place row went out to it.
+	var places_sent := -1
 	## input number -> the tick it was showing when it sent that one.
 	var views := {}
 	## The host's input buffer for it (Host.buffer_inputs): how late each
@@ -169,6 +171,10 @@ class Host:
 	var track: NetTrack = null
 	## tick -> the inputs every player played on it (NetWire.tick_row)
 	var played := {}
+	## tick -> where everyone stood on it (game.place_log's row), sent with
+	## the echoed inputs (send_places; off: the old packets).
+	var places := {}
+	static var send_places := true
 	## peer id -> Remote
 	var remotes := {}
 	## Joins a player for a new client and returns its slot (-1: no room).
@@ -257,12 +263,33 @@ class Host:
 		tick += 1
 		played[tick] = NetWire.tick_row(rows)
 		played.erase(tick - MAX_ECHO * 2)
+		_note_place()
 		if (tick + maxi(0, snap_phase)) % snap_every == 0 or _owed:
 			if hold:
 				_owed = true
 			else:
 				_owed = false
 				_send_snapshots()
+
+	## The tick just played's row of game.place_log, kept to send.
+	func _note_place() -> void:
+		if not send_places or game.place_log.is_empty() or game.players.size() < 2:
+			return
+		places[tick] = game.place_log[-1]
+		places.erase(tick - MAX_ECHO * 2)
+
+	## The place rows `r` has not been sent, of the ticks from `first` to
+	## now, each once (the last ticks of the echoed ones; [] for a game of
+	## one, or with send_places off).
+	func _places_for(r: Remote, first: int) -> Array:
+		var out: Array = []
+		for t in range(maxi(first, r.places_sent + 1), tick + 1):
+			if not places.has(t):
+				return []
+			out.append(places[t])
+		if not out.is_empty():
+			r.places_sent = tick
+		return out
 
 	## What changed from snapshot `base` to this one (null: send it whole).
 	func _change_since(base: int, now: Dictionary) -> Variant:
@@ -515,7 +542,13 @@ class Host:
 				rows.append(played.get(t, PackedByteArray()))
 			var snap_bytes: PackedByteArray = by_base[base]
 			var packet := NetWire.snap(
-				seq, base, tick, r.next - 1 if r.next > 0 else -1, [first, rows], snap_bytes
+				seq,
+				base,
+				tick,
+				r.next - 1 if r.next > 0 else -1,
+				[first, rows],
+				snap_bytes,
+				_places_for(r, first)
 			)
 			sizes_packet.append(packet.size())
 			if base >= 0 and packet.size() > NetWire.PART_MOST and split_big:
@@ -549,6 +582,9 @@ class Client:
 	const KEEP := 120
 	## Inputs remembered after they are confirmed (the view's prediction).
 	const SENT_KEEP := 120
+	## Round trips kept in lag_samples (the newest; a tool folding them in
+	## takes them more often than this fills).
+	const LAG_KEPT := 8192
 	## Partings kept in mismatch_log.
 	const MISMATCH_LOG := 6
 	## Snapshots whose arrival is remembered to judge the link's jitter.
@@ -599,6 +635,10 @@ class Client:
 	var rebuilt_at := -1000000
 	var checked_at := -1000000
 	var echo := {}
+	## tick -> the host's game.place_log row for it (the echoed ticks' and
+	## those a rewind may still reach back to): a copy put back on a snapshot
+	## ahead of it takes these for the ticks it skipped (_put_places).
+	var places := {}
 	var sent_at := {}
 	var lag_samples := PackedFloat32Array()
 	var stale := 0
@@ -685,6 +725,8 @@ class Client:
 		for i in rows.size():
 			if not echo.has(first + i) and first + i > game_tick:
 				echo[first + i] = rows[i]
+		var places_in: Array = msg.get("places", [])
+		_take_places(first + rows.size() - places_in.size(), places_in)
 
 	## A SNAP_PART kept until its snapshot's parts are all in: then the SNAP
 	## they make (empty until then, or for a malformed part).
@@ -933,6 +975,9 @@ class Client:
 			if sent_at.has(ack):
 				var at_ms: float = sent_at[ack]
 				lag_samples.append(_now - at_ms)
+				if lag_samples.size() > LAG_KEPT * 2:
+					# The newest only (a session of hours grew it without end).
+					lag_samples = lag_samples.slice(lag_samples.size() - LAG_KEPT)
 			for n: Variant in unacked.keys():
 				var n_seq: int = n
 				if n_seq <= ack:
@@ -1024,7 +1069,43 @@ class Client:
 			return true
 		return true
 
+	## The host's place rows from tick `first` on, kept while a rewind may
+	## reach back to them.
+	func _take_places(first: int, rows: Array) -> void:
+		for i in rows.size():
+			if first + i > game_tick - GameState.REWIND_KEEP:
+				places[first + i] = rows[i]
+		for t: int in places.keys():
+			if t <= game_tick - GameState.REWIND_KEEP:
+				places.erase(t)
+
+	## After a put back that moved the copy from `was_tick` to game_tick: its
+	## place log as the host had it (rows it skipped from the host's, the rest
+	## its own where none came), so a rewound shot in the next second plays
+	## as the host's did.
+	func _put_places(own: Array[PackedFloat32Array], was_tick: int) -> void:
+		if game.players.size() < 2:
+			return
+		var out: Array[PackedFloat32Array] = []
+		var last := PackedFloat32Array()
+		for t in range(game_tick - GameState.REWIND_KEEP + 1, game_tick + 1):
+			var row: PackedFloat32Array = places.get(t, PackedFloat32Array())
+			if row.is_empty():
+				var i := own.size() - 1 - (was_tick - t)
+				if i >= 0 and i < own.size() and t <= was_tick:
+					row = own[i]
+			if row.is_empty():
+				row = last
+			if not row.is_empty():
+				out.append(row)
+				last = row
+		game.place_log = out
+
 	func _rebuild(check := true) -> void:
+		var own: Array[PackedFloat32Array] = []
+		if game != null:
+			own = game.place_log
+		var was_tick := game_tick
 		var data: Dictionary = snaps[latest][1]
 		if REBUILD_RUNNING and game != null:
 			if not GameSnapshot.apply(game, data.duplicate(true)):
@@ -1037,6 +1118,7 @@ class Client:
 		rebuilds += 1
 		game_tick = latest_tick
 		rebuilt_at = latest_tick
+		_put_places(own, was_tick)
 		for t: Variant in echo.keys():
 			var t_tick: int = t
 			if t_tick <= game_tick:

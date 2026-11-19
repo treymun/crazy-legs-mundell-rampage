@@ -178,6 +178,21 @@ func save() -> Dictionary:
 	}
 
 
+## A snapshot's facts of it (GameSnapshot.fact_of): its save, and the rubble
+## laid that waits to be shut into the paths till nothing moves (`to_shut`),
+## so a copy put back on it mid-fall shuts the rest when the host does, not
+## at once (pass 12: its flow fields parted from the host's till the fall
+## ended). A save keeps no such list (one taken mid-fall shuts at once).
+func net_facts() -> Dictionary:
+	var out := save()
+	if not out.is_empty() and not _to_shut.is_empty():
+		var waiting: Array = []
+		for v: PackedFloat32Array in _to_shut:
+			waiting.append(Array(v))
+		out["to_shut"] = waiting
+	return out
+
+
 static func _touched(st: Dictionary) -> bool:
 	for o: Variant in st["out"]:
 		var was: int = o
@@ -211,11 +226,23 @@ func restore(state: Dictionary) -> void:
 			game.reopen_paths(v[0], v[1], v[2], v[3])
 		if not _has(dropped, row):
 			dropped.append(row)
+	var waiting: Array = state.get("to_shut", [])
+	# What this game still waited to shut that the host has shut already.
+	var still: Array = []
+	for v: PackedFloat32Array in _to_shut:
+		if _has(waiting, Array(v)):
+			still.append(v)
+		else:
+			_shut(v[0], v[1], v[2], v[3])
+	_to_shut = still
 	for row: Array in state.get("added", []):
 		var v := PackedFloat32Array(row)
 		if not game.world.collision_volumes.has(v):
 			ArenaWreckFeature.add_volume(game.world, v)
-			_shut(v[0], v[1], v[2], v[3])
+			if _has(waiting, row):
+				_to_shut.append(v)
+			else:
+				_shut(v[0], v[1], v[2], v[3])
 		if not _has(added, row):
 			added.append(row)
 	var running: Array = state.get("floods", [])

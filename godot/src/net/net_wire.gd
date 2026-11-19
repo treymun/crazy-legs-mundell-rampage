@@ -236,7 +236,13 @@ static func read_inputs(bytes: PackedByteArray) -> Dictionary:
 ## rows go zstd'd (a 5v5's 8 rows of 10 players, 1.2 KB, are about 200
 ## bytes packed: each player's controls change little from tick to tick).
 static func snap(
-	seq: int, base: int, tick: int, input_ack: int, echo: Array, payload: PackedByteArray
+	seq: int,
+	base: int,
+	tick: int,
+	input_ack: int,
+	echo: Array,
+	payload: PackedByteArray,
+	places: Array = []
 ) -> PackedByteArray:
 	var out := PackedByteArray()
 	out.resize(SNAP_HEADER)
@@ -253,6 +259,7 @@ static func snap(
 	for row: PackedByteArray in ticks:
 		rows.append(row.size() / (CONTROL_BYTES + 1))
 		rows.append_array(row)
+	_put_places(rows, places, ticks.size())
 	var packed := (
 		rows.compress(FileAccess.COMPRESSION_ZSTD) if rows.size() > 32 and pack_rows else rows
 	)
@@ -317,6 +324,7 @@ static func read_snap(bytes: PackedByteArray) -> Dictionary:
 			row[int(rows[at])] = rows.slice(at + 1, at + 1 + CONTROL_BYTES)
 			at += CONTROL_BYTES + 1
 		echo.append(row)
+	var places := _read_places(rows, at, echo.size())
 	at = after
 	return {
 		"seq": bytes.decode_u32(1),
@@ -325,8 +333,60 @@ static func read_snap(bytes: PackedByteArray) -> Dictionary:
 		"input_ack": -1 if ack == 0xFFFFFFFF else ack,
 		"echo_first": bytes.decode_u32(17),
 		"echo": echo,
+		"places": places,
 		"payload": bytes.slice(at),
 	}
+
+
+## Where everyone stood on the last of the echoed ticks (game.place_log's
+## rows, what a rewound shot needs: those not sent before), after the rows
+## in the same packed block: a byte of how many ticks, then a tick each: a
+## byte of floats and the float32s, each row's bits xored with the row
+## before (they hardly change: the pack takes them down to a few bytes).
+## Pass 12: a copy put back on a snapshot ahead of it lacked the ticks it
+## skipped, and a shot rewound into them in the next second played
+## otherwise. A reader that does not know them stops at the rows' end.
+static func _put_places(rows: PackedByteArray, places: Array, ticks: int) -> void:
+	if places.is_empty() or places.size() > ticks:
+		return
+	rows.append(places.size())
+	var before := PackedInt32Array()
+	for row: PackedFloat32Array in places:
+		var bits := row.slice(0, 255).to_byte_array().to_int32_array()
+		var put := bits.duplicate()
+		if before.size() == bits.size():
+			for k in bits.size():
+				put[k] = bits[k] ^ before[k]
+		rows.append(bits.size())
+		rows.append_array(put.to_byte_array())
+		before = bits
+
+
+## The place rows of the last ticks of `ticks` echoed ([] none).
+static func _read_places(rows: PackedByteArray, at: int, ticks: int) -> Array:
+	if at >= rows.size():
+		return []
+	var n := rows[at]
+	at += 1
+	if n > ticks:
+		return []
+	var out: Array = []
+	var before := PackedInt32Array()
+	for i in n:
+		if at >= rows.size():
+			return []
+		var count := rows[at]
+		at += 1
+		if at + count * 4 > rows.size():
+			return []
+		var bits := rows.slice(at, at + count * 4).to_int32_array()
+		if before.size() == bits.size():
+			for k in bits.size():
+				bits[k] = bits[k] ^ before[k]
+		before = bits
+		out.append(bits.to_byte_array().to_float32_array())
+		at += count * 4
+	return out
 
 
 ## The inputs every player played on one tick: slot byte + controls each.

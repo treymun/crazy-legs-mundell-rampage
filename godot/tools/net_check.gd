@@ -759,6 +759,38 @@ static func _soak_fixes(main, check: Callable, id: String) -> void:
 		NetSync.Client.KEEP >= NetSync.Host.KEEP and kept_s >= 3.0,
 		"host and client keep %.1f s of snapshots as bases (at least 3)" % kept_s
 	)
+	# Where everyone stood on each tick travels with the echoed inputs, and a
+	# copy put back on a snapshot ahead of it takes the ticks it skipped from
+	# them: a shot rewound into them plays as the host's did.
+	var two := _made(main, id, 2)
+	var host_rows: Array = []
+	for k in 3:
+		host_rows.append(PackedFloat32Array([10.5 + k, 20.25, 0.0, 11.0 + k * .5, 21.0, 1.0]))
+	var echo_rows: Array = [PackedByteArray(), PackedByteArray(), PackedByteArray()]
+	var wire := NetWire.read_snap(
+		NetWire.snap(7, -1, 110, -1, [108, echo_rows], PackedByteArray([1, 2]), host_rows)
+	)
+	var cs := NetSync.Client.new(null, Callable())
+	cs.game = two
+	cs.game_tick = 100
+	var own_log: Array[PackedFloat32Array] = []
+	for t in range(29, 101):
+		own_log.append(PackedFloat32Array([float(t), 0.0, 0.0, 0.0, 0.0, 0.0]))
+	cs._take_places(108, wire.get("places", []))
+	cs.game_tick = 110
+	cs._put_places(own_log, 100)
+	var log_now: Array[PackedFloat32Array] = two.place_log
+	check.call(
+		(
+			wire.get("places", []) == host_rows
+			and log_now.size() == GameState.REWIND_KEEP
+			and log_now[-1] == host_rows[2]
+			and log_now[-3] == host_rows[0]
+			and log_now[-11] == own_log[-1]
+		),
+		"the host's place rows travel with the inputs and fill a copy's skipped ticks"
+	)
+	two.dispose()
 	var metas := _play_metas("res://src")
 	check.call(
 		metas.is_empty(),

@@ -43,12 +43,14 @@
 ## not carry shows up as a parting after it. `clock`: COUNTY RUN co-op's
 ## copies paced by the clock (NetSync.Client by_clock on: 1, the default
 ## here) or the old playout (0). `quick`: County Run co-op and campaign co-op
-## at 120 ms for 30 s each, put back every 5 s (check_all).
+## at 120 ms, put back every 5 s, County Run for two minutes (its objects
+## and memory flat over the second), co-op for 30 s (check_all).
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
 const CountyBot := preload("res://tools/county_bot.gd")
 const ModeBot := preload("res://tools/mode_bot.gd")
+const Wrecker := preload("res://tools/net_soak_wrecker.gd")
 
 const STEP := NetSync.STEP
 ## Seconds after a destruction event its frames count as "while things break".
@@ -68,9 +70,12 @@ var opts := {
 	"late": 1,
 	"ws": 1,
 	"clock": 1,
-	"grow": .15,
+	"grow": .25,
+	"mb_min": 40.0,
+	"coop_minutes": -1.0,
 	"putback": 0.0,
 	"why": 0,
+	"places": 1,
 }
 var rows: Array = []
 
@@ -101,6 +106,8 @@ var tallies := {}
 var samples: Array = []
 var matches := 0
 var host_bot = null
+## The players' copies (each run's own pool, swept as the front end would).
+var copies := GamePool.new()
 
 
 func _init() -> void:
@@ -124,10 +131,16 @@ func _run() -> void:
 				opts[kv[0]] = float(kv[1])
 	if quick:
 		opts["modes"] = "county,coop"
-		opts["minutes"] = .5
+		opts["minutes"] = 2.0
+		opts["coop_minutes"] = .5
 		opts["lags"] = "120"
 		opts["putback"] = 5.0
 	opts["people"] = clampi(int(opts["people"]), 2, 4)
+	# Off: the old packets, no place rows sent (a measurement's before).
+	NetSync.Host.send_places = int(opts["places"]) != 0
+	# The engine's frames (awaited in the soak) without their sleep or cap.
+	OS.low_processor_usage_mode_sleep_usec = 0
+	Engine.max_fps = 0
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
@@ -137,7 +150,9 @@ func _run() -> void:
 	for m: String in str(opts["modes"]).split(","):
 		for lag_text: String in str(opts["lags"]).split(","):
 			var l := float(lag_text)
-			var row := soak(m.strip_edges(), l, l * float(opts["jitter"]), float(opts["loss"]))
+			var row: Dictionary = await soak(
+				m.strip_edges(), l, l * float(opts["jitter"]), float(opts["loss"])
+			)
 			if not row.is_empty():
 				rows.append(row)
 	tally.stop()
@@ -166,139 +181,6 @@ func _check(ok: bool, text: String) -> void:
 
 
 # ------------------------------------------------------------ the director
-
-
-## Destruction on purpose, the same on every machine: hooked to a game's
-## `ticked` (inside the tick, after the features), it acts only on the
-## game's own clock and carried state, so the server and every copy that
-## plays the tick do the same. Each `every` seconds an event: a chain of
-## blasts nobody threw (`beats`, GAP apart) at the next thing on its list.
-class Wrecker:
-	const GAP := .075
-	const KINDS := ["breakables", "set_pieces", "hands", "vehicles", "fences"]
-	var game: Game
-	var every := 4.0
-	var fired := 0
-	var busy := false
-
-	func _init(g: Game, each: float) -> void:
-		game = g
-		every = each
-		g.events.ticked.connect(_ticked)
-
-	func _ticked(dt: float) -> void:
-		if dt <= 0.0:
-			return
-		var c := game.clock
-		var k := floori(c / every)
-		if k <= 0:
-			return
-		var j := floori((c - k * every) / GAP)
-		var t := k * every + j * GAP
-		if not (c - dt < t and t <= c):
-			return
-		var spots := _spots(k)
-		if j >= spots.size():
-			return
-		var at: Vector2 = spots[j]
-		var shot := Game.Shot.new(at.x, at.y, .4, 0.0, 0.0, 0.0, "tnt", 0.0, false, 0)
-		shot.owner = -1
-		game.explode(shot)
-		fired += 1
-		busy = true
-
-	## Where event k's blasts go (worked out afresh at each beat from the
-	## game as it stands: the same on every machine): the first kind on the
-	## list from k's that has something left to break.
-	func _spots(k: int) -> Array:
-		for n in KINDS.size():
-			var kind: String = KINDS[(k + n) % KINDS.size()]
-			var out: Array = call("_" + kind, k)
-			if not out.is_empty():
-				return out
-		# Nothing left: among the players (versus) or where they stand.
-		var p: Player = game.players[k % game.players.size()]
-		return [Vector2(p.x + 1.5, p.y), Vector2(p.x - 1.5, p.y + 1.0)]
-
-	func _breakables(k: int) -> Array:
-		var f = game.features.get("breakables")
-		if f == null:
-			return []
-		var standing: Array = []
-		for i in f.pieces.size():
-			if not f.pieces[i].broken:
-				standing.append(i)
-		if standing.is_empty():
-			return []
-		var first: int = standing[k * 7 % standing.size()]
-		var p0 = f.pieces[first]
-		var near: Array = standing.duplicate()
-		near.sort_custom(
-			func(a: int, b: int) -> bool:
-				var da: float = Vector2(f.pieces[a].x - p0.x, f.pieces[a].y - p0.y).length()
-				var db: float = Vector2(f.pieces[b].x - p0.x, f.pieces[b].y - p0.y).length()
-				return da < db or (da == db and a < b)
-		)
-		var out: Array = []
-		for i: int in near.slice(0, 4):
-			out.append(Vector2(f.pieces[i].x + .6, f.pieces[i].y + .3))
-		return out
-
-	func _set_pieces(k: int) -> Array:
-		var f = game.features.get("set_pieces")
-		if f == null or f.pieces.is_empty():
-			return []
-		for n in f.pieces.size():
-			var i: int = (k + n) % f.pieces.size()
-			var st: Dictionary = f.pieces[i]
-			if int(st["stage"]) != SetPiecesFeature.STANDING:
-				continue
-			var spec: Dictionary = f.spec_of(i)
-			var x: float = spec.get("x", 0.0)
-			var y: float = spec.get("y", 0.0)
-			if str(st["kind"]) == "fuel":
-				var pts: Array = spec.get("points", [])
-				var out: Array = []
-				for q: Variant in pts.slice(0, 3):
-					if q is Array and q.size() >= 2:
-						out.append(Vector2(float(q[0]), float(q[1])))
-				if not out.is_empty():
-					return out
-			return [Vector2(x, y), Vector2(x + 1.2, y + .4), Vector2(x - 1.0, y - .6)]
-		return []
-
-	func _hands(_k: int) -> Array:
-		var out: Array = []
-		for e: Enemy in game.enemies:
-			if e.alive and e.hostile:
-				out.append(Vector2(e.x + .4, e.y))
-				if out.size() >= 3:
-					break
-		return out
-
-	func _vehicles(_k: int) -> Array:
-		var f = game.features.get("vehicles")
-		if f == null:
-			return []
-		for v in f.rides:
-			if float(v.wreck) < 0.0:
-				return [Vector2(v.x + 1.0, v.y), Vector2(v.x, v.y + 1.0), Vector2(v.x - 1.0, v.y)]
-		return []
-
-	func _fences(k: int) -> Array:
-		var f = game.features.get("wall_breaks")
-		if f == null or f.fences.is_empty():
-			return []
-		var cells: Array = f.fences.keys()
-		cells.sort()
-		var whole: Array = []
-		for cell: Variant in cells:
-			if int(f.fences[cell].stage) < 2:
-				whole.append(f.fences[cell])
-		if whole.is_empty():
-			return []
-		var fc = whole[k * 5 % whole.size()]
-		return [Vector2(fc.cell.x + .5, fc.cell.y + 1.2), Vector2(fc.cell.x + 1.5, fc.cell.y + 1.2)]
 
 
 ## The director on a game (once), and god on every machine alike in the
@@ -353,7 +235,7 @@ func soak(m: String, l: float, j: float, lo: float) -> Dictionary:
 	if not ok:
 		_close()
 		return {}
-	var row := _play()
+	var row: Dictionary = await _play()
 	_close()
 	return row
 
@@ -395,6 +277,7 @@ func _open_server() -> bool:
 		return false
 	root.add_child(server)
 	server.set_process(false)
+	Engine.max_fps = 0  # (a lobby server caps the frames when it starts)
 	lobby = server.rooms[0].net
 	var made: Callable = lobby.make_match
 	lobby.make_match = func(info: Dictionary) -> Game: return _dress(made.call(info))
@@ -456,6 +339,10 @@ func _join(name: String, over_ws: bool) -> NetPlay:
 		var made: Game = main.net_match_game(info)
 		if made != null:
 			made.net_role = "copy"
+			# The players' copies are the soak's, not the front end's: its
+			# own sweep at a frame's end (coop's host) would let them go.
+			main.games._games.erase(made)
+			copies.track(made)
 		return _dress(made)
 	_lag(net.session)
 	nets.append(net)
@@ -491,6 +378,7 @@ func _close() -> void:
 			room.net.finish()
 		server.queue_free()
 		server = null
+	copies.clear()
 	main.games.sweep([])
 	lobby = null
 	host_bot = null
@@ -678,7 +566,10 @@ func _wait(what: Callable, most := 600) -> bool:
 
 
 func _play() -> Dictionary:
-	var ticks := int(float(opts["minutes"]) * 60.0 / STEP)
+	var minutes := float(opts["minutes"])
+	if mode == "coop" and float(opts["coop_minutes"]) > 0.0:
+		minutes = float(opts["coop_minutes"])
+	var ticks := int(minutes * 60.0 / STEP)
 	var wall := Time.get_ticks_msec()
 	var late_at := ticks / 2 if int(opts["late"]) != 0 else -1
 	var late_ok := true
@@ -724,8 +615,12 @@ func _play() -> Dictionary:
 					]
 				)
 			)
-		if t % 16 == 0:
-			OS.delay_msec(1)
+		if t % 4 == 0:
+			# A frame of the engine's own now and then, as a game has every
+			# frame: until then nothing it frees at a frame's end goes (the
+			# sound's finished playbacks piled up: 2,000 objects a copy a
+			# minute that a real client never holds).
+			await process_frame
 	_sweep()
 	_sample("end")
 	var wall_s := (Time.get_ticks_msec() - wall) / 1000.0
@@ -920,7 +815,7 @@ func _sweep() -> void:
 			kept.append(g)
 	if mode == "coop" and main.game != null:
 		kept.append(main.game)
-	main.games.sweep(kept)
+	copies.sweep(kept)
 	for g: Game in wreckers.keys():
 		if not is_instance_valid(g) or not (g in kept or g == _server_game()):
 			wreckers.erase(g)
@@ -958,6 +853,7 @@ func _sample(when: String) -> void:
 				_measure("track", lobby.host_sync.track, lists)
 	var s := {
 		"when": when,
+		"at": now / 1000.0,
 		"mb": OS.get_static_memory_usage() / 1048576.0,
 		"objects": int(Performance.get_monitor(Performance.OBJECT_COUNT)),
 		"orphans": int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
@@ -1046,10 +942,12 @@ func _wrecked(g: Game) -> String:
 ## What grew over the run's second half: [objects share, the lists that grew most].
 func _growth() -> Array:
 	if samples.size() < 3:
-		return [0.0, []]
+		return [0.0, [], 0.0]
 	var mid: Dictionary = samples[samples.size() / 2]
 	var last: Dictionary = samples[-1]
 	var share := float(last["objects"] - mid["objects"]) / maxf(1.0, float(mid["objects"]))
+	var minutes := maxf(.1, float(last["at"] - mid["at"]) / 60.0)
+	var mb_min := (float(last["mb"]) - float(mid["mb"])) / minutes
 	var grew: Array = []
 	var a: Dictionary = mid["lists"]
 	var b: Dictionary = last["lists"]
@@ -1058,7 +956,7 @@ func _growth() -> Array:
 		var is_now: int = b[key]
 		if is_now - was >= 50 and is_now > was * 1.5:
 			grew.append("%s %d -> %d" % [key, was, is_now])
-	return [share, grew]
+	return [share, grew, mb_min]
 
 
 # ------------------------------------------------------------ the report
@@ -1222,18 +1120,18 @@ func _report(seconds: float, wall_s: float, late_ok: bool, late_note: String) ->
 	if mode == "coop" and main.game != null:
 		var kept := _saved_again(main.game)
 		_check(kept == "", "coop: a save of the broken chapter reads back as it was%s" % kept)
-	# (Pools fill for the first minutes: growth is judged on longer runs.)
-	if seconds >= 180.0:
+	# Pools fill for the first minute or so: growth is judged on runs of two
+	# or more, over their second half: the objects (a share; the horde of a
+	# County Run grows a little all along) and the memory (MB a minute).
+	# Before pass 12's round 2 the soak never let the engine run a frame, so
+	# the sound's finished playbacks were never let go: +40% objects and
+	# +100 MB a minute over a two-minute County Run's second half.
+	if seconds >= 120.0:
 		_check(
-			float(g[0]) <= float(opts["grow"]) and g[1].is_empty(),
+			float(g[0]) <= float(opts["grow"]) and float(g[2]) <= float(opts["mb_min"]),
 			(
-				"%s %.0f ms: nothing grows in the second half (objects %+.1f%%%s)"
-				% [
-					mode,
-					lag,
-					float(g[0]) * 100.0,
-					"" if g[1].is_empty() else ", " + str(g[1].size()) + " lists"
-				]
+				"%s %.0f ms: objects and memory flat in the second half (%+.1f%%, %+.1f MB a minute)"
+				% [mode, lag, float(g[0]) * 100.0, float(g[2])]
 			)
 		)
 	return row
@@ -1351,6 +1249,7 @@ func _open_coop() -> bool:
 		return false
 	root.add_child(server)
 	server.set_process(false)
+	Engine.max_fps = 0  # (a lobby server caps the frames when it starts)
 	_lag(server.rooms[0].net.session)
 	RelayLink.server = {"host": "127.0.0.1", "port": port}
 	RelayLink.test_lan = PackedStringArray(["127.0.0.1"])
@@ -1423,6 +1322,10 @@ func _join_coop(name: String, over_ws: bool) -> NetPlay:
 		var made: Game = main.net_match_game(info)
 		if made != null:
 			made.net_role = "copy"
+			# The players' copies are the soak's, not the front end's: its
+			# own sweep at a frame's end (coop's host) would let them go.
+			main.games._games.erase(made)
+			copies.track(made)
 		return _dress(made)
 	_lag(net.session)
 	nets.append(net)

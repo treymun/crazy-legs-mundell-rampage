@@ -713,6 +713,50 @@ func _looks(level_id: String) -> void:
 			% [joined[0], joined[2]]
 		)
 	)
+	# Put on mid-fall (a copy online put back on the host's snapshot while
+	# rubble waits to be shut into the paths): it shuts it when the host
+	# does, so both games stay the same through the fall and after.
+	var parted := _mid_fall(level_id)
+	check(
+		parted == "",
+		(
+			"a snapshot put on mid-fall plays on the same as the game it came from"
+			+ ("" if parted == "" else " (" + parted + ")")
+		)
+	)
+
+
+## The barn falling with rubble down and waiting to be shut into the paths,
+## its snapshot on a fresh game, both played on 4 s: where they first part
+## ("" never).
+func _mid_fall(level_id: String) -> String:
+	var g := _game(level_id)
+	var sp := _sets(g)
+	var i := _find(sp, "barn")
+	var posts := _codes(sp, i, "post")
+	# Stood near enough that the barn's cells are in the player's paths.
+	var box: Rect2 = sp._boxes[i]
+	var near := Modes.open_spot_near(g, box.get_center().x, box.end.y + 3.0)
+	g.player.x = near.x
+	g.player.y = near.y
+	g.tick(STEP, Game.Controls.new())
+	sp.strike(posts[0], 300.0, 0.0, 1.0)
+	sp.strike(posts[1], 300.0, 0.0, 1.0)
+	var waited := 0
+	while (sp._to_shut.is_empty() or not sp._falling_any()) and waited < 600:
+		g.tick(STEP, Game.Controls.new())
+		waited += 1
+	if sp._to_shut.is_empty():
+		return "no rubble waited to be shut"
+	var back := _game(level_id)
+	GameSnapshot.apply(back, GameSnapshot.capture(g))
+	for t in int(4.0 / STEP):
+		g.tick(STEP, Game.Controls.new())
+		back.tick(STEP, Game.Controls.new())
+		var w := GameSnapshot.first_difference(GameSnapshot.capture(g), GameSnapshot.capture(back))
+		if w != "":
+			return "tick %d: %s" % [t, w.left(120)]
+	return ""
 
 
 ## The barn down, its snapshot put on a fresh game: [its pieces, all still,
