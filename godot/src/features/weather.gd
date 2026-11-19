@@ -248,8 +248,11 @@ func ground_marks() -> Array:
 	var out: Array = []
 	if prints.is_empty():
 		return out
-	var p := game.player
+	var px := game.player.x
+	var py := game.player.y
 	for m: View.GroundMark in prints:
-		if (m.x - p.x) * (m.x - p.x) + (m.y - p.y) * (m.y - p.y) < 196.0:
+		var mx := m.x
+		var my := m.y
+		if (mx - px) * (mx - px) + (my - py) * (my - py) < 196.0:
 			out.append(m)
 	return out
