@@ -169,7 +169,16 @@ def _match(rest, parts, root, ordered=False):
     the same order, the hound) pairs them by that order when the frame has
     them all: by print, his sixteen toes (one print, four feet) were paired
     across feet whenever a turned paw rounded a toe's print otherwise, and
-    flew from foot to foot between keys (pass 12)."""
+    flew from foot to foot between keys (pass 12). `ordered` "prefix" (a
+    look's `same_order`: the gator, the crawler) pairs the rest frame's parts
+    with the frame's first ones by order when the frame builds them all and
+    only adds its own after (a jaw's open mouth, a muzzle's flash): their
+    legs' shins, each stretched to its frame's knee and foot, were paired by
+    the nearest print and swapped legs from key to key (pass 13)."""
+    if ordered == "prefix" and len(parts) >= len(rest) and all(
+        a[1][0] == b[1][0] for a, b in zip(rest, parts)
+    ):
+        return [w for _ob, _fp, w in parts[: len(rest)]]
     if ordered and len(parts) == len(rest) and all(
         a[1][0] == b[1][0] for a, b in zip(rest, parts)
     ):
@@ -422,7 +431,12 @@ def export(kind, meta):
     tracks = [[w for _ob, _fp, w in rest]]
     for frame, wound, name in frames[1:]:
         tracks.append(
-            _match(rest, places[(frame, wound)], _root_for(S, frame, own), S.get("same_parts", False))
+            _match(
+                rest,
+                places[(frame, wound)],
+                _root_for(S, frame, own),
+                "prefix" if S.get("same_order", False) else S.get("same_parts", False),
+            )
         )
     # Bones: parts whose motion from the rest frame is the same in every frame.
     # A boss's gear (enemy_actors.py gear()) is a bone of its own, so the game

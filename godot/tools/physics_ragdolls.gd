@@ -49,9 +49,9 @@ func _ok(text: String) -> void:
 
 
 func run(main: Node, levels: Array) -> void:
-	var data: Dictionary = JSON.parse_string(
-		FileAccess.get_file_as_string("res://assets3d/actors/actors.json")
-	)
+	# (Each kind's entry with fit.json's merged, as the game reads it: a
+	# beast's plan, pass 13.)
+	var data: Dictionary = ActorModels.new(Assets.new()).kinds
 	var fits: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string("res://assets3d/actors/fit.json")
 	)
@@ -366,7 +366,9 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 		Basis(Vector3.UP, .4).scaled(Vector3(size, size, size)), Vector3(at.x, 0.0, at.y)
 	)
 	xf.origin.y = e.floor_z
-	var doll := Ragdoll.made(r, xf, r.points)
+	var doll: Ragdoll = (
+		BeastDoll.made_beast(r, xf, r.points, kind) if r is BeastRig else Ragdoll.made(r, xf, r.points)
+	)
 	var dice := RandomNumberGenerator.new()
 	dice.seed = 3
 	doll.knock(e, dice)

@@ -138,16 +138,50 @@ static func has(kind: String) -> bool:
 
 
 ## The rig of the model under `view` (an ActorView scene) for kind `kind`
-## (its actors.json entry `info`), made once a kind.
+## (its actors.json entry `info`), made once a kind. A kind fit.json gives a
+## "beast" plan (a gator, a crawler, a hog, the cow: pass 13) hangs on a
+## BeastRig instead.
 static func of(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 	var cached: RagdollRig = _built.get(kind)
 	if cached == null:
-		cached = baked(kind, view, info)
+		if info.has("beast"):
+			cached = BeastRig.read(kind, view, info)
+		else:
+			cached = baked(kind, view, info)
 		if cached == null:
-			cached = RagdollRig.new()
-			cached._build(view, info)
+			cached = RagdollRig.fresh(info)
+			cached.build(view, info)
 		_built[kind] = cached
 	return cached
+
+
+## A rig not yet built for a kind of this actors.json entry: a BeastRig for
+## a "beast" plan.
+static func fresh(info: Dictionary) -> RagdollRig:
+	return BeastRig.new() if info.has("beast") else RagdollRig.new()
+
+
+## Found from the model under `view` (tools/art/bake_rigs.gd, of()).
+func build(view: Node, info: Dictionary) -> void:
+	_build(view, info)
+
+
+## How many segments, each segment's parent, the segment each point rides at
+## the start, and how many points (RagdollRig's constants; a BeastRig's own).
+func segs() -> int:
+	return ENDS.size()
+
+
+func parent_of(s: int) -> int:
+	return PARENT[s]
+
+
+func rides_of(i: int) -> int:
+	return RIDES[i]
+
+
+func point_n() -> int:
+	return POINTS
 
 
 ## What of the actors.json entry the rig is found from: its standing and
@@ -622,7 +656,7 @@ func lying() -> PackedVector3Array:
 ## a hat's brim lying on the floor never sinks in; it looks in one bucket.
 func _hull(cloud_at: PackedVector3Array, cloud_bone: PackedInt32Array) -> void:
 	var local: Array[PackedVector3Array] = []
-	for s in ENDS.size():
+	for s in segs():
 		local.append(PackedVector3Array())
 	for k in cloud_at.size():
 		var bone := cloud_bone[k]
@@ -634,7 +668,7 @@ func _hull(cloud_at: PackedVector3Array, cloud_bone: PackedInt32Array) -> void:
 	var fine := _fine_ways()
 	hull.clear()
 	hull_reach.clear()
-	for s in ENDS.size():
+	for s in segs():
 		var points := local[s]
 		if points.size() >= 4:
 			var mesh := ArrayMesh.new()
@@ -994,7 +1028,7 @@ static func _arc(a: Vector3, b: Vector3) -> Basis:
 func pose(skeleton: Skeleton3D, at: PackedVector3Array, dead: bool) -> void:
 	var now := frames_of(at)
 	var moves: Array[Transform3D] = []
-	for s in ENDS.size():
+	for s in segs():
 		moves.append(now[s] * rest_frames[s].affine_inverse())
 	# The gear let go of: each piece turned as its three balls (`at` past
 	# POINTS) are from how they stood.
@@ -1049,7 +1083,7 @@ func standing() -> PackedVector3Array:
 ## The points where the bones' poses `poses` put them, model space.
 func points_from(poses: Array[Transform3D]) -> PackedVector3Array:
 	var moves: Array[Transform3D] = []
-	for s in ENDS.size():
+	for s in segs():
 		var a := anchors[s]
 		var m := Transform3D.IDENTITY
 		if a >= 0 and a < poses.size():
@@ -1061,12 +1095,12 @@ func points_from(poses: Array[Transform3D]) -> PackedVector3Array:
 					* (Transform3D(rest.basis.orthonormalized(), rest.origin).affine_inverse())
 				)
 			elif s > 0:
-				m = moves[PARENT[s]]
+				m = moves[parent_of(s)]
 		elif s > 0:
-			m = moves[PARENT[s]]
+			m = moves[parent_of(s)]
 		moves.append(m)
 	var out := PackedVector3Array()
-	out.resize(POINTS)
-	for i in POINTS:
-		out[i] = moves[RIDES[i]] * points[i]
+	out.resize(point_n())
+	for i in point_n():
+		out[i] = moves[rides_of(i)] * points[i]
 	return out

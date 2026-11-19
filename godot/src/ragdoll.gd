@@ -191,6 +191,25 @@ var extent := 1.0
 ## The level it lies on (set each step: the wreck pieces ask for those on
 ## theirs).
 var level: LevelData
+## The body's own balls (the gear's come after; a beast's, src/beast_doll.gd,
+## has more and no gear), and per ball whether it is a limb's (dragged on the
+## floor, DRAG) or the core's (carried at play's body's height); each
+## segment's balls and ends (RagdollRig.ENDS for a body on two legs) and the
+## torso's belly and back (pass 13).
+var body_n := R.POINTS
+var _limb := PackedByteArray()
+var _core := PackedByteArray()
+var _seg_balls: Array = SEG_BALLS
+var _ends: Array = R.ENDS
+var _belly := R.BELLY
+var _back := R.BACK
+## Other balls held in the torso, lifted with its belly and back by its shape
+## (a beast's legs' roots).
+var _torso_more: Array[int] = []
+## The share of its balls on the floor that make it lying (its motion dies
+## away, a tremble is rest): half a person's; a beast on its side has its
+## legs up off it.
+var down_share := .5
 
 ## The ragdolls about (ActorLayer3D sets it each frame: those shown and those
 ## kept out of sight): a body lies on another rather than through it.
@@ -353,10 +372,24 @@ func drift(v: Vector3) -> void:
 		add_speed(i, v)
 
 
+## Each ball going on at its own speed `v` (map units a second: a boss's
+## scripted fall handed over, ActorView.BOSS_HANDOVER); it falls the way they
+## go on.
+func carry_on(v: PackedVector3Array) -> void:
+	var sum := Vector3.ZERO
+	for i in mini(v.size(), pos.size()):
+		add_speed(i, v[i])
+		sum += v[i]
+	sum.z = 0.0
+	if sum.length_squared() > 1e-6:
+		_fall_way = sum.normalized()
+	wake()
+
+
 ## The share of its speed a piece of gear keeps this step (1 unless its
 ## fastest ball goes over GEAR_FAST), for its ball i.
 func _gear_slow(i: int) -> float:
-	var first := R.POINTS + (i - R.POINTS) / RagdollRig.GEAR_BALLS * RagdollRig.GEAR_BALLS
+	var first := body_n + (i - body_n) / RagdollRig.GEAR_BALLS * RagdollRig.GEAR_BALLS
 	var most := 0.0
 	for k in range(first, mini(first + RagdollRig.GEAR_BALLS, pos.size())):
 		most = maxf(most, pos[k].distance_to(old[k]) * AIR)
@@ -544,6 +577,12 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 		_soft(hip, elbow, rest[hip].distance_to(rest[elbow]) * 1.1)
 	_soft(R.KNEE_L, R.KNEE_R, rest[R.KNEE_L].distance_to(rest[R.KNEE_R]))
 	_soft(R.HEAD, R.BELLY, -1.0)
+	body_n = R.POINTS
+	_limb.resize(pos.size())
+	_core.resize(pos.size())
+	for i in pos.size():
+		_limb[i] = 1 if (i >= R.ELBOW_L and i <= R.FOOT_R) or i >= R.POINTS else 0
+		_core[i] = 1 if i <= R.SH_R or i == R.BELLY or i == R.BACK else 0
 	awake = true
 	still = 0.0
 	age = 0.0
@@ -659,19 +698,19 @@ func step(world: LevelData) -> void:
 	var carried := PackedVector3Array()
 	carried.resize(count)
 	var slows := PackedFloat32Array()
-	for k in range(R.POINTS, count, RagdollRig.GEAR_BALLS):
+	for k in range(body_n, count, RagdollRig.GEAR_BALLS):
 		slows.append(_gear_slow(k))
 	for i in count:
 		var p := pos[i]
 		prev[i] = p
 		var v := (p - old[i]) * AIR
-		if i >= R.POINTS:
+		if i >= body_n:
 			# Gear let go of: never so fast it could skip a plank (its three
 			# balls slowed alike, or the piece would be bent out of shape).
-			v *= slows[(i - R.POINTS) / RagdollRig.GEAR_BALLS]
+			v *= slows[(i - body_n) / RagdollRig.GEAR_BALLS]
 		old[i] = p
 		var share := 1.0
-		if _touch[i] and (i >= R.ELBOW_L and i <= R.FOOT_R or i >= R.POINTS):
+		if _touch[i] and _limb[i]:
 			share = DRAG
 		carried[i] = _shove * share + _nudge
 		pos[i] = p + v + carried[i] - Vector3(0.0, 0.0, g)
@@ -710,6 +749,7 @@ func step(world: LevelData) -> void:
 			_fl.keep(i, p.x, p.y, z, under)
 			_roofs[i] = world.roof_over(p.x, p.y, o.z)
 			_slopes[i] = Tumble.slope(world, p.x, p.y, under)
+	_before_passes(world)
 	var floors := _fl.floor
 	var touching := PackedByteArray()
 	touching.resize(count)
@@ -771,7 +811,8 @@ func step(world: LevelData) -> void:
 	for i in count:
 		_touch[i] = touching[i]
 		down += touching[i]
-	if down * 2 >= count:
+	var settled := down >= count * down_share
+	if settled:
 		for i in count:
 			old[i] = pos[i] - (pos[i] - old[i]) * LYING_KEEP
 	var most := 0.0
@@ -779,7 +820,7 @@ func step(world: LevelData) -> void:
 		most = maxf(most, pos[i].distance_squared_to(old[i]))
 	# Lying (half its balls on the floor) a tremble of a few millimetres a
 	# step is rest too (the model's shape against the floor rocks a ball).
-	var calm := SLEEP_LYING if down * 2 >= count and age > SLEEP_LYING_FROM else SLEEP_MOVE
+	var calm := SLEEP_LYING if settled and age > SLEEP_LYING_FROM else SLEEP_MOVE
 	if most < calm * calm:
 		still += STEP
 	else:
@@ -800,7 +841,7 @@ func _lay(world: LevelData, plain: bool, touching: PackedByteArray) -> void:
 		if not plain:
 			var under := Tumble.floor_at(world, p.x, p.y, p.z - r + .03, r * .6)
 			_fl.keep(i, INF, INF, INF, under)
-			pos[i] = Vector3(p.x, p.y, maxf(p.z, under + r))
+			pos[i] = Vector3(p.x, p.y, maxf(p.z, _rest_floor(i, under) + r))
 	for _k in 2:
 		_hull_floor(touching)
 		# (The links held again after the lifts, the floor kept: it never lies
@@ -809,11 +850,30 @@ func _lay(world: LevelData, plain: bool, touching: PackedByteArray) -> void:
 		if not plain:
 			for i in pos.size():
 				_walls(world, i)
-				pos[i] = Vector3(pos[i].x, pos[i].y, maxf(pos[i].z, _fl.floor[i] + radius[i]))
+				var low := _rest_floor(i, _fl.floor[i]) + radius[i]
+				pos[i] = Vector3(pos[i].x, pos[i].y, maxf(pos[i].z, low))
 	for i in pos.size():
 		old[i] = pos[i]
 		if i < prev.size():
 			prev[i] = pos[i]
+
+
+## Once a step, its floors asked and before the links are put right (a
+## beast finds which of its balls are in water here). None for a body on two
+## legs.
+func _before_passes(_world: LevelData) -> void:
+	pass
+
+
+## The floor ball i lies on, given the floor under it (a beast floats a
+## ball in water a little under the surface).
+func _rest_floor(_i: int, under: float) -> float:
+	return under
+
+
+## Each ball's floor this step, as the model's shape and the sleep keep it.
+func _floors_now() -> PackedFloat32Array:
+	return _fl.floor
 
 
 ## Other bodies (others) near: a ball inside one of theirs is pushed out of it
@@ -923,12 +983,12 @@ func _pieces_stir(world: LevelData) -> bool:
 ## lift stops the fall there (no bounce back up). Segments well over their
 ## floor are skipped, and a body up in the air costs nothing here.
 func _hull_floor(touching: PackedByteArray) -> void:
-	if rig == null or rig.hull.size() != R.ENDS.size():
+	if rig == null or rig.hull.size() != _ends.size():
 		return
 	var count := pos.size()
 	if _fl.floor.size() != count:
 		return
-	var floors := _fl.floor
+	var floors := _floors_now()
 	_up.resize(count)
 	var near := false
 	for i in count:
@@ -939,8 +999,8 @@ func _hull_floor(touching: PackedByteArray) -> void:
 		return
 	var frames := rig.frames_of(_up)
 	var ways := RagdollRig.ways()
-	for s in R.ENDS.size():
-		var balls: Array = SEG_BALLS[s]
+	for s in _ends.size():
+		var balls: Array = _seg_balls[s]
 		var f := frames[s]
 		var top := -INF
 		for b: int in balls:
@@ -981,7 +1041,7 @@ func _hull_floor(touching: PackedByteArray) -> void:
 		var lift := PackedFloat32Array()
 		var wsum := 0.0
 		var lifted: Array[int] = []
-		if s == R.TORSO:
+		if s == 0:
 			# The torso turns by its four corners (the belly and the back follow).
 			for b: int in [R.HIP_L, R.HIP_R, R.SH_L, R.SH_R]:
 				var w := 1.0 / (.02 + _up[b].distance_squared_to(at))
@@ -989,15 +1049,29 @@ func _hull_floor(touching: PackedByteArray) -> void:
 				lifted.append(b)
 				wsum += w
 		else:
-			var a: int = R.ENDS[s][0]
-			var b: int = R.ENDS[s][1]
-			var from := (_up[R.SH_L] + _up[R.SH_R]) * .5 if a < 0 else _up[a]
+			var a: int = _ends[s][0]
+			var b: int = _ends[s][1]
+			# (-1: the neck, between the shoulders; -2, a beast's tail root,
+			# between the hips.)
+			var one := R.SH_L if a == -1 else R.HIP_L
+			var two := R.SH_R if a == -1 else R.HIP_R
+			var from := (_up[one] + _up[two]) * .5 if a < 0 else _up[a]
 			var run := _up[b] - from
 			var t := clampf((at - from).dot(run) / maxf(run.length_squared(), 1e-6), 0.0, 1.0)
 			if a < 0:
 				# The head turns about the neck: the shoulders carry the neck's share.
 				lift.append_array([(1.0 - t) * .5, (1.0 - t) * .5, t])
-				lifted.append_array([R.SH_L, R.SH_R, b])
+				lifted.append_array([one, two, b])
+				wsum = 1.0
+			elif _torso_more.has(a):
+				# From a root held in the torso: only its free end lifts, and
+				# only for a point out along it (near the root the torso holds
+				# it up; the root lifted against the torso's links, or the knee
+				# levered high, shook for ever).
+				if t < .5:
+					continue
+				lift.append(t)
+				lifted.append(b)
 				wsum = 1.0
 			else:
 				lift.append_array([1.0 - t, t])
@@ -1010,11 +1084,14 @@ func _hull_floor(touching: PackedByteArray) -> void:
 			sq += lift[k] * lift[k]
 		for k in lift.size():
 			lift[k] *= sink / maxf(sq, 1e-6)
-		if s == R.TORSO:
+		if s == 0:
 			# The belly and the back by as much as the corners on average.
 			var mean := (lift[0] + lift[1] + lift[2] + lift[3]) * .25
 			lift.append_array([mean, mean])
-			lifted.append_array([R.BELLY, R.BACK])
+			lifted.append_array([_belly, _back])
+			for b: int in _torso_more:
+				lift.append(mean)
+				lifted.append(b)
 		for k in lifted.size():
 			var b := lifted[k]
 			var up := lift[k]
@@ -1045,8 +1122,12 @@ func _links() -> void:
 		var fix := gap * ((d - want) / (d * (wa + wb)))
 		pos[a] += fix * wa
 		pos[b] -= fix * wb
-	# No limb inside the torso (a ball round its middle, as thick as it is,
-	# or as near as the limb stands: a hand on a gun at the belly).
+	_keep_out()
+
+
+## No limb inside the torso (a ball round its middle, as thick as it is, or
+## as near as the limb stands: a hand on a gun at the belly).
+func _keep_out() -> void:
 	var mid := middle()
 	for i in range(R.ELBOW_L, R.FOOT_R + 1):
 		var off := pos[i] - mid
@@ -1195,7 +1276,7 @@ func _walls(world: LevelData, i: int) -> void:
 	var p := pos[i]
 	var o := old[i]
 	var r := radius[i]
-	if i >= R.POINTS:
+	if i >= body_n:
 		# Gear is kept a little further off walls than it is thick (a thin
 		# gun's balls slipped into a stair's riser and stuck there).
 		r = maxf(r, GEAR_WALL)
@@ -1290,7 +1371,7 @@ func _floor(i: int, under: float, roof: float) -> bool:
 	var p := pos[i]
 	var r := radius[i]
 	var low := under + r
-	if carry > -INF and (i <= R.SH_R or i == R.BELLY or i == R.BACK):
+	if carry > -INF and _core[i]:
 		low = maxf(low, carry + r * .5)
 	var on := p.z <= low
 	if on:
