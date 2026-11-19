@@ -399,7 +399,8 @@ static func _pad_and_touch(main: Control, check: Callable) -> void:
 	var ev: CountyEvents = g.features["events"]
 	var touch: TouchControls = main.touch
 	main._process(STEP)
-	var none_shown := touch.shown_buttons().size() == touch.buttons.size() - 1
+	# Only LIGHT hidden (and TALK: voice chat's, online only).
+	var none_shown := touch.shown_buttons().size() == touch.buttons.size() - 2
 	ev.begin("blackout")
 	main._process(STEP)
 	var roles: Array = touch.shown_buttons().map(func(b: Array) -> String: return str(b[0]))

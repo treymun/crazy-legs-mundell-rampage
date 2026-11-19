@@ -138,6 +138,8 @@ var _told: PackedStringArray = []
 var _now := 0.0
 ## The host's system (OS.get_name(), from its WELCOME; "" an older host).
 var host_os := ""
+## Voice chat: its routing (the host) and what we hear (net_voice.gd).
+var voice := NetVoice.new()
 var _opened_at := 0.0
 var _hello_at := 0.0
 var _waiting_hello := {}
@@ -396,6 +398,9 @@ func poll(now_ms: float) -> void:
 			inputs.append(packet)
 		elif kind == NetWire.SNAP or kind == NetWire.SNAP_PART:
 			snaps.append(packet)
+		elif kind == NetWire.VOICE:
+			var talker: int = packet[0]
+			voice.take(self, talker, bytes, now_ms)
 		elif role == Role.HOST:
 			var from: int = packet[0]
 			_host_message(from, kind, NetWire.info_of(bytes))
@@ -410,6 +415,7 @@ func poll(now_ms: float) -> void:
 		# stamped with (their round trip) was 0 until the first came, so the
 		# first trips measured were the whole time since the program started.
 		client_sync.take(snaps, now_ms)
+	voice.flush(self, now_ms)
 	# After the packets: a BYE that came with the hang-up says why.
 	if role == Role.CLIENT and phase not in ["connecting", "closed"] and not session.connected():
 		# (Through the party line: what it said, "THE HOST HUNG UP" and the like.)
@@ -523,6 +529,9 @@ func _host_message(from: int, kind: int, info: Dictionary) -> void:
 			if info.has("ready"):
 				var ready: bool = info["ready"]
 				p["ready"] = ready
+			if info.has("voice"):
+				NetVoice.note(p, info)  # voice chat on or off, whom they muted
+				return
 			if dedicated and from == admin_id:
 				_admin_asks(info)
 			send_lobby()

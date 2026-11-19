@@ -109,6 +109,33 @@ crossroads, the range or a 5v5 or 2v2 map), FRAG LIMIT and TIME LIMIT end
 it. In team deathmatch you pick RED or BLUE with TEAM. After the results
 the host's ENTER takes everyone back to the lobby.
 
+## Talking (voice chat)
+
+Every online game has proximity voice chat: the 5v5 and tag team lobbies,
+co-op, deathmatch, team deathmatch, County Run, a lobby you host (straight
+or through the party line), the browser build and the phone.
+
+- **Turn your mic on:** SETTINGS, AUDIO, VOICE CHAT ONLINE, MICROPHONE ON
+  (it is off to begin with). A phone asks for the microphone then, a
+  browser shows its own prompt; say yes. Your own row in the lobby says MIC
+  OFF, NO MIC (nothing comes from it), ALLOW MIC or MIC REFUSED when nobody
+  can hear you.
+- **PUSH TO TALK** (the default): hold **T** (change it on the KEYS page,
+  PUSH TO TALK), a pad's share, touchpad or first paddle button, or the
+  phone's TALK button. **OPEN MIC** (TALK) sends whenever you talk louder
+  than MIC SENSITIVITY lets through; turn it down if the TV gets through.
+  ON THE AIR shows top left while you are heard.
+- **Who hears you:** in the lobby, everyone. In a match, whoever stands
+  near you (18 steps or so), louder up close, from your side, muffled
+  through a wall. In the 5v5 rounds the dead hear the living near their
+  team, and only the dead hear the dead. Who is talking shows top left and
+  as a mark over their head when you can see them (and on the scoreboard).
+- **Quiet:** click or tap someone's name in the lobby to mute them (MUTED);
+  VOICE CHAT OFF hears nobody; VOICE CHAT VOLUME sets how loud everyone is.
+- Nothing anyone says is recorded or kept anywhere, on the server or a
+  game. It costs about 4 KB/s up while you talk and 4 KB/s down for each
+  voice you hear (four at most at once).
+
 ## Custom maps
 
 A map made in the MAP SHED (title, **CUSTOM MAPS**) can be played online:
@@ -179,6 +206,13 @@ address and port (or join code) and its password if it has one.
   right).
 - Players need the same version as the server: update the server with each
   release.
+- **Voice chat** goes through the server, which sends each talker on only
+  to the players near them (four voices at most to one player): a full 5v5
+  of ten all talking at once added about 170 KB/s out and two to four
+  percent of a core on the owner's PC (`tools/voice_chat_check.gd -- bench`);
+  six talking a whole minute beside a busy process on one core, about one
+  percent and no change to how evenly the snapshots went out. It decodes
+  and keeps nothing.
 
 **Running one** (`server/`): `lobbies.json` lists the lobbies (port plus any
 of `NetPlay.DEFAULTS`: `lobby_name`, `password`, `mode`, `map`, `team_size`,
@@ -305,6 +339,14 @@ client, each played by a bot). **Not checked:** play between two real homes
 over the internet (through the party line on the VPS or straight), a real
 router's UPnP answering (the test PC's router did not), CGNAT, phones, and
 the browser build hosting or joining by a code in a real page.
+
+`tools/voice_chat_check.gd` (in check_all and CI) sends a made-up voice
+through a lobby server with test lag, jitter and loss (one player on the
+WebSocket side) and through a hosted lobby's party line: who hears whom in
+the lobby and in a match, the dead, muting, VOICE CHAT off, PUSH TO TALK, how
+it is placed left and right and through a wall, and that the game's own
+packets go on as before. **Not checked:** a real mic, anyone listening, a
+phone, a browser page, the VPS.
 
 `tools/user_map_check.gd` hosts a lobby on a custom map in one process and
 has a client join: the map arrives, its hash checked, the match starts on

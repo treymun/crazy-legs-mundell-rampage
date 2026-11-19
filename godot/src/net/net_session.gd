@@ -27,6 +27,11 @@ const CHANNELS := 3
 const CH_RELIABLE := 0
 const CH_INPUTS := 1
 const CH_SNAPS := 2
+## Voice chat (net_voice.gd), unreliable. Godot's ENet keeps two channels of
+## its own below ours and sends channel 0 on its reliable one, so channel
+## CHANNELS is still a channel the peer has (index CHANNELS + 1 of its
+## CHANNELS + 2): an older peer of three channels takes it too.
+const CH_VOICE := 3
 ## An unreliable packet bigger than this goes reliable instead: ENet splits a
 ## big unreliable packet and loses all of it when one piece is lost (and
 ## warns each time).

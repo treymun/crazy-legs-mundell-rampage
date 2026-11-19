@@ -286,6 +286,8 @@ var showdown_on := false
 ## it, a line for those screens, asking to leave a match (ESC), and the
 ## match's own clock: time and mouse saved up toward the next tick.
 var net: NetPlay = null
+## Voice chat's mic, voices and marks while a lobby is up (main.gd).
+var voice_chat: VoiceChat = null
 ## Online co-op, the host: the chapter the party is in or left for the hub,
 ## picked up again through its gate (net_coop.gd).
 var net_run: Game = null
@@ -1288,6 +1290,8 @@ func render() -> void:
 		CountyScreens.draw_over(canvas, game)  # a COUNTY RUN's HUD, cards and end
 		if net != null and state == "play":
 			LobbyScreens.draw_match(canvas, net, game, net_leave)
+		if voice_chat != null:
+			voice_chat.draw(canvas, self)
 		var show_fps: int = options.get("show_fps", 0)
 		if show_fps != 0 and not touring:
 			# FRAME COUNTER: frames per second, top right, over the view.
@@ -1352,6 +1356,8 @@ func _pin_hud() -> void:
 		pins.append(
 			["ping", HudLayout.text_rect(ms, 316 - PixelType.text_width(ms, "mini"), 12, "mini")]
 		)
+	if voice_chat != null:
+		pins.append_array(voice_chat.pins(self))
 	hud.layout.pinned = pins
 
 

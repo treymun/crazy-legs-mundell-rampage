@@ -716,6 +716,8 @@ func _process(delta: float) -> void:
 		console.tick(delta)
 	if net != null or not net_old.is_empty() or browser != null:
 		_net_frame()
+	if net != null or voice_chat != null:
+		_voice_frame()
 	CountyScreens.board_frame(self)
 	RangeBoard.frame(self)
 	dt *= time_scale
@@ -1119,6 +1121,20 @@ func _net_frame() -> void:
 	var start_with: int = online_args.get("start", 0)
 	if start_with > 0 and net.phase == "lobby":
 		_online_autostart()
+
+
+## Voice chat (net/voice_chat.gd) while an online lobby is up; the mic and
+## every voice let go when it closes.
+func _voice_frame() -> void:
+	if voice_chat == null:
+		voice_chat = VoiceChat.new()
+		add_child(voice_chat)
+	if net == null:
+		voice_chat.stop()
+		voice_chat.queue_free()
+		voice_chat = null
+		return
+	voice_chat.frame(self)
 
 
 ## A match's ticks online, at the network's rate (NetSync.STEP): the host

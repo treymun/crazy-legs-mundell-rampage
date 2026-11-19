@@ -26,6 +26,8 @@
 ##   BACK     host -> clients, reliable: the match is over, back to the lobby
 ##   BYE      either way, reliable: leaving (with why: closed, kicked, full...)
 ##   MAP      host -> client, reliable: the lobby's player map (net_maps.gd)
+##   VOICE    either way, unreliable on NetSession.CH_VOICE: a frame of voice
+##            chat (net_voice.gd); an older side ignores it
 ##
 ## Controls go as CONTROL_BYTES: four halves (forward, strafe, turn, look),
 ## the buttons as bits (USE held and reload among them), then weapon, item,
@@ -52,6 +54,8 @@ const INFO := 10
 ## COUNTY RUN's daily board (county_board.gd): a post or an ask, and the board.
 const BOARD := 11
 const SNAP_PART := 12
+## Voice chat (net_voice.gd).
+const VOICE := 13
 ## A lobby's player map (net_maps.gd).
 const MAP := 20
 ## The party line's own kinds start here (net_relay.gd): a game packet's
