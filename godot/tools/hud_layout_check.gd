@@ -40,6 +40,7 @@ func _run() -> void:
 	for moment: Array in Crowd.MOMENTS:
 		_moment(str(moment[0]), moment[1])
 	HudLayout.measuring = false
+	_on_top()
 	PixelType.clear_small = false
 	main.touch.showing = false
 	tally.stop()
@@ -161,6 +162,34 @@ func _moment(name: String, wants: Array) -> void:
 	)
 	if png != "":
 		_picture(name, inked)
+	main.game = null
+
+
+## The notice and a new player's tip draw over every mark on the view: a hit
+## from in front (its hurt arc runs along the view's top) leaves both
+## banners' pixels as they are without it (pass 12: it struck them through).
+func _on_top() -> void:
+	print("")
+	print("BANNERS ON TOP")
+	var g: Game = Crowd.make(main, "campaign_minimal")
+	g.hurt_flash = 0.0
+	var kept := {}
+	for hit: bool in [true, false]:
+		g.damage_feedback = [g.player.view_angle(), "FIRE", g.clock + .5] if hit else null
+		main.render()
+		for piece: String in ["notice", "tip"]:
+			var r: Rect2i = main.hud.layout.find(piece)
+			var rows := PackedByteArray()
+			for y in range(r.position.y, r.end.y):
+				var at := (y * 320 + r.position.x) * 3
+				rows.append_array(main.canvas.pixels.slice(at, at + r.size.x * 3))
+			if hit:
+				kept[piece] = rows
+			else:
+				_check(
+					r.size.x > 0 and rows == kept[piece],
+					"the %s draws over the hurt arc of a hit from in front" % piece
+				)
 	main.game = null
 
 

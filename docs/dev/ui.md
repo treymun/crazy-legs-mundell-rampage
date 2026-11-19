@@ -98,7 +98,10 @@ flashlight, BLUE along: `TouchControls.offer`, main.gd each frame);
 `hud_crowd.gd`'s touch moment shows both.
 
 Pieces placed while drawing: partner tags at the view's edge (they wait
-when there is no room), the windup and hurt marks. A feature draws its piece
+when there is no room), the windup and hurt marks. Marks drawn straight on
+the view (the hurt arc round its edge, USE's corner brackets) go down before
+the notice and the tip, so a banner is never struck through (pass 12: a hit
+from in front ran the arc across the top banners). A feature draws its piece
 where `layout.find(name)` says, inside `HudLayout.begin(c, name)` /
 `end(c)`, which measure its real ink when `HudLayout.measuring` is on.
 The boss's entrance ribbon is a moment of its own and is not laid out.
