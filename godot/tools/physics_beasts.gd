@@ -83,7 +83,9 @@ func _doll(rig: BeastRig, kind: String, at: Vector2, z: float, turn: float) -> B
 	var tall: float = canvas[1]
 	var height: float = Enemy.DEFS.get(kind, {}).get("height", .6) if Enemy.DEFS.has(kind) else .9
 	var size := height / maxf(.1, tall)
-	var xf := Transform3D(Basis(Vector3.UP, turn).scaled(Vector3.ONE * size), Vector3(at.x, z, at.y))
+	var xf := Transform3D(
+		Basis(Vector3.UP, turn).scaled(Vector3.ONE * size), Vector3(at.x, z, at.y)
+	)
 	return BeastDoll.made_beast(rig, xf, rig.standing(), kind)
 
 
@@ -162,9 +164,11 @@ func _kind(game: Game, kind: String) -> void:
 	var head_f: float = plan.get("head", 0.0)
 	var tail_f: float = plan.get("tail", 0.0)
 	_check(
-		rig.legs.size() == int(legs_f) * 3
-		and rig.head.size() == int(head_f)
-		and rig.tail.size() == int(tail_f),
+		(
+			rig.legs.size() == int(legs_f) * 3
+			and rig.head.size() == int(head_f)
+			and rig.tail.size() == int(tail_f)
+		),
 		(
 			"%s's rig: %d legs, %d head and %d tail balls"
 			% [kind, rig.legs.size() / 3, rig.head.size(), rig.tail.size()]
@@ -235,7 +239,10 @@ func _kind(game: Game, kind: String) -> void:
 	if faults.is_empty():
 		_ok(
 			(
-				"%s's deaths: links held, knees their way, down on the floor, at rest in %.1f to %.1f s, lying %s"
+				(
+					"%s's deaths: links held, knees their way, down on the floor,"
+					+ " at rest in %.1f to %.1f s, lying %s"
+				)
 				% [kind, rests.min(), rests.max(), ", ".join(ways.keys())]
 			)
 		)
@@ -254,7 +261,10 @@ func _slabs(main: Node) -> void:
 			if not s.walk or found >= 4:
 				continue
 			var mid := Vector2((s.x0 + s.x1) * .5, (s.y0 + s.y1) * .5)
-			if not s.inside(mid.x, mid.y) or w.blocked(mid.x, mid.y, .4, s.top_at(mid.x, mid.y) + .3):
+			if (
+				not s.inside(mid.x, mid.y)
+				or w.blocked(mid.x, mid.y, .4, s.top_at(mid.x, mid.y) + .3)
+			):
 				continue
 			if not s.sloped() and s.kind != "stair":
 				continue
@@ -265,8 +275,13 @@ func _slabs(main: Node) -> void:
 			dice.seed = found
 			doll.knock(_victim(mid, top, "shotgun_near", .4 * found), dice)
 			_settle(doll, w)
-			var what := "%s's %s at %.1f, %.1f" % [id, "ramp" if s.sloped() else "stair", mid.x, mid.y]
-			_check(not doll.awake and doll.lies_on(w, TOL * 2.0), "a crawler shot on %s lies on it" % what)
+			var what := (
+				"%s's %s at %.1f, %.1f" % [id, "ramp" if s.sloped() else "stair", mid.x, mid.y]
+			)
+			_check(
+				not doll.awake and doll.lies_on(w, TOL * 2.0),
+				"a crawler shot on %s lies on it" % what
+			)
 			found += 1
 	_check(found >= 2, "beasts tried on %d ramps and stairs" % found)
 
@@ -312,7 +327,10 @@ func _water(main: Node) -> void:
 	var r := doll.radius[0]
 	_check(
 		mid < r * .9 and mid > -r * 1.5,
-		"a gator shot in deep water floats a little under the surface (middle %.3f, ball %.3f)" % [mid, r]
+		(
+			"a gator shot in deep water floats a little under the surface (middle %.3f, ball %.3f)"
+			% [mid, r]
+		)
 	)
 	_check(top < r * 2.0, "it comes up slowly, never thrown out of the water (highest %.3f)" % top)
 
@@ -342,7 +360,12 @@ func _herd(main: Node) -> void:
 		if e != null and Vector2(e.x, e.y).distance_to(at) < .01:
 			hog = e
 	_check(
-		hog != null and not hog.alive and absf(hog.died_at - g.clock) < .01 and hog.blast_at.x > at.x,
+		(
+			hog != null
+			and not hog.alive
+			and absf(hog.died_at - g.clock) < .01
+			and hog.blast_at.x > at.x
+		),
 		"a blast kills the hog's stand-in now, thrown from the blast"
 	)
 	var fresh := ModeBodies.stand_in(g, "hog_check", "hog")
@@ -411,7 +434,6 @@ func _boss(game: Game, kind: String) -> void:
 	_check(not doll.awake, "%s's body comes to rest (%.1f s)" % [kind, t])
 	_check(doll.lies_on(game.world, TOL), "%s lies on the floor" % kind)
 	var lying := view._lying_middle() * view._size(e)
-	var scripted := Vector2(at.x, at.y) + Vector2(lying.x, lying.z).rotated(0.0)
 	var mid := doll.middle()
 	var off := Vector2(mid.x, mid.y).distance_to(at)
 	_check(
@@ -423,8 +445,6 @@ func _boss(game: Game, kind: String) -> void:
 		_show(view, e, game, clock)
 		clock += DT
 	_check(doll.middle().distance_to(settled) < .005, "%s slides no further at rest" % kind)
-	if scripted == Vector2.INF:
-		pass
 	view.queue_free()
 
 

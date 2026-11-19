@@ -576,7 +576,9 @@ func _fit(
 				var cut_r: float = cut[1]
 				points.append(cut_at)
 				radii.append(clampf(cut_r, tall * .02, tall * .3))
-				ends.append(PackedInt32Array([-2 if k == 0 else points.size() - 2, points.size() - 1]))
+				ends.append(
+					PackedInt32Array([-2 if k == 0 else points.size() - 2, points.size() - 1])
+				)
 				parents.append(0 if k == 0 else ends.size() - 2)
 				rides.append(ends.size() - 1)
 				tail.append(points.size() - 1)
@@ -658,7 +660,9 @@ static func _sum(count: PackedInt32Array, group: PackedInt32Array) -> int:
 
 
 ## The mean of the share `share` of `cloud` with the least `key`.
-static func _mean_below(cloud: PackedVector3Array, key: PackedFloat32Array, share: float) -> Vector3:
+static func _mean_below(
+	cloud: PackedVector3Array, key: PackedFloat32Array, share: float
+) -> Vector3:
 	var cut := _quantile(key, share)
 	var sum := Vector3.ZERO
 	var n := 0
@@ -679,7 +683,9 @@ static func _quantile(values: PackedFloat32Array, share: float) -> float:
 
 ## [the middle, how thick] of the points of `cloud` whose `along` lies
 ## between a and b (thick: half the least of its width and height).
-static func _slice(cloud: PackedVector3Array, along: PackedFloat32Array, a: float, b: float) -> Array:
+static func _slice(
+	cloud: PackedVector3Array, along: PackedFloat32Array, a: float, b: float
+) -> Array:
 	var sum := Vector3.ZERO
 	var n := 0
 	var box := AABB()

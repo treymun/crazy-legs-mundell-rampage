@@ -367,7 +367,9 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 	)
 	xf.origin.y = e.floor_z
 	var doll: Ragdoll = (
-		BeastDoll.made_beast(r, xf, r.points, kind) if r is BeastRig else Ragdoll.made(r, xf, r.points)
+		BeastDoll.made_beast(r, xf, r.points, kind)
+		if r is BeastRig
+		else Ragdoll.made(r, xf, r.points)
 	)
 	var dice := RandomNumberGenerator.new()
 	dice.seed = 3

@@ -64,8 +64,7 @@ func _run() -> void:
 	if levels != LEVELS:
 		rag_levels = levels
 	PhysicsRagdolls.new(self).run(main, rag_levels)
-	print("
-BEASTS AND BOSSES")
+	print("\nBEASTS AND BOSSES")
 	PhysicsBeasts.new(self).run(main)
 	print("\nTHE SHARED CORE")
 	PhysicsCore.new(self).run(main)

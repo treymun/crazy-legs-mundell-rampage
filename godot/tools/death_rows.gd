@@ -434,8 +434,10 @@ func _wet(id: String, in_water: bool) -> Dictionary:
 				if w.blocked(front.x, front.y, .3, z + .4) or w.blocked(behind.x, behind.y, .3):
 					continue
 				var ok := (
-					BayouBrains.wet_at(w, behind.x, behind.y)
-					and BayouBrains.wet_at(w, behind.x + way.x, behind.y + way.y)
+					(
+						BayouBrains.wet_at(w, behind.x, behind.y)
+						and BayouBrains.wet_at(w, behind.x + way.x, behind.y + way.y)
+					)
 					if not in_water
 					else (
 						BayouBrains.wet_at(w, behind.x, behind.y)

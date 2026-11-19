@@ -349,6 +349,11 @@ a shop lamp falling in the saw floor's arena.
      looks bake at 256 (`FINE`): it is in the browser's first download. Every name in it starts `_hog`
      (actors_hound.py is exec'd after it and has its own `_leg`, `_body`).
      `build_enemy_actors.gd -- kinds=hog`, then the steps below for `hog`.
+   - A look's `same_order` (the gator, the crawler; pass 13) pairs every
+     frame's parts with the rest frame's by the order they are built, a
+     frame's own extras (an open mouth, a flash) built after them
+     (`export_actors.py _match`): by print their legs' shins, each stretched
+     to its frame's knee and foot, swapped legs from key to key.
 2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
    [rig-only] [raw=<dir>]` grades and digitizes
    (`assets/art/actor3d_<kind>[_<look>].png`) and writes

@@ -148,7 +148,9 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 			weight = SNOUT_WEIGHT
 		elif beast.tail.has(i):
 			var k := beast.tail.find(i)
-			weight = lerpf(TAIL_WEIGHT, TAIL_TIP_WEIGHT, float(k) / maxf(1.0, beast.tail.size() - 1))
+			weight = lerpf(
+				TAIL_WEIGHT, TAIL_TIP_WEIGHT, float(k) / maxf(1.0, beast.tail.size() - 1)
+			)
 			_limb[i] = 1
 		elif beast.legs.has(i):
 			match beast.legs.find(i) % 3:
@@ -188,7 +190,10 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 		var corners: Array[int] = [0, 1, 2, 3]
 		corners.sort_custom(
 			func(a: int, b: int) -> bool:
-				return rest[a].distance_squared_to(rest[root]) < rest[b].distance_squared_to(rest[root])
+				return (
+					rest[a].distance_squared_to(rest[root])
+					< rest[b].distance_squared_to(rest[root])
+				)
 		)
 		for t: int in [corners[0], corners[1], B.BELLY_B, B.BACK_B]:
 			_rigid(rest, root, t)
@@ -346,7 +351,9 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 		var best := 0
 		var most := -INF
 		for i in pos.size():
-			var toward := -(pos[i] - mid).dot(dir) + dice.randf_range(-1.0, 1.0) * reach * PICK_WANDER
+			var toward := (
+				-(pos[i] - mid).dot(dir) + dice.randf_range(-1.0, 1.0) * reach * PICK_WANDER
+			)
 			if toward > most:
 				most = toward
 				best = i
