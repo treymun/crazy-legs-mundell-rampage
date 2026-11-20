@@ -171,6 +171,20 @@ it is original.
 The downloads are on the [latest release](https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest).
 Saves stay on your machine.
 
+### Updating
+
+The Windows and Android builds ask the website once at start whether a newer version is out (only
+the version number comes back; turn it off with CHECK FOR UPDATES on the PLAY page of SETTINGS).
+When one is, a sign on the title says NEW VERSION ... GIT IT; pick it and the new download starts.
+
+- **Windows:** run the installer when it is down. It goes over the old install; saves are kept.
+- **Android:** let the download finish, then tap it (in the notification or your Downloads) and
+  choose **Update**. It installs over the old copy and keeps your saves, so there is no need to
+  uninstall. The first time, Android may ask you to allow your browser to install apps.
+  **One last uninstall:** copies from 3.11.0 and before were signed with a key made for each
+  build, so the first release signed with the game's lasting key will not go over them. Uninstall
+  that old copy once (this loses its saves); every release after installs over the last.
+
 ### Controls
 
 | Keyboard and mouse | | Gamepad | |
@@ -238,8 +252,10 @@ pictures. Tools that play the game write into a scratch profile, never yours.
 
 `.github/workflows/release.yml` runs the checks in six parallel shards and the 3D view's picture
 comparison on every push, builds the browser builds and deploys this landing page on `main`, and on
-a `v*` tag builds and publishes the Windows EXE, installer and APK. Set `ANDROID_KEYSTORE_BASE64`,
-`ANDROID_KEYSTORE_USER` and `ANDROID_KEYSTORE_PASSWORD` to sign the APK with a lasting key.
+a `v*` tag builds and publishes the Windows EXE, installer and APK. The APK is signed with the
+lasting key in `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_USER` and `ANDROID_KEYSTORE_PASSWORD`,
+so each release installs over the last; a tag without them fails rather than publish an APK signed
+with a throwaway key (branch and hand-started builds still use one).
 
 ## How it is put together
 

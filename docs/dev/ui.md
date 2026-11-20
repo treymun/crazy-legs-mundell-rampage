@@ -211,6 +211,53 @@ Online voice chat ([multiplayer.md](multiplayer.md#voice-chat-pass-13)) adds:
   `OnlineInput._tap_lobby`); the footer says so.
 - `tools/voice_frames.gd` pictures them in a window.
 
+## The update notice (pass 14)
+
+So nobody has to uninstall and reinstall to keep up (a friend's ask, phones
+above all), the Windows and Android builds look for a newer version once at
+start (`src/update_notice.gd`, `UpdateNotice`):
+
+- **When:** `main.gd _ready` calls `start_update_check()` (main_state.gd),
+  which makes the notice only when `UpdateNotice.wanted`: not the browser
+  (the page updates itself), not headless, not a tool (a script main loop),
+  not a tour, bench, smoke run, launch check, `--dev` run or either server,
+  CHECK FOR UPDATES on (PLAY page, on by default), and a platform with a
+  download (Android or Windows). Turning the setting on later starts it then.
+- **What:** one `HTTPRequest` GET of the site's `version.txt` (written by
+  release.yml's Pages step from `tools/version.gd`), an 8 s timeout, at most
+  256 bytes, two redirects; nothing sent but Godot's own User-Agent, nothing
+  else fetched, never retried. Only a clean 200 whose text is a version
+  newer than this one (`UpdateNotice.newer`: numbers, so 3.10 beats 3.9; a
+  release beats its own pre-releases) counts; offline, a timeout, an error
+  page or garbage shows nothing.
+- **The sign** (`src/ui/update_sign.gd`, `UpdateSign`): a tin sign strapped
+  to the light pole in the title's top right, clear of the logo, the board and
+  Mundell: NEW VERSION on its red band, `3.x.y OUT`, GIT IT, which lights on a
+  plate with chasing bulbs and shells while picked. On Android its small
+  print says to tap the download once it is down, that it goes over this
+  one and the saves are kept. It is one more button on `TitleScreen`
+  (`sign_button()`): up from the big plate or right from the office column
+  with keys or a pad, down or left back to the plate; the mouse and a finger
+  press it. CHECK FOR UPDATES off takes it down.
+- **Picked:** `OS.shell_open` on the platform's download, the latest
+  release's `CrazyLegsMundellRampage.apk` (Android) or
+  `CrazyLegsMundellRampage_Setup.exe` (Windows); the title's note says
+  DOWNLOADIN'. TAP IT (RUN IT) WHEN IT'S DONE.
+- **Installing over the old copy** needs the same package name
+  (`com.hickston.crazylegsmundell`), a version code that never goes down
+  (`tools/version.gd`) and the same signing key; release.yml fails a `v*`
+  tag's APK job without the `ANDROID_KEYSTORE_*` secrets, and its package
+  step refuses another package name, a code under 3.11.0's or the throwaway
+  key on a tag. The player's steps are in the README ("Updating").
+- `tools/update_check.gd` (UPDATE CHECK OK, in check_all) holds all of it
+  without the network; `tools/update_frames.gd -- out=<dir>` pictures the
+  signs in a window (`docs/godot3d/update14/`).
+
+Tried by hand once (2026-11-20): the real request from the engine (as 3.10.0
+it found 3.11.0, as 3.11.0 nothing; one request each though asked twice) and
+both download addresses (they lead to the latest release's files). Not
+checked: an exported build, a real phone's download and install.
+
 ## HOW TO RAISE HELL (the CONTROLS page)
 
 `ControlsScreen.rows_of(page)`: the keyboard page's rows name each key as

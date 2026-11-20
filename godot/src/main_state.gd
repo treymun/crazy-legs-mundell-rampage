@@ -423,6 +423,8 @@ var frame_count := 0
 ## The crash and error log (crash_log.gd; null in tools and the browser) and
 ## the controls the last play frame handed the game (its context).
 var crash_log: CrashLog = null
+## The update notice (update_notice.gd; null unless this launch asks the site).
+var update_notice: UpdateNotice = null
 var last_controls: Game.Controls = null
 ## The run's replay (replay_keeper.gd: recorded from a local game's first
 ## tick, written at a death, the end or a crash), the replay playing in the
@@ -1040,6 +1042,17 @@ func _grain_tone(table: PackedByteArray) -> void:
 
 func menu_panel(title: String) -> void:
 	menu.draw_sheet(canvas, title)
+
+
+## Ask the site whether a newer version is out, once a run, when this launch
+## may (UpdateNotice.wanted): at start, or when CHECK FOR UPDATES is turned on.
+func start_update_check() -> void:
+	if update_notice != null or not UpdateNotice.wanted(self):
+		return
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
+	update_notice = UpdateNotice.new(version, UpdateNotice.platform())
+	add_child(update_notice)
+	update_notice.ask()
 
 
 func title_hint() -> String:

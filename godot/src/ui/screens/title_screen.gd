@@ -2,12 +2,20 @@
 ## (the primary plate, the road's column, the county office's column), laid
 ## out by Menu.title_items and painted with Menu's own drawing. A button
 ## picked (focus, hover) is the front end's `selection`; pressing it runs
-## the entry (Main.menu_action); BACK resumes a paused game.
+## the entry (Main.menu_action); BACK resumes a paused game. When the update
+## notice found a newer version, its sign (UpdateSign) is one more button the
+## keys, a pad, the mouse and a finger reach; picking it opens the download.
 class_name TitleScreen
 extends UiScreen
 
 var _entries := PackedStringArray()
 var _rows: Array[PixelButton] = []
+## The update sign's button (null while there is no sign) and whether it has
+## the focus rather than the selection's row.
+var _sign: PixelButton = null
+var _on_sign := false
+## What the sign was built for (its platform and version; "": no sign).
+var _sign_built := ""
 
 
 func open(m: MainInput) -> void:
@@ -38,17 +46,91 @@ func _build() -> void:
 		_rows.append(b)
 		if i == posmod(main.selection, items.size()):
 			chosen = b
+	_sign = null
+	_sign_built = _sign_key()
+	if _sign_built != "":
+		var android := main.update_notice.target == "android"
+		_sign = add_button(
+			UpdateSign.rect(android),
+			"update",
+			func(c: Canvas, active: bool) -> void:
+				UpdateSign.draw(
+					c, main.update_notice.found, android, active, int(main.menu_clock * 8.0)
+				),
+			_press_sign
+		)
+		_sign.focus_entered.connect(func() -> void: _on_sign = true)
+		_link_sign(items)
+	else:
+		_on_sign = false
+	if _on_sign and _sign != null:
+		chosen = _sign
 	if chosen != null:
 		chosen.call_deferred("grab_when_shown")
 
 
+## The keys and a pad reach the sign up from the big plate and right from
+## the county office's column; down or left from it goes back to the plate.
+func _link_sign(items: Array) -> void:
+	var plate: PixelButton = null
+	for i in items.size():
+		var item: Dictionary = items[i]
+		var row := _rows[i]
+		var column: int = item["column"]
+		var primary: bool = item["primary"]
+		if primary:
+			plate = row
+			row.focus_neighbor_top = row.get_path_to(_sign)
+		elif column == 1:
+			row.focus_neighbor_right = row.get_path_to(_sign)
+	if plate != null:
+		_sign.focus_neighbor_bottom = _sign.get_path_to(plate)
+		_sign.focus_neighbor_left = _sign.get_path_to(plate)
+	_sign.focus_neighbor_top = NodePath(".")
+	_sign.focus_neighbor_right = NodePath(".")
+
+
+## The sign wanted now: "" for none, else its platform and version.
+func _sign_key() -> String:
+	if main.update_notice == null or not main.update_notice.shown(main.options):
+		return ""
+	return main.update_notice.target + " " + main.update_notice.found
+
+
+## The update sign's button, or null (the checks press it).
+func sign_button() -> PixelButton:
+	return _sign
+
+
+## Give the focus to the update sign (tools/update_frames.gd).
+func pick_sign() -> void:
+	if _sign != null:
+		_on_sign = true
+		_sign.grab_focus()
+
+
+## Hand the focus back to the selection's row (tools/update_frames.gd).
+func leave_sign() -> void:
+	_on_sign = false
+	_build()
+
+
+func _press_sign() -> void:
+	main.sound.play("menu_accept")
+	main.menu_note = main.update_notice.started_note()
+	main.update_notice.open_download()
+
+
 func picked() -> PixelButton:
-	if main.entries() != _entries:
+	if main.entries() != _entries or _sign_key() != _sign_built:
 		_build()
+	if _on_sign and _sign != null:
+		return _sign
 	return _rows[posmod(main.selection, _rows.size())] if not _rows.is_empty() else null
 
 
 func _picked(index: int) -> void:
+	_on_sign = false
 	if index == posmod(main.selection, maxi(1, _entries.size())):
 		return
 	main.selection = index
@@ -72,8 +154,9 @@ func back() -> bool:
 
 
 func draw_back(c: Canvas) -> void:
-	if main.entries() != _entries:
-		# An entry came or went (a quicksave was made, a game paused).
+	if main.entries() != _entries or _sign_key() != _sign_built:
+		# An entry came or went (a quicksave was made, a game paused), or the
+		# update sign (the site answered, CHECK FOR UPDATES was turned off).
 		_build()
 	var flashes: int = main.options.get("flashes", 0)
 	var flicker: int = main.options.get("flicker", 1)

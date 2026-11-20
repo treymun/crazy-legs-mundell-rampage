@@ -268,17 +268,25 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_USER: ${{ secrets.ANDROID_KEYSTORE_USER }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           set -euo pipefail
           keystore="$RUNNER_TEMP/release.keystore"
+          if [ "$RELEASE_TAG" = "true" ] && { [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_USER" ] || [ -z "$KEYSTORE_PASSWORD" ]; }; then
+            # A published APK must install over the last one (the update
+            # notice sends phones straight to it), so a tag signs it with the
+            # lasting key or publishes nothing.
+            echo "::error::A v* tag signs the APK with the lasting key, but the ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_USER and ANDROID_KEYSTORE_PASSWORD secrets are not all set. Add them (Settings > Secrets and variables > Actions) and re-run this tag's workflow. No throwaway-signed APK is published."
+            exit 1
+          fi
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
             user="$KEYSTORE_USER"
             password="$KEYSTORE_PASSWORD"
           else
-            # Without the three ANDROID_KEYSTORE_* secrets each run signs with
-            # a fresh key, so a phone must uninstall the old copy before it
-            # will take a newer APK.
+            # A branch or hand-started run without the three ANDROID_KEYSTORE_*
+            # secrets signs with a fresh key: that APK will not install over a
+            # published one (uninstall first). A v* tag never gets here.
             user="crazylegs"
             password="hickston-ci-only"
             keytool -genkeypair -keystore "$keystore" -storepass "$password" \
@@ -317,11 +325,29 @@ jobs:
           test -s godot/build/android/CrazyLegsMundellRampage.apk
           ls -lh godot/build/android
       - name: Check the package
+        env:
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
+          set -euo pipefail
+          apk=godot/build/android/CrazyLegsMundellRampage.apk
           tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
-          "$tools/apksigner" verify --print-certs godot/build/android/CrazyLegsMundellRampage.apk
-          "$tools/aapt2" dump badging godot/build/android/CrazyLegsMundellRampage.apk \
-            | grep -E "^(package|sdkVersion|targetSdkVersion|native-code|application-label):"
+          "$tools/apksigner" verify --print-certs "$apk" | tee certs.txt
+          "$tools/aapt2" dump badging "$apk" > badging.txt
+          grep -E "^(package|sdkVersion|targetSdkVersion|native-code|application-label):" badging.txt
+          # A phone updates an installed copy only from the same package name,
+          # the same key and a higher version code (tools/version.gd stamps
+          # it; tools/update_check.gd holds the presets to all of this).
+          grep -q "^package: name='com.hickston.crazylegsmundell'" badging.txt \
+            || { echo "::error::The APK's package name changed: phones would install it beside the old one."; exit 1; }
+          code=$(sed -n "s/^package: .*versionCode='\([0-9]*\)'.*/\1/p" badging.txt)
+          if [ -z "$code" ] || [ "$code" -lt 3110099 ]; then
+            echo "::error::The APK's version code ($code) is below 3.11.0's (3110099): phones would refuse it as an update (a downgrade)."
+            exit 1
+          fi
+          if [ "$RELEASE_TAG" = "true" ] && grep -q "Crazy Legs Mundell Rampage CI" certs.txt; then
+            echo "::error::This tag's APK is signed with the throwaway CI key: it would not install over the last release."
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: android

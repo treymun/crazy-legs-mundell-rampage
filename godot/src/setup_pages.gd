@@ -512,6 +512,12 @@ static func build() -> Array:
 					1,
 					"KEEP A REPLAY OF EACH DEATH, CHAPTER END AND CRASH (PLAY ONE WITH --REPLAY=)"
 				),
+				SessionStore.toggle(
+					"CHECK FOR UPDATES",
+					"update_check",
+					1,
+					"AT START, ASK THE WEBSITE IF A NEWER ONE IS OUT AND HANG A SIGN ON THE TITLE"
+				),
 			]
 		],
 		[

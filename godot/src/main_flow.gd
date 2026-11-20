@@ -740,6 +740,8 @@ func change_setting(value: int) -> void:
 		_quality_picked()
 	if item.key == "menu_music":
 		menu_music()
+	if item.key == "update_check":
+		start_update_check()
 	if item.key == "window_mode":
 		var window_mode: int = options["window_mode"]
 		change_window_mode(window_mode)

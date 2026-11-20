@@ -144,6 +144,7 @@ godot --path godot ... --script res://tools/county_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/range_frames.gd
 godot --path godot ... --script res://tools/camera_frames.gd -- out=<dir>   # the HUD (full, MINIMAL, 5v5, County Run), PHOTO MODE's filters and a saved picture, the KILL CAM
 godot --path godot ... --script res://tools/hud_frames.gd -- out=<dir> [only=menus,hud,tally]   # every menu screen and the HUD crowded (tools/hud_crowd.gd); run at several --resolution sizes
+godot --path godot ... --script res://tools/update_frames.gd -- out=<dir>   # the title's update sign (Windows, picked, Android) and CHECK FOR UPDATES
 godot --path godot ... --script res://tools/death_frames.gd -- out=<dir> [level=hickston] [gun=shotgun] [classic]   # falls: ragdolls, or the scripted ones
 godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bowling lane: a spread of rolls, what stands, the tick's cost
 ```

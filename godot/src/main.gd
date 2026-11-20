@@ -152,6 +152,7 @@ func _ready() -> void:
 		# A browser only grants fullscreen from a click or key, never at boot.
 		change_window_mode(window_mode)
 	_apply_view()
+	start_update_check()  # a player's own launch only (update_notice.gd)
 
 	if online_args.has("host") or online_args.has("join"):
 		_online_from_args()
