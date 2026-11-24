@@ -242,7 +242,11 @@ const BED_NEAR := 2
 const BED_WAKE := 3
 ## A county event's loop (features/event_looks.gd): a twister's roar, hooves.
 const BED_EVENT := 4
-const BEDS := 5
+## The flight loops of the things in the air nearest (BED_FLY and the two
+## after it) and the nearest saucer's hum (mover_sounds.gd).
+const BED_FLY := 5
+const BED_HUM := 8
+const BEDS := 9
 
 
 ## Small deterministic generator so shuffling never touches the global RNG.
@@ -676,6 +680,8 @@ var _dice := ShuffleRng.new(3001)
 var _take_dice := ShuffleRng.new(3011)
 ## The pitch play_at_rate() asks of the cue it starts (1 otherwise).
 var _rate := 1.0
+## Doppler on the sounds tied to fast movers (doppler.gd, mover_sounds.gd).
+var doppler := Doppler.new()
 
 
 func _init(p_art: Assets) -> void:
@@ -884,6 +890,13 @@ func _balance(v: Voice, left: float, right: float) -> void:
 		panner.pan = clampf((right - left) / total, -1.0, 1.0)
 
 
+## Voice `v` at level `gain` and `pan` (-1 left .. 1 right) under STEREO WIDTH.
+func _place(v: Voice, gain: float, pan: float) -> void:
+	_balance(
+		v, gain * (1.0 - maxf(0.0, pan) * pan_width), gain * (1.0 + minf(0.0, pan) * pan_width)
+	)
+
+
 func _start(
 	v: Voice, name: String, cue: String, volume: float, pan: float, cutoff := OPEN_CUTOFF
 ) -> void:
@@ -899,7 +912,7 @@ func _start(
 	if _varies(name):
 		pitch = 1.0 + (_dice.next() * 2.0 - 1.0) * PITCH_SPREAD
 		volume *= 1.0 + (_dice.next() * 2.0 - 1.0) * LEVEL_SPREAD
-	v.player.pitch_scale = pitch * _rate
+	doppler.start(v.player, pitch * _rate)
 	v.player.play()
 	var scale := 1.0
 	if name.begins_with("distant_"):
@@ -911,9 +924,7 @@ func _start(
 	else:
 		scale = REPORT_GAIN.get(name, 1.0)
 	var gain := minf(1.0, effects_gain * volume * scale) * .82 * mix_headroom
-	_balance(
-		v, gain * (1.0 - maxf(0.0, pan) * pan_width), gain * (1.0 + minf(0.0, pan) * pan_width)
-	)
+	_place(v, gain, pan)
 
 
 ## Whether `name` gets a pitch and level of its own (PITCH_SPREAD).
@@ -1052,11 +1063,7 @@ func set_radio(playing: bool, volume := 0.0, pan := 0.0) -> void:
 			_radio.player.stream = stream
 			_radio.player.play()
 		var gain := effects_gain * volume * mix_headroom
-		_balance(
-			_radio,
-			gain * (1.0 - maxf(0.0, pan) * pan_width),
-			gain * (1.0 + minf(0.0, pan) * pan_width)
-		)
+		_place(_radio, gain, pan)
 	elif _radio.player.playing:
 		_radio.player.stop()
 	var target := minf(.80, volume * 1.28) if playing else 0.0
@@ -1120,13 +1127,12 @@ func set_bed(slot: int, cue: String, volume: float, pan := 0.0, cutoff := OPEN_C
 		v.cue = cue
 		v.player.stream = stream
 		v.player.play()
+	doppler.hold(v.player)
 	var muffle := AudioServer.get_bus_effect(v.bus, 1) as AudioEffectLowPassFilter
 	if muffle != null:
 		muffle.cutoff_hz = cutoff
 	var gain := minf(1.0, level * volume) * .82 * mix_headroom
-	_balance(
-		v, gain * (1.0 - maxf(0.0, pan) * pan_width), gain * (1.0 + minf(0.0, pan) * pan_width)
-	)
+	_place(v, gain, pan)
 
 
 func set_tool(active: bool) -> void:
@@ -1153,11 +1159,7 @@ func play_voice(name: String, volume: float, pan: float) -> float:
 		_voice.cue = name
 		_voice.player.stream = stream
 		_voice.player.play()
-		_balance(
-			_voice,
-			gain * (1.0 - maxf(0.0, pan) * pan_width),
-			gain * (1.0 + minf(0.0, pan) * pan_width)
-		)
+		_place(_voice, gain, pan)
 	return stream.get_length()
 
 
@@ -1203,6 +1205,7 @@ func pause_world() -> void:
 	set_tool(false)
 	for i in BEDS:
 		set_bed(i, "", 0.0)
+	doppler.reset()
 	stop_voice()
 	for v: Voice in _all_voices():
 		if v.player.playing and WARNS.has(v.cue):
@@ -1290,11 +1293,7 @@ func preview(kind: String) -> void:
 	_preview.player.stream = stream
 	_preview.player.play()
 	_preview_left = seconds
-	_balance(
-		_preview,
-		gain * (1.0 - maxf(0.0, pan) * pan_width),
-		gain * (1.0 + minf(0.0, pan) * pan_width)
-	)
+	_place(_preview, gain, pan)
 
 
 func stop_preview() -> void:
@@ -1464,11 +1463,7 @@ func _radio_levels(dt: float) -> void:
 	if _dj.player.playing:
 		var gain := base * DJ_GAIN * (1.0 + .25 * near)
 		var pan := station.near_pan * near * .6
-		_balance(
-			_dj,
-			gain * (1.0 - maxf(0.0, pan) * pan_width),
-			gain * (1.0 + minf(0.0, pan) * pan_width)
-		)
+		_place(_dj, gain, pan)
 	if _scan.player.playing:
 		var heard := maxf(near, .55 if station.driving else 0.0)
 		var gain := base * lerpf(SCAN_FAINT, SCAN_NEAR, heard)
@@ -1478,11 +1473,7 @@ func _radio_levels(dt: float) -> void:
 		var muffle := AudioServer.get_bus_effect(_scan.bus, 1) as AudioEffectLowPassFilter
 		if muffle != null:
 			muffle.cutoff_hz = lerpf(SCAN_CUTOFF, station.near_cutoff, heard)
-		_balance(
-			_scan,
-			gain * (1.0 - maxf(0.0, pan) * pan_width),
-			gain * (1.0 + minf(0.0, pan) * pan_width)
-		)
+		_place(_scan, gain, pan)
 	if dt <= 0.0:
 		return
 	var want := MUSIC_UNDER_DJ if _dj.player.playing and not station.in_break else 1.0

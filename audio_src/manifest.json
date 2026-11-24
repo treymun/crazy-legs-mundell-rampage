@@ -52071,6 +52071,166 @@
    },
    "validation": "ok"
   },
+  "fly_rocket": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "near",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/fly_rocket.mp3",
+   "prompt": "A cheap fireworks-stand bottle rocket streaking past: a steady fizzing hiss of burning black powder with a thin shrill whistle riding on it, no bang.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/fly_rocket.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "near",
+    "chain": {
+     "hp": 60,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 0.0,
+     "fade": 0,
+     "level": -11.0,
+     "loop": 0.3
+    },
+    "level": "-11.0 dB (new cue)",
+    "keep_seconds": 2.0
+   },
+   "measured": {
+    "seconds": 1.95,
+    "peak_db": -0.8,
+    "loud_db": -10.2,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 6552,
+    "end_db": -5.3,
+    "seam_jump": 0.1129,
+    "seam_vs_p999": 0.09,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "fly_whoosh": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "near",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/fly_whoosh.mp3",
+   "prompt": "Something heavy tumbling end over end through the air right past the ear: a steady rhythmic whoosh, whoosh, whoosh of rushing air.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/fly_whoosh.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "near",
+    "chain": {
+     "hp": 60,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 0.0,
+     "fade": 0,
+     "level": -11.0,
+     "loop": 0.3
+    },
+    "level": "-11.0 dB (new cue)",
+    "keep_seconds": 2.0
+   },
+   "measured": {
+    "seconds": 1.95,
+    "peak_db": -0.8,
+    "loud_db": -8.1,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 515,
+    "end_db": -8.9,
+    "seam_jump": 0.0534,
+    "seam_vs_p999": 0.24,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "fly_bowl": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "near",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/fly_bowl.mp3",
+   "prompt": "The steady continuous rolling rumble of a heavy bowling ball travelling down a long wooden bowling lane, heard close: one constant low wooden rumble, no pins, no knocks.",
+   "credits": 103,
+   "destination": "audio_src/final/sfx/fly_bowl.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "near",
+    "chain": {
+     "hp": 60,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 0.0,
+     "fade": 0,
+     "level": -11.0,
+     "loop": 0.3
+    },
+    "level": "-11.0 dB (new cue)",
+    "keep_seconds": 1.6
+   },
+   "measured": {
+    "seconds": 1.6,
+    "peak_db": -1.0,
+    "loud_db": -11.0,
+    "dc": 0.0,
+    "onset_ms": 99.0,
+    "centroid_hz": 212,
+    "end_db": -26.1,
+    "seam_jump": 0.0002,
+    "seam_vs_p999": 0.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "saucer_hum": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "near",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/saucer_hum.mp3",
+   "prompt": "A small 1950s B-movie flying saucer hovering close by: a warbling electronic hum with a slow wobble and a faint theremin whine on top.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/saucer_hum.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "near",
+    "chain": {
+     "hp": 60,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 0.0,
+     "fade": 0,
+     "level": -11.0,
+     "loop": 0.3
+    },
+    "level": "-11.0 dB (new cue)",
+    "keep_seconds": 3.0
+   },
+   "measured": {
+    "seconds": 2.7,
+    "peak_db": -5.9,
+    "loud_db": -11.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 640,
+    "end_db": -10.1,
+    "seam_jump": 0.0012,
+    "seam_vs_p999": 0.01,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "hound_bark_alt3": {
    "purpose": "new cue",
    "refs": [],
@@ -62961,6 +63121,10 @@
   "fuel_whoomp",
   "wreck_crash",
   "blast_debris",
-  "wreck_pop"
+  "wreck_pop",
+  "fly_rocket",
+  "fly_whoosh",
+  "fly_bowl",
+  "saucer_hum"
  ]
 }

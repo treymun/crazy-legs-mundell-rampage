@@ -161,6 +161,8 @@ var pending_look := 0.0
 ## ticks played (its clock: main.gd advance, replay_keeper.gd).
 var solo_blend := SoloBlend.new()
 var solo_ticks := 0
+## The fast movers' sounds each drawn frame: the Doppler and the flight loops.
+var movers := MoverSounds.new()
 var mouse_rel := Vector2.ZERO
 var pending_dt := 0.0
 

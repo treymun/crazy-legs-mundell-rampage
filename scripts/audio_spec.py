@@ -1647,3 +1647,20 @@ add("impact",
     wreck_pop=N("A burning wrecked car: one sharp pop as a tire bursts in the flames, a small whump of fuel and "
                 "crackling.", 1.0, style="impact"),
     )
+# Pass 14, Doppler on fast movers (godot/src/mover_sounds.gd, doppler.cfg [fly]):
+# what flies past carries a loop of its own to bend as it comes and goes: a
+# bottle rocket's fizz and whistle, the whoosh of a thrown thing tumbling, a
+# bowling ball's rumble down the boards, a saucer's hum.
+STYLE["fly"] = ("A steady seamless looping sound effect for a 1990s PC shooter, close and dry, the same "
+                "all the way through, no impact, no music, no voice.")
+add("near",
+    fly_rocket=LOOP("A cheap fireworks-stand bottle rocket streaking past: a steady fizzing hiss of burning "
+                    "black powder with a thin shrill whistle riding on it, no bang.", 2.0, 2.0, "fly"),
+    fly_whoosh=LOOP("Something heavy tumbling end over end through the air right past the ear: a steady "
+                    "rhythmic whoosh, whoosh, whoosh of rushing air.", 2.0, 2.0, "fly"),
+    fly_bowl=LOOP("The steady continuous rolling rumble of a heavy bowling ball travelling down a long "
+                  "wooden bowling lane, heard close: one constant low wooden rumble, no pins, no knocks.",
+                  4.0, 1.6, "amb"),
+    saucer_hum=LOOP("A small 1950s B-movie flying saucer hovering close by: a warbling electronic hum with a "
+                    "slow wobble and a faint theremin whine on top.", 3.0, 3.0, "fly"),
+    )

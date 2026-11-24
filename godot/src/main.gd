@@ -810,6 +810,7 @@ func _process(delta: float) -> void:
 	sound.tick_score(dt)
 	var aimed := net_draw_begin(dt)
 	render()
+	_mover_sounds(dt)
 	if waiting_play != null and canvas.gpu:
 		# A browser still fetching the chapter: say so, and how far it has come.
 		var pack := str(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
@@ -1316,6 +1317,16 @@ func _solo_draw() -> void:
 		me = null  # a replay's own turn, or a partner watched while down
 	var at := solo_ticks - 1 + accumulator / SIM_STEP
 	solo_blend.draw(game, solo_ticks, at, me, pending_turn, pending_look)
+
+
+## The fast movers' sounds where this frame draws them (mover_sounds.gd):
+## none while the game holds still under a camera of its own or out of play.
+func _mover_sounds(dt: float) -> void:
+	var still := photo.on or opener.playing or kill_cam.playing
+	if state == "play" and game != null and not still and not game.showing_tally:
+		movers.frame(game, dt)
+	else:
+		movers.hush(sound)
 
 
 ## The others drawn between ticks: a client's at its playout clock's tick

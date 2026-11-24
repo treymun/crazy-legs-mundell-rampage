@@ -34,6 +34,11 @@ const LOOPS := [
 	"tornado_roar",
 	"hog_stampede",
 	"core_thrum",
+	# The flight loops and the saucers' hum (src/mover_sounds.gd, doppler.cfg).
+	"fly_rocket",
+	"fly_whoosh",
+	"fly_bowl",
+	"saucer_hum",
 ]
 const CALL := (
 	"\\.(?:play|play_at_rate|sting|play_voice|set_bed|sound_at)\\(\\s*"

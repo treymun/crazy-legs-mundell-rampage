@@ -126,6 +126,8 @@ func _wake(sound: Sound) -> void:
 		_boat = here
 		if moving and water != null and water.wet_at(e.x, e.y):
 			var place: Vector2 = game.sound_position(e.x, e.y, .9)
+			# Tied to the king for the Doppler (src/mover_sounds.gd follows him).
+			sound.doppler.next_from = Doppler.FOE + e.uid
 			sound.set_bed(
 				Sound.BED_WAKE,
 				"airboat_wake",
@@ -133,5 +135,6 @@ func _wake(sound: Sound) -> void:
 				place.y,
 				game.sound_cutoff(e.x, e.y)
 			)
+			sound.doppler.next_from = 0
 			return
 	sound.set_bed(Sound.BED_WAKE, "", 0.0)

@@ -46369,14 +46369,140 @@
    "bytes": 236
   },
   {
-   "id": "reconcile@2026-11-19T16:21:31",
+   "id": "sfx/fly_whoosh#1",
+   "kind": "sfx",
+   "name": "fly_whoosh",
+   "params": {
+    "text": "Something heavy tumbling end over end through the air right past the ear: a steady rhythmic whoosh, whoosh, whoosh of rushing air. A steady seamless looping sound effect for a 1990s PC shooter, close and dry, the same all the way through, no impact, no music, no voice.",
+    "duration_seconds": 2.0,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1ec2b673a2f6",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-24T17:01:05",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fly_whoosh.mp3",
+   "bytes": 55840
+  },
+  {
+   "id": "sfx/fly_rocket#1",
+   "kind": "sfx",
+   "name": "fly_rocket",
+   "params": {
+    "text": "A cheap fireworks-stand bottle rocket streaking past: a steady fizzing hiss of burning black powder with a thin shrill whistle riding on it, no bang. A steady seamless looping sound effect for a 1990s PC shooter, close and dry, the same all the way through, no impact, no music, no voice.",
+    "duration_seconds": 2.0,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6ce47e1fd743",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-24T17:01:05",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fly_rocket.mp3",
+   "bytes": 55840
+  },
+  {
+   "id": "sfx/saucer_hum#1",
+   "kind": "sfx",
+   "name": "saucer_hum",
+   "params": {
+    "text": "A small 1950s B-movie flying saucer hovering close by: a warbling electronic hum with a slow wobble and a faint theremin whine on top. A steady seamless looping sound effect for a 1990s PC shooter, close and dry, the same all the way through, no impact, no music, no voice.",
+    "duration_seconds": 3.0,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "42c7eaacd82e",
+   "reserved": 125,
+   "status": "settled",
+   "started": "2026-11-24T17:01:06",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/saucer_hum.mp3",
+   "bytes": 73394
+  },
+  {
+   "id": "sfx/fly_bowl#1",
+   "kind": "sfx",
+   "name": "fly_bowl",
+   "params": {
+    "text": "A heavy bowling ball rolling fast down an old hardwood bowling alley: a deep steady thundering rumble on the boards, no pins. A steady seamless looping sound effect for a 1990s PC shooter, close and dry, the same all the way through, no impact, no music, no voice.",
+    "duration_seconds": 2.5,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d268fbc094a9",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-24T17:01:06",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fly_bowl.mp3",
+   "bytes": 63990
+  },
+  {
+   "id": "sfx/fly_bowl#2",
+   "kind": "sfx",
+   "name": "fly_bowl",
+   "params": {
+    "text": "The continuous low rolling rumble of a heavy bowling ball on old hardwood boards, even and unchanging from start to end like a steady far-off roll of thunder, no pins, no knocks. A steady seamless looping sound effect for a 1990s PC shooter, close and dry, the same all the way through, no impact, no music, no voice.",
+    "duration_seconds": 2.5,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "443c6aaebca1",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-24T17:03:49",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fly_bowl.mp3",
+   "bytes": 63990
+  },
+  {
+   "id": "sfx/fly_bowl#3",
+   "kind": "sfx",
+   "name": "fly_bowl",
+   "params": {
+    "text": "The steady continuous rolling rumble of a heavy bowling ball travelling down a long wooden bowling lane, heard close: one constant low wooden rumble, no pins, no knocks. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 4.0,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7a555a8b6d7f",
+   "reserved": 165,
+   "status": "settled",
+   "started": "2026-11-24T17:06:11",
+   "actual": 45,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fly_bowl.mp3",
+   "bytes": 97845
+  },
+  {
+   "id": "reconcile@2026-11-24T17:07:16",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -29579,
+   "actual": -29585,
    "basis": "account",
-   "balance_after": 83907
+   "balance_after": 84084
   }
  ],
  "anchor": {
@@ -46384,7 +46510,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-19T16:21:31",
-  "account_drop": 79184
+  "when": "2026-11-24T17:07:16",
+  "account_drop": 79361
  }
 }

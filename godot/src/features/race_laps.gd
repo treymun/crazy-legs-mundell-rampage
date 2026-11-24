@@ -123,7 +123,7 @@ func _tick(dt: float) -> void:
 			var fresh := game.clock >= pass_at + 1.0
 			car[3] = game.clock + 2.2
 			var cue := "cruiser_siren" if siren and fresh else "lap_car_pass"
-			game.sound_at(cue, at.x, at.y, .9)
+			game.sound_from(Doppler.LAP + cars.find(car), cue, at.x, at.y, .9)
 		# Every player on the track is run down, each with their own second
 		# before the same car can hit them again: car[2] is player one's,
 		# car[3 + slot] another player's (added when first needed).
@@ -166,6 +166,19 @@ func _tick(dt: float) -> void:
 	if dry and not running:
 		# Every car has coasted to a stop for good: nothing to tick.
 		sleep()
+
+
+## Where car `k` is on the line now (a Vector3 on its floor), INF when it
+## stands still: src/mover_sounds.gd follows it for the Doppler.
+func car_spot(k: int) -> Vector3:
+	if k < 0 or k >= cars.size() or game.revisiting:
+		return Vector3.INF
+	var speed: float = cars[k][1]
+	if speed <= 0.0:
+		return Vector3.INF
+	var car_along: float = cars[k][0]
+	var at: Vector2 = _at(car_along)[0]
+	return Vector3(at.x, at.y, game.world.elevation(at.x, at.y))
 
 
 ## Each car as the race car's model (the 3D view's prop `race_car_0`), turned

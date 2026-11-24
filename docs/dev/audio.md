@@ -86,6 +86,76 @@ decision here comes from measurement and from the code.
   run time (barks, boss lines, enemy cries, guns, floors, materials,
   `metal_down`) is in the bank or `Assets.MADE_CUES`.
 
+## Doppler (pass 14)
+
+What passes fast bends its pitch: up as it comes, down as it goes. `src/doppler.gd`
+(`Doppler`, `sound.doppler`) holds the movers and the voices tied to them;
+`src/mover_sounds.gd` (`MoverSounds`, the front end's `movers`) feeds it
+each frame during the draw (main.gd `_mover_sounds`, between
+`net_draw_begin` and `net_draw_end`), so every place is where it is drawn:
+between ticks in single player (SoloBlend), online the others blended and
+our own player predicted. Every number is `data/tuning/doppler.cfg`.
+
+- **The sum.** pitch = base x (c - v_listener . n) / (c - v_source . n), n
+  the way from the source to the listener, each speed times its family's
+  `scale`. `base` is what Sound started the cue at (`PITCH_SPREAD`'s dice
+  times an engine's `play_at_rate`), so the two multiply; a mover and a
+  listener standing still give exactly the base. The listener's speed is
+  its own drawn one, so riding in the car its own engine barely moves (0.01
+  semitone at top speed, `doppler_check`) while a car going the other way
+  passes at both speeds.
+- **The numbers.** c (`sound_speed`) is 150 cells a second. Real sound is
+  about 40 times a fast car; at 150 the stock car (top 13) comes in 1.57
+  semitones up and goes away 1.44 down, a minor third in all, the size of a
+  real car going by at about 100 km/h: heard, never a cartoon. At it: the airboat
+  +1.0/-0.95, the mower +0.63/-0.61 (`scale` 1.5), the ripsaw's blade
+  +1.8/-1.65, a crossbow bolt +1.3/-1.2, a bottle rocket +1.15/-1.07, the
+  cow +1.0/-0.97, a bowling ball +0.88/-0.83, a carried thing thrown about
+  +1.1/-1.05, a saucer +0.55/-0.53 (`scale` 3: they hover at 1.6 cells a
+  second). Clamped at 3 semitones either way (`most_up`, `most_down`: only
+  something past 30 cells a second reaches it); eased over 0.05 s (`ease`)
+  and never faster than 30 semitones a second (`slew`): the steepest frame
+  of a car passing 2 cells off moves 0.17 semitone at 60 frames a second.
+- **Speeds** come from the drawn places frame to frame, followed over 0.06 s
+  (`track`); a jump past 2 cells in one frame (`snap`) or faster than 45
+  cells a second (`fastest`), a respawn, a seat taken, a new level, forgets
+  the speed there instead of reading one from it: no spike (`doppler_check`).
+- **What bends.** Only voices tied to a mover, and only cues of 0.45 s or
+  more (`shortest`): a bottle rocket's 0.3 s whistle, a click, a shot keep
+  their pitch. Tied: each ride's engine notes and tyre squeal
+  (`vehicles.gd`, `Doppler.RIDE`, through `game.sound_from`), the speedway's
+  race cars and the Moonshine Run's cruisers with their siren
+  (`race_laps.gd`, `Doppler.LAP`), the swamp king's rev, charge and wake
+  (`bayou_brains.gd`, `soundscape.gd`) and Bumper Boggs's rev into a charge
+  (`derby_champ.gd`; both `Doppler.FOE`, `MoverSounds.FOES`), and the flight
+  loops. A parked vehicle makes no sound, so it has nothing to bend.
+  The pitch is the voice's own, so the same note heard through a wall or a
+  floor (Hearing's muffle on its bus) bends by the same factor.
+- **Flight loops.** The nearest three shots or carried things in the air
+  within 14 cells each carry a loop on a bed of their own (`Sound.BED_FLY`
+  and the two after it), placed as any sound is (`sound_position`,
+  `sound_cutoff`, looked at again every 0.033 s; the pitch every frame), up
+  over 0.06 s and down over 0.1 s where it burst or landed: `fly_rocket`
+  (bottle rockets, flares), `fly_whoosh` (bolts, the blade, the cow, the
+  dynamite, kegs, cocktails, jars, pots, cans, wrenches, footballs, bottles,
+  a carried thing thrown; each at its own pitch, as loud as it is fast: none
+  at 2 cells a second, all at 8), `fly_bowl` (a bowling ball's roll, a
+  rolled tyre). The nearest saucer or probe within 11 cells hums
+  (`saucer_hum`, `Sound.BED_HUM`). doppler.cfg `[fly]` names each shot's
+  loop, level, pitch, family and whether it is a whoosh.
+- **Off** (`on=false`) or a family's `scale=0` (`on=false` in its
+  `[family.*]`): exactly the old pitch. Nothing here touches play: no dice,
+  no tick, no snapshot (`doppler_check` plays the same run both ways to the
+  same state, rng and snapshot). With the game held still under its own
+  camera (PHOTO MODE, an opener, the KILL CAM), at the tally and out of play
+  the loops are let go.
+- **Made** 2026-11-24 (pass 14): the four loops, family `near`, style `fly`
+  (`audio_spec.py`). `fly_bowl` took three takes: the first two were one
+  ball going by (20 dB from end to middle), the third, asked as a steady
+  bed, keeps its first steady 1.6 s (within about 8 dB; one soft knock a
+  turn). 183 credits booked, 177 after the reconciles (79,184 to 79,361).
+  73 KB in the first download (sfx.bin; 74.4 of 75 MB). Not listened to.
+
 ## Voice chat (online, pass 13)
 
 The players' own voices online are not cues: `src/net/voice_chat.gd` plays
