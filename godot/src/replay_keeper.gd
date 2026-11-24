@@ -196,6 +196,7 @@ static func advance(main: MainState, elapsed: float) -> void:
 	for _i in steps:
 		if not pb.step():
 			break
+		main.solo_ticks += 1
 	if not parted and pb.diverged >= 0:
 		main.notice("THE REPLAY PARTED FROM PLAY AT TICK %d" % pb.diverged, 5.0)
 		print("replay: parted at tick %d (last match %d)" % [pb.diverged, pb.last_good])

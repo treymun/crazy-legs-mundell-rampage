@@ -2966,6 +2966,22 @@ not changed: its runs and daily board are balanced on its own cards, and its
 bot is too weak a yardstick to tune them by. (The aliens' and deputies'
 new drops fall in its hordes too, as every hand's drop always has.)
 
+## Drawn between ticks (pass 14)
+
+The tick is 1/120 s (`MainState.SIM_STEP`; `main.gd advance` runs as many
+as the frame's time holds, the rest waits in `accumulator`). With FRAME
+LIMIT at 120, 144 or 240 single player is drawn part way between its last
+two ticks (`SoloBlend`, `src/solo_blend.gd`: the players, the guns' timers,
+the clock, the hands near the view, the shots, the wreck pieces, the gibs,
+casings, vehicles and the hound), a tick behind play, and put back exactly
+after the frame; the view turns every frame by the mouse not yet played, so
+the crosshair is where the next tick fires. Nothing a tick does changes: the
+same `game.tick` calls, dice, snapshots and replays (`frame_smooth` plays
+the same frames both ways to the same hash). A draw-time cache kept in a
+feature must be taken by the tick's clock, not the drawn one (the variants'
+`look_for_doors`). The whole story is in
+[view3d.md](view3d.md#drawn-between-ticks-single-player-pass-14).
+
 ## Speed of the tick
 
 - **Line of sight is the tick's big cost** (`LevelData.visible()`, nine

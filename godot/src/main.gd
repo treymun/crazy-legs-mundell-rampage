@@ -937,6 +937,8 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 			replays.after(game, step_i == steps - 1)
 		else:
 			_tick_party(controls)
+		solo_ticks += 1
+		solo_blend.turned(controls.turn, controls.look)
 		if game.portal_request != "":
 			travel(game.portal_request)
 			break
@@ -1208,6 +1210,7 @@ func _net_host_tick(mine: Game.Controls) -> void:
 ## (net_predict.gd), our shots shown at the press (net_shot_predict.gd).
 ## Looks only; net_draw_end puts it all back after the frame.
 func net_draw_begin(dt: float) -> Array:
+	_solo_draw()
 	# Our own player first, walked among the others as the copy has them
 	# (the prediction's walk against bodies part way between ticks moved
 	# every frame and was eased as corrections), then the others blended,
@@ -1238,6 +1241,26 @@ func net_draw_end(aimed: Array) -> void:
 		net_shots.restore(game, aimed_player, shots_kept)
 		NetPredict.restore(aimed_player, aimed_kept)
 	net_blend.end()
+	solo_blend.end()
+
+
+## Single player drawn between its last two ticks (solo_blend.gd), at the
+## share of the next tick the accumulator holds, the view turned by the
+## mouse not yet played; nothing while the game holds still (PHOTO MODE, a
+## chapter's opener, the KILL CAM), online, or under a FRAME LIMIT of 60 or
+## less (every frame a tick or more: nothing between to draw). Put back by
+## net_draw_end.
+func _solo_draw() -> void:
+	var still := photo.on or opener.playing or kill_cam.playing
+	var slow := frame_interval() > SIM_STEP * 1.5
+	if net != null or state != "play" or game == null or still or slow:
+		solo_blend.forget()
+		return
+	var me: Player = game.local_player
+	if replay_play != null or (game.players.size() > 1 and me.slot != TacticalScreens.human):
+		me = null  # a replay's own turn, or a partner watched while down
+	var at := solo_ticks - 1 + accumulator / SIM_STEP
+	solo_blend.draw(game, solo_ticks, at, me, pending_turn, pending_look)
 
 
 ## The others drawn between ticks: a client's at its playout clock's tick

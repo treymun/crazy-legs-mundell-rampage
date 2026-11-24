@@ -157,6 +157,10 @@ var focused := true
 var accumulator := 0.0
 var pending_turn := 0.0
 var pending_look := 0.0
+## Single player drawn between its last two ticks (solo_blend.gd), and the
+## ticks played (its clock: main.gd advance, replay_keeper.gd).
+var solo_blend := SoloBlend.new()
+var solo_ticks := 0
 var mouse_rel := Vector2.ZERO
 var pending_dt := 0.0
 

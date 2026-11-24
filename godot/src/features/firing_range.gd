@@ -686,14 +686,12 @@ func sprites() -> Array:
 	return out
 
 
-## The station's card where the HUD's layout has room (range_card.gd).
+## The station's card where the HUD's layout has room (range_card.gd): the
+## station the tick found him at (a draw changes nothing: single player is
+## drawn between ticks, solo_blend.gd, where he stands a little behind).
 func hud_flow(layout: HudLayout) -> void:
 	if Modes.is_versus(game) or not on:
 		return
-	var here := L.station_at(game.player.x, game.player.y)
-	if here != station:
-		station = here
-		station_since = game.clock
 	if station != "" and not game.map and game.player.health > 0:
 		Card.claim(layout, self)
 
@@ -701,10 +699,5 @@ func hud_flow(layout: HudLayout) -> void:
 func draw_view(c: Canvas) -> void:
 	if Modes.is_versus(game):
 		return
-	if on:
-		var here := L.station_at(game.player.x, game.player.y)
-		if here != station:
-			station = here
-			station_since = game.clock
 	if on and station != "" and not game.map and game.player.health > 0:
 		Card.draw(c, self)
