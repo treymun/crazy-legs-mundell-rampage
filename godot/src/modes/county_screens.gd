@@ -160,7 +160,7 @@ static func draw_maps(c: Canvas, menu: Menu) -> void:
 			c, record, 33, y + 30, "mini", LobbyScreens.GREEN if not best.is_empty() else Menu.FADED
 		)
 		LobbyScreens.zone(r, "map", i)
-	LobbyScreens.footer(c, "ARROWS PICK   ENTER GO   ESC BACK")
+	LobbyScreens.footer(c, "ARROWS PICK   ENTER GO   ESC BACK", "TAP A MAP TO RUN IT")
 	LobbyScreens.back_button(c)
 
 

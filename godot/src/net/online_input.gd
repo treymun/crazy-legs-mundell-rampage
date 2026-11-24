@@ -65,10 +65,11 @@ static func tap(main: MainInput, at: Vector2i) -> void:
 				LobbyScreens.HOST_FORM if main.state == "nethost" else LobbyScreens.JOIN_FORM
 			)
 			var row: Array = rows[clampi(arg, 0, rows.size() - 1)]
+			var current := str(main.net_form.get(str(row[0]), ""))
 			if str(row[2]) == "go":
 				main.key(KEY_ENTER)
-			else:
-				keyboard(true, str(main.net_form.get(str(row[0]), "")))
+			elif not WebTyping.ask(main, str(row[1]), current):
+				keyboard(true, current)
 		"lobby":
 			_tap_lobby(main, id, arg)
 		"lobbyset":
@@ -98,7 +99,8 @@ static func _tap_servers(main: MainInput, id: String, arg: int) -> void:
 		return
 	if id == "name":
 		b.row = 0
-		keyboard(true, b.name)
+		if not WebTyping.ask(main, "YOUR NAME", b.name):
+			keyboard(true, b.name)
 	elif id == "server":
 		b.row = arg + 1
 		main.key(KEY_ENTER)

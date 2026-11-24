@@ -86,5 +86,5 @@ func draw_back(c: Canvas) -> void:
 	if main.menu_note != "":
 		HUD.text(c, main.menu_note, 126, 180, "body", HUD.AMBER, true)
 	else:
-		LobbyScreens.footer(c, "ENTER START   ESC BACK")
+		LobbyScreens.footer(c, "ENTER START   ESC BACK", "TAP A LEVEL TO PLAY IT")
 	Menu.plate_button(c, Menu.BACK, "BACK", _back.has_focus())

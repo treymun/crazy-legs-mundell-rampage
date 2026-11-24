@@ -108,6 +108,9 @@ looks (art.md#props).
    the keys it always has too).
 2. Bump the settings count in `tools/check_fixes.gd` (83 now).
 3. Settings are not part of a save: no save version.
+4. `tools/touch_settings_check.gd` changes it by touch with no edit (it reads
+   the settings list); a row it cannot work fails by name. A setting that
+   opens something of its own (like MOVE THEM) must close by a tap too.
 
 ## A menu screen
 

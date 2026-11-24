@@ -351,14 +351,24 @@ func _motion(m: InputEventMouseMotion) -> void:
 	_hover = c
 	if c.x < 0 or c == _last_cell:
 		return
+	var from := _last_cell
 	_last_cell = c
 	ed.cursor = c
-	if _box_from.x >= 0:
+	if _box_from.x >= 0 or _painting == 0:
 		return
-	if _painting == 1:
-		ed.apply(c)
-	elif _painting == 2:
-		ed.erase(c)
+	# Every cell between the last one and this: a quick finger (or mouse)
+	# skips cells between two moves, and the stroke would come out dotted.
+	var steps := 1
+	if from.x >= 0:
+		steps = maxi(1, maxi(absi(c.x - from.x), absi(c.y - from.y)))
+	for i in range(1, steps + 1):
+		var cell := (
+			c if from.x < 0 else Vector2i(Vector2(from).lerp(Vector2(c), float(i) / steps).round())
+		)
+		if _painting == 1:
+			ed.apply(cell)
+		else:
+			ed.erase(cell)
 
 
 func _palette_click(at: Vector2i) -> void:
@@ -433,9 +443,11 @@ func _leave() -> void:
 func _edit_field(key: String) -> void:
 	_field = key
 	_text = str(_ed().map.get(key, ""))
+	main.sound.play("menu_accept")
+	if WebTyping.ask(main, str(FIELD_NAMES.get(key, key)), _text, true):
+		return  # a phone's browser: its own box, typed in, then ENTER
 	if DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
 		DisplayServer.virtual_keyboard_show(_text)
-	main.sound.play("menu_accept")
 
 
 func _finish_field(keep: bool) -> void:

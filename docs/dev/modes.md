@@ -840,7 +840,12 @@ dev.45: a lobby server's lobby with `ws_port` also takes WebSocket players
 joins (net_browser.gd, `NetPlay.join_lobby` with a `wss://` address). Since
 pass 7 the browser also hosts and joins by a party line code, through the
 relay in the lobby server ([multiplayer.md](multiplayer.md#the-party-line-the-relay));
-a 10-character join code or an address stays desktop only.
+a 10-character join code or an address stays desktop only. On a phone (pass
+14) a tap on a form's field (YOUR NAME, the code, the lobby's name and
+password) asks the browser for the text with the phone's own keyboard and
+types it in (`WebTyping`, [ui.md](ui.md#how-a-finger-reaches-a-menu-pass-14));
+before, Godot's web keyboard was off and a touch-only player could not type a
+party line code at all.
 
 ## Not done
 

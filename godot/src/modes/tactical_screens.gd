@@ -932,7 +932,7 @@ static func draw_picker(
 		"YOU AND A BOT AGAINST TWO." if mode_id == "tagteam" else "YOU AND FOUR BOTS AGAINST FIVE."
 	)
 	_fit(c, blurb, 163, LobbyScreens.SOFT)
-	LobbyScreens.footer(c, "ARROWS PICK   ENTER PLAYS   ESC BACK")
+	LobbyScreens.footer(c, "ARROWS PICK   ENTER PLAYS   ESC BACK", "TAP A ROW TO CHANGE IT")
 	LobbyScreens.back_button(c)
 
 

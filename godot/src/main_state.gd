@@ -723,6 +723,8 @@ func slot_source() -> Game:
 ## pg.key.start_text_input / stop_text_input: raises the on-screen keyboard
 ## where there is one, so a save slot can be named on a phone.
 func _text_input(active: bool) -> void:
+	if active and WebTyping.ask(self, "NAME THIS SAVE", slot_name, true):
+		return  # a phone's browser: its own box, then the save goes on
 	if not DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
 		return
 	if active:
@@ -1143,7 +1145,6 @@ func render_setup() -> void:
 			confirm = "A KEEP / B UNDO  (%d)" % left
 		else:
 			confirm = "ENTER KEEP / ESC UNDO  (%d)" % left
-	menu.touch_words = input_device == "touch"
 	menu.draw_setup(
 		canvas,
 		pages,
@@ -1294,6 +1295,9 @@ func render() -> void:
 	var world_motion: int = options.get("world_motion", 0)
 	menu.motion = world_motion
 	menu.steady = steady
+	# A finger was the last input: the menus' hints speak to it.
+	menu.touch_words = input_device == "touch"
+	LobbyScreens.touch_words = menu.touch_words
 	if ui != null and ui.show_state(state):
 		# Every menu is a screen of its own (src/ui/screens/).
 		ui.shown().render(canvas)

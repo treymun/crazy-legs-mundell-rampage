@@ -143,9 +143,20 @@ func _action_rect(i: int) -> Rect2i:
 	return Rect2i(PANEL.position.x + 3, ACTIONS_Y + i * ACTION_H, PANEL.size.x - 6, ACTION_H - 1)
 
 
+## THE MAP SHED's plate at the panel's foot (NEW MAP picked).
+func _shed_rect() -> Rect2i:
+	var r := _action_rect(4)
+	r.position.y = PANEL.end.y - 16
+	r.size.y += 2
+	return r
+
+
 func _click(at: Vector2i) -> void:
 	if Menu.BACK.has_point(at):
 		back()
+		return
+	if (UserMapPlay.row == 0 or _entry().is_empty()) and _shed_rect().has_point(at):
+		_do("new")  # the plate a finger sees (before pass 14 it took no tap)
 		return
 	for i in range(_scroll, mini(_count(), _scroll + SHOWN)):
 		if _row_rect(i).has_point(at):
@@ -204,8 +215,10 @@ func _do(what: String) -> void:
 			why = UserMapPlay.why_not(entry, "remove")
 			if why == "" and not UserMapPlay.armed:
 				UserMapPlay.armed = true
+				var again := "TAP" if main.input_device == "touch" else "ENTER"
 				UserMapPlay.note = (
-					"ENTER AGAIN TO THROW OUT %s. NO TAKING IT BACK." % str(entry["map"]["name"])
+					"%s AGAIN TO THROW OUT %s. NO TAKING IT BACK."
+					% [again, str(entry["map"]["name"])]
 				)
 				main.sound.play("menu_move")
 				return
@@ -263,7 +276,9 @@ func draw_back(c: Canvas) -> void:
 			HUD.AMBER if UserMapPlay.note != "" else Menu.FADED,
 			true
 		)
-	LobbyScreens.footer(c, "ARROWS PICK   ENTER GO   N NEW   ESC BACK")
+	LobbyScreens.footer(
+		c, "ARROWS PICK   ENTER GO   N NEW   ESC BACK", "TAP A MAP, THEN WHAT TO DO WITH IT"
+	)
 	LobbyScreens.back_button(c)
 
 
@@ -346,11 +361,11 @@ func _draw_new(c: Canvas) -> void:
 	var lines := PixelType.wrap(" ".join(SHED_TEXT), PANEL.size.x - 12, "mini")
 	for k in lines.size():
 		HUD.text(c, lines[k], x, PANEL.position.y + 20 + k * 7, "mini", LobbyScreens.SOFT)
-	var r := _action_rect(4)
-	r.position.y = PANEL.end.y - 16
-	c.fill_rect(r.position.x, r.position.y, r.size.x, r.size.y + 2, LobbyScreens.LIT)
+	var r := _shed_rect()
+	c.fill_rect(r.position.x, r.position.y, r.size.x, r.size.y, LobbyScreens.LIT)
 	Menu.shell(c, r.position.x + 2, r.position.y + 2)
-	HUD.text(c, "ENTER: TO THE SHED", r.position.x + 15, r.position.y + 1, "body", HUD.AMBER)
+	var go := "TAP: TO THE SHED" if main.input_device == "touch" else "ENTER: TO THE SHED"
+	HUD.text(c, go, r.position.x + 15, r.position.y + 1, "body", HUD.AMBER)
 
 
 func _draw_entry(c: Canvas, entry: Dictionary) -> void:

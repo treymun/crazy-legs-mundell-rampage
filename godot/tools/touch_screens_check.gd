@@ -7,15 +7,19 @@
 ##   Godot --headless --path <project> --script res://tools/touch_screens_check.gd
 ##
 ## From the title, each screen a finger opens and closes again with its BACK:
+## CONTROLS (opens on the TOUCH page; a tab), CREDITS (a tap closes it),
+## REPLAY LEVEL, MULTIPLAYER, COUNTY RUN's map, CUSTOM MAPS and BOSS REMATCH.
+## The MAP SHED: its plate on CUSTOM MAPS, a palette item, a quick stroke that
+## paints every cell it crosses, MAP NAME typed in as the browser types a
+## phone's answer (WebTyping), BACK twice; JOIN WITH A CODE's field likewise.
 ## SAVE SLOTS from a paused game (SAVE, a slot, the name's CANCEL plate, LOAD
-## on a slot), CONTROLS (opens on the TOUCH page; a tab), CREDITS (a tap closes it), REPLAY
-## LEVEL, MULTIPLAYER, COUNTY RUN's map, CUSTOM MAPS and BOSS REMATCH. In play
-## every on-screen button (the overlay's shown buttons, whatever they are):
-## a press lands on it, FIRE ALT JUMP DUCK are held while the finger stays,
-## the stick walks, a drag on the right turns, MAP opens the map, NEXT changes
-## the gun, PHOTO and then MENU go in and out of PHOTO MODE, MENU pauses to the
-## title; and the playing area's top row never overlaps on a phone held
-## upright. Fails on any script or engine error. Writes nothing to the profile.
+## on a slot). In play every on-screen button (the overlay's shown buttons,
+## whatever they are): a press lands on it, FIRE ALT JUMP DUCK are held while
+## the finger stays, the stick walks, a drag on the right turns, MAP opens the
+## map, NEXT changes the gun, PHOTO and then MENU go in and out of PHOTO MODE,
+## MENU pauses to the title; and the top row never overlaps on a phone held
+## upright. Fails on any script or engine error. Writes nothing to the
+## profile (custom maps go to a cache folder).
 extends SceneTree
 
 const FINGER := 9120
@@ -36,6 +40,8 @@ func _run() -> void:
 	main.set_process(false)
 	var tally := CrashLog.tally()
 	await _menus()
+	await _shed()
+	_typed_in()
 	await _play()
 	_upright()
 	tally.stop()
@@ -166,6 +172,77 @@ func _menus() -> void:
 		)
 		if main.state != "title":
 			await _back(id)
+
+
+# --------------------------------------------------------- the map shed
+
+
+## CUSTOM MAPS' shed plate by a tap (before pass 14 only a second tap on +
+## NEW MAP opened it), a quick finger's stroke painting every cell it
+## crossed, and a field typed in the way the browser types a phone's answer.
+func _shed() -> void:
+	print("\nTHE MAP SHED BY A FINGER")
+	UserMaps.folder_override = OS.get_cache_dir().path_join("clmr-maps-touch-screens")
+	_check(await _title_tap("CUSTOM MAPS"), "the title's CUSTOM MAPS by a tap")
+	if main.state != "maps":
+		return
+	UserMapPlay.row = 0
+	await _frame()
+	var screen = main.ui.shown()
+	await _tap(_mid(screen._shed_rect()))
+	_check(main.state == "mapedit", "CUSTOM MAPS: the shed's plate by a tap (%s)" % main.state)
+	if main.state != "mapedit":
+		return
+	var ed: MapEditor = UserMapPlay.editor
+	await _tap(Vector2(MapEditorScreen.PALETTE.position.x + 20, MapEditorScreen.ITEMS_Y + 11))
+	_check(str(ed.item()["label"]) == "PLAIN DIRT", "the palette's PLAIN DIRT by a tap")
+	var px := ed.cells_px()
+	var size := Vector2i(UserMap.width(ed.map), UserMap.height(ed.map)) * px
+	var origin := (
+		MapEditorScreen.VIEW.position + ((MapEditorScreen.VIEW.size - size) / 2).max(Vector2i.ZERO)
+	)
+	var cell := func(x: int, y: int) -> Vector2:
+		return Vector2(origin + Vector2i(x, y) * px + Vector2i(px / 2, px / 2))
+	await _finger(_at(cell.call(3, 6)), true)
+	await _slide(_at(cell.call(12, 6)))
+	await _finger(_at(cell.call(12, 6)), false)
+	var missed: Array[int] = []
+	for x in range(3, 13):
+		if UserMap.at(ed.map, x, 6) != ".":
+			missed.append(x)
+	_check(
+		missed.is_empty(), "a quick stroke paints every cell it crosses (missed %s)" % str(missed)
+	)
+	screen = main.ui.shown()
+	screen._edit_field("name")
+	WebTyping.type_over(str(ed.map.get("name", "")), "Creek Bottom", true)
+	Input.flush_buffered_events()
+	await _frame()
+	_check(
+		str(ed.map.get("name", "")) == "CREEK BOTTOM",
+		"a phone browser's answer typed into MAP NAME (%s)" % ed.map.get("name", "")
+	)
+	for i in 2:
+		await _tap(Vector2(270, MapEditorScreen.PLATES_Y + 4))
+	_check(main.state == "maps", "the shed's BACK (twice, nothing saved) by taps (%s)" % main.state)
+	await _back("CUSTOM MAPS")
+
+
+## The browser types a phone's answer into the join form's field as keys.
+func _typed_in() -> void:
+	main.state = "netjoin"
+	main.net_row = 1
+	var was := str(main.net_form.get("address", ""))
+	WebTyping.type_over(was, "hkp-427")
+	Input.flush_buffered_events()
+	_check(
+		str(main.net_form.get("address", "")) == "hkp-427",
+		(
+			"JOIN WITH A CODE: a phone browser's answer typed into its field (%s)"
+			% main.net_form.get("address", "")
+		)
+	)
+	main.state = "title"
 
 
 # -------------------------------------------------------------------- play

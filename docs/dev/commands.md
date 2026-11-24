@@ -80,6 +80,8 @@ godot --headless --path godot --script res://tools/wall_looks_check.gd   # WALL 
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/walls_frames.gd -- out=<dir> [only=window|window_blast|fence|buckshot|fence_blast|holes]
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
+godot --headless --path godot --script res://tools/touch_settings_check.gd # TOUCH SETTINGS OK
+godot --headless --path godot --script res://tools/touch_screens_check.gd # TOUCH SCREENS OK
 godot --headless --path godot --script res://tools/warm_check.gd      # WARM CHECK OK (the view's warm-up)
 godot --headless --path godot --script res://tools/load_speed_check.gd # LOAD SPEED OK (pass 10's loads: rigs, cues, title warm-up, budgets)
 godot --headless --path godot --script res://tools/opener_check.gd     # OPENER CHECK OK (the chapter openers)

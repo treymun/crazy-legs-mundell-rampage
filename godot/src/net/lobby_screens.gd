@@ -84,6 +84,9 @@ const SERVERS_SHOWN := 3
 ## Where a tap lands this frame: [rect, id, arg] in drawing order (the last
 ## one drawn on top). Cleared by main_state.gd render() each frame.
 static var zones: Array = []
+## The last input was a finger (main_state.gd render, each frame): the
+## footers say what a tap does.
+static var touch_words := false
 ## MULTIPLAYER's and ALL SETTINGS' cursors.
 static var hub_row := 0
 static var all_row := 0
@@ -134,9 +137,11 @@ static func back_button(c: Canvas, label := "BACK") -> void:
 	zone(Menu.BACK, "back", 0)
 
 
-## The keys' hint, left of BACK.
-static func footer(c: Canvas, text: String) -> void:
-	HUD.text(c, text, 126, 181, "mini", HUD.INK, true)
+## The keys' hint, left of BACK; `by_finger` instead when the last input was
+## a finger (touch_words), so a phone is never told to press ENTER or ESC.
+static func footer(c: Canvas, text: String, by_finger := "") -> void:
+	var line := by_finger if touch_words and by_finger != "" else text
+	HUD.text(c, line, 126, 181, "mini", HUD.INK, true)
 
 
 static func _note(c: Canvas, text: String, y: int, ink := HUD.AMBER) -> void:
@@ -186,7 +191,7 @@ static func draw_hub(c: Canvas, menu: Menu, note: String) -> void:
 		HUD.text(c, str(HUB[i][2]), 160, y + 20, "body", SOFT, true)
 		zone(r, "row", i)
 	_note(c, note, 171)
-	footer(c, "ARROWS PICK   ENTER GOES   ESC BACK")
+	footer(c, "ARROWS PICK   ENTER GOES   ESC BACK", "TAP ONE TO GO")
 	back_button(c)
 
 
@@ -245,7 +250,7 @@ static func draw_form(
 	_note(c, note, y2)
 	for k in help.size():
 		HUD.text(c, str(help[k]), 160, y2 + 12 + k * 9, "body", SOFT, true)
-	footer(c, "TYPE   ENTER NEXT   ESC BACK")
+	footer(c, "TYPE   ENTER NEXT   ESC BACK", "TAP A ROW TO TYPE IN IT")
 	back_button(c)
 
 
@@ -611,14 +616,18 @@ static func draw_lobby(
 		_note(c, note, 167)
 	elif why != "":
 		_note(c, why, 167, RED if cursor == "start" else SOFT)
-	footer(
-		c,
-		(
-			"CLICK A SETTING TO CHANGE IT, A NAME TO MUTE"
-			if net.is_admin()
-			else "PICK A TEAM, THEN READY. CLICK A NAME TO MUTE"
+	if net.is_admin():
+		footer(
+			c,
+			"CLICK A SETTING TO CHANGE IT, A NAME TO MUTE",
+			"TAP A SETTING TO CHANGE IT, A NAME TO MUTE"
 		)
-	)
+	else:
+		footer(
+			c,
+			"PICK A TEAM, THEN READY. CLICK A NAME TO MUTE",
+			"PICK A TEAM, THEN READY. TAP A NAME TO MUTE"
+		)
 	back_button(c, "CLOSE" if net.role == NetPlay.Role.HOST else "LEAVE")
 
 
@@ -899,7 +908,10 @@ static func draw_all_settings(c: Canvas, menu: Menu, net: NetPlay, note: String)
 	_note(
 		c, note if note != "" else ("" if admin else "ONLY %s CHANGES THESE." % _runner(net)), 167
 	)
-	footer(c, "CLICK A SETTING TO CHANGE IT" if admin else "ESC BACK")
+	if admin:
+		footer(c, "CLICK A SETTING TO CHANGE IT", "TAP A SETTING TO CHANGE IT")
+	else:
+		footer(c, "ESC BACK", "TAP DONE TO GO BACK")
 	back_button(c, "DONE")
 
 

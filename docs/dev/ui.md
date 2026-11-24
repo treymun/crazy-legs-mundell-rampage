@@ -155,7 +155,7 @@ In `src/ui/screens/`:
 | `OnlineScreen` (a `ZonedScreen`) | multi, showdown, servers, nethost, netjoin, lobby, lobbyset | drawn with `LobbyScreens` zones; pointer via the Control, keys via the front end's handlers |
 | `CountyMapsScreen` (a `ZonedScreen`) | county | likewise, with `CountyScreens` |
 | `CustomMapsScreen`, `MapEditorScreen` | maps, mapedit | their own: focus on the screen, keys, the mouse and touch in `_gui_input` ([levels.md](levels.md#player-maps)) |
-| `KeyedScreen` | setup, slots | drawing only; keys and pointer stay with `main_input.gd` |
+| `KeyedScreen` | setup, slots | drawing only; keys and pointer stay with `main_input.gd` (a finger: `_touch_menu`, below) |
 
 `ZonedScreen` is the base for screens drawn with zones (each draw notes where
 a tap lands, and a tap becomes the key it stands for). The multiplayer menus'
@@ -171,6 +171,75 @@ rules are in [multiplayer.md](multiplayer.md#the-multiplayer-menus).
   menus as touch events, and in play the junk bench's board, the USE button
   held and a tap over a chapter's opener.
 
+### How a finger reaches a menu (pass 14)
+
+The owner's phone browser took no finger on SETTINGS. A finger comes as
+`InputEventScreenTouch`/`ScreenDrag` (mouse emulation is off in
+project.godot, so it is never also a click) and takes one of two roads in
+`main_input.gd _input`:
+
+- **A screen that takes the pointer** (buttons, zoned screens, CUSTOM MAPS,
+  the MAP SHED): `_to_screen` -> `UiRoot.take`, which turns the finger into
+  the pointer in the screen's own viewport (a move, then the click).
+- **A keyed screen** (SETTINGS, LOAD / SAVE: `KeyedScreen`, `pointer_own`
+  off) and the states without a screen: `_touch_menu` and `_touch_drag`. On
+  SETTINGS a tap counts when the finger lifts without moving; a finger that
+  lands on the picked row's bar or the groove slides it; any other drag
+  scrolls the list.
+
+Two rules hold for both, and every new control must keep them:
+
+- **Any finger number.** Godot's web build passes the browser's
+  `Touch.identifier` on as the index, and a phone browser numbers fingers as
+  it likes (an iPhone's are big numbers). The first finger down drives the
+  menus until it lifts, whatever its number (`_menu_finger`); others are
+  ignored. Never test `index == 0`: before pass 14 the keyed screens did, and
+  took no finger at all in such a browser.
+- **The browser's echo.** Godot's web build reads the page's `pointermove`
+  as the mouse, and a moving finger is a pointer, so every drag also comes
+  as an `InputEventMouseMotion` with no button held. `_finger_echo` drops a
+  mouse motion while a finger is down (`fingers_down`); before pass 14 the
+  echo ended a bar's drag at its first touch and lit rows under a scrolling
+  finger.
+
+What a finger is told: the hints and footers say TAP where the keys say
+ENTER or ESC (`input_device == "touch"`; `Menu.touch_words`,
+`LobbyScreens.footer(c, keys, by_finger)`); CONTROLS opens on its TOUCH page;
+a KEYS row tapped waits for a key and says a tap keeps the old one (the
+footer: KEYBOARD ONLY), since only a plugged-in keyboard can bind; LOAD /
+SAVE's name and overwrite questions show their two answers as plates.
+
+**Typing on a phone.** Android's soft keyboard types as keys. In the browser
+Godot's own keyboard is off (experimental, it hands text only to a
+LineEdit, and an iPhone opens no keyboard from a frame's code), so a tap on
+a field (a save's name, the host and join forms, the server list's name,
+the MAP SHED's lines) asks the browser for the text, the phone's keyboard
+included (`WebTyping.ask`, a `prompt()`), and types the answer in as keys,
+so each field keeps its rules. A mouse click on a field keeps the keyboard.
+
+**A new control:** take the pointer through a `UiScreen` (buttons or zones)
+where you can, so `UiRoot.take` brings the finger; if it reads fingers
+itself, gate them with `_menu_finger` and never read a finger number; give
+it a place to tap for every key it answers to (a BACK plate, not ESC alone),
+and TAP words for a finger. A new setting needs nothing more:
+`touch_settings_check` covers every row of the settings list.
+
+`tools/touch_settings_check.gd` (TOUCH SETTINGS OK, quick) drives every page
+and setting of `SessionStore.setup_pages()` by touch events only, the way
+the engine delivers them, with a browser's finger numbers and echo and with
+Android's; `tools/touch_screens_check.gd` (TOUCH SCREENS OK, quick) the
+title's screens and their BACK, the MAP SHED, LOAD / SAVE and every play
+button ([checks.md](checks.md)).
+
+Tried in pass 14 in both browser builds in Edge with real touch events, a
+390x844 phone upright and an 844x390 one on its side, Android's and an
+iPhone's browser named, fingers numbered 0 and in the thousands: before the
+fix SETTINGS took no tap at all from a big finger number and a bar would not
+slide; after it every page, row, bar, the groove, KEYS, RESET, KEEP / UNDO,
+MOVE THEM, LOAD / SAVE (a name typed in the browser's box), JOIN WITH A
+CODE's field and the MAP SHED (its plate, painting, MAP NAME) worked. Not on
+a real phone.
+
 ### Touch in play (polish pass 9)
 
 What each v3.6.0 screen and feature takes from a finger (`src/touch_controls.gd`,
@@ -185,7 +254,12 @@ What each v3.6.0 screen and feature takes from a finger (`src/touch_controls.gd`
 | BLUE's commands | a tap on his badge whistles (SIC 'EM, FETCH, STAY, COME by what the sights are on) |
 | County events | USE throws a blackout's main breaker; the twister, the hogs and a raid ask for nothing but moving |
 | A chapter's opener, the KILL CAM | a tap anywhere skips it |
-| The 5v5 store, County Run's cards and end | their own taps (`TacticalScreens.tap`, `CountyInput.tap`) |
+| The 5v5 store, County Run's cards and end | their own taps (`TacticalScreens.tap`, `CountyInput.tap`; County Run's take the only finger down, any number) |
+
+The buttons: the top row stands 9% of the width apart, so on a phone held
+upright (a browser) its rings shrink to fit (`TouchControls.layout`, pass
+14: they overlapped). MOVE THEM keeps the places in `user://touch-layout.json`,
+never written by a tool.
 
 Not checked by hand: none of it has been tried on a real phone.
 
