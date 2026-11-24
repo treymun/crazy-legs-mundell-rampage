@@ -124,7 +124,7 @@ func _bake(asked: bool) -> void:
 		quit(1 if asked else 0)
 		return
 	var baker: Script = load("res://tools/level_bake.gd")
-	var made: Array = baker.call("make", self, out)
+	var made: Array = [] if baker == null else baker.call("make", self, out)
 	if made.is_empty():
 		print("BAKING FAILED")
 		quit(1)
