@@ -370,7 +370,9 @@ bit. Looks only: play, its dice, its snapshots and replays never see it.
   unblended draw leaves. A draw must change nothing play reads: the range's
   card set the station the player stood at from the draw too, which with
   the player drawn a little behind put play's station back for a tick; it
-  is the tick's alone now (`firing_range.gd hud_flow`, `draw_view`).
+  is the tick's alone now (`firing_range.gd look_for_station`; a view tour,
+  which stands the player somewhere and draws with no tick between, asks it
+  first, `tour_station`, so `range_armory_1` keeps its card).
 - **Speed.** The swarms (hands, shots, gibs, casings, wreck pieces, fine
   bits) are flat arrays matched to the tick before by order (a Dictionary
   row and a call a thing cost three times as much). Measured with

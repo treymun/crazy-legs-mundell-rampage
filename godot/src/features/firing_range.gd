@@ -168,12 +168,9 @@ func _tick(dt: float) -> void:
 	var p := game.player
 	if p.health <= 0:
 		p.health = 100
-	var here := L.station_at(p.x, p.y)
-	if here != station:
-		station = here
-		station_since = game.clock
+	if look_for_station():
 		for board: String in BOARD_OF:
-			if BOARD_OF[board] == here:
+			if BOARD_OF[board] == station:
 				RangeBoard.want(board)
 	if pending != "":
 		game.message(pending, pending_for)
@@ -686,9 +683,27 @@ func sprites() -> Array:
 	return out
 
 
+## A view tour stood him somewhere and draws with no tick between (main.gd
+## _view_tour): the station there, as the card's draw once looked for it.
+func tour_station() -> void:
+	if on and not Modes.is_versus(game):
+		look_for_station()
+
+
+## The station the player stands at, looked at again (the tick's). True when
+## it changed. Never from a draw: single player is drawn between ticks
+## (solo_blend.gd), a little behind where play has him.
+func look_for_station() -> bool:
+	var here := L.station_at(game.player.x, game.player.y)
+	if here == station:
+		return false
+	station = here
+	station_since = game.clock
+	return true
+
+
 ## The station's card where the HUD's layout has room (range_card.gd): the
-## station the tick found him at (a draw changes nothing: single player is
-## drawn between ticks, solo_blend.gd, where he stands a little behind).
+## station the tick found him at (a draw changes nothing).
 func hud_flow(layout: HudLayout) -> void:
 	if Modes.is_versus(game) or not on:
 		return

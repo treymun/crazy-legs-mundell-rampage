@@ -336,6 +336,11 @@ func _view_tour() -> void:
 			var lightning: float = shot.get("lightning", 0.0)
 			var weather: WeatherFeature = game.features["weather"]
 			weather.hold(rain, wet, lightning)
+		# The range's card for the station he now stands at, as a tick would
+		# find it (no draw does: firing_range.gd tour_station).
+		var proving: GameFeature = game.features.get("range")
+		if proving != null:
+			proving.call("tour_station")
 		# fx: the 3D view as players see it (lights and glows); gpu: the same
 		# without them.
 		for mode: String in ["fx", "gpu"]:
