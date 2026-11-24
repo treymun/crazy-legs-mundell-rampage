@@ -328,9 +328,10 @@ start (`src/update_notice.gd`, `UpdateNotice`):
   with keys or a pad, down or left back to the plate; the mouse and a finger
   press it. CHECK FOR UPDATES off takes it down.
 - **Picked:** `OS.shell_open` on the platform's download, the latest
-  release's `CrazyLegsMundellRampage.apk` (Android) or
+  release's `CrazyLegsMundellRampage.apk` (Android without the updater) or
   `CrazyLegsMundellRampage_Setup.exe` (Windows); the title's note says
-  DOWNLOADIN'. TAP IT (RUN IT) WHEN IT'S DONE.
+  DOWNLOADIN'. TAP IT (RUN IT) WHEN IT'S DONE. Android with the updater
+  updates itself instead (below).
 - **Installing over the old copy** needs the same package name
   (`com.hickston.crazylegsmundell`), a version code that never goes down
   (`tools/version.gd`) and the same signing key; release.yml fails a `v*`
@@ -340,6 +341,80 @@ start (`src/update_notice.gd`, `UpdateNotice`):
 - `tools/update_check.gd` (UPDATE CHECK OK, in check_all) holds all of it
   without the network; `tools/update_frames.gd -- out=<dir>` pictures the
   signs in a window (`docs/godot3d/update14/`).
+
+### The in-game Android update (pass 14)
+
+From 3.12.0 the APK updates itself: the sign downloads the new APK inside
+the game, checks it and hands it to Android's package installer, so the
+player only says INSTALL on the system's prompt (a sideloaded app can never
+install silently). Windows keeps opening the installer's download; the
+browser has nothing to update.
+
+- **The pieces.** `src/update_notice.gd` (the stages, below),
+  `src/update_fetch.gd` (`UpdateFetch`: the download and the check),
+  `src/apk_installer.gd` (`ApkInstaller`: the Android plugin as GDScript sees
+  it) and the plugin itself, `addons/clmr_updater/java/.../CrazyLegsUpdater.java`
+  (a Godot Android plugin v2: `downloadDir()`, `canInstall()`,
+  `openInstallSettings()`, `install(path)`, signals `resumed` and
+  `install_result`). `start_update_check()` hands the notice the plugin when
+  `Engine.has_singleton("CrazyLegsUpdater")`; without it (an older APK, any
+  other platform) the sign opens the download as before.
+- **The release's update.json** (made by release.yml's release job beside
+  the files): the version and each file's `size` and `sha256`. It is read
+  from `releases/download/vN/` for the very version `version.txt` named, and
+  the APK comes from the same place (never `latest/`), so the hash always
+  belongs to the file downloaded and a release still being built just says
+  NOT IN YET. `version.txt` is unchanged (one line), so older copies still
+  read it.
+- **Stages** (`UpdateNotice.stage`; the panel's words in `UpdateSign.words`):
+  `""` GIT IT; `asking` (update.json); `fetching` (a gauge, MB done; HOLD IT
+  stops it, the part stays on disk); `checking` (size, then SHA-256 a
+  megabyte at a time, never the whole APK in memory); `ready` PUT IT IN;
+  `leave` ONE SWITCH (Android's "install unknown apps" is off for the game:
+  SETTIN'S opens it, `resumed` with it on goes straight on); `handed` (the
+  system's prompt is up; `install_result` 0 or coming back with no answer
+  is a no: back to PUT IT IN); `full` (no room: the rest of the download,
+  the installer's copy and 32 MB checked first with `get_space_left`);
+  `bad` (mangled twice: thrown away; once is fetched again); `failed` (the
+  line gave out after its retries); `missing` (no update.json yet);
+  `refused` (the installer would not open). A game going (paused on the
+  title) gets QUIT YER RUN FIRST instead of the installer.
+- **The download** (`UpdateFetch`, `HTTPClient` polled each frame, 4 ms of
+  work a frame, one read a frame while a game is played): follows
+  github.com's 302 to its asset store; a break picks up with
+  `Range: bytes=N-` (the store answers 206 through the redirect, tried
+  2026-11-24), a server ignoring it starts from nothing; a stall of 20 s or a
+  dropped line retries after 2, 5, 10, 20 and 40 s from what is on disk.
+  Files: `CrazyLegsMundellRampage-<version>.apk.part` while it comes, renamed
+  to `.apk` once checked, with update.json's word on it in `.apk.json` so a
+  later run can check it again before installing. They live in the app's own
+  files folder (`downloadDir()`), never shared storage.
+- **The installer** gets a `content://` address from godot-lib's own
+  FileProvider (`<package>.fileprovider`, which serves the files folder) and
+  `ACTION_INSTALL_PACKAGE` with `EXTRA_RETURN_RESULT`. When the update goes
+  in, Android stops the game and replaces it; the new version's first run
+  throws the APK away (`UpdateNotice.tidy` at every start, setting on or
+  off: any of our files at or under the running version). An APK fetched
+  earlier and not yet installed brings the sign back at PUT IT IN.
+- **CHECK FOR UPDATES off** stops a download under way (`halt`) and nothing
+  more is fetched; nothing is fetched beyond version.txt until the sign is
+  picked.
+- **The build.** The Android preset is a Gradle build
+  (`gradle_build/use_gradle_build`, native code compressed as the plain
+  export had it). `tools/android_plugin.gd` compiles the Java against the
+  SDK's `android.jar` and godot-lib (from the export templates'
+  `android_source.zip`) and zips the AAR, `addons/clmr_updater/bin/` (not
+  committed); its manifest part (`addons/clmr_updater/aar/AndroidManifest.xml`)
+  asks `REQUEST_INSTALL_PACKAGES` and names the plugin class; the addon's
+  export plugin hands the AAR to Gradle. `--install-android-build-template`
+  puts the template in `godot/android/` (not committed) on export.
+  [commands.md](commands.md) has the local build, [checks.md](checks.md#ci)
+  CI's.
+- `tools/update_flow_check.gd` (UPDATE FLOW OK, quick) walks all of it
+  against a small HTTP server of its own and a stand-in plugin;
+  `update_check` keeps the preset, the addon, the manifest part and the
+  Java's names in step; `touch_screens_check` taps GIT IT and PUT IT IN;
+  `update_frames.gd` pictures the panel.
 
 Tried by hand once (2026-11-20): the real request from the engine (as 3.10.0
 it found 3.11.0, as 3.11.0 nothing; one request each though asked twice) and

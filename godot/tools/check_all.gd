@@ -92,6 +92,7 @@ const CHECKS := [
 	["net_errors_check", "NET ERRORS OK"],
 	["voice_chat_check", "VOICE CHAT OK"],
 	["update_check", "UPDATE CHECK OK"],
+	["update_flow_check", "UPDATE FLOW OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 	["net_feel", "NET FEEL OK", ["quick"]],
 	["net_pace", "NET PACE OK"],
@@ -149,6 +150,7 @@ const QUICK := [
 	"net_errors_check",
 	"user_map_check",
 	"update_check",
+	"update_flow_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows

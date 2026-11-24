@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The updater's part of the game's manifest (merged by the Gradle build):
+     leave to hand an APK to the package installer, and where Godot finds the
+     plugin class. The content:// address comes from godot-lib's own
+     FileProvider (<package>.fileprovider). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.hickston.crazylegs.updater">
+
+    <uses-sdk android:minSdkVersion="24" />
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <application>
+        <meta-data
+            android:name="org.godotengine.plugin.v2.CrazyLegsUpdater"
+            android:value="com.hickston.crazylegs.updater.CrazyLegsUpdater" />
+    </application>
+
+</manifest>
