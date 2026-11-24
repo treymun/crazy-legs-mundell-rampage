@@ -358,6 +358,7 @@ const LOOKS_FEATURES := [
 	"radio",
 	"event_looks",
 	"hound_voice",
+	"rumble",
 ]
 
 
