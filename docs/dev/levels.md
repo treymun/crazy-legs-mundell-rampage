@@ -312,6 +312,55 @@ hangs) keeps the layout: a save holds none of it, and a new layout would send
 every player of that chapter back to its start for nothing. The hub is never
 saved, so a new hub layout needs no save fixtures.
 
+## The bakes (pass 14)
+
+A chapter's first visit used to build its nav graph (60 to 160 ms) and cut
+its breakables' wreck pieces (up to 0.37 s on the Mothership, the models'
+own reads in it). Both are now built at pack time and read back:
+
+- `tools/pack_assets.gd` ends with `tools/level_bake.gd`, which makes every
+  level of `data/` as a game does (Game.new, configure) with the bakes off
+  and writes `assets_gen/bake_nav_<level>.bin` (each level with geometry:
+  the graph FlowField built) and `assets_gen/bake_cuts.bin` (every key the
+  levels' breakables cut, each key's own pieces; the further variants a
+  break asks for are cut as before). About 3 s; 3.4 MB, zstd'd
+  `var_to_bytes`: 13 graphs 0.08 MB (each neighbour list kept as its length
+  and each neighbour less the node, a twentieth of the raw arrays, 4 to 6 ms
+  to read back), 41 keys 3.3 MB. A key only chapters' levels cut (a chapter
+  and its County Run map, `Assets.stem_of`) is in each of those chapters'
+  `bake_cuts_<stem>.bin` instead (one for every chapter, empty or not;
+  `bake_cuts.bin` names them), which the browser builds fetch with the
+  chapter's pack (`make_packs.gd`; the Web presets leave them out of
+  index.pck): their first download grows 1.5 MB (74.3 of `pack_check`'s 75),
+  the desktop and phone builds 3.4 MB. It needs the project imported (class
+  names, the models): on a fresh clone (pack, then `--import`) the pack says
+  `BAKES NOT MADE` and `pack_assets.gd -- bake` makes them alone; CI's
+  set-up runs that after its import, every run.
+- `src/level_bakes.gd` (`LevelBakes`) reads them: `LevelGeometry.nav()` asks
+  `LevelBakes.nav(lv)` for a level as read from its file (the same case it
+  keeps a graph for, `source_key`), `WreckCuts.parts()` and `pump()` ask for
+  a key before cutting it (with its fracture origin's box and its model's
+  triangle count, so `variants()` reads no model either).
+- **The key.** A graph is read only when its header matches: the level
+  file's MD5 (`LevelData.source_file`, asked on a first visit only: any
+  change to the file, whatever the layout says), the tile list's, `LevelBakes.FORMAT` and the MD5 of the
+  scripts that read a level and build the graph (`NAV_SCRIPTS`). A cut key:
+  FORMAT, the cutting scripts (`CUT_SCRIPTS`), a model's `.glb` and its
+  `.import` text, a picture's own pixels (the lighter copy's pictures are the
+  same pixels, so the browser and phone builds read them too). The scripts'
+  and models' MD5 are asked only where the files can be read (the project
+  folder); an export holds compiled scripts and imported scenes, and the
+  bakes its own CI job made beside them.
+- **The fallback.** Anything that does not match is built as before, the
+  same nodes and pieces: a stale bake (a level rebuilt, a script or model
+  changed, without packing again), a missing one, a level a tool hands in
+  (`LevelData.preview`: the map tools, the editors) and every player's map
+  (CUSTOM MAPS, the MAP SHED). Bump FORMAT when what a bake holds changes;
+  `LevelBakes.off` turns them off (the bake itself, the checks).
+- After rebuilding a level, editing those scripts or a breakable's model,
+  run `pack_assets.gd -- bake` (or the whole pack): until then that level
+  builds at load as before, and `tools/prebake_check.gd` fails saying so.
+
 ## Editing a level by hand
 
 `godot/data/<id>.json` is the source for a level not built from a plan. Change

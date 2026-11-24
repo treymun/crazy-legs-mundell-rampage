@@ -7,7 +7,8 @@
 ## (src/pack_loader.gd): its music (assets_gen/lite/music_<stem>.bin), its
 ## enemies' pictures and baked looks (lite/art_<stem>.bin), its enemies' sounds
 ## (lite/sfx_<stem>.bin) and their models (the imported scenes of
-## assets3d/actors/<kind>.glb), all by Assets.chapter_of, and the props only it
+## assets3d/actors/<kind>.glb), all by Assets.chapter_of, the wreck pieces only
+## its levels cut (bake_cuts_<stem>.bin, tools/level_bake.gd), and the props only it
 ## shows (their baked pictures in its art file, their models:
 ## tools/prop_homes.gd). Hickston's pack is
 ## its music alone. Run tools/pack_assets.gd, tools/pack_lite.gd and the import
@@ -106,6 +107,7 @@ static func pack_files(level_id: String) -> PackedStringArray:
 		return parts
 	parts.append(AssetsLib.LITE_DIR + "art_%s.bin" % stem)
 	parts.append(AssetsLib.LITE_DIR + "sfx_%s.bin" % stem)
+	parts.append(AssetsLib.FULL_DIR + "bake_cuts_%s.bin" % stem)
 	for model in chapter_models(level_id, PropHomes.homes()):
 		parts.append_array(imported_files(model))
 	return parts

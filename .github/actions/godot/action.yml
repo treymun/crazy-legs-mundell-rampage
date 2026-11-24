@@ -2,7 +2,8 @@ name: Set up Godot and the game data
 description: >
   Installs the Godot editor (and, for a build, the export templates), packs the
   assets the project reads (tools/pack_assets.gd), stamps the tag version on
-  release builds, and imports the project. The editor, the templates, the
+  release builds, imports the project and bakes the levels' nav graphs and
+  wreck pieces (pack_assets.gd -- bake). The editor, the templates, the
   packs and the import cache (.godot/) are each kept between runs; the packs
   and the import cache are saved only by a job that asks (save-cache), so the
   parallel jobs of one run do not race to save the same thing. No Python.
@@ -129,6 +130,16 @@ runs:
           cat "$RUNNER_TEMP/godot-import.log"
           exit 1
         fi
+
+    # Each level's nav graph and its breakables' wreck pieces (tools/level_bake.gd)
+    # need the import's class names and models, so they are baked here, after it,
+    # every run (a few seconds): packs restored from the cache may be older than
+    # the levels, models and scripts the bakes are made from.
+    - name: Bake the levels
+      shell: bash
+      run: |
+        ~/godot/godot --headless --path godot --script res://tools/pack_assets.gd -- bake 2>&1 | tee "$RUNNER_TEMP/bake.log"
+        grep -q "BAKES WRITTEN" "$RUNNER_TEMP/bake.log"
 
     - name: Save the import cache
       if: inputs.save-cache == 'true' && steps.imported.outputs.cache-hit != 'true'

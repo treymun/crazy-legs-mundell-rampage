@@ -55,7 +55,10 @@ const DESKTOP_COPY := [
 ]
 ## What a browser build's first download leaves to the packs, besides models.
 const PACKED_LATER := [
-	"assets_gen/lite/sfx_*.bin", "assets_gen/lite/art_*.bin", "assets_gen/lite/music_*.bin"
+	"assets_gen/lite/sfx_*.bin",
+	"assets_gen/lite/art_*.bin",
+	"assets_gen/lite/music_*.bin",
+	"assets_gen/bake_cuts_*.bin",
 ]
 ## A spoken line in the lighter bank (Vorbis) against its QOA, in seconds.
 const VOICE_SLACK := .03
@@ -471,6 +474,9 @@ func _sizes() -> void:
 	for name: String in ["sfx.bin", "sfx_index.json"]:
 		first += _size(sfx_dir + name)
 	for file in DirAccess.get_files_at(Assets.FULL_DIR):
+		# (A chapter's own wreck pieces come with its pack.)
+		if file.begins_with("bake_cuts_"):
+			continue
 		if not (file.begins_with("art") or file.begins_with("music") or file.begins_with("sfx")):
 			first += _size(Assets.FULL_DIR + file)
 	for file in DirAccess.get_files_at("res://data"):

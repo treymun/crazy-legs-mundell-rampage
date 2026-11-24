@@ -218,6 +218,10 @@ var solid_version := 0
 ## The level file it was read from and that file's hash ("" when made from a
 ## dictionary): LevelGeometry.nav keeps the nav graph of a level as read.
 var source_key := ""
+## That file's path ("" when made from a dictionary): its MD5 is the key
+## its baked nav graph is read under (LevelBakes.nav, asked only when the
+## graph is not kept already).
+var source_file := ""
 var retiled := PackedVector2Array()
 ## Each open_cell() counts one in `reshapes` and adds to `reshaped` the
 ## points it changed (the cell's middle, every metre of each piece taken
@@ -380,6 +384,7 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 	var lv := from_dict(j, assets)
 	if lv != null:
 		lv.source_key = "%s:%d:%d" % [level_id, raw.length(), raw.hash()]
+		lv.source_file = "res://data/%s.json" % level_id
 	return lv
 
 

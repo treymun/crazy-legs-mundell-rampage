@@ -3,7 +3,7 @@
 ## repository: assets/ (art, tiles, skies, palette, grain), audio_src/final/sfx
 ## with audio_src/manifest.json, and godot/assets/music.
 ##
-##   Godot --headless --path godot --script res://tools/pack_assets.gd [-- <out dir>]
+##   Godot --headless --path godot --script res://tools/pack_assets.gd [-- [bake] [<out dir>]]
 ##
 ## The packs are not committed (about 150 MB); a fresh clone or a CI job runs
 ## this once before opening or exporting the project. Their *_index.json files
@@ -26,6 +26,13 @@
 ##   sky.bin      the 512x116 panoramas, + sky_index.json
 ##   palette.bin  the RGB555 -> 256-colour table; grain.bin the film grain frames
 ##   made_cues.bin  the cues the game makes in code (Assets.MADE_CUES)
+##   bake_nav_<level>.bin, bake_cuts.bin  each level's nav graph and its
+##                breakables' wreck pieces, built here so a chapter's first
+##                visit reads them (tools/level_bake.gd, src/level_bakes.gd).
+##                They need the project imported: on a fresh clone (pack, then
+##                --import) they are left for `-- bake`, which makes only them
+##                (CI's set-up runs it after the import); a level reads no bake
+##                that does not match it and builds as before
 extends SceneTree
 
 ## By path, not class name: CI packs before the project is imported, when
@@ -72,11 +79,16 @@ var failed := false
 func _init() -> void:
 	repo = ProjectSettings.globalize_path("res://").path_join("..").simplify_path()
 	out = ProjectSettings.globalize_path("res://assets_gen")
-	var args := OS.get_cmdline_user_args()
+	var args := Array(OS.get_cmdline_user_args())
+	var bake_only := args.has("bake")
+	args.erase("bake")
 	if not args.is_empty():
 		out = String(args[0])
 	DirAccess.make_dir_recursive_absolute(out)
 	var started := Time.get_ticks_msec()
+	if bake_only:
+		_bake.call_deferred(true)
+		return
 	_tiles()
 	_art()
 	_sfx()
@@ -91,6 +103,38 @@ func _init() -> void:
 		quit(1)
 		return
 	print("PACKS WRITTEN in %.1f s to %s" % [(Time.get_ticks_msec() - started) / 1000.0, out])
+	_bake.call_deferred(false)
+
+
+## The levels' bakes (tools/level_bake.gd), once the project is imported: the
+## class names it uses and the models it cuts. `asked`: `-- bake` (fails when
+## it cannot run); after the packs it is left with a note instead.
+func _bake(asked: bool) -> void:
+	var imported := DirAccess.dir_exists_absolute("res://.godot/imported")
+	var named := false
+	for entry: Dictionary in ProjectSettings.get_global_class_list():
+		named = named or entry.get("class", "") == "LevelBakes"
+	if not imported or not named:
+		print(
+			(
+				"BAKES NOT MADE: the project is not imported yet (godot --import, then"
+				+ " tools/pack_assets.gd -- bake); levels build their graphs and cuts as they load"
+			)
+		)
+		quit(1 if asked else 0)
+		return
+	var baker: Script = load("res://tools/level_bake.gd")
+	var made: Array = [] if baker == null else baker.call("make", self, out)
+	if made.is_empty():
+		print("BAKING FAILED")
+		quit(1)
+		return
+	print(
+		(
+			"BAKES WRITTEN in %.1f s: %d nav graphs (%.2f MB), %d cut keys (%.2f MB)"
+			% [made[4], made[0], made[1] / 1e6, made[2], made[3] / 1e6]
+		)
+	)
 	quit()
 
 

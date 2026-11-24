@@ -14,7 +14,8 @@ What each check holds is in [checks.md](checks.md).
 ## Packing and importing
 
 ```
-godot --headless --path godot --script res://tools/pack_assets.gd   # rebuild godot/assets_gen (no Python)
+godot --headless --path godot --script res://tools/pack_assets.gd   # rebuild godot/assets_gen (no Python; ends with the bakes once imported)
+godot --headless --path godot --script res://tools/pack_assets.gd -- bake   # only the levels' nav graphs and wreck pieces (after --import, a level rebuild, a nav or cut script or a breakable's model changed)
 godot --headless --path godot --script res://tools/pack_lite.gd     # the browser and phone copy, assets_gen/lite (ffmpeg)
 godot --headless --path godot --script res://tools/make_packs.gd -- <web build dir>   # the chapter packs
 godot --headless --path godot --script res://tools/pack_check.gd [-- fix] [lite] [build=<dir>]   # PACK CHECK OK
@@ -75,6 +76,7 @@ godot --headless --path godot --script res://tools/wreck_motion_check.gd   # WRE
 godot --headless --path godot --script res://tools/wreck_bench.gd -- runs=3   # the pieces' own cost a tick (wreck48, every breakable on hickston)
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/wreck_motion_frames.gd -- out=<dir> [only=barrel,crate,mash,heap,toys] [bare]   # pieces flying and lying, in a window
 godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHECK OK (the fast level load the same as the old one; levels=a,b)
+godot --headless --path godot --script res://tools/prebake_check.gd   # PREBAKE CHECK OK (the baked nav graphs and wreck pieces the same as built; stale bakes not read; levels=a,b)
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
 godot --headless --path godot --script res://tools/wall_looks_check.gd   # WALL LOOKS CHECK OK (planks knocked out, windows' webs and shards, holes)
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/walls_frames.gd -- out=<dir> [only=window|window_blast|fence|buckshot|fence_blast|holes]
