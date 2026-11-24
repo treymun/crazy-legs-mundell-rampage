@@ -148,16 +148,22 @@ func tear(e: Enemy, amount: float) -> void:
 	e.flinch = maxf(e.flinch, .4)
 
 
-func sprites() -> Array:
-	var out: Array = []
-	if game.clock >= look_again or game.enemies.size() != looked_over:
-		# Who holds a door, looked for again now and then (one may be spawned).
-		look_again = game.clock + 1.0
+## Who holds a door, looked for again now and then (one may be spawned): a
+## draw's, by the clock `now` (single player drawn between ticks hands it
+## the tick's own before the drawn one, solo_blend.gd, so it keeps the same).
+func look_for_doors(now: float) -> void:
+	if now >= look_again or game.enemies.size() != looked_over:
+		look_again = now + 1.0
 		looked_over = game.enemies.size()
 		shielded.clear()
 		for e: Enemy in game.enemies:
 			if Variants.DOORS.has(e.kind):
 				shielded.append(e)
+
+
+func sprites() -> Array:
+	var out: Array = []
+	look_for_doors(game.clock)
 	for e: Enemy in shielded:
 		if not e.alive or not Variants.DOORS.has(e.kind) or door_left(e) <= 0.0:
 			continue

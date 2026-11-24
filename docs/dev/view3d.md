@@ -235,6 +235,103 @@ Headless runs draw no world, only the canvas. The renderer is
 
 **Coordinates:** map (x, y, z) is Godot (x, z, y).
 
+## Drawn between ticks (single player, pass 14)
+
+The game ticks 120 times a second (`MainState.SIM_STEP`) and FRAME LIMIT
+offers 120, 144 and 240. Up to v3.11.0 single player drew the game as its
+last tick left it: at 144 Hz one drawn frame in six showed nothing new (the
+view, its turn, the gun, the hands, the shots, the wreck pieces, the
+ragdolls, the mower all held still, then stepped), at 240 every other
+frame, and at 120 a frame in fifty as the screen and the tick drifted; the
+mouse turned the view only at a tick. Online already drew between ticks
+(pass 12, `NetBlend`); single player did not.
+
+`SoloBlend` (`src/solo_blend.gd`, a `NetBlend` with more in it) draws each
+frame part way between the last two ticks drawn. `main.gd _solo_draw` (from
+`net_draw_begin`) hands it `solo_ticks` (the ticks `advance()` and a
+replay played, `main_state.gd`) and the share of the next tick the
+accumulator holds (`solo_ticks - 1 + accumulator / SIM_STEP`: the picture
+is a tick, 8 ms, behind play); `net_draw_end` puts everything back to the
+bit. Looks only: play, its dice, its snapshots and replays never see it.
+
+- **What moves between ticks.** The players (place, eye, the walk's bob and
+  sway, the drunk drift, the gun's lag and turn), each gun's timers (raised,
+  lowered, a reload, a shot's cycle, its flash: one started again or a gun
+  changed is drawn as it is), the game's clock, the view's jolts and shake,
+  the hands near the last frame's view cone (looked for every 4 ticks; their
+  place, facing, gait, hop, climb and sink), the shots, the blasts' age, the
+  gibs and the casings and chips while faster than `SLOW`, the wreck pieces
+  awake and their fine bits, the vehicles (place, heading, the wheel) and the
+  hound. The clock carries the rest: every look run on it (the hands'
+  animations, the ragdolls' steps, the shaders' `anim_time`, the sky, a
+  pickup's bob) runs on smoothly. Left a tick at a time: specks and puffs
+  (sparks, blood, smoke: many, small, short-lived), a far calm hand (it moves
+  only on its own ticks, `enemy_lod.gd`) and the gun's picture, which moves
+  by whole canvas pixels.
+- **The mouse is per frame and whole.** The player's own turn is not
+  blended: the view faces the tick's angle plus all of the mouse not yet
+  played (`pending_turn`, `pending_look`), less only the part of the last
+  tick's turn the mouse did not make (a vehicle coming round), which is
+  blended. So looking round moves every frame by what the mouse did, and the
+  crosshair is exactly where the next tick's shot goes (`frame_smooth`
+  checks it to 1e-9 rad). The eye's place is the blended one: strafing, the
+  shot leaves at most two ticks' walk (.08 cells) beside the line the
+  crosshair is drawn on, against one in v3.11.0.
+- **Drawn where it lands, never slid:** a move over `TELEPORT` (1.5 cells)
+  between two ticks, a seat taken or left, a turn over `CUT_TURN` the mouse
+  did not make, a new game (a level, a load, a retry), more than
+  `MOST_SPAN` ticks in one frame.
+- **Not at all:** PHOTO MODE, the chapter openers and the KILL CAM (the game
+  holds still under their own cameras), online (`NetBlend` there), and
+  under a FRAME LIMIT of 60 or less (every frame has a tick or more; the
+  blend costs nothing there). The view tour, the benches and the tools draw
+  with `render()` straight after their ticks, so the picture references are
+  the same (compare_3d passed with no updates).
+- **The one draw-time cache play's snapshot keeps** (the variants' look for
+  who holds a car door, `opener.gd CACHES`) is taken by the tick's clock
+  before the blended draw (`look_for_doors`), so the snapshot is the one an
+  unblended draw leaves. A draw must change nothing play reads: the range's
+  card set the station the player stood at from the draw too, which with
+  the player drawn a little behind put play's station back for a tick; it
+  is the tick's alone now (`firing_range.gd hud_flow`, `draw_view`).
+- **Speed.** The swarms (hands, shots, gibs, casings, wreck pieces, fine
+  bits) are flat arrays matched to the tick before by order (a Dictionary
+  row and a call a thing cost three times as much). Measured with
+  `frame_smooth.gd` in a 1280x800 window (old and new on one build, the
+  same frames): put on and taken off .10 to .15 ms a frame walking or
+  driving, .17 to .24 in a blast with ragdolls and 40 wreck pieces flying
+  (1.5 to 4% of the frame's own work, 3.3 to 7 ms; the frame's whole work
+  old against new moved by -6 to +10% between runs, noise either way). The
+  view bench (`--view-bench=300`, which ticks and draws straight, so no
+  blend) is unchanged: the eight chapters' medians summed 24.36 -> 24.42 ms
+  (+0.2%, three runs each against v3.11.0, back to back).
+
+What moved on the frames it was moving in (`frame_smooth.gd`, 1280x800
+window, the game's own 3D view; walking among woken hands throwing bolts, a
+blast with three hands shot down, the riding mower), v3.11.0 -> pass 14:
+
+| | 120 Hz | 144 Hz | 240 Hz |
+| --- | --- | --- | --- |
+| the view's place | 97.9 -> 100% | 83.2 -> 100 | 50.0 -> 100 |
+| the view's turn (the mouse turning) | 97.9 -> 100 | 83.2 -> 100 | 49.6 -> 100 |
+| the gun's sway | 96.8 -> 99.4 | 82.3 -> 99.5 | 49.5 -> 99.9 |
+| the hands' models | 96.7 -> 100 | 82.7 -> 100 | (7) -> 100 |
+| the shots | 97.5 -> 100 | 83.1 -> 100 | 50.2 -> 100 |
+| the wreck pieces | 96.7 -> 99.6 | 82.6 -> 99.6 | 45.7 -> 99.8 |
+| the ragdolls' bones | 99.5 -> 100 | 82.8 -> 100 | 45.5 -> 100 |
+| the mower | 97.6 -> 100 | 83.0 -> 99.8 | 49.3 -> 99.8 |
+| the casings and chips | 97.3 -> 100 | 83.0 -> 100 | 37.5 -> 100 |
+
+A thing is moving on a frame when its steps over the 7 frames round it
+(the two biggest left out) average over a small floor, and held when its
+step is under a quarter of the middle of the steps it did take; the game's
+own holds (a kill's hitstop) are left out. At 240 Hz the old way stepped
+every other frame; slow movers (the hands) mostly fall under the floor on
+those frames, so their old share there reads low. The gun's picture moves
+by whole canvas pixels, so it is measured on its sway before the rounding.
+`ways=old,new` in the tool gives the two columns on one build; the play
+hash after each scene is the same both ways.
+
 ## The pieces
 
 | Piece | File | What it does |

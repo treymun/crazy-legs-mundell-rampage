@@ -177,6 +177,8 @@ godot --path godot -- --replay=<file>   # play a replay in the game's view (a pa
 godot --headless --path godot --script res://tools/load_bench.gd -- rounds=3   # level loads cold and warm, the level mesh, the wreck cutting (on a worker, not in the load)
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/stress_bench.gd -- [only=county]   # the worst moments: frame, parts, slots, memory
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/hitch_bench.gd -- [only=turn,cab]   # first-time hitches (a new empty APPDATA each run)
+godot --headless --path godot --script res://tools/frame_smooth.gd -- [hz=120,144,240] [scenes=walk,blast,ride] [ways=old,new] [check]   # single player drawn between ticks: what moved each drawn frame, play the same both ways
+godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/frame_smooth.gd -- hz=144   # the same in a window, the game's own 3D view (scratch APPDATA)
 godot --headless --path godot --script res://tools/onboard_walk.gd -- [secs=900] [diff=1] [skill=0|-1] [seed=1] [tips=0] [through] [pad|touch]   # a new player's first minutes from NEW GAME: tips, prompts, objectives, lost, deaths
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/onboard_walk.gd -- out=<dir> [menus]   # the same with a picture at each moment (scratch APPDATA)
 godot --headless --path godot --script res://tools/onboard_check.gd [-- quick]   # ONBOARD CHECK OK: the tips and the new player's budget
