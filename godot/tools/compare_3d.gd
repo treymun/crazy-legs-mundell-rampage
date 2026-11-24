@@ -112,9 +112,30 @@ static func _contrast(dir: String) -> int:
 
 
 ## A tour's window picture at the canvas's own size (the window is a whole
-## number of times 320x200, letterboxed or not, so each pixel is a block).
+## number of times 320x200, letterboxed or not, so each pixel is a block). A
+## window of another shape is a WIDE viewpoint's (picture_views.json
+## `screen`): its picture is PictureShape.wide_cols columns by 200, placed as
+## the game places it, each pixel taken at its middle.
 static func _small(image: Image) -> Image:
 	image.convert(Image.FORMAT_RGB8)
+	var w := image.get_width()
+	var h := image.get_height()
+	if w * 5 != h * 8:
+		var cols := PictureShape.wide_cols(w, h)
+		var size := PictureShape.size_for(w, h, PictureShape.ASPECT_WIDE)
+		var x0 := (w - size[0]) / 2
+		var y0 := (h - size[1]) / 2
+		var wide := Image.create_empty(cols, 200, false, Image.FORMAT_RGB8)
+		for y in 200:
+			for x in cols:
+				wide.set_pixel(
+					x,
+					y,
+					image.get_pixel(
+						x0 + (x * 2 + 1) * size[0] / (cols * 2), y0 + (y * 2 + 1) * size[1] / 400
+					)
+				)
+		return wide
 	var k := mini(image.get_width() / 320, image.get_height() / 200)
 	if k <= 1:
 		return image

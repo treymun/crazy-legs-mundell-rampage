@@ -22,8 +22,8 @@ void fragment() {
 	}
 	int k = layer_k;
 	// In 320-wide steps, whatever the view's size (HD, LOW).
-	vec2 q = (floor(FRAGCOORD.xy) + 0.5) * (320.0 / view_size.x);
-	float f320 = focal * 320.0 / view_size.x;
+	vec2 q = (floor(FRAGCOORD.xy) + 0.5) * (156.0 / view_size.y);
+	float f320 = focal * 156.0 / view_size.y;
 	float turn = mod(view_angle, 6.2831853) * f320;
 	vec3 drop = min(vec3(124.0, 134.0, 148.0) * (1.0 + lightning * 0.9), vec3(255.0));
 	float cw = k == 0 ? 7.0 : (k == 1 ? 5.0 : 4.0);

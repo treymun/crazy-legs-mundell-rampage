@@ -213,6 +213,7 @@ func _view_tour() -> void:
 	await get_tree().process_frame
 	var shots: Variant = JSON.parse_string(FileAccess.get_file_as_string(view_tour))
 	var loaded := ""
+	var window_size := get_window().size
 	for shot: Dictionary in shots:
 		var level_id := str(shot["level"])
 		if level_id != loaded or game == null or shot.has("done") or shot.has("unlock"):
@@ -326,6 +327,7 @@ func _view_tour() -> void:
 			cast = _tour_actors(shot)
 		var cels: bool = shot.get("cels", false)
 		WorldView3D.cels = cels
+		await _tour_screen(shot, window_size)
 		if shot.has("rain"):
 			# A viewpoint in the weather: rain this hard, the ground this wet, a
 			# lightning flash (features/weather.gd hold()).
@@ -348,6 +350,15 @@ func _view_tour() -> void:
 				world_view.viewport.get_texture().get_image().save_png(
 					"%s/%s_3d.png" % [view_out, str(shot["tag"])]
 				)
+		if shot.has("screen") or shot.has("menu") or shot.has("photo") or shot.has("scope"):
+			# Back to the tour's own window, picture and state for the next.
+			photo.leave(self)
+			p.scoped = false
+			state = "play"
+			options["aspect"] = 0
+			get_window().size = window_size
+			render()
+			await RenderingServer.frame_post_draw
 		if shot.has("contrast") and world_view != null:
 			# The same view without its cast, for compare_3d.gd's contrast floor
 			# (tools/night_contrast.gd): the pixels that differ are the cast.
@@ -365,6 +376,44 @@ func _view_tour() -> void:
 			for foe: Enemy in cast:
 				foe.x += 500.0
 	get_tree().quit()
+
+
+## A viewpoint's window and what it shows over play: `screen` [w, h] a
+## window of that shape with ASPECT WIDE (the wide pictures, 16:9 at
+## 712x400: 356 columns), `scope` the gun's scope up, `photo` PHOTO MODE
+## ([back, up] cells from the eye), `menu` a front-end state's screen (`page` its settings page).
+func _tour_screen(shot: Dictionary, window_size: Vector2i) -> void:
+	if not (shot.has("screen") or shot.has("menu") or shot.has("photo") or shot.has("scope")):
+		return
+	if shot.has("screen"):
+		var screen: Array = shot["screen"]
+		var screen_w: int = screen[0]
+		var screen_h: int = screen[1]
+		options["aspect"] = PictureShape.ASPECT_WIDE
+		get_window().size = Vector2i(screen_w, screen_h)
+	else:
+		get_window().size = window_size
+	if shot.has("scope"):
+		game.player.scoped = true
+	if shot.has("photo"):
+		# PHOTO MODE's camera taken [back, up] cells from the eye.
+		photo.enter(self)
+		var away: Array = shot["photo"]
+		var back: float = away[0]
+		var up: float = away[1]
+		photo.x -= cos(photo.angle) * back
+		photo.y -= sin(photo.angle) * back
+		photo.z += up
+		game.eye_override = photo.eye_now()
+	if shot.has("menu"):
+		state = str(shot["menu"])
+		var page: int = shot.get("page", 0)
+		option_page = page
+		option_slot = 0
+	# Two frames for the window and the picture's new width to settle.
+	for i in 2:
+		render()
+		await RenderingServer.frame_post_draw
 
 
 ## A viewpoint's own cast (the 3D actors' pictures): the level's enemies put

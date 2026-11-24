@@ -1,5 +1,6 @@
-## Where the menu screens live: a Control the size of the canvas (320x200)
-## inside the UI viewport (the overlay the display shader lays over the view,
+## Where the menu screens live: a Control the size of the canvas (320x200;
+## centred on a WIDE picture, what is behind showing at its sides) inside
+## the UI viewport (the overlay the display shader lays over the view,
 ## or a viewport of its own in a headless run, so the checks drive the same
 ## screens). The front end shows the screen of its state here (show()) and
 ## hands it every input event (take()): touch becomes the pointer, the
@@ -209,4 +210,5 @@ func _to_canvas(at: Vector2) -> Vector2:
 	var rect: Rect2 = main.viewport_rect()
 	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
 		return at
-	return (at - rect.position) / rect.size * Vector2(320, 200)
+	# The overlay's pixels: in WIDE the screens sit View.shift in from its left.
+	return (at - rect.position) / rect.size * Vector2(View.cols, 200)

@@ -27,6 +27,13 @@ const MIDDLE := 160
 const GAP := 1
 ## A centred banner narrower than this goes up instead of squeezing.
 const NARROWEST := 120
+## ASPECT WIDE (View.cols over 320): a piece starting within HUG of the
+## view's left edge (and ending left of its middle) is drawn that much
+## further left, at the picture's own edge; one ending within HUG of the
+## right edge, right (side_of, begin()). The rest stays with the canvas,
+## centred. The layout itself is worked out at 320 as ever: pieces only move
+## outward, so none comes nearer another.
+const HUG := 16
 
 ## The rects taken this frame, and whose.
 var taken: Array[Rect2i] = []
@@ -45,9 +52,12 @@ static var measuring := false
 static var inked := {}
 static var _saved := PackedByteArray()
 static var _open := ""
+## The layout last reset (the one being drawn): begin() finds its pieces there.
+static var drawn: HudLayout = null
 
 
 func reset() -> void:
+	drawn = self
 	taken.clear()
 	names.clear()
 	pin_swing = Vector2i(44, 276)
@@ -244,9 +254,24 @@ static func panel_rect(x: int, y: int, w: int, h: int) -> Rect2i:
 # ------------------------------------------------------------- measuring
 
 
-## Starts measuring the piece `name` (only while `measuring`, on a software
-## layer): its own ink is told apart from what is under it.
+## Which edge the piece in `r` keeps in ASPECT WIDE: -1 the left, 1 the
+## right, 0 none (centred with the canvas).
+static func side_of(r: Rect2i) -> int:
+	if r.size.x <= 0 or r.size.y <= 0:
+		return 0
+	if r.position.x <= HUG and r.end.x <= MIDDLE:
+		return -1
+	if r.end.x >= WIDTH - HUG and r.position.x >= MIDDLE:
+		return 1
+	return 0
+
+
+## Begins drawing the piece `name`: in ASPECT WIDE it keeps its edge
+## (side_of its rect this frame); while `measuring`, on a software layer, its
+## own ink is told apart from what is under it.
 static func begin(c: Canvas, name: String) -> void:
+	if c.gpu and View.shift > 0 and drawn != null:
+		c.anchor(side_of(drawn.find(name)) * View.shift)
 	if not measuring or c.gpu or not c.layer:
 		return
 	if _open != "":
@@ -258,6 +283,7 @@ static func begin(c: Canvas, name: String) -> void:
 
 ## Ends the piece begun: its inked rect over the view is added to `inked`.
 static func end(c: Canvas) -> void:
+	c.anchor(0)
 	if _open == "" or not measuring:
 		return
 	var cover := c.cover

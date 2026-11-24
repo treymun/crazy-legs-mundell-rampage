@@ -16,6 +16,17 @@ const FOCAL := 230.0
 ## (weapons.gd, game_state.gd) works its slopes out with it too.
 const FOCAL_FOR := [230.0, 190.7, 160.0, 134.3]
 static var base_focal := FOCAL
+## ASPECT / SCALING WIDE (main_state.gd _apply_view): the picture's columns,
+## 320 or more (356 at 16:9), the 200 rows kept, and `shift`, how far the
+## 320-wide canvas (gun, sights, menus, centred HUD pieces) sits from the
+## picture's left edge. The 3D view is drawn that many columns wide at the
+## same focal length: it sees further to the sides (Hor+), never taller.
+## Only with a window's overlay; tools and headless runs keep 320.
+static var cols := WIDTH
+static var shift := 0
+## WIDE is shown: the picture's pixels are square on the screen (the scope's
+## glass is drawn round, not stretched for a 4:3 screen's tall pixels).
+static var square := false
 ## The FIELD OF VIEW setting's focal; base_focal is this times a scope's
 ## zoom while this machine's player has one up (scope.gd).
 static var fov_focal := FOCAL
@@ -176,7 +187,8 @@ static func draw_far_for(setting: int) -> float:
 var level: LevelData
 var assets: Assets
 ## The size the view is drawn at: HIGH 320x156, LOW half that each way, HD
-## twice (the 3D view's picture); the canvas is 320x200 whatever.
+## twice (the 3D view's picture), WIDE as many columns more as the picture
+## has (`cols`); the canvas is 320x200 whatever.
 var vw := WIDTH
 var vh := VIEW
 var focal := FOCAL
@@ -193,6 +205,7 @@ var world_motion := 0
 var time := 0.0
 ## The graphics card draws the view (a window); off in tools and the server.
 var layered := false
+var _cols_seen := WIDTH
 
 
 func _init(p_assets: Assets, p_level: LevelData) -> void:
@@ -206,10 +219,19 @@ func set_detail(level_of_detail: int, keep_wish := false) -> void:
 	detail = clampi(level_of_detail, -1, 1)
 	if not keep_wish:
 		hd_wanted = detail < 0
-	vw = WIDTH * 2 if detail < 0 else WIDTH >> detail
+	var base_w := WIDTH * 2 if detail < 0 else WIDTH >> detail
+	vw = cols * 2 if detail < 0 else cols >> detail
 	vh = VIEW * 2 if detail < 0 else VIEW >> detail
-	focal = base_focal * vw / WIDTH
+	focal = base_focal * base_w / WIDTH
+	_cols_seen = cols
 	res_up = float(VIEW) / vh
+
+
+## The view drawn at the picture's columns now (WIDE changed them): sized
+## again, the detail and its wish kept.
+func fit() -> void:
+	if _cols_seen != cols:
+		set_detail(detail, true)
 
 
 ## The level's district tints, three floats a district.

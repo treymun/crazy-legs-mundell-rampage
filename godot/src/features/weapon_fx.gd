@@ -700,7 +700,9 @@ func _along(muzzle: Vector2, mark: Vector2, far: float, u: float) -> Vector2:
 
 
 func _inside(at: Vector2) -> bool:
-	return at.x >= 0.0 and at.y >= 0.0 and at.x < View.WIDTH and at.y < View.VIEW
+	return (
+		at.x >= -View.shift and at.y >= 0.0 and at.x < View.WIDTH + View.shift and at.y < View.VIEW
+	)
 
 
 func _segment(c: Canvas, a: Vector2, b: Vector2, colour: Color, width := 1, fast := false) -> void:

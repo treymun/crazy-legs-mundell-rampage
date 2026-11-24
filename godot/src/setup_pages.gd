@@ -124,8 +124,8 @@ static func build() -> Array:
 					"ASPECT / SCALING",
 					"aspect",
 					0,
-					["DOS 4:3", "SQUARE 8:5", "INTEGER 8:5"],
-					"ALL MODES KEEP CRISP, UNSMOOTHED PIXELS"
+					["DOS 4:3", "SQUARE 8:5", "INTEGER 8:5", "WIDE"],
+					"WIDE FILLS A WIDE SCREEN. ALL KEEP CRISP PIXELS"
 				),
 				SessionStore.choices(
 					"FRAME LIMIT",

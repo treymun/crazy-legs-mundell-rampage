@@ -90,7 +90,7 @@ void fragment() {
 	// Dithered along streaks of its own spin, not a screen-door pattern.
 	float lane = floor((u + h * 0.3) * 160.0);
 	float streak = hash12(vec2(lane, floor(h * 60.0 + tm * 4.0)));
-	vec2 px = floor(FRAGCOORD.xy * (320.0 / view_size.x));
+	vec2 px = floor(FRAGCOORD.xy * (156.0 / view_size.y));
 	float grain = 0.5 + (hash12(px + float(part) * 5.3) - 0.5) * 0.6;
 	float dither = mix(streak, grain, smoothstep(14.0, 30.0, dist));
 	float step_k = floor(mass * 3.0 + dither) / 3.0;

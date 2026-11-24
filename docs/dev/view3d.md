@@ -14,7 +14,8 @@ nothing. `game.view` is the View (there is no `game.renderer`).
 
 - The canvas and projection: `WIDTH` 320, `VIEW` 156 (the view's rows),
   `HEIGHT` 200, `FOCAL` 230. Aiming, the crosshair and every screen overlay
-  use this projection.
+  use this projection. ASPECT WIDE draws more columns (`static cols`,
+  `shift`, `square`; [below](#aspect-wide-pass-14)); the canvas stays 320.
 - FIELD OF VIEW: `FOCAL_FOR` (230, 190.7, 160, 134.3 for 70, 80, 90, 100
   degrees). `static base_focal` is the one in use; `static fov_focal` is the
   setting's, and `base_focal` is that times a scope's zoom while this
@@ -213,6 +214,82 @@ FIRST TIME (the default; the chapters seen are kept in
   (`<chapter>_shot<k>.png`, `_card`, `_boss`, `_growl`, `_line`, `_land`) and
   quits; with `--opener-strip=<n>` it saves n frames evenly over the flight
   and three of the landing instead (`<chapter>_f<k>_<seconds>.png`).
+
+## ASPECT WIDE (pass 14)
+
+DISPLAY's ASPECT / SCALING has a fourth choice, WIDE (`aspect` 3,
+`MainState.ASPECT_WIDE`; the default stays DOS 4:3, so no reference picture
+moved). The picture keeps its 200 rows and takes as many columns as the
+screen's shape asks: `MainState.wide_cols` is 200 times the width over the
+height, even, 320 at 8:5 or narrower, at most `MOST_COLS` 720: 356 at 16:9,
+474 at 21:9 (2560x1080), 432 on a 19.5:9 phone, 712 at 32:9.
+
+- **Square pixels.** The view has always been drawn with square pixels (one
+  focal length both ways); DOS 4:3 stretches them 1.2 tall as a VGA screen
+  did, SQUARE 8:5 shows them square. WIDE shows them square too: the
+  picture fills the screen exactly with nothing stretched, round things stay
+  round, and it is the fewest columns that fill (DOS-tall pixels at 16:9
+  would be 427 columns, a fifth more to draw, for a stretch). It is scaled to
+  the screen as SQUARE 8:5 is (not whole multiples; INTEGER 8:5 stays the
+  choice for those).
+- **Hor+.** The 3D view is drawn `View.cols` wide (HD twice, LOW half:
+  `View.set_detail`) at the same focal length (`View.focal` does not
+  change), so it sees further to the sides and exactly as far up and down.
+  The camera keeps its height (`KEEP_HEIGHT`), so its frustum widens by
+  itself; the sprites' cull cone (`game_view.gd _aim_view`) is from `vw`.
+  Shaders that work in 320-wide pixels take the grid from the rows
+  (`156.0 / view_size.y`: rain, storm wall, twister), the same numbers as
+  before at 320.
+- **The canvas is centred.** The overlay is `cols` x 200 and the 320-wide
+  canvas draws `View.shift` ((cols - 320) / 2) in from its left (the
+  painter Node2D's place, `main_state.gd _fit_cols`), so the gun, the
+  crosshair, the hit marks, the banners, the cards, the menus and the
+  cinematics' middles stay in the middle. A point of the world is drawn on
+  the canvas at `to_canvas` x plus `shift`, which is where the camera puts it
+  (`wide_check` holds the two to 0.01 of a pixel at 320, 356, 474 and 712
+  columns and every VIEW DETAIL): the crosshair is still where the shot goes.
+- **What spans the picture.** A rect or texture drawn across the 320 canvas
+  (x 0 to 320, a column or two either way: `Canvas._spans`) is drawn across
+  the whole picture: the cinematics' black bars, shades and lights, the
+  photo strip, a full-view sheet. Shapes may draw over the whole picture
+  (`Canvas._lo`, `_hi`). The scope's mask is made `cols` wide and drawn from
+  `-shift`, its glass round (`View.square`: WIDE's pixels are square; DOS 4:3
+  keeps the 1.2-wide glass that looks round there). The automap's window
+  spans the picture (`GameAutomap.map_x`, `map_w`), its map shows more of
+  the level across. Off-view marks (BLUE's arrow, partner tags, a talker's
+  mark, USE's brackets, tracers' sparks) use the picture's edges.
+- **The HUD keeps the edges.** A HUD piece drawn between `HudLayout.begin`
+  and `end` is moved to the picture's edge it hugs (`HudLayout.side_of`:
+  starting within `HUG` 16 of the left and ending left of the middle, or
+  the same on the right) by a transform on the canvas items
+  (`Canvas.anchor`, `View.shift` either way): the kill feed, BLUE's badge,
+  a picked-up thing, the windup marks, the driving plates and cards at the
+  left, the boss bar, the frame counter, the ping and COUNTY RUN's ring at the
+  right. The layout itself is still worked out at 320, so pieces only move
+  apart. The status bar: `ui.md`. PHOTO MODE's name and filter, the KILL
+  CAM's words and the openers' and boss endings' skip line keep the corners.
+- **Menus** (`UiRoot`) are centred on the picture; what is behind shows at
+  the sides (the title's scene, the game), black where nothing is.
+- **Pictures:** the tour's `wide_*` viewpoints (`screen` [w, h]; checks.md).
+- **Cost:** see [checks.md](checks.md#benchmarks).
+
+## The mirror's two pictures (pass 14)
+
+In the browser (WebGL) every frame of play in Hickston logged
+`GL_INVALID_OPERATION: Feedback loop formed between Framebuffer and active
+Texture` from `glDrawElements` until the browser's cap of 256 errors (in
+the opener's first seconds; seen with SwiftShader in headless Edge). The
+mirror's SubViewport drew the level with the world shader, which reads the
+mirror's picture (`mirror_tex`, a global sampler) for the mirror's tile: a
+pass reading the texture it draws into. WebGL refuses every such draw (the
+mirror's room drawn with holes, or not at all); desktop drivers let it be.
+Now the mirror has two pictures drawn in turn (`world_view.gd _mirror`): the
+shaders read the one drawn last frame while the other is drawn. The main
+view is drawn before the mirror's viewport (siblings in the order they were
+made), so it read the mirror a frame old already: the desktop picture is
+the same (compare_3d passed with no updates, the mirror viewpoints too).
+In the browser after it: none in the title, the opener or 40 s of play,
+walking, turning and firing (Playwright, SwiftShader).
 
 ## How a frame gets drawn
 
@@ -815,8 +892,10 @@ drawn as their old cels instead, for old-against-new sheets), `motion`
 (EASY ON THE EYES: 0 full, the default, 1 reduced, 2 still), `blackout`
 (true: the county blackout begun and faded in, the flashlight on) and
 `contrast` (a floor: the view is drawn again without its `actors` and
-`compare_3d.gd` holds how well they read, [checks.md](checks.md#picture-references)). A tour or bench
-keeps drawing when its window loses the focus.
+`compare_3d.gd` holds how well they read, [checks.md](checks.md#picture-references));
+since pass 14 also `screen` (ASPECT WIDE in a window of that shape), `scope`,
+`photo` and `menu`. A tour or bench keeps drawing when its window loses the
+focus.
 
 ### Plank walls shot about (pass 11)
 

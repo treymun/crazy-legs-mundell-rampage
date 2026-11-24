@@ -35,9 +35,16 @@ var scale_now := 1.0
 var region_now := Rect2i()
 var texture: ImageTexture
 var last_signature: Variant = null
+## The window's left column and width this frame: MAP_X and MAP_W, wider
+## by the picture's extra columns in ASPECT WIDE (the canvas is centred in it).
+var map_x := MAP_X
+var map_w := MAP_W
 
 
 func draw(g: Game, c: Canvas) -> void:
+	# ASPECT WIDE: the window spans the whole picture's width.
+	map_x = MAP_X - View.shift
+	map_w = MAP_W + 2 * View.shift
 	var region := _region(g)
 	var scale := _scale_for(g, region)
 	if image == null or built_scale != scale or _signature_changed(g):
@@ -47,7 +54,7 @@ func draw(g: Game, c: Canvas) -> void:
 	var full := Vector2(region.size) * scale
 	var origin := Vector2.ZERO
 	for k in 2:
-		var span: float = MAP_W if k == 0 else MAP_H
+		var span: float = map_w if k == 0 else MAP_H
 		var at: float = (g.player.x if k == 0 else g.player.y) - float(region.position[k])
 		if full[k] <= span:
 			origin[k] = -(span - full[k]) / 2.0
@@ -56,9 +63,9 @@ func draw(g: Game, c: Canvas) -> void:
 	window_origin = origin.floor()
 	scale_now = scale
 	region_now = region
-	c.fill_rect(MAP_X - 4, MAP_Y - 4, MAP_W + 8, 152, Canvas.rgb(30, 23, 18))
-	c.rect_outline(MAP_X - 4, MAP_Y - 4, MAP_W + 8, 152, Canvas.rgb(149, 117, 81))
-	c.rect_outline(MAP_X - 1, MAP_Y - 1, MAP_W + 2, MAP_H + 2, Canvas.rgb(84, 64, 45))
+	c.fill_rect(map_x - 4, MAP_Y - 4, map_w + 8, 152, Canvas.rgb(30, 23, 18))
+	c.rect_outline(map_x - 4, MAP_Y - 4, map_w + 8, 152, Canvas.rgb(149, 117, 81))
+	c.rect_outline(map_x - 1, MAP_Y - 1, map_w + 2, MAP_H + 2, Canvas.rgb(84, 64, 45))
 	_blit(c)
 	if not g.in_hub:
 		for door: LevelData.Door in g.world.doors:
@@ -102,8 +109,8 @@ func draw(g: Game, c: Canvas) -> void:
 	CountyStorm.draw_map(c, g)
 	_goal(g, c)
 	_player_mark(g, c)
-	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1, keyed, guns)  # what the marks mean
-	c.line(MAP_X, MAP_Y + MAP_H + 3, MAP_X + MAP_W - 1, MAP_Y + MAP_H + 3, Canvas.rgb(120, 87, 59))
+	MapKey.draw(c, map_x + 1, MAP_Y + MAP_H - 1, keyed, guns)  # what the marks mean
+	c.line(map_x, MAP_Y + MAP_H + 3, map_x + map_w - 1, MAP_Y + MAP_H + 3, Canvas.rgb(120, 87, 59))
 	HUD.text(
 		c,
 		g.objective() if g.hints else g.level.title,
@@ -136,7 +143,7 @@ func _region(g: Game) -> Rect2i:
 
 
 func _scale_for(g: Game, region: Rect2i) -> float:
-	var fit := minf(float(MAP_W) / region.size.x, float(MAP_H) / region.size.y)
+	var fit := minf(float(map_w) / region.size.x, float(MAP_H) / region.size.y)
 	var zoom: float = MAP_ZOOMS[clampi(g.map_zoom, 0, MAP_ZOOMS.size() - 1)]
 	return fit if zoom <= 0.0 or zoom <= fit else zoom
 
@@ -235,21 +242,21 @@ func _paint_walked(g: Game, region: Rect2i, _scale: float) -> void:
 ## Where a point of the level is on the canvas, this frame.
 func point(x: float, y: float) -> Vector2:
 	return Vector2(
-		MAP_X + (x - region_now.position.x) * scale_now - window_origin.x,
+		map_x + (x - region_now.position.x) * scale_now - window_origin.x,
 		MAP_Y + (y - region_now.position.y) * scale_now - window_origin.y
 	)
 
 
 func shows(at: Vector2) -> bool:
-	return at.x >= MAP_X and at.y >= MAP_Y and at.x < MAP_X + MAP_W and at.y < MAP_Y + MAP_H
+	return at.x >= map_x and at.y >= MAP_Y and at.x < map_x + map_w and at.y < MAP_Y + MAP_H
 
 
 func _cell_mark(c: Canvas, x: float, y: float, color: Color) -> void:
 	var a := point(x, y)
 	var b := point(x + 1.0, y + 1.0)
-	var x0 := maxi(MAP_X, int(a.x))
+	var x0 := maxi(map_x, int(a.x))
 	var y0 := maxi(MAP_Y, int(a.y))
-	var x1 := mini(MAP_X + MAP_W, maxi(int(b.x), int(a.x) + 1))
+	var x1 := mini(map_x + map_w, maxi(int(b.x), int(a.x) + 1))
 	var y1 := mini(MAP_Y + MAP_H, maxi(int(b.y), int(a.y) + 1))
 	if x1 > x0 and y1 > y0:
 		c.fill_rect(x0, y0, x1 - x0, y1 - y0, color)
@@ -291,7 +298,7 @@ func _labels(g: Game, c: Canvas) -> void:
 		var at := point(_num(label_row[1]), _num(label_row[2]))
 		var wide := PixelType.text_width(label)
 		var left := int(at.x) - wide / 2
-		if left < MAP_X + 1 or left + wide > MAP_X + MAP_W - 1:
+		if left < map_x + 1 or left + wide > map_x + map_w - 1:
 			continue
 		if at.y < MAP_Y + 1 or at.y > MAP_Y + MAP_H - 9:
 			continue
@@ -340,10 +347,10 @@ func _goal(g: Game, c: Canvas) -> void:
 			color
 		)
 		return
-	var middle := Vector2(MAP_X + MAP_W / 2.0, MAP_Y + MAP_H / 2.0)
+	var middle := Vector2(map_x + map_w / 2.0, MAP_Y + MAP_H / 2.0)
 	var way := (at - middle).normalized()
 	var reach := minf(
-		(MAP_W / 2.0 - 6.0) / maxf(.001, absf(way.x)), (MAP_H / 2.0 - 6.0) / maxf(.001, absf(way.y))
+		(map_w / 2.0 - 6.0) / maxf(.001, absf(way.x)), (MAP_H / 2.0 - 6.0) / maxf(.001, absf(way.y))
 	)
 	var tip := middle + way * reach
 	var side := Vector2(-way.y, way.x)
@@ -367,10 +374,10 @@ func _player_mark(g: Game, c: Canvas) -> void:
 func _blit(c: Canvas) -> void:
 	var src := Rect2i(maxi(0, int(window_origin.x)), maxi(0, int(window_origin.y)), 0, 0)
 	var dst := Vector2i(
-		MAP_X + maxi(0, -int(window_origin.x)), MAP_Y + maxi(0, -int(window_origin.y))
+		map_x + maxi(0, -int(window_origin.x)), MAP_Y + maxi(0, -int(window_origin.y))
 	)
 	src.size = Vector2i(
-		mini(image.get_width() - src.position.x, MAP_X + MAP_W - dst.x),
+		mini(image.get_width() - src.position.x, map_x + map_w - dst.x),
 		mini(image.get_height() - src.position.y, MAP_Y + MAP_H - dst.y)
 	)
 	if src.size.x <= 0 or src.size.y <= 0:

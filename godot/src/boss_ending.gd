@@ -615,7 +615,9 @@ func draw(m: MainState) -> void:
 	_draw_caption(c, g)
 	if at > SKIP_AFTER and not skipped:
 		var skip_word := "TAP TO SKIP" if m.input_device == "touch" else "ANY KEY SKIPS"
+		c.anchor(View.shift)  # ASPECT WIDE: at the picture's right edge
 		HUD.text(c, skip_word, 312, 4, "mini", HUD.DIM, false, false, true)
+		c.anchor(0)
 	var gone := clampf((at - (length - fade)) / maxf(.05, fade), 0.0, 1.0)
 	if gone > 0.0:
 		_shade(c, 0, 0, View.WIDTH, View.HEIGHT, gone)

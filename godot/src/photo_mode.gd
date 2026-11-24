@@ -210,10 +210,14 @@ func draw(m: MainState) -> void:
 	var c := m.canvas
 	c.fill_rect(0, View.VIEW, View.WIDTH, View.HEIGHT - View.VIEW, STRIP)
 	c.fill_rect(0, View.VIEW, View.WIDTH, 1, Canvas.EDGE)
+	# ASPECT WIDE: the name and the filter keep the picture's edges.
+	c.anchor(-View.shift)
 	HUD.text(c, "PHOTO MODE", 8, View.VIEW + 5, "body", HUD.AMBER)
+	c.anchor(View.shift)
 	HUD.text(
 		c, "FILTER  " + FILTERS[filter], 312, View.VIEW + 5, "body", HUD.INK, false, true, true
 	)
+	c.anchor(0)
 	var lines := guide(m.input_device)
 	HUD.text(c, lines[0], 160, View.VIEW + 19, "mini", HUD.DIM, true, false)
 	var last := lines[1]
@@ -240,8 +244,8 @@ static func guide(device: String) -> Array[String]:
 
 
 ## Save a picture of the view: drawn again off screen at SCALE times its
-## size through the display shader (filter and all), or headless from the
-## software canvas.
+## size through the display shader (filter and all; WIDE: as wide as it is
+## shown), or headless from the software canvas.
 func save(m: MainState) -> void:
 	if not on:
 		return
@@ -257,7 +261,7 @@ func save(m: MainState) -> void:
 func _save_drawn(m: MainState) -> void:
 	var k := maxi(1, SCALE)
 	var port := SubViewport.new()
-	port.size = Vector2i(View.WIDTH * k, View.VIEW * k)
+	port.size = Vector2i(View.cols * k, View.VIEW * k)
 	port.disable_3d = true
 	port.transparent_bg = false
 	port.render_target_update_mode = SubViewport.UPDATE_ONCE
@@ -267,7 +271,7 @@ func _save_drawn(m: MainState) -> void:
 	shown.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	shown.stretch_mode = TextureRect.STRETCH_SCALE
 	shown.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	shown.size = Vector2(View.WIDTH * k, View.HEIGHT * k)
+	shown.size = Vector2(View.cols * k, View.HEIGHT * k)
 	port.add_child(shown)
 	m.add_child(port)
 	await RenderingServer.frame_post_draw

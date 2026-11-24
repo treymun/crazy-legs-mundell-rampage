@@ -518,5 +518,121 @@
   "weapon": true,
   "x": 7.5,
   "y": 69.5
+ },
+ {
+  "angle": 3.14159,
+  "fire": true,
+  "level": "fair",
+  "pitch": -8.0,
+  "screen": [
+   712,
+   400
+  ],
+  "tag": "wide_fair_fight_5_16",
+  "ticks": 55,
+  "weapon": true,
+  "x": 62.0,
+  "y": 47.5
+ },
+ {
+  "angle": 0.05,
+  "drunk": 0.0,
+  "level": "hickston",
+  "notice": "THE TRUCK IS PARKED BY THE CHURCH",
+  "pitch": 22.0,
+  "screen": [
+   712,
+   400
+  ],
+  "tag": "wide_hickston_01_0",
+  "weapon": true,
+  "x": 7.5,
+  "y": 69.5
+ },
+ {
+  "angle": 0.05,
+  "gun": 16,
+  "level": "hickston",
+  "pitch": 22.0,
+  "scope": true,
+  "screen": [
+   712,
+   400
+  ],
+  "tag": "wide_hickston_scope",
+  "weapon": true,
+  "x": 7.5,
+  "y": 69.5
+ },
+ {
+  "angle": 0.05,
+  "level": "hickston",
+  "map": true,
+  "screen": [
+   712,
+   400
+  ],
+  "tag": "wide_hickston_map",
+  "weapon": true,
+  "x": 7.5,
+  "y": 69.5
+ },
+ {
+  "angle": 0.05,
+  "level": "hickston",
+  "photo": [
+   2.5,
+   0.5
+  ],
+  "screen": [
+   712,
+   400
+  ],
+  "tag": "wide_hickston_photo",
+  "weapon": true,
+  "x": 7.5,
+  "y": 69.5
+ },
+ {
+  "angle": 0.05,
+  "level": "hickston",
+  "menu": "setup",
+  "page": 1,
+  "screen": [
+   712,
+   400
+  ],
+  "tag": "wide_menu_display",
+  "x": 7.5,
+  "y": 69.5
+ },
+ {
+  "angle": 0.0,
+  "forward": 1.0,
+  "level": "bayou",
+  "pitch": 0.0,
+  "screen": [
+   868,
+   400
+  ],
+  "seat": 0,
+  "tag": "wide_bayou_seat_0",
+  "ticks": 50,
+  "weapon": true,
+  "x": 0.0,
+  "y": 0.0
+ },
+ {
+  "angle": -0.6,
+  "level": "speedway",
+  "pitch": -4.0,
+  "screen": [
+   712,
+   200
+  ],
+  "tag": "wide32_speedway_oval_0",
+  "weapon": true,
+  "x": 60.5,
+  "y": 70.5
  }
 ]

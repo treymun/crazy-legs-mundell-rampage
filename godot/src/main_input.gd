@@ -1096,7 +1096,7 @@ func _touch_actions() -> void:
 		and state == "play"
 		and game != null
 		and not game.showing_tally
-		and HoundLooks.on_badge(game, picture_point(tap_at))
+		and HoundLooks.on_badge(game, picture_point(tap_at, -1))
 	):
 		key(KEY_G)  # a tap on BLUE's badge whistles for him
 	elif (

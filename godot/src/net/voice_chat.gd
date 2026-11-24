@@ -504,9 +504,11 @@ func draw(c: Canvas, main: MainState) -> void:
 		var ink: Color = row[1]
 		var y: int = row[2]
 		var marked: bool = row[3]
+		HudLayout.begin(c, "voice_%d" % y)
 		if marked:
 			wave_mark(c, ROW_X, y, ink)
 		HUD.text(c, text, ROW_X + MARK_W + 3, y, "mini", ink)
+		HudLayout.end(c)
 	if net.match_game() != g or g.showing_tally or main.kill_cam.playing or main.opener.playing:
 		return
 	if Modes.is_tactical(g) and (TacticalScreens.open or Input.is_key_pressed(KEY_TAB)):
@@ -519,7 +521,8 @@ func draw(c: Canvas, main: MainState) -> void:
 			continue
 		var head: float = g.world.stand(q) + q.air + 1.45
 		var at: Vector3 = g.to_canvas(q.x, q.y, head)
-		if at.z <= 0.0 or at.x < 6.0 or at.x > View.WIDTH - 6.0 or at.y < 6.0:
+		var edge := 6.0 - View.shift  # ASPECT WIDE: the picture's own edges
+		if at.z <= 0.0 or at.x < edge or at.x > View.WIDTH - edge or at.y < 6.0:
 			continue
 		if at.y > View.VIEW - 6.0:
 			continue

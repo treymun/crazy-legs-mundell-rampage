@@ -1,4 +1,5 @@
-## The play HUD as Control nodes, the size of the canvas (320x200), in the
+## The play HUD as Control nodes, the size of the picture (320x200; WIDE
+## wider), in the
 ## overlay viewport the display shader lays over the 3D view, under the
 ## canvas's own drawing (the notices, the 5v5 store and COUNTY RUN's cards go
 ## over it as they went over the old bar) and under the menu screens (UiRoot).
@@ -12,6 +13,10 @@
 ##   for pixel; HUD MINIMAL hides the rail, the face and the campaign's meters,
 ##   and the plate shows through.
 ## - `pin` (HudPin) is the objective pin, repainted every frame.
+## - ASPECT WIDE (fit()): the layer is the picture's width; the bar's left
+##   part (the rail, health, ammo, keys, the face) keeps the left edge, its
+##   right part (the gauges, the pocket) the right, and the plate's wood and
+##   rail between them is a stretch of its own planks (FILL) laid end to end.
 ##
 ## The overlay is scaled to the window by the display shader with whole,
 ## crisp pixels, so the HUD scales as the picture does, on a phone (inside its
@@ -33,10 +38,19 @@ const BOXES := {
 	"gauges": Rect2i(171, 0, 101, 44),
 	"pocket": Rect2i(272, 9, 48, 35),
 }
+## ASPECT WIDE: where the bar parts at the left edge end, and the plate's
+## columns laid end to end between the parts (plain planks, one of the
+## rail's sections).
+const SPLIT := 171
+const FILL := Vector2i(183, 228)
 
 var hud: HUD
 var bar: Control
 var plate: TextureRect
+## ASPECT WIDE: the plate's right part and the planks between (hidden at 320).
+var plate_right: TextureRect
+var filler: TextureRect
+var _filled_for: Texture2D = null
 var boxes: Dictionary = {}
 var pin: HudPin
 ## The game shown this frame (null: no HUD this frame).
@@ -60,6 +74,17 @@ func _init(p_hud: HUD) -> void:
 	plate.size = bar.size
 	_flat(plate)
 	bar.add_child(plate)
+	plate_right = TextureRect.new()
+	plate_right.name = "PlateRight"
+	plate_right.texture = AtlasTexture.new()
+	_flat(plate_right)
+	plate_right.visible = false
+	bar.add_child(plate_right)
+	filler = TextureRect.new()
+	filler.name = "Planks"
+	_flat(filler)
+	filler.visible = false
+	bar.add_child(filler)
 	for part: String in BOXES:
 		var r: Rect2i = BOXES[part]
 		var box := TextureRect.new()
@@ -98,12 +123,65 @@ func show_for(shown: Game, armory: Weapons.Armory) -> void:
 	if not visible:
 		return
 	var drawn := hud.bar_texture(shown, armory)
-	plate.texture = hud.plate_texture(shown)
+	var plate_tex := hud.plate_texture(shown)
+	if View.shift > 0:
+		_wide_plate(plate_tex)
+	else:
+		plate.texture = plate_tex
 	for part: String in boxes:
 		var box: TextureRect = boxes[part]
 		(box.texture as AtlasTexture).atlas = drawn
 		box.visible = not (hud.minimal and part in hidden_when_minimal(shown))
 	pin.visible = shown.hints and not shown.map and not hud.minimal
+
+
+## The layer as wide as the picture (View.cols): the bar's parts at its edges.
+func fit() -> void:
+	var cols := View.cols
+	size = Vector2(cols, 200)
+	pin.size = Vector2(320, 200)
+	pin.position.x = View.shift
+	bar.size = Vector2(cols, 200 - View.VIEW)
+	var wide := cols > 320
+	var across := 2 * View.shift
+	for part: String in boxes:
+		var r: Rect2i = BOXES[part]
+		var box: TextureRect = boxes[part]
+		box.position.x = r.position.x + (across if r.position.x >= SPLIT else 0)
+	plate_right.visible = wide
+	filler.visible = wide
+	if wide:
+		plate.size = Vector2(SPLIT, bar.size.y)
+		plate_right.position.x = SPLIT + across
+		plate_right.size = Vector2(320 - SPLIT, bar.size.y)
+		filler.position.x = SPLIT
+		filler.size = Vector2(across, bar.size.y)
+		_filled_for = null
+	else:
+		plate.size = Vector2(320, bar.size.y)
+
+
+## ASPECT WIDE: the plate in its two parts and the planks laid between them.
+func _wide_plate(whole: ImageTexture) -> void:
+	if _filled_for == whole:
+		return
+	_filled_for = whole
+	var left := AtlasTexture.new()
+	left.atlas = whole
+	left.region = Rect2(0, 0, SPLIT, whole.get_height())
+	plate.texture = left
+	var right := plate_right.texture as AtlasTexture
+	right.atlas = whole
+	right.region = Rect2(SPLIT, 0, whole.get_width() - SPLIT, whole.get_height())
+	var image := whole.get_image()
+	var span := FILL.y - FILL.x
+	var across := maxi(1, int(filler.size.x))
+	var planks := Image.create_empty(across, image.get_height(), false, image.get_format())
+	for x in range(0, across, span):
+		planks.blit_rect(
+			image, Rect2i(FILL.x, 0, mini(span, across - x), image.get_height()), Vector2i(x, 0)
+		)
+	filler.texture = ImageTexture.create_from_image(planks)
 
 
 ## The boxes HUD MINIMAL leaves off: the rail and the face, and the gut and
@@ -126,5 +204,6 @@ func composed() -> Image:
 		if not box.visible:
 			continue
 		var region := box.texture as AtlasTexture
-		out.blit_rect(hud.bar_rows, Rect2i(region.region), Vector2i(box.position))
+		var at: Rect2i = BOXES[part]
+		out.blit_rect(hud.bar_rows, Rect2i(region.region), at.position)
 	return out

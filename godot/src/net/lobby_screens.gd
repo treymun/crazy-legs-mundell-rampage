@@ -935,7 +935,9 @@ static func draw_match(c: Canvas, net: NetPlay, game: Game, leave_asked: bool) -
 		else:
 			var ping := roundi(net.ping_ms())
 			var ink := GREEN if ping < 80 else (HUD.AMBER if ping < 160 else RED)
+			HudLayout.begin(c, "ping")
 			HUD.text(c, "%d MS" % ping, 316, 12, "mini", ink, false, true, true)
+			HudLayout.end(c)
 	if (
 		game != null
 		and game.showing_tally

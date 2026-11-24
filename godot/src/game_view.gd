@@ -649,6 +649,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var weapon: Weapons.Armory = gallery.pistol if practice else armory
 	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
 	view.time = clock
+	view.fit()
 	view.layered = layered and gpu_look
 	Effects.rich = view.layered and Effects.enabled
 	Scope.focal(me, p)
@@ -1067,7 +1068,12 @@ func _use_mark(c: Canvas) -> void:
 	var half := int(clampf(.2 / at.z * View.base_focal, 5, 16))
 	var cx := int(at.x)
 	var cy := int(at.y)
-	if cx < half or cx > WIDTH - half or cy < half + 2 or cy > VIEW - half:
+	if (
+		cx < half - View.shift
+		or cx > WIDTH + View.shift - half
+		or cy < half + 2
+		or cy > VIEW - half
+	):
 		return
 	var glow := .72 + .28 * sin(clock * 4.2)
 	var colour := Color(1.0 * glow, .80 * glow, .42 * glow)
