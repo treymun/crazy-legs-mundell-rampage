@@ -76,7 +76,7 @@ static func tick(e: Enemy, dt: float, game: Game) -> void:
 				s["left"] = CHARGE_TIME
 				s["hit"] = false
 				e.aim_mark = null
-				game.sound_at("millhand_rev", e.x, e.y, 1.0)
+				game.sound_from(Doppler.FOE + e.uid, "millhand_rev", e.x, e.y, 1.0)
 				game.burst(e.x, e.y, eye - .8, "dust", 10, 1.6)
 		"charge":
 			_charge(e, s, dt, game)

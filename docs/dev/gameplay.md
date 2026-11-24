@@ -2788,6 +2788,13 @@ chapel path at Hickston. Only the campaign and co-op have them
   the knock of a shot that does not break a thing yet.
 - **Placed sounds, takes and the per-play pitch** are in
   [audio.md](audio.md) (`hearing.gd`, `Sound.VARIANTS`).
+- **Doppler on fast movers** (pass 14): a vehicle's engine, a lap car, a
+  shot's or a thrown thing's flight loop and a saucer's hum bend up as they
+  come and down as they go, from where they are drawn each frame
+  (`mover_sounds.gd`, `doppler.gd`, `data/tuning/doppler.cfg`); sound only.
+  A new sound that should bend is played with `game.sound_from(key, ...)`
+  (`Doppler.RIDE`, `LAP`, `FOE` keys) or gets a `[fly]` row:
+  [audio.md](audio.md#doppler-pass-14).
 - **Sound effects are QOA** (`sfx.bin`, about a fifth of 16-bit samples), and
   the tiles and skies are deflated whole (`Assets.pack_whole`). An
   `AudioStreamWAV`'s `data` is then not samples: count frames with

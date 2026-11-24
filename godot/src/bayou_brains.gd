@@ -208,7 +208,7 @@ static func _run(e: Enemy, dt: float, game: Game, run: Array, wet: bool) -> void
 		e.set_note("pair", true)
 		e.windup = .6
 		e.aim_mark = [p.x, p.y, p.eye]
-		game.sound_at("king_rev", e.x, e.y, .8)
+		game.sound_from(Doppler.FOE + e.uid, "king_rev", e.x, e.y, .8)
 
 
 ## True when it made this attack itself (the king's runs and punt gun).
@@ -219,7 +219,7 @@ static func attack(e: Enemy, game: Game, direction: float, distance: float, eye:
 		var second := e.has_note("pair")
 		e.remove_note("pair")
 		e.set_note("run", [direction, RUN_LENGTH, false, second])
-		game.sound_at("king_charge", e.x, e.y, 1.0)
+		game.sound_from(Doppler.FOE + e.uid, "king_charge", e.x, e.y, 1.0)
 		game.shake = minf(1.0, game.shake + .25)
 		return true
 	# The punt gun: a spray of slugs off the bow.

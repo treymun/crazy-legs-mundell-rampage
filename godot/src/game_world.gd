@@ -188,6 +188,17 @@ func sound_at(name: String, x: float, y: float, strength := 1.0, rate := 1.0) ->
 			speaker.play("room_" + name, place.x * .55, place.y)
 
 
+## sound_at tied to mover `from` (a Doppler key: a ride, a lap car): its
+## pitch follows how fast that comes or goes for as long as it plays.
+func sound_from(from: int, name: String, x: float, y: float, strength := 1.0, rate := 1.0) -> void:
+	var node: Sound = null if host or speaker == null else speaker.node()
+	if node != null:
+		node.doppler.next_from = from
+	sound_at(name, x, y, strength, rate)
+	if node != null:
+		node.doppler.next_from = 0
+
+
 func report(name: String) -> void:
 	if not acting_local():
 		# Another player's gun: heard from where they stand.
