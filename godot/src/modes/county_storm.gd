@@ -323,7 +323,9 @@ static func draw_hud(c: Canvas, game: Game, f: CountyRun) -> void:
 		ink = HUD.LOW_HOT if int(game.clock * 4.0) % 2 == 0 else HUD.LOW
 	if line != "":
 		HUD.text(c, line, 160, 20, "body", ink, true, true, true)
+	c.anchor(View.shift)  # ASPECT WIDE: the ring at the picture's right edge
 	_corner(c, game, f)
+	c.anchor(0)
 
 
 ## The storm's line: out in it, closing in, or when the next front comes.

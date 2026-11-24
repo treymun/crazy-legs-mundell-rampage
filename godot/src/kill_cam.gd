@@ -438,6 +438,10 @@ func draw(m: MainState) -> void:
 	var black := Color(0, 0, 0)
 	c.fill_rect(0, 0, View.WIDTH, 12, black)
 	c.fill_rect(0, View.VIEW - 12, View.WIDTH, View.HEIGHT - View.VIEW + 12, black)
+	# ASPECT WIDE: the words at the picture's own corners.
+	c.anchor(-View.shift)
 	HUD.text(c, "KILL CAM", 8, 3, "mini", HUD.AMBER, false, false)
+	c.anchor(View.shift)
 	var skip := "TAP TO SKIP" if m.input_device == "touch" else "ANY KEY SKIPS"
 	HUD.text(c, skip, 312, 3, "mini", HUD.DIM, false, false, true)
+	c.anchor(0)

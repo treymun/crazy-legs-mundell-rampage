@@ -14,6 +14,8 @@ const ASPECT := 1.2
 const HAIR := Color8(8, 8, 8)
 
 static var _mask := PackedByteArray()
+## The picture's columns and glass shape the mask was made for.
+static var _made_for := Vector2(0, 0)
 
 
 ## The renderer's focal length for this frame: the FIELD OF VIEW's, times the
@@ -29,17 +31,26 @@ static func focal(game: Game, p: Player) -> void:
 		game.view.set_detail(game.view.detail, true)
 
 
-## The scope's black surround, its rim and cross-hair, over the view.
+## The mask made again at the next frame (WIDE changed the picture's width).
+static func forget() -> void:
+	_mask = PackedByteArray()
+
+
+## The scope's black surround, its rim and cross-hair, over the view: across
+## the whole picture in WIDE, where the pixels are square and the glass round.
 static func mask(c: Canvas) -> void:
-	var w := View.WIDTH
+	var w := View.cols
 	var h := View.VIEW
-	if _mask.is_empty():
+	var aspect := 1.0 if View.square else ASPECT
+	if _mask.is_empty() or _made_for != Vector2(w, aspect):
+		_made_for = Vector2(w, aspect)
+		_mask = PackedByteArray()
 		_mask.resize(w * h * 4)
 		var cx := w * .5
 		var cy := h * .5
 		for y in h:
 			for x in w:
-				var d := Vector2((x + .5 - cx) / ASPECT, y + .5 - cy).length()
+				var d := Vector2((x + .5 - cx) / aspect, y + .5 - cy).length()
 				var o := (y * w + x) * 4
 				var a := 0
 				if d > RADIUS:
@@ -49,9 +60,14 @@ static func mask(c: Canvas) -> void:
 				elif absf(x + .5 - cx) < 1.0 and absf(y + .5 - cy) > 3.0:
 					a = 230 if absf(y + .5 - cy) < RADIUS * .55 else 255
 				elif absf(y + .5 - cy) < 1.0 and absf(x + .5 - cx) > 3.0:
-					a = 230 if absf(x + .5 - cx) < RADIUS * ASPECT * .55 else 255
+					a = 230 if absf(x + .5 - cx) < RADIUS * aspect * .55 else 255
 				_mask[o] = HAIR.r8
 				_mask[o + 1] = HAIR.g8
 				_mask[o + 2] = HAIR.b8
 				_mask[o + 3] = a
-	c.blit_rgba(_mask, w, h, 0, 0, "scope_mask")
+	var key := (
+		"scope_mask"
+		if w == View.WIDTH and aspect == ASPECT
+		else "scope_mask_%d_%d" % [w, aspect * 10]
+	)
+	c.blit_rgba(_mask, w, h, -View.shift, 0, key)

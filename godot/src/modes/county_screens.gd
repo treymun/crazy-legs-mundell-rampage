@@ -172,9 +172,11 @@ static func draw_hud(c: Canvas, game: Game, f: CountyRun) -> void:
 		return
 	_elite_tags(c, game, f)
 	var need := CountyData.xp_to_next(f.level)
-	var fill := clampi(roundi(320.0 * float(f.xp) / maxf(1.0, float(need))), 0, 320)
+	# ASPECT WIDE: the bar runs across the whole picture (View.cols).
+	var across := float(View.cols)
+	var fill := clampi(roundi(across * float(f.xp) / maxf(1.0, float(need))), 0, View.cols)
 	c.fill_rect(0, VIEW - 3, 320, 3, XP_BACK)
-	c.fill_rect(0, VIEW - 3, fill, 3, XP_FILL)
+	c.fill_rect(-View.shift, VIEW - 3, fill, 3, XP_FILL)
 	c.fill_rect(0, VIEW - 3, 320, 1, Color(0, 0, 0))
 	# The gun slots, armor and level are on the status bar (hud.gd).
 	HudLayout.begin(c, "county")

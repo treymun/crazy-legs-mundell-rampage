@@ -177,6 +177,8 @@ var ui: UiRoot
 ## The 320x200 viewport the canvas draws into with Godot 2D (see _start_overlay),
 ## and --cpu-canvas, which keeps the canvas in software.
 var overlay: SubViewport
+## What the canvas draws on in the overlay (centred on the picture in WIDE).
+var painter: Node2D
 var cpu_canvas := false
 ## The play HUD's Control nodes in the overlay (ui/hud/hud_layer.gd; none
 ## headless, where the HUD draws on the canvas), PHOTO MODE and the KILL CAM
@@ -453,19 +455,11 @@ func _parse_smoke() -> void:
 # ------------------------------------------------------------- presentation
 
 
+## The picture's size in a window (PictureShape.size_for).
 static func presentation_size(
 	width: int, height: int, aspect: int, fill := false
 ) -> PackedInt32Array:
-	if fill:
-		return PackedInt32Array([width, height])
-	if aspect == 2 and width >= WIDTH and height >= HEIGHT:
-		var step := mini(width / WIDTH, height / HEIGHT)
-		return PackedInt32Array([WIDTH * step, HEIGHT * step])
-	var a := 8 if aspect != 0 else 4
-	var b := 5 if aspect != 0 else 3
-	return PackedInt32Array(
-		[maxi(1, mini(width, height * a / b)), maxi(1, mini(height, width * b / a))]
-	)
+	return PictureShape.size_for(width, height, aspect, fill)
 
 
 ## The part of the window the picture and the touch overlay may use: all of it,
@@ -480,6 +474,17 @@ func safe_rect() -> Rect2:
 	if clipped.size.x < WIDTH or clipped.size.y < HEIGHT:
 		return full
 	return clipped
+
+
+## The picture's columns: 320, or with WIDE as many as the screen's shape
+## asks (only with the overlay: a window's Godot canvas; tools keep 320).
+func picture_cols() -> int:
+	var style: int = options.get("aspect", 0)
+	if style != PictureShape.ASPECT_WIDE or overlay == null:
+		return WIDTH
+	var fill := fullscreen and fullscreen_mode == 1
+	var bounds := Rect2(Vector2.ZERO, get_viewport_rect().size) if fill else safe_rect()
+	return PictureShape.wide_cols(int(bounds.size.x), int(bounds.size.y))
 
 
 func viewport_rect() -> Rect2:
@@ -498,6 +503,11 @@ func viewport_rect() -> Rect2:
 
 
 func _apply_view() -> void:
+	var cols := picture_cols()
+	if cols != View.cols:
+		PictureShape.fit(self, cols)
+	var style: int = options.get("aspect", 0)
+	View.square = style == PictureShape.ASPECT_WIDE and overlay != null
 	var rect := viewport_rect()
 	view.position = rect.position
 	view.size = rect.size
@@ -874,13 +884,19 @@ func palettised(source: PackedByteArray) -> PackedByteArray:
 	return graded
 
 
-## A point of the window as a pixel of the 320x200 picture, or (-1, -1).
-func picture_point(position: Vector2) -> Vector2i:
+## A point of the window as a pixel of the 320x200 canvas, or (-1, -1).
+## In WIDE the canvas is centred on the picture: a point left of it is
+## negative, one right of it past 319 (`edge` -1 or 1: as a HUD piece kept
+## to that edge sees it, HudLayout.side_of).
+func picture_point(position: Vector2, edge := 0) -> Vector2i:
 	var rect := viewport_rect()
 	if not rect.has_point(position):
 		return Vector2i(-1, -1)
 	return Vector2i(
-		int((position.x - rect.position.x) * WIDTH / rect.size.x),
+		(
+			int(floorf((position.x - rect.position.x) * View.cols / rect.size.x))
+			- View.shift * (1 + edge)
+		),
 		int((position.y - rect.position.y) * HEIGHT / rect.size.y)
 	)
 
@@ -1263,7 +1279,7 @@ func _start_overlay() -> void:
 	if not gpu_ready or cpu_look or cpu_canvas or (smoke and view_shot == ""):
 		return
 	overlay = SubViewport.new()
-	overlay.size = Vector2i(WIDTH, HEIGHT)
+	overlay.size = Vector2i(View.cols, HEIGHT)
 	overlay.transparent_bg = true
 	overlay.disable_3d = true
 	overlay.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -1274,7 +1290,7 @@ func _start_overlay() -> void:
 	hud_layer = HudLayer.new(hud)
 	overlay.add_child(hud_layer)
 	hud.controls = true
-	var painter := Node2D.new()
+	painter = Node2D.new()
 	overlay.add_child(painter)
 	canvas.gpu = true
 	canvas.gpu_parent = painter.get_canvas_item()
@@ -1336,6 +1352,7 @@ func render() -> void:
 		var show_fps: int = options.get("show_fps", 0)
 		if show_fps != 0 and not touring:
 			# FRAME COUNTER: frames per second, top right, over the view.
+			HudLayout.begin(canvas, "fps")
 			HUD.text(
 				canvas,
 				"%d FPS" % roundi(Engine.get_frames_per_second()),
@@ -1347,6 +1364,7 @@ func render() -> void:
 				true,
 				true
 			)
+			HudLayout.end(canvas)
 		if editor != null and editor.active:
 			editor.draw(canvas)
 		if console != null:
@@ -1378,11 +1396,13 @@ func _pin_hud() -> void:
 	var pins: Array = []
 	if touch != null and touch.showing:
 		var picture := viewport_rect()
-		var k := 320.0 / maxf(1.0, picture.size.x)
+		var k := View.cols / maxf(1.0, picture.size.x)
 		for b: Array in touch.shown_buttons():
 			var middle: Vector2 = b[1]
 			var radius: float = b[2]
 			var at := (middle - picture.position) * k
+			# WIDE: where the pieces kept to that half's edge see it.
+			at.x -= 0.0 if at.x < View.cols * .5 else View.shift * 2.0
 			var r := radius * k
 			var box := Rect2i(Rect2(at - Vector2(r, r), Vector2(r, r) * 2.0))
 			if box.intersects(Rect2i(0, 0, 320, View.VIEW)):

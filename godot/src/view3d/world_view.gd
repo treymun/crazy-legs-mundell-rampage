@@ -217,8 +217,12 @@ var parts_us := PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 const INSTANCE_SLOTS_SMALL := 1024
 const INSTANCE_ROOM_SMALL := 60
 const INSTANCE_MARGIN := 20
-var _mirror_view: SubViewport
-var _mirror_camera: Camera3D
+## The mirror's two pictures and their cameras, drawn in turn (_mirror):
+## `_mirror_k` is the one being drawn, the other the one read.
+var _mirror_views: Array[SubViewport] = []
+var _mirror_cameras: Array[Camera3D] = []
+var _mirror_k := 0
+var _mirror_live := false
 
 
 func _init(assets: Assets) -> void:
@@ -850,35 +854,58 @@ func _mirror(
 	size: Vector2i
 ) -> void:
 	_share("mirror_on", on)
+	_mirror_live = on
 	if not on:
-		if _mirror_view != null:
-			_mirror_view.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		for shown: SubViewport in _mirror_views:
+			shown.render_target_update_mode = SubViewport.UPDATE_DISABLED
 		return
-	if _mirror_view == null:
-		_mirror_view = SubViewport.new()
-		_mirror_view.world_3d = viewport.find_world_3d()
-		_mirror_view.transparent_bg = false
-		_mirror_view.msaa_3d = Viewport.MSAA_DISABLED
-		add_child(_mirror_view)
-		_mirror_camera = Camera3D.new()
-		_mirror_camera.projection = Camera3D.PROJECTION_FRUSTUM
-		_mirror_camera.keep_aspect = Camera3D.KEEP_HEIGHT
-		_mirror_camera.cull_mask = LAYER_WORLD | LAYER_REFLECTION | LAYER_MIRROR
-		_mirror_camera.current = true
-		_mirror_view.add_child(_mirror_camera)
-		_share("mirror_tex", _mirror_view.get_texture())
-	_mirror_view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	if _mirror_view.size != size:
-		_mirror_view.size = size
+	if _mirror_views.is_empty():
+		for i in 2:
+			var port := SubViewport.new()
+			port.world_3d = viewport.find_world_3d()
+			port.transparent_bg = false
+			port.msaa_3d = Viewport.MSAA_DISABLED
+			add_child(port)
+			var eye := Camera3D.new()
+			eye.projection = Camera3D.PROJECTION_FRUSTUM
+			eye.keep_aspect = Camera3D.KEEP_HEIGHT
+			eye.cull_mask = LAYER_WORLD | LAYER_REFLECTION | LAYER_MIRROR
+			eye.current = true
+			port.add_child(eye)
+			_mirror_views.append(port)
+			_mirror_cameras.append(eye)
+		RenderingServer.frame_post_draw.connect(_turn_mirrors)
+		_turn_mirrors()
+	_mirror_views[_mirror_k].render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_share("mirror_x", level.mirror_x)
 	var turn := PI - angle
-	_mirror_camera.transform = Transform3D(
-		Basis(Vector3.UP, -turn - PI * .5), Vector3(2.0 * level.mirror_x - x, z, y)
-	)
 	var tall := NEAR * size.y / focal
-	_mirror_camera.set_frustum(
-		tall, Vector2(0.0, (horizon - size.y * .5) * NEAR / focal), NEAR, game_far
-	)
+	for k in 2:
+		var port := _mirror_views[k]
+		if port.size != size:
+			port.size = size
+		var eye := _mirror_cameras[k]
+		eye.transform = Transform3D(
+			Basis(Vector3.UP, -turn - PI * .5), Vector3(2.0 * level.mirror_x - x, z, y)
+		)
+		eye.set_frustum(tall, Vector2(0.0, (horizon - size.y * .5) * NEAR / focal), NEAR, game_far)
+
+
+## The mirror's two pictures change places after every frame drawn: the
+## shaders read the one drawn last frame (the main view, drawn before the
+## mirror's viewport, read it a frame old already; the mirror's own pass
+## reads it for the mirror's tile seen in the mirror) while the other is
+## drawn. A pass reading the picture it draws into is a feedback loop: WebGL
+## refuses each such draw with an error (the browser's 256 within seconds
+## in Hickston before pass 14) and leaves holes; desktop drivers let it be.
+func _turn_mirrors() -> void:
+	if _mirror_views.is_empty() or not _mirror_live:
+		return
+	_mirror_k = 1 - _mirror_k
+	var read := _mirror_views[1 - _mirror_k]
+	read.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	_mirror_views[_mirror_k].render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_share("mirror_tex", read.get_texture())
 
 
 ## (Re)build the level's meshes when the level, its walls, its light or

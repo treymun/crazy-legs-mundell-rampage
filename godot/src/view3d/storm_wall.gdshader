@@ -106,7 +106,7 @@ float dither_of(vec2 at, float tm, float drift, float layer, float far, vec2 fra
 	float lane = floor(at.x * 14.0 + drift * 6.0);
 	float fall = (at.y + tm * 6.5) * 2.2 + hash12(vec2(lane, layer)) * 7.0;
 	float streak = hash12(vec2(lane, floor(fall)) + layer * 19.0);
-	vec2 px = floor(frag * (320.0 / view_size.x));
+	vec2 px = floor(frag * (156.0 / view_size.y));
 	// Ragged only along the steps' edges, so the rolls of cloud keep their
 	// shapes.
 	float grain = 0.5 + (hash12(px + layer * 5.3) - 0.5) * 0.65;

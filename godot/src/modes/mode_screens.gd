@@ -226,8 +226,8 @@ static func _tag(c: Canvas, game: Game, me: Player, q: Player, taken: Array[Rect
 	var at: Vector3 = game.to_canvas(q.x, q.y, head)
 	var seen: bool = (
 		at.z > 0.0
-		and at.x > 8.0
-		and at.x < View.WIDTH - 8.0
+		and at.x > 8.0 - View.shift
+		and at.x < View.WIDTH + View.shift - 8.0
 		and at.y > 6.0
 		and at.y < View.VIEW - 6.0
 		and game.world.visible(me.x, me.y, q.x, q.y, me.eye, head - .3)
@@ -243,7 +243,9 @@ static func _tag(c: Canvas, game: Game, me: Player, q: Player, taken: Array[Rect
 	if not seen:
 		var rel := Enemy.angle_delta(atan2(q.y - me.y, q.x - me.x), me.view_angle())
 		var side := clampf(rel / (PI * .5), -1.0, 1.0)
-		x = clampi(int(160.0 + side * 148.0), 12, View.WIDTH - 12)
+		x = clampi(
+			int(160.0 + side * (148.0 + View.shift)), 12 - View.shift, View.WIDTH + View.shift - 12
+		)
 		y = View.VIEW - 24
 		label = ("<" if rel < 0.0 else ">") + label if absf(rel) > .55 else label
 	var w := maxi(PixelType.text_width(label, "mini"), 22)

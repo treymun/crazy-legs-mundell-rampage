@@ -110,6 +110,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `camera_check` | CAMERA CHECK OK | yes | the QUALITY tiers (pick, presets, AUTO's meter, physics steps); the HUD's Control boxes compose to `HUD.draw`'s bar pixel for pixel (campaign, 5v5, County Run, full and MINIMAL); PHOTO MODE in and out, flying, the player in view, a filter, a picture saved; the KILL CAM noted, sampled, replayed with stand-ins and skipped, never a boss's fall; play's snapshot unchanged by either; the view polish (`view_polish_check.gd`): SHADOWS' pairs and blobs, marks on a prop's model (holes, scorch, char, kept and handed on), the storm wall's curtains and ring |
 | `frame_smooth` (`check`) | FRAME SMOOTH OK | yes | single player drawn between ticks (pass 14, `SoloBlend`, [view3d.md](view3d.md#drawn-between-ticks-single-player-pass-14)): Hickston walked through and turned among woken hands throwing bolts and firing, and a cluster of breakables blown with three hands shot down by it, each at 144 Hz through the front end's own frame (`advance`, `net_draw_begin`, `render`, `net_draw_end`) with a 3D view made by hand: the camera, its turn, the gun's sway, every hand's model, the shots, the wreck pieces, the ragdolls' bones and the casings each move on at least 97% of the drawn frames they are moving in (v3.11.0: 83%), the turn on every frame the mouse turned; the same frames with the blend off play to the same state hash and snapshot; the rules: a blended frame puts the game back to the bit, a share of 1 draws the tick as it stands, the view turns by all of the mouse not yet played and the next tick faces where that frame was drawn, a 4-cell jump and a seat taken are drawn where they land, PHOTO MODE and a FRAME LIMIT of 60 blend nothing |
 | `hud_layout_check` | HUD LAYOUT OK | yes | the HUD's layout ([ui.md](ui.md#the-huds-layout)): crowded moments (campaign, SMALL TEXT, MINIMAL, a new player's tip over a notice and alone, driving with a run, the lap, co-op watching and reviving, a boss, versus, the fair, COUNTY RUN, 5v5) drawn headless with each piece's ink measured: no two touch, all inside the margins, each expected piece there; the layout's rules; the status bar's meter captions fit their wells; the notice and the tip draw over the hurt arc of a hit from in front (their pixels the same with and without it) |
+| `wide_check` | WIDE CHECK OK | yes | ASPECT WIDE ([view3d.md](view3d.md#aspect-wide-pass-14)): the picture's columns for 16:9, 21:9, 32:9, a 19.5:9 phone, 8:5, 4:3 and upright screens, the picture placed at that shape with no bars to speak of (DOS 4:3 and SQUARE 8:5 as before); the 3D view that many columns wide in HIGH, HD and LOW at the same focal length, a point ahead and to either side drawn by the camera where the canvas (centred) draws it, to 0.01 of a pixel; HUD pieces hugging an edge keep it (`HudLayout.side_of`); the status bar's parts at the picture's edges with the planks between, and at 320 exactly the old boxes; the scope's mask the picture's width, its glass round (1.2 wide at DOS 4:3); a bar across the canvas spans the picture, a wide piece is left alone; the setting's WIDE choice, the default DOS 4:3 |
 | `onboard_check` | ONBOARD CHECK OK | no | a new player's first minutes (pass 12, [gameplay.md](gameplay.md#a-new-players-first-minutes-pass-12-onboard)): every one-time tip at its moment on Hickston, once, kept on the profile, nothing before its moment; none with NEW PLAYER TIPS off or in a tool's game; the right key (as bound), pad or touch button; the CONTROLS rows; the same game with tips on and off; the new player (`newbie_pilot.gd`, ROOKIE) from NEW GAME to the sheriff within 300 s on NORMAL, at most one death, the fire tip with the first fight, no tip twice (`quick`: without the walk) |
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server (`seconds=30`, as CI always ran it): two levels' XP handed inside the tick on every machine, the leader's two cards through the held world, no parting at all (`lag=120` over a laggy link, `clock=1`/`0` the playout by the clock or not) |
@@ -287,7 +288,18 @@ godot --headless --path godot --script res://tools/compare_sheet.gd -- <old dir>
   in a local reference fails CI's Mesa window, which has none.
 - Changing how text draws changes every reference (a tour, then `update`).
 - A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
-  `wet`, `lightning`, `actors`, `cels` and `motion` (EASY ON THE EYES).
+  `wet`, `lightning`, `actors`, `cels` and `motion` (EASY ON THE EYES); and
+  (pass 14) `screen` [w, h] (the window that shape with ASPECT WIDE), `scope`
+  (the gun's scope up), `photo` [back, up] (PHOTO MODE, its camera that far
+  from the eye), `menu` (a front-end state's screen, `page` its settings
+  page), each put back after the viewpoint.
+- **The wide pictures** (pass 14): `wide_*` viewpoints at 16:9 (712x400, 356
+  columns: Hickston with a notice, the fair's fight, the scope, the automap,
+  PHOTO MODE, the DISPLAY page), a 19.5:9 phone (868x400, 434 columns: the
+  airboat's seat) and `wide32_speedway_oval_0` at 32:9 (712x200, 712
+  columns). Windows no bigger than CI's 1280x800 screen. `compare_3d.gd`
+  takes a window that is not 8:5 as WIDE's (`PictureShape`) and holds it at
+  its own columns by 200.
 - The old software-view references (`tools/pictures/`, `picture_check.gd`)
   and shader-view references (`tools/pictures_gpu/`, `compare_views.gd`) were
   deleted with the software renderer.
@@ -345,6 +357,21 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   again (warm), the 3D level mesh's whole build, the wreck cutting alone
   (since the load pass not part of the load: it runs on a worker in the
   level's first frames).
+
+### Measured in pass 14, WIDE (2026-11-24)
+
+`--view-bench=300`, the eight chapters' frame medians summed, three runs
+each, back to back on the noisy desktop (medians of the runs):
+
+| | frames | the graphics card's time |
+| --- | --- | --- |
+| v3.11.0 (`p14_base`), 1280x800, DOS 4:3 | 26.89 ms | 28.39 ms |
+| pass 14 WIDE track, 1280x800, DOS 4:3 | 27.11 (+0.8%) | 28.71 (+1.1%) |
+| WIDE track, 1280x720, DOS 4:3 (320 columns) | 26.92 | 28.51 |
+| WIDE track, 1280x720, WIDE (356 columns) | 27.42 (+1.9%) | 28.78 (+0.9%) |
+
+Run by run the default moved +1.0, -2.6 and +0.8% (noise). WIDE at 16:9
+draws 11% more of the view's pixels; the frame costs about 2% more.
 
 ### Measured in pass 13, HEAVY (2026-11-19)
 

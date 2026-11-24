@@ -37,7 +37,8 @@ static var _blank := PackedByteArray()
 static var _blank_cover := PackedByteArray()
 
 ## Godot 2D mode (main.gd turns it on for the window's canvas). Drawing calls
-## become Godot canvas commands on items inside a 320x200 viewport instead of
+## become Godot canvas commands on items inside a 320x200 viewport (ASPECT
+## WIDE: View.cols wide, the canvas centred in it; anchor()) instead of
 ## writes to `pixels`, and the viewport goes to the display shader over the
 ## view. Every shape still comes down to the same pixels, spans and
 ## rectangles as in software (set_pixel, _hspan, _vspan, fill_rect), so the
@@ -57,6 +58,13 @@ var _clips: Array[RID] = []
 var _item_kinds := PackedInt32Array()
 var _items_used := 0
 var _item := RID()
+## How far the commands drawn now are moved sideways on the Godot canvas
+## (anchor()): ASPECT WIDE's HUD pieces at the view's edges (HudLayout.begin).
+var nudge := 0
+## The columns a shape may draw on: the surface's (0 to w), or on the Godot
+## canvas in ASPECT WIDE the whole picture's (-View.shift to 320 past it).
+var _lo := 0
+var _hi := WIDTH
 const ITEM_NORMAL := 0
 const ITEM_ADD := 1
 const ITEM_NORMAL_VIEW := 2
@@ -106,7 +114,39 @@ func gpu_begin() -> void:
 	for i in _items_used:
 		RenderingServer.canvas_item_clear(_items[i])
 	_items_used = 0
+	nudge = 0
 	gpu_item(ITEM_NORMAL)
+
+
+## ASPECT WIDE: what is drawn from now on moves `dx` columns sideways (a HUD
+## piece kept to the picture's left or right edge, View.shift either way),
+## until anchor(0). The 320-wide canvas itself is centred on the picture.
+func anchor(dx: int) -> void:
+	if not gpu or dx == nudge:
+		return
+	nudge = dx
+	RenderingServer.canvas_item_add_set_transform(_item, Transform2D(0.0, Vector2(dx, 0)))
+
+
+## ASPECT WIDE: the clip of the view rows and the columns shapes may draw
+## on span the whole picture.
+func fit_wide() -> void:
+	_lo = -View.shift if gpu else 0
+	_hi = WIDTH + View.shift if gpu else w
+	for clip in _clips:
+		if clip != RID():
+			RenderingServer.canvas_item_set_custom_rect(clip, true, _view_clip())
+
+
+## ASPECT WIDE: whether a rect from x, `span` wide, is one drawn across the
+## 320 canvas (a bar, a shade, a sheet, give or take a column or two), so it
+## spans the whole picture; one drawn for the wide picture already does not.
+func _spans(x: int, span: int) -> bool:
+	return nudge == 0 and x <= 0 and x >= -2 and x + span >= WIDTH and x + span <= WIDTH + 2
+
+
+static func _view_clip() -> Rect2:
+	return Rect2(-View.shift, 0, View.cols, 156)
 
 
 ## Go on drawing on a new item above everything drawn so far: ITEM_ADD adds
@@ -142,7 +182,7 @@ func gpu_item(kind: int) -> void:
 			var clip := RenderingServer.canvas_item_create()
 			RenderingServer.canvas_item_set_parent(clip, gpu_parent)
 			RenderingServer.canvas_item_set_clip(clip, true)
-			RenderingServer.canvas_item_set_custom_rect(clip, true, Rect2(0, 0, WIDTH, 156))
+			RenderingServer.canvas_item_set_custom_rect(clip, true, _view_clip())
 			_clips[_items_used] = clip
 		RenderingServer.canvas_item_set_parent(item, _clips[_items_used] if clipped else gpu_parent)
 	RenderingServer.canvas_item_set_modulate(
@@ -154,6 +194,8 @@ func gpu_item(kind: int) -> void:
 	RenderingServer.canvas_item_set_draw_index(item, _items_used)
 	_items_used += 1
 	_item = item
+	if nudge != 0:
+		RenderingServer.canvas_item_add_set_transform(item, Transform2D(0.0, Vector2(nudge, 0)))
 
 
 func _gpu_rect(x: int, y: int, box_w: int, box_h: int, r: int, g: int, b: int) -> void:
@@ -179,9 +221,15 @@ static func texture(key: String, data: PackedByteArray, img_w: int, img_h: int) 
 
 
 ## Draw a cached texture scaled to tw x th, its alpha scaled by `alpha`.
+## ASPECT WIDE: a plain shade (a texture a few pixels wide stretched across
+## the canvas: the cinematics' dark and flash) spans the whole picture; a
+## picture is never stretched.
 func gpu_texture(made: Texture2D, x: int, y: int, tw: int, th: int, alpha := 255) -> void:
+	var r := Rect2(x, y, tw, th)
+	if View.shift > 0 and made.get_width() <= 4 and _spans(x, tw):
+		r = Rect2(-View.shift, y, View.cols, th)
 	RenderingServer.canvas_item_add_texture_rect(
-		_item, Rect2(x, y, tw, th), made.get_rid(), false, Color(1, 1, 1, alpha / 255.0)
+		_item, r, made.get_rid(), false, Color(1, 1, 1, alpha / 255.0)
 	)
 
 
@@ -190,11 +238,13 @@ func gpu_texture(made: Texture2D, x: int, y: int, tw: int, th: int, alpha := 255
 func gpu_texture_turned(
 	made: Texture2D, x: int, y: int, tw: int, th: int, turn: float, pivot: Vector2
 ) -> void:
-	RenderingServer.canvas_item_add_set_transform(_item, Transform2D(turn, Vector2(x, y) + pivot))
+	RenderingServer.canvas_item_add_set_transform(
+		_item, Transform2D(turn, Vector2(x + nudge, y) + pivot)
+	)
 	RenderingServer.canvas_item_add_texture_rect(
 		_item, Rect2(-pivot.x, -pivot.y, tw, th), made.get_rid(), false, Color(1, 1, 1, 1)
 	)
-	RenderingServer.canvas_item_add_set_transform(_item, Transform2D.IDENTITY)
+	RenderingServer.canvas_item_add_set_transform(_item, Transform2D(0.0, Vector2(nudge, 0)))
 
 
 ## A letter on its style's page: [page texture RID, its region on the page
@@ -322,6 +372,7 @@ func enable_mask() -> void:
 
 func _init(pw := WIDTH, ph := HEIGHT) -> void:
 	w = pw
+	_hi = pw
 	h = ph
 	pixels.resize(pw * ph * 3)
 
@@ -333,6 +384,7 @@ static func rgb(r: int, g: int, b: int) -> Color:
 ## Reallocate for a differently sized surface (the small icon canvases).
 func resize(pw: int, ph: int) -> void:
 	w = pw
+	_hi = pw
 	h = ph
 	pixels.resize(pw * ph * 3)
 	if use_mask:
@@ -370,7 +422,7 @@ func stroke(x0: int, y0: int, x1: int, y1: int, c: Color, width := 1) -> void:
 
 
 func set_pixel(x: int, y: int, r: int, g: int, b: int) -> void:
-	if x < 0 or y < 0 or x >= w or y >= h:
+	if x < _lo or y < 0 or x >= _hi or y >= h:
 		return
 	if gpu:
 		_gpu_rect(x, y, 1, 1, r, g, b)
@@ -411,6 +463,13 @@ func fill_rect(x: int, y: int, box_w: int, box_h: int, c: Color) -> void:
 	var y0 := maxi(0, y)
 	var x1 := mini(w, x + box_w)
 	var y1 := mini(h, y + box_h)
+	if gpu and View.shift > 0:
+		# ASPECT WIDE: the picture reaches View.shift past either side.
+		if _spans(x, box_w):
+			x = -View.shift
+			box_w = View.cols
+		x0 = maxi(_lo, x)
+		x1 = mini(_hi, x + box_w)
 	if x0 >= x1 or y0 >= y1:
 		return
 	var r := roundi(c.r * 255.0)
@@ -535,7 +594,7 @@ func _gpu_run(
 	x: int, y: int, n: int, steep: bool, sx: int, sy: int, r: int, g: int, b: int
 ) -> void:
 	if steep:
-		if x < 0 or x >= w:
+		if x < _lo or x >= _hi:
 			return
 		var top := y if sy > 0 else y - n + 1
 		var lo := maxi(0, top)
@@ -546,8 +605,8 @@ func _gpu_run(
 	if y < 0 or y >= h:
 		return
 	var left := x if sx > 0 else x - n + 1
-	var lo2 := maxi(0, left)
-	var hi2 := mini(w - 1, left + n - 1)
+	var lo2 := maxi(_lo, left)
+	var hi2 := mini(_hi - 1, left + n - 1)
 	if lo2 <= hi2:
 		_gpu_rect(lo2, y, hi2 - lo2 + 1, 1, r, g, b)
 
@@ -718,8 +777,8 @@ func _hspan(x0: int, y: int, x1: int, r: int, g: int, b: int) -> void:
 		return
 	var lo := mini(x0, x1)
 	var hi := maxi(x0, x1)
-	lo = maxi(0, lo)
-	hi = mini(w - 1, hi)
+	lo = maxi(_lo, lo)
+	hi = mini(_hi - 1, hi)
 	if lo > hi:
 		return
 	if gpu:
@@ -888,7 +947,7 @@ func _quadrant(
 
 
 func _vspan(x: int, y0: int, y1: int, r: int, g: int, b: int) -> void:
-	if x < 0 or x >= w:
+	if x < _lo or x >= _hi:
 		return
 	var lo := maxi(0, mini(y0, y1))
 	var hi := mini(h - 1, maxi(y0, y1))

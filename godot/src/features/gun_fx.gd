@@ -877,7 +877,12 @@ func draw_view(c: Canvas) -> void:
 		)
 		if a.z < 0.0 or b.z < 0.0:
 			continue
-		if a.y >= View.VIEW or b.y >= View.VIEW or a.x < 0 or a.x >= View.WIDTH:
+		if (
+			a.y >= View.VIEW
+			or b.y >= View.VIEW
+			or a.x < -View.shift
+			or a.x >= View.WIDTH + View.shift
+		):
 			continue
 		var heat := 1.0 - bit.age / bit.life
 		var colour := (

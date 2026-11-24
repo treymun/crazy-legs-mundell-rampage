@@ -1,7 +1,8 @@
 shader_type canvas_item;
 render_mode unshaded;
 
-// The picture players see, 320x200: the 3D view's picture (view3d_tex, at the
+// The picture players see, 320x200 (ASPECT WIDE: `cols` wide, the 200 rows
+// kept, the 3D view as wide and the canvas centred in it): the 3D view's picture (view3d_tex, at the
 // view's own size: 320x156, LOW 160x78, HD 640x312) under the weapon, HUD and
 // menus layer (post_tex, from a Godot 2D viewport), with the moonshine's
 // warp, the air shimmering over hot things, the hurt flash, then the look
@@ -29,6 +30,10 @@ uniform int hurt = 0;
 // pass): 2 TINTYPE, 3 DUSK, 4 MOONLIGHT. Still ends in the palette.
 uniform int photo_filter = 0;
 const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+
+// The picture's columns: 320, more with ASPECT WIDE (View.cols). The grain
+// frames hold 320 columns: past them the next 320 take another frame.
+uniform int cols = 320;
 
 uniform bool overlay_on = false;
 uniform bool base_on = false;
@@ -76,10 +81,10 @@ vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 	vec3 under = vec3(0.0);
 	if (view3d_on && px.y < 156) {
 		if (haze_count > 0) {
-			fine.x = clamp(fine.x + haze_shift(fine), 0, 320 * view_mul - 1);
+			fine.x = clamp(fine.x + haze_shift(fine), 0, cols * view_mul - 1);
 		}
 		vec2 picture = vec2(textureSize(view3d_tex, 0));
-		ivec2 at = ivec2((vec2(fine) + 0.5) * picture / vec2(320.0 * float(view_mul), 156.0 * float(view_mul)));
+		ivec2 at = ivec2((vec2(fine) + 0.5) * picture / vec2(float(cols) * float(view_mul), 156.0 * float(view_mul)));
 		under = floor(texelFetch(view3d_tex, at, 0).rgb * 255.0 + 0.5);
 	} else if (base_on) {
 		under = frame;
@@ -88,22 +93,22 @@ vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 }
 
 void fragment() {
-	ivec2 px = ivec2(UV * vec2(320.0, 200.0));
-	ivec2 fine = ivec2(UV * vec2(320.0, 200.0) * float(view_mul));
+	ivec2 px = ivec2(UV * vec2(float(cols), 200.0));
+	ivec2 fine = ivec2(UV * vec2(float(cols), 200.0) * float(view_mul));
 	ivec2 sub = fine - px * view_mul;
 	vec3 c;
 	if (overlay_on) {
 		if (drunk > 0.0 && px.y < 156) {
 			// Per-row shear, a ghost double image, an amber tint.
 			int shift = int(floor(sin(float(px.y) * 0.16 + drunk_phase) * (1.0 + 3.4 * drunk) + 0.5));
-			int sx = (px.x + shift + 640) % 320;
-			int gx = (px.x - drunk_ghost + shift + 640) % 320;
+			int sx = (px.x + shift + 2 * cols) % cols;
+			int gx = (px.x - drunk_ghost + shift + 2 * cols) % cols;
 			float blend = 0.30 * drunk;
-			vec3 v = picture_at(ivec2(sx, px.y), ivec2(sx, px.y) * view_mul + sub, texelFetch(TEXTURE, ivec2(sx, px.y), 0).rgb * 255.0) * (1.0 - blend)
-					+ picture_at(ivec2(gx, px.y), ivec2(gx, px.y) * view_mul + sub, texelFetch(TEXTURE, ivec2(gx, px.y), 0).rgb * 255.0) * blend;
+			vec3 v = picture_at(ivec2(sx, px.y), ivec2(sx, px.y) * view_mul + sub, texelFetch(TEXTURE, ivec2(min(sx, 319), px.y), 0).rgb * 255.0) * (1.0 - blend)
+					+ picture_at(ivec2(gx, px.y), ivec2(gx, px.y) * view_mul + sub, texelFetch(TEXTURE, ivec2(min(gx, 319), px.y), 0).rgb * 255.0) * blend;
 			c = floor(vec3(v.r * (1.0 + 0.06 * drunk), v.g, v.b * (1.0 - 0.10 * drunk)));
 		} else {
-			c = picture_at(px, fine, texelFetch(TEXTURE, px, 0).rgb * 255.0);
+			c = picture_at(px, fine, texelFetch(TEXTURE, ivec2(min(px.x, 319), px.y), 0).rgb * 255.0);
 		}
 		c = clamp(c, 0.0, 255.0) / 255.0;
 	} else {
@@ -118,7 +123,7 @@ void fragment() {
 		float lum = dot(v, vec3(0.30, 0.59, 0.11));
 		if (photo_filter == 2) {
 			// TINTYPE: brown and cream, the corners burnt dark.
-			vec2 n = (vec2(px) / vec2(319.0, 155.0) - 0.5) * 2.0;
+			vec2 n = (vec2(px) / vec2(float(cols - 1), 155.0) - 0.5) * 2.0;
 			float vignette = 1.0 - 0.30 * pow(length(n) / 1.4142, 2.0);
 			v = vec3(lum * 1.10 + 10.0, lum * 0.95 + 5.0, lum * 0.72) * vignette;
 		} else if (photo_filter == 3) {
@@ -136,10 +141,10 @@ void fragment() {
 			// On the view's own grid: in HD each of a 320x200 pixel's four gets its
 			// own grain and dither, so the look does not blur HD back to 320 wide.
 			vec2 at = (vec2(fine) + 0.5) / float(view_mul) - 0.5;
-			vec2 n = (at / vec2(319.0, 155.0) - 0.5) * 2.0;
+			vec2 n = (at / vec2(float(cols - 1), 155.0) - 0.5) * 2.0;
 			float vignette = 1.0 - 0.13 * pow(length(n) / 1.4142, 2.1);
-			int frame_k = (grain_frame + sub.x + 2 * sub.y) % 6;
-			float g = texelFetch(looks, ivec2(frame_k * 156 + px.y, GRAIN_ROW + px.x), 0).r * 255.0;
+			int frame_k = (grain_frame + sub.x + 2 * sub.y + 3 * (px.x / 320)) % 6;
+			float g = texelFetch(looks, ivec2(frame_k * 156 + px.y, GRAIN_ROW + px.x % 320), 0).r * 255.0;
 			float add = g - 2.0 + blast + (BAYER[(fine.x % 4) * 4 + (fine.y % 4)] / 16.0 - 0.5) * 6.0;
 			v = clamp(trunc(v * (wash * vignette * gain) + add), 0.0, 255.0);
 		}

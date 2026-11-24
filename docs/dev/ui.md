@@ -26,6 +26,14 @@ draws the bar on the software canvas as before.
   pixel.
 - **ObjectivePin** (`HudPin`, a `Painted`, repainted every frame) draws
   `HUD.objective_pin` at `game.pin_top`.
+- **ASPECT WIDE** (pass 14, [view3d.md](view3d.md#aspect-wide-pass-14)):
+  `HudLayer.fit()` makes the layer the picture's width (`View.cols`). The
+  bar's parts left of `SPLIT` (171: the rail, health, ammo, keys or vest, the
+  face) keep the left edge, the rest (the gauges, the pocket, the rail's end)
+  move to the right edge, and the plate's wood between is `Planks`, its
+  columns `FILL` (183 to 228: plain planks under one of the rail's sections)
+  laid end to end; the plate's two parts are AtlasTextures of it. The pin is
+  centred (`View.shift`). At 320 everything is where it was (`wide_check`).
 - Each frame `render()` clears `hud.shown_game`; `HUD.draw` (reached at the
   end of `game_view.gd _draw`) only notes the game and guns when
   `hud.controls` is set; `hud_layer.show_frame()` then shows that frame's HUD
@@ -53,10 +61,11 @@ draws the bar on the software canvas as before.
 - **The chapter tally** (`hud.gd intermission`) has a GUNS row under the
   secrets in a campaign chapter (its guns had, `GunFinder.tally`); with
   seven rows they close up to 10 pixels apart.
-- **Scaling:** the overlay is the 320x200 picture, scaled to the window by
-  the display shader with whole, crisp pixels (INTEGER 8:5 keeps every pixel
-  the same size) inside the phone's safe area, so the HUD scales with the
-  picture on a phone and on a big screen.
+- **Scaling:** the overlay is the 320x200 picture (WIDE: as many columns as
+  the screen's shape asks), scaled to the window by the display shader with
+  crisp pixels (INTEGER 8:5 keeps every pixel the same size) inside the
+  phone's safe area, so the HUD scales with the picture on a phone and on a
+  big screen.
 - `tools/camera_check.gd` composes the bar from the boxes over the plate
   (`HudLayer.composed()`) and holds it to `HUD.draw`'s software rows for the
   campaign, a 5v5 round and COUNTY RUN, full and MINIMAL.
@@ -118,10 +127,24 @@ A new HUD piece: take its rect in `hud_fixed`/`hud_flow`/`hud_late` (or in
 `_lay_hud` for play's own), draw it at `find(name)` between `begin`/`end`,
 and add it to a moment in `hud_crowd.gd`.
 
+**ASPECT WIDE keeps the edges** (pass 14). The layout is worked out at 320
+as ever; `begin(c, name)` then moves a piece that hugs an edge out to the
+picture's edge (`HudLayout.side_of` its rect: starting within `HUG` 16 of
+the left side and ending left of the middle, or the same on the right;
+`Canvas.anchor(±View.shift)`, a transform on the canvas items until `end`).
+Pieces only move apart, so the layout's promise holds. The touch buttons are
+pinned where the pieces of their half see them (`_pin_hud`), and a tap on
+BLUE's badge is read where the left edge's pieces are
+(`picture_point(at, -1)`). Something drawn at an edge outside `begin`/`end`
+calls `c.anchor()` itself (PHOTO MODE's strip, the cinematics' skip line).
+
 ## The parts
 
-- **UiRoot** (`ui_root.gd`) is a Control the size of the canvas (320x200). It
-  lives in the overlay SubViewport the display shader lays over the 3D view,
+- **UiRoot** (`ui_root.gd`) is a Control the size of the canvas (320x200),
+  centred on a WIDE picture (`View.shift`; what is behind, the title's scene
+  or the game, shows at the sides; a pointer is mapped to the overlay's
+  columns, `_to_canvas`). It lives in the overlay SubViewport the display
+  shader lays over the 3D view,
   or in a viewport of its own in a headless run, so the checks drive the same
   screens. It maps each front-end state to a UiScreen (`SCREENS`), shows the
   screen of the current state and hands it every input event (`take()`):

@@ -53,7 +53,6 @@ var _eye := Vector3.ZERO
 var _angle := 0.0
 var _horizon := 0.0
 var _focal := 1.0
-var _vw := 320
 var _scale := 1.0
 
 
@@ -271,8 +270,8 @@ func _project_from(game: Game) -> bool:
 	_angle = eye["view_angle"]
 	_horizon = view["horizon"]
 	_focal = game.view.focal
-	_vw = game.view.vw
-	_scale = float(Canvas.WIDTH) / maxf(1.0, float(_vw))
+	# The view's pixels to the canvas's (HD, LOW; WIDE draws more columns).
+	_scale = float(View.VIEW) / maxf(1.0, float(game.view.vh))
 	return true
 
 
@@ -285,7 +284,7 @@ func _screen(x: float, y: float, z: float) -> Vector3:
 	if depth < .2:
 		return Vector3(0, 0, -1)
 	var side := -dx * sin(_angle) + dy * cos(_angle)
-	var sx := (_vw * .5 + _focal * side / depth) * _scale
+	var sx := Canvas.WIDTH * .5 + _focal * side / depth * _scale
 	var sy := (_horizon - _focal * (z - _eye.z) / depth) * _scale
 	return Vector3(sx, sy, depth)
 

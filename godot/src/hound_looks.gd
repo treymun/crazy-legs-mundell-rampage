@@ -614,10 +614,11 @@ static func marker_at(g: Game, d: Game.HoundScript.Dog, near := 2.5) -> Array:
 	var top := d.floor_z + (.5 if d.state == Game.HoundScript.DOWN else 1.05) * SIZE
 	var at := g.to_canvas(d.x, d.y, top)
 	var margin := 10.0
+	var side := float(View.shift)  # ASPECT WIDE: the picture's own edges
 	var on_view := (
 		at.z > 0.0
-		and at.x > margin
-		and at.x < View.WIDTH - margin
+		and at.x > margin - side
+		and at.x < View.WIDTH + side - margin
 		and at.y > margin
 		and at.y < View.VIEW - margin
 	)
@@ -629,7 +630,8 @@ static func marker_at(g: Game, d: Game.HoundScript.Dog, near := 2.5) -> Array:
 		# Ahead but past the view's edge (under its foot, off a side): on
 		# the edge nearest him, pointing at him.
 		var edge := Vector2(
-			clampf(at.x, 12.0, View.WIDTH - 12.0), clampf(at.y, 14.0, View.VIEW - 46.0)
+			clampf(at.x, 12.0 - side, View.WIDTH + side - 12.0),
+			clampf(at.y, 14.0, View.VIEW - 46.0)
 		)
 		var toward := Vector2(at.x, at.y) - edge
 		if toward.length() < .5:
@@ -643,9 +645,9 @@ static func marker_at(g: Game, d: Game.HoundScript.Dog, near := 2.5) -> Array:
 	var ahead := dx * cos(angle) + dy * sin(angle)
 	var across := dy * cos(angle) - dx * sin(angle)
 	var way := atan2(across, ahead)
-	var cx := View.WIDTH / 2.0 + sin(way) * (View.WIDTH / 2.0 - 14.0)
+	var cx := View.WIDTH / 2.0 + sin(way) * (View.WIDTH / 2.0 + side - 14.0)
 	var cy := View.VIEW / 2.0 - cos(way) * (View.VIEW / 2.0 - 16.0)
-	cx = clampf(cx, 12.0, View.WIDTH - 12.0)
+	cx = clampf(cx, 12.0 - side, View.WIDTH + side - 12.0)
 	cy = clampf(cy, 14.0, View.VIEW - 46.0)
 	return [cx, cy, way + PI]
 
@@ -718,7 +720,12 @@ static func _point_mark(h: Game.HoundScript, c: Canvas, d: Game.HoundScript.Dog)
 	var half := int(clampf(.3 / at.z * View.base_focal, 5, 14))
 	var cx := int(at.x)
 	var cy := int(at.y)
-	if cx < half or cx > View.WIDTH - half or cy < half + 8 or cy > View.VIEW - half:
+	if (
+		cx < half - View.shift
+		or cx > View.WIDTH + View.shift - half
+		or cy < half + 8
+		or cy > View.VIEW - half
+	):
 		return
 	var glow := .72 + .28 * sin(g.clock * 5.0)
 	var ink := Color(POINT_INK.r * glow, POINT_INK.g * glow, POINT_INK.b * glow)
