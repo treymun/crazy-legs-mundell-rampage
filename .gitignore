@@ -17,6 +17,10 @@ _backup/
 # godot/tools/pack_assets.py and pack_skies.py rebuild from assets/.
 godot/.godot/
 godot/build/
+# The Android Gradle build: the template Godot installs (--install-android-build-template)
+# and the updater's AAR (tools/android_plugin.gd), both made again by CI.
+godot/android/
+godot/addons/clmr_updater/bin/
 godot/assets_gen/*.bin
 # The browser and phone builds' lighter copy (godot/tools/pack_lite.gd).
 godot/assets_gen/lite/

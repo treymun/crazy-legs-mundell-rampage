@@ -18,11 +18,37 @@
 ## the finger stays, the stick walks, a drag on the right turns, MAP opens the
 ## map, NEXT changes the gun, PHOTO and then MENU go in and out of PHOTO MODE,
 ## MENU pauses to the title; and the top row never overlaps on a phone held
-## upright. Fails on any script or engine error. Writes nothing to the
-## profile (custom maps go to a cache folder).
+## upright. The title's update panel on Android (the in-game update, with a
+## stand-in for the phone's updater): a tap on GIT IT starts it (no room
+## here: PLUMB FULL, nothing fetched) and a tap on PUT IT IN hands the APK to
+## the installer. Fails on any script or engine error. Writes nothing to the
+## profile (custom maps and the panel's APK go to a cache folder).
 extends SceneTree
 
 const FINGER := 9120
+
+
+## The phone's updater stood in for (src/apk_installer.gd's plugin).
+class FakeUpdater:
+	extends Object
+	signal resumed
+	signal install_result(code: int)
+	var dir := ""
+	var installs: Array[String] = []
+
+	func downloadDir() -> String:  # gdlint: ignore=function-name
+		return dir
+
+	func canInstall() -> bool:  # gdlint: ignore=function-name
+		return true
+
+	func openInstallSettings() -> bool:  # gdlint: ignore=function-name
+		return true
+
+	func install(path: String) -> String:
+		installs.append(path)
+		return ""
+
 
 var failures: Array = []
 var main
@@ -40,6 +66,7 @@ func _run() -> void:
 	main.set_process(false)
 	var tally := CrashLog.tally()
 	await _menus()
+	await _update_panel()
 	await _shed()
 	_typed_in()
 	await _play()
@@ -127,6 +154,49 @@ static func _mid(r: Rect2i) -> Vector2:
 
 
 # ------------------------------------------------------------------- menus
+
+
+## The title's update panel by finger: GIT IT, then PUT IT IN.
+func _update_panel() -> void:
+	var updater := FakeUpdater.new()
+	updater.dir = OS.get_cache_dir().path_join("clmr_touch_update")
+	DirAccess.make_dir_recursive_absolute(updater.dir)
+	var notice := UpdateNotice.new("3.11.0", "android")
+	main.add_child(notice)
+	notice.use_installer(ApkInstaller.new(updater))
+	notice.take("3.12.1")
+	notice.want_size = 1000
+	notice.want_sha = "0".repeat(64)
+	notice.space = func() -> int: return 10
+	main.update_notice = notice
+	main.options["update_check"] = 1
+	main.state = "title"
+	main.menu_note = ""
+	await _frame()
+	await _frame()
+	var sign := _mid(UpdateSign.RECT_TALL)
+	await _tap(sign)
+	_check(
+		notice.stage == "full", "a tap on the update panel's GIT IT starts it (%s)" % notice.stage
+	)
+	var apk := notice.apk_path()
+	var f := FileAccess.open(apk, FileAccess.WRITE)
+	f.store_string("apk")
+	f.close()
+	notice.stage = "ready"
+	notice.verified = true
+	await _frame()
+	await _tap(sign)
+	_check(
+		updater.installs == [apk] and notice.stage == "handed",
+		"a tap on PUT IT IN hands the APK to the installer"
+	)
+	main.update_notice = null
+	notice.queue_free()
+	updater.free()
+	DirAccess.remove_absolute(apk)
+	DirAccess.remove_absolute(OS.get_cache_dir().path_join("clmr_touch_update"))
+	await _frame()
 
 
 ## Tap the title's `id` entry; true when it left the title.

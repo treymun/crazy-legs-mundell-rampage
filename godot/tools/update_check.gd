@@ -18,6 +18,11 @@
 ## - The APK it opens installs over the old copy: the Android preset keeps its
 ##   package name, its version code is tools/version.gd's for config/version
 ##   and never below 3.11.0's.
+## - The APK can update itself: the Android preset is a Gradle build with
+##   its native code compressed (the APK no bigger), the updater addon is
+##   on, its manifest part asks REQUEST_INSTALL_PACKAGES and names the Java
+##   plugin class, and the Java answers to the names src/apk_installer.gd
+##   calls (tools/update_flow_check.gd walks the update itself).
 ## - A tool's game makes no request (no HTTPRequest anywhere) and has no
 ##   notice, even asked to start one.
 ## - The title's sign: clear of the board and the version, reached by keys
@@ -270,6 +275,64 @@ func _android_package() -> void:
 		str(presets.get_value(options, "version/name", "")) == version,
 		"the version name is %s" % version
 	)
+	_android_updater(presets, options)
+
+
+## The pieces the in-game update needs in the APK, kept in step.
+func _android_updater(presets: ConfigFile, options: String) -> void:
+	check(
+		presets.get_value(options, "gradle_build/use_gradle_build", false) == true,
+		"the APK is a Gradle build (it carries the updater plugin)"
+	)
+	check(
+		presets.get_value(options, "gradle_build/compress_native_libraries", false) == true,
+		"with its native code compressed, as the plain build's was"
+	)
+	var perms: PackedStringArray = presets.get_value(options, "permissions/custom_permissions", [])
+	check(perms.is_empty(), "no extra permission in the preset (the AAR's manifest asks)")
+	var plugins: PackedStringArray = ProjectSettings.get_setting("editor_plugins/enabled", [])
+	check(
+		plugins.has("res://addons/clmr_updater/plugin.cfg"),
+		"the updater addon is on (it puts the AAR in the export)"
+	)
+	var manifest := FileAccess.get_file_as_string(
+		"res://addons/clmr_updater/aar/AndroidManifest.xml"
+	)
+	var java := FileAccess.get_file_as_string(
+		"res://addons/clmr_updater/java/com/hickston/crazylegs/updater/CrazyLegsUpdater.java"
+	)
+	check(
+		manifest.contains('"android.permission.REQUEST_INSTALL_PACKAGES"'),
+		"the manifest part asks leave to install packages"
+	)
+	check(
+		(
+			manifest.contains('"org.godotengine.plugin.v2.%s"' % ApkInstaller.SINGLETON)
+			and manifest.contains('"com.hickston.crazylegs.updater.CrazyLegsUpdater"')
+		),
+		"and names the plugin and its class for Godot to find"
+	)
+	check(
+		(
+			java.contains("package com.hickston.crazylegs.updater;")
+			and java.contains("public class CrazyLegsUpdater extends GodotPlugin")
+			and java.contains('return "%s";' % ApkInstaller.SINGLETON)
+		),
+		"the Java class is that one, named %s" % ApkInstaller.SINGLETON
+	)
+	var missing: Array[String] = []
+	for method: String in [
+		"String downloadDir()",
+		"boolean canInstall()",
+		"boolean openInstallSettings()",
+		"String install(String path)",
+	]:
+		if not java.contains("@UsedByGodot\n\tpublic " + method):
+			missing.append(method)
+	for signal_name: String in ['"resumed"', '"install_result", Integer.class']:
+		if not java.contains("new SignalInfo(" + signal_name):
+			missing.append(signal_name)
+	check(missing.is_empty(), "the Java has every method and signal the game uses %s" % [missing])
 
 
 func _http_nodes() -> int:

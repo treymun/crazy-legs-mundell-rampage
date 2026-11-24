@@ -1079,12 +1079,27 @@ func menu_panel(title: String) -> void:
 
 ## Ask the site whether a newer version is out, once a run, when this launch
 ## may (UpdateNotice.wanted): at start, or when CHECK FOR UPDATES is turned on.
+## Turned off, a download under way stops (nothing more is fetched). On
+## Android with the updater the sign can update the game itself.
 func start_update_check() -> void:
-	if update_notice != null or not UpdateNotice.wanted(self):
+	var setting: int = options.get("update_check", 1)
+	if update_notice != null and setting != 1:
+		update_notice.halt()
+	if update_notice != null:
 		return
 	var version := str(ProjectSettings.get_setting("application/config/version", ""))
+	var installer := ApkInstaller.android()
+	if installer != null:
+		# APKs this copy is already at (or past) go, setting on or off.
+		UpdateNotice.tidy(installer.download_dir(), version)
+	if not UpdateNotice.wanted(self):
+		return
 	update_notice = UpdateNotice.new(version, UpdateNotice.platform())
 	add_child(update_notice)
+	if installer != null and update_notice.target == "android":
+		update_notice.busy = func() -> bool: return game != null
+		update_notice.light = func() -> bool: return state == "play"
+		update_notice.use_installer(installer)
 	update_notice.ask()
 
 

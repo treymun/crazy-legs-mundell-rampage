@@ -13,7 +13,8 @@
 ##     the release).
 ##  6. The main and tag runs must pass (they find the branch's passed run on
 ##     the same commit and go straight to the builds), the site's version.txt
-##     must say N and the release must hold its three files.
+##     must say N and the release must hold its three files and update.json,
+##     whose APK size matches the APK's (the in-game Android update reads it).
 ## Nothing is published unless the branch's checks passed: main and the tag
 ## are pushed only after step 3, and their runs build only on a commit whose
 ## checks passed (.github/workflows/release.yml, the job `earlier`).
@@ -28,7 +29,8 @@ const SITE := "https://treymun.github.io/crazy-legs-mundell-rampage/version.txt"
 const ASSETS := [
 	"CrazyLegsMundellRampage.exe",
 	"CrazyLegsMundellRampage_Setup.exe",
-	"CrazyLegsMundellRampage.apk"
+	"CrazyLegsMundellRampage.apk",
+	"update.json",
 ]
 ## Seconds to wait for CI runs before giving up.
 const PATIENCE := 3600
@@ -132,13 +134,25 @@ func _init() -> void:
 		_curl("https://api.github.com/repos/%s/releases/tags/%s" % [REPO, tag])
 	)
 	var names := []
+	var sizes := {}
 	if release is Dictionary:
 		for asset: Dictionary in release.get("assets", []):
 			names.append(String(asset["name"]))
+			sizes[String(asset["name"])] = int(asset.get("size", 0))
 	for asset: String in ASSETS:
 		if not names.has(asset):
 			_stop("the release is missing " + asset)
 			return
+	# update.json must describe this very release's APK.
+	var said = JSON.parse_string(
+		_curl_follow("https://github.com/%s/releases/download/%s/update.json" % [REPO, tag])
+	)
+	var apk_size := -1
+	if said is Dictionary and str(said.get("version", "")) == version:
+		apk_size = int(said.get("files", {}).get("CrazyLegsMundellRampage.apk", {}).get("size", -1))
+	if apk_size != int(sizes.get("CrazyLegsMundellRampage.apk", -2)):
+		_stop("update.json does not match the release's APK (%d bytes)" % apk_size)
+		return
 	print("\nRELEASED %s: the site says %s and the release has %s" % [tag, live, ", ".join(ASSETS)])
 	quit()
 
@@ -185,6 +199,12 @@ func _git(args: Array, quiet := false) -> String:
 	if code != 0 and not quiet:
 		push_error("git %s failed:\n%s" % [" ".join(args), "\n".join(output)])
 	return "\n".join(output)
+
+
+func _curl_follow(url: String) -> String:
+	var output := []
+	OS.execute("curl", ["-sL", url], output, true)
+	return "".join(output)
 
 
 func _curl(url: String) -> String:

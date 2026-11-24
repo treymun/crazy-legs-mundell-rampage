@@ -55,7 +55,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.local/share/godot/export_templates
-        key: godot-templates-${{ inputs.godot-version }}-windows-web-weblite-android
+        key: godot-templates-${{ inputs.godot-version }}-windows-web-weblite-android-androidsrc
 
     - name: Download the export templates
       if: inputs.templates == 'true' && steps.templates.outputs.cache-hit != 'true'
@@ -72,13 +72,15 @@ runs:
         curl -fsSL --retry 3 -O "$base/$templates" -O "$base/SHA512-SUMS.txt"
         grep -E "  $templates\$" SHA512-SUMS.txt | sha512sum --check --strict
         # The archive holds every platform (1.3 GB); the release needs these
-        # (the browser build ships with and without threads).
+        # (the browser build ships with and without threads; the APK is a
+        # Gradle build from android_source.zip, android_release.apk is kept
+        # for a plain export).
         unzip -q -j "$templates" \
           templates/version.txt \
           templates/windows_release_x86_64.exe \
           templates/web_release.zip \
           templates/web_nothreads_release.zip \
-          templates/android_release.apk \
+          templates/android_release.apk           templates/android_source.zip \
           -d ~/.local/share/godot/export_templates/${VERSION}.stable
         rm -rf "$work"
 

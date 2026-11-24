@@ -4,10 +4,13 @@ name: Build, release and publish
 # tools/check_all.gd shared over six runners (check_fixes in its six parts),
 # and the window job (boot, the art tools, the 3D view's pictures, the frame
 # time). Builds wait for all of them:
-# - a branch push builds nothing;
+# - a branch push builds nothing (but android-check, below);
 # - main builds the browser builds and deploys the landing page (play/);
 # - a v* tag builds the EXE, the installer and the APK and publishes them as
-#   a GitHub release;
+#   a GitHub release, with update.json (each file's size and SHA-256: what
+#   the game's in-game Android update checks its download against);
+# - a push to the branch android-check also builds the APK (whatever the
+#   checks say), to prove the Android build before a tag;
 # - a run started by hand builds all four as run artifacts (input `builds`).
 # A push to main or a v* tag whose commit already passed a run of this
 # workflow (tools/release.gd pushes them only after the branch's run passed)
@@ -262,14 +265,20 @@ jobs:
             godot/build/windows/CrazyLegsMundellRampage.exe
             dist/CrazyLegsMundellRampage_Setup.exe
 
+  # A Gradle build (the preset's gradle_build/use_gradle_build): Godot's
+  # Android build template from the export templates' android_source.zip,
+  # installed into godot/android/ by the export itself, and the updater
+  # plugin's AAR (tools/android_plugin.gd, from addons/clmr_updater/java),
+  # which the addon's export plugin hands to the build. Neither is committed.
   android:
     name: Android APK
     needs: [earlier, lint, checks, window]
     if: >-
       ${{ !cancelled()
-      && (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.builds))
-      && (needs.earlier.outputs.passed == 'true'
-          || (needs.lint.result == 'success' && needs.checks.result == 'success' && needs.window.result == 'success')) }}
+      && ((github.event_name == 'push' && github.ref == 'refs/heads/android-check')
+          || ((startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.builds))
+              && (needs.earlier.outputs.passed == 'true'
+                  || (needs.lint.result == 'success' && needs.checks.result == 'success' && needs.window.result == 'success')))) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -280,6 +289,25 @@ jobs:
       - uses: ./.github/actions/godot
         with:
           templates: "true"
+      - name: The Android SDK packages the build template wants
+        run: |
+          set -euo pipefail
+          # The 4.7.2 template's config.gradle: compileSdk 36, build tools 36.1.0.
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platform-tools" "build-tools;36.1.0" "platforms;android-36" > sdkmanager.log
+          ls "$ANDROID_HOME/build-tools" "$ANDROID_HOME/platforms"
+      - name: Restore Gradle's downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-godot-4.7.2-${{ hashFiles('godot/addons/clmr_updater/aar/AndroidManifest.xml') }}
+          restore-keys: gradle-godot-4.7.2-
+      - name: The updater plugin
+        run: |
+          godot --headless --path godot --script res://tools/android_plugin.gd 2>&1 | tee plugin.log
+          grep -q "ANDROID PLUGIN BUILT" plugin.log
       - name: Point Godot at the Android SDK and a signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -336,9 +364,10 @@ jobs:
       - name: Export the APK
         run: |
           mkdir -p godot/build/android
-          godot --headless --path godot --export-release "Android" \
+          # Installs the build template from android_source.zip, then runs Gradle.
+          godot --headless --path godot --install-android-build-template --export-release "Android" \
             build/android/CrazyLegsMundellRampage.apk 2>&1 | tee export.log
-          if grep -iE "export .*failed|SCRIPT ERROR" export.log; then exit 1; fi
+          if grep -iE "export .*failed|SCRIPT ERROR|BUILD FAILED|updater is not built" export.log; then exit 1; fi
           test -s godot/build/android/CrazyLegsMundellRampage.apk
           ls -lh godot/build/android
       - name: Check the package
@@ -365,6 +394,23 @@ jobs:
             echo "::error::This tag's APK is signed with the throwaway CI key: it would not install over the last release."
             exit 1
           fi
+          # The in-game update (src/update_notice.gd): leave to open the
+          # package installer, the updater plugin Godot finds by its
+          # manifest entry, godot-lib's FileProvider for the content://
+          # address, and the rumble's vibrate.
+          "$tools/aapt2" dump xmltree --file AndroidManifest.xml "$apk" > manifest.txt
+          for want in 'android.permission.REQUEST_INSTALL_PACKAGES' \
+            'org.godotengine.plugin.v2.CrazyLegsUpdater' \
+            'com.hickston.crazylegs.updater.CrazyLegsUpdater' \
+            'com.hickston.crazylegsmundell.fileprovider' \
+            'android.permission.VIBRATE'; do
+            grep -q "\"$want\"" manifest.txt \
+              || { echo "::error::The APK's manifest lacks $want: it cannot update itself."; exit 1; }
+          done
+          unzip -p "$apk" 'classes*.dex' > dex.bin
+          grep -aq "Lcom/hickston/crazylegs/updater/CrazyLegsUpdater;" dex.bin \
+            || { echo "::error::The APK's code lacks the updater plugin's class."; exit 1; }
+          echo "APK: $(stat -c %s "$apk") bytes, sha256 $(sha256sum "$apk" | cut -d' ' -f1)" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: android
@@ -447,6 +493,27 @@ jobs:
           find release -type f \( -name '*.exe' -o -name '*.apk' \) -exec mv -n {} release/ \;
           find release -mindepth 1 -type d -empty -delete
           ls -lh release
+      # update.json: the version and each file's size and SHA-256. The game's
+      # in-game Android update reads it from this release (releases/download/
+      # vN/update.json) and checks the APK it downloads against it.
+      - name: The release's update.json
+        run: |
+          set -euo pipefail
+          cd release
+          version="${GITHUB_REF_NAME#v}"
+          {
+            printf '{\n  "version": "%s",\n  "files": {\n' "$version"
+            first=1
+            for f in CrazyLegsMundellRampage.apk CrazyLegsMundellRampage_Setup.exe CrazyLegsMundellRampage.exe; do
+              test -s "$f"
+              [ "$first" = 1 ] || printf ',\n'
+              first=0
+              printf '    "%s": {"size": %s, "sha256": "%s"}' "$f" "$(stat -c %s "$f")" "$(sha256sum "$f" | cut -d' ' -f1)"
+            done
+            printf '\n  }\n}\n'
+          } > update.json
+          python3 -c "import json,sys; d=json.load(open('update.json')); assert d['version']==sys.argv[1] and len(d['files'])==3" "$version"
+          cat update.json
       - name: Create or update the release
         uses: softprops/action-gh-release@v2
         with:

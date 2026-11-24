@@ -148,7 +148,7 @@ godot --path godot ... --script res://tools/county_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/range_frames.gd
 godot --path godot ... --script res://tools/camera_frames.gd -- out=<dir>   # the HUD (full, MINIMAL, 5v5, County Run), PHOTO MODE's filters and a saved picture, the KILL CAM
 godot --path godot ... --script res://tools/hud_frames.gd -- out=<dir> [only=menus,hud,tally]   # every menu screen and the HUD crowded (tools/hud_crowd.gd); run at several --resolution sizes
-godot --path godot ... --script res://tools/update_frames.gd -- out=<dir>   # the title's update sign (Windows, picked, Android) and CHECK FOR UPDATES
+godot --path godot ... --script res://tools/update_frames.gd -- out=<dir>   # the title's update sign (Windows, picked, Android), the in-game update's panel and CHECK FOR UPDATES
 godot --path godot ... --script res://tools/death_frames.gd -- out=<dir> [level=hickston] [gun=shotgun] [classic]   # falls: ragdolls, or the scripted ones
 godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bowling lane: a spread of rolls, what stands, the tick's cost
 ```
@@ -247,9 +247,29 @@ godot --headless --path godot --script res://tools/version.gd -- 3.0.N
 # Publish (ask the owner first): stamps, commits, pushes, waits for the
 # branch's CI, moves main, tags, waits for main's and the tag's runs (they
 # skip the checks the branch passed and only build), then checks the site
-# and the release's three files. About 10 to 12 minutes.
+# and the release's three files and update.json. About 10 to 12 minutes.
 godot --headless --path godot --script res://tools/release.gd -- 3.0.N
 ```
+
+The APK on this PC (a Gradle build, as CI makes it; nothing system-wide: a
+JDK 17, the Android command-line tools with sdkmanager's `platform-tools`,
+`build-tools;36.1.0` and `platforms;android-36`, a scratch APPDATA whose
+`Godot/editor_settings-4.7.tres` names them and whose export templates hold
+`android_source.zip` and `android_release.apk`, and a throwaway keystore):
+
+```
+# JAVA_HOME, ANDROID_HOME and APPDATA set for this shell only
+godot --headless --path godot --script res://tools/pack_lite.gd
+godot --headless --path godot --script res://tools/android_plugin.gd   # the updater's AAR: ANDROID PLUGIN BUILT
+GODOT_ANDROID_KEYSTORE_RELEASE_PATH=<keystore> GODOT_ANDROID_KEYSTORE_RELEASE_USER=<alias> \
+GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=<password> \
+godot --headless --path godot --install-android-build-template --export-release "Android" <out>.apk
+aapt2 dump xmltree --file AndroidManifest.xml <out>.apk   # REQUEST_INSTALL_PACKAGES, the plugin, the provider
+```
+
+`godot/android/` (the template) and `addons/clmr_updater/bin/` (the AAR) are
+made, not committed. Push a commit to the branch `android-check` to have CI
+build the APK without a tag.
 
 Builds by hand: Actions, "Build, release and publish", Run workflow (input
 `builds`, on by default: the EXE, installer, APK and browser builds as run

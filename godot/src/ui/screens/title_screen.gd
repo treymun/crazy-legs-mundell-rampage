@@ -4,7 +4,8 @@
 ## picked (focus, hover) is the front end's `selection`; pressing it runs
 ## the entry (Main.menu_action); BACK resumes a paused game. When the update
 ## notice found a newer version, its sign (UpdateSign) is one more button the
-## keys, a pad, the mouse and a finger reach; picking it opens the download.
+## keys, a pad, the mouse and a finger reach; picking it opens the download,
+## or on Android takes the in-game update its next step (UpdateNotice.press).
 class_name TitleScreen
 extends UiScreen
 
@@ -55,7 +56,12 @@ func _build() -> void:
 			"update",
 			func(c: Canvas, active: bool) -> void:
 				UpdateSign.draw(
-					c, main.update_notice.found, android, active, int(main.menu_clock * 8.0)
+					c,
+					main.update_notice.found,
+					android,
+					active,
+					int(main.menu_clock * 8.0),
+					main.update_notice
 				),
 			_press_sign
 		)
@@ -117,8 +123,7 @@ func leave_sign() -> void:
 
 func _press_sign() -> void:
 	main.sound.play("menu_accept")
-	main.menu_note = main.update_notice.started_note()
-	main.update_notice.open_download()
+	main.menu_note = main.update_notice.press()
 
 
 func picked() -> PixelButton:
