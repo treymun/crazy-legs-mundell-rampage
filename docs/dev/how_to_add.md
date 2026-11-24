@@ -106,7 +106,7 @@ looks (art.md#props).
    rebound: "HOLD THE RUN KEY", not "SHIFT"); a KEYS page row's help comes
    from `KeyBindings.hint` (`HINTS` where the label alone does not say, and
    the keys it always has too).
-2. Bump the settings count in `tools/check_fixes.gd` (83 now).
+2. Bump the settings count in `tools/check_fixes.gd` (84 now).
 3. Settings are not part of a save: no save version.
 4. `tools/touch_settings_check.gd` changes it by touch with no edit (it reads
    the settings list); a row it cannot work fails by name. A setting that

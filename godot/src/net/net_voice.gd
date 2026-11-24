@@ -26,7 +26,19 @@
 ##   down  host -> listener: VOICE, seq (u16), flags, the talker's id (u32;
 ##         a lobby's second session's ids keep their top bit), frame
 ## flags: END (the talker let go), FLAT (no place: the lobby, or the dead to
-## the dead).
+## the dead), WIDE (a CLEAR 16K frame, VoiceCodec.WIDE_BYTES; else BYTES).
+##
+## CLEAR 16K (VOICE QUALITY) is agreed for each listener, not for the whole
+## lobby: the lobby says it takes it (its settings' `voice_clear`, from
+## voice.cfg's `clear_allowed`), a talker who wants it sends WIDE frames only
+## then, a listener's ASK says whether it takes them (`clear`), and the host
+## cuts a WIDE frame back to its CB 8K part (a byte slice: the low band is
+## the CB frame) for anyone who does not, for a listener's voices past
+## CLEAR_HEARD_MOST, and for everyone while the lobby's voices would pass
+## CLEAR_LOBBY_KBS (a player's own lobby: CLEAR_HOME_KBS, a home upload). A
+## listener whose voices keep coming late or lost (CLEAR_TROUBLE of them)
+## takes and sends CB 8K for CLEAR_REST_MS. A side that never heard of it
+## (no `voice_clear`, no `clear`) gets and sends CB 8K frames only, as before.
 ##
 ## A listener keeps a Talker for each voice: a small jitter buffer by
 ## sequence (START_FRAMES before it plays, MOST_FRAMES at most), a lost frame
@@ -37,6 +49,7 @@ extends RefCounted
 const VOICE_DATA := "res://data/tuning/voice.cfg"
 const END := 1
 const FLAT := 2
+const WIDE := 4
 const UP_HEADER := 4
 const DOWN_HEADER := 8
 
@@ -50,6 +63,24 @@ static var START_FRAMES: int = Tuning.file(VOICE_DATA).get_value("voice", "start
 static var START_MS: float = Tuning.file(VOICE_DATA).get_value("voice", "start_ms", 90.0)
 static var MOST_FRAMES: int = Tuning.file(VOICE_DATA).get_value("voice", "most_frames", 8)
 static var TALKING_MS: float = Tuning.file(VOICE_DATA).get_value("voice", "talking_ms", 260.0)
+static var CLEAR_ALLOWED: bool = Tuning.file(VOICE_DATA).get_value("voice", "clear_allowed", true)
+static var CLEAR_HEARD_MOST: int = Tuning.file(VOICE_DATA).get_value("voice", "clear_heard_most", 2)
+static var CLEAR_LOBBY_KBS: float = Tuning.file(VOICE_DATA).get_value(
+	"voice", "clear_lobby_kbs", 240.0
+)
+static var CLEAR_HOME_KBS: float = Tuning.file(VOICE_DATA).get_value(
+	"voice", "clear_home_kbs", 100.0
+)
+static var CLEAR_TROUBLE: float = Tuning.file(VOICE_DATA).get_value("voice", "clear_trouble", .12)
+static var CLEAR_REST_MS: float = Tuning.file(VOICE_DATA).get_value(
+	"voice", "clear_rest_ms", 20000.0
+)
+## How often a listener looks at its voices' trouble (ms), and the frames
+## it must have had in that time to judge.
+const TROUBLE_EVERY := 2000.0
+const TROUBLE_FRAMES := 20
+## How often the host weighs the lobby's voices against CLEAR_LOBBY_KBS (ms).
+const BUDGET_EVERY := 500.0
 ## A voice a listener hears keeps its place this long after its last frame
 ## (HEARD_MOST counts the voices inside it).
 const HOLD_MS := 400.0
@@ -62,6 +93,13 @@ static var last_forward := -1.0e9
 ## {talker: ms}}), each talker's frame allowance ([tokens, ms]).
 var _heard := {}
 var _allowance := {}
+## The host's side of CLEAR 16K: each listener's voices sent WIDE ({listener:
+## {talker: ms}}), the bytes the voices would take with CLEAR since the
+## budget was last weighed, and whether everyone gets CB 8K for it.
+var _clear_heard := {}
+var _demand := 0
+var _weighed := 0.0
+var _lobby_narrow := false
 ## Something was sent on since the last flush (NetPlay.poll flushes it),
 ## and when the routing and the voices were last swept.
 var _sent := false
@@ -74,6 +112,13 @@ var hearing := true
 ## Our mic as voice_chat.gd last found it ("off", "on", "none", "asking",
 ## "refused"), for the lobby's own row.
 var mic := "off"
+## VOICE QUALITY is CLEAR 16K (voice_chat.gd sets it), and till when our
+## line's trouble keeps us to CB 8K (watch).
+var clear := true
+var narrow_until := -1.0e9
+var troubled := false
+var _trouble_at := 0.0
+var _trouble_was := Vector2i.ZERO
 ## Our own frames' sequence, and when we last sent one (our own mark).
 var seq := 0
 var sent_at := -1.0e9
@@ -87,6 +132,9 @@ var forwarded := 0
 var forwarded_bytes := 0
 var route_us := 0
 var refused := 0
+## Frames passed on WIDE, and WIDE frames cut back to CB 8K on the way.
+var forwarded_clear := 0
+var narrowed := 0
 
 
 ## One voice as a listener hears it: the jitter buffer and what it plays.
@@ -102,8 +150,13 @@ class Talker:
 	var last_pcm := PackedFloat32Array()
 	var queue := PackedFloat32Array()
 	var covered := 0
-	## Frames that came, came too late, were covered for, were thrown to catch up.
+	var join := VoiceCodec.Join.new()
+	## The last frame played was CLEAR 16K.
+	var wide := false
+	## Frames that came (CLEAR 16K ones among them), came too late, were
+	## covered for, were thrown to catch up.
 	var got := 0
+	var got_wide := 0
 	var late := 0
 	var lost := 0
 	var skipped := 0
@@ -116,6 +169,7 @@ class Talker:
 			first_at = now
 		frames[at] = frame
 		got += 1
+		got_wide += 1 if frame.size() == VoiceCodec.WIDE_BYTES else 0
 		heard_at = now
 		flat = flags & NetVoice.FLAT != 0
 		while frames.size() > NetVoice.MOST_FRAMES:
@@ -130,7 +184,7 @@ class Talker:
 	func talking(now: float) -> bool:
 		return now - heard_at < NetVoice.TALKING_MS
 
-	## `count` samples at VoiceCodec.RATE, fewer (or none) when it runs dry.
+	## `count` samples at VoiceCodec.OUT_RATE, fewer (or none) when it runs dry.
 	func pull(count: int, now: float) -> PackedFloat32Array:
 		var out := PackedFloat32Array()
 		if not playing:
@@ -153,7 +207,8 @@ class Talker:
 	func _next_frame() -> bool:
 		if frames.has(next):
 			var frame: PackedByteArray = frames[next]
-			queue = VoiceCodec.decode(frame)
+			queue = join.take(frame)
+			wide = frame.size() == VoiceCodec.WIDE_BYTES
 			frames.erase(next)
 			last_pcm = queue
 			covered = 0
@@ -202,12 +257,15 @@ static func id_of_wire(wire: int) -> int:
 # ------------------------------------------------------------------ sending
 
 
-## Our own frame (VoiceCodec.BYTES) going out: to the host, or (we host)
-## straight to whoever hears us. `end`: the last of what we said.
+## Our own frame (VoiceCodec.BYTES, or WIDE_BYTES when sends_clear) going
+## out: to the host, or (we host) straight to whoever hears us. `end`: the
+## last of what we said.
 func send_own(net: NetPlay, frame: PackedByteArray, end: bool, now: float) -> void:
-	if net.session == null or frame.size() != VoiceCodec.BYTES:
+	var wide := frame.size() == VoiceCodec.WIDE_BYTES
+	if net.session == null or (frame.size() != VoiceCodec.BYTES and not wide):
 		return
-	var packet := PackedByteArray([NetWire.VOICE, seq & 0xFF, seq >> 8, END if end else 0])
+	var flags := (END if end else 0) | (WIDE if wide else 0)
+	var packet := PackedByteArray([NetWire.VOICE, seq & 0xFF, seq >> 8, flags])
 	packet.append_array(frame)
 	seq = (seq + 1) & 0xFFFF
 	sent_at = now
@@ -224,18 +282,53 @@ func sending(now: float) -> bool:
 	return now - sent_at < TALKING_MS
 
 
+## Whether our frames go CLEAR 16K: VOICE QUALITY says so, our line is not
+## in trouble, and whoever runs the lobby takes it (an older one never says).
+func sends_clear(net: NetPlay) -> bool:
+	if not takes_clear():
+		return false
+	if net.role == NetPlay.Role.HOST:
+		return CLEAR_ALLOWED
+	var lobby_takes: bool = net.settings.get("voice_clear", false)
+	return lobby_takes
+
+
+## Whether we take CLEAR 16K voices (and send them): VOICE QUALITY, and no
+## trouble on our line lately.
+func takes_clear() -> bool:
+	return clear and not troubled
+
+
+## Every frame (voice_chat.gd): the voices' trouble on our line. Past
+## CLEAR_TROUBLE of the frames late, lost or thrown, we take and send CB 8K
+## for CLEAR_REST_MS (ASK `clear` tells the host).
+func watch(now: float) -> void:
+	troubled = now < narrow_until
+	if now - _trouble_at < TROUBLE_EVERY:
+		return
+	_trouble_at = now
+	var had := Vector2i.ZERO
+	for t: Talker in talkers.values():
+		had += Vector2i(t.got + t.lost, t.late + t.lost + t.skipped)
+	var since := had - _trouble_was
+	_trouble_was = had
+	if since.x >= TROUBLE_FRAMES and since.y >= since.x * CLEAR_TROUBLE:
+		narrow_until = now + CLEAR_REST_MS
+		troubled = true
+
+
 ## Tells the host whether we hear voices and whom we muted (when it changed;
 ## the host itself only notes it).
 func tell(net: NetPlay) -> void:
 	var mutes: Array = muted.keys()
 	mutes.sort()
-	var said := "%s %s" % [hearing, mutes]
+	var said := "%s %s %s" % [hearing, mutes, takes_clear()]
 	if said == _told or net.session == null:
 		return
 	if net.role == NetPlay.Role.CLIENT and net.phase not in ["lobby", "match"]:
 		return
 	_told = said
-	var want := {"voice": hearing, "mutes": mutes}
+	var want := {"voice": hearing, "mutes": mutes, "clear": takes_clear()}
 	if net.role == NetPlay.Role.HOST:
 		var me := net.player_of(net.my_id)
 		me.merge(want, true)
@@ -244,12 +337,15 @@ func tell(net: NetPlay) -> void:
 
 
 ## What a player's ASK said of their voice chat, noted on their lobby
-## entry `p` (NetPlay; read by listeners()): VOICE CHAT on, whom they muted.
+## entry `p` (NetPlay; read by listeners()): VOICE CHAT on, whom they muted,
+## CLEAR 16K taken (an older build never says: CB 8K).
 static func note(p: Dictionary, info: Dictionary) -> void:
 	var hears: bool = info["voice"]
 	var mutes: Array = info.get("mutes", []) if info.get("mutes") is Array else []
 	p["voice"] = hears
 	p["mutes"] = mutes.slice(0, Modes.MAX_PLAYERS)
+	var takes: Variant = info.get("clear", false)
+	p["clear"] = takes is bool and takes
 
 
 ## Mutes or unmutes player `id` for us.
@@ -270,12 +366,14 @@ func toggle_mute(net: NetPlay, id: int) -> void:
 ## A VOICE packet from `from`: the host routes it, a listener plays it.
 func take(net: NetPlay, from: int, bytes: PackedByteArray, now: float) -> void:
 	if net.role == NetPlay.Role.HOST:
-		if bytes.size() == UP_HEADER + VoiceCodec.BYTES and _allowed(from, now):
+		var size := bytes.size() - UP_HEADER
+		if (size == VoiceCodec.BYTES or size == VoiceCodec.WIDE_BYTES) and _allowed(from, now):
 			_route(net, from, bytes, now)
 		else:
 			refused += 1
 		return
-	if bytes.size() != DOWN_HEADER + VoiceCodec.BYTES:
+	var got := bytes.size() - DOWN_HEADER
+	if got != VoiceCodec.BYTES and got != VoiceCodec.WIDE_BYTES:
 		return
 	var who := id_of_wire(bytes.decode_u32(4))
 	_hear(net, who, bytes.decode_u16(1), bytes[3], bytes.slice(DOWN_HEADER), now)
@@ -309,24 +407,83 @@ func _route(net: NetPlay, from: int, packet: PackedByteArray, now: float) -> voi
 	var began := Time.get_ticks_usec()
 	var flags := packet[3] & END
 	var frame := packet.slice(UP_HEADER)
+	var wide := frame.size() == VoiceCodec.WIDE_BYTES and CLEAR_ALLOWED
+	var narrow := frame.slice(0, VoiceCodec.BYTES)
+	if wide:
+		_weigh(now, CLEAR_LOBBY_KBS if net.dedicated else CLEAR_HOME_KBS)
 	for heard: Array in listeners(net, from):
 		var to: int = heard[0]
 		var flat: bool = heard[1]
+		var takes: bool = heard[2]
 		if not _room_for(to, from, now):
 			continue
 		var f := flags | (FLAT if flat else 0)
+		var sent := narrow
+		# CLEAR for this listener, budget aside (what the budget weighs).
+		var would := wide and takes and _clear_room(to, from, now)
+		if to != net.my_id:
+			_demand += (VoiceCodec.WIDE_BYTES if would else VoiceCodec.BYTES) + DOWN_HEADER
+		if would and not _lobby_narrow:
+			sent = frame
+			f |= WIDE
+			forwarded_clear += 1
+		elif wide:
+			narrowed += 1
 		if to == net.my_id:
-			_hear(net, from, packet.decode_u16(1), f, frame, now)
+			_hear(net, from, packet.decode_u16(1), f, sent, now)
 			continue
 		var out := PackedByteArray([NetWire.VOICE, packet[1], packet[2], f, 0, 0, 0, 0])
 		out.encode_u32(4, wire_id(from))
-		out.append_array(frame)
+		out.append_array(sent)
 		net.session.send(to, NetSession.CH_VOICE, out)
 		forwarded += 1
 		forwarded_bytes += out.size()
 		_sent = true
 		last_forward = now
 	route_us += Time.get_ticks_usec() - began
+
+
+## The lobby's budget: every BUDGET_EVERY, what its voices would take with
+## CLEAR as it is given (CLEAR_HEARD_MOST counted) against `budget` (KB/s:
+## CLEAR_LOBBY_KBS on a server, CLEAR_HOME_KBS from a player's own upload);
+## back to CLEAR under nine tenths of it, so it does not flicker at the edge.
+func _weigh(now: float, budget: float) -> void:
+	var span := now - _weighed
+	if span < BUDGET_EVERY:
+		return
+	var kbs := _demand / 1024.0 / (span / 1000.0)
+	if span < BUDGET_EVERY * 4.0:
+		_lobby_narrow = kbs > budget * (.9 if _lobby_narrow else 1.0)
+	else:
+		_lobby_narrow = false  # (quiet a while: the last weighing is stale)
+	_demand = 0
+	_weighed = now
+
+
+## Whether the lobby's voices are held to CB 8K now (the budget).
+func lobby_narrow() -> bool:
+	return _lobby_narrow
+
+
+## Whether `to` may be sent `from` WIDE now: it already is, or it gets fewer
+## than CLEAR_HEARD_MOST voices WIDE.
+func _clear_room(to: int, from: int, now: float) -> bool:
+	var got: Dictionary = _clear_heard.get(to, {})
+	var last: float = got.get(from, -1.0e9)
+	if now - last >= HOLD_MS:
+		var others := 0
+		for k: int in got.keys():
+			var at: float = got[k]
+			if now - at < HOLD_MS:
+				others += 1
+			else:
+				got.erase(k)
+		if others >= CLEAR_HEARD_MOST:
+			_clear_heard[to] = got
+			return false
+	got[from] = now
+	_clear_heard[to] = got
+	return true
 
 
 ## Whether `to` may be sent `from`'s voice now: it already hears it, or it
@@ -350,8 +507,8 @@ func _room_for(to: int, from: int, now: float) -> bool:
 	return true
 
 
-## Who hears `from` now: [[id, flat], ...] (never `from` itself; the host
-## itself when it plays and hears).
+## Who hears `from` now: [[id, flat, takes CLEAR 16K], ...] (never `from`
+## itself; the host itself when it plays and hears).
 func listeners(net: NetPlay, from: int) -> Array:
 	var out: Array = []
 	var talker := net.player_of(from)
@@ -367,21 +524,22 @@ func listeners(net: NetPlay, from: int) -> Array:
 		var mutes: Array = p.get("mutes", [])
 		if not hears or mutes.has(from):
 			continue
+		var clear_to: bool = p.get("clear", false)
 		if g == null:
-			out.append([to, true])
+			out.append([to, true, clear_to])
 			continue
 		var ear := _spot(g, p)
 		if spot.w < 0.0:
 			# The dead (or someone with no place in the match) reach the dead only.
 			if ear.w < 0.0:
-				out.append([to, true])
+				out.append([to, true, clear_to])
 			continue
 		var at := Vector3(spot.x, spot.y, spot.z)
 		if at.distance_to(Vector3(ear.x, ear.y, ear.z)) <= RADIUS:
-			out.append([to, false])
+			out.append([to, false, clear_to])
 		elif ear.w < 0.0 and _near_mate(g, p, at):
 			# The dead watch their living teammates: they hear what those hear.
-			out.append([to, false])
+			out.append([to, false, clear_to])
 	return out
 
 
@@ -414,6 +572,8 @@ func _spot(g: Game, p: Dictionary) -> Vector4:
 func _hear(net: NetPlay, who: int, at: int, flags: int, frame: PackedByteArray, now: float) -> void:
 	if not hearing or muted.has(who) or who == net.my_id:
 		return
+	if frame.size() == VoiceCodec.WIDE_BYTES and not takes_clear():
+		frame = frame.slice(0, VoiceCodec.BYTES)  # (we said CB 8K since it left)
 	var t: Talker = talkers.get(who)
 	if t == null:
 		t = Talker.new()
@@ -440,3 +600,6 @@ func sweep(net: NetPlay, now: float) -> void:
 		if net.player_of(id).is_empty():
 			_heard.erase(id)
 			_allowance.erase(id)
+	for id: int in _clear_heard.keys():
+		if net.player_of(id).is_empty():
+			_clear_heard.erase(id)

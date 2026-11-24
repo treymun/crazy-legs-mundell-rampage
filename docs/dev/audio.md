@@ -96,7 +96,8 @@ uses the same `Hearing` as the game's sounds (through a wall .43 and 1300
 Hz, a floor .32 and 800 Hz, round a corner .72 and 3600 Hz) and the same
 pan as `sound_position` (STEREO WIDTH), with its own falloff (full within 3
 cells, gone at 18: `data/tuning/voice.cfg`). The sound is 8 kHz IMA-ADPCM,
-telephone band. The mic is read from the muted `voice_mic` bus. The rest is
+telephone band (VOICE QUALITY's CB 8K), or with CLEAR 16K (pass 14) a
+second band of 4 to 6.5 kHz on top, played at 16 kHz. The mic is read from the muted `voice_mic` bus. The rest is
 in [multiplayer.md](multiplayer.md#voice-chat-pass-13). Not heard by anyone
 on the agent side.
 

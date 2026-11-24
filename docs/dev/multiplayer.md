@@ -1704,6 +1704,7 @@ straight or through the party line, the browser over wss, a phone.
   bytes a second up while talking (167 a packet, 25 a second), 4,275 down a
   voice; nothing at all while quiet. GDScript cost on this PC: the filter
   about 7 ms a second of sound, a frame 90 us to encode and 60 to decode.
+  This is VOICE QUALITY's CB 8K; CLEAR 16K is [below](#clear-voices-pass-14).
 - **The wire.** VOICE packets go unreliable on their own channel
   `CH_VOICE`. Godot's ENet keeps two channels below ours and sends ours
   unsequenced, so a voice packet never holds a snapshot or an input up and
@@ -1734,9 +1735,11 @@ straight or through the party line, the browser over wss, a phone.
   buffer by sequence: `start_frames` 2 or `start_ms` 90 before it plays,
   `most_frames` 8 at most, the oldest thrown past that; a lost frame is the
   last one again at half then a fifth, fading; a late one dropped), pulled
-  into an `AudioStreamGenerator` at 8 kHz on a bus of its own (`voice_out_N`:
-  panner, low-pass) kept `LEAD` (900 samples, about 110 ms) ahead of the
-  mixer. `VoiceChat.placement` gives left, right and cutoff from where this
+  into an `AudioStreamGenerator` at 16 kHz (`VoiceCodec.OUT_RATE`, since pass
+  14: a CB 8K frame goes through the same half-band filter as a CLEAR one,
+  so a voice can change kind between frames) on a bus of its own
+  (`voice_out_N`: panner, low-pass) kept `LEAD` (1,800 samples, about 110 ms)
+  ahead of the mixer. `VoiceChat.placement` gives left, right and cutoff from where this
   copy has the talker against the local player (the one watched, when
   dead): full within `full_within` (3), falling off by `falloff`, fading to
   nothing over the radius's last quarter, `Hearing`'s gain and cutoff
@@ -1788,6 +1791,90 @@ straight or through the party line, the browser over wss, a phone.
   how it sounds (the codec, the level, the falloff, the placing) is
   unheard; a real mic on Windows, a phone, a browser (getUserMedia over
   wss) and the VPS are untried.
+
+### Clear voices (pass 14)
+
+The owner asked for clearer words. VOICE QUALITY (AUDIO page, under the
+other voice rows): **CLEAR 16K** (the default) or **CB 8K** (pass 13's).
+
+- **The codec** (`VoiceCodec`, G.722's plan with ADPCM of our own): the mic
+  goes down to 16 kHz instead (`Down.new(OUT_RATE, CLEAR_TOP)`: the
+  high-pass, then the two low-pass stages at `clear_top_hz` 6.5 kHz, a
+  radio's top still, not a hi-fi's), and `Split` (a polyphase IIR half-band
+  pair: four all-pass coefficients, flat to 3.4 kHz, 25 dB down at 4.4 and
+  70 past 4.8, so the two bands' folding cancels when they are joined)
+  makes the band under 4 kHz and the band over it, each at 8 kHz. The low
+  band is squeezed exactly as CB 8K is (163 bytes); the high band, turned
+  over so 4 to 6 kHz lies low and the guess of three quarters of the last
+  sample works, in 2 bits a sample (`HighCoder`: a sign and whether the
+  step was passed, the step up three places or down one; 83 bytes). A
+  CLEAR frame is the two: 246 bytes, 49 kbit/s. `Join` puts them back (and
+  plays a CB 8K frame through the same filter with no high band). The grit
+  is the ADPCM's still, the band 120 Hz to 6.5 kHz: a CB that says its s's,
+  t's and f's.
+- **Why this shape:** the low band of a CLEAR frame IS a CB 8K frame. Who
+  passes a frame on cuts it to its first 163 bytes for anyone who should
+  not get CLEAR, a byte slice: the server never decodes, re-encodes or
+  keeps a voice, costs the same, and a listener on CB 8K hears the talker's
+  words as well as from a CB talker (better: the half-band keeps up to 4
+  kHz, CB 8K's own filter 3.5).
+- **Who gets what** (`NetVoice`, agreed per listener, never for the whole
+  lobby): the lobby says it takes CLEAR (`voice_clear` in its settings,
+  `clear_allowed` in voice.cfg); a talker sends CLEAR frames (flag `WIDE`,
+  4) only when VOICE QUALITY says so, its line is not in trouble and the
+  lobby said it (`sends_clear`); each listener's ASK says whether it takes
+  CLEAR (`clear`: its VOICE QUALITY and its line); the host sends a
+  listener CLEAR only when it said so, for at most `clear_heard_most` (2) of
+  its voices at once (the first talking keep it, the rest get CB 8K), and
+  only while the voices the lobby sends with CLEAR stay under
+  `clear_lobby_kbs` (240 KB/s; a player's own lobby, from a home upload,
+  `clear_home_kbs` 100), weighed every half second, back under nine tenths
+  of it. A listener whose voices come late, lost or thrown (`watch`: past
+  `clear_trouble`, 12%, of them in 2 s) takes and sends CB 8K for
+  `clear_rest_ms` (20 s): a congested line spends less.
+- **Older builds** (3.11.0) never say `clear` or `voice_clear`, so they get
+  and send CB 8K frames only, the very packets they know (an older host
+  refuses a CLEAR frame's size; it is never sent one). Today that cannot
+  happen anyway: HELLO turns away any other game version ("THE SERVER RUNS
+  3.12.0, YOU RUN 3.11.0"), so a 3.11.0 player and a 3.12.0 lobby never
+  meet. No PROTOCOL bump: the packets an older side knows did not change,
+  and `voice_chat_check` plays the older side by leaving the words out.
+- **Measured** (`voice_chat_check`, two voiced lines from `audio_src` at
+  the mic's 48 kHz, 5.1 s; SNR of the short-time spectra against the source
+  at 16 kHz, so a filter's phase does not count; codec SNR is the waveform
+  against what went into the codec):
+
+  | | codec SNR | 100 Hz-7 kHz | words 100-3.4k | s's and t's 3.4-7k | up B/s | down B/s a voice |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | CB 8K | 14.0 | 14.4 dB | 16.4 | 1.9 | 4,175 | 4,275 |
+  | CLEAR 16K | 14.1 (low 14.1, high 9.0) | 17.6 | 18.4 | 8.3 | 6,250 | 6,350 |
+  | CLEAR cut to CB 8K | | 15.8 | 18.4 | 2.4 | | 4,275 |
+
+  (Real speech squeezes worse than the made-up voice's 27 dB: 14 dB is
+  IMA-ADPCM's on it either way.) GDScript on this PC: a CLEAR frame 190 to
+  200 us to split and squeeze (CB 8K 75), 145 to decode and join (CB 8K 95,
+  50 before the join).
+- **The full lobby** (`voice_chat_check -- bench`: ten people in a 5v5 on
+  the server's own loop and ENet, all close, all talking, every player
+  sent four voices; two runs each, back to back with v3.11.0's bench, the
+  ranges given): at 30 snapshots a second (`snaps=2`, the old bench's) the server
+  sent 269 to 272 KB/s with v3.11.0, 270 to 273 on CB 8K, 307 to 310 on
+  CLEAR 16K; the voices themselves 168 KB/s against 209 (+24%; each player
+  two CLEAR voices and two CB 8K), a player 27 KB/s down against 31. At 60
+  a second (server/lobbies.json) 365 to 371 against 400 to 405 KB/s. With
+  nobody talking nothing changes (100 to 103 KB/s). The server's time the
+  same within the noise (v3.11.0 7.7 to 9.5% of a core, CLEAR 8.0 to 9.0). The
+  live lobby's snapshots are about 0.6 MB/s full (the bench's players stand
+  still); the voices' worst case adds 0.17 MB/s on CB 8K and 0.21 on CLEAR.
+- **The check's clock**: `voice_chat_check` runs its made-up clock about
+  eight times the real one, and ENet's throttle, which goes by the real one,
+  then drops nearly every unreliable packet of a busy talker for about a
+  second now and then, on CB 8K frames as much as on CLEAR ones (pass 13's
+  checks never counted frames at that moment). The CLEAR part talks that second through first, runs
+  nearer the real pace (`pace_ms`) and judges a frame's kind from a few.
+- **Not checked:** how CLEAR sounds (nobody here can listen), a phone's or
+  a browser's CPU for it (on this PC four voices cost about 1.5% of a core
+  to decode and join), a real congested line.
 
 ### Still open
 

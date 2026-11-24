@@ -34,10 +34,13 @@
 extends SceneTree
 
 const NetPorts := preload("res://tools/net_ports.gd")
+const Measure := preload("res://tools/voice_measure.gd")
 const STEP := NetSync.STEP
 const LAG := 40.0
 const JITTER := 10.0
 const LOSS := .05
+## The frames a listener must get for _clear_lobby to judge their kind.
+const FEW := 4
 
 var failures: Array = []
 var server: LobbyServer
@@ -56,6 +59,12 @@ var seconds := 6.0
 var remote := ""
 var talkers := 6
 var quiet := false
+## How many of the frames each listener got in the last _talk came CLEAR 16K.
+var clear_got := {}
+var _said := {}
+## Real milliseconds each made-up frame waits (more: closer to the real clock).
+var pace_ms := 1
+var bench_snaps := 1
 
 
 func _init() -> void:
@@ -74,6 +83,8 @@ func _run() -> void:
 			talkers = int(arg.substr(8))
 		elif arg == "quiet":
 			quiet = true
+		elif arg.begins_with("snaps="):
+			bench_snaps = int(arg.substr(6))
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
@@ -86,6 +97,7 @@ func _run() -> void:
 		_bench()
 	else:
 		_codec()
+		_clear_codec()
 		_gate_and_buffer()
 		_placement()
 		if _serve(2):
@@ -224,6 +236,198 @@ func _codec() -> void:
 	)
 
 
+# ------------------------------------------------------------------ 1b. CLEAR 16K
+
+
+## Real speech (two voiced lines from audio_src, at the mic's 48 kHz) through
+## CB 8K and CLEAR 16K: each band's codec SNR, the speech band's SNR against
+## the source (phase-blind: short-time spectra), the bytes, the time; a CLEAR
+## frame cut to its first BYTES is a CB 8K frame.
+func _clear_codec() -> void:
+	print("CLEAR 16K AGAINST CB 8K (VOICE QUALITY)")
+	var rate := 48000.0
+	var source := Measure.speech(rate)
+	var said := "two voiced lines"
+	if source.is_empty():
+		source = _made_up_speech(rate)
+		said = "a made-up voice with hiss"
+	# The source as the ear would have it at 16 kHz (to 7.6 kHz).
+	var ref := VoiceCodec.Down.new(VoiceCodec.OUT_RATE, 7600.0).take(source, rate)
+	# CB 8K.
+	var down := VoiceCodec.Down.new()
+	var coder := VoiceCodec.Coder.new()
+	var join := VoiceCodec.Join.new()
+	var low := down.take(source, rate)
+	var narrow_in := PackedFloat32Array()
+	var narrow_back := PackedFloat32Array()
+	var narrow_out := PackedFloat32Array()
+	var narrow_frames: Array[PackedByteArray] = []
+	for f in range(0, low.size() - VoiceCodec.FRAME, VoiceCodec.FRAME):
+		var pcm := low.slice(f, f + VoiceCodec.FRAME)
+		var bytes := coder.encode(pcm)
+		narrow_frames.append(bytes)
+		narrow_in.append_array(pcm)
+		narrow_back.append_array(VoiceCodec.decode(bytes))
+		narrow_out.append_array(join.take(bytes))
+	# CLEAR 16K.
+	var down16 := VoiceCodec.Down.new(VoiceCodec.OUT_RATE, VoiceCodec.CLEAR_TOP)
+	var wide := VoiceCodec.WideCoder.new()
+	var join_plain := VoiceCodec.Join.new()
+	var join_wide := VoiceCodec.Join.new()
+	var join_old := VoiceCodec.Join.new()
+	var wide16 := down16.take(source, rate)
+	var plain := PackedFloat32Array()
+	var wide_out := PackedFloat32Array()
+	var old_out := PackedFloat32Array()
+	var lows := PackedFloat32Array()
+	var lows_back := PackedFloat32Array()
+	var highs := PackedFloat32Array()
+	var highs_back := PackedFloat32Array()
+	var cut_ok := true
+	var enc_us := 0
+	var dec_us := 0
+	var frames := 0
+	for f in range(0, wide16.size() - VoiceCodec.OUT_FRAME, VoiceCodec.OUT_FRAME):
+		var pcm := wide16.slice(f, f + VoiceCodec.OUT_FRAME)
+		var began := Time.get_ticks_usec()
+		var bands := wide.split(pcm)
+		var bytes := wide.encode(bands)
+		enc_us += Time.get_ticks_usec() - began
+		began = Time.get_ticks_usec()
+		wide_out.append_array(join_wide.take(bytes))
+		dec_us += Time.get_ticks_usec() - began
+		frames += 1
+		plain.append_array(join_plain.bands(bands[0], bands[1]))
+		lows.append_array(bands[0])
+		highs.append_array(bands[1])
+		var base := bytes.slice(0, VoiceCodec.BYTES)
+		lows_back.append_array(VoiceCodec.decode(base))
+		highs_back.append_array(VoiceCodec.decode_high(bytes.slice(VoiceCodec.BYTES)))
+		old_out.append_array(join_old.take(base))
+		cut_ok = (
+			cut_ok
+			and bytes.size() == VoiceCodec.WIDE_BYTES
+			and VoiceCodec.decode(base).size() == VoiceCodec.FRAME
+		)
+	print(
+		(
+			(
+				"    %s, %.1f s; the ear's band 100 Hz to 7 kHz, words to 3.4 kHz,"
+				+ " the s's and t's 3.4 to 7 kHz"
+			)
+			% [said, source.size() / rate]
+		)
+	)
+	var narrow_codec := snr(narrow_in, narrow_back)
+	var low_codec := snr(lows, lows_back)
+	var high_codec := snr(highs, highs_back)
+	var wide_codec := snr(plain, wide_out)
+	var bands := [[100.0, 7000.0], [100.0, 3400.0], [3400.0, 7000.0]]
+	var cb := Measure.band_snrs(ref, narrow_out, bands)
+	var clear := Measure.band_snrs(ref, wide_out, bands)
+	var old := Measure.band_snrs(ref, old_out, bands)
+	var cb_up := (NetVoice.UP_HEADER + VoiceCodec.BYTES) * 25
+	var clear_up := (NetVoice.UP_HEADER + VoiceCodec.WIDE_BYTES) * 25
+	var cb_down := (NetVoice.DOWN_HEADER + VoiceCodec.BYTES) * 25
+	var clear_down := (NetVoice.DOWN_HEADER + VoiceCodec.WIDE_BYTES) * 25
+	print("    | | codec SNR | 100-7k | 100-3.4k | 3.4-7k | up B/s | down B/s a voice |")
+	print(
+		(
+			"    | CB 8K | %.1f | %.1f | %.1f | %.1f | %d | %d |"
+			% [narrow_codec, cb[0], cb[1], cb[2], cb_up, cb_down]
+		)
+	)
+	print(
+		(
+			"    | CLEAR 16K | %.1f (low %.1f, high %.1f) | %.1f | %.1f | %.1f | %d | %d |"
+			% [
+				wide_codec,
+				low_codec,
+				high_codec,
+				clear[0],
+				clear[1],
+				clear[2],
+				clear_up,
+				clear_down
+			]
+		)
+	)
+	print(
+		(
+			"    | CLEAR cut to CB 8K | - | %.1f | %.1f | %.1f | - | %d |"
+			% [old[0], old[1], old[2], cb_down]
+		)
+	)
+	_check(
+		low_codec >= 12.0 and high_codec >= 6.0 and wide_codec >= 12.0,
+		(
+			"CLEAR 16K's bands come back near enough: low %.1f dB, high %.1f, both put together %.1f"
+			% [low_codec, high_codec, wide_codec]
+		)
+	)
+	_check(
+		clear[0] >= cb[0] + 2.0 and clear[2] >= cb[2] + 4.0 and clear[1] >= cb[1] - .5,
+		(
+			(
+				"CLEAR 16K is nearer the speech: %.1f dB against CB 8K's %.1f,"
+				+ " the s's and t's %.1f against %.1f, the words no worse (%.1f, %.1f)"
+			)
+			% [clear[0], cb[0], clear[2], cb[2], clear[1], cb[1]]
+		)
+	)
+	_check(
+		cut_ok and old[1] >= cb[1] - 1.0,
+		(
+			(
+				"a CLEAR frame cut to its first %d bytes is a CB 8K frame:"
+				+ " an older listener hears the words as well (%.1f dB against %.1f)"
+			)
+			% [VoiceCodec.BYTES, old[1], cb[1]]
+		)
+	)
+	_check(
+		clear_up <= 6400 and clear_down <= 6500,
+		(
+			"CLEAR 16K: %d bytes a second up, %d down a voice (CB 8K %d, %d)"
+			% [clear_up, clear_down, cb_up, cb_down]
+		)
+	)
+	var enc := enc_us / maxf(1.0, frames)
+	var dec := dec_us / maxf(1.0, frames)
+	print(
+		(
+			"    CLEAR 16K's frame: %.0f us to split and squeeze, %.0f us to decode and join"
+			% [enc, dec]
+		)
+	)
+	_check(
+		enc < 4000.0 and dec < 4000.0, "and each frame costs little (%.0f, %.0f us)" % [enc, dec]
+	)
+	# A CB 8K frame through Join: the voice twice as many samples, no louder.
+	var level_8 := VoiceCodec.level_db(narrow_back)
+	var level_16 := VoiceCodec.level_db(narrow_out)
+	_check(
+		narrow_out.size() == narrow_back.size() * 2 and absf(level_8 - level_16) < 1.0,
+		"a CB 8K voice plays at 16 kHz as loud (%.1f dB, %.1f)" % [level_8, level_16]
+	)
+
+
+## The made-up voice with a hiss now and then (an s), when the lines are missing.
+static func _made_up_speech(rate: float) -> PackedFloat32Array:
+	var out := voice(int(rate * 4.0), rate, 0, 150.0)
+	var dice := RandomNumberGenerator.new()
+	dice.seed = 7
+	var last := 0.0
+	for i in out.size():
+		var t := i / rate
+		var noise := dice.randf_range(-1.0, 1.0)
+		var hiss := (noise - last) * .5  # (a first difference: the top of the band)
+		last = noise
+		if fmod(t, 1.0) > .7:
+			out[i] = hiss * .25
+	return out
+
+
 # ------------------------------------------------------------------ 2. gate
 
 
@@ -284,17 +488,17 @@ func _gate_and_buffer() -> void:
 	t.push(0, frames[2], 0, at + 10.0)
 	t.push(3, frames[5], 0, at + 15.0)
 	t.push(2, frames[4], 0, at + 20.0)
-	var out := t.pull(VoiceCodec.FRAME * 5, at + 25.0)
+	var out := t.pull(VoiceCodec.OUT_FRAME * 5, at + 25.0)
 	_check(
-		out.size() == VoiceCodec.FRAME * 5 and t.lost == 1,
+		out.size() == VoiceCodec.OUT_FRAME * 5 and t.lost == 1,
 		(
 			"in order across the wrap, out of order put right, the lost frame covered (%d, lost %d)"
 			% [out.size(), t.lost]
 		)
 	)
-	var first := VoiceCodec.decode(frames[0])
+	var first := VoiceCodec.Join.new().take(frames[0])
 	_check(
-		snr(first, out.slice(0, VoiceCodec.FRAME)) > 90.0,
+		snr(first, out.slice(0, VoiceCodec.OUT_FRAME)) > 90.0,
 		"and the frames played are the frames sent"
 	)
 	t.push(1, frames[3], 0, at + 30.0)
@@ -304,6 +508,34 @@ func _gate_and_buffer() -> void:
 	_check(
 		t.frames.size() <= NetVoice.MOST_FRAMES and t.skipped > 0,
 		"a pile after a stall: the oldest go, %d held at most" % NetVoice.MOST_FRAMES
+	)
+	# A listener's line: a few lost is fine, past clear_trouble it takes CB 8K a while.
+	var v := NetVoice.new()
+	var heard_one := NetVoice.Talker.new()
+	v.talkers[1] = heard_one
+	heard_one.got = 50
+	v.watch(5000.0)
+	heard_one.got += 50
+	heard_one.lost += 3
+	v.watch(7100.0)
+	var fine := v.takes_clear()
+	heard_one.got += 40
+	heard_one.lost += 5
+	heard_one.late += 2
+	v.watch(9200.0)
+	var troubled := not v.takes_clear()
+	v.watch(9200.0 + NetVoice.CLEAR_REST_MS - 10.0)
+	var still := not v.takes_clear()
+	v.watch(9200.0 + NetVoice.CLEAR_REST_MS + 10.0)
+	_check(
+		fine and troubled and still and v.takes_clear(),
+		(
+			(
+				"3 of 53 frames lost: CLEAR still; 7 of 45 late or lost (past %.0f%%):"
+				+ " CB 8K for %.0f s, then CLEAR"
+			)
+			% [NetVoice.CLEAR_TROUBLE * 100.0, NetVoice.CLEAR_REST_MS / 1000.0]
+		)
 	)
 
 
@@ -491,13 +723,17 @@ func _frame() -> void:
 				net, voice(n, rate, said, 140.0 + 30.0 * nets.find(net)), rate, held, false, 50, now
 			)
 			mouth.set_meta(&"said", said + n)
+		if net.phase in ["lobby", "match"]:
+			# As voice_chat.gd does each frame: the line's trouble, then the host told.
+			net.voice.watch(now)
+			net.voice.tell(net)
 		var got: Dictionary = heard.get(net, {})
 		for id: int in net.voice.talkers.keys():
 			var t: NetVoice.Talker = net.voice.talkers[id]
-			var pcm := t.pull(int(VoiceCodec.RATE * STEP) + 1, now)
+			var pcm := t.pull(int(VoiceCodec.OUT_RATE * STEP) + 1, now)
 			got[id] = int(got.get(id, 0)) + pcm.size()
 		heard[net] = got
-	OS.delay_msec(1)
+	OS.delay_msec(pace_ms)
 
 
 func _wait(what: Callable, most := 600) -> bool:
@@ -520,24 +756,37 @@ func _mouth(net: NetPlay) -> VoiceChat:
 
 
 ## Frames each listener got from `talker` while `secs` pass with only it talking.
+## (And in `clear_got`, how many of them came CLEAR 16K.)
 func _talk(talker: NetPlay, secs: float) -> Dictionary:
 	var before := {}
 	for net: NetPlay in nets:
-		before[net] = _got(net, talker.my_id)
+		before[net] = net.voice.talkers.get(talker.my_id)
+		var had: NetVoice.Talker = before[net]
+		if had != null:
+			before[net] = [had, had.got, had.got_wide]
 	talking.clear()
 	talking[talker] = true
 	_run_for(secs)
 	talking.clear()
 	_run_for(.5)
 	var out := {}
+	clear_got.clear()
 	for net: NetPlay in nets:
-		out[net] = _got(net, talker.my_id) - int(before[net])
+		var t: NetVoice.Talker = net.voice.talkers.get(talker.my_id)
+		var got := 0
+		var wide := 0
+		if t != null:
+			got = t.got
+			wide = t.got_wide
+			# (The same voice as before, unless it was swept away meanwhile.)
+			var had: Variant = before[net]
+			if had is Array and had[0] == t:
+				got -= int(had[1])
+				wide -= int(had[2])
+		out[net] = got
+		clear_got[net] = wide
+	_said = out
 	return out
-
-
-func _got(net: NetPlay, id: int) -> int:
-	var t: NetVoice.Talker = net.voice.talkers.get(id)
-	return t.got if t != null else 0
 
 
 func _lobby_server() -> void:
@@ -587,9 +836,10 @@ func _lobby_server() -> void:
 	var pulled: int = heard[dave].get(alice.my_id, 0)
 	var played := (dave_t.got - dave_t.skipped) if dave_t != null else sent
 	_check(
-		pulled >= (played - 1) * VoiceCodec.FRAME,
+		pulled >= (played - 1) * VoiceCodec.OUT_FRAME,
 		"and DAVE's sound card took the whole of it (%d samples for %d frames)" % [pulled, played]
 	)
+	_clear_lobby(lobby, alice, bob, carl, dave)
 	# Teams and the match.
 	alice.ask({"team": 0})
 	bob.ask({"team": 0, "ready": true})
@@ -736,6 +986,182 @@ func _lobby_server() -> void:
 	heard.clear()
 
 
+## CLEAR 16K in the lobby (everyone hears everyone, flat): who sends it, who
+## is sent it, and every way back to CB 8K. An older build (3.11.0) never
+## says `clear` in its ASK nor `voice_clear` in its lobby, which is played
+## here by taking the word away. Each count is the frames a listener got
+## while one talked: [all, CLEAR 16K].
+func _clear_lobby(
+	lobby: NetPlay, alice: NetPlay, bob: NetPlay, carl: NetPlay, dave: NetPlay
+) -> void:
+	print("  CLEAR 16K: WHO SENDS IT, WHO GETS IT")
+	# (The made-up clock runs about eight times the real one, and ENet's
+	# throttle, which goes by the real one, then drops nearly every
+	# unreliable packet of a busy talker for a second now and then, the
+	# first time soon after the joins: that is talked through first, the
+	# frames go nearer the real pace here, and a count asks only a few. A
+	# line's own trouble (the gate's check above) is left out till the end:
+	# that second's losses would put the listeners on CB 8K for a while.)
+	pace_ms = 6
+	var trouble := NetVoice.CLEAR_TROUBLE
+	NetVoice.CLEAR_TROUBLE = 2.0
+	_talk(alice, 1.0)
+	_wait(func() -> bool: return [alice, bob, carl].all(_whole), 900)
+	for net: NetPlay in [alice, bob, carl, dave]:
+		net.voice.narrow_until = -1.0e9
+	var takes: bool = alice.settings.get("voice_clear", false)
+	_check(takes, "the lobby says it takes CLEAR 16K (its settings' voice_clear)")
+	var up := _up_size(alice, 1.0)
+	_check(
+		up == NetVoice.UP_HEADER + VoiceCodec.WIDE_BYTES,
+		"ALICE (CLEAR 16K, the default) sends CLEAR frames (%d bytes a packet)" % up
+	)
+	_check(
+		_all_clear(bob) and _all_clear(carl) and _all_clear(dave),
+		(
+			"and BOB, CARL and DAVE (over the WebSocket) get them CLEAR (%s)"
+			% _counts([bob, carl, dave])
+		)
+	)
+	# An older listener: CARL's ASK never said `clear`.
+	lobby.player_of(carl.my_id).erase("clear")
+	_talk(alice, 1.0)
+	_check(
+		_all_cb(carl) and _all_clear(bob),
+		(
+			"a listener who never said CLEAR (3.11.0) is sent her CB 8K part, BOB still CLEAR (%s)"
+			% _counts([carl, bob])
+		)
+	)
+	lobby.player_of(carl.my_id)["clear"] = true
+	# CB 8K at the talker's end (as an older talker sends): everyone gets CB 8K.
+	bob.voice.clear = false
+	_run_for(.3)
+	up = _up_size(bob, 1.0)
+	_check(
+		up == NetVoice.UP_HEADER + VoiceCodec.BYTES and _all_cb(alice) and _all_cb(dave),
+		"BOB on CB 8K sends CB frames (%d bytes), heard CB 8K (%s)" % [up, _counts([alice, dave])]
+	)
+	_talk(alice, 1.0)
+	_check(
+		_all_cb(bob) and _all_clear(carl),
+		"and takes CB 8K: ALICE comes to him CB 8K, to CARL CLEAR (%s)" % _counts([bob, carl])
+	)
+	bob.voice.clear = true
+	# An older lobby never says it takes CLEAR: ALICE sends CB 8K.
+	alice.settings.erase("voice_clear")
+	up = _up_size(alice, 1.0)
+	_check(
+		up == NetVoice.UP_HEADER + VoiceCodec.BYTES,
+		"a lobby that never said it takes CLEAR (3.11.0) is sent CB frames (%d bytes)" % up
+	)
+	alice.settings["voice_clear"] = true
+	# Three talking at once: DAVE is sent two CLEAR, the third CB 8K.
+	var before := {}
+	for net: NetPlay in [alice, bob, carl]:
+		var t: NetVoice.Talker = dave.voice.talkers.get(net.my_id)
+		before[net] = Vector2i(t.got, t.got_wide) if t != null else Vector2i.ZERO
+	talking.clear()
+	for net: NetPlay in [alice, bob, carl]:
+		talking[net] = true
+	_run_for(1.5)
+	talking.clear()
+	_run_for(.6)
+	var clear_ones := 0
+	var cb_ones := 0
+	for net: NetPlay in [alice, bob, carl]:
+		var t: NetVoice.Talker = dave.voice.talkers.get(net.my_id)
+		var had: Vector2i = before[net]
+		var got := (Vector2i(t.got, t.got_wide) - had) if t != null else Vector2i.ZERO
+		if got.x >= FEW and got.y == got.x:
+			clear_ones += 1
+		elif got.x >= FEW and got.y == 0:
+			cb_ones += 1
+	_check(
+		clear_ones == NetVoice.CLEAR_HEARD_MOST and cb_ones == 3 - NetVoice.CLEAR_HEARD_MOST,
+		"three talking: DAVE gets %d CLEAR (clear_heard_most) and %d CB 8K" % [clear_ones, cb_ones]
+	)
+	# The lobby's budget: past it everyone CB 8K, under it CLEAR again.
+	var keep := NetVoice.CLEAR_LOBBY_KBS
+	NetVoice.CLEAR_LOBBY_KBS = 5.0
+	var said := _talk(alice, 2.0)
+	var held := lobby.voice.lobby_narrow()
+	var cut_soon := true
+	for net: NetPlay in [bob, carl, dave]:
+		# (The first half second goes CLEAR, till the budget is first weighed.)
+		cut_soon = cut_soon and int(said[net]) >= FEW and int(clear_got[net]) * 2 < int(said[net])
+	_check(
+		held and cut_soon,
+		(
+			"past clear_lobby_kbs (5 KB/s here) the lobby sends everyone CB 8K (%s)"
+			% _counts([bob, carl, dave])
+		)
+	)
+	NetVoice.CLEAR_LOBBY_KBS = keep
+	_talk(alice, 1.0)
+	_check(
+		not lobby.voice.lobby_narrow() and _all_clear(bob),
+		"and under it (%.0f KB/s) CLEAR again (%s)" % [keep, _counts([bob])]
+	)
+	# A line in trouble: BOB takes and sends CB 8K for a while.
+	bob.voice.narrow_until = now + 4000.0
+	_run_for(.3)
+	_talk(alice, 1.0)
+	var heard := _counts([bob, carl])
+	var bob_cb := _all_cb(bob)
+	var carl_clear := _all_clear(carl)
+	up = _up_size(bob, 1.0)
+	_check(
+		bob_cb and carl_clear and up == NetVoice.UP_HEADER + VoiceCodec.BYTES,
+		(
+			"BOB's line in trouble: he is sent CB 8K (%s, CARL still CLEAR) and sends it (%d bytes)"
+			% [heard, up]
+		)
+	)
+	bob.voice.narrow_until = -1.0e9
+	_run_for(.3)
+	pace_ms = 1
+	NetVoice.CLEAR_TROUBLE = trouble
+
+
+## Whether every frame `net` got in the last _talk came CLEAR 16K (and enough came).
+func _all_clear(net: NetPlay) -> bool:
+	return int(_said.get(net, 0)) >= FEW and int(clear_got.get(net, 0)) == int(_said.get(net, 0))
+
+
+## Whether every frame `net` got in the last _talk came CB 8K (and enough came).
+func _all_cb(net: NetPlay) -> bool:
+	return int(_said.get(net, 0)) >= FEW and int(clear_got.get(net, 0)) == 0
+
+
+## "NAME all/clear, ..." for the last _talk.
+func _counts(who: Array) -> String:
+	var parts: Array[String] = []
+	for net: NetPlay in who:
+		parts.append(
+			"%s %d/%d clear" % [net._my_name, int(_said.get(net, 0)), int(clear_got.get(net, 0))]
+		)
+	return ", ".join(parts)
+
+
+## Whether ENet passes all of `net`'s unreliable packets to the server.
+func _whole(net: NetPlay) -> bool:
+	var enet := net.session.peer as ENetMultiplayerPeer
+	var server_peer := enet.get_peer(NetSession.HOST_ID) if enet != null else null
+	return (
+		server_peer == null
+		or server_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE) >= 32.0
+	)
+
+
+## The bytes a packet `net` sent up while it talked `secs` alone.
+func _up_size(net: NetPlay, secs: float) -> int:
+	var frames := net.voice.frames_up
+	var bytes := net.voice.bytes_up
+	_talk(net, secs)
+	return (net.voice.bytes_up - bytes) / maxi(1, net.voice.frames_up - frames)
+
+
 ## `secs` with everyone talking or nobody: per player [snapshots got,
 ## partings, put back for lost inputs].
 func _window(secs: float, all_talk: bool) -> Dictionary:
@@ -814,10 +1240,13 @@ func _party_line() -> void:
 # ------------------------------------------------------------------ bench
 
 
-## A full 5v5 of people, all talking: the server's time and bytes.
+## A full 5v5 of people, all talking: the server's time and bytes, at 60
+## snapshots a second as server/lobbies.json runs (`snaps=2`: 30), with
+## everyone on CB 8K, then everyone on CLEAR 16K.
 func _bench() -> void:
 	if not _serve(5):
 		return
+	NetPlay.snap_every = bench_snaps
 	var lobby: NetPlay = server.rooms[0].net
 	for room in server.rooms:
 		room.net.session.lag_ms = 0.0
@@ -844,51 +1273,74 @@ func _bench() -> void:
 		p.x = p0.x + (slot % 4) * .9
 		p.y = p0.y + (slot / 4) * .9
 	_run_for(1.0)
-	for all_talk in [false, true, false, true]:
-		var us := 0
-		var bytes_before := lobby.session.sent
-		var frames := int(seconds / STEP)
+	print("%d snapshots a second, %.0f s each" % [60 / bench_snaps, seconds])
+	for quality in ["CB 8K", "CLEAR 16K"]:
 		talking.clear()
-		if all_talk:
-			for net: NetPlay in nets:
-				talking[net] = true
-		for i in frames:
-			now += STEP * 1000.0
-			var began := Time.get_ticks_usec()
-			server.frame(now, STEP)
-			us += Time.get_ticks_usec() - began
-			for net: NetPlay in nets:
-				net.poll(now)
-				net.client_input(Game.Controls.new())
-				net.client_play(1)
-				var mouth: VoiceChat = mouths[net]
-				var n := int(44100.0 * STEP)
-				var said: int = mouth.get_meta(&"said", 0)
-				mouth.feed(
-					net,
-					voice(n, 44100.0, said, 150.0),
-					44100.0,
-					talking.get(net, false),
-					false,
-					50,
-					now
-				)
-				mouth.set_meta(&"said", said + n)
-				for t: NetVoice.Talker in net.voice.talkers.values():
-					t.pull(134, now)
-		var kb := (lobby.session.sent - bytes_before) / 1024.0 / seconds
-		print(
-			(
-				"%s: server %.1f%% of a core (%.2f ms a frame), out %.0f KB/s, frames passed on %d"
-				% [
-					"ten talking" if all_talk else "nobody talking",
-					us / 10.0 / seconds / 1000.0,
-					us / 1000.0 / frames,
-					kb,
-					lobby.voice.forwarded
-				]
+		for net: NetPlay in nets:
+			net.voice.clear = quality == "CLEAR 16K"
+		_run_for(.5)
+		for all_talk in [false, true, false, true]:
+			_bench_window(lobby, all_talk, quality)
+
+
+## One bench window: nobody or everyone talking for `seconds`.
+func _bench_window(lobby: NetPlay, all_talk: bool, quality: String) -> void:
+	var us := 0
+	var bytes_before := lobby.session.sent
+	var voice_before := lobby.voice.forwarded_bytes
+	var clear_before := lobby.voice.forwarded_clear
+	var listener: NetPlay = nets[3]
+	var down_before := listener.session.received
+	var frames := int(seconds / STEP)
+	talking.clear()
+	if all_talk:
+		for net: NetPlay in nets:
+			talking[net] = true
+	for i in frames:
+		now += STEP * 1000.0
+		var began := Time.get_ticks_usec()
+		server.frame(now, STEP)
+		us += Time.get_ticks_usec() - began
+		for net: NetPlay in nets:
+			net.poll(now)
+			net.client_input(Game.Controls.new())
+			net.client_play(1)
+			var mouth: VoiceChat = mouths[net]
+			var n := int(44100.0 * STEP)
+			var said: int = mouth.get_meta(&"said", 0)
+			mouth.feed(
+				net,
+				voice(n, 44100.0, said, 150.0),
+				44100.0,
+				talking.get(net, false),
+				false,
+				50,
+				now
 			)
+			mouth.set_meta(&"said", said + n)
+			for t: NetVoice.Talker in net.voice.talkers.values():
+				t.pull(267, now)
+	var kb := (lobby.session.sent - bytes_before) / 1024.0 / seconds
+	var voice_kb := (lobby.voice.forwarded_bytes - voice_before) / 1024.0 / seconds
+	var down_kb := (listener.session.received - down_before) / 1024.0 / seconds
+	print(
+		(
+			(
+				"%s, %s: server %.1f%% of a core (%.2f ms a frame), out %.0f KB/s"
+				+ " (voices %.0f, %d CLEAR frames), a player down %.1f KB/s"
+			)
+			% [
+				quality,
+				"ten talking" if all_talk else "nobody talking",
+				us / 10.0 / seconds / 1000.0,
+				us / 1000.0 / frames,
+				kb,
+				voice_kb,
+				lobby.voice.forwarded_clear - clear_before,
+				down_kb
+			]
 		)
+	)
 
 
 ## People talking the whole time on a lobby server elsewhere, on the real clock.
@@ -928,7 +1380,7 @@ func _bench_remote() -> void:
 				else:
 					said_at[net] = from
 			for t: NetVoice.Talker in net.voice.talkers.values():
-				t.pull(VoiceCodec.FRAME, now)
+				t.pull(VoiceCodec.OUT_FRAME, now)
 		OS.delay_msec(2)
 	var got := 0
 	var up := 0

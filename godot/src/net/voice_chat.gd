@@ -20,15 +20,21 @@
 ##   NetVoice.RADIUS, muffled through walls and floors (Hearing), left and
 ##   right by STEREO WIDTH. In the lobby, and dead to dead in a 5v5, it is
 ##   flat. Nothing is ducked for it.
+## - VOICE QUALITY: CLEAR 16K (the default) sends the two-band frame when the
+##   lobby takes it and our line is not in trouble (NetVoice.sends_clear),
+##   CB 8K the old one; every voice plays at VoiceCodec.OUT_RATE, a CB 8K
+##   one through the same half-band filter, so a talker may change kinds
+##   between frames without a seam.
 class_name VoiceChat
 extends Node
 
 const VOICE_DATA := NetVoice.VOICE_DATA
 const MIC_BUS := "voice_mic"
 const OUT_BUS := "voice_out_%d"
-## What a voice's generator holds ahead of the mixer (samples at the codec's
-## rate): enough for a frame's wobble, little enough to stay quick.
-const LEAD := 900
+## What a voice's generator holds ahead of the mixer (samples at
+## VoiceCodec.OUT_RATE, about 110 ms): enough for a frame's wobble, little
+## enough to stay quick.
+const LEAD := 1800
 const OUT_SECONDS := .4
 ## Pad buttons that talk while held (PUSH TO TALK).
 const PAD_TALK := [JOY_BUTTON_MISC1, JOY_BUTTON_TOUCHPAD, JOY_BUTTON_PADDLE1]
@@ -64,8 +70,14 @@ var _heard_any := false
 var _asked := false
 var _down := VoiceCodec.Down.new()
 var _coder := VoiceCodec.Coder.new()
+## CLEAR 16K's: the mic at OUT_RATE, the two bands squeezed; whether the
+## frames going now are CLEAR 16K.
+var _down16 := VoiceCodec.Down.new(VoiceCodec.OUT_RATE, VoiceCodec.CLEAR_TOP)
+var _wide_coder := VoiceCodec.WideCoder.new()
+var _wide := false
 var _pending := PackedFloat32Array()
 var _pre := PackedFloat32Array()
+var _pre_bands: Array[PackedFloat32Array] = []
 ## id -> Out
 var _outs := {}
 var _free_buses: Array[int] = []
@@ -121,6 +133,8 @@ func frame(main: MainState) -> void:
 	net.voice.hearing = on
 	if not on:
 		net.voice.talkers.clear()
+	net.voice.clear = _opt(main, "voice_quality", 1) == 1
+	net.voice.watch(now)
 	net.voice.tell(net)
 	var want := on and _opt(main, "voice_mic", 0) != 0
 	var open_mic := _opt(main, "voice_talk", 0) == 1
@@ -143,6 +157,7 @@ func stop() -> void:
 	gate.left = 0
 	_pending.clear()
 	_pre.clear()
+	_pre_bands.clear()
 	for id: int in _outs.keys():
 		_drop_out(id)
 	marks.clear()
@@ -239,6 +254,7 @@ func _read_mic(main: MainState, net: NetPlay, now: float, open_mic: bool) -> voi
 		_capture.clear_buffer()
 		_pending.clear()
 		_pre.clear()
+		_pre_bands.clear()
 		return
 	var buf := _capture.get_buffer(n)
 	var mono := PackedFloat32Array()
@@ -258,6 +274,7 @@ func _read_mic(main: MainState, net: NetPlay, now: float, open_mic: bool) -> voi
 
 ## The mic's sound (`mono` at `rate`) through the gate, squeezed and sent:
 ## what _read_mic does with the capture, and the checks with a made-up voice.
+## CLEAR 16K or CB 8K as NetVoice.sends_clear says (a change starts afresh).
 func feed(
 	net: NetPlay,
 	mono: PackedFloat32Array,
@@ -267,17 +284,34 @@ func feed(
 	sensitivity: int,
 	now: float
 ) -> void:
-	_pending.append_array(_down.take(mono, rate))
-	while _pending.size() >= VoiceCodec.FRAME:
-		var pcm := _pending.slice(0, VoiceCodec.FRAME)
-		_pending = _pending.slice(VoiceCodec.FRAME)
+	var wide := net.voice.sends_clear(net)
+	if wide != _wide:
+		_wide = wide
+		_pending.clear()
+		_pre.clear()
+		_pre_bands.clear()
+	_pending.append_array(_down16.take(mono, rate) if wide else _down.take(mono, rate))
+	var size := VoiceCodec.OUT_FRAME if wide else VoiceCodec.FRAME
+	while _pending.size() >= size:
+		var pcm := _pending.slice(0, size)
+		_pending = _pending.slice(size)
+		# The bands split every frame, so the filter runs on through the quiet.
+		var bands: Array[PackedFloat32Array] = []
+		if wide:
+			bands = _wide_coder.split(pcm)
 		var was_open := gate.left > 0
 		if gate.step(VoiceCodec.level_db(pcm), held, open_mic, sensitivity):
 			if not was_open and not _pre.is_empty():
 				# The frame before the gate opened too: the word's start.
-				net.voice.send_own(net, _coder.encode(_pre), false, now)
-			net.voice.send_own(net, _coder.encode(pcm), gate.left == 0, now)
+				net.voice.send_own(net, _squeeze(_pre, _pre_bands), false, now)
+			net.voice.send_own(net, _squeeze(pcm, bands), gate.left == 0, now)
 		_pre = pcm
+		_pre_bands = bands
+
+
+## A frame as bytes: CLEAR 16K's two bands, or CB 8K's.
+func _squeeze(pcm: PackedFloat32Array, bands: Array[PackedFloat32Array]) -> PackedByteArray:
+	return _wide_coder.encode(bands) if not bands.is_empty() else _coder.encode(pcm)
 
 
 ## Whether PUSH TO TALK is held: the TALK key, a pad's talk button, the
@@ -306,7 +340,7 @@ func _play(main: MainState, net: NetPlay, now: float) -> void:
 		var t: NetVoice.Talker = net.voice.talkers[id]
 		if silent:
 			# No sound out (the checks): the voice is still taken off the wire.
-			t.pull(VoiceCodec.FRAME, now)
+			t.pull(VoiceCodec.OUT_FRAME, now)
 			continue
 		var out := _out_for(id, now)
 		if out == null:
@@ -387,7 +421,7 @@ func _out_for(id: int, now: float) -> Out:
 	var out := Out.new()
 	out.bus = _free_buses.pop_back() if not _free_buses.is_empty() else _make_bus()
 	var gen := AudioStreamGenerator.new()
-	gen.mix_rate = VoiceCodec.RATE
+	gen.mix_rate = VoiceCodec.OUT_RATE
 	gen.buffer_length = OUT_SECONDS
 	out.player = AudioStreamPlayer.new()
 	out.player.stream = gen

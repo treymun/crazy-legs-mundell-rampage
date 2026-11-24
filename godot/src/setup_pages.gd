@@ -332,6 +332,16 @@ static func build() -> Array:
 					[],
 					"OPEN MIC: HOW SOFT A VOICE STILL GOES OUT. TURN IT DOWN IF THE TV GETS THROUGH"
 				),
+				SessionStore.choices(
+					"VOICE QUALITY",
+					"voice_quality",
+					1,
+					["CB 8K", "CLEAR 16K"],
+					(
+						"CLEAR 16K: THE S'S AND T'S COME THROUGH, FOR HALF AGAIN THE DATA."
+						+ " CB 8K SPARES A PHONE"
+					)
+				),
 				SessionStore.Setting.new(
 					"VOICE CHAT VOLUME",
 					"voice_chat_volume",

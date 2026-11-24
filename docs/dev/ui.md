@@ -269,7 +269,8 @@ Online voice chat ([multiplayer.md](multiplayer.md#voice-chat-pass-13)) adds:
 
 - **Settings**, AUDIO page under VOICE CHAT ONLINE: VOICE CHAT (on), MICROPHONE
   (off), TALK (PUSH TO TALK or OPEN MIC), MIC SENSITIVITY (open mic's gate),
-  VOICE CHAT VOLUME (80); the KEYS page's PUSH TO TALK (T). A pad talks with
+  VOICE QUALITY (CB 8K or CLEAR 16K, the default; pass 14), VOICE CHAT
+  VOLUME (80); the KEYS page's PUSH TO TALK (T). A pad talks with
   its share, touchpad or first paddle button held (pads are not bound).
 - **Touch:** a TALK button (`TouchControls` role `talk`, held, at the left
   edge above the move stick, for the left thumb) offered in play while the

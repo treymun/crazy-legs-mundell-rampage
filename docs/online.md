@@ -132,9 +132,16 @@ or through the party line), the browser build and the phone.
   as a mark over their head when you can see them (and on the scoreboard).
 - **Quiet:** click or tap someone's name in the lobby to mute them (MUTED);
   VOICE CHAT OFF hears nobody; VOICE CHAT VOLUME sets how loud everyone is.
+- **VOICE QUALITY:** CLEAR 16K (the default) lets the s's and t's through
+  and still sounds like a CB; CB 8K is the old squawk. CLEAR goes only
+  where both ends have it: you hear a CB 8K talker as CB 8K, and a CB 8K
+  listener gets your voice as CB 8K. You also get CB 8K for a voice past
+  your second at once, when your line keeps losing voices (for 20 seconds),
+  and when everyone in a crowded lobby talks at once.
 - Nothing anyone says is recorded or kept anywhere, on the server or a
-  game. It costs about 4 KB/s up while you talk and 4 KB/s down for each
-  voice you hear (four at most at once).
+  game. It costs about 4 KB/s up while you talk (6 KB/s on CLEAR 16K) and
+  4 KB/s down for each voice you hear (6 for each of the two CLEAR ones;
+  four voices at most at once). Snapshots take far more: 30 to 60 KB/s.
 
 ## Custom maps
 
@@ -211,7 +218,11 @@ address and port (or join code) and its password if it has one.
   percent of a core on the owner's PC (`tools/voice_chat_check.gd -- bench`);
   six talking a whole minute beside a busy process on one core, about one
   percent and no change to how evenly the snapshots went out. It decodes
-  and keeps nothing.
+  and keeps nothing. CLEAR 16K voices (3.12) make the worst case about 210
+  KB/s out instead of 170, the same CPU; the server only cuts a CLEAR
+  frame back to its CB part for a listener who does not take it. Past
+  `clear_lobby_kbs` (240 KB/s of voices, `data/tuning/voice.cfg`) it sends
+  everyone CB 8K; `clear_allowed=false` there keeps the lobby on CB 8K.
 
 **Running one** (`server/`): `lobbies.json` lists the lobbies (port plus any
 of `NetPlay.DEFAULTS`: `lobby_name`, `password`, `mode`, `map`, `team_size`,
@@ -348,8 +359,10 @@ through a lobby server with test lag, jitter and loss (one player on the
 WebSocket side) and through a hosted lobby's party line: who hears whom in
 the lobby and in a match, the dead, muting, VOICE CHAT off, PUSH TO TALK, how
 it is placed left and right and through a wall, and that the game's own
-packets go on as before. **Not checked:** a real mic, anyone listening, a
-phone, a browser page, the VPS.
+packets go on as before; real speech through CLEAR 16K and CB 8K (SNR and
+bytes), and who gets which (an older side, three talking, the budget, a
+line in trouble). **Not checked:** a real mic, anyone listening, a phone, a
+browser page, the VPS.
 
 `tools/user_map_check.gd` hosts a lobby on a custom map in one process and
 has a client join: the map arrives, its hash checked, the match starts on

@@ -794,6 +794,7 @@ func lobby_info() -> Dictionary:
 			}
 		)
 	shown["dedicated"] = dedicated
+	shown["voice_clear"] = NetVoice.CLEAR_ALLOWED  # (an older lobby never says: CB 8K)
 	shown["admin"] = admin_id if dedicated else NetSession.HOST_ID
 	return {"settings": shown, "players": list, "phase": phase}
 
