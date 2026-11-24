@@ -26,7 +26,12 @@ Short recipes. Each names the files to touch. After any of them, run
    credits; never two generation processes at once.
 5. If it is sold in the 5v5 store, add `[item.<gun>]` and `[hit.<gun>]` to
    `data/tuning/store.cfg`.
-6. Run `tools/pack_assets.gd`, `tools/ttk.gd` for its time to kill, and
+6. Give it a rumble line in `data/tuning/rumble.cfg` `[guns]`, named as its
+   section: `[weak, strong, seconds]` (a crack weak-heavy and short, a thump
+   strong-heavy and long, a fast gun's shorter than its `fire_time`); a melee
+   gun also a `[melee]` line for its blow landing. `tools/rumble_check.gd`
+   fails a gun without one.
+7. Run `tools/pack_assets.gd`, `tools/ttk.gd` for its time to kill, and
    `tools/gun_frames.gd` for pictures.
 
 ## An enemy kind
@@ -106,7 +111,7 @@ looks (art.md#props).
    rebound: "HOLD THE RUN KEY", not "SHIFT"); a KEYS page row's help comes
    from `KeyBindings.hint` (`HINTS` where the label alone does not say, and
    the keys it always has too).
-2. Bump the settings count in `tools/check_fixes.gd` (84 now).
+2. Bump the settings count in `tools/check_fixes.gd` (86 now).
 3. Settings are not part of a save: no save version.
 4. `tools/touch_settings_check.gd` changes it by touch with no edit (it reads
    the settings list); a row it cannot work fails by name. A setting that

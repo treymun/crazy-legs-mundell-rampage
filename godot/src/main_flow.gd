@@ -761,10 +761,13 @@ func change_setting(value: int) -> void:
 	else:
 		sound.play("menu_move")
 	persist_options()
+	var felt := rumble.taste(item.key, after) if item.key.ends_with("rumble") else ""
 	if menu_note == "":
 		var now: int = options[item.key]
 		# Said where the hint goes: it took, and it is kept for next time.
 		menu_note = "%s: %s. APPLIED AND SAVED." % [item.label, item.format_value(now)]
+		if felt != "":
+			menu_note = "%s: %s. %s" % [item.label, item.format_value(now), felt]
 		if item.key == "detail":
 			menu_note = _detail_note(now)
 

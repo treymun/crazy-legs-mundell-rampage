@@ -292,6 +292,8 @@ var showdown_on := false
 var net: NetPlay = null
 ## Voice chat's mic, voices and marks while a lobby is up (main.gd).
 var voice_chat: VoiceChat = null
+## The pad's motors and the phone's buzz (main.gd drives them each frame).
+var rumble := RumbleOut.new()
 ## Online co-op, the host: the chapter the party is in or left for the hub,
 ## picked up again through its gate (net_coop.gd).
 var net_run: Game = null
@@ -978,6 +980,7 @@ const SHOWCASE_SECONDS := 6.0
 
 
 func _exit_tree() -> void:
+	rumble.stop()
 	games.clear()
 	if net != null:
 		net.leave("THE HOST QUIT" if net.role == NetPlay.Role.HOST else "LEFT")

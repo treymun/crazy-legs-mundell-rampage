@@ -30,8 +30,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (77 now;
-  NEW PLAYER TIPS is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (86 now;
+  RUMBLE and PHONE RUMBLE are the newest, under INPUT and TOUCH). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -2792,6 +2792,65 @@ chapel path at Hickston. Only the campaign and co-op have them
   the tiles and skies are deflated whole (`Assets.pack_whole`). An
   `AudioStreamWAV`'s `data` is then not samples: count frames with
   `get_length() * mix_rate`.
+
+## Rumble and haptics (pass 14)
+
+A pad's motors and a phone's buzz, looks only, like the screen shake and the
+sound. Numbers in `data/tuning/rumble.cfg` (its comments say each key).
+
+- **What feels it:** `features/rumble.gd` (a LOOKS feature, last in
+  `Features.ALL`: a host leaves it off; no dice, no save, nothing carried).
+  It listens to `shot_fired` (each gun's `[guns]` line; both barrels times
+  `pair`; the rip saw's grind its `grind` buzz), `traced` (a melee swing
+  landing, the grind's `bite`), `player_hurt`, `exploded` and the boss
+  events, and each tick reads the game: the dynamite's match and throw (the
+  armory's fuse and shot age), brawl's boot landing (on a man, the air, a
+  door) and finisher blows, a fall's drop (`game.feel_landed`, the highest
+  the feet were while falling), the seat (`vehicles.seat_of`: the engine's
+  hum held in `bed` by the speed, the mower's cylinder, the airboat's chop,
+  rough ground; `bumps` going up at the last tick's speed, a kerb, a ledge,
+  the tank going up), and the screen's shake: a rise nothing above made (a
+  boss's slam, a barn coming down, a level's script) is a quake. Only the
+  local player's own doings and hurts count (`game.acting_local()`); a blast
+  by its distance to the local player. An online client's own shot shown
+  ahead (`own_shot`, `own_trace`; its blasts through `net_own_shots.gd`) is
+  felt then and not again (`own_quiet`, `blast_quiet`). No split screen: the
+  one local player has the first pad.
+- **A pulse** is [weak, strong, seconds]: weak the small fast motor (a pad's
+  right grip), strong the big slow one (left); full for its first `hold`,
+  then fading. A hurt leans to the side it came from (from the right: more
+  weak, less strong, by `lean`). Pulses add up to `cap_weak`/`cap_strong`;
+  a quake goes by the bigger instead. They age by the frames (`mix(dt)`,
+  from the front end), not the tick.
+- **The motors:** `src/rumble_out.gd` (`RumbleOut`, `main.rumble`), each
+  frame from `main.gd`. Live only in play with nothing over it
+  (`live_of`: not a menu or pause, the focus, PHOTO MODE, an opener, the
+  KILL CAM, a replay, the demo, the console, the tally, the down screen);
+  otherwise the pad is stopped and the pulses dropped (`hush`). It also
+  stops as the window or the app loses the focus (main_input.gd) and as the
+  program goes (main_state.gd `_exit_tree`). The pad is the first one, as
+  `read_pad` reads, while it is played with (the last device, or a stick
+  or trigger moved within `pad_idle` seconds: a pad on the desk stays still);
+  it is told again only when a motor moves `send_step` or every `refresh`,
+  each telling lasting `refresh` + `linger`, so a stalled frame never leaves
+  it running. Played by touch, the phone buzzes once for the strongest pulse
+  just begun (`Input.vibrate_handheld` with its strength on Android; in a
+  browser `navigator.vibrate` through `JavaScriptBridge`, shorter for weaker,
+  and nothing where there is none: an iPhone's), never under `[phone]
+  floor` nor sooner than `gap`. The Android export asks for VIBRATE
+  (`export_presets.cfg`).
+- **Settings:** RUMBLE (INPUT page, under GAMEPAD; FULL) and PHONE RUMBLE
+  (TOUCH page; LOW), each OFF / LOW / FULL, LOW times `low`. Two, not one:
+  a phone held in the hand with a Bluetooth pad may want one and not the
+  other, and a phone's one buzzer for every round of a tommy gun is a lot
+  (and the battery's), so it starts lower; a pad starts FULL as pads do.
+  Changing either gives a taste of the level picked (`RumbleOut.taste`), or
+  says SAVED, BUT NO PAD IS HOOKED UP / THIS ONE CANNOT BUZZ.
+- **Cost:** the tick's `rumble._tick` is 8 microseconds of 0.84 ms
+  (`tick_profile`, timers and all); `plain` with and without it, three pairs
+  back to back, medians 0.753 and 0.751 ms.
+- Check: `tools/rumble_check.gd` (RUMBLE CHECK OK, quick) with a recorder in
+  place of Input's calls.
 
 ## The browser packs
 

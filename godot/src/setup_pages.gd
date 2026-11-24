@@ -1,7 +1,9 @@
 ## The setup screen's pages: every setting's label, key, default, range and
 ## hint (SessionStore.setup_pages() builds them once and keeps the defaults).
 ## A setting's default is how the game played before it existed (CHATTER is
-## the owner's exception: CUSSIN' from the start).
+## the owner's exception: CUSSIN' from the start; RUMBLE and PHONE RUMBLE start
+## on, FULL and LOW, the owner leaving it to the pass: a shake nobody finds
+## the setting for is never felt).
 class_name SetupPages
 extends RefCounted
 
@@ -82,6 +84,13 @@ static func build() -> Array:
 				),
 				SessionStore.toggle(
 					"INVERT PAD Y", "pad_invert", 0, "REVERSE UP AND DOWN ON THE RIGHT STICK"
+				),
+				SessionStore.choices(
+					"RUMBLE",
+					"rumble",
+					2,
+					["OFF", "LOW", "FULL"],
+					"THE PAD KICKS WITH EVERY GUN, HIT, BLAST, HARD LANDING, ENGINE AND BOSS"
 				),
 				SessionStore.toggle(
 					"ALWAYS RUN", "autorun", 0, "RUN ALL THE TIME; HOLD THE RUN KEY TO WALK"
@@ -661,6 +670,13 @@ static func build() -> Array:
 					0,
 					["OFF", "LOW", "HIGH"],
 					"TURN AND TIP THE PHONE TO AIM, AS WELL AS DRAGGING"
+				),
+				SessionStore.choices(
+					"PHONE RUMBLE",
+					"phone_rumble",
+					1,
+					["OFF", "LOW", "FULL"],
+					"THE PHONE BUZZES FOR GUNS, HITS, BLASTS AND BOSSES. AN IPHONE'S BROWSER CANNOT"
 				),
 				(
 					SessionStore

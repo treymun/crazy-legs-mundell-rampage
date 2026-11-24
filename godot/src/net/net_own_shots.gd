@@ -339,7 +339,7 @@ func _boom(game: Game, kind: String, x: float, y: float, z: float) -> void:
 		game, x, y, z, "plasma" if energy else "spark", 12 if energy else 23, 2.2 if energy else 3.3
 	)
 	_specks(game, x, y, z, "dust", 6 if energy else 16, 2.3)
-	for id: String in ["debris", "weapon_fx", "gun_fx", "impacts"]:
+	for id: String in ["debris", "weapon_fx", "gun_fx", "impacts", "rumble"]:
 		var f: GameFeature = game.features.get(id)
 		if f != null:
 			f.call("_exploded", x, y, z, energy)

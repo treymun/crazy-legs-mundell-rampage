@@ -44,6 +44,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `hits.cfg` | how hits land: `[head]`, `[zones]`, `[reaction]`, `[reaction.store]`, `[ammo]`; keys are what `hurt()` is told did it; dirty fighting `[kick]`, `[finish]`, `[finish.<move>]`, `[hazard]`, `[hazard.<kind>]` | `HitData` (`src/core/hit_data.gd`), `hit_zones.gd`, `enemies.gd`, `features/brawl.gd`, `brawl_hazards.gd` |
 | `modes.cfg` | the modes' rules: `[versus]`, `[coop]` (with the scaling table), `[deathmatch]`, `[tactical]`, `[bomb]`, `[hostage]`, `[tagteam]`, County Run (`[county_cards]`, `[county_coop]`, `[county_moves]`, `[county_orbs]`, `[county_spawner]`), `[tactical_utility]` (throwables), `[squad]`, `[squad_feature]`, `[idle_life]`, `[climbing]` (ladders, pull-ups, hands falling), `[hand_tactics]` (reload, peek, kick), `[hit_zones]`, `[tactical_bot]` | `ModeData` (`src/core/mode_data.gd`) |
 | `bosses.cfg` | the boss scripts' numbers, one section per script (`[boss_kit]`, ...; `[boss_lock]` each arena's room, doors, gates and spot; `[boss_retry]` the least health and rounds RETRY THE FIGHT brings; `[boss_fight] backup_share` each boss's share of the backup) | `BossData` (`src/core/boss_data.gd`) |
+| `rumble.cfg` | controller rumble and phone buzz (looks only): `[all]` the LOW level, caps, the fade, how often a pad is told, an idle pad, the setting's taste; `[guns]` a pulse each gun (by weapons.cfg name), `[melee]`, `[dynamite]`, `[hurt]` (with its lean), `[boot]`, `[blast]` (reach, falloff, size), `[land]`, `[quake]`, `[boss]`, `[vehicle]` and `[vehicle.<kind>]` (hum, chug, chop, bumps, crashes, kerbs, ledges, wreck), `[phone]` | `RumbleData` (`src/core/rumble_data.gd`), `features/rumble.gd`, `src/rumble_out.gd` |
 | `voice.cfg` | online voice chat: the radius and falloff, voices one player is sent at once, a talker's frames a second, the jitter buffer, the open mic's gate and hangover, the level, the radio's band, CLEAR 16K's (allowed, its top, voices a listener gets CLEAR, the lobby's and a home host's budget, a line's trouble and rest) | `src/net/net_voice.gd`, `src/net/voice_chat.gd` |
 | `lobby.cfg` | the online lobby's rows and defaults: each row is [key, label, values, names]; a new online mode goes in the mode row (and `NetPlay.play_mode()`) | `src/net/net_play.gd` |
 | `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short`, the storm front (`storm`), a player map's horde (`custom_map`) | `county_data.gd` |
@@ -65,6 +66,9 @@ In `godot/src/core/`:
   `HitData.ammo()`.
 - `Difficulty.table(section, key)`, `Difficulty.at(section, key,
   difficulty)`.
+- `RumbleData.pulse(section, key)` (a Vector3: weak, strong, seconds),
+  `RumbleData.gun(i)`, `RumbleData.num(section, key, fallback)`,
+  `RumbleData.level_scale(level)`.
 
 ## Rules for the big files
 
@@ -74,6 +78,8 @@ In `godot/src/core/`:
 - **A new enemy can be a section with `brain=<kind>`** (it acts as that kind)
   plus its art. `art="billy"` draws it with another kind's pictures until its
   own are in.
+- **A new gun's rumble** is a line in rumble.cfg `[guns]` named as its
+  weapons.cfg section; `rumble_check` fails a gun without one.
 - **Lights**: `[light.*]` takes `pool`, `hot` (the shimmer's width; strength 0
   only shimmers) and `props` (every prop with that picture carries it); each
   gun has its own muzzle light, `[light.muzzle_<gun>]`.

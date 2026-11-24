@@ -164,7 +164,8 @@ rules are in [multiplayer.md](multiplayer.md#the-multiplayer-menus).
 ## Input
 
 - Touch becomes the pointer in `UiRoot.take`.
-- A pad drives menus through `read_pad` -> `_pad_menu` -> `key()`.
+- A pad drives menus through `read_pad` -> `_pad_menu` -> `key()`; in play
+  it rumbles (`main.rumble`, `RumbleOut`: below).
 - The keys stay the rules on zoned and keyed screens; buttons on button
   screens.
 - `tools/menu_touch_check.gd` (MENU TOUCH OK; check_all, CI) taps through the
@@ -262,6 +263,18 @@ upright (a browser) its rings shrink to fit (`TouchControls.layout`, pass
 never written by a tool.
 
 Not checked by hand: none of it has been tried on a real phone.
+
+## Rumble's settings (pass 14)
+
+Two rows, each OFF / LOW / FULL ([gameplay.md](gameplay.md#rumble-and-haptics-pass-14)):
+RUMBLE on the INPUT page under GAMEPAD (FULL: the pad being played with)
+and PHONE RUMBLE on the TOUCH page under PHONE AND TABLET (LOW: the
+phone's buzz while it is played by touch; an iPhone's browser cannot buzz).
+Changing either gives a taste of its level at once (`RumbleOut.taste`,
+from `main_flow.gd change_setting`); the note where the hint goes says
+SAVED, BUT NO PAD IS HOOKED UP or SAVED, BUT THIS ONE CANNOT BUZZ when
+nothing could feel it. Both are plain choices, so `touch_settings_check`
+works them by finger with no edit.
 
 ## Voice chat's pieces (pass 13)
 
