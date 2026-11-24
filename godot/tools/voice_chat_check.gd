@@ -117,6 +117,9 @@ func _run() -> void:
 	if bench:
 		print("VOICE CHAT BENCH DONE")
 	else:
+		# (Again at the end: check_all shows only a failing check's last lines.)
+		for text: String in failures:
+			print("  FAILED: " + text)
 		print("VOICE CHAT OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
 	await process_frame
 	quit(1 if not failures.is_empty() else 0)
