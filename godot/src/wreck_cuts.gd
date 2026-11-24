@@ -40,6 +40,12 @@
 ## it. A key asked for before its turn is cut there and then, as before. A
 ## build without threads (the lite browser build) cuts a key the first time
 ## something of it breaks, and keeps fewer variants (LITE).
+##
+## A shipped level's keys (each one's own pieces, not its further variants)
+## are cut at pack time (src/level_bakes.gd, bake_cuts.bin): a key whose bake
+## still holds is read from it instead (pump() and parts() alike: the same
+## pieces, its fracture origin's box and its model's size with them), so its
+## model is not read to be cut.
 class_name WreckCuts
 extends RefCounted
 
@@ -176,6 +182,8 @@ static var _later: Array[String] = []
 static var _job: Job = null
 ## Pictures read for their solid pixels (_picture), by name.
 static var _pictures := {}
+## A model's triangles counted by its bake (variants()), by source.
+static var _tris := {}
 
 
 ## A key taken apart (see the top).
@@ -209,7 +217,10 @@ static func variants(key: String) -> int:
 		return 1
 	var heavy := false
 	if k.source.begins_with("m:"):
-		heavy = _model(k.source.substr(2)).size() / 3 > HEAVY
+		var tris := _baked_tris(k)
+		if tris < 0:
+			tris = _model(k.source.substr(2)).size() / 3
+		heavy = tris > HEAVY
 	if not OS.has_feature("threads"):
 		return 1 if heavy else LITE
 	return VARIANTS_HEAVY if heavy else VARIANTS
@@ -260,6 +271,10 @@ static func pump(assets: Assets, quiet := true) -> void:
 		var key: String = _waiting.pop_front() if not _waiting.is_empty() else _later.pop_front()
 		if _cache.has(key):
 			continue
+		var baked: Variant = _baked(assets, key)
+		if baked != null:
+			_cache[key] = baked
+			return
 		var k := named(key)
 		if k.source.begins_with("p:") and k.recipe == "splinter":
 			var pic := _picture(assets, k.source.substr(2))
@@ -361,6 +376,7 @@ static func clear() -> void:
 	_cache.clear()
 	_soups.clear()
 	_boxes.clear()
+	_tris.clear()
 
 
 ## The pieces a key cuts into (empty when there is nothing to cut).
@@ -375,6 +391,11 @@ static func parts(assets: Assets, key: String) -> Array:
 		return cut
 	_waiting.erase(key)
 	_later.erase(key)
+	var baked: Variant = _baked(assets, key)
+	if baked != null:
+		var read: Array = baked
+		_cache[key] = read
+		return read
 	var out: Array = []
 	var k := named(key)
 	if k.recipe != "":
@@ -389,6 +410,62 @@ static func parts(assets: Assets, key: String) -> Array:
 			out = _cut_tile(k.source.substr(2), k.recipe, k.args)
 	_cache[key] = out
 	return out
+
+
+## A key's pieces from its bake (LevelBakes) while that holds, its fracture
+## origin's box and its model's size kept as a cut keeps them; else null.
+static func _baked(assets: Assets, key: String) -> Variant:
+	if not LevelBakes.has_cut(key):
+		return null
+	var k := named(key)
+	var stamp: Variant = _source_stamp(assets, k)
+	if stamp == null:
+		return null
+	var entry := LevelBakes.cut_entry(key, str(stamp))
+	if entry.is_empty():
+		return null
+	var read: Variant = LevelBakes.cut_parts(entry)
+	if read == null:
+		return null
+	var tris: int = entry[3]
+	if tris >= 0:
+		_tris[k.source] = tris
+	var box: Variant = entry[4]
+	if box != null:
+		_boxes[k.source + "|" + k.recipe] = box
+	return read
+
+
+## What a key's source is now, for its bake's stamp: a model's files ("" when
+## they cannot be read: an export), a picture's pixels; null when a bake must
+## not stand in (a model this build does not have cuts to nothing).
+static func _source_stamp(assets: Assets, k: Named) -> Variant:
+	if k.source.begins_with("m:"):
+		var path := PROPS.path_join(k.source.substr(2) + ".glb")
+		if not ResourceLoader.exists(path):
+			return null
+		return LevelBakes.model_md5(path)
+	if k.source.begins_with("p:"):
+		return LevelBakes.bytes_md5(var_to_bytes(_picture(assets, k.source.substr(2))))
+	return ""
+
+
+## A model's triangles as its key's bake counted them (-1: not baked).
+static func _baked_tris(k: Named) -> int:
+	var known: Variant = _tris.get(k.source)
+	if known != null:
+		var tris: int = known
+		return tris
+	if not LevelBakes.has_cut(k.base):
+		return -1
+	var path := PROPS.path_join(k.source.substr(2) + ".glb")
+	if not ResourceLoader.exists(path):
+		return -1
+	var entry := LevelBakes.cut_entry(k.base, LevelBakes.model_md5(path))
+	if entry.is_empty():
+		return -1
+	var counted: int = entry[3]
+	return counted
 
 
 static func _numbers(text: String) -> PackedFloat32Array:

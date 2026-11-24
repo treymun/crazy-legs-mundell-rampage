@@ -199,7 +199,13 @@ features' order in `GameEvents.hooks`): GameFeature's are empty. See
   ([levels.md](levels.md)); loaded into `LevelData` (`level.gd`; read and
   its tables built by `LevelLoad`, `level_load.gd`), with tiles in
   `level_tiles.gd` and geometry in `level_geometry.gd` (its nav graph built
-  by `LevelNav`, `level_nav.gd`; the graph is `nav_graph.gd`).
+  by `LevelNav`, `level_nav.gd`; the graph is `nav_graph.gd`). A shipped
+  level's graph and its breakables' wreck pieces are baked at pack time
+  (`tools/level_bake.gd`, `assets_gen/bake_*.bin`) and read by `LevelBakes`
+  (`level_bakes.gd`) while their key holds (the level file's MD5, the
+  format, the scripts and sources they were made from); a player's map, a
+  level a tool hands in and a stale or missing bake build as before
+  ([levels.md](levels.md#the-bakes-pass-14)).
 - Tuning: `godot/data/tuning/*.cfg` and `*.json`, read by `tuning.gd`
   (weapons, enemies, effects, shots: reloaded live from the project folder)
   and the loaders in `src/core/` (`Difficulty`, `HitData`, `ModeData`,

@@ -970,7 +970,11 @@ func nav(lv: LevelData) -> NavGraph:
 	if key != "" and _navs.has(key):
 		_nav = _navs[key]
 		return _nav
-	_nav = LevelNav.build_nav(self, lv)
+	# A level as read from its file: the graph baked at pack time, while its
+	# key holds (level_bakes.gd); else built here.
+	_nav = LevelBakes.nav(lv) if key != "" else null
+	if _nav == null:
+		_nav = LevelNav.build_nav(self, lv)
 	if key != "":
 		if _navs.size() >= NAVS_KEPT:
 			_navs.erase(_navs.keys()[0])

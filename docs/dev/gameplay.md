@@ -363,11 +363,11 @@ to a chapter about twice as fast and changed nothing play sees:
 
 `tools/load_check.gd` holds every level to the old code kept in
 `tools/load_reference.gd` (the nav graph, the grids and walls, the plane
-bounds) and the worker's cuts to cuts made at once. Not precomputed into
-`assets_gen`: the packs are made before the project is imported (CI), the nav
-graph would have to be rebuilt with every rule change, and the browser
-download would grow by megabytes. `tools/load_bench.gd` measures it
-([checks.md](checks.md#benchmarks)).
+bounds) and the worker's cuts to cuts made at once. Since pass 14 a shipped
+level's graph and its breakables' pieces are baked at pack time and read
+back while their key holds, anything else built as here
+([levels.md](levels.md#the-bakes-pass-14), `tools/prebake_check.gd`).
+`tools/load_bench.gd` measures it ([checks.md](checks.md#benchmarks)).
 
 ## Enemies
 
@@ -2801,7 +2801,10 @@ one chapter has (`Assets.CHAPTER_KINDS`), `art_<chapter>.bin`; the web presets
 leave them out, CI turns each chapter's pair into a pack (`tools/make_packs.gd`)
 and `pack_loader.gd` fetches them after start. `main_flow.gd play()` holds a
 chapter until its pictures are there. A new enemy kind used in more than one
-level must not be in `CHAPTER_KINDS` (`verify_assets.gd` checks). A browser
+level must not be in `CHAPTER_KINDS` (`verify_assets.gd` checks). The wreck
+pieces only chapters' levels cut (`bake_cuts_<stem>.bin`,
+[levels.md](levels.md#the-bakes-pass-14)) come in those chapters' packs too;
+before a pack is in, such a key is cut as before. A browser
 cannot rename files in its storage and HTTPRequest's `download_file` does not
 write there: keep writing packs from memory.
 
