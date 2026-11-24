@@ -126,6 +126,9 @@ var art: Assets
 var clock := 0.0
 var motion := 0
 var steady := false
+## The last input was a finger (main_state.gd sets it before each frame):
+## the settings screen's words speak to a finger, not to keys.
+var touch_words := false
 
 static var _line_cache := {}
 
@@ -1063,6 +1066,8 @@ func _hint(c: Canvas, item: SessionStore.Setting, note: String, slot: int, count
 	var applies := str(NEXT_RUN.get(item.key, "CHANGES RIGHT AWAY"))
 	if item is SessionStore.KeySetting:
 		applies = "ENTER OR CLICK, THEN THE NEW KEY"
+		if touch_words:
+			applies = "KEYBOARD ONLY: TAP, THEN THE KEY"
 	HUD.text(
 		c,
 		applies,

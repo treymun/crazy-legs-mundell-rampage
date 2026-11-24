@@ -50,6 +50,8 @@ func _on_focus_lost() -> void:
 	block_fire = true
 	left_ctrl = false
 	drag_mode = ""
+	fingers_down.clear()  # a finger lifted while away never says so
+	menu_finger = -1
 	apply_master()
 	if state == "play" and game != null:
 		game.player.vx = 0.0
@@ -231,7 +233,8 @@ func _key_setup(code: int, shift: bool) -> void:
 	var item: SessionStore.Setting = option_items()[option_slot]
 	if item is SessionStore.KeySetting and (code == KEY_ENTER or code == KEY_KP_ENTER):
 		binding_action = (item as SessionStore.KeySetting).action
-		menu_note = "PRESS A KEY FOR %s. ESC KEEPS THE OLD ONE." % item.label
+		var keep := "A TAP" if input_device == "touch" else "ESC"
+		menu_note = "PRESS A KEY FOR %s. %s KEEPS THE OLD ONE." % [item.label, keep]
 		sound.play("menu_accept")
 		return
 	var sideways := code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]
@@ -459,6 +462,8 @@ func _to_screen(event: InputEvent) -> bool:
 		return false
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
 		input_device = "touch"
+		if not _menu_finger(event):
+			return true  # a second finger on a menu: the first one drives it
 	elif event is InputEventMouseButton:
 		input_device = "keys"
 	if event is InputEventMouseMotion:
@@ -471,7 +476,51 @@ static func _global_key(code: int) -> bool:
 	return code in [KEY_F11, KEY_F4, KEY_F5, KEY_F2, KEY_F6, KEY_F3, KEY_F9, KEY_F12]
 
 
+## Keep `fingers_down` (every finger on the glass) and drop the browser's echo
+## of a finger: Godot's web build reads the page's pointermove as the mouse,
+## and a moving finger is a pointer too, so each ScreenDrag also comes as a
+## MouseMotion with no button held. That echo stopped a settings bar or the
+## scroll groove under a finger at its first touch (the mouse path ends a
+## drag when the button is up) and lit rows under a finger scrolling the
+## list. True: the event is the echo, drop it.
+func _finger_echo(event: InputEvent) -> bool:
+	if event is InputEventScreenTouch:
+		var finger := event as InputEventScreenTouch
+		if finger.pressed:
+			fingers_down[finger.index] = true
+		else:
+			fingers_down.erase(finger.index)
+		return false
+	if event is InputEventMouseButton:
+		fingers_down.clear()  # a real mouse: no finger is left on the glass
+		return false
+	return event is InputEventMouseMotion and not fingers_down.is_empty()
+
+
+## Whether a finger's event belongs to the finger driving the menus: the first
+## one down drives them until it lifts, the others are ignored (a resting
+## palm, a second thumb). A browser numbers fingers as it likes (an iPhone's
+## Touch.identifier is a big number, and Godot's web build passes it on as
+## the index), so this never waits for finger 0: before pass 14 it did, and
+## SETTINGS and LOAD / SAVE took no finger at all in such a browser.
+func _menu_finger(event: InputEvent) -> bool:
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).index == menu_finger
+	var finger := event as InputEventScreenTouch
+	if finger.pressed:
+		if menu_finger >= 0 and menu_finger != finger.index and fingers_down.has(menu_finger):
+			return false
+		menu_finger = finger.index
+		return true
+	if finger.index != menu_finger:
+		return false
+	menu_finger = -1
+	return true
+
+
 func _input(event: InputEvent) -> void:
+	if _finger_echo(event):
+		return
 	if ui != null and ui.handles(state) and _to_screen(event):
 		return
 	if opener.playing and (event is InputEventMouseButton or event is InputEventScreenTouch):
@@ -528,7 +577,7 @@ func _input(event: InputEvent) -> void:
 			touch.touch(finger)
 		elif state == "play" and CountyScreens.covering(game):
 			# COUNTY RUN's cards or end over the view: a tap is a pick, never a control.
-			if finger.pressed and finger.index == 0:
+			if finger.pressed and fingers_down.size() == 1:
 				CountyInput.tap(self, picture_point(finger.position))
 		elif state != "play":
 			touch.active = true
@@ -657,9 +706,10 @@ func _wheel(step: int, position: Vector2) -> void:
 ## CONTROLS and CREDITS with no way back on a phone, so a tap closes those.
 ## The settings list also scrolls under a dragged finger, so there a tap counts
 ## when the finger lifts without having moved; a finger that lands on the
-## picked row's bar or on the scroll groove slides it straight away.
+## picked row's bar or on the scroll groove slides it straight away. Only
+## the finger driving the menus counts (_menu_finger).
 func _touch_menu(finger: InputEventScreenTouch) -> void:
-	if finger.index != 0:
+	if not _menu_finger(finger):
 		return
 	if state != "setup":
 		if finger.pressed:
@@ -686,7 +736,7 @@ func _touch_menu(finger: InputEventScreenTouch) -> void:
 
 
 func _touch_drag(drag: InputEventScreenDrag) -> void:
-	if not touch_down or drag.index != 0:
+	if not touch_down or not _menu_finger(drag):
 		return
 	if drag_mode != "":
 		_drag(drag.position)

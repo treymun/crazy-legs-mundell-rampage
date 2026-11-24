@@ -15,6 +15,10 @@ const REPLAY_TOP := 46
 const REPLAY_ROW := 25
 const SLOT_TOP := 51
 const SLOT_ROW := 25
+## A save slot question's answers for a finger, in the footer's halves a tap
+## reads (main_input.gd click: y 171..190, left of 160 goes on).
+const SLOT_GO := Rect2i(40, 175, 104, 13)
+const SLOT_STOP := Rect2i(176, 175, 104, 13)
 const TITLE := "Crazy Legs Mundell Rampage | The Hickston Incident"
 
 ## The keyboard page: {action} is the key bound to it (KEYS page), filled in
@@ -349,6 +353,10 @@ var drag_mode := ""
 var touch_travel := 0.0
 var touch_carry := 0.0
 var touch_down := false
+## Every finger on the glass (index -> true) and the one driving the menus
+## (-1: none): main_input.gd _finger_echo, _menu_finger.
+var fingers_down := {}
+var menu_finger := -1
 ## A pad in the menus: the direction held (stick or D-pad) and the time to
 ## its next repeat.
 var pad_dir := Vector2i.ZERO
@@ -1135,6 +1143,7 @@ func render_setup() -> void:
 			confirm = "A KEEP / B UNDO  (%d)" % left
 		else:
 			confirm = "ENTER KEEP / ESC UNDO  (%d)" % left
+	menu.touch_words = input_device == "touch"
 	menu.draw_setup(
 		canvas,
 		pages,
@@ -1186,13 +1195,18 @@ func render_slots() -> void:
 	var picked: Array = [] if selected == null else selected
 	var lines: Array = []
 	var guide := "TAB SAVE / LOAD   ENTER SELECT   ESC BACK"
+	# A finger answers a question with the footer's halves (main_input.gd
+	# click): left goes on, right backs out, so they are plates to tap.
+	var plates: Array[String] = []
 	if slot_stage == "edit":
 		var fallback := ("SLOT %d" % (slot_index + 1)) if selected == null else str(picked[0])
 		lines = ["NAME  " + (slot_name if slot_name != "" else fallback) + "_"]
 		guide = "ENTER CONTINUE / ESC CANCEL"
+		plates = ["SAVE IT", "CANCEL"]
 	elif slot_stage == "overwrite":
 		lines = ["REPLACE " + str(picked[0]) + "?"]
 		guide = "ENTER OVERWRITE / ESC KEEP SAVE"
+		plates = ["OVERWRITE", "KEEP SAVE"]
 	else:
 		var text := menu_note
 		if text == "":
@@ -1202,7 +1216,13 @@ func render_slots() -> void:
 			lines.append(wrapped[i])
 	for i in lines.size():
 		HUD.text(canvas, str(lines[i]), 160, 153 + i * 9, "body", HUD.AMBER, true)
-	HUD.text(canvas, guide, 132, 181, "mini", HUD.INK, true)
+	if input_device == "touch" and not plates.is_empty():
+		Menu.plate_button(canvas, SLOT_GO, plates[0])
+		Menu.plate_button(canvas, SLOT_STOP, plates[1])
+	else:
+		if input_device == "touch":
+			guide = "TAP SAVE OR LOAD, THEN A SLOT"
+		HUD.text(canvas, guide, 132, 181, "mini", HUD.INK, true)
 	if slot_stage == "choose":
 		Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
 

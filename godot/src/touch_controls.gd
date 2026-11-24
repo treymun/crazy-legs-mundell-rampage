@@ -106,7 +106,9 @@ func layout(rect: Rect2, again := false) -> void:
 	stick_center = _place("stick", Vector2(.16, .70))
 	var r := m * .125
 	var small := m * .072
-	var tiny := small * .78
+	# The top row stands 9% of the width apart: on a phone held upright
+	# (a browser) its rings would overlap and a tap could take the wrong one.
+	var tiny := minf(small * .78, w * .043)
 	buttons = [
 		["fire", _place("fire", Vector2(.87, .72)), r],
 		["use", _place("use", Vector2(.68, .85)), small],
@@ -165,6 +167,10 @@ func _load_custom() -> void:
 
 
 func _save_custom() -> void:
+	# A tool driving the game (tools/touch_settings_check.gd) keeps the places
+	# in memory: it must never write the player's layout.
+	if Engine.get_main_loop() != null and Engine.get_main_loop().get_script() != null:
+		return
 	var out := {}
 	for role: String in custom:
 		var at: Vector2 = custom[role]

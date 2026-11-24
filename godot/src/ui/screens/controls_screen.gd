@@ -13,6 +13,11 @@ var _tabs: Array[PixelButton] = []
 
 func open(m: MainInput) -> void:
 	super.open(m)
+	# Opened by a finger or a pad: its own page first.
+	if main.input_device == "touch":
+		main.controls_page = 2
+	elif main.input_device == "pad":
+		main.controls_page = 1
 	clear_buttons()
 	_tabs.clear()
 	for j in PAGES.size():
@@ -91,11 +96,11 @@ func draw_back(c: Canvas) -> void:
 			c.fill_rect(19, y - 2, 282, step, Canvas.rgb(33, 23, 19))
 		HUD.text(c, str(row[0]), 24, y, "menu", HUD.INK)
 		HUD.text(c, str(row[1]), 136, y, "menu", Canvas.rgb(232, 213, 178))
-	var other := (
-		"LB RB  OTHER CONTROLLERS"
-		if main.input_device == "pad"
-		else "LEFT / RIGHT  OTHER CONTROLLERS"
-	)
+	var other := "LEFT / RIGHT  OTHER CONTROLLERS"
+	if main.input_device == "pad":
+		other = "LB RB  OTHER CONTROLLERS"
+	elif main.input_device == "touch":
+		other = "TAP A TAB  OTHER CONTROLLERS"
 	HUD.text(c, other, 24, 181, "mini", Menu.PAINT, false, false)
 	Menu.plate_button(c, Menu.BACK, "BACK", _back.has_focus())
 
