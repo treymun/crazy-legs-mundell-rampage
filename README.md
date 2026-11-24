@@ -88,7 +88,14 @@ it is original.
   off).
 - **A county you can hear.** Rain on the roof over your head, a sound for every surface a round
   hits, a soundtrack of cowpunk records for every chapter with fight music and boss loops, and more
-  than eight hundred voiced lines from Mundell, the bosses, the hands and the narrator.
+  than eight hundred voiced lines from Mundell, the bosses, the hands and the narrator. Things that
+  go by fast bend as they pass, like a pickup on the county road: race cars, the cruisers' sirens,
+  the Swamp King's airboat, bottle rockets that fizz and whistle by and thrown junk that whooshes.
+- **Feel it.** A pad rumbles its own way for every gun, for hits from the side they came, the
+  boot, blasts by how near, hard landings, engines and bosses; a phone buzzes too.
+- **Any screen.** WIDE on SETUP's DISPLAY page fills a 16:9, ultra-wide or sideways phone screen
+  with the same 200-row picture, seeing further to the sides, the HUD out at the edges. On a 120,
+  144 or 240 Hz screen (raise FRAME LIMIT) everything moves on every frame drawn.
 
 ### Modes
 
@@ -118,6 +125,9 @@ it is original.
   button) or pick OPEN MIC. Voices carry about eighteen steps, placed where the talker stands,
   muffled through walls and given a CB radio's crackle; the lobby hears everybody, and in a 5v5
   round only the dead hear the dead. Click a name in the lobby to mute him. Nothing said is kept.
+  VOICE QUALITY on the AUDIO page is CLEAR 16K by default: the s's and t's come through and it
+  still sounds like a CB. CB 8K is the old squawk and lighter on a phone's data; CLEAR goes only
+  where both ends have it and falls back to CB 8K on a busy or poor line.
 - **COUNTY RUN.** Endless survival on three big maps (Hickston, the quarry, Gator Bayou): XP from the
   dead, three cards at every level, a milestone every tenth, a storm front closing in, and a DAILY
   RUN with the same dice for everybody and a board. See [COUNTY_RUN.md](COUNTY_RUN.md).
@@ -147,6 +157,10 @@ it is original.
 
 ## Lately
 
+- **3.12** Touch fixed in the phone browser (SETTINGS, saves and party line codes by finger, the
+  phone's keyboard for names); a WIDE view for 16:9 and wider; every frame drawn moves at 120 to
+  240 Hz; rumble on pads and phones; Doppler on fast movers; CLEAR 16K voice chat; chapters load
+  their first time up to 0.3 s quicker; Android fetches and installs its own updates.
 - **3.11** Proximity voice chat online; one always-open lobby at 60 updates a second; sure kills,
   breaks, finishers and pocket items at the press online and no jolt on a leave or join; gators,
   crawlers, hogs and cows die as bodies (gators float) and five bosses finish their falls as
@@ -164,7 +178,7 @@ it is original.
 
 | Where | What you get |
 | --- | --- |
-| **Browser** | <https://treymun.github.io/crazy-legs-mundell-rampage/>: desktop Chrome, Edge or Firefox. About 78 MB on the first visit (the title and Hickston); each later chapter comes down while you play, and the browser keeps it all. Plays online by party line code. iPhone and iPad get a lighter build. |
+| **Browser** | <https://treymun.github.io/crazy-legs-mundell-rampage/>: desktop Chrome, Edge or Firefox. About 80 MB on the first visit (the title and Hickston); each later chapter comes down while you play, and the browser keeps it all. Plays online by party line code. iPhone and iPad get a lighter build. |
 | **Windows** | `CrazyLegsMundellRampage.exe` (one file, no install) or `CrazyLegsMundellRampage_Setup.exe` (Start-menu shortcut and uninstaller). Windows 10 or 11, 64-bit, OpenGL 3.3. |
 | **Android** | `CrazyLegsMundellRampage.apk`: Android 7.0 or newer, arm64, held sideways. Touch controls, or plug in a gamepad. |
 
@@ -174,16 +188,21 @@ Saves stay on your machine.
 ### Updating
 
 The Windows and Android builds ask the website once at start whether a newer version is out (only
-the version number comes back; turn it off with CHECK FOR UPDATES on the PLAY page of SETTINGS).
-When one is, a sign on the title says NEW VERSION ... GIT IT; pick it and the new download starts.
+the version number comes back; turn it off with CHECK FOR UPDATES on the PLAY page of SETTINGS,
+and nothing at all is fetched). When one is, a sign on the title says NEW VERSION ... GIT IT.
 
-- **Windows:** run the installer when it is down. It goes over the old install; saves are kept.
-- **Android:** let the download finish, then tap it (in the notification or your Downloads) and
-  choose **Update**. It installs over the old copy and keeps your saves, so there is no need to
-  uninstall. The first time, Android may ask you to allow your browser to install apps.
+- **Windows:** pick the sign and the installer's download starts in your browser; run it when it
+  is down. It goes over the old install; saves are kept.
+- **Android (from 3.12.0):** the game updates itself. Pick GIT IT and the new version comes down
+  inside the game with a gauge (keep playing meanwhile; a dropped line picks up where it left
+  off), is checked against the size and checksum published with the release, and is handed to
+  Android: tap **Update** when your phone asks. The first time, the game says ONE SWITCH: tap
+  SETTIN'S and allow it to install updates, then come back. Saves are kept and the download is
+  cleared away once the new version starts.
   **One last uninstall:** copies from 3.11.0 and before were signed with a key made for each
-  build, so the first release signed with the game's lasting key will not go over them. Uninstall
-  that old copy once (this loses its saves); every release after installs over the last.
+  build, so 3.12.0, the first release signed with the game's lasting key, will not go over them.
+  Uninstall that old copy once (this loses its saves) and install 3.12.0 from the release page;
+  every release after installs over the last.
 
 ### Controls
 
@@ -207,11 +226,15 @@ When one is, a sign on the title says NEW VERSION ... GIT IT; pick it and the ne
 
 Every play key can be changed on SETUP's KEYS page, and CONTROLS on the menu names them as you set
 them. USE picks up loose junk; fire chucks it and alt fire sets it down. NEW PLAYER TIPS on SETUP's
-PLAY page shows a short tip the first time something comes up (on by default).
+PLAY page shows a short tip the first time something comes up (on by default). RUMBLE on the INPUT
+page shakes a pad (FULL by default); PHONE RUMBLE on the TOUCH page buzzes an Android phone, or a
+phone browser that can (LOW by default; an iPhone's browser cannot).
 
 On a touch screen the left thumb walks and a drag on the right half aims; FIRE, ALT, USE (hold it
 to revive), NEXT, JUMP and DUCK sit on the right, and RIND, BEER, SHINE, MAP, PHOTO and MENU along
-the top, with LIGHT and WHISTLE when there is a flashlight or a hound to work. Rinds fill the gut
+the top, with LIGHT and WHISTLE when there is a flashlight or a hound to work. Every menu takes a
+tap, the settings bars follow a finger, and tapping a name or a party line code brings up the
+phone's keyboard. Rinds fill the gut
 and mend you, beer mends you and makes the county sway, and moonshine sobers you up and buys seven
 seconds of running like you stole it.
 
