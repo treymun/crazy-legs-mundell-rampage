@@ -416,6 +416,18 @@ browser has nothing to update.
   Java's names in step; `touch_screens_check` taps GIT IT and PUT IT IN;
   `update_frames.gd` pictures the panel.
 
+Tried in an Android 15 emulator (x86_64, 2026-11-24) with debuggable 3.12.0
+and 3.12.1 builds signed with one throwaway key, the game pointed for the
+run at a local copy of the release (a 302, Range, the first answer cut at
+40 MB): NEW VERSION, GIT IT, the gauge through the cut (picked up, not
+started again), the SHA-256 of the 229 MB APK, ONE SWITCH, SETTIN'S opening
+"Install unknown apps", back with it still off (still asks), back with it on
+(straight to "Do you want to update this app?"), CANCEL (NO HARM DONE, PUT
+IT IN), PUT IT IN, UPDATE: Android put 3.12.1 in over it, and 3.12.1's first
+start threw the APK away. Also an APK left from an earlier run coming back
+at ALL FETCHED. Not tried: a real phone, the real GitHub release (no release
+has update.json until 3.12.0's tag), Android 7 to 13.
+
 Tried by hand once (2026-11-20): the real request from the engine (as 3.10.0
 it found 3.11.0, as 3.11.0 nothing; one request each though asked twice) and
 both download addresses (they lead to the latest release's files). Not
