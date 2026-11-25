@@ -13,6 +13,8 @@
 ## balance PARTS by.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
+
 ## Every step in the order a whole run takes them.
 const STEPS := [
 	"parity",
@@ -62,6 +64,8 @@ var times := {}
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "PARITY FIXES"):
+		return
 	_run.call_deferred()
 
 

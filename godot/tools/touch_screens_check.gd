@@ -28,6 +28,7 @@
 ## profile (custom maps and the panel's APK go to a cache folder).
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
 const FINGER := 9120
 
 
@@ -59,6 +60,8 @@ var _last := Vector2.ZERO
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "TOUCH SCREENS"):
+		return
 	_run.call_deferred()
 
 

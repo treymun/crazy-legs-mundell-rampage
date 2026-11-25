@@ -67,6 +67,7 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	main.set_process(false)
+	var lessons_file := Lessons.file
 	Lessons.file = OS.get_cache_dir().path_join("clmr-onboard-lessons.json")
 	_moments()
 	_off()
@@ -76,7 +77,7 @@ func _run() -> void:
 	if not OS.get_cmdline_user_args().has("quick"):
 		await _first_minutes()
 	Lessons.reset()
-	Lessons.file = Lessons.FILE
+	Lessons.file = lessons_file
 	main.queue_free()
 	await process_frame
 	print(

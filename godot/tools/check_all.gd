@@ -233,8 +233,12 @@ const CI_SECONDS := {
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and
-## OS.get_cache_dir() (LOCALAPPDATA, XDG_CACHE_HOME): each row gets its own.
-const PROFILE_VARS := ["APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME", "XDG_CACHE_HOME"]
+## OS.get_cache_dir() (LOCALAPPDATA, XDG_CACHE_HOME): each row gets its own,
+## and CLMR_SCRATCH_PROFILE names it (tools/scratch_profile.gd: the tools
+## that write user:// refuse to run anywhere else).
+const PROFILE_VARS := [
+	"APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME", "XDG_CACHE_HOME", "CLMR_SCRATCH_PROFILE"
+]
 
 
 func _init() -> void:

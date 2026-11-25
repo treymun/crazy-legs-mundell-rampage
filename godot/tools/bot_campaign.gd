@@ -8,10 +8,14 @@
 ## chapter, a different one each, so none of them shuts a chapter.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
+
 var failures: Array = []
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "CAMPAIGN WALKTHROUGH"):
+		return
 	_run.call_deferred()
 
 

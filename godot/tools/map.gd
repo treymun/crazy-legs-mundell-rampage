@@ -38,6 +38,7 @@
 ## last build: force keeps a copy and builds over it).
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
 const Source := preload("res://tools/map/map_source.gd")
 const Compile := preload("res://tools/map/map_compile.gd")
 const Validate := preload("res://tools/map/map_validate.gd")
@@ -368,6 +369,10 @@ func _render() -> int:
 		_report(loaded[2])
 		return 1 if not doc.is_empty() else 3
 	_report(loaded[2])
+	if not opts.has("out") and not ScratchProfile.scratch():
+		# The default folder is the player's own maps (user://maps).
+		say("MAP: give out=<dir>, or run with a scratch APPDATA. Nothing written.")
+		return 2
 	var lv := LevelData.from_dict(built["level"], assets)
 	var dir := ProjectSettings.globalize_path(String(opts.get("out", "user://maps/%s" % map_id)))
 	var overlays: Array = []

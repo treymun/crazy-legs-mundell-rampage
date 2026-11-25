@@ -19,26 +19,21 @@
 ## HIT THE ROAD into the next chapter. The card's layout at every row
 ## count with every chapter's last word, the bests' column, the plates and
 ## the stamp in the 7-pixel letters and SMALL TEXT; every chapter's card
-## drawn. Writes nothing to the profile (bests under the cache folder).
+## drawn. It writes the campaign entry and unlocks through the real flow, so
+## it runs only in a scratch profile (tools/scratch_profile.gd: check_all's,
+## or APPDATA under TEMP) and refuses anywhere else.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
 const TallyFeature := preload("res://src/features/tally.gd")
-
-## The profile's files the campaign's own flow writes (main_state.gd
-## _entry_path, SessionStore.save_unlocks).
-const PROFILE_FILES := [
-	"user://campaign-entry.json",
-	"user://campaign-unlocks.json",
-	"user://county-road-notes.json",
-	"user://lessons.json",
-]
 
 var failures: Array = []
 var main
-var kept_files := {}
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "ROAD CHECK"):
+		return
 	_run.call_deferred()
 
 
@@ -54,7 +49,6 @@ func _run() -> void:
 	await process_frame
 	main.set_process(false)
 	var tally := CrashLog.tally()
-	_keep_profile()
 	_clean()
 	for key: String in SessionStore.defaults():
 		main.options[key] = SessionStore.defaults()[key]
@@ -71,7 +65,6 @@ func _run() -> void:
 	_opener()
 	_layout()
 	_clean()
-	_put_back_profile()
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -92,29 +85,6 @@ func _clean() -> void:
 	if FileAccess.file_exists(ChapterBests.path()):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(ChapterBests.path()))
 	ChapterMarks.clear_all()
-
-
-## The campaign entry and unlocks the walk writes through the real flow
-## (user://): kept as they were before it and put back after it, so a run
-## outside check_all's scratch profile leaves a player's own as it found them.
-func _keep_profile() -> void:
-	for path: String in PROFILE_FILES:
-		kept_files[path] = (
-			FileAccess.get_file_as_bytes(path) if FileAccess.file_exists(path) else null
-		)
-
-
-func _put_back_profile() -> void:
-	for path: String in PROFILE_FILES:
-		var was = kept_files.get(path)
-		if was == null:
-			if FileAccess.file_exists(path):
-				DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
-			continue
-		var file := FileAccess.open(path, FileAccess.WRITE)
-		if file != null:
-			file.store_buffer(was)
-			file.close()
 
 
 ## A chapter of a campaign (the chapters before it in its history, as a save
