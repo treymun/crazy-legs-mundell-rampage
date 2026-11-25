@@ -154,18 +154,20 @@ func _rims() -> void:
 		cast.append(_hand(g, str(row[0]), _spot(g, float(row[1]), float(row[2]))))
 	_ticks(g, .1)
 	await _snap("rim_day_awake")
-	for e: Enemy in cast:
-		e.alerted = false
-	await _snap("rim_day_asleep")
-	for e: Enemy in cast:
-		e.alerted = true
-	# The far one close up through the scope's eye: only him, at 16 cells.
+	# The far one alone, before any of them is seen asleep (a rim coming up in
+	# sight fades in over its `fade`, and a tool's clock stands still).
 	cast[0].x += 500.0
 	cast[1].x += 500.0
 	g.player.pitch = -1.0
 	await _snap("rim_far_awake")
 	cast[2].alerted = false
 	await _snap("rim_far_asleep")
+	cast[0].x -= 500.0
+	cast[1].x -= 500.0
+	g.player.pitch = -4.0
+	for e: Enemy in cast:
+		e.alerted = false
+	await _snap("rim_day_asleep")
 	g = _level("hickston")
 	_stand(g, at, _open(g, at, 120), -14.0)
 	for row: Array in [["cow", 5.5, -1.6], ["pig", 3.6, 1.2], ["chicken", 2.6, -.2]]:

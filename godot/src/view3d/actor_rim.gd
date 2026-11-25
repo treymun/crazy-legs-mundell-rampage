@@ -1,12 +1,18 @@
 ## A body's own rim (pass 15, effects.cfg [rim]): a hostile hand awake wears a
-## warm edge along his silhouette, stronger far off so a far hand reads; the
-## animals a cool one. The actor shader draws it (`own_rim`, `own_rim_reach`) with
-## LIGHTS AND GLOW only (QUALITY LOW drops it), under a hit's wash and a
-## wind-up's amber, and in place of the moon's rim by night. Looks only: it
-## reads the hand, never play's dice; nothing is kept but when each model's
-## rim came up (ActorView.rim_since), for its fade.
+## warm edge round his outline, brighter far off so a far hand reads; the
+## animals a cool one. Drawn by actor_rim.gdshader as each part's next pass
+## (its back faces swollen out a pixel or so behind the body: only the
+## outline shows, never a speck inside the figure), hung on a part only while
+## it has a rim and LIGHTS AND GLOW is on (QUALITY LOW drops it), and taken
+## off under a hit's wash and as a wind-up's amber rises. Looks only: it reads
+## the hand, never play's dice; nothing is kept but when each model's rim came
+## up (ActorView.rim_since), for its fade.
 class_name ActorRim
 extends RefCounted
+
+const SHADER := preload("res://src/view3d/actor_rim.gdshader")
+## A part's rim material (its own), kept on the part.
+const META := "rim_pass"
 
 static var _version := -1
 static var _awake := Color(1, .5, .18, .3)
@@ -14,6 +20,8 @@ static var _critter := Color(.62, .78, 1, .24)
 static var _reach := Vector4(.75, 3.0, 15.0, .6)
 static var _fade := .3
 static var _critters := {}
+## Mesh -> which way its normals point (normal_out): +1 or -1.
+static var _outs := {}
 
 
 static func _read() -> void:
@@ -41,6 +49,8 @@ static func _read() -> void:
 ## The rim `who` wears (rgb, a how much up close; a 0: none), without the fade.
 static func wanted(who: Object) -> Color:
 	_read()
+	if not Effects.enabled:
+		return Color(0, 0, 0, 0)
 	var e: Enemy = who as Enemy
 	if e == null or not e.alive or e.dormant:
 		return Color(0, 0, 0, 0)
@@ -67,7 +77,7 @@ static func of(view: ActorView, who: Object) -> Color:
 	return Color(want.r, want.g, want.b, want.a * up)
 
 
-## How the rim of `who` reaches far off (the shader's `own_rim_reach`): a hand's
+## How the rim of `who` reaches far off (the rim pass's `reach`): a hand's
 ## grows with distance, an animal's does not.
 static func reach(who: Object) -> Vector4:
 	_read()
@@ -75,3 +85,58 @@ static func reach(who: Object) -> Vector4:
 	if e != null and e.hostile:
 		return _reach
 	return Vector4(_critter.a, _reach.y, _reach.z, _reach.w)
+
+
+## The rim under a hit's wash (`hurt` above 0: none) and a wind-up's amber
+## (`tell`: it gives way as the amber rises, gone at .38), so the tell reads.
+static func quieted(rim: Color, hurt: float, tell: float) -> Color:
+	var k := 0.0 if hurt > 0.0 else 1.0 - clampf(tell / .38, 0.0, 1.0)
+	return Color(rim.r, rim.g, rim.b, rim.a * k)
+
+
+## Hang the rim on part `mesh` (its material's next pass) or take it off (a 0).
+static func dress(mesh: GeometryInstance3D, rim: Color, far: Vector4) -> void:
+	var own := mesh.material_override as ShaderMaterial
+	if own == null:
+		return
+	if rim.a <= 0.0:
+		own.next_pass = null
+		return
+	var pass_of: ShaderMaterial = mesh.get_meta(META) if mesh.has_meta(META) else null
+	if pass_of == null:
+		pass_of = ShaderMaterial.new()
+		pass_of.shader = SHADER
+		mesh.set_meta(META, pass_of)
+	pass_of.set_shader_parameter("rim", rim)
+	pass_of.set_shader_parameter("reach", far)
+	pass_of.set_shader_parameter("min_px", own.get_shader_parameter("min_px"))
+	var part := mesh as MeshInstance3D
+	if part != null and part.mesh != null:
+		pass_of.set_shader_parameter("normal_out", normal_out(part.mesh))
+	own.next_pass = pass_of
+
+
+## Whether `mesh`'s normals point out of it (+1) or into it (-1): some of the
+## models came out of their export turned in. Summed over its first surface
+## from the middle of its points; worked out once a mesh.
+static func normal_out(mesh: Mesh) -> float:
+	var known: Variant = _outs.get(mesh)
+	if known != null:
+		var sign: float = known
+		return sign
+	var out := 1.0
+	if mesh.get_surface_count() > 0:
+		var arrays := mesh.surface_get_arrays(0)
+		var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		if not points.is_empty() and normals.size() == points.size():
+			var middle := Vector3.ZERO
+			for v in points:
+				middle += v
+			middle /= points.size()
+			var sum := 0.0
+			for i in points.size():
+				sum += normals[i].dot(points[i] - middle)
+			out = 1.0 if sum < 0.0 else -1.0
+	_outs[mesh] = out
+	return out

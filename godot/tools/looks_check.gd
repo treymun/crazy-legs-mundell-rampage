@@ -3,8 +3,9 @@
 ##
 ## - an awake hostile hand wears the warm rim, stronger far off; asleep,
 ##   held, dead or a stand-in none; the listed critters a cool one; a rim
-##   coming up in sight fades in, one first seen awake is whole; the actor
-##   shader draws it after the wind-up's amber, only with LIGHTS AND GLOW;
+##   coming up in sight fades in, one first seen awake is whole; it is its
+##   own pass round the outline (actor_rim.gdshader), off under a hit's wash
+##   and the wind-up's amber, only with LIGHTS AND GLOW;
 ## - ammo, food and scrap glint (both frames of the star, a short share of
 ##   the time), keys, guns and task items do not; EASY ON THE EYES makes the
 ##   glints rarer and stills the bob;
@@ -156,23 +157,44 @@ func _rims() -> void:
 
 func _shader() -> void:
 	print("\nTHE SHADERS")
-	var actor := FileAccess.get_file_as_string("res://src/view3d/actor.gdshader")
-	var light := FileAccess.get_file_as_string("res://src/view3d/view_light.gdshaderinc")
-	check(actor.contains("uniform vec4 own_rim"), "the actor shader takes own_rim")
-	check(light.contains("vec3 own_rim_on("), "view_light draws it (own_rim_on)")
-	var tell_at := actor.find("tell > 0.0")
-	var rim_at := actor.find("own_rim_on(")
-	var effects_at := actor.find("if (effects_on)")
+	var shell := FileAccess.get_file_as_string("res://src/view3d/actor_rim.gdshader")
 	check(
-		tell_at > 0 and rim_at > tell_at and rim_at > effects_at and effects_at > 0,
-		"it comes after the wind-up's amber, with LIGHTS AND GLOW only"
+		shell.contains("cull_front") and shell.contains("uniform vec4 rim"),
+		"the rim is its own pass: the parts' back faces swollen out (actor_rim.gdshader)"
 	)
-	check(actor.contains("tell / 0.38"), "the wind-up's amber quiets it")
+	check(shell.contains("!effects_on"), "with LIGHTS AND GLOW only")
+	var actor := FileAccess.get_file_as_string("res://src/view3d/actor.gdshader")
+	check(not actor.contains("own_rim"), "the body's own shader is as it was (no specks in it)")
+	var rim := Color(1, .5, .2, .45)
+	check(ActorRim.quieted(rim, .2, 0.0).a == 0.0, "a hit's wash takes it off")
+	var half := ActorRim.quieted(rim, 0.0, .19).a
+	check(
+		half > 0.0 and half < rim.a and ActorRim.quieted(rim, 0.0, .38).a == 0.0,
+		"it gives way as the wind-up's amber rises (%.2f at half)" % half
+	)
+	# Hung on a part as its material's next pass, and taken off.
+	var part := MeshInstance3D.new()
+	part.mesh = BoxMesh.new()
+	var own := ShaderMaterial.new()
+	own.shader = load("res://src/view3d/actor.gdshader")
+	part.material_override = own
+	ActorRim.dress(part, rim, Vector4(1, 3, 15, .6))
+	var hung := own.next_pass as ShaderMaterial
+	check(hung != null and hung.shader == ActorRim.SHADER, "a part with a rim wears the pass")
+	check(ActorRim.normal_out(part.mesh) != 0.0, "its normals' way is worked out per mesh")
+	ActorRim.dress(part, Color(0, 0, 0, 0), Vector4(1, 3, 15, .6))
+	check(own.next_pass == null, "and none without one")
+	part.free()
 	var display := FileAccess.get_file_as_string("res://src/display.gdshader")
 	check(
 		display.contains("uniform float pain") and display.contains("uniform float drain"),
 		"the display shader takes pain and drain"
 	)
+	var was := Effects.enabled
+	Effects.enabled = false
+	var g := _made()
+	check(ActorRim.wanted(_hand(g, "billy")).a == 0.0, "LIGHTS AND GLOW off: no rim")
+	Effects.enabled = was
 
 
 func _glints() -> void:
