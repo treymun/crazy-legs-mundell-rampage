@@ -769,6 +769,86 @@ Each enemy and boss with a model shows as an `ActorView` scene
 
 The pipeline is in [art.md](art.md#actors).
 
+## Looks that read (pass 15)
+
+The owner found play hard to read; these make what matters stand out, in
+the palette's way. Looks only (their own sums, never `game.rng`, nothing
+saved or carried); numbers in effects.cfg (`Effects.num`); held by
+`tools/looks_check.gd`, pictured by `tools/looks_frames.gd`.
+
+- **The rim** (`[rim]`, `src/view3d/actor_rim.gd`, `actor_rim.gdshader`;
+  ENEMY RIM on the DISPLAY page: OFF, SOFT the default, BOLD). A hostile
+  hand awake (alerted, alive, not held) wears a warm edge round his outline;
+  the animals in `critters` a cool one. It is its own pass, hung on each of
+  the model's parts as its material's `next_pass` only while the body has a
+  rim: the part's back faces drawn again, swollen out along their normals
+  (`look.x`: SOFT .6, one pixel at 320 wide, as the pictures measured it;
+  BOLD 1.0), thinner far off (`look.w` of it gone by 20 cells, so a small far
+  figure keeps its own pixels inside its edge and never turns into a filled
+  cutout), and tested against the depth as if it stood half a cell further
+  back (`DEPTH`), so an arm in front never draws its edge over the chest:
+  only a line round the whole figure, never a speck inside it. Its colour is
+  the rim's dulled toward the dark (SOFT .3 up close to .6 far off, BOLD .45
+  to 1: below 1 it sits into the scene rather than glowing), in thirds,
+  fogged less its mode's share of the fog; by night never dimmer than the
+  moon's rim, which the body keeps. Some models' normals point the other way
+  as the shader sees them: `ActorRim.normal_out` works the way out once a
+  mesh. No push toward or away from the eye in the vertex shader: the bones
+  turn the model's space after it, and such a push went astray (parts of the
+  edge drawn over the body). Off under a hit's wash and giving way as a
+  wind-up's amber rises (`ActorRim.quieted`), so the tell reads. A rim that
+  comes up in sight fades in over `fade` (`ActorView.rim_since`,
+  `rim_off_seen`); a body first seen awake has it whole (so a view tour
+  shows it). LIGHTS AND GLOW only: QUALITY LOW drops it (no pass hung). No
+  texture. A body drawn as a cel (the chicken, the pig) gets none. Earlier
+  cuts, for the record: lighting the body's own facets turned from the eye
+  scattered specks inside mid-distance hands; a pass swollen 1.25 with no
+  depth test behind drew a 2-3 pixel bright contour and filled far figures.
+- **The pickups' glint** (`[pickup_glint]`, `src/pickup_looks.gd`, from
+  `game_view.gd`'s pickup loop). Ammo, food and scrap show a two-frame star
+  (`fx_twinkle_0`, `_1`, glowing: small, big, small, `step` s each) at their
+  upper corner every `every` s, each on its own beat by where it lies, out to
+  `reach`; they bob `bob` (a little more than before: .05 against .035).
+  EASY ON THE EYES glints `calm` times as seldom and calms the bob. Drawn
+  whatever QUALITY. Guns not had keep their own shine, keys their light.
+- **Hurt** (`[hurt_looks]`, `src/features/hurt_looks.gd`, a LOOKS feature;
+  `display.gdshader` `pain`, `drain`, `hurt_look`). On the 3D view only, so
+  the gun, the HUD and a RAMPAGE's burning edge stay over it: a blow draws a
+  red-brown vignette in from the edges, an oval of the view's shape, the
+  palette's blood darkening outward, in quarters dithered on the 320 grid
+  (Bayer), deeper for a harder blow, fading over `pain_fade`; under
+  `low_from` health the world drains toward sepia (all the way at
+  `drain_full`) and the vignette holds; under `heart_from` a heart thumps
+  (the made cue `heart_thump`), quicker lower, each beat swelling the
+  vignette. `HurtLooks.uniforms` hands the shader the old red flash, the
+  vignette and the drain (`main_state.gd _look_uniforms`); none in the menus
+  or under PHOTO MODE's, an opener's or the KILL CAM's eye. SCREEN FLASHES
+  scales the vignette (REDUCED .32, OFF none) and the drain (by its square
+  root). The heart is counted as the view draws, so only a drawn game hears
+  it.
+- **The hands' muzzle light** (`[enemy_muzzle]`, `[light.enemy_muzzle]`,
+  `_scatter`; `src/muzzle_looks.gd`, owned by gun_fx). When a hand whose
+  brain fires a gun starts his recovery (he has just attacked), a light at
+  his gun for its `life`: it lights the yard round him and tells where the
+  shot came from. The nearest `Effects.MAX_LIGHTS` of all the frame's lights
+  win, as ever. Lights multiply a surface's own light, so in a county
+  blackout (the surfaces darkened) it shows little; by night it lights the
+  ridge.
+- **Brass** (`[casings]`, `features/debris.gd _shells`): each gun's shells
+  by table, [picture, how many, fire or reload, size, how hard]. The guns
+  added since the rifle threw the rifle's case; now a stubby .45 (county .45,
+  tommy, grease gun), long nickel .357s dumped on reload, a sooty .44 (the
+  Hogleg), bottlenecked rifle brass (hunter, patrol rifle, marksman) and the
+  riot pump's black hull. `fx_hull*` moves as a hull.
+- **Smoke off the muzzle** (`[gun_smoke]`, `MuzzleLooks`). After `burst`
+  shots inside `window`, or one shot of a `big` gun, then `wait` with no
+  more, a wisp curls up off the muzzle on the picture (`Weapons.muzzle_at`,
+  under the gun) for `life`, swaying as it climbs, its pixels dropped in a
+  4x4 ordered dither as it thins over its last `thin` (the 1997 way to see
+  through smoke), until he fires again, lowers the gun, reloads or swaps.
+  Only guns whose weapons.cfg `muzzle_style` is fire and smokes. With
+  LIGHTS AND GLOW (gun_fx's layer).
+
 ## Checks
 
 - `tools/view3d_check.gd` builds every level's mesh headless, loads every

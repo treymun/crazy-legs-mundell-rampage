@@ -176,6 +176,13 @@ static func build() -> Array:
 					"RED MARKS AT THE EDGE POINT AT WHAT HIT YOU, AMBER AT A VARMINT WINDING UP"
 				),
 				SessionStore.choices(
+					"ENEMY RIM",
+					"enemy_rim",
+					1,
+					["OFF", "SOFT", "BOLD"],
+					"A WARM EDGE ROUND A VARMINT THAT'S SEEN YOU. NEEDS LIGHTS AND GLOW"
+				),
+				SessionStore.choices(
 					"WEAPON POSITION",
 					"weapon_view",
 					0,

@@ -5,7 +5,8 @@ render_mode unshaded;
 // kept, the 3D view as wide and the canvas centred in it): the 3D view's picture (view3d_tex, at the
 // view's own size: 320x156, LOW 160x78, HD 640x312) under the weapon, HUD and
 // menus layer (post_tex, from a Godot 2D viewport), with the moonshine's
-// warp, the air shimmering over hot things, the hurt flash, then the look
+// warp, the air shimmering over hot things, the hurt vignette and the low
+// health drain on the view under the gun and HUD, the hurt flash, then the look
 // pass (level wash and vignette, film grain, ordered dither, blast lift, the
 // brightness table) and last the project's VGA-style palette (RGB555 ->
 // palette lookup). Headless runs and --cpu-canvas hand a finished software
@@ -26,6 +27,12 @@ uniform float gain = 1.0;
 uniform float blast = 0.0;
 uniform int grain_frame = 0;
 uniform int hurt = 0;
+// Hurt (features/hurt_looks.gd, pass 15), on the 3D view only (the gun, the
+// HUD and a RAMPAGE's burning edge stay over it): `pain` 0 to 1 a red-brown
+// vignette in from the edges (the palette's blood, dithered in quarters on
+// the 320 grid), `drain` 0 to 1 how far the colour has gone toward sepia.
+uniform float pain = 0.0;
+uniform float drain = 0.0;
 // PHOTO MODE's filters on the view (photo_mode.gd FILTERS; FILM is the look
 // pass): 2 TINTYPE, 3 DUSK, 4 MOONLIGHT. Still ends in the palette.
 uniform int photo_filter = 0;
@@ -72,6 +79,30 @@ int haze_shift(ivec2 fine) {
 	return int(floor(shift + 0.5)) * view_div;
 }
 
+// The view's colour (0-255) at px with the hurt looks: the drain toward
+// sepia, then the vignette.
+vec3 hurt_look(vec3 v, ivec2 px) {
+	if (drain > 0.0) {
+		float lum = dot(v, vec3(0.30, 0.59, 0.11));
+		vec3 sepia = vec3(lum * 1.08 + 8.0, lum * 0.9 + 2.0, lum * 0.66);
+		v = mix(v, min(sepia, vec3(255.0)), drain);
+	}
+	if (pain > 0.0) {
+		// 0 in the middle, 1 at a corner; the oval of the view's shape.
+		vec2 n = ((vec2(px) + 0.5) / vec2(float(cols), 156.0) - 0.5) * 2.0;
+		float r = length(n * vec2(0.92, 1.0)) / 1.36;
+		float reach = 0.84 - 0.56 * pain;
+		float k = smoothstep(reach, reach + 0.36, r) * (0.55 + 0.45 * pain);
+		// In quarters, dithered between them: a 1997 palette fade.
+		float steps = k * 4.0;
+		float lift = BAYER[(px.x % 4) * 4 + (px.y % 4)] / 16.0;
+		k = (floor(steps) + (fract(steps) > lift ? 1.0 : 0.0)) / 4.0;
+		vec3 blood = mix(vec3(131.0, 27.0, 17.0), vec3(66.0, 10.0, 6.0), clamp((r - reach) * 2.2, 0.0, 1.0));
+		v = mix(v, blood, k * 0.88);
+	}
+	return v;
+}
+
 // The finished view pixel: the weapon and HUD layer over the view.
 vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 	vec4 o = texelFetch(post_tex, px, 0);
@@ -86,6 +117,9 @@ vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 		vec2 picture = vec2(textureSize(view3d_tex, 0));
 		ivec2 at = ivec2((vec2(fine) + 0.5) * picture / vec2(float(cols) * float(view_mul), 156.0 * float(view_mul)));
 		under = floor(texelFetch(view3d_tex, at, 0).rgb * 255.0 + 0.5);
+		if (pain > 0.0 || drain > 0.0) {
+			under = floor(hurt_look(under, px) + 0.5);
+		}
 	} else if (base_on) {
 		under = frame;
 	}

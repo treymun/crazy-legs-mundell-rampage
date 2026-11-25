@@ -253,6 +253,9 @@ func _view_tour() -> void:
 		p.eye = .95 + game.world.stand(p)
 		p.pitch = shot_pitch
 		p.drunk = shot_drunk
+		if shot.has("health"):  # (pass 15: the hurt looks at that health)
+			var shot_health: int = shot["health"]
+			p.health = shot_health
 		p.sway = 0.0
 		game.message_until = 0.0
 		game.district_until = 0.0

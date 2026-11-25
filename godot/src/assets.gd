@@ -24,6 +24,7 @@ const MADE_CUES := [
 	"bench_tape",
 	"marker_tie",
 	"rampage_sting",
+	"heart_thump",
 ]
 ## The cues made in code (MADE_CUES), made by tools/pack_assets.gd (pass 10).
 const MADE_FILE := "made_cues.bin"
@@ -584,6 +585,7 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 			"bench_tape": .62,
 			"marker_tie": .42,
 			"rampage_sting": 1.15,
+			"heart_thump": .5,
 		}
 		. get(name, .045)
 	)
@@ -645,6 +647,8 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 				v = _rag_tie(t, hiss)
 			"rampage_sting":
 				v = _rampage_sting(t, hiss)
+			"heart_thump":
+				v = _heart_thump(t, hiss)
 			_:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5
@@ -686,6 +690,21 @@ static func _rampage_sting(t: float, hiss: float) -> float:
 			chord += fposmod(f * mult * t, 1.0) * 2.0 - 1.0
 		v += tanh(chord * 1.8) * ring * .32
 	return v * .8
+
+
+## A heart thumping in the ears under 20 health (features/hurt_looks.gd): a
+## dull lub and a softer dub, low and muffled, as if heard from inside.
+static func _heart_thump(t: float, hiss: float) -> float:
+	var v := 0.0
+	for k in 2:
+		var at := t - k * .17
+		if at < 0.0:
+			continue
+		var hit := exp(-at * 26.0) * minf(1.0, at * 400.0) * (1.0 if k == 0 else .62)
+		v += sin(TAU * (58.0 - at * 40.0) * at) * hit
+		v += sin(TAU * 31.0 * at) * hit * .5
+		v += hiss * exp(-at * 120.0) * .08 * (1.0 if k == 0 else .5)
+	return v * .85
 
 
 ## COUNTY RUN's own cues: a bottle cap's clink for XP, a three-note banjo

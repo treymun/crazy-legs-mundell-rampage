@@ -235,7 +235,10 @@ kit and all; THE CROSSROADS goes to the hub first, standing at the next gate. Th
 other way too (Tab, Y or its sign) and TRY TO BEAT IT (R, X), the chapter again against your best
 time, par and most kills. DANGER ARROWS on the DISPLAY page (on by
 default): a red mark at the edge of the view points at whatever hit you, an amber one at a varmint
-winding up out of sight; OFF goes back to the words. RUMBLE on the INPUT
+winding up out of sight; OFF goes back to the words. ENEMY RIM on the DISPLAY page
+(SOFT by default, with LIGHTS AND GLOW): a varmint that has seen you wears a dull warm
+edge round his outline, a touch stronger far off so a hand down the road reads; BOLD
+makes it a brighter line, OFF takes it away. RUMBLE on the INPUT
 page shakes a pad (FULL by default); PHONE RUMBLE on the TOUCH page buzzes an Android phone, or a
 phone browser that can (LOW by default; an iPhone's browser cannot).
 
