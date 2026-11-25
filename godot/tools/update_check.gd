@@ -301,6 +301,7 @@ func _android_updater(presets: ConfigFile, options: String) -> void:
 	var java := FileAccess.get_file_as_string(
 		"res://addons/clmr_updater/java/com/hickston/crazylegs/updater/CrazyLegsUpdater.java"
 	)
+	java = java.replace("\r\n", "\n")  # a Windows checkout has CRLF line ends
 	check(
 		manifest.contains('"android.permission.REQUEST_INSTALL_PACKAGES"'),
 		"the manifest part asks leave to install packages"
