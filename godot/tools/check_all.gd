@@ -82,6 +82,8 @@ const CHECKS := [
 	["marker_check", "MARKER CHECK OK"],
 	["road_check", "ROAD CHECK OK"],
 	["danger_check", "DANGER CHECK OK"],
+	["rampage_check", "RAMPAGE CHECK OK"],
+	["music_check", "MUSIC CHECK OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK", ["seconds=30"]],
 	["net_soak_all", "NET SOAK ALL OK", ["quick"]],
@@ -162,6 +164,7 @@ const QUICK := [
 	"update_check",
 	"update_flow_check",
 	"director_check",
+	"rampage_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows
@@ -233,6 +236,8 @@ const CI_SECONDS := {
 	"marker_check": 60,
 	"danger_check": 12,
 	"road_check": 20,
+	"rampage_check": 20,
+	"music_check": 60,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and

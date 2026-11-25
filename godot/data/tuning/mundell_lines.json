@@ -199,6 +199,14 @@
 		"tip_carry": ["If it ain't nailed down, chuck it."],
 		"tip_ride": ["She ain't purty, but she runs."],
 		"tip_bench": ["Duct tape fixes everything."],
-		"tip_locked": ["Locked tight. Figures."]
+		"tip_locked": ["Locked tight. Figures."],
+		"rampage": [
+			"Look out, the Legs is loose!",
+			"Y'all done woke up the Legs!",
+			"Meaner than a wet bobcat!",
+			"Fixin' to paint the barn red!",
+			"Git outta the road, I'm comin' through!",
+			"Hide the hogs and the moonshine!"
+		]
 	}
 }

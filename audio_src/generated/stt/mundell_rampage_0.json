@@ -1,0 +1,35 @@
+{
+ "text": "Look out, the legs is loose.",
+ "words": [
+  {
+   "text": "Look",
+   "start": 0.04,
+   "end": 0.28
+  },
+  {
+   "text": "out,",
+   "start": 0.4,
+   "end": 0.6
+  },
+  {
+   "text": "the",
+   "start": 0.68,
+   "end": 0.78
+  },
+  {
+   "text": "legs",
+   "start": 0.84,
+   "end": 1.2
+  },
+  {
+   "text": "is",
+   "start": 1.28,
+   "end": 1.42
+  },
+  {
+   "text": "loose.",
+   "start": 1.5,
+   "end": 2.0
+  }
+ ]
+}

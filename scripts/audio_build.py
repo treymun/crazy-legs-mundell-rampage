@@ -4,6 +4,7 @@
     python scripts/audio_build.py --sfx      # only the effect bank sources
     python scripts/audio_build.py --music    # only the songs (the fight loops too)
     python scripts/audio_build.py --fights   # only the chapters' fight and boss loops
+    python scripts/audio_build.py --layers   # only the fight loops' layers (pulse_, peak_: audio_layers.py)
     python scripts/audio_build.py --music --only boss_bayou bayou_score   # just these songs
     python scripts/audio_build.py --check    # validate what is on disk, exit 1 on failure
     python scripts/audio_build.py --sfx --only crowd_cheer   # just these cues, the rest kept as they are
@@ -32,6 +33,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import audio_layers as layers  # noqa: E402
 import audio_spec as spec  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1025,6 +1027,33 @@ def build_fights(report: dict, ends: dict, only: list[str] | None = None) -> Non
         report[stem] = {"status": "built", "title": title, "bpm_asked": bpm, "loop": True, **facts}
 
 
+def build_layers(report: dict, ends: dict, only: list[str] | None = None) -> None:
+    """Each fight loop's pulse_ and peak_ layers (audio_layers.py), from the
+    finished loop on disk; `only` names loops or layers."""
+    for name, loop, kind in spec.LAYERS:
+        if only and name not in only and loop not in only:
+            continue
+        source = MUSIC_OUT / f"{loop}.ogg"
+        if not source.is_file():
+            report[name] = {"status": "missing source", "title": f"{kind} of {loop}"}
+            continue
+        loop_lufs = float(report.get(loop, {}).get("lufs", MUSIC_LUFS))
+        facts = layers.build_layer(source, MUSIC_OUT / f"{name}.ogg", kind, spec.LAYER_SHAPE[kind], loop_lufs)
+        ends[name] = facts["seconds"]
+        report[name] = {"status": "built", "title": f"{kind} of {loop}", "loop": True, "layer_of": loop, **facts}
+
+
+def build_layer_music(previous: dict, only: list[str] | None = None) -> dict:
+    """Only the fight loops' layers; every song and loop stays as it is."""
+    path = MUSIC_OUT / "playback_ends.json"
+    ends = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    report = {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")}
+              for s, m in previous.items()}
+    build_layers(report, ends, only)
+    path.write_text(json.dumps(ends, indent=1) + "\n", encoding="utf-8", newline="\n")
+    return report
+
+
 def build_music() -> dict:
     report: dict = {}
     ends: dict = {}
@@ -1053,6 +1082,7 @@ def build_music() -> dict:
     else:
         report["title"] = {"status": "missing source"}
     build_fights(report, ends)
+    build_layers(report, ends)
     (MUSIC_OUT / "playback_ends.json").write_text(json.dumps(ends, indent=1) + "\n", encoding="utf-8", newline="\n")
     return report
 
@@ -1120,7 +1150,8 @@ def manifest(sfx: dict, music: dict, inventory: dict) -> dict:
     songs = {}
     for stem, record in music.items():
         songs[stem] = {**record, "credits": cost.get(f"music/{stem}", 0),
-                       "origin": "supplied by the author" if stem == "title" else "generated",
+                       "origin": ("supplied by the author" if stem == "title" else
+                                  f"derived from {record['layer_of']}" if "layer_of" in record else "generated"),
                        "destination": f"godot/assets/music/{stem}.ogg -> godot/assets_gen/music.bin",
                        "format": "stereo Vorbis 44.1 kHz"}
     return {"cues": cues, "music": songs,
@@ -1133,6 +1164,7 @@ def main() -> None:
     parser.add_argument("--sfx", action="store_true")
     parser.add_argument("--music", action="store_true")
     parser.add_argument("--fights", action="store_true")
+    parser.add_argument("--layers", action="store_true")
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--only", nargs="*", default=[])
     args = parser.parse_args()
@@ -1148,7 +1180,7 @@ def main() -> None:
         for name, why in sorted(bad.items()):
             print(f"  {name}: {why}")
         raise SystemExit(1 if bad or missing else 0)
-    everything = not (args.sfx or args.music or args.fights)
+    everything = not (args.sfx or args.music or args.fights or args.layers)
     sfx = build_sfx(inventory, args.only, previous) if args.sfx or everything else {n: {k: c[k] for k in ("recipe", "measured") if k in c} for n, c in previous["cues"].items()}
     if args.music and args.only:
         music = build_some_music(previous["music"], args.only)
@@ -1156,6 +1188,8 @@ def main() -> None:
         music = build_music()
     elif args.fights:
         music = build_fight_music(previous["music"], args.only)
+    elif args.layers:
+        music = build_layer_music(previous["music"], args.only)
     else:
         music = {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")} for s, m in previous["music"].items()}
     result = manifest(sfx, music, inventory)

@@ -1,0 +1,40 @@
+{
+ "text": "Hide the hogs and the moonshine, sir.",
+ "words": [
+  {
+   "text": "Hide",
+   "start": 0.22,
+   "end": 0.7
+  },
+  {
+   "text": "the",
+   "start": 0.76,
+   "end": 0.94
+  },
+  {
+   "text": "hogs",
+   "start": 1.02,
+   "end": 1.58
+  },
+  {
+   "text": "and",
+   "start": 1.68,
+   "end": 1.9
+  },
+  {
+   "text": "the",
+   "start": 1.94,
+   "end": 2.02
+  },
+  {
+   "text": "moonshine,",
+   "start": 2.1,
+   "end": 3.08
+  },
+  {
+   "text": "sir.",
+   "start": 3.26,
+   "end": 3.7
+  }
+ ]
+}

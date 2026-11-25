@@ -21,6 +21,7 @@ static func tables(source: String) -> String:
 	out.append(_fights(rows))
 	out.append(_crowds(rows))
 	out.append(_feel(rows))
+	out.append(_music(rows))
 	out.append(_deaths(rows))
 	out.append(_kinds(rows))
 	out.append(_director(rows))
@@ -341,6 +342,64 @@ static func _crowds(rows: Array) -> String:
 		for i in range(1, 7):
 			cells.append("%.0f" % (100.0 * int(h[i]) / maxf(1.0, any)))
 		t.append("| %s | %s | %.0f |" % [ch, " | ".join(cells), _share_at_least(h, 3)])
+	t.append("")
+	return "\n".join(t)
+
+
+## Pass 15: the music's four levels (features/fight_music.gd) as shares of
+## the chapter, and the RAMPAGES (features/rampage.gd).
+static func _music(rows: Array) -> String:
+	var t := PackedStringArray()
+	t.append("### Music levels and RAMPAGE (all attempts; % of the chapter, medians)")
+	t.append("")
+	t.append(
+		(
+			"| chapter | CALM % | BUILD % | FIGHT % | PEAK % | whole loop % | loop swaps"
+			+ " | RAMPAGES an attempt | on one s an attempt |"
+		)
+	)
+	t.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+	var all_r := 0.0
+	var all_n := 0
+	for ch: String in Campaign.ORDER:
+		var rs := _in(rows, ch)
+		if rs.is_empty():
+			continue
+		var shares := [[], [], [], []]
+		var loop: Array = []
+		var swaps: Array = []
+		var count := 0.0
+		var on := 0.0
+		for r: Dictionary in rs:
+			var fl: Dictionary = r["flow"]
+			var secs := maxf(.1, float(r["secs"]))
+			var lv: Array = fl.get("music_levels", [0.0, 0.0, 0.0, 0.0])
+			for i in 4:
+				shares[i].append(100.0 * float(lv[i]) / secs)
+			loop.append(100.0 * float(fl.get("music_fight", 0.0)) / secs)
+			swaps.append(fl.get("music_flips", 0))
+			count += float(fl.get("rampages", 0))
+			on += float(fl.get("raging", 0.0))
+		all_r += count
+		all_n += rs.size()
+		t.append(
+			(
+				"| %s | %.0f | %.0f | %.0f | %.0f | %.0f | %.0f | %.2f | %.1f |"
+				% [
+					ch,
+					median(shares[0]),
+					median(shares[1]),
+					median(shares[2]),
+					median(shares[3]),
+					median(loop),
+					median(swaps),
+					count / rs.size(),
+					on / rs.size()
+				]
+			)
+		)
+	t.append("")
+	t.append("RAMPAGES an attempt, every chapter: %.2f" % (all_r / maxf(1.0, all_n)))
 	t.append("")
 	return "\n".join(t)
 

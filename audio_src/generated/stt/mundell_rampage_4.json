@@ -1,0 +1,45 @@
+{
+ "text": "Get out of the road, I'm coming through.",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.04,
+   "end": 0.24
+  },
+  {
+   "text": "out",
+   "start": 0.32,
+   "end": 0.48
+  },
+  {
+   "text": "of",
+   "start": 0.52,
+   "end": 0.58
+  },
+  {
+   "text": "the",
+   "start": 0.62,
+   "end": 0.7
+  },
+  {
+   "text": "road,",
+   "start": 0.8,
+   "end": 1.2
+  },
+  {
+   "text": "I'm",
+   "start": 1.32,
+   "end": 1.46
+  },
+  {
+   "text": "coming",
+   "start": 1.54,
+   "end": 1.9
+  },
+  {
+   "text": "through.",
+   "start": 1.96,
+   "end": 2.5
+  }
+ ]
+}

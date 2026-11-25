@@ -69,6 +69,10 @@ var hp_was := {}
 var music_on := 0.0
 var music_flips := 0
 var music_was := false
+## Seconds at each music level (features/fight_music.gd `level`, pass 15:
+## CALM, BUILD, FIGHT, PEAK), and the local player's RAMPAGES and seconds on one.
+var music_levels := [0.0, 0.0, 0.0, 0.0]
+var raging := 0.0
 var held := 0.0
 var slow := 0.0
 ## The director's beats (features/director.gd), when it is there: seconds in
@@ -223,6 +227,16 @@ static func dry(game: Game) -> bool:
 	return any
 
 
+## The local player's RAMPAGES this attempt (features/rampage.gd).
+func _rampages() -> int:
+	var rp: Object = g.features.get("rampage")
+	if rp == null:
+		return 0
+	var counts: Array = rp.get("count")
+	var slot: int = g.local_player.slot
+	return int(counts[slot]) if slot < counts.size() else 0
+
+
 ## After the tick.
 func after() -> void:
 	var now := g.clock - start
@@ -234,6 +248,12 @@ func after() -> void:
 		if on != music_was:
 			music_flips += 1
 			music_was = on
+		var lv = fm.get("level")
+		if lv != null:
+			music_levels[clampi(int(lv), 0, 3)] += STEP
+	var rp: Object = g.features.get("rampage")
+	if rp != null and Rampage.raging(g, g.local_player):
+		raging += STEP
 	if g.hitstop > 0.0 or g.boss_hold > 0.0:
 		held += STEP
 	if g.slowmo > 0.0:
@@ -403,6 +423,9 @@ func finish(row: Dictionary, outcome: String) -> void:
 		"longest_calm": snappedf(maxf(longest_calm, secs - last_fight), .1),
 		"music_fight": snappedf(music_on, .1),
 		"music_flips": music_flips,
+		"music_levels": music_levels.map(func(v): return snappedf(v, .1)),
+		"raging": snappedf(raging, .1),
+		"rampages": _rampages(),
 		"held": snappedf(held, .1),
 		"slowmo": snappedf(slow, .1),
 	}

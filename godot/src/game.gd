@@ -526,6 +526,7 @@ func _walk(p: Player, controls: Controls, dt: float) -> bool:
 	)
 	speed *= 1.0 - maxf(0.0, p.gut - 65.0) * .004 - maxf(0.0, p.drunk - 70.0) * .004
 	speed *= Modes.move_scale(self, p) * Mud.pace(self, p.x, p.y)
+	speed *= Rampage.pace(self, p)
 	if world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)])) == "water":
 		speed *= .69
 	p.crouched = controls.crouch and p.air <= .01

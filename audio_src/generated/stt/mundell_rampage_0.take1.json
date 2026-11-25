@@ -1,0 +1,35 @@
+{
+ "text": "Go away, the legs is loose.",
+ "words": [
+  {
+   "text": "Go",
+   "start": 0.04,
+   "end": 0.16
+  },
+  {
+   "text": "away,",
+   "start": 0.32,
+   "end": 0.8
+  },
+  {
+   "text": "the",
+   "start": 0.9,
+   "end": 1.0
+  },
+  {
+   "text": "legs",
+   "start": 1.06,
+   "end": 1.42
+  },
+  {
+   "text": "is",
+   "start": 1.5,
+   "end": 1.68
+  },
+  {
+   "text": "loose.",
+   "start": 1.76,
+   "end": 2.26
+  }
+ ]
+}

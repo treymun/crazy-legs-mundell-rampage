@@ -45,17 +45,59 @@ const SKIES := [
 	"sky", "fair_sky", "mill_sky", "quarry_sky", "bayou_sky", "speedway_sky", "moonshine_sky"
 ]
 ## Each chapter's file: its tracks, the loop its fights swell into
-## (Sound.FIGHTS), then its boss loop (Sound.BOSSES).
+## (Sound.FIGHTS), its boss loop (Sound.BOSSES), then the fight loop's two
+## layers (src/score_layers.gd, pass 15: its drums for BUILD, its riff for PEAK).
 const MUSIC_FILES := {
 	"music_hickston":
-	["music", "county_line", "porchlight_stomp", "fight_hickston", "boss_hickston"],
+	[
+		"music",
+		"county_line",
+		"porchlight_stomp",
+		"fight_hickston",
+		"boss_hickston",
+		"pulse_hickston",
+		"peak_hickston",
+	],
 	"music_fair":
-	["fair_score", "tickets_after_dark", "closing_time_shuffle", "fight_fair", "boss_fair"],
-	"music_mill": ["mill_score", "green_chain", "apron_run", "fight_mill", "boss_mill"],
+	[
+		"fair_score",
+		"tickets_after_dark",
+		"closing_time_shuffle",
+		"fight_fair",
+		"boss_fair",
+		"pulse_fair",
+		"peak_fair",
+	],
+	"music_mill":
+	[
+		"mill_score",
+		"green_chain",
+		"apron_run",
+		"fight_mill",
+		"boss_mill",
+		"pulse_mill",
+		"peak_mill"
+	],
 	"music_quarry":
-	["quarry_score", "copper_and_steam", "last_load", "fight_quarry", "boss_quarry"],
+	[
+		"quarry_score",
+		"copper_and_steam",
+		"last_load",
+		"fight_quarry",
+		"boss_quarry",
+		"pulse_quarry",
+		"peak_quarry",
+	],
 	"music_bayou":
-	["bayou_score", "cypress_crawl", "crawdad_boil_hop", "fight_bayou", "boss_bayou"],
+	[
+		"bayou_score",
+		"cypress_crawl",
+		"crawdad_boil_hop",
+		"fight_bayou",
+		"boss_bayou",
+		"pulse_bayou",
+		"peak_bayou",
+	],
 	"music_speedway":
 	[
 		"music_speedway",
@@ -63,9 +105,19 @@ const MUSIC_FILES := {
 		"checkered_flag_rag",
 		"fight_speedway",
 		"boss_speedway",
+		"pulse_speedway",
+		"peak_speedway",
 	],
-	"music_moonshine": ["moonshine_score", "fight_moonshine", "boss_moonshine"],
-	"music_mothership": ["mothership_score", "fight_mothership", "boss_mothership"],
+	"music_moonshine":
+	["moonshine_score", "fight_moonshine", "boss_moonshine", "pulse_moonshine", "peak_moonshine"],
+	"music_mothership":
+	[
+		"mothership_score",
+		"fight_mothership",
+		"boss_mothership",
+		"pulse_mothership",
+		"peak_mothership",
+	],
 }
 ## Tracks not made yet are listed in assets.gd PENDING_MUSIC: only noted here,
 ## and their chapter's file is written all the same (empty if none is made).
