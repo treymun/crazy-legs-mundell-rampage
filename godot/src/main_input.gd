@@ -382,6 +382,10 @@ func _key_play(code: int) -> void:
 			target.map = not target.map
 	elif code == KEY_R:
 		act(target, ["reload"])
+	elif code == KEY_K:
+		act(target, ["kick"])  # KICK (pass 15): the boot alone
+	elif code == KEY_N:
+		act(target, ["throw"])  # THROW (pass 15): a stick from whatever gun is up
 	elif (code == KEY_H or code == KEY_SCROLLLOCK) and target.armory.fuse <= 0.0:
 		act(target, ["holster"])
 	elif code >= KEY_1 and code <= KEY_9:
@@ -645,6 +649,19 @@ func _input(event: InputEvent) -> void:
 			return
 		if button.button_index == MOUSE_BUTTON_XBUTTON1 and state != "play":
 			key(KEY_ESCAPE)  # the mouse's back button goes back on every menu
+			return
+		if (
+			state == "play"
+			and game != null
+			and not game.showing_tally
+			and not game.defeated()
+			and (
+				button.button_index == MOUSE_BUTTON_XBUTTON1
+				or button.button_index == MOUSE_BUTTON_XBUTTON2
+			)
+		):
+			# The side buttons in play (pass 15): back KICK, front THROW.
+			key(KEY_K if button.button_index == MOUSE_BUTTON_XBUTTON1 else KEY_N)
 			return
 		if (
 			button.button_index == MOUSE_BUTTON_WHEEL_UP
@@ -985,11 +1002,8 @@ func read_pad(dt: float) -> Dictionary:
 		"strafe": strafe,
 		"turn": turn,
 		"look": look,
-		"run":
-		(
-			Input.is_joy_button_pressed(device, JOY_BUTTON_LEFT_STICK)
-			or (Input.is_joy_button_pressed(device, JOY_BUTTON_RIGHT_STICK) and not has_torch())
-		),
+		# L3 runs; R3 kicks (pass 15: it ran too, as L3, without a flashlight).
+		"run": Input.is_joy_button_pressed(device, JOY_BUTTON_LEFT_STICK),
 		"fire": trigger_right > 0.5,
 		"alt": trigger_left > 0.5,
 		"jump": Input.is_joy_button_pressed(device, JOY_BUTTON_A),
@@ -998,16 +1012,16 @@ func read_pad(dt: float) -> Dictionary:
 
 
 ## The pad's buttons in play beyond _pad_bindings: R3 works the flashlight
-## while there is one (else it runs, as L3); BACK tapped opens the map on its
-## release, held PAD_WHISTLE_HOLD it whistles for BLUE instead.
+## while there is one, else it kicks (KICK, pass 15); BACK tapped opens the
+## map on its release, held PAD_WHISTLE_HOLD it whistles for BLUE instead.
 func _pad_play_extras(device: int, pressed: Dictionary, dt: float) -> void:
 	if game.showing_tally or game.defeated():
 		pad_back_held = -1.0
 		if game.showing_tally and pressed.has(JOY_BUTTON_Y):
 			key(KEY_TAB)  # the card's other way on (A the one tap's, X TRY TO BEAT IT)
 		return
-	if pressed.has(JOY_BUTTON_RIGHT_STICK) and has_torch():
-		key(KEY_L)
+	if pressed.has(JOY_BUTTON_RIGHT_STICK):
+		key(KEY_L if has_torch() else KEY_K)
 	if Input.is_joy_button_pressed(device, JOY_BUTTON_BACK):
 		if pressed.has(JOY_BUTTON_BACK):
 			pad_back_held = 0.0
@@ -1085,7 +1099,9 @@ func _touch_actions() -> void:
 			photo.next_filter(self, 1)
 		if touch.consume("use"):
 			photo.bare = not photo.bare
-		for role: String in ["rinds", "beer", "shine", "map", "photo", "torch", "whistle"]:
+		for role: String in [
+			"rinds", "beer", "shine", "map", "photo", "torch", "whistle", "kick", "throw"
+		]:
 			touch.consume(role)
 		touch.consume_tap()
 		return
@@ -1100,6 +1116,10 @@ func _touch_actions() -> void:
 		key(KEY_E)
 	if touch.consume("next") and not game.in_hub:
 		act(game, ["cycle", 1])
+	if touch.consume("kick"):
+		key(KEY_K)  # KICK (pass 15)
+	if touch.consume("throw"):
+		key(KEY_N)  # THROW (pass 15)
 	for pair: Array in [["rinds", KEY_C], ["beer", KEY_B], ["shine", KEY_M]]:
 		if touch.consume(str(pair[0])) and state == "play":
 			var bound: int = pair[1]

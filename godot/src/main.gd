@@ -121,6 +121,7 @@ func _ready() -> void:
 	# Drawn at window resolution over the scaled canvas, like the reference.
 	touch = TouchControls.new()
 	add_child(touch)
+	touch.take_glyphs(art)
 
 	# A view tour draws with the default settings, never this machine's own
 	# (its references must match CI's, which has no profile).

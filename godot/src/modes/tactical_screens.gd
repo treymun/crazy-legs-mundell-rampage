@@ -115,6 +115,9 @@ static var pending_cycle := 0
 ## A pocket item to use, or a pocket to pick (Game.POCKET_PICK + its place):
 ## online co-op and deathmatch (-1 none).
 static var pending_item := -1
+## KICK and THROW pressed (pass 15), online and in the round modes.
+static var pending_kick := false
+static var pending_throw := false
 ## Watching a teammate while out: SPACE asks for the next one.
 static var watch_next := false
 ## The results screen's last line (empty online: the lobby's line is there).
@@ -1017,6 +1020,11 @@ static func _play_key(game: Game, me: Player, code: int) -> bool:
 	if code == KEY_E or code == KEY_SPACE:
 		pending_use = true
 		return true
+	if code == KEY_K or code == KEY_N:
+		# KICK and THROW (pass 15): with the next controls, as USE.
+		pending_kick = pending_kick or code == KEY_K
+		pending_throw = pending_throw or code == KEY_N
+		return true
 	if code in [KEY_F, KEY_Q, KEY_C, KEY_V, KEY_X, KEY_ENTER, KEY_KP_ENTER, KEY_H]:
 		return true
 	if code == KEY_SEMICOLON or code == KEY_APOSTROPHE:
@@ -1051,6 +1059,10 @@ static func take_pending(c: Game.Controls) -> void:
 	c.use = pending_use
 	c.cycle = pending_cycle
 	c.item = pending_item
+	c.kick = pending_kick
+	c.throw = pending_throw
+	pending_kick = false
+	pending_throw = false
 	pending_item = -1
 	pending_weapon = -1
 	pending_reload = false

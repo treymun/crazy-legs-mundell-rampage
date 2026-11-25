@@ -123,10 +123,14 @@ static var GRIND_DAMAGE: int
 static var VIEW_SCALE: float
 static var VIEW_SINK: float
 static var HOLD_FLOOR: float
-## How long a switch (Armory.select) takes, and the part of it the gun put
-## away spends going down before the new one comes up ([all] switch_lower).
-const SWITCH_TIME := .23
+## How long a switch (Armory.select) takes ([all] switch_time), and the part
+## of it the gun put away spends going down before the new one comes up
+## ([all] switch_lower).
+static var SWITCH_TIME: float
 static var SWITCH_LOWER: float
+## THROW (pass 15, Armory.quick_throw): seconds the dynamite hand stays up
+## after a stick is thrown from another gun before that gun comes back.
+static var THROW_BACK: float
 
 
 static func _static_init() -> void:
@@ -195,6 +199,8 @@ static func load_tuning() -> void:
 	VIEW_SCALE = Tuning.value(path, "view_scale")
 	VIEW_SINK = Tuning.value(path, "view_sink")
 	HOLD_FLOOR = Tuning.value(path, "hold_floor")
+	SWITCH_TIME = Tuning.value(path, "switch_time")
+	THROW_BACK = Tuning.value(path, "throw_back")
 	SWITCH_LOWER = Tuning.value(path, "switch_lower")
 	# A gun drawn at a new size or place must be lit and scaled again.
 	Armory.graded.clear()
@@ -259,6 +265,13 @@ class Armory:
 	var swing_hit := false
 	var fuse := 0.0
 	var tnt_latched := false
+	## THROW (quick_throw): seconds before the gun put by for a thrown stick
+	## comes back up, and that gun (-1: none).
+	var throw_back := 0.0
+	var throw_from := -1
+	## The trigger was down last tick (fire()); up, release_dynamite(). A
+	## fresh pull stops a reload with rounds in the gun.
+	var trigger_held := false
 	var auto_switch := true
 	var auto_reload := true
 	## The junk bench (src/bench_mods.gd): the scrap this player carries, the
@@ -334,6 +347,7 @@ class Armory:
 		flash = maxf(0.0, flash - dt)
 		switch = maxf(0.0, switch - dt)
 		empty = maxf(0.0, empty - dt)
+		throw_return(dt)
 		var age_before := shot_age
 		shot_age += dt
 		if active in Weapons.CYCLE_GUNS and reserve[active] > 0 and reload <= 0.0:
@@ -409,6 +423,8 @@ class Armory:
 			swing_hit = false
 			tnt_latched = false
 			holstered = false
+			throw_back = 0.0
+			throw_from = -1
 			switch = Weapons.SWITCH_TIME
 			game.sound.play("equip_" + str(Weapons.NAMES[slot]), .61)
 			game.message(str(Weapons.LABELS[slot]), .95)
@@ -453,10 +469,17 @@ class Armory:
 
 	func fire(game: Game, both := false) -> void:
 		var i := active
+		var fresh := not trigger_held
+		trigger_held = true
 		if holstered:
 			holstered = false
 			switch = .20
 			return
+		if reload and not switch and fresh and cancels_reload():
+			# FIRE pulled with rounds still in the gun stops a reload and shoots
+			# what is loaded (pass 15); a reload from empty goes on (a bayonet
+			# jabs), and so does one started with the trigger held.
+			reload = 0.0
 		if reload and not switch and game.player.health > 0 and _jab(game):
 			return
 		if cooldown or reload or switch or game.player.health <= 0:
@@ -648,7 +671,75 @@ class Armory:
 			game.sound.play("crowbar_hit", .85)
 		return true
 
+	## Whether FIRE now stops the reload under way: rounds still in the gun.
+	func cancels_reload() -> bool:
+		return Weapons.CAPACITY[active] > 0 and loaded[active] > 0
+
+	## THROW (pass 15): a stick of dynamite lit and thrown in one go from
+	## whatever gun is up, that gun back up THROW_BACK later; a stick already
+	## lit goes now. False when nothing was thrown (no dynamite, no sticks).
+	## Game.quick_throw checks the hands are free first.
+	func quick_throw(game: Game) -> bool:
+		if game.player.health <= 0:
+			return false
+		if fuse > 0.0:
+			release_dynamite(game)
+			return true
+		if not owned[Weapons.DYNAMITE] or not reserve[Weapons.CROSSBOW]:
+			if empty == 0.0:
+				empty = .32
+				game.sound.play("dry_tnt")
+				game.message(
+					"OUT OF STICKS." if owned[Weapons.DYNAMITE] else "AIN'T GOT NO DYNAMITE.", .72
+				)
+			return false
+		if throw_back > 0.0 or (active == Weapons.DYNAMITE and cooldown > 0.0):
+			return false
+		take_throw()
+		game.sound.play("match_strike", .8)
+		game.throw_dynamite(fuse_time())
+		game.sound.play("tnt_throw")
+		game.set_face("yell_fire", .3)
+		return true
+
+	## A thrown stick's state (quick_throw, and an online client's lead of it,
+	## net_gun_lead.gd): a stick spent, the dynamite hand up mid-throw, the
+	## gun that was up kept to come back.
+	func take_throw() -> void:
+		reserve[Weapons.CROSSBOW] -= 1
+		if active != Weapons.DYNAMITE:
+			throw_from = active
+		active = Weapons.DYNAMITE
+		reload = 0.0
+		grinding = false
+		swing_hit = false
+		tnt_latched = false
+		holstered = false
+		switch = 0.0
+		flash = 0.0
+		recoil = Weapons.RECOIL[Weapons.DYNAMITE]
+		shot_age = 0.0
+		throw_back = Weapons.THROW_BACK if throw_from >= 0 else 0.0
+		var toss: float = Weapons.FIRE_TIME[Weapons.DYNAMITE]
+		cooldown = throw_back if throw_from >= 0 else toss
+
+	## The gun put by for a thrown stick comes back up once throw_back is
+	## gone (only its rise: the dynamite hand is already down by then).
+	func throw_return(dt: float) -> void:
+		if throw_back <= 0.0:
+			return
+		throw_back = maxf(0.0, throw_back - dt)
+		if throw_back > 0.0:
+			return
+		if throw_from >= 0 and active == Weapons.DYNAMITE and owned[throw_from]:
+			active = throw_from
+			switch = Weapons.SWITCH_TIME - Weapons.SWITCH_LOWER
+			cooldown = 0.0
+			shot_age = 1.0
+		throw_from = -1
+
 	func release_dynamite(game: Game) -> void:
+		trigger_held = false
 		if fuse > 0.0:
 			game.throw_dynamite(fuse)
 			fuse = 0.0

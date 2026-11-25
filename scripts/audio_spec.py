@@ -10,6 +10,7 @@ audio_src/manifest.json for the triggers). An entry is one of:
                          "room"  the indoor tail layered under `base`
                          "event" another hit taken from the same recording
                          "pitch" the same hit retuned
+                         "scuff" a step smeared into a boot's slide
   V(text, voice, fx)     a spoken line; `text` is the caption (`say`: what was sent
                          instead, `heard`: how its transcript spells the words)
 
@@ -1356,6 +1357,9 @@ add("report",
 add("foot", **{f"step_{floor}_{n + 2}": D(f"step_{floor}_0", "event", event=2 * n + 1, keep=.25, like=f"step_{floor}_{n}",
                                           **({"split": STEP_SPLIT[floor]} if floor in STEP_SPLIT else {}))
                for floor in ("grass", "gravel", "mud", "tile", "water", "wood") for n in range(2)})
+# The player's slide (pass 15, src/moves.gd): a boot scuffing along, smeared
+# from a gravel step (free, audio_build.py scuff).
+add("foot", slide_scuff=D("step_gravel_0", "scuff", event=0, keep=.42, seed=31, level=-20.0))
 add("impact",
     # Played since 2.0 (metal gibs, the tin guards, Jerry's scoreboard, the
     # propane tanks and fuel drums) but never made, so it was silent. Made

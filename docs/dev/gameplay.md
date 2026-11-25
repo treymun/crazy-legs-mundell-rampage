@@ -3231,6 +3231,103 @@ kills (checked attempt by attempt). Speed: `tick_spikes.gd` on Hickston, three
 alternate runs back to back, the tick's median 1.202 -> 1.225 ms (+1.9 %; the
 bot's game is a different one with the boost).
 
+## Moves (pass 15)
+
+The walk was quick already (63 % of the speed in 43 ms), but it stopped soft,
+steered little in the air and had nothing to do on the run; swaps took a
+quarter second, a reload could not be stopped, and the boot and the dynamite
+hid behind USE and a gun slot. `src/moves.gd` (`Moves`), numbers in modes.cfg
+`[move]` and weapons.cfg `[all]`.
+
+- **The walk's numbers** moved from `game.gd _walk` to `[move]` first with
+  their exact values (the same bots played the same ticks: hickston, the
+  sawmill and the bayou, ROOKIE and SHARP, 7,200 ticks each, every state hash
+  the same), then: `run` 3.85 -> 4.1, `ease_stop` 30 -> 40, `ease_air` 7 ->
+  10. `game.gd _walk` works out the speed (keys, gut, drink, mud, a RAMPAGE,
+  water) and `Moves.body` does the rest (the crouch, the slide, the ease,
+  walls and bodies, the jump, the fall); an online client's
+  `NetPredict.step` ends in the same `Moves.body`, so its picture walks the
+  host's sums, slide and all (it gained the RAMPAGE's pace on the way).
+  Ladders, ledges, vehicles and the water's own rules are untouched.
+- **The slide.** CROUCH taken (a fresh crouch: `Player.crouched` was false)
+  on the ground going at least `slide_from` (3.4: running, not walking)
+  starts one along the way the player is going, at `slide_speed` (5.0, less
+  in mud or water, more if a sprint had him faster), easing (slow, then
+  quicker) to the crouch walk over `slide_for` (.55 s), turning toward the
+  keys at most `slide_steer` (1.6 radians a second). It ends on letting go
+  of CROUCH, a jump (the jump is allowed with CROUCH held while sliding: a
+  hop that keeps the speed), a wall or a body head on (less than
+  `slide_wall` of its step made), a knock-down, the air, or its end; another
+  waits `slide_rest` (.8 s). The eye is the crouch's. Landing with CROUCH
+  held going fast is a slide too. Sound: `slide_scuff` (free, a gravel step
+  smeared, `audio_build.py` scuff); the gun dips and leans (`feel.gd
+  _slide_dip`, looks). `Player.slide`, `slide_dir`, `slide_top`,
+  `slide_rest` are carried like the player's other fields and never saved
+  (a load stands).
+- **KICK** (K, the mouse's back side button, R3, the KICK button):
+  `Game.quick_kick` -> `brawl.gd boot`: what USE's boot does (a finisher on
+  a man open to one, a man booted, a door run at kicked in) and nothing else
+  USE does (no door opened, nothing toted, no switch); with nobody in reach
+  the boot all the same, into the air (`can_kick`). Where the boot is off
+  (deathmatch, the 5v5, the hub) it does nothing.
+- **THROW** (N, the mouse's front side button, LB, the THROW button):
+  `Game.quick_throw` -> `Armory.quick_throw`: with the dynamite carried and a
+  stick (`reserve[CROSSBOW]`), the stick lit and thrown at once with a full
+  fuse from whatever gun is up; the dynamite hand shows the throw and the
+  gun comes back up `throw_back` (.32 s) later (`throw_from`, its rise only);
+  a stick already lit goes now. Not with the hands full (a boot or a
+  finisher, something toted, a wheel, the gallery's gun).
+- **Swaps and reloads**: `switch_time` .23 -> .16 (`switch_lower` .09 ->
+  .065, the same share going down); FIRE pulled (a fresh pull:
+  `Armory.trigger_held`) with rounds still in the gun stops a reload and
+  shoots what is loaded; a reload from empty goes on (a bayonet jabs) and so
+  does one started with the trigger held.
+- **Controls**: `Game.Controls.kick` and `throw` (fresh presses). The
+  campaign's front end does them between ticks as actions (`act(["kick"])`,
+  `["throw"]`, kept in its replay); online, the round modes and a bot send
+  them as controls (`TacticalScreens.pending_kick`, `pending_throw`).
+  Replays are format 2 (the buttons as a varint), format 1 still plays; the
+  net codec's controls are 15 bytes and PROTOCOL is 6
+  ([multiplayer.md](multiplayer.md#the-transport)).
+- **County Run** walks, slides and kicks the same (THROW needs the dynamite,
+  as anywhere).
+- `tools/move_check.gd` holds it ([checks.md](checks.md)); `-- numbers`
+  prints the feel.
+
+How it feels, by numbers (`move_check.gd -- numbers`, a range lane, 60 Hz
+keys; before is v3.12's walk worked out by the same sums):
+
+| | before | now |
+| --- | --- | --- |
+| run | 3.85 cells/s | 4.1 |
+| 90 % of the run from standing | 117 ms | 117 ms |
+| a stop from the run | 150 ms over .13 cells | 117 ms over .07 cells |
+| the air: side speed .25 s after a jump with a strafe held | 3.2 cells/s | 3.8 |
+| a swap | 230 ms | 167 ms (ten ticks at 60) |
+| a slide | none | 5.0 cells/s, 2.3 cells in .57 s (a crouch-walk: 1.3) |
+
+The balance bot (`flow_report.gd`, REGULAR, SHARP and ROOKIE at NORMAL,
+seeds 1 and 2; before is this pass's tracks to RAMPAGE AND MUSIC merged; the
+bots run and boot with KICK, never slide or throw):
+
+| chapter | seconds (median) | kills a minute | fight % |
+| --- | --- | --- | --- |
+| hickston | 259 -> 255 | 10.1 -> 10.9 | 46 -> 48 |
+| fair | 273 -> 258 | 10.3 -> 10.5 | 46 -> 47 |
+| sawmill | 209 -> 204 | 11.4 -> 11.2 | 53 -> 54 |
+| quarry | 207 -> 196 | 10.9 -> 11.7 | 51 -> 52 |
+| bayou | 211 -> 211 | 11.4 -> 12.4 | 50 -> 51 |
+| speedway | 170 -> 175 | 11.5 -> 11.0 | 43 -> 48 |
+| moonshine | 159 -> 168 | 12.5 -> 13.1 | 46 -> 50 |
+| mothership | 213 -> 195 | 12.5 -> 12.8 | 59 -> 58 |
+
+The chapters' median seconds summed: ROOKIE 1639 -> 1667, REGULAR 1645 ->
+1644, SHARP 1644 -> 1612 (-2 %); deaths a run ROOKIE 1.5 -> 1.0, REGULAR
+1.5 -> 0, SHARP 0 -> 0 (play goes otherwise from the first changed tick:
+one seed of each, so these are a sign, not a measure). The run is 6.5 %
+quicker but the bot walks the pin and fights at the same pace, so a chapter
+is a few seconds shorter at most.
+
 ## Difficulty and pacing as numbers (polish pass 9)
 
 `tools/balance.gd` plays the campaign for real and writes down what

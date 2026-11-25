@@ -340,14 +340,15 @@ func _glyphs() -> void:
 	check(Lessons.words(g2, "move") == "LEFT THUMB WALKS, RIGHT THUMB AIMS.", "touch walk")
 	# A key moved on the KEYS page is the key named.
 	var opts: Dictionary = main.options
-	var was: Variant = opts.get(KeyBindings.option_key("use"), KEY_E)
-	KeyBindings.bind(opts, "use", KEY_T)
+	# (Pass 15: the boot's tip names KICK first, USE after it.)
+	var was: Variant = opts.get(KeyBindings.option_key("kick"), KEY_K)
+	KeyBindings.bind(opts, "kick", KEY_T)
 	KeyBindings.register(opts)
 	g2.input_device = "keys"
-	check(Lessons.words(g2, "kick").begins_with("UP CLOSE, T PUTS"), "a moved USE key: T")
-	KeyBindings.bind(opts, "use", int(was))
+	check(Lessons.words(g2, "kick").begins_with("UP CLOSE, T (OR E) PUTS"), "a moved KICK key: T")
+	KeyBindings.bind(opts, "kick", int(was))
 	KeyBindings.register(opts)
-	check(Lessons.words(g2, "kick").begins_with("UP CLOSE, E PUTS"), "and back to E")
+	check(Lessons.words(g2, "kick").begins_with("UP CLOSE, K (OR E) PUTS"), "and back to K")
 
 
 ## The CONTROLS page names the keys as bound and says USE totes and boots.

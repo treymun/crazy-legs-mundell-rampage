@@ -570,6 +570,30 @@ def source_of(name: str) -> tuple[Path | None, str]:
     return (path if path.is_file() else None), kind
 
 
+def scuff(hit: np.ndarray, seconds: float, seed: int) -> np.ndarray:
+    """A boot sliding over the ground (pass 15, the player's slide): the step's
+    plant, then short grains of its crunch laid close one after another, each
+    from its own place in the hit, the scrape fading as the boot slows."""
+    rng = np.random.default_rng(seed)
+    n = int(seconds * RATE)
+    out = np.zeros(n)
+    plant = hit[: min(len(hit), n)] * .55
+    out[: len(plant)] += plant
+    grain = int(.045 * RATE)
+    window = np.hanning(grain)
+    body = hit[: max(grain + 1, min(len(hit), int(.16 * RATE)))]
+    at = int(.02 * RATE)
+    while at + grain < n:
+        start = int(rng.integers(0, max(1, len(body) - grain)))
+        piece = body[start: start + grain]
+        if len(piece) < grain:
+            piece = np.pad(piece, (0, grain - len(piece)))
+        fade = 1.0 - at / n
+        out[at: at + grain] += piece * window * fade * fade * float(rng.uniform(.6, 1.0))
+        at += int(rng.uniform(.010, .018) * RATE)
+    return out
+
+
 def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[np.ndarray | None, dict]:
     entry = spec.CUES[name]
     family = spec.FAMILY[name]
@@ -649,7 +673,10 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
             x = seamless(x[start:], int(keep * RATE), chain["loop"])
         else:
             x = x[start: start + int(keep * RATE)]
-        if how == "pitch":
+        if how == "scuff":
+            x = scuff(x, keep, entry.get("seed", 1))
+            recipe["derived"] = f"a boot's slide smeared from a step of {entry['base']}"
+        elif how == "pitch":
             recipe["derived"] = f"{entry['base']} retuned {entry['cents']:+.0f} cents"
         elif how == "event":
             recipe["derived"] = f"another step from {entry['base']}'s recording"

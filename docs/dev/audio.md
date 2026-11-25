@@ -9,7 +9,8 @@ decision here comes from measurement and from the code.
 
 - `scripts/audio_spec.py` says what every cue is: `G` a paid recording, `D` a
   cue derived from another's recording (`room` tail, `event` another hit of it,
-  `pitch` retuned, `bleep` the CLEAN copy), `V` a spoken line. Options a cue
+  `pitch` retuned, `bleep` the CLEAN copy, `scuff` a step smeared into a
+  boot's slide: `slide_scuff`, pass 15), `V` a spoken line. Options a cue
   may carry: `keep` (seconds), `level` (dB, its loudest 50 ms), `punch` (the
   designed layers under a gun, seeded), `split` (the level that splits a
   recording into its hits for `event`), `like` (master to another cue's
