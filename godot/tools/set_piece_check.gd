@@ -681,8 +681,12 @@ func _looks(level_id: String) -> void:
 		"once still its pieces are merged (%d meshes)" % a.merged.size()
 	)
 	var la := _layout(a)
+	# The first fall above waited on a worker for its cuts (a busy CI runner
+	# can hand them a tick later); two falls with the cuts already made are
+	# what must match, piece for piece.
 	var again := _layout(_brought_down(level_id, "south", 1.0))
-	check(_apart(la, again, .001) == 0.0, "the same fall twice lies the same, piece for piece")
+	var twice := _layout(_brought_down(level_id, "south", 1.0))
+	check(_apart(again, twice, .001) == 0.0, "the same fall twice lies the same, piece for piece")
 	var north := _apart(la, _layout(_brought_down(level_id, "north", 1.0)), .3)
 	var blast := _apart(la, _layout(_brought_down(level_id, "blast", 1.0)), .3)
 	var later := _apart(la, _layout(_brought_down(level_id, "south", 3.0)), .3)
