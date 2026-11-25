@@ -35,6 +35,9 @@ var doors_open := false
 var every_door := false
 var keys := {}
 var _door_at := {}
+## The barred doors by cell (pass 15): with doors_open, a walk never crosses
+## one shut from the side it does not open from.
+var _bars := {}
 var width := 0
 var height := 0
 ## 0 wall, 1 open floor, 2 open unless a door, gate or window is in the way.
@@ -80,9 +83,12 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 	if floor_from != null:
 		open = floor_from.open
 		_door_at = floor_from._door_at
+		_bars = floor_from._bars
 		return
 	for door: LevelData.Door in world.doors:
 		_door_at[door.y * width + door.x] = door
+		if door.bar_side != 0:
+			_bars[door.y * width + door.x] = door
 	# The level as read, nothing opened yet: its open floor as measured the
 	# last time it was played. A copy each way: a packed array in a Variant
 	# is shared, and reopen() writes this one.
@@ -248,6 +254,7 @@ func _walk() -> void:
 	# (passable() written out for the open and the wall cells, the most of
 	# them; the same cells in the same order.)
 	var kinds := open
+	var bars := doors_open and not every_door and not _bars.is_empty()
 	if graph != null:
 		var first := graph.first
 		var edges := graph.edges
@@ -263,6 +270,8 @@ func _walk() -> void:
 					continue
 				var kind := kinds[next]
 				if kind == 0 or (kind == 2 and not passable(next)):
+					continue
+				if bars and _bars.has(cell) and _barred(cell, graph.cell[next]):
 					continue
 				_next[next] = d + 1
 				_next_touched.append(next)
@@ -288,6 +297,8 @@ func _walk() -> void:
 				var kind := kinds[next]
 				if kind == 0 or (kind == 2 and not passable(next)):
 					continue
+				if bars and _bars.has(cell) and _barred(cell, next):
+					continue
 				_next[next] = d + 1
 				_next_touched.append(next)
 				_queue.append(next)
@@ -302,6 +313,18 @@ func _walk() -> void:
 	_queue.resize(0)
 	_head = 0
 	_walked = true
+
+
+## Whether a walk out of barred door cell `cell` into cell `to` would be a
+## way in through it from the side it does not open from (the walk goes out
+## from where the way ends: a step out of the door to `to` is a body coming
+## from `to` through the door).
+func _barred(cell: int, to: int) -> bool:
+	var door: LevelData.Door = _bars[cell]
+	if door.opened:
+		return false
+	var side := to % width - door.x if door.vertical else to / width - door.y
+	return side * door.bar_side < 0
 
 
 ## The heading from x, y one cell downhill toward the player, or NAN when the
@@ -329,11 +352,14 @@ func downhill(at: Vector2i) -> Vector2i:
 	var to := Vector2i(-1, -1)
 	if best >= FAR:
 		return to
+	var bars := doors_open and not every_door and not _bars.is_empty()
 	for n: Vector2i in NEIGHBOURS:
 		var nx := cx + n.x
 		var ny := cy + n.y
 		if nx < 0 or ny < 0 or nx >= width or ny >= height:
 			continue
+		if bars and _bars.has(ny * width + nx) and _barred(ny * width + nx, cy * width + cx):
+			continue  # into a barred door from the side it does not open from
 		var d := steps[ny * width + nx]
 		# A diagonal step only where both cells beside it are open too.
 		if (
@@ -357,8 +383,11 @@ func downhill_node(n: int) -> int:
 	if best >= FAR:
 		return -1
 	var to := -1
+	var bars := doors_open and not every_door and not _bars.is_empty()
 	for e in range(graph.first[n], graph.first[n + 1]):
 		var m := graph.edges[e]
+		if bars and _bars.has(m) and _barred(m, graph.cell[n]):
+			continue  # into a barred door from the side it does not open from
 		if steps[m] < best:
 			best = steps[m]
 			to = m

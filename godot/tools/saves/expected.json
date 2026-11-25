@@ -20,11 +20,11 @@
 		"replay": false,
 		"reserve": 24.0,
 		"retained": [],
-		"x": 9.448,
-		"y": 73.889
+		"x": 7.5,
+		"y": 69.5
 	},
 	"v10_hickston_wrecked.json": {
-		"alive": 88.0,
+		"alive": 89.0,
 		"down": 56.0,
 		"health": 100.0,
 		"kills": 0.0,
@@ -32,8 +32,8 @@
 		"replay": false,
 		"reserve": 18.0,
 		"retained": [],
-		"x": 5.713,
-		"y": 73.356
+		"x": 7.5,
+		"y": 69.5
 	},
 	"v10_mothership_replay.json": {
 		"alive": 78.0,
@@ -94,7 +94,7 @@
 		"y": 78.968
 	},
 	"v11_hickston_fight.json": {
-		"alive": 89,
+		"alive": 65,
 		"health": 100.0,
 		"kills": 0,
 		"level": "hickston",
@@ -104,8 +104,19 @@
 		"x": 9.448,
 		"y": 73.889
 	},
+	"v11_hickston_fight_layout8.json": {
+		"alive": 89.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "hickston",
+		"replay": false,
+		"reserve": 24.0,
+		"retained": [],
+		"x": 7.5,
+		"y": 69.5
+	},
 	"v11_hickston_wrecked.json": {
-		"alive": 88,
+		"alive": 65,
 		"down": 56,
 		"health": 100.0,
 		"kills": 0,
@@ -115,6 +126,18 @@
 		"retained": [],
 		"x": 5.713,
 		"y": 73.356
+	},
+	"v11_hickston_wrecked_layout8.json": {
+		"alive": 89.0,
+		"down": 56.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "hickston",
+		"replay": false,
+		"reserve": 18.0,
+		"retained": [],
+		"x": 7.5,
+		"y": 69.5
 	},
 	"v11_moonshine_replay.json": {
 		"alive": 49,
@@ -798,8 +821,8 @@
 		"replay": false,
 		"reserve": 24.0,
 		"retained": [],
-		"x": 9.448,
-		"y": 73.889
+		"x": 7.5,
+		"y": 69.5
 	},
 	"v9_hickston_fight_layout7.json": {
 		"alive": 89.0,
@@ -813,7 +836,7 @@
 		"y": 69.5
 	},
 	"v9_hickston_wrecked.json": {
-		"alive": 88.0,
+		"alive": 89.0,
 		"down": 56.0,
 		"health": 100.0,
 		"kills": 0.0,
@@ -821,8 +844,8 @@
 		"replay": false,
 		"reserve": 18.0,
 		"retained": [],
-		"x": 5.713,
-		"y": 73.356
+		"x": 7.5,
+		"y": 69.5
 	},
 	"v9_hickston_wrecked_layout7.json": {
 		"alive": 89.0,

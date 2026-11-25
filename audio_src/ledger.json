@@ -46495,14 +46495,182 @@
    "bytes": 97845
   },
   {
-   "id": "reconcile@2026-11-24T17:07:16",
+   "id": "tts/mundell_lost_1#1",
+   "kind": "tts",
+   "name": "mundell_lost_1",
+   "params": {
+    "text": "Foller the hound, dummy.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "55f31ea5787e",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-25T13:36:36",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_lost_1.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/mundell_lost_0#1",
+   "kind": "tts",
+   "name": "mundell_lost_0",
+   "params": {
+    "text": "Blue knows the way.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a35f905583c2",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-25T13:36:36",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_lost_0.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/mundell_lost_pin_0#1",
+   "kind": "tts",
+   "name": "mundell_lost_pin_0",
+   "params": {
+    "text": "Turned around again. Mind the arrow.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "858d72059dc0",
+   "reserved": 63,
+   "status": "settled",
+   "started": "2026-11-25T13:36:37",
+   "actual": 36,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_lost_pin_0.mp3",
+   "bytes": 68379
+  },
+  {
+   "id": "tts/mundell_lost_pin_1#1",
+   "kind": "tts",
+   "name": "mundell_lost_pin_1",
+   "params": {
+    "text": "I know these parts. Mostly.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "52c67f501784",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-25T13:36:37",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_lost_pin_1.mp3",
+   "bytes": 61483
+  },
+  {
+   "id": "stt/mundell_lost_1#1",
+   "kind": "stt",
+   "name": "mundell_lost_1",
+   "params": {
+    "file": "mundell_lost_1.mp3",
+    "bytes": 46436
+   },
+   "hash": "41d133b8ba0b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:37:52",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_lost_1.json",
+   "bytes": 300
+  },
+  {
+   "id": "stt/mundell_lost_0#1",
+   "kind": "stt",
+   "name": "mundell_lost_0",
+   "params": {
+    "file": "mundell_lost_0.mp3",
+    "bytes": 51452
+   },
+   "hash": "1046800b945f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:37:52",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_lost_0.json",
+   "bytes": 361
+  },
+  {
+   "id": "stt/mundell_lost_pin_0#1",
+   "kind": "stt",
+   "name": "mundell_lost_pin_0",
+   "params": {
+    "file": "mundell_lost_pin_0.mp3",
+    "bytes": 68379
+   },
+   "hash": "70bb03a950e7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:37:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_lost_pin_0.json",
+   "bytes": 435
+  },
+  {
+   "id": "stt/mundell_lost_pin_1#1",
+   "kind": "stt",
+   "name": "mundell_lost_pin_1",
+   "params": {
+    "file": "mundell_lost_pin_1.mp3",
+    "bytes": 61483
+   },
+   "hash": "267aee590f81",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:37:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_lost_pin_1.json",
+   "bytes": 361
+  },
+  {
+   "id": "reconcile@2026-11-25T13:38:55",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -29585,
+   "actual": -29590,
    "basis": "account",
-   "balance_after": 84084
+   "balance_after": 84233
   }
  ],
  "anchor": {
@@ -46510,7 +46678,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-24T17:07:16",
-  "account_drop": 79361
+  "when": "2026-11-25T13:38:55",
+  "account_drop": 79510
  }
 }

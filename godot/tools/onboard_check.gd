@@ -250,6 +250,11 @@ func _set_up(id: String, device := "keys", tips := 1) -> Game:
 			p.gut = 70.0
 		"drunk":
 			p.drunk = 40.0
+		"lead":
+			# BLUE leading the way (pass 15): his job set as HoundLead sets it.
+			var hound: Game.HoundScript = g.features.get("hound")
+			var dog: Game.HoundScript.Dog = hound.dog_of(p)
+			dog.job = Game.HoundScript.LEAD
 	return g
 
 

@@ -105,7 +105,8 @@ const SKIP_FIELDS := {
 		"_danger",
 		"_bosses",
 		"_bosses_of",
-		"_field"
+		"_field",
+		"_lead"
 	],
 	"events": ["_body", "_n"],
 	# The arena lights this machine's player is near (looks: each machine its own).

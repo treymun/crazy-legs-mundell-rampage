@@ -151,6 +151,10 @@ const LINES := {
 	"tip_ride": ["SHE AIN'T PURTY, BUT SHE RUNS."],
 	"tip_bench": ["DUCT TAPE FIXES EVERYTHING."],
 	"tip_locked": ["LOCKED TIGHT. FIGURES."],
+	# Pass 15: turned around, once a stuck spell (src/hound_lead.gd): with BLUE
+	# showing the way, and with HOUND DOG off (the pin pulses).
+	"lost": ["BLUE KNOWS THE WAY.", "FOLLER THE HOUND, DUMMY."],
+	"lost_pin": ["TURNED AROUND AGAIN. MIND THE ARROW.", "I KNOW THESE PARTS. MOSTLY."],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -194,7 +198,9 @@ const COOLDOWN := {
 	"tip_carry": 1.0,
 	"tip_ride": 1.0,
 	"tip_bench": 1.0,
-	"tip_locked": 1.0
+	"tip_locked": 1.0,
+	"lost": 60.0,
+	"lost_pin": 60.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

@@ -183,7 +183,7 @@ func _door() -> void:
 	var g := _level("hickston")
 	var b: Brawl = g.features["brawl"]
 	for door: LevelData.Door in g.world.doors:
-		if door.opened or door.key != "" or door.secret or door.blast_only:
+		if door.opened or door.key != "" or door.secret or door.blast_only or door.bar_side != 0:
 			continue
 		var c := door.center()
 		for side in [-1.0, 1.0]:

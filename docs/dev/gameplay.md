@@ -1252,7 +1252,8 @@ looks feature), numbers in `data/tuning/hound.cfg`.
   `Dog.ride` which). `Dog.job` while FOLLOW (`Hound.JOBS`): HEEL, RANGE
   (`Dog.roam` where to), NOSING (sniffing about there), CIRCLE (back to
   heel), CATCH (running to catch up), ASIDE (out of a player's sights),
-  TRAIL (sulking behind), WAIT (where he cannot follow). `Dog.mood`
+  TRAIL (sulking behind), WAIT (where he cannot follow), LEAD (showing
+  the way, pass 15: below). `Dog.mood`
   (`Hound.MOODS`): CALM, HAPPY, ALERT, SCARED, SULK, HURT, till
   `Dog.mood_until`. `Dog.pace` is how fast he went last tick, `Dog.stride_v`
   how fast his legs go (eased over a few ticks) and `Dog.gait_kind` the gait
@@ -1586,6 +1587,55 @@ player walking him into a wall comes within .73 of the eye now and then,
 and his feet keep .64 of the ground flat out. hound_walk_check after pass
 12: stuck at most .5 s (pass 10: 1.6), far at most about 7 s (pass 10: 2.2;
 he catches up calmer), no hazard.
+
+#### BLUE shows the way (pass 15)
+
+The audit's bots never got lost (they follow the pin), but the owner's word
+was that a player does. `src/hound_lead.gd` (`HoundLead`, numbers in
+`hound.cfg [lead]`): his player calm (no hand awake within `lead_quiet`, 14;
+his mood easy; on foot, on the ground, not in deep water) and no nearer the
+objective by the pin's walk for `lead_after` (30 s, looked at every
+`lead_look`, .5 s of the game's clock) and more than `lead_least` (6) steps
+off it, BLUE takes the job LEAD: he lopes to a stop `lead_reach` (5) steps
+down the way (short of a shut door on it, where he waits pointing at the
+door; never in harm; fair for him and, as he picks it, out of every
+player's sights), turns back to his player with a bark (`hound_bark`) and
+stands on point down the way (the point pose; the badge says LEADIN'). As
+they come within `lead_near` (2) he goes on another stretch, barking every
+`lead_bark` at a stop. Getting `lead_gain` (20) steps nearer than they were
+stuck at, or near the objective, ends it (back on the way); a hand awake
+near, a mood, a seat in a vehicle, a partner's sights, his player off the
+other way (past 4 cells and walking off, or further than `lead_far`), or
+`lead_wait` (12 s) at a stop with nobody coming, and he gives it up till
+`lead_again` (60 s) after. Mundell says a "lost" line once a stuck spell
+(`barks.gd` "lost": BLUE KNOWS THE WAY. / FOLLER THE HOUND, DUMMY.), and the
+first time NEW PLAYER TIPS says BLUE'LL SHOW YA. FOLLOW HIM. (`lead`).
+With HOUND DOG off the objective pin jumps and blinks chalk-green brackets
+for `pulse_for` (8 s) instead, and Mundell says a "lost_pin" line (TURNED
+AROUND AGAIN. MIND THE ARROW. / I KNOW THESE PARTS. MOSTLY.): looks only,
+this machine's, the hound feature's tick with him off (`HoundLead.alone`,
+`hud.gd objective_pin`).
+
+- **The walk.** Play never reads `Game.route` (a VIEW field the HUD walks
+  over several frames), so the walk BLUE reads is his own: a field from the
+  objective with doors as the pin takes them (and barred doors one way),
+  walked in one go whenever what it was walked with changes (`HoundLead.sig`:
+  where to, the stations, the keys, the doors only something opens, the
+  walls, the floor's open cells), 3 to 6 ms on the desktop, once an
+  objective or so; while any door swings the look waits (a leaf blocks the
+  cells by it for a moment: the walk never depends on where one was). It is
+  never carried: a snapshot copy walks it again from the same things and
+  reads the same steps.
+- **Carried.** The job and `Dog.lead_best`, `lead_at`, `lead_said` (the
+  stuck spell) go with the Dog (SIM, no dice); the stop is `Dog.goal`, what
+  he points at `Dog.look`, the stop's time `Dog.until` (the BAY/POINT
+  fields, free while he follows). Co-op: each Dog leads his own player.
+  `HoundLead.ON` false (tools that measure his legs: `hound_walk_check`, the
+  stuck and barred-door checks, `flow_report -- lead=0`) and he never leads.
+- **Calm to look at.** He lopes (`lope`), eases and turns as ever; it starts
+  only after 30 s, so `hound_pace`'s scenes (30 s at most) never see it.
+
+`hound_check` LEAD holds it (checks.md).
 
 ### Mundell's junk bench (content pass 8)
 
@@ -3034,6 +3084,24 @@ the route walked with the key ring the game was made with (`save_restore`
 hands the players a new one): every key door was shut to the pin until the
 next chapter; `objective_route` now takes the game's own. Play never reads
 `Game.route`: these change the pin and the bots, not the rules.
+
+## Stuck spots the bots found (pass 15)
+
+- **Caught in furniture.** A ROOKIE bot stood 660 s on the bayou's lagoon
+  bank by a dock piling after the swamp king fell (seed 3), the pin's way
+  reaching it (16 steps): it stood inside the square the piling blocks
+  (`LevelData.blocked` tests a body's square, radius each way), put or
+  shoved there, and every first small step out was refused and the velocity
+  died. A person would stand there too. `LevelData._walks_out`: a player
+  caught in a piece of furniture where they stand may take a step that goes
+  less deep into it and into nothing else (tested a hair narrower than that
+  depth); asked only when a step was refused, so play that never gets caught
+  is unchanged.
+- **Walled in after a boss.** The bots T2 saw shut in after the foreman,
+  the derby champ and the swamp king had the pin's way walked in the boss's
+  fall while the arena's gates swung open (the 1.11 mechanism, trail markers
+  above): `REWALK_GAP` walks it again. `tools/stuck_check.gd` plays every
+  chapter through and holds the way reaching the player after each boss.
 
 ## Between chapters (pass 15)
 

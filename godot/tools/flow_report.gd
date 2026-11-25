@@ -10,14 +10,15 @@
 ## shows its before and after with it.
 ##
 ##   godot --headless --path godot --script res://tools/flow_report.gd -- run
-##       [diff=1] [skill=1] [seed=1] [hound=1] [chapters=a,b] [director=0] out=<file.jsonl>
+##       [diff=1] [skill=1] [seed=1] [hound=1] [chapters=a,b] [director=0] [lead=0] out=<file.jsonl>
 ##   godot --headless --path godot --script res://tools/flow_report.gd -- report
 ##       in=<file, files a,b or a dir> [md=<file>]
 ##
 ## run: one campaign, a line of JSON an attempt. `director=0` plays with the
 ## director off (DirectorData.ON) for a side by side on the same build. Each
 ## process wants its own APPDATA and LOCALAPPDATA when several run at once
-## (the boss checkpoint lives in the cache folder). About two to four minutes
+## (the boss checkpoint lives in the cache folder). `lead=0`: BLUE never
+## leads the way (HoundLead.ON), for a side by side. About two to four minutes
 ## a campaign on the desktop.
 ## (Keep _play_chapter in step with balance.gd's: what a death goes back to.)
 extends SceneTree
@@ -58,6 +59,8 @@ func _run() -> void:
 		return
 	if args.get("director", "1") == "0" and ResourceLoader.exists(DIRECTOR_DATA):
 		load(DIRECTOR_DATA).set("ON", false)
+	if args.get("lead", "1") == "0":
+		HoundLead.ON = false  # pass 15: BLUE never leads the way
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame

@@ -24,6 +24,7 @@ static func tables(source: String) -> String:
 	out.append(_deaths(rows))
 	out.append(_kinds(rows))
 	out.append(_director(rows))
+	out.append(_lost(rows))
 	return "\n".join(out)
 
 
@@ -546,3 +547,34 @@ static func _director(rows: Array) -> String:
 		t.append("| (director off or absent) | | | | | | |")
 	t.append("")
 	return "\n".join(t)
+
+
+## Pass 15 (BLUE AND LOOPS): per chapter, over every attempt: lost episodes
+## (the pin's way no shorter for 30 s, nothing hot) and their seconds past
+## the 30, backtracking seconds, seconds BLUE spent leading the way.
+static func _lost(rows: Array) -> String:
+	var out := PackedStringArray()
+	out.append("### Lost and backtracking (pass 15; every attempt, sums a run)")
+	out.append("")
+	out.append("| chapter | lost episodes | lost s past 30 | backtrack s | BLUE leading s |")
+	out.append("| --- | --- | --- | --- | --- |")
+	var runs := maxi(1, _runs(rows))
+	for chapter: String in Campaign.ORDER:
+		var mine := _in(rows, chapter)
+		if mine.is_empty():
+			continue
+		var sums := [0.0, 0.0, 0.0, 0.0]
+		for r: Dictionary in mine:
+			var f: Dictionary = r.get("flow", {})
+			sums[0] += float(f.get("lost30_n", 0))
+			sums[1] += float(f.get("lost30_s", 0.0))
+			sums[2] += float(f.get("backtrack", 0.0))
+			sums[3] += float(f.get("lead", 0.0))
+		out.append(
+			(
+				"| %s | %.2f | %.1f | %.1f | %.1f |"
+				% [chapter, sums[0] / runs, sums[1] / runs, sums[2] / runs, sums[3] / runs]
+			)
+		)
+	out.append("")
+	return "\n".join(out)

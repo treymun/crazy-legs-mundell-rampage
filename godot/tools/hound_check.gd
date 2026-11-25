@@ -34,6 +34,11 @@
 ## at a hand round a corner, wags round a still. VOICE: he pants after a run
 ## and shakes off back on his feet; his barks dealt at random, never twice
 ## running. tools/hound_walk_check.gd walks every chapter with him.
+## Pass 15: LEAD: a player held still away from the objective 30 s and he
+## goes onto the way ahead within 3 s, out of the line of fire, points and
+## barks, Mundell says it once, the tip; he goes on as they come, a fight
+## or getting back on the way ends it, never in a fight; a snapshot carries
+## the job; with HOUND DOG off the pin pulses and Mundell says his line.
 extends SceneTree
 
 const STEP := 1.0 / 60.0
@@ -91,7 +96,8 @@ func _run() -> void:
 		"feedback",
 		"legs",
 		"moods",
-		"voice"
+		"voice",
+		"lead"
 	]:
 		print("\n" + part.to_upper())
 		call("_" + part)
@@ -1224,3 +1230,171 @@ func _play(id: String) -> void:
 		)
 	)
 	print("  ticks by state %s, the most he fell behind %.1f" % [states, lag])
+
+
+# ------------------------------------------------------------------ pass 15
+
+
+## A game with its hands kept but every one asleep but the bosses and
+## Bessie (calm, the objective as the level has it, and a hand to wake).
+func _calm_game(hound := true) -> Game:
+	var g := _game("hickston", hound, true)
+	for e: Enemy in g.enemies:
+		if not Enemy.BOSS_TITLES.has(e.kind) and e != g.bessie and e.hostile:
+			e.dormant = true
+	return g
+
+
+## One of the sleeping hands woken at `at`, after the player.
+func _wake_one(g: Game, at: Vector2) -> Enemy:
+	for e: Enemy in g.enemies:
+		if e.dormant and e.hostile and not e.swims and e.tactical():
+			e.dormant = false
+			e.x = at.x
+			e.y = at.y
+			e.floor_z = g.world.elevation(at.x, at.y)
+			e.alerted = true
+			e.mind = null
+			return e
+	return null
+
+
+func _lead() -> void:
+	var g := _calm_game()
+	_tick(g, 2)
+	var h := _hound(g)
+	var d := _dog(g)
+	var p := g.player
+	var lead := HoundLead.of(h)
+	var start := lead.steps_at(g, p)
+	_check(
+		start > 20 and start < FlowField.FAR,
+		"the way to the objective is walked (%d steps)" % start
+	)
+	var led_at := -1.0
+	while g.clock < 31.5:
+		_tick(g, 1)
+		if led_at < 0.0 and d.job == Hound.LEAD:
+			led_at = g.clock
+	_check(
+		led_at >= HoundLead.n("lead_after") and led_at <= 31.5,
+		"held still and no nearer for 30 s, BLUE takes the lead (at %.1f s)" % led_at
+	)
+	while g.clock < led_at + 3.0:
+		_tick(g, 1)
+	var ahead := lead.field.distance(d.x, d.y, d.floor_z)
+	_check(
+		d.job == Hound.LEAD and ahead < start - 3,
+		"within 3 s he is on the way ahead (%d steps from it to his %d)" % [start, ahead]
+	)
+	var arrived := -1.0
+	while g.clock < led_at + 6.0:
+		_tick(g, 1)
+		if arrived < 0.0 and d.job == Hound.LEAD and d.until > 0.0:
+			arrived = g.clock
+	var his := lead.field.distance(d.x, d.y, d.floor_z)
+	_check(
+		arrived > 0.0 and his < start and his >= start - 12,
+		"he stops down it (%d steps, %.1f s after he set off)" % [his, arrived - led_at]
+	)
+	_check(
+		HoundLegs.in_sights(g, d, h.n("clear_reach"), h.n("clear_cone")) == null,
+		"his stop is out of the line of fire"
+	)
+	var frame: String = HoundLooks.pose(h, d)[0]
+	_check(frame == "point" or frame == "bark", "he points the way (%s)" % frame)
+	_check(HoundLooks.job(h, d) == "LEADIN'", "the badge says LEADIN' (%s)" % HoundLooks.job(h, d))
+	_check(g.barks.last_at.has("lost"), "Mundell says his word once")
+	_check(Lessons.words(g, "lead") == "BLUE'LL SHOW YA. FOLLOW HIM.", "the tip's words")
+	# Snapshot mid-lead onto a fresh game: both go on alike.
+	var snap := GameSnapshot.capture(g)
+	var copy := _calm_game()
+	GameSnapshot.apply(copy, snap)
+	var cd := _dog(copy)
+	_check(cd != null and cd.job == Hound.LEAD, "a snapshot carries the job")
+	var near := Vector2(d.x, d.y) + (Vector2(p.x, p.y) - Vector2(d.x, d.y)).normalized() * 1.2
+	var was_goal := d.goal
+	for game: Game in [g, copy]:
+		Modes.place(game, game.player, near.x, near.y, game.player.angle)
+	var parted := false
+	for t in 60 * 3:
+		_tick(g, 1)
+		_tick(copy, 1)
+		var a := _dog(g)
+		var b := _dog(copy)
+		if absf(a.x - b.x) + absf(a.y - b.y) > .0001 or a.job != b.job:
+			parted = true
+	_check(not parted, "the copy and the game lead alike")
+	var further := (
+		lead.field.distance(d.goal.x, d.goal.y, d.floor_z) if d.goal != Vector2.INF else 0
+	)
+	_check(
+		d.job == Hound.LEAD and d.goal != was_goal and further < his,
+		"his player come near, he goes on another stretch (%d steps left at it)" % further
+	)
+	# A hand awake near ends it, within a look.
+	var foe := _wake_one(g, Vector2(p.x + 3.0, p.y))
+	foe.stun = 10.0
+	_tick(g, 40)
+	_check(d.job != Hound.LEAD, "a hand awake near ends it")
+	# Never in a fight: a hand on the player the whole time, no lead.
+	var f2 := _calm_game()
+	_tick(f2, 2)
+	var awake := _wake_one(f2, Vector2(f2.player.x + 4.0, f2.player.y))
+	var ever := false
+	while f2.clock < 34.0:
+		awake.stun = 1.0
+		awake.hp = awake.max_hp
+		_tick(f2, 1)
+		if _dog(f2).job == Hound.LEAD:
+			ever = true
+	_check(not ever, "never with a hand awake near (a fight)")
+	# Back on the way: the player taken well down it ends it.
+	var g3 := _calm_game()
+	_tick(g3, 2)
+	var l3 := HoundLead.of(_hound(g3))
+	while g3.clock < 32.0:
+		_tick(g3, 1)
+	var d3 := _dog(g3)
+	var on := l3.field.waypoint(g3.player.x, g3.player.y, int(HoundLead.n("lead_gain")) + 3)
+	Modes.place(g3, g3.player, on.x, on.y, g3.player.angle)
+	_tick(g3, 40)
+	_check(
+		d3.job != Hound.LEAD and d3.lead_best >= 0,
+		"getting back on the way ends it (%d steps now)" % d3.lead_best
+	)
+	# Co-op: each hound leads his own player, down his own player's way.
+	var g5 := _calm_game()
+	Modes.setup(g5, Modes.COOP, 2)
+	_tick(g5, 2)
+	var q5: Player = g5.players[1]
+	var away := _spot(g5, q5.x, q5.y, 6.0)
+	# (each looking away from the other: a partner's sights send a hound aside)
+	var p5: Player = g5.players[0]
+	var apart := atan2(away.y - p5.y, away.x - p5.x)
+	Modes.place(g5, q5, away.x, away.y, apart)
+	Modes.place(g5, p5, p5.x, p5.y, apart + PI)
+	var l5 := HoundLead.of(_hound(g5))
+	while g5.clock < 36.0:
+		_tick(g5, 1)
+	var both := true
+	for slot in 2:
+		var dg := _dog(g5, slot)
+		var pl: Player = g5.players[slot]
+		var mine := l5.field.distance(dg.x, dg.y, dg.floor_z)
+		var theirs := l5.field.distance(pl.x, pl.y, g5.world.stand(pl))
+		if dg.job != Hound.LEAD or mine >= theirs:
+			both = false
+		elif Vector2(dg.x - pl.x, dg.y - pl.y).length() > HoundLead.n("lead_reach") + 3.0:
+			both = false
+	_check(both, "co-op: each hound leads his own player")
+	# HOUND DOG off: the pin pulses and Mundell says his line.
+	var g4 := _calm_game(false)
+	_tick(g4, 2)
+	var pulsed := false
+	while g4.clock < 33.0:
+		_tick(g4, 1)
+		if HoundLead.pulse(g4) > 0.0:
+			pulsed = true
+	_check(pulsed, "with HOUND DOG off the pin pulses once stuck")
+	_check(g4.barks.last_at.has("lost_pin"), "and Mundell says the pin's line")

@@ -681,6 +681,11 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 	var x := clampi(int(160.0 + side * 116.0), layout.pin_swing.x, layout.pin_swing.y)
 	var y := top + 1 + int(roundf(sin(game.clock * 4.2) * .6 + .4))
 	var label := str(int(distance))
+	# Pass 15: stuck with HOUND DOG off, the pin jumps and blinks its brackets.
+	var pulse := HoundLead.pulse(game)
+	if pulse > 0.0:
+		y += int(roundf(pulse * 2.0))
+		_pin_pulse(c, x, y, pulse)
 	if c.gpu:
 		# On a Godot 2D canvas every rect is a command: the arrow and the plate
 		# are drawn once in software (as below, pixel for pixel) and shown as
@@ -696,6 +701,19 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 		return
 	_pin_arrow(c, x, y, rel)
 	_pin_plate(c, x, y + 14, label)
+
+
+## Chalk-green brackets round the pin (pass 15, HoundLead.pulse), `k` 0..1.
+func _pin_pulse(c: Canvas, x: int, y: int, k: float) -> void:
+	if k < .35:
+		return
+	var ink := Lessons.INK
+	for sx: int in [-1, 1]:
+		var ex := x + sx * 11
+		c.fill_rect(mini(ex, ex - sx * 3), y - 2, 4, 1, ink)
+		c.fill_rect(ex, y - 2, 1, 5, ink)
+		c.fill_rect(mini(ex, ex - sx * 3), y + 13, 4, 1, ink)
+		c.fill_rect(ex, y + 10, 1, 4, ink)
 
 
 ## The objective pin's pictures for a Godot 2D canvas, by shape and label: the

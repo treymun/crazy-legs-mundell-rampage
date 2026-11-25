@@ -445,6 +445,18 @@ fixes everything" with a "Yeah," before it (both cut off at the caption's
 words by audio_build); "Locked tight. Figures." was heard "Lock tight,
 figures" (`heard`). 70 credits (79,114 to 79,184). Not listened to.
 
+### Pass 15: Mundell turned around (2026-11-25)
+
+Four lines in his voice, said once a stuck spell (`src/hound_lead.gd`;
+barks.gd and mundell_lines.json `lost`, `lost_pin`; cues `mundell_lost_0`,
+`_1`, `mundell_lost_pin_0`, `_1`): with BLUE showing the way "Blue knows
+the way." and "Foller the hound, dummy.", with HOUND DOG off and the pin
+pulsing "Turned around again. Mind the arrow." and "I know these parts.
+Mostly." Three matched as made ("Yeah," before the first, cut off at the
+caption's words); "Foller" was heard "Follow" (`MUNDELL_HEARD`). 149 credits
+(79,361 to 79,510: 106 for the takes, 48 for the transcripts, 5 given back
+at the reconcile). Not listened to.
+
 ## The county events' sounds (content pass 8)
 
 The county events ([gameplay.md](gameplay.md#county-events-content-pass-8),

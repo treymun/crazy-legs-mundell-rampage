@@ -1271,6 +1271,7 @@ MUNDELL_HEARD = {
     "mundell_hound_hush_1": "Blue, quit that hollering",
     "mundell_hound_shot_0": "Get out of my sights, Blue",
     "mundell_tip_locked_0": "Lock tight, figures",
+    "mundell_lost_1": "Follow the hound, dummy",
 }
 # Where the voice needs the words spelt as said (BLUE's "sic 'em").
 MUNDELL_SAY = {

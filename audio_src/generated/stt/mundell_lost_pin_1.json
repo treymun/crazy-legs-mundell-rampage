@@ -1,0 +1,30 @@
+{
+ "text": "I know these parts mostly.",
+ "words": [
+  {
+   "text": "I",
+   "start": 0.26,
+   "end": 0.3
+  },
+  {
+   "text": "know",
+   "start": 0.36,
+   "end": 0.56
+  },
+  {
+   "text": "these",
+   "start": 0.62,
+   "end": 0.9
+  },
+  {
+   "text": "parts",
+   "start": 0.96,
+   "end": 1.36
+  },
+  {
+   "text": "mostly.",
+   "start": 1.44,
+   "end": 2.12
+  }
+ ]
+}

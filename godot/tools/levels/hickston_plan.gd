@@ -56,7 +56,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 8,
+		"layout": 9,
 		"sky": "sky",
 		# A riding mower on the chapel path by the graveyard (features/vehicles.gd).
 		"vehicles": [["mower", 79.0, 59.5, 0.0]],
@@ -96,7 +96,20 @@ func build(_b) -> Array:
 	new_iron()
 	Climbs.hickston(b)
 	SetPieces.hickston(b)
+	loops()
 	return [7.5, 69.5, 0.0]
+
+
+## Pass 15's loop (last, so every older door keeps its place in the list):
+## the rodeo's back gate in the registry fence, barred on the rodeo side, the
+## short way back to town (82 to 136 steps less than round by the hog field).
+func loops() -> void:
+	b.door(
+		100,
+		22,
+		false,
+		{"from": "s", "id": "rodeo-back-gate", "tile": "door_barred", "bar": "n", "roof": 0.0}
+	)
 
 
 ## The guns a first-time player walks past (feature pass 7, src/gun_finder.gd):

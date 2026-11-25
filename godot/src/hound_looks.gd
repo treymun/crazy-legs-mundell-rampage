@@ -124,7 +124,15 @@ const JOBS := [
 	"RIDIN'"
 ]
 const FOLLOW_JOBS := [
-	"HEELIN'", "RANGIN'", "SNIFFIN'", "CIRCLIN'", "HUSTLIN'", "DODGIN'", "TRAILIN'", "WAITIN'"
+	"HEELIN'",
+	"RANGIN'",
+	"SNIFFIN'",
+	"CIRCLIN'",
+	"HUSTLIN'",
+	"DODGIN'",
+	"TRAILIN'",
+	"WAITIN'",
+	"LEADIN'"
 ]
 ## His mood words on the badge for Dog.mood (Hound.MOODS: calm, happy,
 ## alert, scared, sulking, hurt), with their inks.
@@ -252,6 +260,8 @@ static func pose(h: Game.HoundScript, d: Game.HoundScript.Dog) -> Array:
 		return ["fetch", 0.0]
 	if now - d.bark_at < .3:
 		return ["bark", 0.0]
+	if d.state == Game.HoundScript.FOLLOW and d.job == Game.HoundScript.LEAD and d.until > 0.0:
+		return ["point", 0.0]  # pass 15: at a stop down the way, showing it
 	if p != null and p.health <= 0:
 		return ["rest", 0.0]
 	if sore:

@@ -174,6 +174,8 @@ static func _door_ahead(e: Enemy, game: Game) -> LevelData.Door:
 	for door: LevelData.Door in w.near_doors.get(Vector2i(int(e.x), int(e.y)), []):
 		if door.opened or door.progress > .05 or door.secret or door.blast_only:
 			continue
+		if door.bar_side != 0:
+			continue  # a barred shortcut (pass 15) is the player's
 		if door.key != "" or w.controlled_doors.has(Vector2i(door.x, door.y)):
 			continue
 		if w.crouch_doors.has(Vector2i(door.x, door.y)):

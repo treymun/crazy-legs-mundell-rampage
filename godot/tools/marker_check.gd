@@ -671,8 +671,9 @@ func _saves() -> void:
 		),
 		"its markers' state comes back with it (%d taken)" % f.count
 	)
+	# (v10: made before the markers; pass 15 remade v11's with them in)
 	var old := SessionStore.read(
-		"res://tools/saves/v11_hickston_fight.json", Callable(main, "make_game")
+		"res://tools/saves/v10_hickston_fight.json", Callable(main, "make_game")
 	)
 	check(
 		old != null and _feature(old).last_at < 0.0 and _feature(old).token == "",

@@ -24,6 +24,18 @@ class Door:
 	var texture: String = ""
 	var material: int = 0
 	var id: String = ""
+	## Pass 15 (the loops): barred on one side, -1 the west (vertical) or north
+	## side, 1 the east or south, 0 a plain door. It opens only from that side
+	## (kicked open, the bar busted: it stays open); from the other, never.
+	var bar_side: int = 0
+
+	## Whether (px, py) stands on the side of a barred door it will not open
+	## from (false for a door with no bar, or one already open).
+	func barred_from(px: float, py: float) -> bool:
+		if bar_side == 0 or opened:
+			return false
+		var off := px - x - .5 if vertical else py - y - .5
+		return off * bar_side <= 0.0
 
 	## Mirrors level_hickston.Door.segment(); an empty array means fully open.
 	func segment() -> PackedFloat32Array:
@@ -730,12 +742,53 @@ func visible(
 func move(body: Variant, dx: float, dy: float, radius: float, occupied: Variant = null) -> void:
 	var start_x: float = body.x
 	var start_y: float = body.y
-	if _can_walk(body, start_x + dx, start_y, radius, occupied):
+	if (
+		_can_walk(body, start_x + dx, start_y, radius, occupied)
+		or _walks_out(body, start_x + dx, start_y, radius, occupied)
+	):
 		body.x += dx
-	if _can_walk(body, _float(body.x), start_y + dy, radius, occupied):
+	if (
+		_can_walk(body, _float(body.x), start_y + dy, radius, occupied)
+		or _walks_out(body, _float(body.x), start_y + dy, radius, occupied)
+	):
 		body.y += dy
 	if geo != null:
 		geo.settle(self, body, radius)
+
+
+## A player caught in a piece of furniture where they stand (put or shoved
+## there; pass 15: a bot stood 660 s on the bayou's lagoon bank inside the
+## square a dock piling blocks, every first small step out refused) walks out
+## of it: a step that goes less deep into what holds them, and into nothing
+## else (tested a hair narrower than that depth). Only asked when the step
+## was refused, so play that never gets caught is unchanged.
+func _walks_out(body: Variant, x: float, y: float, radius: float, occupied: Variant) -> bool:
+	if not (body is Player):
+		return false
+	var p: Player = body
+	var feet := p.floor_z + p.air
+	var was := _caught_depth(p.x, p.y, radius, feet)
+	if was <= 0.0:
+		return false
+	var now := _caught_depth(x, y, radius, feet)
+	if now >= was:
+		return false
+	return _can_walk(body, x, y, radius - now - .002, occupied)
+
+
+## How deep a body of `radius` at (x, y) (feet at `feet`) stands in the
+## furniture round it: the most, over the pieces it meets, of the lesser of
+## its two overlaps (blocked()'s square test); 0 when it meets none.
+func _caught_depth(x: float, y: float, radius: float, feet: float) -> float:
+	var deepest := 0.0
+	for fixture: PackedFloat32Array in near_fixtures.get(Vector2i(int(x), int(y)), NOTHING):
+		if feet >= fixture[4] or feet + LevelGeometry.BODY <= fixture[7]:
+			continue
+		var over_x := minf(x + radius - fixture[0], fixture[2] + radius - x)
+		var over_y := minf(y + radius - fixture[1], fixture[3] + radius - y)
+		if over_x > 0.0 and over_y > 0.0:
+			deepest = maxf(deepest, minf(over_x, over_y))
+	return deepest
 
 
 ## Gator Bayou's deep channels: nobody wades in (a body already in one may

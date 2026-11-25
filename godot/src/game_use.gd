@@ -44,7 +44,11 @@ static func use_target(g: Game) -> Variant:
 	for door: LevelData.Door in g.world.doors:
 		if (
 			door.opened
-			and (door.blast_only or g.world.controlled_doors.has(Vector2i(door.x, door.y)))
+			and (
+				door.blast_only
+				or door.bar_side != 0
+				or g.world.controlled_doors.has(Vector2i(door.x, door.y))
+			)
 		):
 			continue
 		var centre := door.center()
@@ -275,6 +279,12 @@ static func use_prompt(g: Game) -> String:
 		)
 	if door.blast_only:
 		return "POWDER STORE  /  BLAST PANEL"
+	if door.bar_side != 0 and not door.opened:
+		# Pass 15's loops: a shortcut barred on the far side.
+		var p: Player = g.player
+		return (
+			"BARRED FROM THE OTHER SIDE" if door.barred_from(p.x, p.y) else "E  KICK THE BAR LOOSE"
+		)
 	if door.key != "" and not g.keys.has(door.key):
 		return "BRASS KEY NEEDED" if door.key.ends_with("brass") else "STEEL KEY NEEDED"
 	if door.secret and not door.discovered:
@@ -409,6 +419,9 @@ static func interact(g: Game) -> void:
 		g.message("POWDER STORE. THAT PANEL NEEDS DYNAMITE.", 2.65)
 		g.sound.play("empty", .56)
 		return
+	if door.bar_side != 0 and not door.opened:
+		_bar_kick(g, door)
+		return
 	if (
 		g.world.crouch_doors.has(Vector2i(door.x, door.y))
 		and not g.player.crouched
@@ -494,3 +507,24 @@ static func gate_prompt(g: Game) -> String:
 		return gate_text(g, gate)
 	var clue: Variant = hub_clue(g) if g.in_hub else null
 	return "E  " + str(clue[3]) if clue != null else ""
+
+
+## A barred door (pass 15's loops): from its bar's side the boot busts the bar
+## and it bangs open for good, a way back; from the other it will not give.
+static func _bar_kick(g: Game, door: LevelData.Door) -> void:
+	var p: Player = g.player
+	var c := door.center()
+	if door.barred_from(p.x, p.y):
+		g.message("BARRED FROM THE OTHER SIDE. AIN'T BUDGIN'.", 2.4)
+		g.sound_at("body_thud", c.x, c.y, .55)
+		return
+	var brawl: Game.BrawlScript = g.features.get("brawl")
+	if brawl != null and brawl.allowed():
+		var ready: float = brawl.kick_ready.get(p.slot, 0.0)
+		if not brawl.busy(p) and g.clock >= ready:
+			brawl.kick(p, 0, g.world.doors.find(door))
+		return
+	g.toggle_door(door, true)
+	door.progress = 1.0
+	g.sound_at("break_crate", c.x, c.y, .9)
+	g.sound_at("cover_slam", c.x, c.y, .8)

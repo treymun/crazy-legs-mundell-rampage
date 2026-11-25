@@ -273,6 +273,7 @@ func _door_ahead(p: Player) -> int:
 		or door.progress > 0.0
 		or door.secret
 		or door.blast_only
+		or door.barred_from(p.x, p.y)
 		or (door.key != "" and not game.keys.has(door.key))
 		or game.world.controlled_doors.has(Vector2i(door.x, door.y))
 		or game.world.crouch_doors.has(Vector2i(door.x, door.y))

@@ -146,6 +146,8 @@ const TIPS := {
 		"all":
 		"A LITTLE DRINK TAKES THE EDGE OFF HITS. TOO MUCH AND THE WORLD WOBBLES. IT WEARS OFF.",
 	},
+	# Pass 15: BLUE leading the way (src/hound_lead.gd).
+	"lead": {"all": "BLUE'LL SHOW YA. FOLLOW HIM."},
 }
 const ORDER := [
 	"fire",
@@ -167,6 +169,7 @@ const ORDER := [
 	"badge",
 	"gut",
 	"drunk",
+	"lead",
 ]
 ## Tips that wait out a fight (no hand after the player in sight).
 const QUIET := ["hound", "guns", "pockets", "scrap", "badge", "bench", "carry"]
@@ -307,6 +310,8 @@ static func _due(game: Game, id: String) -> bool:
 			return p.gut >= 66.0
 		"drunk":
 			return p.drunk >= 38.0
+		"lead":
+			return _dog_job(game) == Game.HoundScript.LEAD
 	return false
 
 
@@ -408,6 +413,13 @@ static func _dog_health(game: Game) -> float:
 		return -1.0
 	var d: Game.HoundScript.Dog = hound.dog_of(game.player)
 	return d.health if d != null else -1.0
+
+
+## BLUE's job beside the player (Hound.JOBS), -1 when he is not along.
+static func _dog_job(game: Game) -> int:
+	var hound: Game.HoundScript = game.features.get("hound")
+	var d: Game.HoundScript.Dog = hound.dog_of(game.player) if hound != null else null
+	return d.job if d != null and d.state == Game.HoundScript.FOLLOW else -1
 
 
 static func _has_food(game: Game) -> bool:

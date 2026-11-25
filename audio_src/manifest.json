@@ -45281,6 +45281,174 @@
    },
    "validation": "ok"
   },
+  "mundell_lost_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_lost_0.mp3",
+   "prompt": "Blue knows the way.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_lost_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.34,
+     1.88
+    ],
+    "natural_seconds": 1.671,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.73
+   },
+   "measured": {
+    "seconds": 1.73,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0037,
+    "onset_ms": 31.7,
+    "centroid_hz": 1416,
+    "end_db": -157.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_lost_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_lost_1.mp3",
+   "prompt": "Foller the hound, dummy.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/mundell_lost_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.62
+    ],
+    "natural_seconds": 1.65,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.744
+   },
+   "measured": {
+    "seconds": 1.744,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0012,
+    "onset_ms": 19.2,
+    "centroid_hz": 1662,
+    "end_db": -100.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_lost_pin_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_lost_pin_0.mp3",
+   "prompt": "Turned around again. Mind the arrow.",
+   "credits": 36,
+   "destination": "audio_src/final/sfx/mundell_lost_pin_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.38
+    ],
+    "natural_seconds": 2.198,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.337
+   },
+   "measured": {
+    "seconds": 2.337,
+    "peak_db": -0.8,
+    "loud_db": -6.6,
+    "dc": 0.0,
+    "onset_ms": 3.1,
+    "centroid_hz": 1880,
+    "end_db": -154.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_lost_pin_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_lost_pin_1.mp3",
+   "prompt": "I know these parts. Mostly.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/mundell_lost_pin_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.26,
+     2.12
+    ],
+    "natural_seconds": 1.987,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.05
+   },
+   "measured": {
+    "seconds": 2.05,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1457,
+    "end_db": -152.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "metal_down": {
    "purpose": "no runtime reference (superseded by actor_*_down)",
    "refs": [],
@@ -62779,6 +62947,10 @@
   "mundell_tip_ride_0",
   "mundell_tip_bench_0",
   "mundell_tip_locked_0",
+  "mundell_lost_0",
+  "mundell_lost_1",
+  "mundell_lost_pin_0",
+  "mundell_lost_pin_1",
   "cuss_coot_brawl_0_clean",
   "cuss_coot_brawl_1_clean",
   "cuss_coot_cover_0_clean",

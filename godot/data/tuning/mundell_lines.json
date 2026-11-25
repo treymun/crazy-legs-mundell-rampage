@@ -199,6 +199,8 @@
 		"tip_carry": ["If it ain't nailed down, chuck it."],
 		"tip_ride": ["She ain't purty, but she runs."],
 		"tip_bench": ["Duct tape fixes everything."],
-		"tip_locked": ["Locked tight. Figures."]
+		"tip_locked": ["Locked tight. Figures."],
+		"lost": ["Blue knows the way.", "Foller the hound, dummy."],
+		"lost_pin": ["Turned around again. Mind the arrow.", "I know these parts. Mostly."]
 	}
 }

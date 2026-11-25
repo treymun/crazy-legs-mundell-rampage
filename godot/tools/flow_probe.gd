@@ -79,6 +79,19 @@ var peak_hands := 0
 ## Each peak: [s into the attempt, hands, why, s it lasted]; hands held at the start.
 var peak_rows: Array = []
 var held_start := -1
+## Pass 15 (BLUE AND LOOPS): lost as the audit counted it (the pin's way no
+## shorter for 30 s with nothing hot: episodes and seconds past the 30),
+## backtracking (walking, nothing hot, in a 2x2 block last stood in 15 s or
+## more ago), and BLUE leading the way (HoundLead).
+var lost_n := 0
+var lost_s := 0.0
+var lost_best := FlowField.FAR
+var lost_at := 0.0
+var lost_in := false
+var lost_goal := Vector2.INF
+var t_back := 0.0
+var t_lead := 0.0
+var cell_last := {}
 var _phase_was := ""
 var _links: Array = []
 
@@ -312,8 +325,42 @@ func after() -> void:
 			_end_fight()
 		if moved:
 			t_walk += STEP
+			var back: float = cell_last.get(Vector2i(int(p.x / 2.0), int(p.y / 2.0)), -1.0)
+			if back >= 0.0 and now - back > 15.0:
+				t_back += STEP
 		else:
 			t_idle += STEP
+	cell_last[Vector2i(int(p.x / 2.0), int(p.y / 2.0))] = now
+	_lost(now, hot)
+
+
+## The audit's lost: read off Game.route as it stands (never walked here: the
+## bot's own asking walks it, as before).
+func _lost(now: float, hot: bool) -> void:
+	var hound: Object = g.features.get("hound")
+	if hound != null and bool(hound.get("on")):
+		var d: Object = hound.call("dog_of", g.player)
+		if d != null and int(d.get("job")) == 8 and int(d.get("state")) == 0:
+			t_lead += STEP
+	var goal: Variant = g.objective_target()
+	if goal == null or g.route == null:
+		return
+	var at: Vector2 = goal
+	var steps := g.route.distance(g.player.x, g.player.y, g.world.stand(g.player))
+	if at.distance_to(lost_goal) > .5:
+		lost_goal = at
+		lost_best = steps
+		lost_at = now
+		lost_in = false
+	elif steps < lost_best or hot:
+		lost_best = mini(lost_best, steps)
+		lost_at = now
+		lost_in = false
+	elif now - lost_at > 30.0:
+		if not lost_in:
+			lost_in = true
+			lost_n += 1
+		lost_s += STEP
 
 
 ## Hit ticks: a hostile's health went down while the player had fired lately.
@@ -395,6 +442,10 @@ func finish(row: Dictionary, outcome: String) -> void:
 	row["flow"] = {
 		"fight": snappedf(t_fight, .1),
 		"walk": snappedf(t_walk, .1),
+		"lost30_n": lost_n,
+		"lost30_s": snappedf(lost_s, .1),
+		"backtrack": snappedf(t_back, .1),
+		"lead": snappedf(t_lead, .1),
 		"idle": snappedf(t_idle, .1),
 		"dry": snappedf(t_dry, .1),
 		"melee_hot": snappedf(t_melee, .1),

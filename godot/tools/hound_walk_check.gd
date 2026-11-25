@@ -71,6 +71,9 @@ func _check(ok: bool, text: String) -> void:
 
 
 func _run() -> void:
+	# His legs alone: leading the way (HoundLead, hound_check LEAD) stands him
+	# at a stop on purpose, which this walk would count as stuck.
+	HoundLead.ON = false
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
