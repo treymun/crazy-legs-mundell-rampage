@@ -69,6 +69,19 @@ func tally_rows() -> Array:
 	return []
 
 
+## A trail marker (features/trail_marker.gd) is a whole save, so what save()
+## keeps comes back with it by itself. These two are for a feature with a say
+## in when: false holds a marker back for now (a director's peak under way,
+## say: it is taken when this says yes); marker_back() runs on the game just
+## loaded from one, before play goes on (each player's floor already given).
+func marker_ready() -> bool:
+	return true
+
+
+func marker_back() -> void:
+	pass
+
+
 ## This machine's own shot shown ahead of the game (an online client's
 ## prediction, src/net/net_shot_predict.gd): the gun going off, a round's line
 ## ending at `end` on `struck` (as `traced` says), a reload starting. The

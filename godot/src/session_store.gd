@@ -472,6 +472,13 @@ static func _write_atomic(path: String, text: String) -> bool:
 
 
 static func save(game: Game, path: String, manual: Variant = null) -> bool:
+	return write_document(path, document(game, manual))
+
+
+## The save save() writes, as a document: player one's, with the chapters
+## retained and `manual` when given (chapter_marks.gd writes a trail marker's
+## on a worker thread from a deep copy of it).
+static func document(game: Game, manual: Variant = null) -> Dictionary:
 	# Player one's save, whoever this machine shows (watching a partner) or
 	# whoever is acting.
 	var acting := game.player
@@ -497,6 +504,11 @@ static func save(game: Game, path: String, manual: Variant = null) -> bool:
 			doc["retained"] = retained
 	if manual is Dictionary:
 		doc["manual"] = manual
+	return doc
+
+
+## A document() written to `path` (it reads nothing but `doc`).
+static func write_document(path: String, doc: Dictionary) -> bool:
 	return _write_atomic(path, JSON.stringify(doc, "", false))
 
 

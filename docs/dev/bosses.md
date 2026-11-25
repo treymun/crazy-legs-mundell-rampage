@@ -438,7 +438,12 @@ hands back the moment the boss falls, under the end sting (the boss ending).
   and 24 rounds for the revolver, 12 for the shotgun when carried,
   `retry_floor`; polish pass 9, after the balance bot walked into Hickston's
   fights dry and at 40 health and died again within seconds every retry) and RELOAD's key starts the chapter over. A win clears
-  it, another chapter's start clears it.
+  it, another chapter's start clears it. Since pass 15 the files are kept by
+  `src/chapter_marks.gd` (`boss_door.gd` is a thin wrapper over it), beside
+  the trail markers ([gameplay.md](gameplay.md#trail-markers-pass-15)): no
+  marker is taken near an awake boss or once its checkpoint is taken, so
+  RETRY THE FIGHT stays the way back in a boss fight, and the death
+  screen's ENTER (`main_flow.gd retry_death`) offers it first.
 - **BOSS REMATCH.** The title's BOSS REMATCH (`boss_rematch.gd`,
   `features/boss_rematch.gd`) loads a beaten chapter with only that boss,
   every station done and door open, the `GUNS` table full and the player

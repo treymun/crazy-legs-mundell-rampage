@@ -416,6 +416,16 @@ static func build() -> Array:
 				),
 				(
 					SessionStore
+					. choices(
+						"CHECKPOINTS",
+						"checkpoints",
+						0,
+						["TRAIL MARKERS", "BOSSES ONLY"],
+						"A DEATH PICKS UP AT THE LAST TRAIL MARKER. BOSSES ONLY: THE CHAPTER'S START, AS OF OLD"
+					)
+				),
+				(
+					SessionStore
 					. toggle(
 						"BOSS ARENAS WRECK",
 						"boss_wrecks",

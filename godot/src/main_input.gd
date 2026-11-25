@@ -6,7 +6,14 @@ extends MainFlow
 
 ## pad_dir while a direction held from before must be let go first.
 const PAD_WAIT := Vector2i(2, 2)
-const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
+
+
+## Whether the death screen offers a way back into the chapter short of its
+## start: RETRY THE FIGHT or BACK TO THE MARKER.
+func _picked_up(target: Game) -> bool:
+	var checkpoint: BossCheckpointFeature = target.features.get("boss_checkpoint")
+	var marker: TrailMarkerFeature = target.features.get("trail_marker")
+	return (checkpoint != null and checkpoint.offered()) or (marker != null and marker.offered())
 
 
 ## A switch setting is on (not 0); `fallback` when it may be missing.
@@ -331,16 +338,16 @@ func _key_play(code: int) -> void:
 			continue_campaign()
 	elif target.defeated():
 		var enter := code == KEY_ENTER or code == KEY_KP_ENTER
-		var checkpoint: BossCheckpointFeature = target.features.get("boss_checkpoint")
 		if in_rematch():
 			if enter:
 				var fight: BossRematchFeature = target.features["boss_rematch"]
 				start_rematch(fight.kind, false)
-		elif checkpoint != null and checkpoint.offered() and not target.revisiting:
-			# RETRY THE FIGHT (features/boss_checkpoint.gd); RELOAD's key the
-			# chapter's start, as Enter was.
+		elif _picked_up(target) and not target.revisiting:
+			# RETRY THE FIGHT (features/boss_checkpoint.gd) or BACK TO THE
+			# MARKER (features/trail_marker.gd); RELOAD's key the chapter's
+			# start, as Enter was.
 			if enter:
-				retry_fight()
+				retry_death(target)
 			elif code == KEY_R:
 				restart_chapter(target)
 		elif enter:
@@ -1105,11 +1112,11 @@ func _touch_actions() -> void:
 		and game != null
 		and (game.showing_tally or game.defeated())
 	):
-		# With a boss checkpoint the death screen's second line (TAP HERE) is
-		# the chapter's start, the rest of the screen RETRY THE FIGHT.
-		var checkpoint: BossCheckpointFeature = game.features.get("boss_checkpoint")
+		# With a boss checkpoint or a trail marker the death screen's second
+		# line (TAP HERE) is the chapter's start, the rest of the screen RETRY
+		# THE FIGHT or BACK TO THE MARKER.
 		var lower: bool = picture_point(tap_at).y >= 90
-		if game.defeated() and lower and checkpoint != null and checkpoint.offered():
+		if game.defeated() and lower and _picked_up(game):
 			key(KEY_R)
 		else:
 			key(KEY_ENTER)

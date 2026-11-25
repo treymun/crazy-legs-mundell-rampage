@@ -2940,6 +2940,98 @@ and the new player's first minutes: the fire tip within a second and a half
 of the first fight, no tip twice, the sheriff reached within 300 s on
 NORMAL with at most one death.
 
+## Trail markers (pass 15)
+
+The pass 15 audit: a death outside a boss fight started the chapter over
+from its kit. The ROOKIE bot threw away 107 to 140 s a death, 468 s in one
+Fair, and each of those deaths ended one unbroken fight that began 3 s into
+the chapter: a marker that waits for an objective or a quiet moment would
+have saved nothing.
+
+`features/trail_marker.gd` (a LOOKS feature: it only reads the game) takes
+a **trail marker**, a whole save that `src/chapter_marks.gd` writes to
+`marker-<chapter>[-replay|-party].json` beside the boss checkpoint (put
+together on the tick, about 2 ms of a chapter on the desktop, turned into
+text and written on a worker thread; whatever reads it waits for it):
+
+- on an objective (a station done, a key or task item taken, a vehicle run
+  over, a boss down) and on first standing in a district, once `gap_least`
+  (20 s) has gone since the last;
+- on the clock, `gap_most` (45 s) after the last, fight or no fight;
+- only when it is safe enough (`_safe`): every player up, on the ground
+  (not on a ladder, in deep water or a seat), no lit stick, nobody hurt
+  for `calm_for` (1 s), no awake hand within `clear_reach` (3 cells) and no
+  hostile shot within `shot_reach` (5), no fire at their feet, no boss
+  awake near or in its arena (nor its checkpoint taken: RETRY THE FIGHT is
+  the way back then), no barn creaking or coming down and no flood running,
+  no vehicle run on, and no feature's `marker_ready()` saying no. An
+  objective's or a district's waits `settle_most` (10 s), then leaves it to
+  the clock; a clock's that has waited `press_after` (10 s) is taken on the
+  looser test (`_safe(true)`: nobody hurt for `press_calm`, .5 s, hands near
+  or not). The Fair's grinder had a crawler within a step and a half for
+  its whole last minute: the first cut's marker, waiting for the full test,
+  was 81 s old when the ROOKIE died there.
+
+Numbers in `modes.cfg [marker]`. The death screen ([ui.md](ui.md#the-death-screen))
+offers BACK TO THE MARKER while the file is the one this run took (a token
+in the feature's save, as the boss checkpoint's). `MainFlow.retry_death` is
+its ENTER: RETRY THE FIGHT while a boss checkpoint is offered, else BACK TO
+THE MARKER, else the chapter's start; the balance and onboard bots retry
+through it. Back at a marker (`at_marker`) each player gets `[marker]
+health` (50) and `rounds` for each gun carried (the ROOKIE took 376 to 437
+damage in those fights), `grace` (1.5 s) of `spawn_grace`, and every
+feature's `marker_back()`. Dead again within `bad_within` (30 s) of coming
+back, the marker before it (`marker-before-<chapter>`, kept as each new
+one is written) is used instead ("THAT SPOT WAS A DEATH TRAP"): nobody is
+stuck dying at a bad spot. A win clears the chapter's files, a chapter's
+start the other chapters'.
+
+What a marker holds is what a save holds, every feature's `save()` with
+it, so a new feature's state (the director's beats) comes back by itself;
+`GameFeature.marker_ready()` holds a marker back (a peak under way) and
+`marker_back()` runs on the game just loaded from one. CHECKPOINTS (PLAY
+page, `checkpoints`; `game.trail_markers`, a VIEW field) is TRAIL MARKERS
+by default, BOSSES ONLY takes none and leaves the death screen as it was;
+a game configured without the option (a tool's) takes none. Off in the
+hub, the range, a revisit, a rematch, County Run and the versus modes;
+co-op takes the party's (`-party`, the host's game only) and the host
+picks. The quicksave and the save slots are untouched. Taking one changes
+nothing in play (`marker_check`: a bot's 100 s the same either way).
+
+What a death costs, the ROOKIE bot at NORMAL through the whole campaign
+(the audit's `flow.gd` run, a death retried as the death screen does;
+deaths outside a boss fight, seconds of play thrown away):
+
+| runs | deaths | thrown away | median a death | worst |
+| --- | --- | --- | --- | --- |
+| v3.12.1, seeds 1-3 (the audit's 1-2; 3 on BOSSES ONLY) | 10 | 1,034 s | 107 s | 144 s |
+| trail markers, seeds 1-3 | 6 | 220 s | 33 s | 76 s |
+| trail markers, seeds 1-5 | 7 | 249 s | 29 s | 76 s |
+
+The worst is a marker died at again 20 s after coming back (the bayou
+cannery), so the one before it. With markers the ROOKIE cleared the Fair
+after one death (seed 1; three before) and after two (seed 3; it gave up
+after six before). The REGULAR and SHARP runs (seeds 1-2) do not die and
+play exactly as before.
+
+**The pin's way after a load (1.11).** After RETRY THE FIGHT on Jerry at
+HARD (REGULAR bot, seed 1) the bot stood 880 s by the rodeo grandstand.
+Not the bot and not the level: `Game.route` (the pin's way, which the bots
+follow) was walked from Bessie in the slow motion of Jerry's fall, while
+his gate was still swinging open, and a swinging leaf blocks the cell
+beside its doorway; `objective_route` walks again only when its sig
+changes, and the sig counts doors *opened*, which flips as the swing
+starts. The way stopped at the gate for good (in every other run the walk
+came after the swing). Now a way that does not reach the player is walked
+again, `REWALK_GAP` (1 s) after the last walk began, until it does (a sig
+counting doors at rest was tried first: it re-walked at every swing's end,
+moved every bot run and left the SHARP bot shut in the Fair's raffle door,
+a door that waits while someone stands in its swing). And after every load
+the route walked with the key ring the game was made with (`save_restore`
+hands the players a new one): every key door was shut to the pin until the
+next chapter; `objective_route` now takes the game's own. Play never reads
+`Game.route`: these change the pin and the bots, not the rules.
+
 ## Difficulty and pacing as numbers (polish pass 9)
 
 `tools/balance.gd` plays the campaign for real and writes down what
@@ -2956,8 +3048,10 @@ attempt by the tool, so a run is the same every time.
 - **run**: one campaign, god mode off, the PLAY page's defaults (the hound,
   the bench, events SOMETIMES; ADAPTIVE as a player has it), each chapter
   carried into the next as `continue_campaign` does; a death retries as the
-  death screen does (RETRY THE FIGHT in a boss fight, else the chapter from
-  its kit), six deaths or 900 s and it walks the chapter in god mode to go
+  death screen does (`MainFlow.retry_death`: RETRY THE FIGHT in a boss
+  fight, else BACK TO THE MARKER since pass 15, else the chapter from its
+  kit; the row says where it went back to and the seconds thrown away,
+  `back_to` and `lost`), six deaths or 900 s and it walks the chapter in god mode to go
   on. At each chapter's start it buys what the bench's prices allow,
   cheapest first. A line of JSON an attempt: how it ended, where (district,
   or the boss), what was near, the cause, the time, health and the share of

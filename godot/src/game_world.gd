@@ -82,6 +82,10 @@ func configure(options: Dictionary) -> void:
 	storm_on = options.get("county_storm", 1)
 	adaptive = options.get("adaptive", 1)
 	boss_wrecks = options.get("boss_wrecks", 1)
+	# Absent (a tool's game, an older replay): none, as before them; the
+	# front end's options always hold the setting (TRAIL MARKERS by default).
+	var marking: int = options.get("checkpoints", 1)
+	trail_markers = marking == 0
 	# Absent (an older replay, a tool): no hound, as play was before him.
 	var hounding: int = options.get("hound", 0)
 	hound_on = hounding == 1

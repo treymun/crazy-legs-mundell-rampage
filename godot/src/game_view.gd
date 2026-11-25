@@ -851,10 +851,10 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	else:
 		HUD.panel(c, 27, 54, 266, 52, Canvas.rgb(43, 26, 22))
 		HUD.text(c, "YOU BOUGHT THE FARM", 160, 64, "heading", HUD.INK, true)
-		# A rematch, or a boss fight with its checkpoint (features/boss_*.gd),
-		# says its own two lines.
+		# A rematch, a boss fight with its checkpoint (features/boss_*.gd) or
+		# a trail marker (features/trail_marker.gd) says its own two lines.
 		var lines: Array = []
-		for key: String in ["boss_rematch", "boss_checkpoint"]:
+		for key: String in ["boss_rematch", "boss_checkpoint", "trail_marker"]:
 			if lines.is_empty() and features.has(key):
 				var death: Object = features[key]
 				lines = death.call("death_lines")

@@ -14,6 +14,8 @@
 ## keep with the host over quiet play; ALICE goes down, the copies say so in
 ## the kill feed, BOB holding USE beside her stands her up ("BOB HAULED ALICE
 ## UP"); TREY down watches a partner (the view, never play: the copies keep);
+## a trail marker taken on the host's game (the party's -party file), everyone
+## down, the host's ENTER goes back to it on every copy (pass 15);
 ## the sheriff's fight begins and the party's boss checkpoint is taken (its
 ## own -party file, the host's own untouched); everyone down, the host's
 ## ENTER retries the fight on every copy (all up at the door, the boss whole);
@@ -355,6 +357,7 @@ func _coop() -> void:
 	)
 	_down_and_up(g, alice, bob)
 	_watching(g)
+	_marker_retry(alice)
 	_boss_retry(alice)
 	_hub_and_fair(alice, bob)
 	_late_and_leave(bob)
@@ -417,6 +420,51 @@ func _watching(g: Game) -> void:
 		g.players[0].health > 0 and g.local_player == g.players[0],
 		"back on his feet, the view is TREY's own again"
 	)
+
+
+## A trail marker on the host's game (features/trail_marker.gd): the party's
+## own file; everyone down, the host's ENTER goes back to it on every copy,
+## everyone up with the [marker] floor, player one where it was taken.
+func _marker_retry(alice: NetPlay) -> void:
+	var g: Game = main.net.match_game()
+	var marker = g.features["trail_marker"]
+	var own_before := FileAccess.file_exists(ChapterMarks.path("marker", "hickston", false))
+	marker.take()
+	ChapterMarks.settle()
+	var party_file := ChapterMarks.path_of(ChapterMarks.MARKER, g)
+	_check(
+		party_file.ends_with("marker-hickston-party.json") and FileAccess.file_exists(party_file),
+		"a trail marker on the host's game: the party's own file"
+	)
+	var at := Vector2(g.players[0].x, g.players[0].y)
+	_run_for(1.0)
+	g.cheats.god = false
+	for p: Player in g.players:
+		g.damage(9999, null, "test", p)
+	_run_for(1.0)
+	_check(
+		g.defeated() and alice.match_game().defeated() and marker.offered(),
+		"everyone down: BACK TO THE MARKER on the host's death screen"
+	)
+	OnlineInput.key_online(main, KEY_ENTER)
+	var fresh: Game = main.net.match_game()
+	_wait(func() -> bool: return _copies_on("hickston") and alice.match_game() != null, 900)
+	_run_for(1.0)
+	var copy := alice.match_game()
+	_check(
+		(
+			fresh != g
+			and not fresh.defeated()
+			and copy.players.all(func(p: Player) -> bool: return p.health > 0)
+			and Vector2(fresh.players[0].x, fresh.players[0].y).distance_to(at) < 4.5
+		),
+		"the host's ENTER goes back to the marker: everyone up on every copy"
+	)
+	_check(
+		FileAccess.file_exists(ChapterMarks.path("marker", "hickston", false)) == own_before,
+		"the host's own marker file is left alone"
+	)
+	fresh.cheats.god = true
 
 
 ## The sheriff's fight: the party's checkpoint taken, everyone down, the

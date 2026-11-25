@@ -232,6 +232,9 @@ func _play_chapter(base: Dictionary, seed_value: int, skill: int, bought: Array)
 		row["mods_owned"] = g.armory.mods.duplicate()
 		row["scrap_carried"] = scrap_start
 		var outcome := _attempt(g, Pilot.new(skill, seed_value * 13 + attempt), row, deaths)
+		if outcome == "death":
+			row["back_to"] = _back_to(g)
+			row["lost"] = _lost(g, str(row["back_to"]))
 		_write(row)
 		if outcome == "clear":
 			return true
@@ -246,11 +249,35 @@ func _play_chapter(base: Dictionary, seed_value: int, skill: int, bought: Array)
 			var rest := {"chapter": base["chapter"], "walked": true}
 			_attempt(walk, Pilot.new(2, 1), rest, deaths, true)
 			return bool(walk.won)
-		if bool(row.get("boss_fight", false)):
-			main.retry_fight()
-		else:
-			main.restart_chapter(g)
+		# As the death screen's ENTER: RETRY THE FIGHT, BACK TO THE MARKER
+		# (pass 15) or the chapter's start.
+		main.retry_death(g)
 	return false
+
+
+## Where the death screen's ENTER takes the dead player in `g`: "fight",
+## "marker", "marker_before" (dead again straight after coming back) or
+## "start".
+static func _back_to(g: Game) -> String:
+	var checkpoint = g.features.get("boss_checkpoint")
+	var marker = g.features.get("trail_marker")
+	if checkpoint != null and checkpoint.offered():
+		return "fight"
+	if marker != null and marker.offered():
+		return "marker_before" if marker.falls_back() else "marker"
+	return "start"
+
+
+## The seconds of play a death in `g` throws away going `back_to` (a fight's
+## retry is from its door: not counted).
+static func _lost(g: Game, back_to: String) -> float:
+	if back_to == "marker":
+		return snappedf(g.clock - float(g.features["trail_marker"].taken_at), .1)
+	if back_to == "marker_before":
+		return snappedf(g.clock - float(g.features["trail_marker"].before_at), .1)
+	if back_to == "start":
+		return snappedf(g.clock, .1)
+	return 0.0
 
 
 ## One go at the chapter in `g` until it is won, the player dies or time is
@@ -553,10 +580,7 @@ func _check_chapters(chapters: Array) -> void:
 				won = true
 				break
 			deaths += 1
-			if bool(row.get("boss_fight", false)):
-				main.retry_fight()
-			else:
-				main.restart_chapter(g)
+			main.retry_death(g)
 		print("  %-11s deaths %d  %6.1f s  %s" % [chapter, deaths, secs, "clear" if won else "NOT"])
 		if not won:
 			failures.append("%s: not cleared within %d deaths" % [chapter, CHAPTER_DEATHS])

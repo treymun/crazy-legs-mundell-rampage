@@ -527,9 +527,10 @@ whom by mode, the dead in the 5v5 rounds included, is in
     with everyone's kit), a chapter's own gate back to the hub;
   - everyone down: the host's ENTER retries a boss fight from the party's
     boss checkpoint (`BossDoor.path_of`: `boss-checkpoint-<chapter>-party.json`,
-    never the host's own), the partners at player one's side (`gather`); R
-    (or no checkpoint) the chapter from its start, player one with the kit
-    it was entered with. A client's death screen says THE HOST PICKS WHAT
+    never the host's own), or goes back to the party's trail marker (pass 15,
+    `marker-<chapter>-party.json`, every player with the `[marker]` floor),
+    the partners at player one's side (`gather`); R (or neither) the chapter
+    from its start, player one with the kit it was entered with. A client's death screen says THE HOST PICKS WHAT
     COMES NEXT; a copy never writes a checkpoint (`game.net_role` "copy").
   - Keys and the PA lead are the party's as offline; quest stations, doors
     and pickups are the host's game's like everything else.

@@ -224,7 +224,10 @@ and nothing at all is fetched). When one is, a sign on the title says NEW VERSIO
 
 Every play key can be changed on SETUP's KEYS page, and CONTROLS on the menu names them as you set
 them. USE picks up loose junk; fire chucks it and alt fire sets it down. NEW PLAYER TIPS on SETUP's
-PLAY page shows a short tip the first time something comes up (on by default). RUMBLE on the INPUT
+PLAY page shows a short tip the first time something comes up (on by default). CHECKPOINTS on the
+PLAY page: TRAIL MARKERS (the default) ties a marker on the way through a chapter, so a death picks
+up from the last one (ENTER, A or a tap: BACK TO THE MARKER; R, X or the lower line: the chapter's
+start); BOSSES ONLY keeps just the boss doors, as before. RUMBLE on the INPUT
 page shakes a pad (FULL by default); PHONE RUMBLE on the TOUCH page buzzes an Android phone, or a
 phone browser that can (LOW by default; an iPhone's browser cannot).
 

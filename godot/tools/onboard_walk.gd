@@ -295,9 +295,9 @@ static func run(m: Variant, setup: Dictionary, walker: Variant = null) -> Dictio
 				await walker.snap("death")
 			if fight[0] or float(result["boss_at"]) >= 0.0:
 				result["boss_deaths"] = int(result["boss_deaths"]) + 1
-				m.retry_fight()
-			else:
-				m.restart_chapter(g)
+			# As the death screen's ENTER: RETRY THE FIGHT, BACK TO THE MARKER
+			# (pass 15) or the chapter's start.
+			m.retry_death(g)
 			continue
 		break
 	result["clock"] = snappedf(total, .1)

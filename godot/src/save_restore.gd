@@ -786,4 +786,16 @@ static func _normalise_kit(kit: Variant) -> Dictionary:
 		clean_inv[name] = SessionStore._int(inventory.get(name, 0))
 	out["inventory"] = clean_inv
 	out["slot"] = SessionStore._int(fields.get("slot", 0))
+	# The junk bench's scrap and mods the chapter was entered with (version 10
+	# on; a kit from before has none). Pass 15: they were left behind here, so
+	# the chapter's start after any load (R on the death screen after a
+	# quicksave, a retried fight or a trail marker) came without them.
+	out["scrap"] = SessionStore._int(fields.get("scrap", 0))
+	var mods: Array = []
+	var src_mods: Variant = fields.get("mods", [])
+	if src_mods is Array:
+		var listed: Array = src_mods
+		for id: Variant in listed:
+			mods.append(str(id))
+	out["mods"] = mods
 	return out

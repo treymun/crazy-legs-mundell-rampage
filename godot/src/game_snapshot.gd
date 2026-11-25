@@ -290,6 +290,7 @@ const VIEW_FIELDS := [
 	"hands_watch",
 	"own_quiet",
 	"blast_quiet",
+	"trail_markers",
 ]
 ## Features whose state is play (carried: every variable but `game`).
 const SIM_FEATURES := [
@@ -359,6 +360,7 @@ const LOOKS_FEATURES := [
 	"event_looks",
 	"hound_voice",
 	"rumble",
+	"trail_marker",
 ]
 
 

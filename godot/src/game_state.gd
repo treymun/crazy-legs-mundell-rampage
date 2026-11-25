@@ -646,6 +646,11 @@ var adaptive := true
 ## (features/arena_wreck.gd) and gear can be shot off the bosses
 ## (features/boss_gear.gd); off, the arenas and bosses stay as they were.
 var boss_wrecks := true
+## CHECKPOINTS (setting): TRAIL MARKERS takes markers on the way through a
+## chapter (features/trail_marker.gd); BOSSES ONLY keeps just the boss fights'
+## checkpoints, as before pass 15. Taking one changes nothing in play. Off
+## until configure() says (a tool's game takes none).
+var trail_markers := false
 ## HOUND DOG (setting): BLUE comes along in the campaign's chapters
 ## (features/hound.gd); off, no hound.
 var hound_on := false

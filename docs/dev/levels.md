@@ -312,6 +312,17 @@ hangs) keeps the layout: a save holds none of it, and a new layout would send
 every player of that chapter back to its start for nothing. The hub is never
 saved, so a new hub layout needs no save fixtures.
 
+The boss checkpoint and the trail markers (pass 15) are saves in this same
+format, each in a file of its own beside the quicksave (`chapter_marks.gd`:
+`boss-checkpoint-`, `marker-` and `marker-before-<chapter>`, `-replay` for a
+replay run, `-party` in co-op; tools keep them under the cache folder). What
+the markers need of a save is in the features block (`trail_marker`: when
+the next is due, the districts stood in, the tokens), which an older save
+restores as {} (no marker), so they took no new version. Since pass 15 a
+loaded save's chapter kit (`campaign.entry`) keeps the bench's scrap and
+mods (`save_restore.gd _normalise_kit` left them out: R after any load
+started the chapter without them).
+
 ## The bakes (pass 14)
 
 A chapter's first visit used to build its nav graph (60 to 160 ms) and cut

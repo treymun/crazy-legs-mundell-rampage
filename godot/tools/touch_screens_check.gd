@@ -13,7 +13,8 @@
 ## paints every cell it crosses, MAP NAME typed in as the browser types a
 ## phone's answer (WebTyping), BACK twice; JOIN WITH A CODE's field likewise.
 ## SAVE SLOTS from a paused game (SAVE, a slot, the name's CANCEL plate, LOAD
-## on a slot). In play every on-screen button (the overlay's shown buttons,
+## on a slot). The death screen: BACK TO THE MARKER and the chapter's start
+## by a tap on each half. In play every on-screen button (the overlay's shown buttons,
 ## whatever they are): a press lands on it, FIRE ALT JUMP DUCK are held while
 ## the finger stays, the stick walks, a drag on the right turns, MAP opens the
 ## map, NEXT changes the gun, PHOTO and then MENU go in and out of PHOTO MODE,
@@ -70,6 +71,7 @@ func _run() -> void:
 	await _shed()
 	_typed_in()
 	await _play()
+	await _death()
 	_upright()
 	tally.stop()
 	_check(
@@ -367,6 +369,63 @@ func _play() -> void:
 	await _turn()
 	main.state = "play"
 	touch.release()
+	main.game = null
+	main.state = "title"
+
+
+## The death screen by a finger (pass 15): with a trail marker taken, a tap
+## on the screen goes BACK TO THE MARKER, a tap on its second line (TAP HERE)
+## starts the chapter over.
+func _death() -> void:
+	print("\nTHE DEATH SCREEN BY A FINGER")
+	for key: String in SessionStore.defaults():
+		main.options[key] = SessionStore.defaults()[key]
+	main.options["hound"] = 0
+	main.options["events"] = 0
+	main.options["openers"] = 2
+	main.start("hickston")
+	var g: Game = main.game
+	g.lessons = false
+	for e: Enemy in g.enemies:
+		e.dormant = true
+	for i in 2:
+		g.tick(1.0 / 60.0, Game.Controls.new())
+	g.features["trail_marker"].take()
+	var at := Vector2(g.player.x, g.player.y)
+	g.player.x += 1.5
+	g.player.health = 0
+	g.tick(1.0 / 60.0, Game.Controls.new())
+	main.state = "play"
+	main.input_device = "touch"
+	g.use_key = "USE"
+	var touch: TouchControls = main.touch
+	touch.active = true
+	main._apply_view()
+	var lines: Array = g.features["trail_marker"].death_lines()
+	_check(
+		g.defeated() and lines.size() == 2 and str(lines[0]) == "TAP  BACK TO THE MARKER",
+		"dead with a marker: %s" % str(lines)
+	)
+	await _tap(Vector2(160, 64))
+	main._touch_actions()
+	var back: Game = main.game
+	_check(
+		(
+			back != g
+			and back.player.health > 0
+			and Vector2(back.player.x, back.player.y).distance_to(at) < .01
+		),
+		"a tap on the screen: BACK TO THE MARKER"
+	)
+	back.player.health = 0
+	back.tick(1.0 / 60.0, Game.Controls.new())
+	main.state = "play"
+	await _tap(Vector2(160, 95))
+	main._touch_actions()
+	var start: Game = main.game
+	_check(start != back and start.clock < 1.0, "a tap on TAP HERE: the chapter's start")
+	touch.release()
+	ChapterMarks.clear_all()
 	main.game = null
 	main.state = "title"
 

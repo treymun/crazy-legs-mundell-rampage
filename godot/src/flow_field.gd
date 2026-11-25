@@ -215,6 +215,12 @@ func update(x: float, y: float, clock: float, z := NAN) -> void:
 	_walk()
 
 
+## Whether a walk with a budget is still under way (the last finished one
+## stands until it ends).
+func walking() -> bool:
+	return _head < _queue.size()
+
+
 ## Takes the field `other` walked from the cell this one would walk from now
 ## (the same level, the same tick: the same answer), as update() would have
 ## left it after walking: what it had becomes the scratch field it clears next.

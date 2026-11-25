@@ -5,6 +5,9 @@
 class_name GameObjective
 extends RefCounted
 
+## Seconds between walks of a way that does not reach the player.
+const REWALK_GAP := 1.0
+
 
 static func objective_target(g: Game) -> Variant:
 	if g.in_hub or g.revisiting:
@@ -287,6 +290,13 @@ static func objective_route(g: Game, target: Vector2, target_z := NAN) -> Array:
 		if door.opened:
 			opened += 1
 	var sig := [g.stations_done.size(), g.keys.size(), opened]
+	if not is_same(g.route.keys, g.keys):
+		# The key ring the way is walked with is the game's own: a load (a
+		# quicksave, a retried fight, a trail marker) or a snapshot puts a new
+		# ring on the players, and a field still holding the old one walked
+		# every key door as shut (pass 15).
+		g.route.keys = g.keys
+		g.route_sig = []
 	if sig != g.route_sig:
 		# A door opened or a key was found: the way may be different now.
 		g.route_sig = sig
@@ -296,5 +306,14 @@ static func objective_route(g: Game, target: Vector2, target_z := NAN) -> Array:
 	var feet := g.world.stand(g.player)
 	var steps := g.route.distance(g.player.x, g.player.y, feet)
 	if steps >= FlowField.FAR:
+		# A way that does not reach the player is walked again, once
+		# REWALK_GAP has gone since the last began, until it does (pass 15:
+		# walked in the slow motion of Jerry's fall while his gate was still
+		# swinging open, a swinging leaf blocking the cell beside its doorway,
+		# the way stopped at the gate for good; the sig only counts doors
+		# opened, which flips as a swing starts, and the bot stood 880 s by
+		# the rodeo grandstand with the pin pointing nowhere).
+		if not g.route.walking() and g.clock >= g.route.next_at + REWALK_GAP:
+			g.route.origin = Vector2i(-1, -1)
 		return [target, -1]
 	return [g.route.waypoint(g.player.x, g.player.y, 4, [], feet), steps]

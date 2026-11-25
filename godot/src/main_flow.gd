@@ -4,6 +4,8 @@ class_name MainFlow
 extends MainState
 
 const BossRematchFeature := preload("res://src/features/boss_rematch.gd")
+const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
+const TrailMarkerFeature := preload("res://src/features/trail_marker.gd")
 
 
 func start(
@@ -59,7 +61,8 @@ func play(target: Game) -> void:
 	if chapter and target.replay:
 		replay_runs[target.level.id] = target
 	if chapter:
-		# A chapter under way: the other chapters' boss checkpoints go (boss_door.gd).
+		# A chapter under way: the other chapters' boss checkpoints and trail
+		# markers go (chapter_marks.gd).
 		BossDoor.clear_others(target.level.id, target.replay)
 	target.configure(options if net == null else net_options(net.match_info))
 	target.tone = tone_table
@@ -472,6 +475,33 @@ func retry_fight() -> void:
 		game.message("THE BOSS CHECKPOINT COULD NOT BE LOADED. THE CHAPTER STARTS OVER.", 4.0)
 		return
 	play(loaded)
+
+
+## The death screen's BACK TO THE MARKER: the last trail marker loaded, each
+## player given the [marker] floor (features/trail_marker.gd). The chapter's
+## start when it cannot load.
+func back_to_marker() -> void:
+	var current := game
+	var loaded := TrailMarkerFeature.restore_from(make_game, current)
+	if loaded == null:
+		restart_chapter(current)
+		game.message("THE TRAIL MARKER COULD NOT BE LOADED. THE CHAPTER STARTS OVER.", 4.0)
+		return
+	play(loaded)
+
+
+## What the death screen's ENTER does in a chapter: RETRY THE FIGHT while a
+## boss fight's checkpoint is on offer, else BACK TO THE MARKER while a trail
+## marker is, else the chapter from its start (tools/balance.gd's bot too).
+func retry_death(target: Game) -> void:
+	var checkpoint: BossCheckpointFeature = target.features.get("boss_checkpoint")
+	var marker: TrailMarkerFeature = target.features.get("trail_marker")
+	if checkpoint != null and checkpoint.offered():
+		retry_fight()
+	elif marker != null and marker.offered():
+		back_to_marker()
+	else:
+		restart_chapter(target)
 
 
 ## The death screen's retry: the chapter from its start, with the guns it was

@@ -1,12 +1,12 @@
 ## The checkpoint at the boss door: a save (SessionStore's own format, no new
 ## version) of the moment a chapter's boss fight began, in a file of its own
 ## beside the quicksave, boss-checkpoint-<chapter>.json (-replay for a replay
-## run). features/boss_checkpoint.gd takes it; the death screen offers RETRY
-## THE FIGHT while it matches the run (main_flow.gd retry_fight), which loads it
-## with the boss at full health and the player back at the arena's door.
-## Cleared when the chapter is won, and a chapter's start clears every other
-## chapter's. Tool scripts keep theirs under the cache folder, never in the
-## player's profile.
+## run, -party in co-op): chapter_marks.gd keeps the files, the trail markers'
+## beside them. features/boss_checkpoint.gd takes it; the death screen offers
+## RETRY THE FIGHT while it matches the run (main_flow.gd retry_fight), which
+## loads it with the boss at full health and the player back at the arena's
+## door. Cleared when the chapter is won, and a chapter's start clears every
+## other chapter's.
 class_name BossDoor
 extends RefCounted
 
@@ -15,64 +15,42 @@ const BossLockFeature := preload("res://src/features/boss_lock.gd")
 
 
 static func folder() -> String:
-	var loop := Engine.get_main_loop()
-	if loop != null and loop.get_script() != null:
-		return OS.get_cache_dir().path_join("clmr-boss-door")
-	return SessionStore.data_directory()
+	return ChapterMarks.folder()
 
 
 static func path(level_id: String, replay: bool) -> String:
-	return folder().path_join("boss-checkpoint-%s%s.json" % [level_id, "-replay" if replay else ""])
+	return ChapterMarks.path(ChapterMarks.BOSS, level_id, replay)
 
 
 ## A co-op game's checkpoint is a file of its own (-party), so a party's
 ## fight never takes the place of the host's own chapter's.
 static func path_of(game: Game) -> String:
-	if Modes.mode_of(game) == Modes.COOP:
-		return folder().path_join("boss-checkpoint-%s-party.json" % game.level.id)
-	return path(game.level.id, game.replay)
+	return ChapterMarks.path_of(ChapterMarks.BOSS, game)
 
 
 static func write(game: Game) -> bool:
-	return SessionStore.save(game, path_of(game))
+	return ChapterMarks.write(ChapterMarks.BOSS, game)
 
 
 static func clear(level_id: String, replay: bool) -> void:
-	var file := path(level_id, replay)
-	if FileAccess.file_exists(file):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
+	ChapterMarks.clear(ChapterMarks.BOSS, level_id, replay)
 
 
-## A chapter starts: the other chapters' checkpoints (of the same kind of run) go.
+## A chapter starts: the other chapters' checkpoints and markers (of the same
+## kind of run) go.
 static func clear_others(level_id: String, replay: bool) -> void:
-	for other: String in Campaign.ORDER:
-		if other != level_id:
-			clear(other, replay)
+	ChapterMarks.clear_others(level_id, replay)
 
 
 static func clear_all() -> void:
-	for level_id: String in Campaign.ORDER:
-		clear(level_id, false)
-		clear(level_id, true)
+	ChapterMarks.clear_all()
 
 
 ## The token the checkpoint on file was taken with for `kind` ("" for none).
 static func token_on_file(level_id: String, replay: bool, kind: String, file := "") -> String:
 	if file == "":
 		file = path(level_id, replay)
-	if not FileAccess.file_exists(file):
-		return ""
-	var doc: Variant = JSON.parse_string(FileAccess.get_file_as_string(file))
-	if not (doc is Dictionary):
-		return ""
-	var sheet: Dictionary = doc
-	if str(sheet.get("level", "")) != level_id:
-		return ""
-	var features: Dictionary = sheet.get("features", {})
-	var state: Variant = features.get("boss_checkpoint", {})
-	if not (state is Dictionary):
-		return ""
-	var box: Dictionary = state
+	var box := ChapterMarks.state_on_file(file, level_id, "boss_checkpoint")
 	if not (box.get("taken", {}) is Dictionary):
 		return ""
 	var taken: Dictionary = box["taken"]
@@ -82,7 +60,7 @@ static func token_on_file(level_id: String, replay: bool, kind: String, file := 
 ## The fight again: the checkpoint loaded, the player at the door, the boss
 ## whole, nothing in the air. Null when the file is gone or no longer loads.
 static func restore(make_game: Callable, current: Game) -> Game:
-	var loaded := SessionStore.read(path_of(current), make_game, current.replay, current.level.id)
+	var loaded := ChapterMarks.read(ChapterMarks.BOSS, make_game, current)
 	if loaded == null:
 		return null
 	return at_door(loaded)

@@ -15,8 +15,9 @@
 ##     fresh with everyone's kit), a chapter's back to the hub;
 ##   - everyone down: ENTER retries a boss fight from the party's own boss
 ##     checkpoint (BossDoor.path_of: a -party file, never the host's own),
-##     with the partners at player one's side (Modes.gather); R, or no
-##     checkpoint, the chapter from its start.
+##     or goes back to the party's trail marker (marker-<chapter>-party), with
+##     the partners at player one's side (Modes.gather); R, or neither, the
+##     chapter from its start.
 ## The host's F5 writes THE PARTY SAVE (only the host saves online); MAP
 ## THE PARTY SAVE in the lobby picks it up again, any slot without its person
 ## lying out of play until someone joins late. The host's own campaign, its
@@ -24,6 +25,8 @@
 ## party reaches open on the host's profile as a local co-op's do.
 class_name NetCoop
 extends RefCounted
+
+const TrailMarkerFeature := preload("res://src/features/trail_marker.gd")
 
 const SAVE_FILE := "party-save.json"
 
@@ -253,11 +256,14 @@ static func travel(main: MainFlow, destination: String) -> void:
 
 
 ## Everyone down: the boss fight again from the party's checkpoint, or
-## (`fight` false, or none to load) the chapter from its start with player
-## one's kit as it was entered and the partners' carried.
-static func retry(main: MainFlow, fight: bool) -> void:
+## (`marker`) back to the party's trail marker (features/trail_marker.gd), or
+## (neither, or none to load) the chapter from its start with player one's
+## kit as it was entered and the partners' carried.
+static func retry(main: MainFlow, fight: bool, marker := false) -> void:
 	var current := main.net.match_game()
 	var loaded: Game = BossDoor.restore(main.make_game, current) if fight else null
+	if marker and not fight:
+		loaded = TrailMarkerFeature.restore_from(main.make_game, current)
 	if loaded != null:
 		loaded.configure(main.net_options(main.net.match_info))
 		for i in mini(current.players.size(), loaded.players.size()):
@@ -276,6 +282,8 @@ static func retry(main: MainFlow, fight: bool) -> void:
 	main.net_run = made
 	if fight:
 		made.message("THE BOSS CHECKPOINT WOULDN'T LOAD. THE CHAPTER STARTS OVER.", 4.0)
+	elif marker:
+		made.message("THE TRAIL MARKER WOULDN'T LOAD. THE CHAPTER STARTS OVER.", 4.0)
 	go(main, made)
 
 

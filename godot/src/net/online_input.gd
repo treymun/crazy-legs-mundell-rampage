@@ -10,6 +10,7 @@ class_name OnlineInput
 extends RefCounted
 
 const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
+const TrailMarkerFeature := preload("res://src/features/trail_marker.gd")
 
 ## The screens whose taps are read here.
 const SCREENS := ["multi", "showdown", "servers", "nethost", "netjoin", "lobby", "lobbyset"]
@@ -279,11 +280,14 @@ static func key_online(main: MainInput, code: int) -> bool:
 			return true
 		return false
 	if coop and main.game != null and main.game.defeated() and code != KEY_ESCAPE:
-		# Everyone down: the host picks (the fight again, or the chapter).
+		# Everyone down: the host picks (the fight again or back to the trail
+		# marker, or the chapter).
 		var checkpoint: BossCheckpointFeature = main.game.features.get("boss_checkpoint")
+		var marker: TrailMarkerFeature = main.game.features.get("trail_marker")
 		var fight := checkpoint != null and checkpoint.offered()
+		var marked := not fight and marker != null and marker.offered()
 		if hosting and enter:
-			NetCoop.retry(main, fight)
+			NetCoop.retry(main, fight, marked)
 		elif hosting and code == KEY_R:
 			NetCoop.retry(main, false)
 		return true

@@ -287,6 +287,19 @@ never written by a tool.
 
 Not checked by hand: none of it has been tried on a real phone.
 
+## The death screen
+
+YOU BOUGHT THE FARM (`game_view.gd`, the panel when `defeated()`): two lines
+from the first of the features `boss_rematch`, `boss_checkpoint` and
+`trail_marker` with any (`death_lines()`, in the words of the device last
+used: `game.use_key`), else the plain retry line. With a boss checkpoint or
+a trail marker on offer (pass 15): ENTER, A or a tap on the screen is RETRY
+THE FIGHT or BACK TO THE MARKER (`main_flow.gd retry_death`), R (the RELOAD
+key's name), X or a tap on the second line (`TAP HERE`, picture rows 90 and
+down) the chapter's start; F9 loads, ESC or B the title. Online the host
+picks (`net_coop.gd retry`) and a client reads THE HOST PICKS WHAT COMES
+NEXT. `touch_screens_check` taps both halves.
+
 ## Rumble's settings (pass 14)
 
 Two rows, each OFF / LOW / FULL ([gameplay.md](gameplay.md#rumble-and-haptics-pass-14)):

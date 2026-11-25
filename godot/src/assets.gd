@@ -22,6 +22,7 @@ const MADE_CUES := [
 	"county_milestone",
 	"mule_bray",
 	"bench_tape",
+	"marker_tie",
 ]
 ## The cues made in code (MADE_CUES), made by tools/pack_assets.gd (pass 10).
 const MADE_FILE := "made_cues.bin"
@@ -580,6 +581,7 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 			"county_milestone": 1.6,
 			"mule_bray": 1.3,
 			"bench_tape": .62,
+			"marker_tie": .42,
 		}
 		. get(name, .045)
 	)
@@ -637,11 +639,28 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 						sin(TAU * 105.0 * slap) * exp(-slap * 28.0) * .7
 						+ hiss * exp(-slap * 150.0) * .5
 					)
+			"marker_tie":
+				v = _rag_tie(t, hiss)
 			_:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5
 		raw.encode_s16(i * 2, clampi(int(v * 32767.0), -32768, 32767))
 	return raw
+
+
+## A trail marker tied on (features/trail_marker.gd): a rag whipped taut
+## round a fence post (a quick rising swish of cloth) and the knot pulled
+## tight against the wood (a dull knock).
+static func _rag_tie(t: float, hiss: float) -> float:
+	var v := 0.0
+	if t < .2:
+		var swish := sin(PI * t / .2)
+		v = hiss * swish * swish * (.6 + .4 * sin(TAU * (30.0 + 160.0 * t) * t)) * .9
+	var knot := t - .22
+	if knot > 0.0:
+		v += sin(TAU * (210.0 - knot * 140.0) * knot) * exp(-knot * 32.0) * .6
+		v += hiss * exp(-knot * 220.0) * .35
+	return v
 
 
 ## COUNTY RUN's own cues: a bottle cap's clink for XP, a three-note banjo
