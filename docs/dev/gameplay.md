@@ -91,7 +91,10 @@ smoke and sparks off the muzzle; fuse and rocket sparks; its own dice, made
 whatever the view), `gun_flash.gd` (each gun's muzzle flash: weapons.cfg
 `flash_art`/`flash_size`, over the old flash as a glow), weapon_fx's fatter
 tracers with a glowing head, and each gun's own muzzle light
-(`[light.muzzle_<gun>]`). game_view.gd leaves the old `fx_blast` fireball out
+(`[light.muzzle_<gun>]`). Pass 15 adds a hand's shot lighting the yard round
+him and the smoke curling off the player's muzzle after a burst
+(`src/muzzle_looks.gd`), and each gun's own brass (effects.cfg `[casings]`,
+`features/debris.gd`): [view3d.md](view3d.md#looks-that-read-pass-15). game_view.gd leaves the old `fx_blast` fireball out
 then. The pictures are in [art.md](art.md#gun-effects-art).
 
 ### Blasts and wrecks (destruction pass 11)

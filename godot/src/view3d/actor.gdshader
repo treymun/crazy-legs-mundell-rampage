@@ -6,7 +6,9 @@
 // cell's light), no darker than a body's floor, the area's tint, a tough
 // guy's tint, a hit's wash toward hot white, a wind-up's toward amber (pass
 // 15: EnemyLooks.tell, the last share of it); LIGHTS AND GLOW's lights, grade
-// and fog, and in the dark the moon's rim along its silhouette.
+// and fog, and in the dark the moon's rim along its silhouette; a hand awake
+// or a critter its own rim there instead (pass 15: `own_rim`), quiet under a
+// hit's wash or a wind-up's amber.
 shader_type spatial;
 render_mode unshaded, cull_back, shadows_disabled, fog_disabled;
 
@@ -22,6 +24,11 @@ uniform vec4 tone = vec4(1.0);
 uniform vec4 wash = vec4(1.0, 1.0, 1.0, 0.0);
 // A wind-up's amber wash (0 none; actor_view.gd, never with the hit wash).
 uniform float tell = 0.0;
+// Its own rim (actor_view.gd: effects.cfg [rim]; a 0 none): rgb its colour,
+// a how much up close; own_rim_reach x how much far off, from y to z cells, w
+// the share of the fog it shows through (view_light.gdshaderinc own_rim_on).
+uniform vec4 own_rim = vec4(0.0);
+uniform vec4 own_rim_reach = vec4(0.0, 3.0, 15.0, 0.0);
 // 0 plain, 1 hurt, 2 a boss's second phase, 3 its third.
 uniform int look = 0;
 // How far down the body is (0 standing, 1 at rest on the ground): the cels of
@@ -111,8 +118,21 @@ void fragment() {
 		// most along the top (the light comes from the sky), so a figure in
 		// the dark shows its outline against dark ground.
 		vec3 nv = normalize(NORMAL);
-		float edge = (1.0 - smoothstep(0.15, 0.7, nv.z)) * clamp(0.55 + 0.9 * nv.y, 0.0, 1.0) * (1.0 - fallen * 0.6);
-		colour = moon_rim_on(colour, map_p, t, edge);
+		float quiet = wash.a > 0.0 ? 0.0 : 1.0 - clamp(tell / 0.38, 0.0, 1.0);
+		if (own_rim.a > 0.0 && quiet > 0.0 && fallen < 1.0) {
+			// Its own rim, wider on the silhouette far off (a far hand is a
+			// few pixels: most of them edge), all round, a little more on top.
+			float far_k = smoothstep(own_rim_reach.y, own_rim_reach.z, t);
+			float edge = (1.0 - smoothstep(0.06, mix(0.42, 0.92, far_k), nv.z)) * clamp(0.72 + 0.45 * nv.y, 0.0, 1.0);
+			if (moon_rim.a > 0.0) {
+				// By night never narrower than the moon's rim it stands in for.
+				edge = max(edge, (1.0 - smoothstep(0.15, 0.7, nv.z)) * clamp(0.55 + 0.9 * nv.y, 0.0, 1.0));
+			}
+			colour = own_rim_on(colour, map_p, t, edge * quiet * (1.0 - fallen), own_rim, own_rim_reach);
+		} else {
+			float edge = (1.0 - smoothstep(0.15, 0.7, nv.z)) * clamp(0.55 + 0.9 * nv.y, 0.0, 1.0) * (1.0 - fallen * 0.6);
+			colour = moon_rim_on(colour, map_p, t, edge);
+		}
 	}
 	ALBEDO = to_output(colour);
 }

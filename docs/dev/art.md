@@ -33,7 +33,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_break_art` | signs' `<name>_shot` and the bits `fx_brk_*` |
 | `wall_break_art` | the broken window tiles `<material>_brk` |
 | `build_impact_art` | holes, blood runs, wall scorches, splinters, grit and glints (features/impacts.gd) |
-| `build_world_fx` | brass, hulls, embers, ground scorches, crows, fireflies |
+| `build_world_fx` | brass, hulls, embers, ground scorches, crows, fireflies; pass 15: each newer gun's brass (`fx_casing_45`, `_357` nickel, `_44` sooty, `_long` bottlenecked; `fx_hull_riot` black) and the pickups' glint `fx_twinkle_0`, `_1` (a four-pointed star, white heart, pale gold to amber tips, small and big on one 13x13 canvas). The new pictures use no dice, so the older ones come out as they were (the repo's `mark_flood_*` differ from what the builder makes today: copy only the new pictures in) |
 | `build_county_art` | County Run's XP bottle caps `county_xp_<tier>_<n>` |
 | `build_weather_art` | prints in the mud: `mark_boot_mud`, `mark_hoof_mud`, `mark_claw_mud`, `mark_tyre_mud` |
 | `build_item_art` | the armory's wall pictures of guns with no pickup picture, and the crowbar's, .38's, sawed-off's, dynamite's and dynamite sticks' pickups (`item_<name>`, via `item_pictures.py`) |
@@ -461,6 +461,12 @@ on the old build too for a before; `docs/weapon_fx/` has the contact sheet):
 ```
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/gun_frames.gd -- out=<dir>
 ```
+
+`tools/looks_frames.gd` pictures the pass 15 looks (the rim, the glint, the
+hurt vignette, the hands' muzzle light, the brass, the muzzle smoke); see
+[view3d.md](view3d.md#looks-that-read-pass-15). The muzzle wisp is no file:
+`src/muzzle_looks.gd` paints its few frames once in code (grey, lit from
+the upper left, its pixels dropped in a 4x4 ordered dither as it thins).
 
 ## Guns in first person
 

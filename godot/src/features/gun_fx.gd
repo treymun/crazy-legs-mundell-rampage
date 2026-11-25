@@ -15,7 +15,9 @@
 ## striking: a burst of what it struck by material (sparks, brick dust, wood
 ## dust and splinters, dirt, glass, a splash, leaves) and more of it flying. A
 ## shot leaving the gun: burning wadding, a puff of smoke, sparks. Dynamite
-## fuses and bottle rockets spit sparks; rockets and cows lay soot.
+## fuses and bottle rockets spit sparks; rockets and cows lay soot. A hand's
+## shot lights the yard round him and smoke curls off the player's muzzle
+## after a burst (src/muzzle_looks.gd, pass 15).
 ##
 ## Looks only: its own dice, never saved, never in the way. Everything is
 ## made whatever the view (so the shader view's picture does not depend on
@@ -80,6 +82,7 @@ var booms: Array = []
 var geysers: Array = []
 var blast_looks: BlastLooks
 var wrecks: VehicleWreckLooks
+var muzzles: MuzzleLooks
 ## Sounds to play a moment later: [when, cue, x, y, volume].
 var _later: Array = []
 ## [x, y, z, born, picture, size]
@@ -102,6 +105,7 @@ func attach() -> void:
 	dice.seed = 1997
 	blast_looks = BlastLooks.new(game, dice, bits, booms, geysers)
 	wrecks = VehicleWreckLooks.new(game, dice, bits, booms)
+	muzzles = MuzzleLooks.new(game)
 	game.events.shot_fired.connect(_fired)
 	game.events.traced.connect(_traced)
 	game.events.exploded.connect(_exploded)
@@ -143,6 +147,7 @@ func _fired(gun: int) -> void:
 		return
 	if not game.acting_local():
 		return
+	muzzles.shot(gun)
 	_pellets = 0
 	var ahead := _forward()
 	# The 5v5 store's bullet guns smoke and spark as the rifle does; its riot
@@ -438,6 +443,8 @@ func _tick(dt: float) -> void:
 	_new_blasts()
 	_follow_shots()
 	wrecks.tick()
+	muzzles.tick_hands()
+	muzzles.tick_wisp()
 	while not _later.is_empty():
 		var due: Array = _later[0]
 		var when: float = due[0]
@@ -627,6 +634,7 @@ func lights() -> Array:
 		if glow != null:
 			out.append(glow)
 	wrecks.lights(out)
+	muzzles.lights(out)
 	return out
 
 
@@ -861,6 +869,7 @@ func ground_marks() -> Array:
 func draw_view(c: Canvas) -> void:
 	if not Effects.rich:
 		return
+	muzzles.draw(c)
 	# Sparks as short streaks along the way they fly, white-hot to orange
 	# (the newest SPARKS_DRAWN at most: each is a draw command).
 	var drawn := 0

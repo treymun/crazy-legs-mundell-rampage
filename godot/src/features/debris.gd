@@ -1,5 +1,7 @@
-## What a fight leaves lying about: brass from the rifle, a revolver's six
-## dumped on reload and the shotgun's red hulls, tinking where they land;
+## What a fight leaves lying about: each gun's own brass (effects.cfg
+## [casings]: a stubby .45, a long nickel .357, a sooty .44, bottlenecked
+## rifle brass, a revolver's six dumped on reload, the shotgun's red hulls and
+## the riot pump's black ones), tinking where they land;
 ## embers and slow smoke rising off a blast and the black scorch it leaves;
 ## and a wounded varmint's trail of blood. All of it looks only: its own dice,
 ## never saved, never in the way. Lifetimes are effects.cfg [debris]; the
@@ -45,6 +47,8 @@ class Bit:
 	var roll := 0.0
 	## Its age when it splashed into water and went under (below 0: never).
 	var sink := -1.0
+	## A shell's own picture (effects.cfg [casings]; "": its kind's).
+	var picture := ""
 
 
 var dice := RandomNumberGenerator.new()
@@ -95,14 +99,30 @@ func _make_feel(kind: String, radius: float, bounce: float, drag: float) -> Tumb
 	return feel
 
 
+## Gun `gun`'s shells for `moment` ("fire" or "reload"), by effects.cfg
+## [casings]: [picture, how many, moment, size, how hard].
+func _shells(gun: int, moment: String) -> void:
+	if gun < 0 or gun >= Weapons.NAMES.size():
+		return
+	var row: Array = Effects.num("casings", str(Weapons.NAMES[gun]), [])
+	if row.size() < 5 or str(row[2]) != moment:
+		return
+	var picture := str(row[0])
+	var count: int = row[1]
+	var size: float = row[3]
+	var spread: float = row[4]
+	_eject("hull" if picture.begins_with("fx_hull") else "casing", count, spread, picture, size)
+
+
 ## Out of the gun's right side, tumbling.
-func _eject(kind: String, count: int, spread := 1.0) -> void:
+func _eject(kind: String, count: int, spread := 1.0, picture := "", size := 0.0) -> void:
 	var p := game.player
 	var a: float = p.view_angle()
 	for k in count:
 		var bit := Bit.new()
 		bit.kind = kind
-		bit.size = .07 if kind == "hull" else .05
+		bit.picture = picture
+		bit.size = size if size > 0.0 else .07 if kind == "hull" else .05
 		bit.x = p.x + cos(a) * .25 - sin(a) * .12
 		bit.y = p.y + sin(a) * .25 + cos(a) * .12
 		bit.z = p.eye - .22
@@ -134,21 +154,7 @@ func _fired(gun: int) -> void:
 	if game.own_quiet:
 		game.hands_watch.defer(_fired.bind(gun), "shot")
 		return
-	if gun in [Weapons.RIFLE, Weapons.RIVETER, Weapons.HUNTER, Weapons.MOWER]:
-		_eject("casing", 1)
-	elif (
-		gun
-		in [
-			Weapons.COUNTY45,
-			Weapons.TOMMY,
-			Weapons.GREASE_GUN,
-			Weapons.PATROL_BAR,
-			Weapons.MARKSMAN,
-		]
-	):
-		_eject("casing", 1)
-	elif gun == Weapons.RIOT_PUMP:
-		_eject("hull", 1, .5)
+	_shells(gun, "fire")
 
 
 func own_shot(gun: int) -> void:
@@ -159,12 +165,7 @@ func _reloading(gun: int) -> void:
 	if game.own_quiet:
 		game.hands_watch.defer(_reloading.bind(gun), "reload")
 		return
-	if gun == Weapons.REVOLVER or gun == Weapons.STAR357:
-		_eject("casing", 6, .4)
-	elif gun == Weapons.HOGLEG:
-		_eject("casing", 3, .3)
-	elif gun == Weapons.SHOTGUN:
-		_eject("hull", 2, .7)
+	_shells(gun, "reload")
 
 
 func own_reload(gun: int) -> void:
@@ -363,10 +364,10 @@ func sprites() -> Array:
 			continue
 		if not game.in_view(bit.x, bit.y, bit.size * 2.0 + .3):
 			continue
-		var name := "fx_casing"
+		var name := "fx_casing" if bit.picture == "" else bit.picture
 		match bit.kind:
 			"hull":
-				name = "fx_hull"
+				name = "fx_hull" if bit.picture == "" else bit.picture
 			"ember":
 				name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
 			"smoke":

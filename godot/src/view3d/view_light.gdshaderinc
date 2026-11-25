@@ -537,6 +537,26 @@ vec3 moon_rim_on(vec3 colour, vec3 p, float t, float edge) {
 	return min(floor(colour + moon_rim.rgb * 255.0 * moon_rim.a * k * clear), vec3(255.0));
 }
 
+// A hand's own rim on colour (0-255) at point p, t ahead, `edge` (0 to 1) of
+// it (pass 15, actor.gdshader): `rim` rgb its colour (0-1), a how much of it
+// up close; `reach` x how much at reach.z cells and beyond (rising from
+// reach.y), w the share of the fog it shows through. Stepped in thirds as the
+// moon's rim is, never weaker than the moon's by night, and laid over the
+// colour (not added: a hand in daylight keeps an edge of it too).
+vec3 own_rim_on(vec3 colour, vec3 p, float t, float edge, vec4 rim, vec4 reach) {
+	if (rim.a <= 0.0 || edge <= 0.0) {
+		return colour;
+	}
+	float k = floor(clamp(edge, 0.0, 1.0) * 3.0 + 0.5) / 3.0;
+	float most = max(mix(rim.a, reach.x, smoothstep(reach.y, reach.z, t)), moon_rim.a);
+	float clear = 1.0 - fog_share(p, t) * (1.0 - reach.w);
+	if (storm_ring.w > 0.0) {
+		clear *= 1.0 - storm_veil(p);
+	}
+	vec3 hot = rim.rgb * 255.0;
+	return floor(mix(colour, max(colour, hot), k * most * clear));
+}
+
 // the old view shader surface_light(): kind 0 a floor or ceiling, 1 a wall, 2 a
 // sprite. t is the distance ahead (the old renderer's `nearest`).
 vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 bump, float gloss, int kind) {

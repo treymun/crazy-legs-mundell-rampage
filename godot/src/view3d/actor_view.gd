@@ -87,6 +87,11 @@ var _twist_for := -1.0
 ## kind -> where its body lies at the end of its fall (_lying_middle).
 static var _lying := {}
 var _shaded := []
+## Its own rim (ActorRim, pass 15): when it came up (-1: none), whether this
+## body was shown without one, and the clock the body is shown at.
+var rim_since := -1.0
+var rim_off_seen := false
+var shown_at := 0.0
 ## stem -> picture -> pose_of's answer (it parses the name each time).
 static var _poses: Dictionary = {}
 ## Bodies past `lod_high` cells from `lod_eye` (map x, y), times their
@@ -181,6 +186,8 @@ func revive() -> void:
 	_group = ""
 	_blend_at = -1.0
 	_shaded = []
+	rim_since = -1.0
+	rim_off_seen = false
 	_posed = -1
 	_posed_dead = false
 	_shown_alive = false
@@ -198,6 +205,7 @@ func revive() -> void:
 
 ## Stand where sprite `s` of enemy `e` stands, in its frame and look.
 func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
+	shown_at = clock
 	var named := s.image
 	if s.pose != "":
 		# The model's own frame, with the picture's tint.
@@ -491,8 +499,8 @@ func _ease_over(k: float) -> void:
 			)
 
 
-## The model's light, wash, look, how fallen it is (the rim's shade) and a
-## wind-up's amber (`tell`).
+## The model's light, wash, look, how fallen it is (the rim's shade), a
+## wind-up's amber (`tell`) and its own rim (ActorRim).
 func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: float) -> void:
 	var c := level.cell(clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01))
 	var ti := clampi(level.area[c], 0, maxi(0, level.tints.size() / 3 - 1)) * 3
@@ -502,7 +510,8 @@ func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: floa
 	var hurt := minf(.46, s.hurt / .18 * .44) if s.hurt > 0.0 else 0.0
 	var wash := Color(tint.r, tint.g, tint.b, hurt)
 	var tell := 0.0 if hurt > 0.0 else s.tell
-	var now := [tone, wash, look, down, tell]
+	var rim := ActorRim.of(self, s.who)
+	var now := [tone, wash, look, down, tell, rim]
 	if now == _shaded:
 		return
 	_shaded = now
@@ -512,6 +521,8 @@ func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: floa
 		OwnMaterial.put(mesh, "look", look)
 		OwnMaterial.put(mesh, "fallen", down)
 		OwnMaterial.put(mesh, "tell", tell)
+		OwnMaterial.put(mesh, "own_rim", rim)
+		OwnMaterial.put(mesh, "own_rim_reach", ActorRim.reach(s.who))
 
 
 ## Draw on these render layers only (the mirror's reflection: WorldView3D

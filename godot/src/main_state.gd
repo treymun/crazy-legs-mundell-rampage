@@ -1030,7 +1030,7 @@ func _look_uniforms() -> void:
 	var playing := gpu_look and game != null and state not in MENU_STATES
 	var look_on := playing and game.look_live
 	var tone_on := playing and game.tone_live
-	palette_material.set_shader_parameter("hurt", game.hurt_alpha if playing else 0)
+	HurtLooks.uniforms(palette_material, game, playing)  # the flash, vignette, drain
 	palette_material.set_shader_parameter("look", look_on)
 	palette_material.set_shader_parameter("tone_on", tone_on)
 	if look_on:

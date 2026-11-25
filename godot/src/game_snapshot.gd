@@ -366,6 +366,7 @@ const LOOKS_FEATURES := [
 	"rumble",
 	"trail_marker",
 	"danger_looks",
+	"hurt_looks",
 ]
 
 

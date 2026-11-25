@@ -10,6 +10,12 @@
 ##   mark_scorch_N    (3) the black scorch an explosion leaves on the ground
 ##   fx_crow_N        (2) a crow, wings up and wings down
 ##   fx_firefly_N     (2) a firefly lit and dark
+##   fx_casing_45     (pass 15) a stubby .45 case: the county .45, the tommy, the grease gun
+##   fx_casing_357    a long straight .357 case, nickel-bright: the Star .357
+##   fx_casing_44     a fat old .44 case, dull and sooty: the Hogleg
+##   fx_casing_long   a bottlenecked rifle case: the deer rifle, the patrol rifle, the marksman
+##   fx_hull_riot     a riot pump's black plastic hull, brass head
+##   fx_twinkle_N     (2) the star a pickup glints with: small, and big
 ## Then run tools/pack_assets.gd. out= writes somewhere else instead.
 extends SceneTree
 
@@ -43,7 +49,16 @@ func _init() -> void:
 	# A water tower's flood standing in the street (features/set_pieces.gd).
 	for k in 3:
 		flood_water(k).save(out.path_join("mark_flood_%d.png" % k))
-	print("world fx: 23 pictures in ", out)
+	# The newer guns' brass and the pickups' glint (pass 15; no dice, so the
+	# pictures above come out as before).
+	casing_45().save(out.path_join("fx_casing_45.png"))
+	casing_357().save(out.path_join("fx_casing_357.png"))
+	casing_44().save(out.path_join("fx_casing_44.png"))
+	casing_long().save(out.path_join("fx_casing_long.png"))
+	hull_riot().save(out.path_join("fx_hull_riot.png"))
+	for k in 2:
+		twinkle(k).save(out.path_join("fx_twinkle_%d.png" % k))
+	print("world fx: 30 pictures in ", out)
 	quit()
 
 
@@ -76,6 +91,91 @@ func hull() -> Paint.Sheet:
 	for x in range(8, 36, 6):  # the crimped, scorched end
 		Paint.line2(s, 4, 6 + (x % 4), 8, 11, Color8(80, 16, 14))
 	return shrunk(s, 14, 6)
+
+
+## A .45 ACP case: short and fat, nearly as wide as it is long.
+func casing_45() -> Paint.Sheet:
+	var s := Paint.Sheet.new(40, 24)
+	Paint.rounded_rect(s, 4, 4, 30, 19, 4, Color8(184, 140, 58))
+	Paint.rect(s, 29, 3, 35, 20, Color8(150, 110, 44))  # the rim
+	Paint.rect(s, 6, 6, 27, 8, Color8(240, 210, 128))
+	Paint.rect(s, 6, 16, 27, 17, Color8(118, 84, 32))
+	Paint.rect(s, 2, 7, 5, 16, Color8(92, 66, 30))  # the sooty mouth
+	return shrunk(s, 10, 6)
+
+
+## A .357 case: long and straight, nickel-plated and bright.
+func casing_357() -> Paint.Sheet:
+	var s := Paint.Sheet.new(56, 20)
+	Paint.rounded_rect(s, 4, 4, 46, 15, 3, Color8(176, 176, 168))
+	Paint.rect(s, 45, 3, 51, 16, Color8(140, 140, 134))
+	Paint.rect(s, 6, 5, 43, 7, Color8(236, 236, 226))
+	Paint.rect(s, 6, 13, 43, 14, Color8(104, 104, 100))
+	Paint.rect(s, 2, 6, 5, 13, Color8(70, 66, 60))
+	return shrunk(s, 14, 5)
+
+
+## A .44 case off the Hogleg: fat and long, its brass gone dull and sooty.
+func casing_44() -> Paint.Sheet:
+	var s := Paint.Sheet.new(56, 24)
+	Paint.rounded_rect(s, 4, 4, 44, 19, 4, Color8(150, 112, 50))
+	Paint.rect(s, 43, 2, 51, 21, Color8(124, 92, 40))
+	Paint.rect(s, 6, 6, 41, 8, Color8(204, 168, 96))
+	Paint.rect(s, 6, 16, 41, 17, Color8(96, 68, 28))
+	Paint.rect(s, 2, 6, 12, 17, Color8(70, 54, 34))  # soot up the mouth
+	return shrunk(s, 14, 6)
+
+
+## A rifle case: a long body necked down to the mouth.
+func casing_long() -> Paint.Sheet:
+	var s := Paint.Sheet.new(64, 20)
+	Paint.rounded_rect(s, 18, 3, 56, 16, 3, Color8(180, 136, 54))
+	Paint.polygon(
+		s,
+		PackedVector2Array([Vector2(18, 3), Vector2(10, 7), Vector2(10, 12), Vector2(18, 16)]),
+		Color8(168, 126, 50)
+	)
+	Paint.rect(s, 3, 7, 11, 12, Color8(176, 132, 52))  # the neck
+	Paint.rect(s, 55, 2, 60, 17, Color8(150, 110, 44))  # the rim
+	Paint.rect(s, 19, 5, 53, 7, Color8(240, 208, 124))
+	Paint.rect(s, 19, 13, 53, 14, Color8(116, 82, 30))
+	Paint.rect(s, 1, 8, 3, 11, Color8(92, 66, 30))
+	return shrunk(s, 16, 5)
+
+
+## A riot pump's hull: black plastic, a ribbed side, a tall brass head.
+func hull_riot() -> Paint.Sheet:
+	var s := Paint.Sheet.new(56, 24)
+	Paint.rounded_rect(s, 4, 4, 38, 19, 3, Color8(40, 42, 38))
+	Paint.rect(s, 6, 6, 36, 8, Color8(92, 96, 88))
+	Paint.rect(s, 6, 16, 36, 17, Color8(22, 22, 20))
+	for x in range(10, 36, 7):  # the ribs
+		Paint.rect(s, x, 9, x + 1, 15, Color8(62, 64, 58))
+	Paint.rect(s, 36, 3, 51, 20, Color8(184, 140, 58))  # the brass head
+	Paint.rect(s, 38, 5, 49, 7, Color8(236, 206, 128))
+	Paint.rect(s, 49, 2, 52, 21, Color8(150, 110, 44))
+	return shrunk(s, 14, 6)
+
+
+## A pickup's glint: a four-pointed star, white at its heart through pale
+## gold to amber tips (the palette's), small (0) and big (1) on one canvas.
+func twinkle(k: int) -> Paint.Sheet:
+	var s := Paint.Sheet.new(13, 13)
+	var heart := Color8(255, 255, 236)
+	var inks: Array[Color] = [Color8(255, 240, 168), Color8(250, 210, 100), Color8(222, 150, 48)]
+	var reach := 2 if k == 0 else 6
+	for d in range(1, reach + 1):
+		var ink: Color = inks[mini(2, int(float(d - 1) / reach * 3.0))]
+		for dir: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			s.put(6 + dir.x * d, 6 + dir.y * d, ink)
+	s.put(6, 6, heart)
+	if k == 1:
+		for dir: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			s.put(6 + dir.x, 6 + dir.y, heart)
+		for dir: Vector2i in [Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)]:
+			s.put(6 + dir.x, 6 + dir.y, inks[0])
+			s.put(6 + dir.x * 2, 6 + dir.y * 2, inks[2])
+	return s
 
 
 func ember(k: int) -> Paint.Sheet:

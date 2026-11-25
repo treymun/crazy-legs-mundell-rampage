@@ -42,6 +42,10 @@ static var SWAY := {}
 static var CLIMATE := {}
 ## image name -> light source: the props a light stands on ([light.*] props).
 static var PROP_LIGHTS := {}
+## Every section's values by its name, for the looks read with num() (pass
+## 15: [rim], [pickup_glint], [hurt_looks], [enemy_muzzle], [gun_smoke],
+## [casings]).
+static var SECTIONS := {}
 ## The shader takes this many moving tiles at once: those the level draws
 ## (scene_layers.gd), so [anim.*] may list more across all the chapters.
 const MAX_ANIMS := 8
@@ -75,6 +79,7 @@ static func load_tuning() -> void:
 	SWAY = {}
 	CLIMATE = {}
 	PROP_LIGHTS = {}
+	SECTIONS = {}
 	var tables := {
 		"water": WATER,
 		"relief": RELIEF,
@@ -88,6 +93,7 @@ static func load_tuning() -> void:
 		var values := {}
 		for key in cfg.get_section_keys(section):
 			values[key] = cfg.get_value(section, key)
+		SECTIONS[section] = values
 		if section.begins_with("level."):
 			LEVELS[section.substr(6)] = values
 		elif section.begins_with("anim."):
@@ -120,6 +126,12 @@ static func load_tuning() -> void:
 			for image: Variant in d["props"]:
 				PROP_LIGHTS[str(image)] = source
 	version += 1
+
+
+## A value of effects.cfg's `section`, or `fallback` where it has none.
+static func num(section: String, key: String, fallback: Variant) -> Variant:
+	var values: Dictionary = SECTIONS.get(section, {})
+	return values.get(key, fallback)
 
 
 ## A level's mood value, or `fallback` for a level effects.cfg does not name.

@@ -69,6 +69,7 @@ const ALL := [
 	preload("res://src/features/rumble.gd"),
 	preload("res://src/features/trail_marker.gd"),
 	preload("res://src/features/danger_looks.gd"),
+	preload("res://src/features/hurt_looks.gd"),
 	preload("res://src/features/director.gd"),
 	preload("res://src/features/rampage.gd"),
 ]
@@ -107,6 +108,7 @@ const LOOKS := [
 	"rumble",
 	"trail_marker",
 	"danger_looks",
+	"hurt_looks",
 ]
 
 

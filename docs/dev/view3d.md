@@ -769,6 +769,75 @@ Each enemy and boss with a model shows as an `ActorView` scene
 
 The pipeline is in [art.md](art.md#actors).
 
+## Looks that read (pass 15)
+
+The owner found play hard to read; these make what matters stand out, in
+the palette's way. Looks only (their own sums, never `game.rng`, nothing
+saved or carried); numbers in effects.cfg (`Effects.num`); held by
+`tools/looks_check.gd`, pictured by `tools/looks_frames.gd`.
+
+- **The rim** (`[rim]`, `src/view3d/actor_rim.gd`, `actor.gdshader`
+  `own_rim`, `own_rim_reach`, `view_light.gdshaderinc own_rim_on`). A hostile
+  hand awake (alerted, alive, not held) wears a warm amber edge along his
+  silhouette (normals turned from the eye, a little more on top), stepped in
+  thirds and laid over the colour (a `mix` toward the rim's colour, so it
+  shows by day too), `near` of it up close rising to `far` at `far_at`
+  cells, the band widening far off where a hand is a few pixels, showing
+  through `fog_cut` of the fog: a far hand reads as a warm figure, not a
+  smudge. The animals in `critters` wear a cool one that does not grow. It
+  comes after the wind-up's amber and quiets under it (`tell / 0.38`) and
+  under a hit's wash, so the tell reads. By night it stands in for the
+  moon's rim on that body, never weaker or narrower than it. A rim that
+  comes up in sight fades in over `fade` (`ActorView.rim_since`,
+  `rim_off_seen`); a body first seen awake has it whole (so a view tour shows
+  it). LIGHTS AND GLOW only: QUALITY LOW drops it. Two material uniforms,
+  set only when they change (`actor_view.gd _shade`); no texture. Bodies
+  still drawn as cels get none.
+- **The pickups' glint** (`[pickup_glint]`, `src/pickup_looks.gd`, from
+  `game_view.gd`'s pickup loop). Ammo, food and scrap show a two-frame star
+  (`fx_twinkle_0`, `_1`, glowing: small, big, small, `step` s each) at their
+  upper corner every `every` s, each on its own beat by where it lies, out to
+  `reach`; they bob `bob` (a little more than before: .05 against .035).
+  EASY ON THE EYES glints `calm` times as seldom and calms the bob. Drawn
+  whatever QUALITY. Guns not had keep their own shine, keys their light.
+- **Hurt** (`[hurt_looks]`, `src/features/hurt_looks.gd`, a LOOKS feature;
+  `display.gdshader` `pain`, `drain`, `hurt_look`). On the 3D view only, so
+  the gun, the HUD and a RAMPAGE's burning edge stay over it: a blow draws a
+  red-brown vignette in from the edges, an oval of the view's shape, the
+  palette's blood darkening outward, in quarters dithered on the 320 grid
+  (Bayer), deeper for a harder blow, fading over `pain_fade`; under
+  `low_from` health the world drains toward sepia (all the way at
+  `drain_full`) and the vignette holds; under `heart_from` a heart thumps
+  (the made cue `heart_thump`), quicker lower, each beat swelling the
+  vignette. `HurtLooks.uniforms` hands the shader the old red flash, the
+  vignette and the drain (`main_state.gd _look_uniforms`); none in the menus
+  or under PHOTO MODE's, an opener's or the KILL CAM's eye. SCREEN FLASHES
+  scales the vignette (REDUCED .32, OFF none) and the drain (by its square
+  root). The heart is counted as the view draws, so only a drawn game hears
+  it.
+- **The hands' muzzle light** (`[enemy_muzzle]`, `[light.enemy_muzzle]`,
+  `_scatter`; `src/muzzle_looks.gd`, owned by gun_fx). When a hand whose
+  brain fires a gun starts his recovery (he has just attacked), a light at
+  his gun for its `life`: it lights the yard round him and tells where the
+  shot came from. The nearest `Effects.MAX_LIGHTS` of all the frame's lights
+  win, as ever. Lights multiply a surface's own light, so in a county
+  blackout (the surfaces darkened) it shows little; by night it lights the
+  ridge.
+- **Brass** (`[casings]`, `features/debris.gd _shells`): each gun's shells
+  by table, [picture, how many, fire or reload, size, how hard]. The guns
+  added since the rifle threw the rifle's case; now a stubby .45 (county .45,
+  tommy, grease gun), long nickel .357s dumped on reload, a sooty .44 (the
+  Hogleg), bottlenecked rifle brass (hunter, patrol rifle, marksman) and the
+  riot pump's black hull. `fx_hull*` moves as a hull.
+- **Smoke off the muzzle** (`[gun_smoke]`, `MuzzleLooks`). After `burst`
+  shots inside `window`, or one shot of a `big` gun, then `wait` with no
+  more, a wisp curls up off the muzzle on the picture (`Weapons.muzzle_at`,
+  under the gun) for `life`, swaying as it climbs, its pixels dropped in a
+  4x4 ordered dither as it thins over its last `thin` (the 1997 way to see
+  through smoke), until he fires again, lowers the gun, reloads or swaps.
+  Only guns whose weapons.cfg `muzzle_style` is fire and smokes. With
+  LIGHTS AND GLOW (gun_fx's layer).
+
 ## Checks
 
 - `tools/view3d_check.gd` builds every level's mesh headless, loads every
