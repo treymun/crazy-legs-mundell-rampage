@@ -7,9 +7,10 @@
 ## The host plays the one real game; whenever the party goes somewhere else
 ## the host makes the next game and moves the match onto it
 ## (NetPlay.switch_match: a START to everyone, on their own slots):
-##   - the chapter won: the host's ENTER on the tally makes the next chapter
-##     (each player's own kit carried, Modes.carry) and takes the party to
-##     the COUNTY CROSSROADS, its gate open (with CLASSIC on, straight in);
+##   - the chapter won: the host's pick on the tally makes the next chapter
+##     (each player's own kit carried, Modes.carry) and takes the party
+##     straight into it (BETWEEN CHAPTERS: STRAIGHT ON) or, the host's other
+##     pick, to the COUNTY CROSSROADS at its gate;
 ##   - a gate (any player's USE): the hub's into a chapter (the one under way
 ##     is picked up where it was left, `main.net_run`; any other starts
 ##     fresh with everyone's kit), a chapter's back to the hub;
@@ -147,9 +148,11 @@ static func load_party(main: MainFlow, info: Dictionary) -> Game:
 	return loaded
 
 
-## The host's ENTER on a won chapter's tally: the next chapter made, its
-## gate opened (on the host's profile too), and the party to the hub.
-static func next(main: MainFlow) -> void:
+## The host's pick on a won chapter's tally: the next chapter made, its gate
+## opened (on the host's profile too), and the party straight into it or
+## (`crossroads`) to the hub, standing at its gate (the host's ENTER does
+## what BETWEEN CHAPTERS says, the MAP key the other: online_input.gd).
+static func next(main: MainFlow, crossroads := false) -> void:
 	var current := main.net.match_game()
 	if UserMap.is_custom(current.level.id):
 		# A player map is one map: won, the party goes back to the lobby
@@ -173,11 +176,10 @@ static func next(main: MainFlow) -> void:
 	var tool := Engine.get_main_loop() != null and Engine.get_main_loop().get_script() != null
 	if not tool:
 		SessionStore.save_unlocks("", main.unlocked)
-	var classic: int = main.options["classic"]
-	if classic != 0:
+	if not crossroads:
 		go(main, made)
 		return
-	hub(main, current, "GATE OPEN: " + Campaign.title_of(following))
+	hub(main, current, "GATE OPEN: " + Campaign.title_of(following), following)
 
 
 ## A chapter made fresh for the party, everyone's kit (health, guns, rounds,
@@ -206,7 +208,9 @@ static func _carry_all(from: Game, to: Game) -> void:
 ## The COUNTY CROSSROADS for the party: the gates the host has opened (and
 ## the chapter under way, CONTINUE), everyone at the hub's spawn with their
 ## kit; the clients make the same gates from START (`locked`, `gate_modes`).
-static func hub(main: MainFlow, from: Game, message: String) -> void:
+## `at_gate`: the chapter whose gate player one stands at, facing it, the
+## partners beside them (BetweenChapters.stand_at_gate, Modes.gather).
+static func hub(main: MainFlow, from: Game, message: String, at_gate := "") -> void:
 	var made: Game = main.make_game("hub")
 	made.configure(main.net_options(main.net.match_info))
 	made.hub_findings = main.hub_findings
@@ -226,6 +230,8 @@ static func hub(main: MainFlow, from: Game, message: String) -> void:
 			labels[dest] = "REPLAY"
 	var extra := {"locked": locked, "gate_modes": labels}
 	dress(made, extra, false)
+	if at_gate != "" and BetweenChapters.stand_at_gate(made, at_gate):
+		Modes.gather(made)
 	var hint := "COUNTY CROSSROADS. FACE A GATE AND PRESS %s." % main.use_button()
 	made.message(message if message != "" else hint, 4.5)
 	go(main, made, extra)

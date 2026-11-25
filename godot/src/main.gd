@@ -814,6 +814,7 @@ func _process(delta: float) -> void:
 			if game.showing_tally or game.defeated():
 				grab(false)
 		watch_rematch()
+		watch_tally()
 	rumble.frame(self, dt)
 
 	sound.tick_score(dt)

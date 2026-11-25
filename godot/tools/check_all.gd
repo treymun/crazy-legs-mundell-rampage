@@ -79,6 +79,7 @@ const CHECKS := [
 	["wide_check", "WIDE CHECK OK"],
 	["onboard_check", "ONBOARD CHECK OK"],
 	["marker_check", "MARKER CHECK OK"],
+	["road_check", "ROAD CHECK OK"],
 	["danger_check", "DANGER CHECK OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK", ["seconds=30"]],
@@ -133,6 +134,7 @@ const QUICK := [
 	"wide_check",
 	"opener_check",
 	"opener_camera_check",
+	"road_check",
 	"physics_check",
 	"live_props_check",
 	"brawl_check",
@@ -227,6 +229,7 @@ const CI_SECONDS := {
 	"onboard_check": 60,
 	"marker_check": 60,
 	"danger_check": 12,
+	"road_check": 20,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and

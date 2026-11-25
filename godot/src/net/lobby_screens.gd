@@ -9,6 +9,7 @@
 class_name LobbyScreens
 extends RefCounted
 
+const TallyFeature := preload("res://src/features/tally.gd")
 ## The forms' rows: key, label, kind ("text", "secret", "digits", "go").
 const HOST_FORM := [
 	["name", "YOUR NAME", "text"],
@@ -944,9 +945,20 @@ static func draw_match(c: Canvas, net: NetPlay, game: Game, leave_asked: bool) -
 		and not leave_asked
 		and Modes.mode_of(game) == Modes.COOP
 	):
-		# Online co-op: the host takes the party on (net_coop.gd next).
+		# Online co-op: the host takes the party on (net_coop.gd next),
+		# straight into the next chapter or to the Crossroads, BETWEEN
+		# CHAPTERS' way on the one tap (features/tally.gd `straight`).
 		if net.role == NetPlay.Role.HOST:
-			button(c, Rect2i(60, 176, 200, 13), "ENTER  ROLL ON, Y'ALL", true, "lobby_now")
+			var show: TallyFeature = game.features.get("tally")
+			var straight := show == null or show.straight
+			var ways := ["ROLL ON, Y'ALL", "THE CROSSROADS"]
+			if not straight:
+				ways.reverse()
+			var keys := ["ENTER", "TAB"] if not touch_words else ["TAP", "TAP"]
+			button(c, Rect2i(30, 176, 132, 13), "%s  %s" % [keys[0], ways[0]], true, "lobby_now")
+			button(
+				c, Rect2i(166, 176, 124, 13), "%s  %s" % [keys[1], ways[1]], false, "lobby_other"
+			)
 		else:
 			HUD.text(c, "THE HOST TAKES THE PARTY ON", 160, 181, "body", HUD.AMBER, true)
 	elif game != null and game.showing_tally and not leave_asked:

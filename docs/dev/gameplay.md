@@ -3035,6 +3035,64 @@ hands the players a new one): every key door was shut to the pin until the
 next chapter; `objective_route` now takes the game's own. Play never reads
 `Game.route`: these change the pin and the bots, not the rules.
 
+## Between chapters (pass 15)
+
+Before pass 15 a won chapter's card led to the Crossroads, the player at
+its spawn 32 to 51 cells (8 to 13 s running) from the next gate, then a
+load each way: 25 to 35 s of not playing at each of the seven boundaries.
+
+- **BETWEEN CHAPTERS** (PLAY page, `between`; it replaced CLASSIC LEVEL
+  FLOW, whose `classic` key is no longer read): STRAIGHT ON (the default)
+  or THE CROSSROADS says what the card's one tap does; the other is a plate
+  of its own. `BetweenChapters.choices` gives the card's ways on, each with
+  its slot (`GO`, `OTHER`, `AGAIN`) and key word; `main_flow.gd take_road`
+  does what a slot's plate says.
+- **Straight on** (`continue_campaign()`): `_next_chapter` starts the next
+  chapter with the kit and history carried, the won chapter kept in
+  `retained` for a revisit, its gate unlocked and saved; the campaign entry
+  is written there too, so skipping the Crossroads loses nothing.
+- **The Crossroads** (`continue_campaign(true)`): `open_hub(made, message,
+  following)` writes the entry as before and stands player one in front of
+  the next chapter's gate, facing it, `GATE_STEP` (1.8) out
+  (`BetweenChapters.stand_at_gate`; USE takes it: CONTINUE into the chapter
+  under way). Every gate has room in front of it (`road_check`).
+- **TRY TO BEAT IT** (`try_to_beat_it`): the chapter again as the hub's
+  REPLAY gate starts it (the gate's kit, `NetCoop.chapter_kit`); from the
+  campaign's own card the campaign goes on first, unseen (the next chapter
+  made, its gate opened, the entry written). A won replay's card offers HIT
+  THE ROAD (into the campaign's chapter under way), THE CROSSROADS (at its
+  gate) and TRY TO BEAT IT again (`back_on_the_road`); before pass 15 it
+  went to the title.
+- **The openers** play once a chapter (OPENERS: FIRST TIME) and one key,
+  button, click or tap skips all of one (unchanged; `road_check` holds it on
+  the straight road).
+- **The bests** (`src/chapter_bests.gd`): `chapter_bests.json` beside the
+  boss rematch bests (`BossRematch.folder()`: the profile, or the cache
+  folder in a tool run), never a save. For each chapter and difficulty the
+  best time, most varmints and most secrets, each its own best. Kept once
+  per won card (`BetweenChapters.settle`, from `main_flow.gd watch_tally`
+  each frame and `take_road`) for a campaign chapter played alone by a
+  person: not co-op or online, a rematch, a recorded replay, a tour, bench
+  or demo, or with cheats. Replays count. A first run sets them with no
+  NEW BEST.
+- **Par** (`modes.cfg [par]`): seconds of the chapter clock, the same at
+  every difficulty, from the SHARP bot's pass 15 audit times times 1.5 (the
+  file says which). The ribbon gives `pace_share` (.2) to keeping to par:
+  full at par, none at `slack` (2) times par. The balance step re-sets par
+  when play moves.
+- **Online co-op**: the host picks, as before (`online_input.gd`): ENTER
+  does what the host's BETWEEN CHAPTERS says, the MAP key the other
+  (`NetCoop.next(main, crossroads)`); at the Crossroads player one stands at
+  the gate, the partners gathered beside them.
+
+Measured (headless, this PC): ENTER to the next chapter playable 75 to 195
+ms straight on; by the Crossroads the hub's load as well, then the walk.
+Not playing at a boundary, a player who watches the card to its ribbon
+(seven or eight rows): before 3.0 to 3.4 s of card + 8.4 to 13.2 s running
+to the gate + two loads; after 2.1 to 2.3 s (0.6 s with a tap) + one load,
+the opener (first time only, skippable) either way. Over the seven
+boundaries about 80 to 120 s before, 5 to 17 s after.
+
 ## Reading danger (pass 15)
 
 The audit found 19 to 57 % of the damage taken came from outside the middle
