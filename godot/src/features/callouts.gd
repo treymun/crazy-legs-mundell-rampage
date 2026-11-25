@@ -6,6 +6,8 @@ extends GameFeature
 ## Seconds a kill keeps the streak going.
 const WINDOW := 1.8
 const CALLS := ["", "", "TWOFER!", "HAT TRICK!", "HOG WILD!", "RAMPAGE!"]
+## A hand booted into a hazard (features/brawl.gd's bonus, pass 15).
+const JUSTICE := "COUNTY JUSTICE!"
 
 var streak := 0
 var last_kill := -10.0

@@ -179,6 +179,7 @@ static func copy(s: View.Sprite) -> View.Sprite:
 	out.plane = s.plane
 	out.face = s.face
 	out.hurt = s.hurt
+	out.tell = s.tell
 	out.pose = s.pose
 	out.spin = s.spin
 	out.solid = s.solid

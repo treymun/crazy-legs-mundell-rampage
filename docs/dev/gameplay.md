@@ -30,8 +30,9 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (86 now;
-  RUMBLE and PHONE RUMBLE are the newest, under INPUT and TOUCH). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (88 now;
+  pass 15's CHECKPOINTS, under PLAY, and DANGER ARROWS, under DISPLAY, are
+  the newest). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -1042,6 +1043,8 @@ co-op and online play it the same (`net_check`, brawl_check's snapshot).
   and he is their slop 1.3 s later). A boss takes `boss_share` of his health
   at most once in `boss_rest` and is never killed by one. Calls on screen and
   a `hazard` line. Where they stand: [levels.md](levels.md#the-plans).
+  A hazard kill pays a bonus (pass 15, `_bonus`; [Reading
+  danger](#reading-danger-pass-15)).
 - **Looks** (`brawl_looks.gd`, after feel.gd so it adds to the gun's place):
   the kick is six cels `fx_boot_kick_0..5` (tools/art/build_boot_views.gd
   from scripts/blender/boot_views.py: his brown work boot coming up sole
@@ -3031,6 +3034,72 @@ the route walked with the key ring the game was made with (`save_restore`
 hands the players a new one): every key door was shut to the pin until the
 next chapter; `objective_route` now takes the game's own. Play never reads
 `Game.route`: these change the pin and the bots, not the rules.
+
+## Reading danger (pass 15)
+
+The audit found 19 to 57 % of the damage taken came from outside the middle
+of the view (half in the quarry and the Mothership), told only in words
+(`STRIKE LEFT`, `WINDUP LEFT`), and no bot ever used a hazard. Now danger is
+drawn where it comes from, and a hazard kill pays. Numbers in hits.cfg
+`[danger]` and `[hazard]`.
+
+- **Damage arrows** (`src/danger_marks.gd`, looks; DANGER ARROWS on DISPLAY,
+  on by default). `damage()` keeps each blow with a source in
+  `game.danger_blows` (a VIEW field: [heading, landed, until, amount], the
+  local player's only, at most `arrows_most`). Each draws a red chevron at
+  the view's edge its way: the edge is picked by the bearing (a quarter turn
+  round is a corner; the chevron points out of the edge it sits on, up,
+  right, down or left, a pixel pattern three pixels thick, never a turned
+  line), white for `FRESH` (.06 s), then fading over `arrow_for` (.8 s); a
+  blow of `heavy` (20) or more is a double chevron. They go where the hurt
+  arc went (before the notice and the tip, so banners stay on top) and slide
+  in toward the middle off any HUD piece or touch button
+  (`HudLayout.taken`, where each is drawn, ASPECT WIDE's edge pieces moved
+  out); one with no clear spot is not drawn. The hurt banner then names
+  only what hit (the side is the arrow's). Off: the hurt arc, `<CAUSE>
+  LEFT` and the WINDUP panel exactly as before. Unlike the arc, the steam
+  (a boilerback's blast, a jet) and the chalk or gas clouds get an arrow
+  (toward the cloud's middle); the player's own blasts (`OWN`) and a source
+  on top of him (`ON_TOP`) get none. In the audit's quarry runs these were
+  about half the unseen blows.
+- **Wind-ups.** A regular hand's model washes amber over the last
+  `tell_share` (.6) of his wind-up (`EnemyLooks.tell`: .2 to .38 toward
+  amber as it runs out, flickering at 12 a second; the actor shader's `tell`,
+  a sprite's packed wash; a hit's wash comes first; bosses keep their own
+  pulse). Off the view (DANGER ARROWS on) an amber chevron points at each
+  hand winding up within `windup_reach` (14), the nearest `windups_most` (2),
+  blinking hot in his last share; in the view his model tells it. A wind-up
+  of `big_windup` (.6 s) or more (chain hand, boilerback, bottle tosser, yard
+  deputy, millhand, ...) marks the floor at his `aim_mark` (where the player
+  stood as it began) the bosses' way, `ring_dots` warning marks closing from
+  `ring_wide` to `ring_tight` round a filling slam mark
+  (`features/danger_looks.gd`, a LOOKS feature); a ranged hand's raised gun
+  hand glints over the same share.
+- **Hazards readable.** The awake hand nearest the sights (within
+  `sights_reach`, the aim on his body, in sight) lights faint red brackets,
+  breathing, round each hazard prop within `show_reach` (3.5) of him, as tall
+  as the prop's board. When USE would boot a man (brawl.gd `target`, not one
+  to be finished, not a boss) and his slide along the aim (the boot's speed
+  run down by its drag, stopped by a wall) meets a hazard prop's reach, deep
+  or running water or ends among the hogs, a little bone skull shows under
+  the crosshair (`DangerMarks.skull`). Looks only, always on.
+- **The bonus** (play, brawl.gd `_bonus`, the same on every machine): for
+  whoever booted him, COUNTY JUSTICE! across the screen (callouts.gd
+  `JUSTICE`) and the hazard's name with the pay in the notice, Mundell's
+  `hazard` line as before, `bonus_scrap` (3) scrap in his coffee can with the
+  bench live (up to bench.cfg `most`), a drop at the body nudged toward him
+  (`_bonus_pick`: his kind's own enemies.cfg `drop`, else one of
+  `bonus_drops` by `game.rng`; none with NO DROPS; the PACE track may point
+  this one line at its drop by need), and `game.events.hazard_killed(enemy,
+  kind, slot)`; a RAMPAGE meter (not built yet) adds `bonus_rampage` for it.
+  Bosses (who only take their share) get none.
+- Carried online within PROTOCOL 5: nothing new is carried. The arrows, the
+  tell, the rings, the glint, the brackets and the skull read what already
+  is (an enemy's windup and aim_mark, the local damage); the bonus is brawl
+  play, its scrap on the carried armory and its drop a pickup. County Run:
+  the same rules (no scrap: no bench there).
+- `tools/danger_check.gd` holds it; `tools/danger_frames.gd` (a window)
+  pictures it; `brawl_check` holds the bonus.
 
 ## Difficulty and pacing as numbers (polish pass 9)
 

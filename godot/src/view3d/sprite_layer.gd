@@ -15,8 +15,11 @@ const BOARD := 16
 ## A pickup's slab (slab_layer.gd): in the dark it takes the moon's rim.
 const ITEM := 32
 ## The flags' word also holds the hurt wash (x 256) and a billboard's turn
-## (x SPIN_ONE, in SPINS steps): sprite_body.gdshaderinc's numbers.
+## (x SPIN_ONE, in SPINS steps): sprite_body.gdshaderinc's numbers. A
+## wind-up's amber wash (View.Sprite.tell) goes in the hurt wash's place as
+## TELL plus its share in hundredths (the hit's wash comes first).
 const SPIN_ONE := 65536
+const TELL := 128
 const SPINS := 32
 
 ## The rows each MultiMesh was last handed (fill()), by its id, and how many
@@ -316,6 +319,8 @@ func _row(
 	var hurt := 0
 	if s.hurt > 0.0:
 		hurt = int(minf(.46, s.hurt / .18 * .44) * 100.0)
+	elif s.tell > 0.0:
+		hurt = TELL + int(minf(1.0, s.tell) * 100.0)
 	# A billboard turned over: SPINS steps of a turn (sprite_body.gdshaderinc).
 	var spin := 0
 	if s.spin != 0.0 and not board:
@@ -417,6 +422,8 @@ func _row_in(
 	var hurt := 0
 	if s.hurt > 0.0:
 		hurt = int(minf(.46, s.hurt / .18 * .44) * 100.0)
+	elif s.tell > 0.0:
+		hurt = TELL + int(minf(1.0, s.tell) * 100.0)
 	var spin := 0
 	if s.spin != 0.0 and not board:
 		spin = posmod(roundi(s.spin / TAU * SPINS), SPINS)

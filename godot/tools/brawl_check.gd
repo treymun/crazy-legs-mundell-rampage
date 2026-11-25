@@ -50,6 +50,7 @@ static func run(main, check: Callable) -> void:
 	_boot(main, check)
 	_finishers(main, check)
 	_hazards(main, check)
+	_bonus(main, check)
 	_bosses(main, check)
 	_door(main, check)
 	_smash(main, check)
@@ -367,6 +368,68 @@ static func _hazards(main, check: Callable) -> void:
 	check.call(
 		not victim.alive and int(brawl(f).hazard_kills.get("hogs", 0)) == 1,
 		"hogs: booted into the pen, the hogs finish him"
+	)
+
+
+## A hazard kill's bonus (pass 15): COUNTY JUSTICE!, the scrap with the bench
+## live (none without it), a drop at the body (his kind's own: billy's
+## shells; none with NO DROPS), the hazard_killed event, the same on two runs.
+static func _bonus(main, check: Callable) -> void:
+	var runs: Array = []
+	for k in 2:
+		var g := game(main, "hickston")
+		g.bench_on = true  # a chapter with WORKBENCH on: the bench is live
+		var at := lane(g, 8)
+		var p := stand(g, at)
+		p.armory.scrap = 0
+		var heard: Array = []
+		g.events.hazard_killed.connect(
+			func(e: Enemy, kind: String, slot: int) -> void: heard.append([e.kind, kind, slot])
+		)
+		var b := brawl(g)
+		b.spots()
+		b._spots = [["saw", at.x + 3.6, at.y]]
+		var e := hand(g, "billy", at.x + 1.2, at.y)
+		var before := g.pickups.size()
+		press_use(g)
+		ticks(g, 1.5)
+		var near := 0
+		for item: Array in g.pickups.slice(before):
+			if str(item[0]) == "shells" and Vector2(item[1] - e.x, item[2] - e.y).length() < 1.0:
+				near += 1
+		if k == 0:
+			var paid: int = Brawl.BONUS_SCRAP
+			check.call(
+				not e.alive and p.armory.scrap == paid,
+				"a saw kill pays %d scrap with the bench live (%d)" % [paid, p.armory.scrap]
+			)
+			check.call(near >= 1, "and drops his own drop at the body (%d shells)" % near)
+			var called: bool = g.callout == Brawl.Callouts.JUSTICE
+			var named: bool = g.notice.begins_with("SAWED IN HALF!")
+			check.call(
+				called and named, "COUNTY JUSTICE!, the saw's name and the pay (%s)" % g.notice
+			)
+			check.call(
+				heard == [["billy", "saw", p.slot]],
+				"the hazard_killed event for a RAMPAGE meter (%s)" % str(heard)
+			)
+		runs.append(var_to_str([g.pickups, p.armory.scrap, g.rng.state]))
+	check.call(runs[0] == runs[1], "two runs of the same hazard kill pay the same")
+	# The bench off: no scrap. NO DROPS: no drop.
+	var h := game(main)
+	h.supply_rule = 2
+	var hat := lane(h, 8)
+	var q := stand(h, hat)
+	q.armory.scrap = 0
+	brawl(h).spots()
+	brawl(h)._spots = [["saw", hat.x + 3.6, hat.y]]
+	var v := hand(h, "billy", hat.x + 1.2, hat.y)
+	var had := h.pickups.size()
+	press_use(h)
+	ticks(h, 1.5)
+	check.call(
+		not v.alive and q.armory.scrap == 0 and h.pickups.size() == had,
+		"the bench off pays no scrap; NO DROPS drops nothing"
 	)
 
 

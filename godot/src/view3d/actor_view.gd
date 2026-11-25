@@ -491,7 +491,8 @@ func _ease_over(k: float) -> void:
 			)
 
 
-## The model's light, wash, look and how fallen it is (the rim's shade).
+## The model's light, wash, look, how fallen it is (the rim's shade) and a
+## wind-up's amber (`tell`).
 func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: float) -> void:
 	var c := level.cell(clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01))
 	var ti := clampi(level.area[c], 0, maxi(0, level.tints.size() / 3 - 1)) * 3
@@ -500,7 +501,8 @@ func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: floa
 		tone = Color(level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c])
 	var hurt := minf(.46, s.hurt / .18 * .44) if s.hurt > 0.0 else 0.0
 	var wash := Color(tint.r, tint.g, tint.b, hurt)
-	var now := [tone, wash, look, down]
+	var tell := 0.0 if hurt > 0.0 else s.tell
+	var now := [tone, wash, look, down, tell]
 	if now == _shaded:
 		return
 	_shaded = now
@@ -509,6 +511,7 @@ func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: floa
 		OwnMaterial.put(mesh, "wash", wash)
 		OwnMaterial.put(mesh, "look", look)
 		OwnMaterial.put(mesh, "fallen", down)
+		OwnMaterial.put(mesh, "tell", tell)
 
 
 ## Draw on these render layers only (the mirror's reflection: WorldView3D

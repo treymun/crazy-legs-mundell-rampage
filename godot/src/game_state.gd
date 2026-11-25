@@ -522,6 +522,9 @@ var notice := ""
 var hurt_flash := 0.0
 var blast_flash := 0.0
 var damage_feedback: Variant = null
+## The blows the local player took lately, for DANGER ARROWS (DangerMarks:
+## [heading, when it landed, until, amount] each, newest last). Looks only.
+var danger_blows: Array = []
 var item_feedback: Variant = null
 ## Game feel (HIT FEEDBACK and SCREEN SHAKE): a short freeze when a shot kills
 ## or hits hard, the crosshair's hit mark (red after a kill) and its tick, and
@@ -626,6 +629,10 @@ var aim_assist := 0
 ## off roofs: src/hand_tactics.gd), 0 CLASSIC.
 var smart_hands := 1
 var hit_feedback := true
+## DANGER ARROWS (setting, pass 15): chevrons at the view's edge toward each
+## blow and each hand winding up off the view (src/danger_marks.gd); off, the
+## hurt arc and the words as before. Looks only.
+var danger_arrows := true
 ## WEATHER (setting): how much the weather changes play, FULL 1, LIGHT .5,
 ## OFF 0 (features/climate.gd); how it looks stays whatever it is. COUNTY
 ## STORM: County Run's storm front closes in (src/modes/county_storm.gd).

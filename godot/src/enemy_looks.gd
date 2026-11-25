@@ -4,7 +4,10 @@
 ## health every living cel gives way to its hurt copy, `<kind>_hurt_<cel>`
 ## (bloodied, torn, limping; tin dented and sparking). A cel without a variant
 ## keeps its name, so a kind drawn before the hurt pass looks as it did. Bosses
-## have their own (BossLooks). Looks only: nothing here changes play.
+## have their own (BossLooks). In the last `tell_share` of a wind-up the model
+## flashes amber (tell(): the actor shader's `tell`, a sprite's packed wash),
+## so the swing or the shot is seen coming (pass 15). Looks only: nothing
+## here changes play.
 class_name EnemyLooks
 extends RefCounted
 
@@ -12,6 +15,12 @@ extends RefCounted
 const HURT_AT := .5
 ## The wind-up cel holds while more than this share of the wind-up is left.
 const WIND_SHARE := .5
+## The amber flash shows over this last share of a wind-up (hits.cfg [danger]).
+static var TELL_SHARE: float = HitData.value("danger", "tell_share", .6)
+## How strong it starts and ends (toward the amber), and how fast it flickers.
+const TELL_FROM := .2
+const TELL_TO := .38
+const TELL_BEAT := 12.0
 
 ## Each winding-up hand's wind-up as it started (by instance id).
 static var _wound := {}
@@ -69,3 +78,21 @@ static func _row(kind: String, name: String) -> Array:
 		wind if has.has(wind) else "",
 		hurt_wind if has.has(hurt_wind) else "",
 	]
+
+
+## How far `e`'s model washes toward amber now (0 none): over the last
+## TELL_SHARE of a regular hand's wind-up (its kind's whole wind-up,
+## enemies.cfg), stronger as it runs out, flickering at TELL_BEAT. Bosses
+## keep their own glow (BossKit.pulse).
+static func tell(e: Enemy, now: float) -> float:
+	if e.windup <= 0.0 or not e.alive or not e.hostile or Enemy.BOSS_TITLES.has(e.kind):
+		return 0.0
+	var spec: Array = Enemy.WINDUP.get(e.kind, [])
+	if spec.is_empty():
+		return 0.0
+	var whole: float = spec[0]
+	var left := e.windup / maxf(.01, whole * TELL_SHARE)
+	if left > 1.0:
+		return 0.0
+	var amount := lerpf(TELL_FROM, TELL_TO, 1.0 - left)
+	return amount if fposmod(now * TELL_BEAT, 1.0) < .6 else amount * .55

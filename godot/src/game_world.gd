@@ -77,6 +77,7 @@ func configure(options: Dictionary) -> void:
 	aim_assist = options.get("aim_assist", 0)
 	smart_hands = options.get("smart_hands", 1)
 	hit_feedback = options.get("hit_feedback", 1)
+	danger_arrows = options.get("danger_arrows", 1)
 	var feel: int = options.get("weather", 0)
 	weather_feel = [1.0, .5, 0.0][clampi(feel, 0, 2)]
 	storm_on = options.get("county_storm", 1)
@@ -320,6 +321,7 @@ func damage(amount: float, source: Variant = null, cause := "HIT", who: Player =
 		var from_x: float = source[0]
 		heading = atan2(from_y - p.y, from_x - p.x)
 	damage_feedback = [heading, cause, clock + .64]
+	DangerMarks.blow(me, source, cause, amount)
 	hurt_flash = .27
 	shake = minf(1.0, shake + minf(.55, amount / 40.0))
 	set_face("ouch_shock", .32)

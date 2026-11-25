@@ -4,7 +4,8 @@
 // and a cool one behind the other, a dim sky), kept to the camera as the
 // cels' lights were; then as its sprite was lit: light_at(distance, the
 // cell's light), no darker than a body's floor, the area's tint, a tough
-// guy's tint, a hit's wash toward hot white; LIGHTS AND GLOW's lights, grade
+// guy's tint, a hit's wash toward hot white, a wind-up's toward amber (pass
+// 15: EnemyLooks.tell, the last share of it); LIGHTS AND GLOW's lights, grade
 // and fog, and in the dark the moon's rim along its silhouette.
 shader_type spatial;
 render_mode unshaded, cull_back, shadows_disabled, fog_disabled;
@@ -19,6 +20,8 @@ uniform sampler2D look_p3 : filter_nearest, repeat_disable;
 uniform vec4 tone = vec4(1.0);
 // A tough guy's tint (rgb) and the hit wash (a).
 uniform vec4 wash = vec4(1.0, 1.0, 1.0, 0.0);
+// A wind-up's amber wash (0 none; actor_view.gd, never with the hit wash).
+uniform float tell = 0.0;
 // 0 plain, 1 hurt, 2 a boss's second phase, 3 its third.
 uniform int look = 0;
 // How far down the body is (0 standing, 1 at rest on the ground): the cels of
@@ -97,6 +100,8 @@ void fragment() {
 	vec3 colour = clamp(floor(shaded * lit * tone.rgb), 0.0, 255.0);
 	if (wash.a > 0.0) {
 		colour = floor(colour * (1.0 - wash.a) + vec3(255.0, 232.0, 208.0) * wash.a);
+	} else if (tell > 0.0) {
+		colour = floor(colour * (1.0 - tell) + vec3(255.0, 170.0, 48.0) * tell);
 	}
 	if (effects_on) {
 		vec3 n = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);

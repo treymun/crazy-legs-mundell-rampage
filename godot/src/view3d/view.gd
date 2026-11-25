@@ -61,7 +61,8 @@ static func speck_size(distance: float) -> float:
 ## (width from the picture's own shape). plane NaN faces the camera; an angle
 ## is a board fixed along it, seen from one side. body: an actor's picture
 ## (dropped by its empty bottom rows, never darker than a body's floor).
-## translucent: blended (smoke, mist). hurt: a hit's wash. who: the enemy it
+## translucent: blended (smoke, mist). hurt: a hit's wash; tell: a wind-up's
+## amber one. who: the enemy it
 ## shows (the 3D view draws that enemy's model when there is one).
 class Sprite:
 	var x := 0.0
@@ -79,6 +80,9 @@ class Sprite:
 	## open way. A quest prop faces where its station is used from.
 	var face := NAN
 	var hurt := 0.0
+	## A wind-up's amber wash (EnemyLooks.tell, pass 15): 0 none. A hit's
+	## `hurt` goes over it.
+	var tell := 0.0
 	var who: Object = null
 	## The model's frame when it is not the picture's (`<kind>[_hurt]_<frame>`,
 	## read like a picture name by ActorView): a player body drawn with another

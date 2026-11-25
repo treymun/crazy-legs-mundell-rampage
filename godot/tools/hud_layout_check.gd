@@ -166,7 +166,7 @@ func _moment(name: String, wants: Array) -> void:
 
 
 ## The notice and a new player's tip draw over every mark on the view: a hit
-## from in front (its hurt arc runs along the view's top) leaves both
+## from in front (its hurt arc, or DANGER ARROWS' chevron, at the view's top) leaves both
 ## banners' pixels as they are without it (pass 12: it struck them through).
 func _on_top() -> void:
 	print("")
@@ -176,6 +176,10 @@ func _on_top() -> void:
 	var kept := {}
 	for hit: bool in [true, false]:
 		g.damage_feedback = [g.player.view_angle(), "FIRE", g.clock + .5] if hit else null
+		# DANGER ARROWS: the blow's chevron at the view's top, under the banners too.
+		g.danger_blows = (
+			[[g.player.view_angle(), g.clock - 1.0, g.clock + .5, 30.0]] if hit else []
+		)
 		main.render()
 		for piece: String in ["notice", "tip"]:
 			var r: Rect2i = main.hud.layout.find(piece)

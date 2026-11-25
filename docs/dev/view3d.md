@@ -674,6 +674,16 @@ after: `docs/godot3d/remaster2/slabs/*.png`.
 Each enemy and boss with a model shows as an `ActorView` scene
 (`scenes/actors/<kind>.tscn`); `View.Sprite.who` names the enemy.
 
+- **A wind-up's amber** (pass 15): `View.Sprite.tell` (`EnemyLooks.tell`,
+  the last share of a regular hand's wind-up) is the actor shader's `tell`
+  uniform (`actor_view.gd _shade`), the colour washed toward amber
+  (255, 170, 48) as the hit's `wash.a` washes it toward hot white, never both
+  (the hit first). A body drawn as a sprite packs it in the hurt wash's place
+  in the flags word as `TELL` (128) plus its hundredths
+  (`sprite_layer.gd`, `sprite_body.gdshaderinc`). One float uniform, no
+  texture (`check_shader`'s caps are textures). See
+  [gameplay.md](gameplay.md#reading-danger-pass-15).
+
 - ActorView poses from the sprite name the game would have shown: walk
   (and any motion of five keys in a row, a letter and the beat,
   `ActorView.is_run`: the hound's gallop, trot, idle, shake and the rest)

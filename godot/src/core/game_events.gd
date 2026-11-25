@@ -75,6 +75,10 @@ signal boss_phase(enemy: Enemy, phase: int)
 signal boss_staggered(enemy: Enemy)
 signal boss_weak_hit(enemy: Enemy)
 signal boss_down(enemy: Enemy, seconds: float)
+## A hand booted into a hazard died by it (features/brawl.gd, pass 15): what
+## it was (hits.cfg [hazard.<kind>]) and the kicker's slot. Play, on every
+## machine: a RAMPAGE meter adds [hazard] `bonus_rampage` for one.
+signal hazard_killed(enemy: Enemy, kind: String, slot: int)
 
 ## The features' ticks (GameFeature.tick_with), in the order they were added
 ## (the features' own order), each run on `ticked` while its feature is

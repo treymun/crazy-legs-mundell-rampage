@@ -10,9 +10,11 @@ const int GLOW = 4;
 const int BODY = 8;
 const int BOARD = 16;
 const int ITEM = 32;
-// The flags' word: flags + 256 x hurt (0..100) + SPIN_ONE x the turn (0..SPINS-1).
+// The flags' word: flags + 256 x hurt (0..100; TELL + 0..100 a wind-up's
+// amber wash, sprite_layer.gd) + SPIN_ONE x the turn (0..SPINS-1).
 const int SPIN_ONE = 65536;
 const int SPINS = 32;
+const int TELL = 128;
 
 varying flat vec4 data;
 varying flat vec4 tone;
@@ -78,7 +80,9 @@ void fragment() {
 		discard;
 	}
 	int flags = int(data.w + 0.5) & 255;
-	float hurt = float((int(data.w + 0.5) / 256) & 255) / 100.0;
+	int washed = (int(data.w + 0.5) / 256) & 255;
+	float hurt = washed < TELL ? float(washed) / 100.0 : 0.0;
+	float tell = washed >= TELL ? float(washed - TELL) / 100.0 : 0.0;
 	vec2 uv = UV;
 	if ((flags & FLIP) != 0) {
 		uv.x = 1.0 - uv.x;
@@ -117,6 +121,8 @@ void fragment() {
 	vec3 colour = clamp(floor(floor(texel.rgb * 255.0 + 0.5) * lit * tone.rgb), 0.0, 255.0);
 	if (hurt > 0.0) {
 		colour = floor(colour * (1.0 - hurt) + vec3(255.0, 232.0, 208.0) * hurt);
+	} else if (tell > 0.0) {
+		colour = floor(colour * (1.0 - tell) + vec3(255.0, 170.0, 48.0) * tell);
 	}
 	if (effects_on) {
 #ifdef MESH

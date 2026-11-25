@@ -68,6 +68,7 @@ godot --headless --path godot --script res://tools/vehicle_cab_check.gd    # VEH
 godot --headless --path godot --script res://tools/vehicle_set_check.gd    # VEHICLE SET OK (finding the vehicles, the channel run, the heat race, the window gun, riding shotgun)
 godot --headless --path godot --script res://tools/gun_find_check.gd [-- audit] [map=<dir>]   # GUN FIND OK (the guns along each chapter's way, their shine, map mark, prompt, smell; audit prints the table)
 godot --headless --path godot --script res://tools/events_check.gd   # EVENTS CHECK OK (the county events: twister, stampede, raid, blackout; the setting, no boss fights, saves, lockstep)
+godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/danger_frames.gd -- out=<dir> [only=arrows,touch,wide,windup,hazard]   # pass 15: DANGER ARROWS, wind-ups, the hazards' brackets and skull, in a window
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/events_frames.gd -- out=<dir> [only=twister,hogs,raid,dark]   # the events in a window
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/night_frames.gd -- out=<dir> [only=moonshine,dark] [per=4]   # how well enemies and pickups read, each chapter and a blackout (mean |dL*|)
 godot --headless --path godot --script res://tools/art/build_event_art.gd   # the events' small pictures (the hands' lantern)

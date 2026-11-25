@@ -107,7 +107,8 @@ flashlight, BLUE along: `TouchControls.offer`, main.gd each frame);
 `hud_crowd.gd`'s touch moment shows both.
 
 Pieces placed while drawing: partner tags at the view's edge (they wait
-when there is no room), the windup and hurt marks. Marks drawn straight on
+when there is no room), the windup and hurt marks (DANGER ARROWS off; on,
+the hurt banner names only what hit and the side is a chevron's: below). Marks drawn straight on
 the view (the hurt arc round its edge, USE's corner brackets) go down before
 the notice and the tip, so a banner is never struck through (pass 12: a hit
 from in front ran the arc across the top banners). A feature draws its piece
@@ -122,6 +123,16 @@ COUNTY RUN, 5v5) headless and fails when any two pieces' ink touches, one
 inks past the margins, or an expected piece is missing; `png=<dir>` writes
 each moment's canvas with the rects outlined. `tools/hud_frames.gd` pictures
 every menu and the same moments in a window.
+
+**DANGER ARROWS** (DISPLAY, pass 15, `src/danger_marks.gd`): red chevrons at
+the view's edge toward each blow, amber ones toward a hand winding up off
+the view, drawn where the hurt arc went, under every banner, each slid in
+toward the middle off the layout's pieces and the pinned touch buttons
+(where they are drawn: `HudLayout.side_of` moves ASPECT WIDE's edge pieces
+out) or left off when there is no clear spot; in WIDE they sit on the
+picture's own edges. The hazard brackets and the boot's skull under the
+crosshair draw at the same moment, whatever the setting. Detail:
+[gameplay.md](gameplay.md#reading-danger-pass-15).
 
 A new HUD piece: take its rect in `hud_fixed`/`hud_flow`/`hud_late` (or in
 `_lay_hud` for play's own), draw it at `find(name)` between `begin`/`end`,

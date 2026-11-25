@@ -227,7 +227,9 @@ them. USE picks up loose junk; fire chucks it and alt fire sets it down. NEW PLA
 PLAY page shows a short tip the first time something comes up (on by default). CHECKPOINTS on the
 PLAY page: TRAIL MARKERS (the default) ties a marker on the way through a chapter, so a death picks
 up from the last one (ENTER, A or a tap: BACK TO THE MARKER; R, X or the lower line: the chapter's
-start); BOSSES ONLY keeps just the boss doors, as before. RUMBLE on the INPUT
+start); BOSSES ONLY keeps just the boss doors, as before. DANGER ARROWS on the DISPLAY page (on by
+default): a red mark at the edge of the view points at whatever hit you, an amber one at a varmint
+winding up out of sight; OFF goes back to the words. RUMBLE on the INPUT
 page shakes a pad (FULL by default); PHONE RUMBLE on the TOUCH page buzzes an Android phone, or a
 phone browser that can (LOW by default; an iPhone's browser cannot).
 

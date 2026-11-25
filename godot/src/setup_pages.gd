@@ -169,6 +169,12 @@ static func build() -> Array:
 					["FULL", "MINIMAL"],
 					"MINIMAL KEEPS HEALTH, AMMO AND THE POCKET; NO FACE, METERS OR OBJECTIVE PIN"
 				),
+				SessionStore.toggle(
+					"DANGER ARROWS",
+					"danger_arrows",
+					1,
+					"RED MARKS AT THE EDGE POINT AT WHAT HIT YOU, AMBER AT A VARMINT WINDING UP"
+				),
 				SessionStore.choices(
 					"WEAPON POSITION",
 					"weapon_view",

@@ -424,7 +424,9 @@ func _tour_screen(shot: Dictionary, window_size: Vector2i) -> void:
 ## A viewpoint's own cast (the 3D actors' pictures): the level's enemies put
 ## to sleep, and each listed one stood `ahead` and `side` of the eye, turned
 ## `turn` from facing it, in `state`: idle, walk (at `gait`), aim, pain, hurt
-## (under half health, walking), dying (`fallen` of the way down) or down.
+## (under half health, walking), dying (`fallen` of the way down), down, or
+## windup (pass 15: `left` of his kind's wind-up still to go, at the player,
+## its floor mark where he stood `mark` cells ahead).
 ## Returns the cast.
 func _tour_actors(shot: Dictionary) -> Array[Enemy]:
 	var cast: Array[Enemy] = []
@@ -454,6 +456,13 @@ func _tour_actors(shot: Dictionary) -> Array[Enemy]:
 					foe.hp = foe.max_hp * .3
 			"aim":
 				foe.windup = 1.0
+			"windup":
+				var whole: float = Enemy.WINDUP[foe.kind][0]
+				var left: float = spec.get("left", .3)
+				var mark: float = spec.get("mark", 0.0)
+				foe.windup = whole * left
+				foe.player_seen = true
+				foe.aim_mark = [p.x + cos(p.angle) * mark, p.y + sin(p.angle) * mark, p.eye]
 			"pain":
 				foe.flinch = 1.0
 			"dying":

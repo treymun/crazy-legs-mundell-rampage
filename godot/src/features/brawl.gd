@@ -22,6 +22,9 @@
 ##   crusher, deep or running water or among the hogs dies the way it kills.
 ##   A man walking about never is (they step round them). A boss takes
 ##   [hazard] `boss_share` of his health instead (once in `boss_rest`).
+##   A hazard kill pays a bonus (pass 15, _bonus): COUNTY JUSTICE! across the
+##   screen, scrap with the bench live, a drop at the body and the
+##   hazard_killed event. src/danger_marks.gd shows them coming (looks).
 ##
 ## Play, the same on every machine: everything here is game.clock, game.rng
 ## (the move picked, the specks game.burst() throws) and arithmetic on the
@@ -31,11 +34,14 @@ extends GameFeature
 
 const Finishers := preload("res://src/features/finishers.gd")
 const Water := preload("res://src/features/water.gd")
+const Callouts := preload("res://src/features/callouts.gd")
 
 static var KICK: Dictionary = HitData.section("kick")
 static var FINISH: Dictionary = HitData.section("finish", ["pistol", "long", "blade"])
 static var BOSS_SHARE: float = HitData.value("hazard", "boss_share", .18)
 static var BOSS_REST: float = HitData.value("hazard", "boss_rest", 4.0)
+static var BONUS_SCRAP: int = HitData.value("hazard", "bonus_scrap", 3)
+static var BONUS_DROPS: Array = HitData.value("hazard", "bonus_drops", ["shells"])
 ## Gun name -> its finisher class; class -> its moves (hits.cfg order).
 static var CLASS_OF := {}
 static var MOVES := {}
@@ -578,11 +584,51 @@ func caught(e: Enemy, kind: String, x: float, y: float, slot: int) -> bool:
 	game.sound_at(cue, e.x, e.y, 1.0)
 	_effects(kill, e.x, e.y, base + e.height * .5, 1.2)
 	hazard_kills[kind] = _i(hazard_kills.get(kind, 0)) + 1
-	_call(p, str(BrawlHazards.value(kind, "name", "")))
+	_bonus(p, e, kind)
 	game.focus(p)
 	game.barks.say(game, "hazard", true)
 	game.focus(game.local_player)
 	return true
+
+
+## A hazard kill's bonus (pass 15; hits.cfg [hazard]): for whoever booted him,
+## COUNTY JUSTICE! across the screen and the hazard's own name with the pay in
+## the notice; `bonus_scrap` scrap in his coffee can with the bench live (up to
+## what he may carry); a drop at the body, nudged toward the kicker (_bonus_pick);
+## and the hazard_killed event (a RAMPAGE meter adds [hazard] `bonus_rampage`).
+## Play: game.rng and the kicker's armory, the same on every machine.
+func _bonus(p: Player, e: Enemy, kind: String) -> void:
+	var paid := 0
+	if game.bench_live:
+		var most: int = BenchMods.value("scrap", "most", 99)
+		paid = clampi(BONUS_SCRAP, 0, maxi(0, most - p.armory.scrap))
+		p.armory.scrap += paid
+	var pick := _bonus_pick(e)
+	if pick != "":
+		var to := Vector2(p.x - e.x, p.y - e.y).limit_length(.6)
+		var at := Vector2(e.x, e.y) + to
+		if game.world.blocked(at.x, at.y, .1):
+			at = Vector2(e.x, e.y)
+		game.add_pickup(pick, at.x, at.y, e.floor_z)
+	if p == game.local_player:
+		game.callout = Callouts.JUSTICE
+		game.callout_until = game.clock + 1.8
+		var name := str(BrawlHazards.value(kind, "name", ""))
+		game.notice = name + ("!  +%d SCRAP" % paid if paid > 0 else "!")
+		game.message_until = game.clock + 2.2
+	game.events.hazard_killed.emit(e, kind, p.slot)
+
+
+## What a hazard kill drops (none with NO DROPS): the hand's own drop when
+## his kind has one (enemies.cfg `drop`), else one of [hazard] `bonus_drops`
+## by game.rng.
+func _bonus_pick(e: Enemy) -> String:
+	if game.supply_rule == 2:
+		return ""
+	var spec: Dictionary = Enemy.DEFS.get(e.kind, {})
+	if spec.has("drop"):
+		return str(spec["drop"])
+	return str(game.rng.choice(BONUS_DROPS))
 
 
 ## What a hazard kill throws after: sparks for a shock, smoke and embers for
@@ -628,7 +674,7 @@ func _hogs(f: Array, dt: float) -> bool:
 	_strike(p, e, e.hp + 200.0, .5, "blade")
 	game.sound_at("gib_burst", e.x, e.y, 1.0)
 	hazard_kills["hogs"] = _i(hazard_kills.get("hogs", 0)) + 1
-	_call(p, str(BrawlHazards.value("hogs", "name", "")))
+	_bonus(p, e, "hogs")
 	game.focus(p)
 	game.barks.say(game, "hazard", true)
 	game.focus(game.local_player)

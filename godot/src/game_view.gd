@@ -529,8 +529,11 @@ func to_canvas(x: float, y: float, z: float) -> Vector3:
 # ---------------------------------------------------------------- objective
 
 
+## The words over the view: a hand winding up off the view (WINDUP LEFT; with
+## DANGER ARROWS its amber chevron instead, danger_marks.gd), a thing picked
+## up, and what hurt the player (with DANGER ARROWS the arrow gives the side).
 func feedback(c: Canvas) -> void:
-	if not in_hub:
+	if not in_hub and not danger_arrows:
 		var p := player
 		var alert: Variant = null
 		var nearest := 10.5 * 10.5
@@ -609,7 +612,7 @@ func feedback(c: Canvas) -> void:
 		if clock >= end2:
 			return
 		var side := ""
-		if heading != null and not NO_MARK_SURFACE.has(cause):
+		if heading != null and not NO_MARK_SURFACE.has(cause) and not danger_arrows:
 			var turn2 := fposmod(_view_num(heading) - player.view_angle() + PI, TAU) - PI
 			side = (
 				" REAR"
@@ -816,7 +819,11 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		if marked:
 			_use_mark(c)
 		if not map:
-			_hurt_arc_now(c)
+			# DANGER ARROWS' chevrons stand for the hurt arc (danger_marks.gd);
+			# the hazards' brackets and the boot's skull show either way.
+			if not danger_arrows:
+				_hurt_arc_now(c)
+			DangerMarks.draw(me, c)
 		for top_piece: String in ["notice", "tip"]:
 			if top_note.has(top_piece):
 				var note: Array = top_note[top_piece]

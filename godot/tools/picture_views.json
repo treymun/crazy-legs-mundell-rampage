@@ -634,5 +634,31 @@
   "weapon": true,
   "x": 60.5,
   "y": 70.5
+ },
+ {
+  "actors": [
+   {
+    "ahead": 5.5,
+    "kind": "chain_hand",
+    "left": 0.45,
+    "mark": 2.4,
+    "side": -1.4,
+    "state": "windup"
+   },
+   {
+    "ahead": 4.2,
+    "kind": "yard_deputy",
+    "left": 0.3,
+    "side": 1.6,
+    "state": "windup"
+   }
+  ],
+  "angle": 0.05,
+  "level": "hickston",
+  "pitch": -20.0,
+  "tag": "hickston_windup_0",
+  "weapon": true,
+  "x": 7.5,
+  "y": 69.5
  }
 ]

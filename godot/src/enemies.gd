@@ -1201,6 +1201,7 @@ func sprite(
 	out.z = z
 	out.body = hostile
 	out.hurt = hit_flash
+	out.tell = EnemyLooks.tell(self, now)
 	if windup > 0.0 and boss:
 		# A boss winding up glows in a quickening beat (boss_kit.gd).
 		out.hurt = maxf(hit_flash, BossKit.pulse(self))
