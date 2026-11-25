@@ -1210,6 +1210,10 @@ func tick_exchanges(combat: bool) -> void:
 		return
 	if clock < exchange_next:
 		return
+	if sound.talking():
+		# Not over a line still playing (a bark, a tough guy's piece: pass 15's
+		# crowds made them meet): it starts once that is done.
+		return
 	exchange_next = clock + .55
 	var pending: LevelData.Exchange = exchange_pending
 	exchange_pending = null

@@ -125,7 +125,7 @@ func _use(g: Game, id: String) -> void:
 
 
 func _enemy(g: Game, id: String) -> Enemy:
-	for i in g.enemies.size():
+	for i in g.enemy_ids.size():  # the level's own (the director adds more)
 		if str(g.enemy_ids[i]) == id:
 			return g.enemies[i]
 	return null
@@ -243,7 +243,7 @@ func _moonshine_run(main: Control) -> void:
 	_use(g, "trunk")
 	_tick(g, 90)
 	var agents: Array = []
-	for i in g.enemies.size():
+	for i in g.enemy_ids.size():  # the level's own (the director adds more)
 		if str(g.enemy_ids[i]).begins_with("run-"):
 			agents.append(g.enemies[i])
 	_check(

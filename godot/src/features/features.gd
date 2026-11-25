@@ -67,6 +67,7 @@ const ALL := [
 	preload("res://src/features/county_events.gd"),
 	preload("res://src/features/event_looks.gd"),
 	preload("res://src/features/rumble.gd"),
+	preload("res://src/features/director.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES

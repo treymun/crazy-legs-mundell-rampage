@@ -3032,6 +3032,182 @@ not changed: its runs and daily board are balanced on its own cards, and its
 bot is too weak a yardstick to tune them by. (The aliens' and deputies'
 new drops fall in its hordes too, as every hand's drop always has.)
 
+## Fight rhythm (pass 15)
+
+Pass 15's audit (`tools/flow_report.gd`, below) found the fights a flat
+trickle: one alerted hand within 14 cells for half of all the fighting, a
+small fight every 8 to 12 s all chapter with no build-up, peak or breather,
+and a ROOKIE swinging the crowbar for 29 % of its pulls while 20 to 50 ammo
+pickups lay about. Three changes, all play, all deterministic:
+
+**The director** (`features/director.gd`, its choices in
+`src/director_beats.gd`, numbers in `data/tuning/director.cfg` read by
+`DirectorData`). A simulation feature, last in `Features.ALL` and
+`SIM_FEATURES`.
+
+- On a chapter's first tick it holds back `hold_share` of each district's
+  hands (`world.area`; picked with `game.rng`, out of every player's sight
+  (a hand past `DirectorBeats.SIGHT_FAR`, 36 cells, counts as unseen: a
+  speck at 320 wide, and a sight line across the map was most of the first
+  tick's cost),
+  more than `start_clear` from the start and `boss_clear` from a boss or the
+  last boss, never in a boss's district) and adds `extra_share` more of the
+  district's kinds beside them, all dormant. Extras join `game.enemies` after
+  everything else and are saved by `posse` with the rest that joined later;
+  `total_kills` counts them.
+- **Never held** (`DirectorBeats.named`): a hand a trigger wakes or waits on
+  (`wake`, `down`), a partner pair, the station's wave, a patrol, a hand
+  whose id anything else in the level uses (an exchange, a door), the bosses,
+  the rescue's cast, the tough guy, critters, swimmers and lurkers, a hand by
+  an exchange. A trigger's `alert` wakes the held hands in its reach too
+  (`_answer_alerts`), so a set piece's hands all come.
+- **The beats**: `calm` (no hand on the party) and `build` (the level's own
+  hands as placed); `peak` when the party does a station, takes a key, walks
+  into a district not seen before (`district_settle` s later) or `build_for`
+  s have gone, not before `first_peak` s, not within `build_least` of the
+  last breather, a walk-in or the timer only after `peak_quiet` s with no
+  hand on the party, never in a long fight or within `boss_quiet` cells of
+  a boss still up (awake or waiting: a crowd at the boss's door would still
+  be there at RETRY THE FIGHT): the held
+  hands within `peak_reach` cells (nearest first; the chapter's first peak
+  `peak_first` at most, one more each peak after, up to `peak_group_most`:
+  the crowds grow through a chapter) are moved to spots `peak_spot` cells out (out of every player's sight, on
+  their floor, reachable within `peak_steps`, never in or by a doorway) and
+  wake hunting (`peak_hunt`), with a "help" bark and a HUD line
+  (`peak_lines`). The peak is over when its hands are down (the last kill
+  leaves what the player is short of, below), none has been on the party
+  for `peak_cold` s, or after `peak_most`. Then `breather` for
+  `breather_for` s: no hand sent. A boss's fight beginning (`boss_intro`:
+  the peak's hands and the stragglers out of sight go back to the held ones)
+  and a boss's fall (`boss_down`) bring a breather too: the boss fight is
+  the boss's, with its own backup, and no crowd falls on a player who has
+  just finished one.
+- **The guard**: in a breather, and in a fight that has gone `long_fight` s
+  without a `quiet_gap`, a hand farther than `guard_near` that hears a shot
+  does not come to look (its `Mind.investigate` is cleared right after the
+  squad's hearing), and the level's own hands between `guard_near` and
+  `hush_reach`, out of sight and after nobody, keep still (dormant,
+  `hushed`); after, each is back where it stood once no player can see the
+  spot (no pop-in). A finished peak's hands that give up the hunt go back to
+  the held ones as soon as no player can see them (`strays`): a hand left
+  standing where its hunt ran out, in a one-cell gap or a doorway, never
+  keeps the way shut (two bot runs were walled in so). In a long fight every `relief_every`-th kill also leaves
+  what the player is short of (below): the supply where the fight is.
+- **A held hand thinks afresh** when it comes back (`lod_since` reset): a
+  dormant hand does not tick, and its level of detail's owed time would
+  otherwise move it the whole way it could have walked while held, in one
+  step (found while building this: peak hands crossed half of Hickston).
+- **Where it runs**: the eight chapters (`Campaign.ORDER`, less
+  `off_chapters`), campaign and co-op; off in County Run (its spawner is its
+  director), deathmatch, team deathmatch, the 5v5 rounds, the hub, the
+  range, a rematch, a chapter revisited, player maps, and when a tool sets
+  `DirectorData.ON = false` (`flow_report.gd -- run director=0`). Co-op: the
+  beats follow the party (each player's sight and flow field; a peak comes
+  for the first player up by slot) and the local player is left acting.
+- **Online and saves**: every variable is carried (the host decides; the
+  enemies' `dormant` already was); its block in the save holds the held,
+  hushed and peak hands by index (the list only grows in the modes it runs
+  in), the phase and the timers. A save with no block (older, or one it did
+  not run in) holds nothing held, unless it was made before the chapter's
+  first tick (then the chapter starts as new). Its `restore` also brings a
+  lighter sponge saved with more health than its kind now has down to it.
+  Mixed versions at PROTOCOL 5 still mirror (an unknown feature block is
+  skipped), but the MOVES track's protocol bump separates them.
+
+**The intensity signal** for the music, the RAMPAGE meter, the slow-motion
+rule and BLUE: `Director.intensity_of(game)` (0..1) and
+`Director.phase_of(game)` ("calm", "build", "peak", "breather"; "calm" and 0
+where the director does not run), and `game.events.pace_changed(phase,
+intensity)` when the phase moves. Intensity is 0 calm, .2 to .7 in a build-up
+by the hands on the party (`crowd_full` of them is a full crowd), .7 to 1 in
+a peak, and fading from .25 over a breather (.35 times the crowd if hands
+are still on the party). Updated every `scan` (.25 s) on the tick, so it is
+the same on every machine.
+
+**Drops lean to need** (`src/drop_need.gd`, `game_world.gd enemy_down`):
+when a kind's drop comes up it stays the kind's own while that is any use to
+the player who downed it (rounds for a gun of theirs under `need_full` of
+what it holds and carries, food while under `need_health`); otherwise, on
+`need_share` of the drops, it is `need_food` for a hurt player or the
+rounds of their gun with the least left. The roll is the drop's own (the same
+count of `game.rng` rolls; an always-drop's comes from the hand's uid). NO
+DROPS still drops nothing it did not; County Run and the versus modes drop as
+before. The peak's last kill leaves `DropNeed.wanted()` too.
+
+**Lighter sponges**: the tin guard 185 -> 130, big billy 150 -> 120, the
+noodler and the tire roller 118 -> 100, the tough guys about 15 % (Big Earl
+270 -> 230 ... Zorgo 300 -> 255); "more of them" is the director's extras.
+
+Found on the way and fixed: a level's exchange (hands talking at a spot,
+`game_combat.gd tick_exchanges`) waits for a line still playing instead of
+starting over it (presentation only), and a revenue raid's squad tries round
+its rings when every first turn is walled (`event_raid.gd start`; the old
+places first, so a squad that found room before stands where it did). Tools
+that walk `game.enemies` beside `game.enemy_ids` must stop at the ids (the
+extras have none, as a bigger posse's partners never had);
+`hound_check.gd` plays with the director off (its own moves on hands it
+places).
+
+`tools/director_check.gd` holds it (checks.md). `tools/flow_report.gd`
+measures it: the balance bot plays the campaign as `balance.gd -- run` does
+(keep its `_play_chapter` in step with balance.gd's) and `-- report` prints
+the tables. Pass 15 before (v3.12.1) and after, REGULAR, SHARP and ROOKIE at
+NORMAL, seeds 1 and 2, every chapter:
+
+Against pass 15's targets (all attempts; seeds 1-2, and seeds 1-4 after
+the slash):
+
+| | 3+ alerted within 14 (% of fighting) | melee kills % | melee pulls % | longest fight, no boss in it, s | deaths a run | the chapters' median seconds, summed |
+| --- | --- | --- | --- | --- | --- | --- |
+| target | 40 or more | ROOKIE under 3 | | ROOKIE 65 at most | pass 9's table | SHARP within 20 % |
+| ROOKIE before | 21 / 21 | 9.4 / 8.6 | 29.3 / 28.1 | 137 / 143 | 2.50 / 3.25 | 1774 / 1889 |
+| ROOKIE after | 36 / 37 | 1.1 / 1.5 | 9.2 / 6.4 | 79 / 92 | 3.50 / 3.00 | 1671 / 1614 |
+| REGULAR before | 27 / 26 | 0.7 / 1.9 | 1.4 / 1.8 | 88 / 97 | 0 / 0 | 1802 / 1846 |
+| REGULAR after | 37 / 37 | 0 / 0 | 0 / 0 | 87 / 87 | 0 / 0 | 1715 / 1743 |
+| SHARP before | 30 / 29 | 0.1 / 0.1 | 0.4 / 0.2 | 118 / 118 | 0 / 0 | 1704 / 1710 |
+| SHARP after | 37 / 36 | 0 / 0 | 0 / 0 | 58 / 86 | 0 / 0 | 1690 / 1698 |
+
+Alerted hands within 14 while fighting, all runs (seeds 1-2), before and
+after: 1 at a time 53 -> 44 %, 2: 22 -> 20, 3: 10 -> 13, 4: 7 -> 9, 5: 4 -> 7,
+6+: 5 -> 7. By chapter, the 3+ share and the fights (seeds 1-2):
+
+| chapter | 3+ % | fights an attempt | median fight s | longest fight s | median quiet gap s | gaps of 12 s+ | longest calm s | deaths a run (seeds 1-4) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| hickston | 25 -> 34 | 7.6 -> 7.6 | 14.1 -> 15.3 | 67 -> 65 | 8.3 -> 9.4 | 1.0 -> 2.1 | 13 -> 27 | .17 -> .17 |
+| fair | 13 -> 28 | 5.3 -> 5.9 | 17.1 -> 15.6 | 137 -> 68 | 11.2 -> 11.5 | 2.1 -> 2.3 | 25 -> 23 | .75 -> .25 |
+| sawmill | 25 -> 34 | 5.0 -> 6.2 | 33.9 -> 18.2 | 137 -> 87 | 8.5 -> 8.9 | 0.2 -> 1.0 | 11 -> 17 | 0 -> 0 |
+| quarry | 24 -> 39 | 5.5 -> 6.8 | 11.0 -> 7.8 | 103 -> 70 | 10.1 -> 11.7 | 2.0 -> 2.8 | 18 -> 23 | 0 -> .08 |
+| bayou | 31 -> 46 | 6.3 -> 5.9 | 16.1 -> 20.4 | 103 -> 85 | 11.4 -> 13.7 | 2.6 -> 2.9 | 31 -> 23 | .17 -> .33 |
+| speedway | 24 -> 37 | 6.5 -> 6.3 | 16.7 -> 14.5 | 44 -> 48 | 8.0 -> 8.2 | 1.0 -> 1.5 | 17 -> 19 | 0 -> 0 |
+| moonshine | 37 -> 52 | 4.8 -> 3.9 | 19.7 -> 18.9 | 78 -> 74 | 13.2 -> 14.8 | 2.0 -> 2.0 | 18 -> 19 | 0 -> .17 |
+| mothership | 27 -> 26 | 4.8 -> 3.5 | 42.8 -> 43.4 | 77 -> 125 | 7.8 -> 11.1 | 0.5 -> 1.2 | 13 -> 18 | 0 -> 0 |
+
+(The longest fights past 65 s after are mostly a boss's: Maw's, the baron's,
+the swamp king's, the foreman's with the run up to them.) Supply: the ROOKIE
+was dry 35.5 s an attempt in Hickston before, 1.5 after; melee kills in
+Hickston 16.2 -> 1.9 %, the Fair 9.9 -> 1.0 %. Time to kill (seeds 1-4, s from
+the first hit / from first targeted): the tin guard 5.8 / 6.9 -> 3.9 / 5.9,
+big billy 3.0 / 4.5 -> 1.9 / 2.8, the noodler 2.1 / 4.5 -> 2.0 / 4.0, the tire
+roller 2.0 / 3.0 -> 2.1 / 3.4, the tough guys 2.1 to 7.9 -> 1.7 to 7.7. The
+fight loop still plays 80 to 90 % of a chapter (the music track, T5, reads
+the intensity). Deaths: 13 in the 12 campaigns before, 12 after; the
+ROOKIE's are now mostly at bosses (Jerry, the revenue man, the swamp king)
+and the Fair's opening crawlers, before the first peak. A bot can still be
+walled in after a boss falls (the objective's route no longer reaches the
+player, `world.blocked` true where they stand: seen three times in about 70
+campaigns while tuning, two of them with settings since changed; in none of
+the 12 final campaigns nor of the base's 12). Not found yet; a person may
+see the same.
+
+Speed (hickston, `tick_spikes.gd` and `net_bench.gd`, back to back with
+v3.12.1, medians): the tick 1.31 -> 1.27 ms (the bot's game is a different
+game now: bigger fights, more wreckage, p95 2.4-2.8 -> 3.1-3.3); the
+director's first tick, when it picks the hands, 1.7 ms; net_bench's tick
+1.52/1.59 -> 1.48/1.53 ms (1 player), 1.70 -> 1.46-1.56 (2), 2.33-2.37 ->
+2.19-2.36 (4); a snapshot carries 14 more hands in Hickston (116 for 102):
+capture 8.3 -> 8.9-9.5 ms, 28.9 -> 29.7 KB packed, the host's delta 2.26 ->
+2.21 KB.
+
 ## Drawn between ticks (pass 14)
 
 The tick is 1/120 s (`MainState.SIM_STEP`; `main.gd advance` runs as many

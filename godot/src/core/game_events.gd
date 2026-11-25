@@ -75,6 +75,10 @@ signal boss_phase(enemy: Enemy, phase: int)
 signal boss_staggered(enemy: Enemy)
 signal boss_weak_hit(enemy: Enemy)
 signal boss_down(enemy: Enemy, seconds: float)
+## The fight-rhythm director's beat moved (features/director.gd, pass 15):
+## `phase` "calm", "build", "peak" or "breather"; `intensity` 0..1 as it is now
+## (read Director.intensity_of(game) any time: it moves between phases too).
+signal pace_changed(phase: String, intensity: float)
 
 ## The features' ticks (GameFeature.tick_with), in the order they were added
 ## (the features' own order), each run on `ticked` while its feature is

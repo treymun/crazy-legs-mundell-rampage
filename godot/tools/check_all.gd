@@ -47,6 +47,7 @@ const CHECKS := [
 	["opener_camera_check", "OPENER CAMERA OK"],
 	["gun_find_check", "GUN FIND OK"],
 	["pacing_check", "PACING OK"],
+	["director_check", "DIRECTOR CHECK OK"],
 	["balance", "BALANCE OK", ["check"]],
 	["hound_check", "HOUND CHECK OK"],
 	["hound_walk_check", "HOUND WALK OK"],
@@ -155,6 +156,7 @@ const QUICK := [
 	"user_map_check",
 	"update_check",
 	"update_flow_check",
+	"director_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows
@@ -198,6 +200,7 @@ const CI_SECONDS := {
 	"opener_camera_check": 15,
 	"gun_find_check": 25,
 	"pacing_check": 20,
+	"director_check": 150,
 	"balance_1": 90,
 	"balance_2": 180,
 	"balance_3": 130,

@@ -303,7 +303,7 @@ func _channel(main: Control) -> void:
 	var r := runs(g)
 	_check(r.defs.size() == 1, "the bayou has its run")
 	var boys: Array = []
-	for i in g.enemies.size():
+	for i in g.enemy_ids.size():  # the level's own (the director adds more)
 		if str(g.enemy_ids[i]).begins_with("run-"):
 			boys.append(g.enemies[i])
 	_check(boys.size() >= 6, "the king's boys are there (%d)" % boys.size())
@@ -386,7 +386,7 @@ func _heat(main: Control) -> void:
 	for point: Variant in g.level.lap_cars.get("path", []):
 		line.append(Vector2(float(point[0]), float(point[1])))
 	var crew: Array = []
-	for i in g.enemies.size():
+	for i in g.enemy_ids.size():  # the level's own (the director adds more)
 		if str(g.enemy_ids[i]).begins_with("heat-"):
 			crew.append(g.enemies[i])
 	_check(
@@ -425,7 +425,7 @@ func _heat(main: Control) -> void:
 	_pilot(g, right, 60 * 40, going)
 	_check(going.call(), "the right way, the heat race starts (%.1f, %.1f)" % [v.x, v.y])
 	crew.clear()
-	for i in g.enemies.size():
+	for i in g.enemy_ids.size():  # the level's own (the director adds more)
 		if str(g.enemy_ids[i]).begins_with("heat-"):
 			crew.append(g.enemies[i])
 	var laps: GameFeature = g.features.get("race_laps")
