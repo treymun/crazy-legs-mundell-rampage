@@ -29,7 +29,9 @@
 class_name Replay
 extends RefCounted
 
-const VERSION := 1
+## 2 (pass 15): a tick's buttons go as a number, not a byte (KICK and THROW
+## past the first eight); a version-1 recording still plays (its byte).
+const VERSION := 2
 const MAGIC := "CLRP"
 ## A hash of the state every this many ticks (a second at the game's 120 Hz).
 const HASH_EVERY := 120
@@ -48,7 +50,8 @@ const T_SNAP := 5
 const T_END := 6
 
 ## A slot's controls as compared tick to tick: forward, strafe, turn, look,
-## the buttons as bits, weapon, item, buy, cycle, rewind.
+## the buttons as bits (KICK and THROW the ninth and tenth: version 2),
+## weapon, item, buy, cycle, rewind.
 const F_FORWARD := 0
 const F_STRAFE := 1
 const F_TURN := 2
@@ -80,6 +83,8 @@ const OPS := [
 	"turn_back",
 	"pitch0",
 	"pocket",
+	"kick",
+	"throw",
 	"county",
 	"county_pause",
 	"options",
@@ -120,6 +125,8 @@ var _options := {}
 var _step := 0.0
 var _local := 0
 var _scratch := PackedByteArray()
+## The format written (replay_check writes a version-1 recording to play).
+var write_version := VERSION
 
 
 ## Starts recording `g` now (before its next tick): `options` are the
@@ -134,7 +141,7 @@ static func record(
 	rec._options = options.duplicate()
 	rec._step = 0.0
 	rec.header = {
-		"v": VERSION,
+		"v": rec.write_version,
 		"build": str(ProjectSettings.get_setting("application/config/version", "?")),
 		"level": g.level.id,
 		"layout": g.level.layout,
@@ -291,6 +298,8 @@ func _row(c: Game.Controls) -> Array:
 		| int(c.use) << 5
 		| int(c.hold) << 6
 		| int(c.reload) << 7
+		| int(c.kick) << 8
+		| int(c.throw) << 9
 	)
 	return [c.forward, c.strafe, c.turn, c.look, bits, c.weapon, c.item, c.buy, c.cycle, c.rewind]
 
@@ -351,7 +360,10 @@ func _put_field(f: int, v: Variant) -> void:
 				_out.put_double(x)
 	elif f == F_BITS:
 		var bits: int = v
-		_out.put_u8(bits)
+		if write_version >= 2:
+			_put_var(bits)
+		else:
+			_out.put_u8(bits & 255)
 	else:
 		var n: int = v
 		_put_var((n << 1) ^ (n >> 63))  # zigzag: -1 is one byte
@@ -601,6 +613,10 @@ static func apply_op(g: Game, op: Array) -> Variant:
 			g.torch()
 		"pocket":
 			g.inventory_slot = arg
+		"kick":
+			g.quick_kick()
+		"throw":
+			g.quick_throw()
 		"county":
 			var slot: int = op[2]
 			return CountyMode.choose(g, arg, slot)
@@ -644,9 +660,13 @@ class Playback:
 	var _step := 1.0 / 120.0
 	## The slots the current controls are for (the others stand idle).
 	var _slots: Array = []
+	## The recording's format (Replay.VERSION when it was made).
+	var _version := 1
 
 	func _init(r: Replay) -> void:
 		rep = r
+		var v: int = r.header.get("v", 1)
+		_version = v
 
 	## Makes the game (`maker`: level id -> Game, main.make_game) as the
 	## replay's first segment starts it.
@@ -777,6 +797,8 @@ class Playback:
 			c.use = bits & 32 != 0
 			c.hold = bits & 64 != 0
 			c.reload = bits & 128 != 0
+			c.kick = bits & 256 != 0
+			c.throw = bits & 512 != 0
 			c.weapon = row[F_WEAPON]
 			c.item = row[F_ITEM]
 			c.buy = row[F_BUY]
@@ -848,6 +870,6 @@ class Playback:
 				_:
 					return _in.get_double()
 		if f == F_BITS:
-			return _in.get_u8()
+			return _get_var() if _version >= 2 else _in.get_u8()
 		var z := _get_var()
 		return (z >> 1) ^ -(z & 1)

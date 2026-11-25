@@ -33,13 +33,14 @@ const PAD := {
 	"reload": "X",
 	"jump": "A",
 	"crouch": "B",
-	"prev_weapon": "LB",
+	"prev_weapon": "D-PAD DOWN",
 	"next_weapon": "RB",
+	"kick": "R3",
+	"throw": "LB",
 	"run": "L3",
 	"map": "BACK",
 	"whistle": "HOLD BACK",
 	"flashlight": "R3",
-	"use_item": "D-PAD DOWN",
 }
 ## Touch buttons by play action (touch_controls.gd).
 const TOUCH := {
@@ -52,6 +53,8 @@ const TOUCH := {
 	"map": "MAP",
 	"whistle": "WHISTLE",
 	"flashlight": "LIGHT",
+	"kick": "KICK",
+	"throw": "THROW",
 }
 ## Mouse buttons for the actions the mouse does on a keyboard.
 const MOUSE := {"fire": "LEFT CLICK", "alt": "RIGHT CLICK"}
@@ -78,7 +81,10 @@ const TIPS := {
 		"touch": "THE ARROW UP TOP POINTS THE WAY, THE NUMBER'S STEPS LEFT. TAP MAP FOR THE MAP.",
 	},
 	"finish": {"all": "HE'S REELIN'! GET UP CLOSE AND {use} FINISHES HIM."},
-	"kick": {"all": "UP CLOSE, {use} PUTS THE BOOT TO HIM. KICK HIM INTO SOMETHIN' MEAN."},
+	"kick":
+	{
+		"all": "UP CLOSE, {kick} (OR {use}) PUTS THE BOOT TO HIM. KICK HIM INTO SOMETHIN' MEAN.",
+	},
 	"locked":
 	{
 		"all": "LOCKED TIGHT. THE ARROW LEADS TO ITS KEY; KEYS YOU CARRY SHOW UNDER KEYS.",
@@ -126,7 +132,7 @@ const TIPS := {
 	{
 		"keys":
 		"FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. {next_item} PICKS ONE, {use_item} HAS IT.",
-		"pad": "FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. {use_item} HAS THE PICKED ONE.",
+		"pad": "FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. THE D-PAD HAS ONE.",
 		"touch": "FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. TAP ONE TO HAVE IT.",
 	},
 	"scrap": {"all": "SCRAP! THE JUNK BENCH NEAR EVERY CHAPTER'S START TRADES IT FOR GUN MODS."},

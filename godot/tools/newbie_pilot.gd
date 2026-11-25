@@ -38,10 +38,12 @@ func steer(game: Game) -> Game.Controls:
 		_want(game, "heal")
 		c.item = -1
 		eaten -= 1
-	if c.use and foe != null and not _knows(["kick"]):
-		# A boot or a finisher: USE at a hand is not something a shooter guesses.
+	if (c.use or c.kick) and foe != null and not _knows(["kick"]):
+		# A boot or a finisher: KICK or USE at a hand is not something a
+		# shooter guesses.
 		_want(game, "kick")
 		c.use = false
+		c.kick = false
 		boots_asked -= 1
 	if c.use and foe == null and game.use_prompt() == "":
 		# USE pressed with no prompt up (the base bot presses it near any door

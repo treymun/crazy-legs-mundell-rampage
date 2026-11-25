@@ -4,7 +4,8 @@
 ## game from every copy), so what the campaign's keys do with main.act() goes
 ## out with this machine's next controls instead (TacticalScreens.pending_*,
 ## main.gd _net_advance): the gun keys, the wheel and ; ', reload, USE, the
-## pockets (Q [ ] pick one: Game.POCKET_PICK; F and C B M V X use one), and
+## pockets (Q [ ] pick one: Game.POCKET_PICK; F and C B M V X use one), KICK
+## and THROW, and
 ## BACKSPACE turns round with the mouse's turn. While this machine's player
 ## is down and the view is on a partner, SPACE or E watches the next one up.
 class_name NetKeys
@@ -33,6 +34,10 @@ static func key(main: MainState, game: Game, code: int) -> bool:
 		TacticalScreens.pending_reload = true
 	elif code == KEY_E or code == KEY_SPACE:
 		TacticalScreens.pending_use = true
+	elif code == KEY_K:
+		TacticalScreens.pending_kick = true
+	elif code == KEY_N:
+		TacticalScreens.pending_throw = true
 	elif code >= KEY_1 and code <= KEY_9:
 		TacticalScreens.pending_weapon = code - KEY_1
 	elif code in [KEY_0, KEY_MINUS, KEY_EQUAL, KEY_BACKSLASH, KEY_QUOTELEFT]:

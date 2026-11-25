@@ -624,6 +624,15 @@ Pass 12 (`tools/net_feel.gd`, multiplayer.md
   down: `NetPredict.held`) our inputs are not walked on, as the host plays
   none of them (the drawn player ran and turned through a card pick and was
   put back when it ended).
+- **One walk** (pass 15): `NetPredict.step` and `game.gd _walk` both end
+  in `Moves.body` (`src/moves.gd`: the crouch, the slide, the ease, walls,
+  the jump, the fall), so a slide is drawn as the host plays it; the slide's
+  fields are in `KEPT`, and a RAMPAGE's pace is in the prediction too.
+  KICK and THROW lead like USE's boot and the dynamite: the boot is drawn at
+  the press (`_boot`, an air boot for KICK with nobody there), a thrown
+  stick's "light" and "throw" at the press with its ghost
+  (`NetGunLead._quick_throw`), the gun put by coming back after
+  `throw_back`; FIRE stopping a reload with rounds in is led too.
 - Still walked as plain walking: a ladder or ledge (`Climbing.player_step`)
   and a drunk's wobble; both put right by the Smoother.
 

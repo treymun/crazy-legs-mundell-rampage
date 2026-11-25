@@ -299,7 +299,8 @@ What each v3.6.0 screen and feature takes from a finger (`src/touch_controls.gd`
 | What | By touch |
 | --- | --- |
 | The junk bench's board | USE at the bench opens it; a tag tapped buys it, a tap off it (or USE, or MENU) shuts it; the stick picks and FIRE buys, as the keys do |
-| Finishers, the boot, a door kicked in | the USE button (USE's own) |
+| Finishers, the boot, a door kicked in | the USE button (USE's own), or KICK (pass 15: the boot alone) |
+| A stick of dynamite from any gun | THROW (pass 15) |
 | Holding USE: a partner's revive, BLUE got up, a 5v5 plant or defuse | the USE button held down (`state()["hold"]` -> `Controls.hold`; before pass 9 a finger could not hold USE at all) |
 | The county radio | nothing to press: it plays and captions by itself |
 | BLUE's commands | a tap on his badge whistles (SIC 'EM, FETCH, STAY, COME by what the sights are on) |
@@ -311,6 +312,14 @@ The buttons: the top row stands 9% of the width apart, so on a phone held
 upright (a browser) its rings shrink to fit (`TouchControls.layout`, pass
 14: they overlapped). MOVE THEM keeps the places in `user://touch-layout.json`,
 never written by a tool.
+
+KICK and THROW (pass 15) sit by USE (.60, .66) and right of DUCK (.94,
+.43), each with its picture over its word (`tools/art/build_touch_glyphs.gd`);
+on the keyboard they are K and N (the KEYS page, `KeyBindings.ACTIONS`) and
+the mouse's back and front side buttons; on a pad R3 kicks (it lights the
+flashlight in a blackout, as before) and LB throws, so previous weapon moved
+to the D-pad down (it used the last pocket item again) and R3 no longer runs
+(L3 does).
 
 Not checked by hand: none of it has been tried on a real phone.
 

@@ -239,6 +239,17 @@ func use(p: Player) -> bool:
 	return false
 
 
+## KICK (pass 15, Game.quick_kick): what USE's boot does (a finisher, a man
+## booted, a door run at kicked in) without USE's other answers, and with
+## nobody in reach and the boot rested, the boot all the same, into the air.
+func boot(p: Player) -> void:
+	if not allowed() or p.health <= 0 or game.showing_tally or busy(p):
+		return
+	if use(p) or game.clock < _f(kick_ready.get(p.slot, 0.0)):
+		return
+	kick(p, -1)
+
+
 ## FIRE this tick (game.gd _step_hands): busy hands fire nothing; a swing of
 ## a blade at a man who can be finished finishes him. True when the hands
 ## are taken (the gun is not fired).
@@ -309,6 +320,8 @@ func _boot_lands(b: Array) -> void:
 		return
 	var e := enemy(_i(b[2]))
 	if e == null or not e.alive:
+		if _i(b[2]) < 0:
+			game.sound_at("can_kick", p.x, p.y, .35)  # KICK at nobody: into the air
 		return
 	var d := Vector2(e.x - p.x, e.y - p.y).length()
 	if d > _num(KICK, "reach") + e.radius + .45:

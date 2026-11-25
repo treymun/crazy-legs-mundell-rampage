@@ -45701,6 +45701,46 @@
    },
    "validation": "ok"
   },
+  "slide_scuff": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "foot",
+   "origin": "derived from step_gravel_0",
+   "source": "audio_src/generated/sfx/step_gravel_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/slide_scuff.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "foot",
+    "chain": {
+     "hp": 90,
+     "lp": 8500,
+     "low": 0.5,
+     "pres": 0.0,
+     "fade": 0.35,
+     "level": -12.0
+    },
+    "event": "hit 1 of 5",
+    "lead_trimmed_ms": 42,
+    "derived": "a boot's slide smeared from a step of step_gravel_0",
+    "level": "-20.0 dB (set for this cue)",
+    "keep_seconds": 0.42
+   },
+   "measured": {
+    "seconds": 0.42,
+    "peak_db": -8.8,
+    "loud_db": -20.0,
+    "dc": 0.0002,
+    "onset_ms": 11.5,
+    "centroid_hz": 1862,
+    "end_db": -150.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "metal_down": {
    "purpose": "no runtime reference (superseded by actor_*_down)",
    "refs": [],
@@ -63673,6 +63713,7 @@
   "step_water_3",
   "step_wood_2",
   "step_wood_3",
+  "slide_scuff",
   "collapse_creak",
   "collapse_crash",
   "tower_groan",

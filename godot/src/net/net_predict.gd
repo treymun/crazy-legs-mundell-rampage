@@ -27,6 +27,10 @@ const KEPT := [
 	"pitch",
 	"floor_z",
 	"knocked",
+	"slide",
+	"slide_dir",
+	"slide_top",
+	"slide_rest",
 ]
 ## More unplayed inputs than this (a stall) are not predicted past: 1.5 s
 ## (it was 40 ticks, under a 250 ms link's round trip and playout, so the
@@ -263,47 +267,23 @@ static func step(game: Game, p: Player, controls: Game.Controls, dt: float) -> v
 	var forward: float = controls.forward
 	var strafe: float = controls.strafe
 	var magnitude := maxf(1.0, sqrt(forward * forward + strafe * strafe))
-	var speed: float = (
-		(3.85 if controls.running else 2.75) * (1.42 if p.sprint else 1.0) / magnitude
-	)
+	var speed: float = Moves.speed_of(controls.running, p.sprint > 0.0, magnitude)
 	speed *= 1.0 - maxf(0.0, p.gut - 65.0) * .004 - maxf(0.0, p.drunk - 70.0) * .004
 	speed *= Modes.move_scale(game, p)
 	if holds_aware:
 		speed *= Mud.pace(game, p.x, p.y)
+	# A RAMPAGE's pace (features/rampage.gd), as game.gd _walk has it.
+	speed *= Rampage.pace(game, p)
 	# (game.gd: the knock-down wears off before the walk looks at it)
 	if holds_aware:
 		p.knocked = maxf(0.0, p.knocked - dt)
 	var knocked := holds_aware and p.knocked > 0.0
 	var w: LevelData = game.world
 	if w.surface_sound(int(w.floor_tile[w.cell(p.x, p.y)])) == "water":
-		speed *= .69
-	p.crouched = controls.crouch and p.air <= .01
-	if p.crouched:
-		speed *= .51
-	if knocked:
-		speed = 0.0
-	var vx := cos(p.view_angle())
-	var vy := sin(p.view_angle())
-	var ox := p.x
-	var oy := p.y
-	var response := (
-		1.0 - exp(-dt * (7.0 if p.air else 23.0 if forward != 0.0 or strafe != 0.0 else 30.0))
-	)
-	p.vx += (speed * (forward * vx - strafe * vy) - p.vx) * response
-	p.vy += (speed * (forward * vy + strafe * vx) - p.vy) * response
-	game.move_actor(p, p.vx * dt, p.vy * dt, Game.PLAYER_RADIUS)
-	if p.x == ox and absf(p.vx) > .02:
-		p.vx = 0.0
-	if p.y == oy and absf(p.vy) > .02:
-		p.vy = 0.0
-	if controls.jump and not p.jump_held and p.air == 0.0 and not controls.crouch and not knocked:
-		p.vertical_speed = 2.7
-	p.jump_held = controls.jump
-	if p.air > 0.0 or p.vertical_speed > 0.0:
-		p.air = maxf(0.0, p.air + p.vertical_speed * dt)
-		p.vertical_speed -= dt * 9.2
-		if p.air == 0.0:
-			p.vertical_speed = 0.0
+		speed *= Moves.WATER
+	# The crouch, the ease, walls, the jump and the fall: game.gd _walk's own
+	# (src/moves.gd), so a slide is drawn as the host plays it.
+	Moves.body(game, p, controls, speed, forward, strafe, knocked, dt)
 	var ground: float = w.stand(p)
 	var eye := (.3 if knocked else .68 if p.crouched else .95) + ground + p.air
 	var roof: float = w.roof_over(p.x, p.y, ground)

@@ -28,6 +28,8 @@ const HIT_PITCH := 5.0
 const HIT_SHOVE := 8.0
 ## A spring given a push of size A at speed w peaks near A when pushed A * w * this.
 const PUSH := 1.5
+## A slide (pass 15): how far (screen pixels) the gun dips and leans.
+const SLIDE_DIP := Vector2(-5.0, 10.0)
 
 ## The gun's sway and the shove of blows (screen pixels), and their speeds.
 var sway := Vector2.ZERO
@@ -114,6 +116,7 @@ func _tick(dt: float) -> void:
 	var want := Vector2(
 		clampf(-game.feel_turn / dt * turn_k - side_speed * strafe_k, -limit, limit) * bob, 0.0
 	)
+	want += _slide_dip(p, bob)
 	if game.feel_landed:
 		if _fall < -2.0:
 			game.sound.play("land_thump", clampf(-_fall / 5.0, .35, .9))
@@ -147,6 +150,14 @@ func _tick(dt: float) -> void:
 	var rise_k: float = rise if rise != null else 0
 	p.weapon_lag = sway + jolt + Vector2(kick * back_k, -kick * rise_k)
 	game.view_kick = view + Vector3(0.0, 0.0, _plant(p, bob))
+
+
+## A slide under way (src/moves.gd): the gun dips low and leans off it, all
+## the way for its first half and easing back up over the rest.
+func _slide_dip(p: Player, bob: float) -> Vector2:
+	if p.slide <= 0.0 or Moves.SLIDE_FOR <= 0.0:
+		return Vector2.ZERO
+	return SLIDE_DIP * bob * minf(1.0, 2.0 * p.slide / Moves.SLIDE_FOR)
 
 
 ## The eye settling a touch as each boot comes down (the steps are at whole

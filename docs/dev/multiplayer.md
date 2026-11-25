@@ -63,7 +63,8 @@ while that enemy ticks, a shot's thrower while it flies (`Shot.slot`).
 `game.tick(dt, controls)`: one `Game.Controls` is the local player's (anyone
 else stands idle, the single-player path), or a Dictionary slot -> Controls (a
 slot left out stands idle). Controls also carry `use` (a fresh press),
-`weapon` (a slot), `item` (a pocket) and `cycle` (+1/-1 gun) for a player who
+`kick` and `throw` (fresh presses, pass 15: `Game.quick_kick`,
+`quick_throw`), `weapon` (a slot), `item` (a pocket) and `cycle` (+1/-1 gun) for a player who
 is not the local front end; the local front end still calls `interact()`,
 `Armory.select()`, `use_item()` between ticks. The tick plays every live
 player's body (`_step_body`), then rooms that open (`_discover`), the doors
@@ -422,7 +423,9 @@ Play is deterministic, so a run is its start and each tick's controls:
   as the tools make one, then seeded) with the options it was configured with
   (FOV aims the shots, so all of them), then a byte stream: a tick's controls
   as the fields that changed by slot (floats 0/1/-1 in the tag, else float32
-  when exact, else float64; the buttons as one byte; ints zigzag), a run of
+  when exact, else float64; the buttons as a varint since format 2, pass
+  15, KICK and THROW past the first eight, as one byte in format 1, which
+  still plays; ints zigzag), a run of
   ticks unchanged, an action between ticks, a hash every `HASH_EVERY` (120)
   ticks, a snapshot when the game was touched, the end. The file is MAGIC, the
   size and the values zstd'd.
@@ -483,9 +486,10 @@ Play is deterministic, so a run is its start and each tick's controls:
 only), with test latency, jitter and loss on what it sends (on the clock
 handed to `poll`; a lost unreliable packet is dropped, a lost reliable one
 comes a resend later and holds up its channel, `resend_lost`). `NetWire` is
-every packet's layout (protocol 5, snapshot version 3: an older client is
-refused at HELLO; controls in 14 bytes, buys, reloads and the host's rewind
-among them; inputs sent redundantly with the tick the client shows;
+every packet's layout (protocol 6, snapshot version 3: an older client is
+refused at HELLO with THE SERVER (HOST) RUNS ANOTHER VERSION; controls in 15
+bytes, buys, reloads, the host's rewind and (since protocol 6, pass 15) a
+second byte of buttons, KICK and THROW, among them; inputs sent redundantly with the tick the client shows;
 snapshots with their base, tick, input ack and the inputs played since the
 base, those rows zstd'd; a snapshot too big for a packet in unreliable
 `SNAP_PART`s; the lobby's messages; voice chat's frames on `CH_VOICE`,
