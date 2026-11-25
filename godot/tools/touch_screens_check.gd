@@ -14,7 +14,9 @@
 ## phone's answer (WebTyping), BACK twice; JOIN WITH A CODE's field likewise.
 ## SAVE SLOTS from a paused game (SAVE, a slot, the name's CANCEL plate, LOAD
 ## on a slot). The death screen: BACK TO THE MARKER and the chapter's start
-## by a tap on each half. In play every on-screen button (the overlay's shown buttons,
+## by a tap on each half. A won chapter's card: the touch buttons step aside,
+## a tap on its left half goes straight on, one on THE CROSSROADS plate (the
+## right half) to the Crossroads. In play every on-screen button (the overlay's shown buttons,
 ## whatever they are): a press lands on it, FIRE ALT JUMP DUCK are held while
 ## the finger stays, the stick walks, a drag on the right turns, MAP opens the
 ## map, NEXT changes the gun, PHOTO and then MENU go in and out of PHOTO MODE,
@@ -26,6 +28,7 @@
 ## profile (custom maps and the panel's APK go to a cache folder).
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
 const FINGER := 9120
 
 
@@ -57,6 +60,8 @@ var _last := Vector2.ZERO
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "TOUCH SCREENS"):
+		return
 	_run.call_deferred()
 
 
@@ -72,6 +77,7 @@ func _run() -> void:
 	_typed_in()
 	await _play()
 	await _death()
+	await _card()
 	_upright()
 	tally.stop()
 	_check(
@@ -424,6 +430,45 @@ func _death() -> void:
 	main._touch_actions()
 	var start: Game = main.game
 	_check(start != back and start.clock < 1.0, "a tap on TAP HERE: the chapter's start")
+	touch.release()
+	ChapterMarks.clear_all()
+	main.game = null
+	main.state = "title"
+
+
+## A won chapter's card by a finger (pass 15, src/tally_card.gd).
+func _card() -> void:
+	print("\nTHE END CARD BY A FINGER")
+	var touch: TouchControls = main.touch
+	for plate: int in [-1, BetweenChapters.OTHER]:
+		main.start("hickston")
+		var g: Game = main.game
+		g.lessons = false
+		g.finish_level("")
+		main.state = "play"
+		main.input_device = "touch"
+		touch.active = true
+		main.watch_tally()
+		var show = g.features["tally"]
+		show.rows_shown(TallyCard.rows_of(g).size())
+		show.won_at -= 60000
+		show.thuds = 99
+		main._apply_view()
+		if plate < 0:
+			_check(not touch.showing, "the touch buttons step aside for the card")
+			_check(str(show.choices[0][0]) == "TAP", "its plates say TAP")
+			await _tap(Vector2(80, 120))
+		else:
+			await _tap(Vector2(TallyCard.plate_rect(plate).get_center()))
+		main._touch_actions()
+		var now: Game = main.game
+		if plate < 0:
+			_check(
+				now.level.id == "fair" and not now.in_hub,
+				"a tap on the card's left half: straight into the next chapter"
+			)
+		else:
+			_check(now.in_hub, "a tap on THE CROSSROADS plate (the right half): the Crossroads")
 	touch.release()
 	ChapterMarks.clear_all()
 	main.game = null

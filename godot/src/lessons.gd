@@ -181,14 +181,26 @@ const SPOKEN := ["hound", "carry", "ride", "bench", "locked"]
 
 static var taught := {}
 static var _loaded := false
-## Where the taught tips are kept (tools point it at a scratch file).
-static var file := FILE
+## Where the taught tips are kept: "" for the run's own (path()); tools may
+## point it at a scratch file of their own.
+static var file := ""
 ## The last tip shown and its id (tools/onboard_walk.gd reads them).
 static var last_shown := ""
 static var last_id := ""
 ## What the costlier moments looked like at the last scan, and when.
 static var _scan_at := -1.0
 static var _seen := {}
+
+
+## The file in use: `file`, else FILE, but a tool run (a SceneTree script)
+## keeps its tips under the cache folder, never in a player's profile.
+static func path() -> String:
+	if file != "":
+		return file
+	var loop := Engine.get_main_loop()
+	if loop != null and loop.get_script() != null:
+		return OS.get_cache_dir().path_join("clmr-lessons.json")
+	return FILE
 
 
 ## A brand-new profile's slate (tools): nothing taught, nothing read from disk.
@@ -204,8 +216,8 @@ static func forget() -> void:
 ## Every tip shown again from the next one (nothing kept on disk).
 static func reset() -> void:
 	forget()
-	if FileAccess.file_exists(file):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
+	if FileAccess.file_exists(path()):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path()))
 
 
 static func tick(game: Game) -> void:
@@ -227,7 +239,7 @@ static func tick(game: Game) -> void:
 	if not _loaded:
 		_loaded = true
 		# A new profile has no file: parsing "" would print an error.
-		var text := FileAccess.get_file_as_string(file) if FileAccess.file_exists(file) else ""
+		var text := FileAccess.get_file_as_string(path()) if FileAccess.file_exists(path()) else ""
 		var parsed: Variant = JSON.parse_string(text) if text != "" else null
 		taught = parsed if parsed is Dictionary else {}
 	if game.clock < _scan_at or game.clock - _scan_at >= SCAN:
@@ -371,7 +383,7 @@ static func _teach(game: Game, id: String) -> void:
 	game.tip_until = game.clock + _shown_for(game)
 	if SPOKEN.has(id):
 		game.barks.say(game, "tip_" + id, true)
-	var out := FileAccess.open(file, FileAccess.WRITE)
+	var out := FileAccess.open(path(), FileAccess.WRITE)
 	if out != null:
 		out.store_string(JSON.stringify(taught))
 

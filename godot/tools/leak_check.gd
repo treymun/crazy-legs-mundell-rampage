@@ -17,6 +17,8 @@
 ## empty). Fails on any script or engine error.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
+
 ## Objects a round may leave over the last one (caches keyed per play, the
 ## odd pooled sprite): nothing like the 1,300 of one leaked game.
 const SLACK := 40
@@ -26,6 +28,8 @@ var failures: Array = []
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "LEAK CHECK"):
+		return
 	_run.call_deferred()
 
 

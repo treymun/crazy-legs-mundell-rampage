@@ -514,11 +514,13 @@ whom by mode, the dead in the 5v5 rounds included, is in
   everyone on their own slots; snapshot numbers run on past the old game's,
   `seq_from`, and a client's input numbers carry on, so a packet of the old
   game still on its way is never taken for the new one):
-  - the chapter won: the host's ENTER on the tally (`ROLL ON, Y'ALL`; a
-    client sees `THE HOST TAKES THE PARTY ON`) makes the next chapter with
-    each player's own kit (`Modes.carry`) and history, opens its gate on the
-    host's profile (as local co-op does) and takes the party to the COUNTY
-    CROSSROADS (CLASSIC on: straight in). The hub's gates are the host's
+  - the chapter won: the host's pick on the tally (ENTER `ROLL ON, Y'ALL`
+    or the MAP key's `THE CROSSROADS`, ordered by the host's BETWEEN
+    CHAPTERS, pass 15; a client sees `THE HOST TAKES THE PARTY ON`) makes
+    the next chapter with each player's own kit (`Modes.carry`) and history,
+    opens its gate on the host's profile (as local co-op does) and takes the
+    party straight in or to the COUNTY CROSSROADS, player one in front of
+    its gate and the partners beside them. The hub's gates are the host's
     open ones, the chapter under way CONTINUE (`dress`: the clients make the
     same locked gates from START's `locked` and `gate_modes`);
   - any player's USE at a gate (`portal_request` on the host's game, seen in

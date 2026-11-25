@@ -446,11 +446,12 @@ static func build() -> Array:
 					["STANDARD", "SCARCE", "NO DROPS"],
 					"NEW RUNS ONLY. SCARCE CUTS BOXES. NO DROPS REMOVES BASIC FOE AMMO."
 				),
-				SessionStore.toggle(
-					"CLASSIC LEVEL FLOW",
-					"classic",
+				SessionStore.choices(
+					"BETWEEN CHAPTERS",
+					"between",
 					0,
-					"SKIP THE CROSSROADS. GO STRAIGHT TO THE NEXT CHAPTER."
+					["STRAIGHT ON", "THE CROSSROADS"],
+					"WHERE THE TAP AFTER A CHAPTER GOES. THE CARD OFFERS THE OTHER WAY TOO"
 				),
 				SessionStore.choices(
 					"AIM ASSIST",

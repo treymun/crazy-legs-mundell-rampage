@@ -269,11 +269,16 @@ static func key_online(main: MainInput, code: int) -> bool:
 		return true
 	var hosting := main.net.role == NetPlay.Role.HOST
 	if main.game != null and main.game.showing_tally:
+		var straight := BetweenChapters.straight(main.options)
 		if enter or code == KEY_SPACE:
 			if coop and hosting:
-				NetCoop.next(main)  # on into the next chapter, by the hub
+				NetCoop.next(main, not straight)  # BETWEEN CHAPTERS' way on
 			elif main.net.is_admin() and not coop:
 				main.net.back_to_lobby()
+			return true
+		if code == KEY_TAB:
+			if coop and hosting:
+				NetCoop.next(main, straight)  # the other way on
 			return true
 		if code == KEY_ESCAPE:
 			main.net_leave = true

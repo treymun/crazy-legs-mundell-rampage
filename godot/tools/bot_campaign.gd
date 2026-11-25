@@ -8,10 +8,14 @@
 ## chapter, a different one each, so none of them shuts a chapter.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
+
 var failures: Array = []
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "CAMPAIGN WALKTHROUGH"):
+		return
 	_run.call_deferred()
 
 
@@ -328,8 +332,10 @@ func save_round_trip(main: Control, chapter: String) -> void:
 		check(back.secrets == g.secrets, chapter + " save keeps secrets")
 
 
+## On from the card by THE CROSSROADS (pass 15: the one tap goes straight
+## on; tools/road_check.gd walks that road), standing at the next gate.
 func advance_campaign(main: Control, chapter: String) -> void:
-	main.continue_campaign()
+	main.continue_campaign(true)
 	var following := Campaign.next_level(chapter)
 	if following == "":
 		check(main.game.in_hub, "ending returns to the Crossroads")

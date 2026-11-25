@@ -22,6 +22,7 @@
 ## recording costs a tick and how big a minute of it is.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
 const Pilot := preload("res://tools/bot_pilot.gd")
 const CountyBot := preload("res://tools/county_bot.gd")
 const BossCheck := preload("res://tools/boss_check.gd")
@@ -38,6 +39,8 @@ var keep_dir := ""
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "REPLAY CHECK"):
+		return
 	_run.call_deferred()
 
 

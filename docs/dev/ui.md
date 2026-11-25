@@ -58,9 +58,10 @@ draws the bar on the software canvas as before.
   (`src/vehicle_finder.gd`), on a map that has one; and NEW IRON with the
   little red gun a gun not had yet is marked with once seen
   (`src/gun_finder.gd`).
-- **The chapter tally** (`hud.gd intermission`) has a GUNS row under the
-  secrets in a campaign chapter (its guns had, `GunFinder.tally`); with
-  seven rows they close up to 10 pixels apart.
+- **The chapter tally** (`hud.gd intermission`, the card itself
+  `src/tally_card.gd`) has a GUNS row under the secrets in a campaign
+  chapter (its guns had, `GunFinder.tally`); with eight rows they close up
+  to 10 pixels apart ([the end card](#the-end-card-pass-15)).
 - **Scaling:** the overlay is the 320x200 picture (WIDE: as many columns as
   the screen's shape asks), scaled to the window by the display shader with
   crisp pixels (INTEGER 8:5 keeps every pixel the same size) inside the
@@ -310,6 +311,51 @@ key's name), X or a tap on the second line (`TAP HERE`, picture rows 90 and
 down) the chapter's start; F9 loads, ESC or B the title. Online the host
 picks (`net_coop.gd retry`) and a client reads THE HOST PICKS WHAT COMES
 NEXT. `touch_screens_check` taps both halves.
+
+## The end card (pass 15)
+
+A won chapter's card (`src/tally_card.gd`, drawn by `hud.gd intermission`
+over the title backdrop; the show is `features/tally.gd`, the ways on
+`src/between_chapters.gd`, [gameplay.md](gameplay.md#between-chapters-pass-15)):
+
+- **The panel**: the heading, then the rows: VARMINTS, SECRETS, GUNS, TIME,
+  PAR (the chapter's `modes.cfg [par]`, with `m:ss UNDER` in amber or
+  `m:ss OVER` in red beside it) and up to three of the features' rows.
+  `GAPS` by row count (18 down to 10 at eight rows); the chapter's last word
+  goes under the rows and rises to stay above row 183. The bests sit in a
+  `mini` column right-aligned at column 146 beside the number they stand
+  for (`BEST 41`, `BEST 03:58`, or `NEW BEST` in amber); ON NORMAL (the
+  difficulty they were kept at) on the title's line when it has room.
+  Nothing beside the rows on a first run, in co-op or with cheats.
+- **The show**: the rows thud down 260 ms apart (380 before), the ribbon
+  (`ribbon()`: kills, secrets, aim and the pace against par), then NEW BEST
+  stamped on in two lines over the ribbon's top with `stamp_thud` and
+  `yee_haw` when a best fell. Any key, button or tap while the rows come
+  down puts them all down (`hurry()`, one thud); nothing is taken in the
+  first 600 ms after the win (`KEY_WAIT`), so fire or USE hammered as the
+  chapter ends cannot throw the card away.
+- **The plates**: the ways on, nailed up right of the panel under the
+  ribbon (`PLATE_TOPS` 118, 141, 164), the one tap's lit: its key word in
+  the device's words over what it does. Slots: the one tap's (ENTER or
+  SPACE, A, a tap anywhere off the plates), the other way (the MAP key's
+  name, Y, its plate), TRY TO BEAT IT (the RELOAD key's name, X, its plate).
+  A mouse click on a plate takes it; a click elsewhere does nothing. With
+  no ways of its own (a player's map, the finale) the card shows the one
+  plate it always had.
+- **Touch**: the touch buttons step aside while the card is up offline
+  (`TallyCard.up`, `main_state.gd _apply_view`); the left half (anywhere off
+  the plates) is the one tap's, THE CROSSROADS plate on the right half the
+  other.
+- **Online co-op**: no plates; the lobby's line (`lobby_screens.gd
+  draw_match`) gives the host two buttons, `ENTER  ROLL ON, Y'ALL` (straight
+  on) and `TAB  THE CROSSROADS`, in BETWEEN CHAPTERS' order; a client reads
+  THE HOST TAKES THE PARTY ON.
+
+`road_check` holds every row count with every chapter's last word, the
+bests' column against the widest numbers, the plates and the stamp to the
+panel and the picture, in the 7-pixel letters and SMALL TEXT;
+`tools/hud_frames.gd -- only=tally` takes its pictures (`tally_card_<n>`:
+keys, pad, touch with its buttons, SMALL TEXT).
 
 ## Rumble's settings (pass 14)
 

@@ -516,7 +516,8 @@ func _apply_view() -> void:
 	view.position = rect.position
 	view.size = rect.size
 	touch.layout(safe_rect())
-	touch.set_showing(state == "play" and not CountyScreens.covering(game))
+	var covered := CountyScreens.covering(game) or TallyCard.up(game)  # their own taps
+	touch.set_showing(state == "play" and not covered)
 
 
 func change_window_mode(mode: int) -> void:
