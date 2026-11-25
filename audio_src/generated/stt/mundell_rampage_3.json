@@ -1,0 +1,35 @@
+{
+ "text": "Fixin' to paint the barn red.",
+ "words": [
+  {
+   "text": "Fixin'",
+   "start": 0.04,
+   "end": 0.5
+  },
+  {
+   "text": "to",
+   "start": 0.58,
+   "end": 0.64
+  },
+  {
+   "text": "paint",
+   "start": 0.74,
+   "end": 1.02
+  },
+  {
+   "text": "the",
+   "start": 1.08,
+   "end": 1.16
+  },
+  {
+   "text": "barn",
+   "start": 1.22,
+   "end": 1.64
+  },
+  {
+   "text": "red.",
+   "start": 1.72,
+   "end": 2.28
+  }
+ ]
+}

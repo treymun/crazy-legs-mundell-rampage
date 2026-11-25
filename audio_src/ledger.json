@@ -46495,6 +46495,300 @@
    "bytes": 97845
   },
   {
+   "id": "tts/mundell_rampage_1#1",
+   "kind": "tts",
+   "name": "mundell_rampage_1",
+   "params": {
+    "text": "Y'all done woke up the Legs!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c2e2988db61f",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-25T13:12:38",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_rampage_1.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/mundell_rampage_0#1",
+   "kind": "tts",
+   "name": "mundell_rampage_0",
+   "params": {
+    "text": "Whoo-wee! The Legs is loose!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "98439829d011",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-25T13:12:38",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_rampage_0.mp3",
+   "bytes": 59602
+  },
+  {
+   "id": "tts/mundell_rampage_3#1",
+   "kind": "tts",
+   "name": "mundell_rampage_3",
+   "params": {
+    "text": "Fixin' to paint the barn red!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d0661300fce0",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-25T13:12:38",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_rampage_3.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "tts/mundell_rampage_2#1",
+   "kind": "tts",
+   "name": "mundell_rampage_2",
+   "params": {
+    "text": "Meaner than a wet bobcat!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "531919e53528",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-25T13:12:38",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_rampage_2.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/mundell_rampage_4#1",
+   "kind": "tts",
+   "name": "mundell_rampage_4",
+   "params": {
+    "text": "Git outta the road, I'm comin' through!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5748679d9080",
+   "reserved": 66,
+   "status": "settled",
+   "started": "2026-11-25T13:12:39",
+   "actual": 39,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_rampage_4.mp3",
+   "bytes": 66498
+  },
+  {
+   "id": "tts/mundell_rampage_5#1",
+   "kind": "tts",
+   "name": "mundell_rampage_5",
+   "params": {
+    "text": "Hide the hogs and the moonshine!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bf61651e86b3",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-25T13:12:39",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_rampage_5.mp3",
+   "bytes": 96591
+  },
+  {
+   "id": "stt/mundell_rampage_1#1",
+   "kind": "stt",
+   "name": "mundell_rampage_1",
+   "params": {
+    "file": "mundell_rampage_1.mp3",
+    "bytes": 58348
+   },
+   "hash": "96aa2480d314",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:13:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_rampage_1.json",
+   "bytes": 421
+  },
+  {
+   "id": "stt/mundell_rampage_3#1",
+   "kind": "stt",
+   "name": "mundell_rampage_3",
+   "params": {
+    "file": "mundell_rampage_3.mp3",
+    "bytes": 60856
+   },
+   "hash": "490d20fca90c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:13:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_rampage_3.json",
+   "bytes": 424
+  },
+  {
+   "id": "stt/mundell_rampage_2#1",
+   "kind": "stt",
+   "name": "mundell_rampage_2",
+   "params": {
+    "file": "mundell_rampage_2.mp3",
+    "bytes": 51452
+   },
+   "hash": "6273ea843910",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:13:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_rampage_2.json",
+   "bytes": 360
+  },
+  {
+   "id": "stt/mundell_rampage_0#1",
+   "kind": "stt",
+   "name": "mundell_rampage_0",
+   "params": {
+    "file": "mundell_rampage_0.mp3",
+    "bytes": 59602
+   },
+   "hash": "79440f696702",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:13:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_rampage_0.json",
+   "bytes": 417
+  },
+  {
+   "id": "stt/mundell_rampage_4#1",
+   "kind": "stt",
+   "name": "mundell_rampage_4",
+   "params": {
+    "file": "mundell_rampage_4.mp3",
+    "bytes": 66498
+   },
+   "hash": "ba4a50e85d21",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:13:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_rampage_4.json",
+   "bytes": 554
+  },
+  {
+   "id": "stt/mundell_rampage_5#1",
+   "kind": "stt",
+   "name": "mundell_rampage_5",
+   "params": {
+    "file": "mundell_rampage_5.mp3",
+    "bytes": 96591
+   },
+   "hash": "a6952cadf02b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:13:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_rampage_5.json",
+   "bytes": 493
+  },
+  {
+   "id": "tts/mundell_rampage_0#2",
+   "kind": "tts",
+   "name": "mundell_rampage_0",
+   "params": {
+    "text": "Look out, the Legs is loose!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0191762b2ae4",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-25T13:15:28",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_rampage_0.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "stt/mundell_rampage_0#2",
+   "kind": "stt",
+   "name": "mundell_rampage_0",
+   "params": {
+    "file": "mundell_rampage_0.mp3",
+    "bytes": 52705
+   },
+   "hash": "0866b695aadd",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-25T13:16:31",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_rampage_0.json",
+   "bytes": 418
+  },
+  {
    "id": "tts/mundell_lost_1#1",
    "kind": "tts",
    "name": "mundell_lost_1",
@@ -46663,12 +46957,12 @@
    "bytes": 361
   },
   {
-   "id": "reconcile@2026-11-25T13:38:55",
+   "id": "reconcile@2026-11-25T14:56:58",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -29590,
+   "actual": -29883,
    "basis": "account",
    "balance_after": 84233
   }
@@ -46678,7 +46972,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-25T13:38:55",
+  "when": "2026-11-25T14:56:58",
   "account_drop": 79510
  }
 }

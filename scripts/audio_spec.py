@@ -1489,6 +1489,18 @@ BOSSES = [
     ("boss_moonshine", "The Revenue Man Cometh", 170, "Furious dark outlaw country-metal at 170 BPM: a crushing low-tuned twangy guitar riff, a machine-gun snare and double kick rattling like a tommy gun, a screaming harmonica, a fiddle sawing like a siren, booming toms and anvil hits like a still about to blow. Heavy, fast and dangerous."),
     ("boss_mothership", "Maw's Last Supper", 148, "The biggest, heaviest cut on the record: a thundering country-metal riff on detuned twangy baritone guitars, booming toms and anvil hits, a church-organ swell under a screaming theremin lead, a slide guitar howling back at it, the whole band slamming unison stabs. Relentless and epic, a hoedown at the end of the world."),
 ]
+# The fight loops' layers (pass 15): free, made by audio_build.py --layers
+# (scripts/audio_layers.py) from each chapter's finished fight loop, as long
+# as it to the sample; src/score_layers.gd plays them locked to it. pulse_:
+# the loop's drums alone, low-passed (BUILD, in the score's place); peak_: its
+# tune's top, driven a little, laid over the whole loop (PEAK). (name, loop, kind)
+LAYERS = [(f"{kind}_{stem[len('fight_'):]}", stem, kind) for stem, *_ in FIGHTS for kind in ("pulse", "peak")]
+LAYER_SHAPE = {
+    # Quieter than a song (-15): the build-up before the fight's whole band.
+    "pulse": {"lp": 2000, "low": 2.0, "lufs": -18.0, "quality": 1},
+    # The loop and it together `sum_lift` LU louder than the loop alone.
+    "peak": {"hp": 650, "pres": 2.5, "drive": 1.6, "sum_lift": 2.0, "quality": 2},
+}
 # Seconds asked for each loop: the fights and bosses 70, the last boss more.
 LOOP_LENGTH = {"boss_mothership": 90}
 VICTORY = ("victory", "A short celebratory cowpunk victory tune for a score tally screen: jubilant twangy "

@@ -42,6 +42,11 @@ decision here comes from measurement and from the code.
   included. A CLEAN copy's duck call saturates at the line's peak instead of
   setting the whole line's level.
 - `scripts/audio_qa.py` measures it all; see "Audio QA" below.
+- `audio_build.py --layers` (pass 15, `scripts/audio_layers.py`, free) makes
+  each chapter's fight loop's two layers (`audio_spec.LAYERS`,
+  `LAYER_SHAPE`) from the finished loop on disk: `pulse_<chapter>` its drums
+  and `peak_<chapter>` its riff ([the four levels](#the-fight-music-in-four-levels-pass-15)).
+  A full `audio_build.py` (or `--music`) makes them again after the loops.
 - Paid requests go only through `scripts/audio_generator.py` (ledger, ceiling;
   CLAUDE.md). It loads the key from `.env` at the repo root of the checkout it
   runs from.
@@ -170,6 +175,71 @@ telephone band (VOICE QUALITY's CB 8K), or with CLEAR 16K (pass 14) a
 second band of 4 to 6.5 kHz on top, played at 16 kHz. The mic is read from the muted `voice_mic` bus. The rest is
 in [multiplayer.md](multiplayer.md#voice-chat-pass-13). Not heard by anyone
 on the agent side.
+
+## The fight music in four levels (pass 15)
+
+Pass 15's audit found a chapter's fight loop playing 80 to 97 % of every
+chapter: `fight_music.gd` was on/off, any hand on the player swelled the
+loop in, it held 7 s, and a fight came every 8 to 12 s. Now there are four
+levels (`features/fight_music.gd` decides, `src/score_layers.gd` plays):
+
+- **CALM**: the chapter's track. **BUILD** (a hand on the player, or an
+  alerted one within `NEAR` that sees or hunts him; held `BUILD_HOLD` 5 s):
+  the track gives way (ScorePlayer's crossfade, in over 1 s, out over 3 s) to
+  the fight loop's own drums alone. **FIGHT** (`CROWD` 2 hands on him, or one
+  that hurt him within `HURT_HOT` 4 s, or the director's intensity
+  `FIGHT_HEAT` .5 or more with a hand on him; held `HOLD` 12 s while a hand
+  about is still awake and after him, `QUIET_HOLD` 5 s once none is, and
+  dropped within `BREATHER_DROP` 1 s when the director calls a breather and
+  nobody is on him): the whole loop. **PEAK** (a director's peak with a hand on him,
+  or this machine's player on a RAMPAGE; held `PEAK_HOLD` 3 s): the loop with
+  its riff laid over it. A hit landed only keeps the BUILD; the Crossroads
+  is CALM. `fighting` (what `flow_report` counts as "fight loop %") is FIGHT
+  or PEAK.
+- **The layers** are free, made from each loop by `scripts/audio_layers.py`
+  (`audio_build.py --layers`): the loop as a ring is split into its drums and
+  its tune by median filtering its spectrogram (along time for what holds a
+  note, along frequency for the hits; soft masks from the mono mix, so both
+  sides part alike), the drums low-passed at 2 kHz with a little low shelf
+  and held under -1.9 dB by a limiter run over the ring (`pulse_`, -18 LUFS,
+  Vorbis q1), the tune high-passed at 650 Hz, lifted 2.5 dB at 2.8 kHz and
+  driven a little (`peak_`, as loud as makes the loop and it together 2 LU
+  over the loop, Vorbis q2). Every filter runs over the ring padded with
+  itself, so nothing new happens at the join. Each decodes to exactly the
+  loop's sample count (`audio_qa` and `music_check` hold it), and the fight
+  player plays the three as one `AudioStreamSynchronized` (`stream_of`, the
+  one call in sound.gd's `fight_step`): each layer's gain moves under the one
+  stream (`step`, every tick: the loop in over .6 s and out over 2.5, the
+  drums in over 1 and out over 1.2, the riff in over .5 and out over 2), so
+  BUILD to FIGHT to PEAK never shifts a beat. While the fight player is
+  silent the gains jump to the level asked for. A chapter whose layers are
+  not in the packs (`layered`) plays its loop alone and keeps BUILD on the
+  track. 7.3 MB in all, in each chapter's `music_<chapter>.bin`.
+- **Measured** (nobody here can listen): the drums layer's strongest pitch
+  class holds .12 to .15 of a frame's pitch energy against the loop's .15 to
+  .21 (less tune in it) and its onsets follow the loop's at .68 to .91
+  correlation; the riff layer's strongest pitch class is .18 to .30. Every
+  join's step is under audio_qa's 4x limit (.01 to .37 of the loop's
+  99.9th-percentile step); the drums layers peak at -3.2 to -1.6 dBTP, the
+  loops with their riff 1.3 to 1.9 LU over the loops alone (their peaks
+  -0.8 to -2.9 dBFS before the master limiter).
+- `tools/music_check.gd` holds it; flow_report's music table shows each
+  level's share ([gameplay.md](gameplay.md#rampage-pass-15) has the pass 15
+  numbers).
+
+**Listening, for the owner.** Play Hickston from the CROSSROADS gate with
+MUSIC up and CHATTER on: walking in (no hand about) the chapter's song; as
+the first coot spots you the song should give way, over about a second, to a
+drums-only groove in the fight loop's tempo; take a hit or let two come and
+the whole fight loop (banjo, fiddle, guitar) should join on the beat, with
+no stumble; at a director peak (a station done, a new district: a crowd
+comes with a holler) or on a RAMPAGE the riff should come up on top, a
+little louder and brighter; after the peak's last kill (the breather) the
+whole loop should drop back to the drums within a second or two and then to
+the song. Listen at each change for a skipped beat, a doubled drum, a click
+when the loop wraps (every 46 to 60 s) and for the drums alone sounding thin
+or too loud against the song. `--lite-assets` hears the browser build's
+copies.
 
 ## Voices
 
@@ -445,6 +515,20 @@ fixes everything" with a "Yeah," before it (both cut off at the caption's
 words by audio_build); "Locked tight. Figures." was heard "Lock tight,
 figures" (`heard`). 70 credits (79,114 to 79,184). Not listened to.
 
+### Pass 15: Mundell's RAMPAGE hollers (2026-11-25)
+
+Six lines in his voice as a RAMPAGE begins (`rampage` in barks.gd and
+mundell_lines.json; cues `mundell_rampage_0..5`, forced past the kill line):
+"Look out, the Legs is loose!", "Y'all done woke up the Legs!", "Meaner than
+a wet bobcat!", "Fixin' to paint the barn red!", "Git outta the road, I'm
+comin' through!", "Hide the hogs and the moonshine!". Five matched as made;
+the first, written "Whoo-wee! The Legs is loose!", came back heard "Go away,
+the legs is loose" and was reworded and made again (its first take kept as
+`.take1`). 2.1 to 3.1 s each. 98 credits after the reconcile (79,361 to
+79,459). The meter-full sting is a made cue (`assets.gd` `rampage_sting`: a
+barn door's slam and an overdriven twang chord raked up three steps). Not
+listened to.
+
 ### Pass 15: Mundell turned around (2026-11-25)
 
 Four lines in his voice, said once a stuck spell (`src/hound_lead.gd`;
@@ -453,9 +537,11 @@ barks.gd and mundell_lines.json `lost`, `lost_pin`; cues `mundell_lost_0`,
 the way." and "Foller the hound, dummy.", with HOUND DOG off and the pin
 pulsing "Turned around again. Mind the arrow." and "I know these parts.
 Mostly." Three matched as made ("Yeah," before the first, cut off at the
-caption's words); "Foller" was heard "Follow" (`MUNDELL_HEARD`). 149 credits
-(79,361 to 79,510: 106 for the takes, 48 for the transcripts, 5 given back
-at the reconcile). Not listened to.
+caption's words); "Foller" was heard "Follow" (`MUNDELL_HEARD`). 154
+credits booked at the expected rates (106 for the takes, 48 for the
+transcripts); the account's own counter dropped 51 past the RAMPAGE hollers
+above (79,459 to 79,510), and the reconcile of the merged ledger gives the
+rest back: both tracks together 149 (79,361 to 79,510). Not listened to.
 
 ## The county events' sounds (content pass 8)
 

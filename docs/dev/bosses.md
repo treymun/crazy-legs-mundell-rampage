@@ -350,7 +350,9 @@ software view; a tour viewpoint with `actors` shows the 3D models instead.
 
 `features/fight_music.gd`, `sound.gd` crossfade, swaps a chapter's music for
 its fight track (`assets/music/fight_*.ogg`, made by `audio_build.py
---fights`) while hands hunt or attack nearby. Each chapter also has a boss
+--fights`) while hands hunt or attack nearby; since pass 15 in four levels,
+the track, the loop's drums, the whole loop and the loop with its riff
+([audio.md](audio.md#the-fight-music-in-four-levels-pass-15)). Each chapter also has a boss
 loop (`boss_<chapter>`, `Sound.BOSSES`), faster and heavier, that takes over
 while its last boss is alive, awake and the player is in its arena (as far as
 the boss bar shows), holds `BOSS_HOLD` seconds after the player steps out and

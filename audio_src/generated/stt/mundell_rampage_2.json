@@ -1,0 +1,30 @@
+{
+ "text": "Meaner than a wet bobcat.",
+ "words": [
+  {
+   "text": "Meaner",
+   "start": 0.06,
+   "end": 0.38
+  },
+  {
+   "text": "than",
+   "start": 0.42,
+   "end": 0.58
+  },
+  {
+   "text": "a",
+   "start": 0.64,
+   "end": 0.7
+  },
+  {
+   "text": "wet",
+   "start": 0.76,
+   "end": 0.98
+  },
+  {
+   "text": "bobcat.",
+   "start": 1.12,
+   "end": 2.02
+  }
+ ]
+}

@@ -3217,7 +3217,7 @@ drawn where it comes from, and a hazard kill pays. Numbers in hits.cfg
   (`_bonus_pick`: his kind's own enemies.cfg `drop`, else one of
   `bonus_drops` by `game.rng`; none with NO DROPS; the PACE track may point
   this one line at its drop by need), and `game.events.hazard_killed(enemy,
-  kind, slot)`; a RAMPAGE meter (not built yet) adds `bonus_rampage` for it.
+  kind, slot)`; the RAMPAGE meter adds `bonus_rampage` for it ([RAMPAGE](#rampage-pass-15)).
   Bosses (who only take their share) get none.
 - Carried online within PROTOCOL 5: nothing new is carried. The arrows, the
   tell, the rings, the glint, the brackets and the skull read what already
@@ -3226,6 +3226,78 @@ drawn where it comes from, and a hazard kill pays. Numbers in hits.cfg
   the same rules (no scrap: no bench there).
 - `tools/danger_check.gd` holds it; `tools/danger_frames.gd` (a window)
   pictures it; `brawl_check` holds the bonus.
+
+## RAMPAGE (pass 15)
+
+Kills landed the same way every time and a chain of them meant nothing but a
+callout. Now kill chains fill a meter, and a full one turns Mundell loose.
+`features/rampage.gd` (a simulation feature, last in `Features.ALL` and
+`SIM_FEATURES`), numbers in hits.cfg `[rampage]`.
+
+- **The meter** (0 to 1, per player by slot). A kill of his own (the hit
+  that killed was his: `hit_landed` with `killed`, then `enemy_killed`; a
+  hand killed by another hand fills nothing) adds `kill` (.11), more for a
+  head (`head` .06), an overkill that takes the body apart (`overkill` .06:
+  `Enemy.explosive`), a brawl finisher landing (`finisher` .12: brawl's
+  `last_moves` a wind-up ago), a boss (`boss` .5) and a hazard kill
+  (`hazard_killed`: [hazard] `bonus_rampage` .35); a kill within `chain_for`
+  (2.5 s) of the one before adds `chain` (.03) for every link, up to
+  `chain_most` (4). It holds `hold` (3.5 s) after a kill, then drains
+  `drain` (.08) a second. A burst of four or five kills fills it; the steady
+  kill a minute of a walk does not.
+- **RAMPAGE**, when it is full: `rampage_for` (8 s), each kill in it adding
+  `extend` (.5 s) up to `rampage_most` (14 s) in all. He moves `speed` (1.12)
+  times as fast (one factor in `game.gd _walk`, `Rampage.pace`) and his hits
+  do `damage` (1.2) times as much (one line in `Enemy.hurt` after the hit's
+  zone, `Rampage.might`, his own hits only). The meter is empty after.
+- **Looks** (this machine's player): the lamps under the health and RAMPAGE
+  on the health box ([ui.md](ui.md#the-huds-layout)), the view's edge
+  burning (`src/rampage_looks.gd`), a made sting (`rampage_sting`) and
+  Mundell's holler (barks `rampage`, forced) as it begins, the music at its
+  PEAK ([audio.md](audio.md#the-fight-music-in-four-levels-pass-15)). The
+  sting and holler come from `draw_view` once per RAMPAGE (`_said`, this
+  machine's, in `SnapCodec.SKIP_FIELDS`), so an online copy hears its own.
+  The callouts (TWOFER .. RAMPAGE!) stay as they were: words for a quick
+  streak.
+- **Where**: the campaign, co-op (each player his own) and County Run (its
+  cards stack on top); never deathmatch, team deathmatch, the 5v5, the hub
+  or the range.
+- **Online and saves**: every variable but `_said` is carried (no dice; the
+  host decides, a client's prediction reads the same `pace`), PROTOCOL stays
+  5 (a feature block an older build does not know is skipped); its block in
+  the save holds the meters, the holds, the RAMPAGES under way and the
+  chain, read back as floats (an older save: an empty meter). No save version.
+- `tools/rampage_check.gd` holds it; `tools/rampage_frames.gd` pictures it.
+
+The balance bot (`flow_report.gd`, REGULAR, SHARP and ROOKIE at NORMAL, seeds
+1 and 2; before is this pass's PACE, READ, MARKERS and ROAD tracks merged):
+
+| chapter | seconds (median) | kills a minute | whole fight loop % of the chapter | CALM / BUILD / FIGHT / PEAK % after | RAMPAGES an attempt | on one, s an attempt |
+| --- | --- | --- | --- | --- | --- | --- |
+| hickston | 258 -> 259 | 9.7 -> 10.1 | 82 -> 46 | 25 / 32 / 33 / 16 | 1.67 | 15.5 |
+| fair | 292 -> 273 | 10.1 -> 10.3 | 80 -> 49 | 26 / 27 / 21 / 24 | 1.71 | 14.6 |
+| sawmill | 203 -> 209 | 11.4 -> 11.4 | 84 -> 40 | 23 / 42 / 22 / 16 | 1.50 | 15.3 |
+| quarry | 211 -> 207 | 10.8 -> 10.9 | 81 -> 51 | 27 / 24 / 29 / 23 | 1.33 | 13.6 |
+| bayou | 201 -> 211 | 12.9 -> 11.4 | 83 -> 59 | 25 / 17 / 32 / 24 | 1.63 | 13.0 |
+| speedway | 186 -> 170 | 10.6 -> 11.5 | 82 -> 43 | 26 / 38 / 24 / 20 | 1.14 | 11.5 |
+| moonshine | 150 -> 159 | 11.8 -> 12.5 | 82 -> 66 | 15 / 23 / 34 / 28 | 1.29 | 13.3 |
+| mothership | 214 -> 213 | 12.5 -> 12.5 | 92 -> 65 | 16 / 22 / 53 / 12 | 0.86 | 6.2 |
+
+(Medians of the attempts; the level shares do not sum to 100, each being a
+median.) Over all the play the whole fight loop went from 83 % to 52 % of
+the time; the Moonshine Run and the Mothership, fought the most (46 and
+59 % of their time hot, crowds of three or more 44 and 24 % of it), still
+hear it about two thirds of theirs. RAMPAGES: 1.39 a chapter (ROOKIE 1.58,
+REGULAR 1.26, SHARP 1.31), about 6 % of the time on one. The chapters'
+median seconds summed: ROOKIE 1581 -> 1639, REGULAR 1715 -> 1645 (-4 %),
+SHARP 1690 -> 1644 (-3 %). Deaths a run: ROOKIE 2.5 -> 1.5, REGULAR 0 ->
+1.5 (at the derby champ, the revenue man and a crawfish boil fire, two of
+them in attempts with no RAMPAGE in them: play goes otherwise from the first
+change, one seed of each), SHARP 0 -> 0. The music is looks only: with every
+music change since, the same seeds played to the same chapters, seconds and
+kills (checked attempt by attempt). Speed: `tick_spikes.gd` on Hickston, three
+alternate runs back to back, the tick's median 1.202 -> 1.225 ms (+1.9 %; the
+bot's game is a different one with the boost).
 
 ## Difficulty and pacing as numbers (polish pass 9)
 

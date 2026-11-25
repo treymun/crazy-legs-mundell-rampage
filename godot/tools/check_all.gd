@@ -84,6 +84,8 @@ const CHECKS := [
 	["danger_check", "DANGER CHECK OK"],
 	["bar_door_check", "BAR DOOR CHECK OK"],
 	["stuck_check", "STUCK CHECK OK"],
+	["rampage_check", "RAMPAGE CHECK OK"],
+	["music_check", "MUSIC CHECK OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK", ["seconds=30"]],
 	["net_soak_all", "NET SOAK ALL OK", ["quick"]],
@@ -165,6 +167,7 @@ const QUICK := [
 	"update_flow_check",
 	"director_check",
 	"bar_door_check",
+	"rampage_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows
@@ -238,6 +241,8 @@ const CI_SECONDS := {
 	"road_check": 20,
 	"bar_door_check": 15,
 	"stuck_check": 200,
+	"rampage_check": 20,
+	"music_check": 60,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and
@@ -291,7 +296,12 @@ func _init() -> void:
 				if tool == "gdformat"
 				else ["src", "tools", "addons"]
 			)
-			var code := OS.execute(venv.path_join(tool + ".exe"), tool_args, output, true)
+			# Through the venv's python (-m gdtoolkit...): Windows Application
+			# Control may refuse the venv's gdformat.exe / gdlint.exe launchers.
+			var module := "gdtoolkit.formatter" if tool == "gdformat" else "gdtoolkit.linter"
+			var code := OS.execute(
+				venv.path_join("python.exe"), ["-m", module] + tool_args, output, true
+			)
 			lint.append([tool, code == 0, "\n".join(output)])
 		# The sound measured (scripts/audio_qa.py: loudness against each family,
 		# true peak, clicks, silences, loop joins, same takes, wiring).

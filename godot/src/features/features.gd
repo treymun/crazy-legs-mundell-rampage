@@ -70,6 +70,7 @@ const ALL := [
 	preload("res://src/features/trail_marker.gd"),
 	preload("res://src/features/danger_looks.gd"),
 	preload("res://src/features/director.gd"),
+	preload("res://src/features/rampage.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES

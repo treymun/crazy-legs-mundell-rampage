@@ -155,6 +155,16 @@ const LINES := {
 	# showing the way, and with HOUND DOG off (the pin pulses).
 	"lost": ["BLUE KNOWS THE WAY.", "FOLLER THE HOUND, DUMMY."],
 	"lost_pin": ["TURNED AROUND AGAIN. MIND THE ARROW.", "I KNOW THESE PARTS. MOSTLY."],
+	# A full RAMPAGE meter (features/rampage.gd, pass 15).
+	"rampage":
+	[
+		"LOOK OUT, THE LEGS IS LOOSE!",
+		"Y'ALL DONE WOKE UP THE LEGS!",
+		"MEANER THAN A WET BOBCAT!",
+		"FIXIN' TO PAINT THE BARN RED!",
+		"GIT OUTTA THE ROAD, I'M COMIN' THROUGH!",
+		"HIDE THE HOGS AND THE MOONSHINE!",
+	],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -200,7 +210,8 @@ const COOLDOWN := {
 	"tip_bench": 1.0,
 	"tip_locked": 1.0,
 	"lost": 60.0,
-	"lost_pin": 60.0
+	"lost_pin": 60.0,
+	"rampage": 1.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

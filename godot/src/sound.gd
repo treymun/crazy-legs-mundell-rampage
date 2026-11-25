@@ -535,7 +535,7 @@ class ScorePlayer:
 		# the chapter's music file, and each miss looks for it on disk.
 		var stream: AudioStream = null
 		if fight_track != "" and fight_player != null and (fight_want or fight_mix > 0.0):
-			stream = assets.track(fight_track)
+			stream = ScoreLayers.stream_of(assets, fight_track)
 		if fight_want and stream != null:
 			fight_mix = minf(1.0, fight_mix + dt / FIGHT_IN)
 		else:

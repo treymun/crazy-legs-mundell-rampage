@@ -125,6 +125,21 @@ inks past the margins, or an expected piece is missing; `png=<dir>` writes
 each moment's canvas with the rects outlined. `tools/hud_frames.gd` pictures
 every menu and the same moments in a window.
 
+**The RAMPAGE meter** (pass 15, `HUD.rampage_meter`, called at the end of
+`HUD.draw` so it lies over the status bar with or without the HUD's
+Controls): thirteen lamps (`FUSE_*`) along the foot of the health box,
+under its well, red to orange to yellow like the gut's, lit as the local
+player's meter fills (`Rampage.meter_of`) and drawn only while there is
+anything on it; on a RAMPAGE they run down with the time left, flashing hot,
+and a dark red plate burns RAMPAGE over the box's HEALTH caption. They keep
+the picture's left edge with the bar's left part in ASPECT WIDE
+(`c.anchor(-View.shift)`); with the touch buttons up they sit under the
+move stick's ring, as the health does. On a RAMPAGE the view's edges burn
+(`src/rampage_looks.gd`, from the feature's `draw_view`, under the gun and
+every banner): tongues of fire in the 1997 palette, dithered at the tips,
+flaring as it begins and guttering in its last `GUTTER` share.
+`tools/rampage_frames.gd` pictures both ([gameplay.md](gameplay.md#rampage-pass-15)).
+
 **DANGER ARROWS** (DISPLAY, pass 15, `src/danger_marks.gd`): red chevrons at
 the view's edge toward each blow, amber ones toward a hand winding up off
 the view, drawn where the hurt arc went, under every banner, each slid in
