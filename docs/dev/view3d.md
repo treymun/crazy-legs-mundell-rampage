@@ -776,27 +776,34 @@ the palette's way. Looks only (their own sums, never `game.rng`, nothing
 saved or carried); numbers in effects.cfg (`Effects.num`); held by
 `tools/looks_check.gd`, pictured by `tools/looks_frames.gd`.
 
-- **The rim** (`[rim]`, `src/view3d/actor_rim.gd`, `actor_rim.gdshader`).
-  A hostile hand awake (alerted, alive, not held) wears a warm amber edge
-  round his outline; the animals in `critters` a cool one. It is its own
-  pass, hung on each of the model's parts as its material's `next_pass`
-  only while the body has a rim: the part's back faces drawn again, swollen
-  out along their normals by `RIM_PX` (1.25) of the view's pixels at their
-  distance (plus the body's own `min_px`) and set a hair further back, so
-  the body hides all of it but a clean line round the figure, a pixel or two
-  wide, never a speck inside it (a first cut lit the body's own facets that
-  turned from the eye: mid-distance hands got confetti). Its colour is the
-  rim's, `near` (.45) of it up close rising to `far` (1) at `far_at` (15)
-  cells, in thirds, fogged less `fog_cut` of the fog; by night never dimmer
-  than the moon's rim, which the body keeps. A far hand reads as a warm
-  figure. Some models' normals point into them as the shader sees them:
-  `ActorRim.normal_out` works the way out once a mesh from its points
-  (`normal_out`). Off under a hit's wash and giving way as a wind-up's amber
-  rises (`ActorRim.quieted`), so the tell reads. A rim that comes up in sight
-  fades in over `fade` (`ActorView.rim_since`, `rim_off_seen`); a body first
-  seen awake has it whole (so a view tour shows it). LIGHTS AND GLOW only:
-  QUALITY LOW drops it (no pass hung). No texture; a body drawn as a cel
-  (the chicken, the pig) gets none.
+- **The rim** (`[rim]`, `src/view3d/actor_rim.gd`, `actor_rim.gdshader`;
+  ENEMY RIM on the DISPLAY page: OFF, SOFT the default, BOLD). A hostile
+  hand awake (alerted, alive, not held) wears a warm edge round his outline;
+  the animals in `critters` a cool one. It is its own pass, hung on each of
+  the model's parts as its material's `next_pass` only while the body has a
+  rim: the part's back faces drawn again, swollen out along their normals
+  (`look.x`: SOFT .6, one pixel at 320 wide, as the pictures measured it;
+  BOLD 1.0), thinner far off (`look.w` of it gone by 20 cells, so a small far
+  figure keeps its own pixels inside its edge and never turns into a filled
+  cutout), and tested against the depth as if it stood half a cell further
+  back (`DEPTH`), so an arm in front never draws its edge over the chest:
+  only a line round the whole figure, never a speck inside it. Its colour is
+  the rim's dulled toward the dark (SOFT .3 up close to .6 far off, BOLD .45
+  to 1: below 1 it sits into the scene rather than glowing), in thirds,
+  fogged less its mode's share of the fog; by night never dimmer than the
+  moon's rim, which the body keeps. Some models' normals point the other way
+  as the shader sees them: `ActorRim.normal_out` works the way out once a
+  mesh. No push toward or away from the eye in the vertex shader: the bones
+  turn the model's space after it, and such a push went astray (parts of the
+  edge drawn over the body). Off under a hit's wash and giving way as a
+  wind-up's amber rises (`ActorRim.quieted`), so the tell reads. A rim that
+  comes up in sight fades in over `fade` (`ActorView.rim_since`,
+  `rim_off_seen`); a body first seen awake has it whole (so a view tour
+  shows it). LIGHTS AND GLOW only: QUALITY LOW drops it (no pass hung). No
+  texture. A body drawn as a cel (the chicken, the pig) gets none. Earlier
+  cuts, for the record: lighting the body's own facets turned from the eye
+  scattered specks inside mid-distance hands; a pass swollen 1.25 with no
+  depth test behind drew a 2-3 pixel bright contour and filled far figures.
 - **The pickups' glint** (`[pickup_glint]`, `src/pickup_looks.gd`, from
   `game_view.gd`'s pickup loop). Ammo, food and scrap show a two-frame star
   (`fx_twinkle_0`, `_1`, glowing: small, big, small, `step` s each) at their

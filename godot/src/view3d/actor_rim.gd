@@ -1,12 +1,14 @@
-## A body's own rim (pass 15, effects.cfg [rim]): a hostile hand awake wears a
-## warm edge round his outline, brighter far off so a far hand reads; the
+## A body's own rim (pass 15, effects.cfg [rim]; ENEMY RIM on the DISPLAY
+## page: OFF, SOFT the default, BOLD): a hostile hand awake wears a warm edge
+## round his outline, a little stronger far off so a far hand reads; the
 ## animals a cool one. Drawn by actor_rim.gdshader as each part's next pass
-## (its back faces swollen out a pixel or so behind the body: only the
-## outline shows, never a speck inside the figure), hung on a part only while
-## it has a rim and LIGHTS AND GLOW is on (QUALITY LOW drops it), and taken
-## off under a hit's wash and as a wind-up's amber rises. Looks only: it reads
-## the hand, never play's dice; nothing is kept but when each model's rim came
-## up (ActorView.rim_since), for its fade.
+## (its back faces swollen out about one pixel at 320 wide (SOFT) or a
+## little more (BOLD), thinner far off: only the outline shows, never a speck
+## inside the figure nor a filled cutout of a far one), hung on a part only while it has a rim and
+## LIGHTS AND GLOW is on (QUALITY LOW drops it), and taken off under a hit's
+## wash and as a wind-up's amber rises. Looks only: it reads the hand, never
+## play's dice; nothing is kept but when each model's rim came up
+## (ActorView.rim_since), for its fade.
 class_name ActorRim
 extends RefCounted
 
@@ -14,7 +16,19 @@ const SHADER := preload("res://src/view3d/actor_rim.gdshader")
 ## A part's rim material (its own), kept on the part.
 const META := "rim_pass"
 
+## ENEMY RIM (game_world.gd configure): 0 OFF, 1 SOFT, 2 BOLD.
+const OFF := 0
+const SOFT := 1
+const BOLD := 2
+static var mode := SOFT
+
 static var _version := -1
+## Each mode's look (the pass's `look`) and the share of the fog it shows
+## through: [OFF, SOFT, BOLD].
+static var _looks: Array[Vector4] = [
+	Vector4.ZERO, Vector4(.6, .3, .6, .3), Vector4(1.0, .45, 1.0, .45)
+]
+static var _fog_cuts: Array[float] = [0.0, .35, .6]
 static var _awake := Color(1, .5, .18, .3)
 static var _critter := Color(.62, .78, 1, .24)
 static var _reach := Vector4(.75, 3.0, 15.0, .6)
@@ -37,8 +51,17 @@ static func _read() -> void:
 	var far: float = Effects.num("rim", "far", .75)
 	var near_at: float = Effects.num("rim", "near_at", 3.0)
 	var far_at: float = Effects.num("rim", "far_at", 15.0)
-	var fog_cut: float = Effects.num("rim", "fog_cut", .6)
-	_reach = Vector4(far, near_at, far_at, fog_cut)
+	_reach = Vector4(far, near_at, far_at, 0.0)
+	for k: int in [SOFT, BOLD]:
+		var row: Array = Effects.num("rim", "soft" if k == SOFT else "bold", [])
+		if row.size() >= 5:
+			var swell: float = row[0]
+			var lo: float = row[1]
+			var hi: float = row[2]
+			var share: float = row[3]
+			var cut: float = row[4]
+			_looks[k] = Vector4(swell, lo, hi, share)
+			_fog_cuts[k] = cut
 	_fade = Effects.num("rim", "fade", .3)
 	_critters = {}
 	var kinds: Array = Effects.num("rim", "critters", [])
@@ -49,7 +72,7 @@ static func _read() -> void:
 ## The rim `who` wears (rgb, a how much up close; a 0: none), without the fade.
 static func wanted(who: Object) -> Color:
 	_read()
-	if not Effects.enabled:
+	if not Effects.enabled or mode == OFF:
 		return Color(0, 0, 0, 0)
 	var e: Enemy = who as Enemy
 	if e == null or not e.alive or e.dormant:
@@ -82,9 +105,17 @@ static func of(view: ActorView, who: Object) -> Color:
 static func reach(who: Object) -> Vector4:
 	_read()
 	var e: Enemy = who as Enemy
+	var cut: float = _fog_cuts[clampi(mode, OFF, BOLD)]
 	if e != null and e.hostile:
-		return _reach
-	return Vector4(_critter.a, _reach.y, _reach.z, _reach.w)
+		return Vector4(_reach.x, _reach.y, _reach.z, cut)
+	return Vector4(_critter.a, _reach.y, _reach.z, cut)
+
+
+## The pass's `look` for ENEMY RIM's `mode`: [most swelling (view pixels),
+## brightness up close, far off, most share of the body's height].
+static func look_of(rim_mode: int) -> Vector4:
+	_read()
+	return _looks[clampi(rim_mode, OFF, BOLD)]
 
 
 ## The rim under a hit's wash (`hurt` above 0: none) and a wind-up's amber
@@ -109,16 +140,17 @@ static func dress(mesh: GeometryInstance3D, rim: Color, far: Vector4) -> void:
 		mesh.set_meta(META, pass_of)
 	pass_of.set_shader_parameter("rim", rim)
 	pass_of.set_shader_parameter("reach", far)
-	pass_of.set_shader_parameter("min_px", own.get_shader_parameter("min_px"))
+	pass_of.set_shader_parameter("look", look_of(mode))
 	var part := mesh as MeshInstance3D
 	if part != null and part.mesh != null:
 		pass_of.set_shader_parameter("normal_out", normal_out(part.mesh))
 	own.next_pass = pass_of
 
 
-## Whether `mesh`'s normals point out of it (+1) or into it (-1): some of the
-## models came out of their export turned in. Summed over its first surface
-## from the middle of its points; worked out once a mesh.
+## Which way to swell `mesh` along its normals (the pass's `normal_out`): the
+## other way from where its normals point out of its first surface (summed
+## from the middle of its points), as the pictures found the shader sees them
+## turned round from the arrays; worked out once a mesh.
 static func normal_out(mesh: Mesh) -> float:
 	var known: Variant = _outs.get(mesh)
 	if known != null:

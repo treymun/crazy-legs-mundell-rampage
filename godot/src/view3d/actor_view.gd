@@ -511,7 +511,7 @@ func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: floa
 	var wash := Color(tint.r, tint.g, tint.b, hurt)
 	var tell := 0.0 if hurt > 0.0 else s.tell
 	var rim := ActorRim.quieted(ActorRim.of(self, s.who), hurt, s.tell)
-	var now := [tone, wash, look, down, tell, rim]
+	var now := [tone, wash, look, down, tell, rim, ActorRim.mode]
 	if now == _shaded:
 		return
 	_shaded = now

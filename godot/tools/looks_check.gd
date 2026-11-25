@@ -195,6 +195,25 @@ func _shader() -> void:
 	var g := _made()
 	check(ActorRim.wanted(_hand(g, "billy")).a == 0.0, "LIGHTS AND GLOW off: no rim")
 	Effects.enabled = was
+	# ENEMY RIM: SOFT by default, reaching the game; OFF none; SOFT a dull edge
+	# of a pixel or so, BOLD brighter and a little wider; neither a fill.
+	var options := SessionStore.defaults().duplicate()
+	check(int(options.get("enemy_rim", -1)) == ActorRim.SOFT, "ENEMY RIM is SOFT by default")
+	options["enemy_rim"] = ActorRim.OFF
+	g.configure(options)
+	check(ActorRim.mode == ActorRim.OFF, "the setting reaches the view")
+	check(ActorRim.wanted(_hand(g, "billy")).a == 0.0, "ENEMY RIM OFF: no rim")
+	options["enemy_rim"] = ActorRim.SOFT
+	g.configure(options)
+	var soft := ActorRim.look_of(ActorRim.SOFT)
+	var bold := ActorRim.look_of(ActorRim.BOLD)
+	check(
+		soft.x <= .601 and soft.z < 1.0 and soft.y < soft.z,
+		"SOFT: at most a pixel out at 320 wide, dull (%s)" % soft
+	)
+	check(bold.x > soft.x and bold.z > soft.z, "BOLD: wider and brighter (%s)" % bold)
+	check(soft.w > 0.0 and bold.w > 0.0, "both thin out far off (a far figure keeps its pixels)")
+	check(shell.contains("DEPTH ="), "the edge is tested behind the body (no lines over it)")
 
 
 func _glints() -> void:

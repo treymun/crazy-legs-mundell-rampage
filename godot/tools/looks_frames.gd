@@ -46,7 +46,11 @@ func _run() -> void:
 	main.touring = true
 	Effects.enabled = true
 	if _want("rim"):
-		await _rims()
+		# ENEMY RIM: SOFT (the default), then BOLD (an older build ignores it).
+		await _rims("")
+		main.options["enemy_rim"] = 2
+		await _rims("_bold")
+		main.options["enemy_rim"] = 1
 	if _want("glint"):
 		await _glints()
 	if _want("hurt"):
@@ -143,8 +147,8 @@ func _spot(g: Game, ahead: float, side: float) -> Vector2:
 
 
 ## The awake hands near and far by day, then the same asleep; the critters;
-## the ridge's hands by night.
-func _rims() -> void:
+## the ridge's hands by night (`suffix` names ENEMY RIM's look: "" SOFT).
+func _rims(suffix: String) -> void:
 	var g := _level("hickston")
 	var at := Vector2(60.5, 44.5)
 	_stand(g, at, _open(g, at, 200), -4.0)
@@ -153,37 +157,37 @@ func _rims() -> void:
 	for row: Array in [["billy", 3.2, -1.1], ["coot", 7.5, 1.4], ["billy", far, -.2]]:
 		cast.append(_hand(g, str(row[0]), _spot(g, float(row[1]), float(row[2]))))
 	_ticks(g, .1)
-	await _snap("rim_day_awake")
+	await _snap("rim_day_awake" + suffix)
 	# The far one alone, before any of them is seen asleep (a rim coming up in
 	# sight fades in over its `fade`, and a tool's clock stands still).
 	cast[0].x += 500.0
 	cast[1].x += 500.0
 	g.player.pitch = -1.0
-	await _snap("rim_far_awake")
+	await _snap("rim_far_awake" + suffix)
 	cast[2].alerted = false
-	await _snap("rim_far_asleep")
+	await _snap("rim_far_asleep" + suffix)
 	cast[0].x -= 500.0
 	cast[1].x -= 500.0
 	g.player.pitch = -4.0
 	for e: Enemy in cast:
 		e.alerted = false
-	await _snap("rim_day_asleep")
+	await _snap("rim_day_asleep" + suffix)
 	g = _level("hickston")
 	_stand(g, at, _open(g, at, 120), -14.0)
 	for row: Array in [["cow", 5.5, -1.6], ["pig", 3.6, 1.2], ["chicken", 2.6, -.2]]:
 		_hand(g, str(row[0]), _spot(g, float(row[1]), float(row[2])), false)
 	_ticks(g, .1)
-	await _snap("rim_critters")
+	await _snap("rim_critters" + suffix)
 	g = _level("moonshine")
 	_stand(g, Vector2(47.3, 73.5), -1.67)
 	cast.clear()
 	for row: Array in [["revenooer", 6.0, 1.0], ["gas_man", 9.5, -1.2], ["still_buster", 13.0, .3]]:
 		cast.append(_hand(g, str(row[0]), _spot(g, float(row[1]), float(row[2]))))
 	_ticks(g, .1)
-	await _snap("rim_night_awake")
+	await _snap("rim_night_awake" + suffix)
 	for e: Enemy in cast:
 		e.alerted = false
-	await _snap("rim_night_asleep")
+	await _snap("rim_night_asleep" + suffix)
 
 
 ## Ammo, food and scrap lying ahead (and a key, which glints its own way),

@@ -150,6 +150,11 @@ picture's own edges. The hazard brackets and the boot's skull under the
 crosshair draw at the same moment, whatever the setting. Detail:
 [gameplay.md](gameplay.md#reading-danger-pass-15).
 
+**ENEMY RIM** (DISPLAY, pass 15, `enemy_rim`: OFF, SOFT the default, BOLD;
+`ActorRim.mode`, set in `game_world.gd configure`): the warm edge round a
+hand that has seen you ([view3d.md](view3d.md#looks-that-read-pass-15)).
+Needs LIGHTS AND GLOW.
+
 A new HUD piece: take its rect in `hud_fixed`/`hud_flow`/`hud_late` (or in
 `_lay_hud` for play's own), draw it at `find(name)` between `begin`/`end`,
 and add it to a moment in `hud_crowd.gd`.
