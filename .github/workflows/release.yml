@@ -64,12 +64,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Whether the lasting Android signing key is set, readable from a branch
-      # run's step list without a login: this step succeeds when all three
-      # ANDROID_KEYSTORE_* secrets are set and fails (without failing the run)
-      # when any is missing. It prints only "set" or "missing", never a value.
-      - name: Android signing key secrets present
-        continue-on-error: true
+      # Whether the lasting Android signing key is set, readable without a
+      # login from the job's annotations (check-runs/<job>/annotations): a
+      # notice "Android signing key: set" or a warning that it is not. Never
+      # read the step's conclusion for this: it always passes. It prints only
+      # "set" or "missing", never a value.
+      - name: Android signing key secrets (see the annotation)
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_USER: ${{ secrets.ANDROID_KEYSTORE_USER }}
@@ -79,8 +79,11 @@ jobs:
           for name in KEYSTORE_BASE64 KEYSTORE_USER KEYSTORE_PASSWORD; do
             if [ -n "${!name}" ]; then echo "ANDROID_$name: set"; else echo "ANDROID_$name: missing"; missing=1; fi
           done
-          if [ "$missing" = 1 ]; then echo "::warning::The lasting Android signing key is not set: a v* tag's APK job will refuse to publish."; fi
-          exit "$missing"
+          if [ "$missing" = 1 ]; then
+            echo "::warning::The lasting Android signing key is not set: a v* tag's APK job will refuse to publish."
+          else
+            echo "::notice::Android signing key: set"
+          fi
       - id: python
         uses: actions/setup-python@v5
         with:
