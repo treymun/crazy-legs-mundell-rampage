@@ -160,7 +160,7 @@ it is original.
 - **3.12** Touch fixed in the phone browser (SETTINGS, saves and party line codes by finger, the
   phone's keyboard for names); a WIDE view for 16:9 and wider; every frame drawn moves at 120 to
   240 Hz; rumble on pads and phones; Doppler on fast movers; CLEAR 16K voice chat; chapters load
-  their first time up to 0.3 s quicker; Android fetches and installs its own updates.
+  their first time up to 0.3 s quicker; Android fetches its own updates.
 - **3.11** Proximity voice chat online; one always-open lobby at 60 updates a second; sure kills,
   breaks, finishers and pocket items at the press online and no jolt on a leave or join; gators,
   crawlers, hogs and cows die as bodies (gators float) and five bosses finish their falls as
@@ -193,16 +193,14 @@ and nothing at all is fetched). When one is, a sign on the title says NEW VERSIO
 
 - **Windows:** pick the sign and the installer's download starts in your browser; run it when it
   is down. It goes over the old install; saves are kept.
-- **Android (from 3.12.0):** the game updates itself. Pick GIT IT and the new version comes down
-  inside the game with a gauge (keep playing meanwhile; a dropped line picks up where it left
-  off), is checked against the size and checksum published with the release, and is handed to
-  Android: tap **Update** when your phone asks. The first time, the game says ONE SWITCH: tap
-  SETTIN'S and allow it to install updates, then come back. Saves are kept and the download is
-  cleared away once the new version starts.
-  **One last uninstall:** copies from 3.11.0 and before were signed with a key made for each
-  build, so 3.12.0, the first release signed with the game's lasting key, will not go over them.
-  Uninstall that old copy once (this loses its saves) and install 3.12.0 from the release page;
-  every release after installs over the last.
+- **Android:** pick GIT IT and the new version comes down inside the game with a gauge (keep
+  playing meanwhile; a dropped line picks up where it left off), is checked against the size and
+  checksum published with the release, and is handed to Android: tap **Update** when your phone
+  asks. The first time, the game says ONE SWITCH: tap SETTIN'S and allow it to install updates,
+  then come back. **For now each release is signed with a key of its own,** so Android will not
+  put a new one over the old: uninstall the old copy first (this loses its saves), then install
+  the new APK from the release page. Once the game's lasting key is in place, updates go straight
+  over the last copy and keep your saves.
 
 ### Controls
 

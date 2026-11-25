@@ -80,7 +80,7 @@ jobs:
             if [ -n "${!name}" ]; then echo "ANDROID_$name: set"; else echo "ANDROID_$name: missing"; missing=1; fi
           done
           if [ "$missing" = 1 ]; then
-            echo "::warning::The lasting Android signing key is not set: a v* tag's APK job will refuse to publish."
+            echo "::warning::The lasting Android signing key is not set: a v* tag's APK is signed with a throwaway key."
           else
             echo "::notice::Android signing key: set"
           fi
@@ -321,11 +321,11 @@ jobs:
           set -euo pipefail
           keystore="$RUNNER_TEMP/release.keystore"
           if [ "$RELEASE_TAG" = "true" ] && { [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_USER" ] || [ -z "$KEYSTORE_PASSWORD" ]; }; then
-            # A published APK must install over the last one (the update
-            # notice sends phones straight to it), so a tag signs it with the
-            # lasting key or publishes nothing.
-            echo "::error::A v* tag signs the APK with the lasting key, but the ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_USER and ANDROID_KEYSTORE_PASSWORD secrets are not all set. Add them (Settings > Secrets and variables > Actions) and re-run this tag's workflow. No throwaway-signed APK is published."
-            exit 1
+            # The owner's call (2026-11-24): until the three secrets are set a
+            # tag still publishes, its APK signed with a throwaway key, so it
+            # will not install over the last release (phones uninstall first,
+            # and the in-game update cannot put it in).
+            echo "::warning::This tag's APK is signed with a throwaway key: the ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_USER and ANDROID_KEYSTORE_PASSWORD secrets are not all set (Settings > Secrets and variables > Actions). It will not install over the last release."
           fi
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
@@ -334,7 +334,7 @@ jobs:
           else
             # A branch or hand-started run without the three ANDROID_KEYSTORE_*
             # secrets signs with a fresh key: that APK will not install over a
-            # published one (uninstall first). A v* tag never gets here.
+            # published one (uninstall first).
             user="crazylegs"
             password="hickston-ci-only"
             keytool -genkeypair -keystore "$keystore" -storepass "$password" \
@@ -394,8 +394,7 @@ jobs:
             exit 1
           fi
           if [ "$RELEASE_TAG" = "true" ] && grep -q "Crazy Legs Mundell Rampage CI" certs.txt; then
-            echo "::error::This tag's APK is signed with the throwaway CI key: it would not install over the last release."
-            exit 1
+            echo "::warning::This tag's APK is signed with the throwaway CI key: it will not install over the last release."
           fi
           # The in-game update (src/update_notice.gd): leave to open the
           # package installer, the updater plugin Godot finds by its
