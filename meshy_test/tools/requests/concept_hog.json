@@ -1,0 +1,8 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference image only as the starting animal, paint a high-detail creature concept of a mutated feral razorback hog for a gritty 1990s Southern comedy horror first-person shooter where aliens have been experimenting on farm animals. A hulking, hunched wild boar the size of a calf: mangy dark bristly hide with bald patches of raw pink skin, a tall ridge of stiff bristles down the spine, huge curled yellow tusks, a scarred snout dripping drool, small furious red eyes plus a third bulging extra eye on its brow, lumpy tumorous growths on its shoulder, crude surgical staples and stitches along its flank, and a rusty alien metal implant with a faint sickly green glowing tube bolted into its back. Thick muddy legs and cloven hooves, a ropy tail. Grotesque but believable anatomy, strong readable silhouette. Matte, gritty, filthy textures, muted colours, not glossy, not cartoon-cute, not a clean modern render. Three-quarter side view from the front-left, standing on all four legs, head slightly lowered, whole body visible. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole figure in frame with space around it, sharp focus, one single subject, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:ref/hog_0_ref.png"
+ ],
+ "aspect_ratio": "4:3"
+}

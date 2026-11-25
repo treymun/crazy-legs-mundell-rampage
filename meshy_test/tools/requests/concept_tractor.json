@@ -1,0 +1,8 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference image only as the starting design, paint a high-detail concept of a single abandoned 1950s row-crop farm tractor in a rural Southern grain yard for a gritty 1990s first-person shooter. Small classic tractor with big ridged rear tyres and small front wheels, an exposed engine block, a tall vertical exhaust stack with a rain cap, a torn sprung metal seat, a steering wheel on a column. Faded sun-bleached red paint mostly gone to heavy orange-brown rust, flaking paint, dents, oil streaks and grease, one front tyre flat and cracked, dried mud and straw caught on the axles, a frayed rope and an old feed sack draped over the seat. Strong chunky silhouette, believable mechanical detail, matte gritty weathered textures, not glossy, not a clean modern render. Three-quarter view from the front-left at eye level, all four wheels visible, the whole tractor in frame. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole figure in frame with space around it, sharp focus, one single subject, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:ref/town_tractor_ref.png"
+ ],
+ "aspect_ratio": "4:3"
+}

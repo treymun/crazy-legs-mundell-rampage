@@ -1,0 +1,10 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:out/concept_tractor/image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 40000,
+ "symmetry_mode": "off"
+}

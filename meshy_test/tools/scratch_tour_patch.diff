@@ -1,0 +1,16 @@
+--- /home/user/crazy-legs-mundell-rampage/godot/src/main.gd	2026-11-25 14:38:47.856473605 +0000
++++ godot/src/main.gd	2026-11-25 15:05:35.520098278 +0000
+@@ -438,7 +438,12 @@
+ 		var x := p.x + cos(p.angle) * ahead - sin(p.angle) * side
+ 		var y := p.y + sin(p.angle) * ahead + cos(p.angle) * side
+ 		var facing := atan2(p.y - y, p.x - x) + turn
+-		var foe := Enemy.new(str(spec["kind"]), x, y, facing)
++		var tour_kind := str(spec["kind"])
++		var foe := Enemy.new(tour_kind if Enemy.DEFS.has(tour_kind) else "coot", x, y, facing)
++		foe.kind = tour_kind
++		if spec.has("height"):
++			var tall: float = spec["height"]
++			foe.height = tall
+ 		cast.append(foe)
+ 		game.enemies.append(foe)
+ 		game.enemy_ids.append("tour-%d" % game.enemies.size())

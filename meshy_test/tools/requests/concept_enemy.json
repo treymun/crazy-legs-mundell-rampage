@@ -1,0 +1,8 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference image only as the character design, paint a high-detail full-body character concept of this backwoods hillbilly shotgun thug for a gritty 1990s Southern comedy horror first-person shooter. Keep his design: grimy grey-green trucker cap pushed back, bushy dark-brown unkempt beard, red-and-black flannel plaid shirt with rolled sleeves, faded blue denim bib overalls with one strap hanging loose, a big beer pot belly, scuffed brown work boots, a sawed-off double-barrel shotgun held low across his hips in both hands. Give him real personality: sun-leathered ruddy skin, squinting mean little eyes, bulbous red nose, a gap-toothed snarl with a chaw of tobacco bulging one cheek, hairy forearms. Caricatured but natural anatomy, slightly short stubby legs, stooped shoulders. Worn and filthy: grease, mud, sweat stains, patched knees, frayed denim, tobacco spit stains. Matte, hand-painted, gritty texture detail, muted dusty colours, not glossy, not a clean modern hero render. Front view facing the camera squarely, standing straight in a relaxed neutral pose, both feet planted shoulder-width apart, arms slightly away from the body. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole figure in frame with space around it, sharp focus, one single subject, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:ref/billy_0_ref.png"
+ ],
+ "aspect_ratio": "3:4"
+}

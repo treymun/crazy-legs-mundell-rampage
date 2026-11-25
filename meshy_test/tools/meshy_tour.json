@@ -1,0 +1,94 @@
+[
+ {
+  "tag": "1_lineup",
+  "level": "grainyard",
+  "x": 45.6,
+  "y": 8.9,
+  "angle": -1.5708,
+  "pitch": 0.0,
+  "weapon": false,
+  "actors": [
+   {
+    "kind": "billy",
+    "ahead": 4.5,
+    "side": -2.0
+   },
+   {
+    "kind": "hog",
+    "height": 0.9,
+    "ahead": 4.3,
+    "side": 2.6,
+    "turn": -0.6
+   }
+  ]
+ },
+ {
+  "tag": "2_enemy_close",
+  "level": "grainyard",
+  "x": 44.4,
+  "y": 6.6,
+  "angle": -1.5708,
+  "pitch": 0.0,
+  "weapon": false,
+  "actors": [
+   {
+    "kind": "billy",
+    "ahead": 2.2,
+    "side": -1.2
+   }
+  ]
+ },
+ {
+  "tag": "3_enemy_aim",
+  "level": "grainyard",
+  "x": 44.4,
+  "y": 6.6,
+  "angle": -1.5708,
+  "pitch": 0.0,
+  "weapon": true,
+  "actors": [
+   {
+    "kind": "billy",
+    "ahead": 2.2,
+    "side": -1.2,
+    "state": "aim"
+   }
+  ]
+ },
+ {
+  "tag": "4_hog_close",
+  "level": "grainyard",
+  "x": 47.1,
+  "y": 7.5,
+  "angle": -1.5708,
+  "pitch": -6.0,
+  "weapon": false,
+  "actors": [
+   {
+    "kind": "hog",
+    "height": 0.9,
+    "ahead": 3.0,
+    "side": 1.4,
+    "turn": -0.6
+   }
+  ]
+ },
+ {
+  "tag": "5_tractors",
+  "level": "grainyard",
+  "x": 50.4,
+  "y": 9.6,
+  "angle": -0.6,
+  "pitch": 0.0,
+  "weapon": false
+ },
+ {
+  "tag": "6_tractors_wide",
+  "level": "grainyard",
+  "x": 49.0,
+  "y": 11.8,
+  "angle": -0.75,
+  "pitch": 0.0,
+  "weapon": true
+ }
+]
