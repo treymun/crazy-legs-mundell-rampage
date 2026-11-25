@@ -656,11 +656,19 @@ func enemy_down(enemy: Enemy) -> void:
 		)
 		sound.sting(enemy.kind + "_end")
 	elif kind_def.has("drop"):
-		# What it leaves (enemies.cfg): always, or by chance unless NO DROPS.
+		# What it leaves (enemies.cfg): always, or by chance unless NO DROPS;
+		# leaning to what the player is short of (src/drop_need.gd) on the
+		# same roll (an always-drop's by its uid).
 		var spec: Dictionary = Enemy.DEFS[enemy.kind]
 		var chance: float = spec.get("drop_chance", 1.0)
-		if chance >= 1.0 or (rng.random() < chance and supply_rule != 2):
-			add_pickup(str(spec["drop"]), enemy.x, enemy.y)
+		if chance >= 1.0:
+			add_pickup(
+				DropNeed.pick(me, str(spec["drop"]), DropNeed.even(enemy.uid)), enemy.x, enemy.y
+			)
+		else:
+			var roll := rng.random()
+			if roll < chance and supply_rule != 2:
+				add_pickup(DropNeed.pick(me, str(spec["drop"]), roll / chance), enemy.x, enemy.y)
 	if (
 		enemy.hostile
 		and not Enemy.BOSS_TITLES.has(enemy.kind)

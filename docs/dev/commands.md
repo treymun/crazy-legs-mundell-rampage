@@ -198,6 +198,9 @@ godot --headless --path godot --script res://tools/balance.gd -- check [part=1..
 godot --headless --path godot --script res://tools/balance.gd -- run diff=1 skill=1 seed=1 [hound=0] [chapters=a,b] out=<file.jsonl>   # one non-god campaign, a line a chapter attempt
 godot --headless --path godot --script res://tools/balance.gd -- county diff=1 seed=1 [maps=] [cap=900] out=<file.jsonl>   # County Run to death: survival, XP curve, cards
 godot --headless --path godot --script res://tools/balance.gd -- report in=<dir> [md=<file>]   # the tables from those lines
+godot --headless --path godot --script res://tools/flow_report.gd -- run [diff=1] [skill=1] [seed=1] [hound=1] [chapters=a,b] [director=0] out=<file.jsonl>   # pass 15: a campaign's flow, a line an attempt (fights, crowds, quiet, unseen damage, melee, dry, music, death cost, time to kill, the director's beats)
+godot --headless --path godot --script res://tools/flow_report.gd -- report in=<file, a,b or dir> [md=<file>]   # the flow tables (every play track's before and after)
+godot --headless --path godot --script res://tools/director_check.gd   # DIRECTOR CHECK OK: the director's holds, beats, determinism, snapshot, save, co-op, modes; drops by need
 bash godot/tools/balance_runs.sh <dir> [jobs=6] [diffs=] [skills=] [seeds=]   # the long report: every difficulty, skill and seed, spread over the PC
 godot --headless --path godot --script res://tools/net_bench.gd -- levels=hickston players=1,2,4 [host]   # ticks, snapshots, deltas
 ```

@@ -61,15 +61,22 @@ const BOSS_BANDS := {
 ## the tuning it could not clear Hickston at all within two deaths. A part
 ## plays the same every time; the whole check in one process differs a
 ## little (ids and caches are carried over from the chapters before it).
+## Pass 15 (PACE: the fight-rhythm director, drops by need, lighter sponges)
+## moved two: the bayou 572 s with one death -> 214 s with none, the
+## Moonshine Run 482 -> 230 s, both by the SHARP bot from the chapter kit;
+## their bands are about 35 % either side of the new times. The rest stayed
+## inside theirs (hickston 232, fair 315, sawmill 218, quarry 243, speedway
+## 207, mothership 254; the bosses' rematches are untouched: the director is
+## off in a rematch). T10 sets them all again from the long report.
 const CHAPTER_DEATHS := 1
 const CHAPTER_BANDS := {
 	"hickston": [160.0, 335.0],
 	"fair": [180.0, 370.0],
 	"sawmill": [135.0, 275.0],
 	"quarry": [140.0, 285.0],
-	"bayou": [365.0, 760.0],
+	"bayou": [140.0, 290.0],
 	"speedway": [125.0, 265.0],
-	"moonshine": [310.0, 645.0],
+	"moonshine": [150.0, 310.0],
 	"mothership": [175.0, 700.0],
 }
 ## check_all's rows: the bosses, then two chapters a row.

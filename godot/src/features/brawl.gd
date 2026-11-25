@@ -621,14 +621,14 @@ func _bonus(p: Player, e: Enemy, kind: String) -> void:
 
 ## What a hazard kill drops (none with NO DROPS): the hand's own drop when
 ## his kind has one (enemies.cfg `drop`), else one of [hazard] `bonus_drops`
-## by game.rng.
+## by game.rng; either way leaning to what the acting player is short of
+## (src/drop_need.gd, every time: roll 0, no dice).
 func _bonus_pick(e: Enemy) -> String:
 	if game.supply_rule == 2:
 		return ""
 	var spec: Dictionary = Enemy.DEFS.get(e.kind, {})
-	if spec.has("drop"):
-		return str(spec["drop"])
-	return str(game.rng.choice(BONUS_DROPS))
+	var own := str(spec["drop"]) if spec.has("drop") else str(game.rng.choice(BONUS_DROPS))
+	return DropNeed.pick(game, own, 0.0)
 
 
 ## What a hazard kill throws after: sparks for a shock, smoke and embers for

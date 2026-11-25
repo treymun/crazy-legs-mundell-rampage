@@ -331,6 +331,7 @@ const SIM_FEATURES := [
 	"hound",
 	"bench",
 	"events",
+	"director",
 ]
 ## Features that only look or sound (their own dice; never carried).
 const LOOKS_FEATURES := [

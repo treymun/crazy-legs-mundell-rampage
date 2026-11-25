@@ -92,11 +92,22 @@ static func start(ev: CountyEvents) -> bool:
 		# The first on the spot, the rest round it (all on one point before:
 		# a knot of bodies that hardly moved).
 		var rings: Array = [0.0, .9, 1.4, 2.0, 2.6] if k == 0 else [.9, 1.4, 2.0, 2.6]
-		for reach: float in rings:
-			var a := k * 2.4 + reach
-			var q := from + Vector2.from_angle(a) * reach
-			if not g.world.blocked(q.x, q.y, r + .06) and not g.world.deep_at(q.x, q.y):
+		var placed := false
+		# Its own turn on each ring first (as before), then round the rings
+		# (pass 15: in a tight spot every first turn was walled and the squad
+		# stood on one point again).
+		for turn in 6:
+			for reach: float in rings:
+				var a := k * 2.4 + reach + turn * TAU / 6.0
+				var q := from + Vector2.from_angle(a) * reach
+				if g.world.blocked(q.x, q.y, r + .06) or g.world.deep_at(q.x, q.y):
+					continue
+				if turn > 0 and _taken(g, ev, q):
+					continue
 				at = q
+				placed = true
+				break
+			if placed:
 				break
 		var e := Enemy.new(kind, at.x, at.y, (spot - at).angle())
 		e.alerted = true
@@ -108,6 +119,15 @@ static func start(ev: CountyEvents) -> bool:
 		g.total_kills += 1
 	g.message("REVENUERS! THE LAW'S RAIDIN' THE STILLS!", 3.5)
 	return true
+
+
+## Whether one of the squad already stands at `q`.
+static func _taken(g: Game, ev: CountyEvents, q: Vector2) -> bool:
+	for i: int in ev.raiders:
+		var e: Enemy = g.enemies[i]
+		if Vector2(e.x, e.y).distance_to(q) < .5:
+			return true
+	return false
 
 
 ## Where the county's hands gather, out of the player's way: the hand with

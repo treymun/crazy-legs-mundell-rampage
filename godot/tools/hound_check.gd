@@ -58,6 +58,10 @@ func _check(ok: bool, text: String) -> void:
 
 
 func _run() -> void:
+	# The hound's own moves on hands the check stands where it wants them: the
+	# fight-rhythm director (pass 15) would hold some back, send others in
+	# and keep far ones still; its own check is director_check.gd.
+	DirectorData.ON = false
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
