@@ -1630,6 +1630,26 @@ def solve(name, dz=0.0, held0=None):
         R_t = Matrix.Rotation(tw, 3, Vector(TWIST["fwd"].col[1])) @ R_t
     oh = (P[HIP_L] + P[HIP_R]) / 2
     hipc = Vector((oh.x, oh.y, oh.z * HIP_K + dz))
+    # A throw with the whole body (a thing thrown overhand, item type
+    # "throw"; kind config "throw_body": {key: [twist back, lean forward
+    # (degrees), weight forward, weight to the front foot, hips lowered
+    # (m)]}): the wind-up
+    # turns the throwing side back with the weight over the rear foot, the
+    # release drives the trunk round and forward onto the front foot, the
+    # follow-through ("recover") carries on over it. The feet stay planted
+    # (the legs reach them anew); the head keeps its own turn (on the target).
+    thrower = next((it["main"] for it in ITEMS if ITEM_TYPE.get(it["main"]) == "throw"), None)
+    tb = CFG.get("throw_body", {"wind": [60, -7, -.05, -.03, .015], "aim": [48, -4, -.04, -.02, .01],
+                                "fire": [-28, 12, .07, .04, .035], "recover": [-40, 15, .09, .05, .045]})
+    if thrower is not None and tb and bare_name in tb:
+        tw_d, lean_d, fwd_m, side_m, drop_m = (list(tb[bare_name]) + [0.0])[:5]
+        hipc = hipc - Vector((0, 0, drop_m))
+        Tn = TWIST["fwd"]
+        Up_t, Fw_t, Rt_t = Vector(Tn.col[1]), -Vector(Tn.col[2]), Vector(Tn.col[0])
+        throw_out = Rt_t if thrower == "r" else -Rt_t
+        R_t = Matrix.Rotation(math.radians(tw_d) * (-1.0 if thrower == "r" else 1.0), 3, Up_t) @ R_t
+        R_t = Matrix.Rotation(math.radians(lean_d), 3, Up_t.cross(Fw_t).normalized()) @ R_t
+        hipc = hipc + Fw_t * fwd_m - throw_out * side_m
     D["body"] = place(R_t, J["hips"], hipc)
 
     def at(rest):
@@ -1789,6 +1809,28 @@ def solve(name, dz=0.0, held0=None):
             D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
             D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
             joints["miss"][side] = (wr_f - wrist_t).length
+        elif (ITEM_TYPE.get(side) == "throw" and name.replace("hurt_", "") == "recover"
+              and "recover" in (CFG.get("throw_body") or {"recover": 1})):
+            # The follow-through: the throwing arm carried on down and across
+            # the body past the front knee, the hand open and falling.
+            Tn = TWIST["fwd"]
+            Fw, Up, Rt = -Vector(Tn.col[2]), Vector(Tn.col[1]), Vector(Tn.col[0])
+            inward = -Rt if side == "r" else Rt
+            reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
+                     + (J["wrist_" + side] - J["forearm_" + side]).length)
+            wrist_t = sh_f + Fw * reach * .55 - Up * reach * .62 + inward * reach * .42
+            a1 = (Fw * .35 - Up * .85 + inward * .35).normalized()
+            face = (-inward * .5 - Fw * .5)
+            n1 = (face - a1 * face.dot(a1)).normalized()
+            wrist0, a0, n0 = HANDF[side]
+            R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
+            R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                        sh_f, wrist_t, (-inward * .5 - Up * .3 + Fw * .4).normalized(),
+                                        Vector((0, -1, 0)))
+            D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+            D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+            D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
+            joints["miss"][side] = (wr_f - wrist_t).length
         elif ITEM_TYPE.get(side) in ("throw", "raise") and name.replace("hurt_", "") in AIMS and any(
                 it["main"] == side and moves[it["bone"]][1] for it in ITEMS):
             # "throw": an overhand throw of a bottle or a jar held by its neck
@@ -1807,12 +1849,12 @@ def solve(name, dz=0.0, held0=None):
             mode = ITEM_TYPE.get(side)
             if mode == "throw":
                 if bare == "wind":
-                    wrist_t = sh_f - Fw * reach * .32 + Up * reach * .5 - inward * reach * .12
+                    wrist_t = sh_f - Fw * reach * .32 + Up * reach * .5 - inward * reach * float(CFG.get("throw_out", .12))
                     a1 = (-Fw * .9 + Up * .25 - inward * .1).normalized()
                     face = (Up * .6 + Fw * .4)
                     pole_t = (-inward * .8 + Up * .2 - Fw * .3)
                 elif bare == "aim":
-                    wrist_t = sh_f - Fw * reach * .12 + Up * reach * .55 - inward * reach * .08
+                    wrist_t = sh_f - Fw * reach * .12 + Up * reach * .55 - inward * reach * float(CFG.get("throw_out", .12)) * .67
                     a1 = (-Fw * .45 + Up * .9).normalized()
                     face = (Fw * .7 + inward * .3)
                     pole_t = (-inward * .9 - Up * .2)

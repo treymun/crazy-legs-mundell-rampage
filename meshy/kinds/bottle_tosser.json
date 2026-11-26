@@ -19,5 +19,7 @@
    62,
    30
   ]
- }
+ },
+ "throw_out": 0.24,
+ "hold_legs": true
 }
