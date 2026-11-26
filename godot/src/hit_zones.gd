@@ -60,6 +60,14 @@ static var REEL: Array = ModeData.get_value("hit_zones", "reel")
 ## boilerback only on the boiler on his back.
 static var METAL: Array = ModeData.get_value("hit_zones", "metal")
 
+## Pass 15 (hits.cfg [punch]): the sawed-off's arm's length, a close kill's
+## reach, and the shoves by distance.
+static var POINT_BLANK: float = HitData.value("punch", "point_blank", 1.5)
+static var CLOSE_REACH: float = HitData.value("punch", "close_reach", 3.0)
+static var SHOVE_NEAR: float = HitData.value("punch", "shove_near", 1.35)
+static var SHOVE_FAR: float = HitData.value("punch", "shove_far", .7)
+static var SHOVE_FAR_FROM: float = HitData.value("punch", "shove_far_from", 9.0)
+
 const HitReads := preload("res://src/features/hit_reads.gd")
 const Critters := preload("res://src/features/critters.gd")
 
@@ -183,8 +191,8 @@ static func _reel(e: Enemy, game: Game) -> void:
 	e.reel = step
 	var from: Vector2 = game.hit_from
 	var away := atan2(e.y - from.y, e.x - from.x)
-	var back: float = row[1] - before
-	game.move_actor(e, cos(away) * back, sin(away) * back, e.radius)
+	var back: float = (row[1] - before) * shove_by(e, from.x, from.y)
+	Stagger.shove(e, game, cos(away) * back, sin(away) * back)
 	var flinch: float = row[2]
 	var stun: float = row[3]
 	e.flinch = maxf(e.flinch, flinch)
@@ -295,6 +303,9 @@ static func _rearm(e: Enemy, game: Game) -> void:
 ## back instead (hard at arm's length: features/corpses.gd); both barrels at
 ## once still take it apart.
 static func overkill(e: Enemy, game: Game, how: String) -> bool:
+	if how == "shotgun" and point_blank(e, game):
+		# (Pass 15) the sawed-off at arm's length always takes it apart.
+		return true
 	if how == "shotgun" and game.armory.last_spent < 2:
 		return false
 	var sum := e.struck_sum
@@ -302,6 +313,23 @@ static func overkill(e: Enemy, game: Game, how: String) -> bool:
 		var head: float = HEAD.get(how, HEAD_DEFAULT)
 		sum /= head
 	return sum >= maxf(48.0, e.max_hp * .7)
+
+
+## Whether the player stands within hits.cfg [punch] `point_blank` of `e`.
+static func point_blank(e: Enemy, game: Game) -> bool:
+	var p := game.player
+	return Vector2(e.x - p.x, e.y - p.y).length() <= POINT_BLANK
+
+
+## How far a shove goes by the distance it came from (hits.cfg [punch]):
+## SHOVE_NEAR times within CLOSE_REACH, SHOVE_FAR past SHOVE_FAR_FROM, eased
+## between.
+static func shove_by(e: Enemy, from_x: float, from_y: float) -> float:
+	var d := Vector2(e.x - from_x, e.y - from_y).length()
+	if d <= CLOSE_REACH:
+		return SHOVE_NEAR
+	var k := clampf((d - CLOSE_REACH) / maxf(.1, SHOVE_FAR_FROM - CLOSE_REACH), 0.0, 1.0)
+	return lerpf(SHOVE_NEAR, SHOVE_FAR, k)
 
 
 ## Whether the killing blast takes the body apart. A blast at its edge that

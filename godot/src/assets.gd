@@ -23,6 +23,7 @@ const MADE_CUES := [
 	"mule_bray",
 	"bench_tape",
 	"marker_tie",
+	"head_ding",
 ]
 ## The cues made in code (MADE_CUES), made by tools/pack_assets.gd (pass 10).
 const MADE_FILE := "made_cues.bin"
@@ -582,6 +583,7 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 			"mule_bray": 1.3,
 			"bench_tape": .62,
 			"marker_tie": .42,
+			"head_ding": .38,
 		}
 		. get(name, .045)
 	)
@@ -622,6 +624,15 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 					(sin(TAU * 1180.0 * t) * .5 + sin(TAU * 2390.0 * t) * .3) * exp(-t * 55.0) * .6
 				)
 				v += sin(TAU * 640.0 * t) * exp(-t * 30.0) * .25 + hiss * exp(-t * 900.0) * .5
+			"head_ding":
+				# A tin sign struck (pass 15, a head hit): a click, then three
+				# bright inharmonic plate modes ringing down, the top ones first.
+				var ring := (
+					sin(TAU * 1730.0 * t) * exp(-t * 9.0) * .45
+					+ sin(TAU * 2615.0 * t + .7) * exp(-t * 14.0) * .3
+					+ sin(TAU * 4140.0 * t + 1.9) * exp(-t * 26.0) * .2
+				)
+				v = ring * minf(1.0, t * 1400.0) * .7 + hiss * exp(-t * 700.0) * .45
 			"county_xp", "county_level", "county_milestone":
 				v = _county_cue(name, t, hiss)
 			"mule_bray":

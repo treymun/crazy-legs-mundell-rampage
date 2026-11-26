@@ -333,9 +333,25 @@ func damage(amount: float, source: Variant = null, cause := "HIT", who: Player =
 		message("YOU BOUGHT THE FARM.", 8.0)
 
 
+## The world's hold on a hit (hits.cfg [punch], pass 15: see struck).
+static var PUNCH_KILL_HOLD: float = HitData.value("punch", "kill_hold", .05)
+static var PUNCH_BOSS_HOLD: float = HitData.value("punch", "boss_hold", .09)
+static var PUNCH_HIT_HOLD: float = HitData.value("punch", "hit_hold", .03)
+static var PUNCH_HEAVY_HIT: float = HitData.value("punch", "heavy_hit", 40.0)
+static var PUNCH_GAP: float = HitData.value("punch", "hold_gap", .22)
+static var PUNCH_HEAVY_FROM: float = HitData.value("punch", "heavy_from", 60.0)
+static var PUNCH_CLOSE_HOLD: float = HitData.value("punch", "close_hold", .07)
+static var PUNCH_SAWED_HOLD: float = HitData.value("punch", "sawed_hold", .09)
+static var PUNCH_KICK: float = HitData.value("punch", "kill_kick", .7)
+
+
 ## One of the player's hits landed (Enemy.hurt): mark the crosshair, tick, and
-## hold the world still a moment on a kill or a heavy blow.
-func struck(amount: float, killed: bool, champion: bool) -> void:
+## hold the world still a moment on a kill or a heavy blow. Pass 15 (hits.cfg
+## [punch]): the hold goes by how close and how heavy (`e`, the one struck,
+## and `how`, the gun): a kill within CLOSE_REACH by a load of HEAVY_FROM
+## holds CLOSE_HOLD and the sawed-off at arm's length SAWED_HOLD, and that
+## close kill kicks the view (feel.gd punch, KILL_KICK).
+func struck(amount: float, killed: bool, champion: bool, e: Enemy = null, how := "") -> void:
 	events.hit_landed.emit(amount, killed)
 	# The crosshair's mark is the local player's; the world's hold the one
 	# player's game feel (it would stop everyone).
@@ -347,9 +363,25 @@ func struck(amount: float, killed: bool, champion: bool) -> void:
 		hit_mark_at = clock
 	hit_mark_until = maxf(hit_mark_until, clock + (.24 if killed else .12))
 	hit_mark_kill = hit_mark_kill or killed
-	if players.size() == 1 and clock >= hitstop_next and (killed or amount >= 40.0):
-		hitstop = maxf(hitstop, .09 if killed and champion else .05 if killed else .03)
-		hitstop_next = clock + .22
+	if players.size() == 1 and clock >= hitstop_next and (killed or amount >= PUNCH_HEAVY_HIT):
+		var hold := PUNCH_BOSS_HOLD if killed and champion else PUNCH_KILL_HOLD
+		if not killed:
+			hold = PUNCH_HIT_HOLD
+		elif not champion and e != null:
+			var me: Game = self as Object
+			var near := Vector2(e.x - player.x, e.y - player.y).length()
+			if how == "shotgun" and HitZones.point_blank(e, me):
+				hold = PUNCH_SAWED_HOLD
+			elif near <= HitZones.CLOSE_REACH and e.struck_sum >= PUNCH_HEAVY_FROM:
+				hold = PUNCH_CLOSE_HOLD
+			if hold > PUNCH_KILL_HOLD:
+				# The close, heavy kill: the view kicks with it.
+				var feel: Object = features.get("feel")
+				if feel != null:
+					var k := PUNCH_KICK * hold / PUNCH_SAWED_HOLD
+					feel.call("punch", 0.0, 4.0 * k, .025 * k, Vector2(0.0, 6.0 * k))
+		hitstop = maxf(hitstop, hold)
+		hitstop_next = clock + PUNCH_GAP
 	if killed:
 		sound.play("kill_tick", .55)
 		hit_tick_next = clock + .06

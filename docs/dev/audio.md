@@ -84,7 +84,10 @@ decision here comes from measurement and from the code.
   through a wall and through a floor on Hickston; it costs little and changes
   nothing in play; every take VARIANTS deals and every cue the game names at
   run time (barks, boss lines, enemy cries, guns, floors, materials,
-  `metal_down`) is in the bank or `Assets.MADE_CUES`.
+  `metal_down`) is in the bank or `Assets.MADE_CUES` (pass 15 added
+  `head_ding`, a tin sign struck for a head hit: a click and three bright
+  inharmonic plate modes ringing down, .38 s, played at .5 by
+  `features/hit_reads.gd`).
 
 ## Doppler (pass 14)
 

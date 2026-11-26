@@ -49,6 +49,14 @@ var models: ActorModels
 ## The dead body's ragdoll (null while alive or with a scripted fall); the
 ## layer keeps it while the body is out of sight.
 var doll: Ragdoll
+## A living body's hit reaction (pass 15, src/live_body.gd: its limbs as the
+## rig's physics with muscles toward the pose drawn; null: the animation alone
+## poses it), whether ActorLayer3D's budget lets it run one this frame, the
+## hit last taken (Enemy.struck_at) and its clock.
+var live: LiveBody
+var live_ok := false
+var _live_hit := -1.0
+var _live_clock := 0.0
 var _rig: RagdollRig
 var _doll_clock := 0.0
 ## Where the living body was last drawn and when (map), and how fast it was
@@ -121,6 +129,11 @@ const BLEND_SNAP := .06
 ## (the body's uid and the hit's time), so no two hits rock it the same way.
 const FLINCH := .34
 const FLINCH_RISE := .045
+## A hit seen later than this (seconds) starts no live body (a body come into
+## sight mid-reel), and a live body hands back over LIVE_EASE.
+const LIVE_LATE := .15
+const LIVE_EASE := .18
+const R_POINTS := RagdollRig.POINTS
 ## Standing at idle, a body breathes and sways a touch (its own phase).
 const BREATH := .012
 const SWAY := .011
@@ -173,6 +186,7 @@ func setup(p_models: ActorModels) -> bool:
 func retire() -> void:
 	visible = false
 	doll = null
+	live = null
 
 
 ## Shown again for another body: as one just made, its parts at rest.
@@ -191,6 +205,8 @@ func revive() -> void:
 	_fall_now = PackedVector3Array()
 	_fall_was = PackedVector3Array()
 	_fall_at = -1.0
+	live = null
+	_live_hit = -1.0
 	for skeleton in _skeletons:
 		skeleton.reset_bone_poses()
 	visible = true
@@ -231,6 +247,9 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	doll = null
 	if e.alive:
 		_track(Vector3(s.x, s.y, z), clock)
+		_live_begin(e, clock)
+	elif live != null:
+		live = null
 	var turn := PI * .5 - e.angle + _yaw()
 	var size := _size(e)
 	var mirror := 1.0
@@ -258,10 +277,14 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	)
 	if tips > 0.0 and e.alive and frame != "down" and e.squash < 1.0:
 		transform = transform * ActorView.tipped(acos(clampf(e.squash, 0.0, 1.0)), tips)
-	elif e.alive:
+	elif e.alive and live == null:
 		transform = transform * _lively(e, frame, clock)
 	var at := _time(frame, look, e, clock, span)
 	var group := _group_name
+	if live != null and at == _seeked:
+		# (The live body posed the bones last frame: the pose it aims at is
+		# sought again.)
+		_player.seek(at, true)
 	if at != _seeked and (is_nan(_seeked) or group != _group or _due(s)):
 		var blend := not is_nan(_seeked) and group != _group and _blends()
 		if blend:
@@ -278,6 +301,11 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	_group = group
 	if _blend_at >= 0.0:
 		_blend(clock)
+	if live != null:
+		_live_step(e, level, clock, Vector3(s.x, s.y, s.z))
+	elif e.alive and not _hand_from.is_empty():
+		# Handed back from a live body: eased onto the animation.
+		_ease_over(clampf((clock - _hand_at) / _hand_for, 0.0, 1.0))
 	_shown_alive = true
 	if handing and clock > _fall_at:
 		# Where the scripted fall has each part now, for the hand-over.
@@ -288,6 +316,92 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		for p in _rig.posed_points(_skeletons[0]):
 			_fall_now.append(Ragdoll.to_map(transform, p))
 	_shade(s, level, look, tint, down)
+
+
+## A new hit on living `e` (Enemy.struck_at moved on): its live body
+## begins (from the pose last drawn) or takes the hit on top, when the
+## budget lets it (live_ok) and it has a rig; a live body the budget took
+## away hands back to the animation.
+func _live_begin(e: Enemy, clock: float) -> void:
+	if not live_ok or not View.ragdolls or Enemy.BOSS_TITLES.has(e.kind):
+		if live != null:
+			_live_end(clock)
+		_live_hit = e.struck_at
+		return
+	if e.struck_at <= _live_hit or e.struck_at < 0.0 or clock - e.struck_at > LIVE_LATE:
+		_live_hit = maxf(_live_hit, e.struck_at)
+		return
+	_live_hit = e.struck_at
+	if live == null:
+		var info: Dictionary = models.kinds[kind]
+		if not info.get("ragdoll", true) or not _shown_alive or _skeletons.is_empty():
+			return
+		if _rig == null:
+			_rig = RagdollRig.of(kind, self, info)
+		if not _rig.ok or _rig is BeastRig:
+			return
+		live = LiveBody.made_live(_rig, transform, _rig.posed_points(_skeletons[0]))
+		live.omega = Stagger.rate(e)
+		_live_clock = clock
+		_hand_from = []
+	var note := Stagger.of(e)
+	var j := Vector2.ZERO
+	var hz := .6
+	var lat := 0.0
+	if not note.is_empty():
+		var jx: float = note[Stagger.JX]
+		var jy: float = note[Stagger.JY]
+		j = Vector2(jx, jy)
+		hz = note[Stagger.HZ]
+		lat = note[Stagger.LAT]
+	else:
+		# No push of play's (a gun with no shove): a small one from the side
+		# it faced the shot.
+		var ahead := Vector2.from_angle(e.angle)
+		j = ahead * (.5 if e.last_side == "back" else -.5)
+	var zone := e.last_zone if e.last_zone != "" else "body"
+	live.hit(j, hz, lat, zone, hash([e.uid, e.struck_at]))
+
+
+## The live body this frame: the pose sought is its target, play's body and
+## word (reeling, down) given, stepped, and the bones posed from it; done,
+## it hands back to the animation (eased from its last pose).
+func _live_step(e: Enemy, level: LevelData, clock: float, body: Vector3) -> void:
+	var model := _rig.posed_points(_skeletons[0])
+	var aim := PackedVector3Array()
+	aim.resize(R_POINTS)
+	for i in R_POINTS:
+		aim[i] = Ragdoll.to_map(transform, model[i])
+	var dt := clampf(clock - _live_clock, 0.0, .1)
+	_live_clock = clock
+	var steps := int(roundf(dt / Ragdoll.STEP))
+	live.aim(aim, body, steps)
+	var down := Stagger.down_of(e)
+	var note := Stagger.of(e)
+	var pitch: float = 0.0 if note.is_empty() else note[Stagger.PITCH]
+	var pitched := pitch > .5
+	live.play_says(not note.is_empty(), 1 if down > 0.0 else -1 if down < 0.0 else 0, pitched)
+	live.advance(level, dt)
+	var back := transform.affine_inverse()
+	var alpha := live.alpha()
+	var posed := PackedVector3Array()
+	posed.resize(R_POINTS)
+	for i in R_POINTS:
+		var p := live.shown(i, alpha)
+		posed[i] = back * Vector3(p.x, p.z, p.y)
+	for skeleton in _skeletons:
+		_rig.pose(skeleton, posed, false)
+	if live.done():
+		_live_end(clock)
+
+
+## The live body lets go: the animation takes over, eased from its last pose.
+func _live_end(clock: float) -> void:
+	live = null
+	_seeked = NAN
+	_hand_from = _capture()
+	_hand_at = clock
+	_hand_for = LIVE_EASE
 
 
 ## A body tipped over sideways by `lean` (radians; a cow going over and getting

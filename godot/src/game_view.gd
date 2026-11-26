@@ -122,6 +122,8 @@ func _list_fixed() -> void:
 
 ## A side of a block of fixed sprites, in cells.
 const SPRITE_BLOCK := 6.0
+## How long a head kill's splat ring shows round the crosshair (pass 15).
+const SPLAT_FOR := .2
 
 
 ## `list` in blocks for _seen(): [middle x, middle y, reach, the sprites' places].
@@ -1113,6 +1115,8 @@ func _hit_mark(c: Canvas) -> void:
 		c.set_pixel(160 + d, VIEW / 2 - d, r, g, b)
 		c.set_pixel(160 - d, VIEW / 2 + d, r, g, b)
 		c.set_pixel(160 + d, VIEW / 2 + d, r, g, b)
+	if hit_mark_kill and hit_mark_head and clock - hit_mark_at < SPLAT_FOR:
+		_splat_ring(c, (clock - hit_mark_at) / SPLAT_FOR)
 	if hit_mark_kill and not fresh:
 		# A dark edge under a kill's ticks, so it reads on a bright sky.
 		for k in length:
@@ -1121,6 +1125,31 @@ func _hit_mark(c: Canvas) -> void:
 			c.set_pixel(160 + d, VIEW / 2 - d + 1, 40, 12, 8)
 			c.set_pixel(160 - d, VIEW / 2 + d + 1, 40, 12, 8)
 			c.set_pixel(160 + d, VIEW / 2 + d + 1, 40, 12, 8)
+
+
+## A head kill's splat (pass 15): a ring of blood round the crosshair that
+## bursts out and drips over SPLAT_FOR seconds (`k` 0 to 1 of it), drawn with
+## the ticks; a few drops run down. Its own pattern, no dice.
+func _splat_ring(c: Canvas, k: float) -> void:
+	var r := 7.0 + k * 4.0
+	var cy := VIEW / 2
+	var dark := k > .55
+	for i in 20:
+		var a := TAU * i / 20.0
+		# A ragged edge: every other blob further out.
+		var out := r + (1.5 if i % 3 == 0 else 0.0) + (.8 if i % 2 == 0 else 0.0)
+		var x := 160 + roundi(cos(a) * out)
+		var y := cy + roundi(sin(a) * out * .85)
+		var red := 150 if dark else 205
+		c.set_pixel(x, y, red, 14, 10)
+		if i % 4 == 0:
+			c.set_pixel(x + 1, y, red - 40, 8, 6)
+	for d in 4:
+		# The drips under it, running down as it ages.
+		var x := 160 + (d * 5 - 7)
+		var top := cy + roundi(r * .85)
+		for run in roundi(k * (3 + d % 2 * 2)):
+			c.set_pixel(x, top + run, 160, 10, 8)
 
 
 # ------------------------------------------------------------- view effects

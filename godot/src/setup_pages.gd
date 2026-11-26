@@ -518,7 +518,7 @@ static func build() -> Array:
 					"BLOOD PARTICLES", "gore", 1, "SHOW BLOOD PARTICLES WHEN ENEMIES ARE HIT"
 				),
 				SessionStore.toggle(
-					"RAGDOLLS", "ragdolls", 1, "DEAD BODIES FLOP AND TUMBLE THE WAY THEY WERE HIT"
+					"RAGDOLLS", "ragdolls", 1, "BODIES STUMBLE AND FLOP THE WAY THEY WERE HIT"
 				),
 				SessionStore.toggle(
 					"SLOW-MO FINISHERS",

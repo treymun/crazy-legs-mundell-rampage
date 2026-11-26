@@ -703,7 +703,12 @@ Each enemy and boss with a model shows as an `ActorView` scene
   its feet for `FLINCH` (.34 s) by `Enemy.last_zone` and `last_side`: a head
   shot snaps it back, the body rocks and twists, an arm turns the shoulders,
   a leg buckles it forward and down, sized by `struck_sum`, a boss at .4.
-  Standing idle (`0`) it breathes and sways a touch. A scripted fall (RAGDOLLS
+  Standing idle (`0`) it breathes and sways a touch. Since pass 15 the
+  nearest few hands just hit take the hit as a living body instead of that
+  rigid rock (`ActorView.live`, `LiveBody`: the rig's physics with muscles
+  toward the pose drawn; the budget is `ActorLayer3D._live_ones`, fewer on a
+  phone; see [gameplay.md](gameplay.md#living-bodies-pass-15-the-active-bodies-step-one)).
+  A scripted fall (RAGDOLLS
   off, or a kind with no ragdoll) is mirrored for about half the deaths (not
   a boss's set piece, a tipping cow or a `down_cel` kind) and runs up to
   `FALL_QUICK` (18%) quicker. The Swamp King and Maw's bare model, kinds with

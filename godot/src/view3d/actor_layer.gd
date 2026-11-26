@@ -188,6 +188,7 @@ func show_actors(
 			dolls.append(shown.doll)
 	Ragdoll.others = dolls
 	var far := (ActorView.REACH + BEYOND) * (ActorView.REACH + BEYOND)
+	var lively := _live_ones(sprites, clock, eye)
 	for s: View.Sprite in sprites:
 		var e := s.who as Enemy
 		if e.alive and Vector2(s.x - eye.x, s.y - eye.y).length_squared() > far:
@@ -214,6 +215,7 @@ func show_actors(
 			if not e.alive:
 				view.doll = _dolls.get(id)
 			_dolls.erase(id)
+		view.live_ok = lively.has(id)
 		view.show_as(s, e, level, clock)
 		var gone: Array = lost.get(e, [])
 		view.lose(gone)
@@ -235,6 +237,35 @@ func show_actors(
 		_parked.erase(oldest)
 		gone.queue_free()
 	return fresh
+
+
+## The living bodies that may run a live body this frame (pass 15,
+## src/live_body.gd): those just hit, reeling or running one already, the
+## nearest LiveBody.most_now() of them (fewer on a phone); the rest keep the
+## plain animation and its rigid flinch. Enemy instance id -> true.
+func _live_ones(sprites: Array, clock: float, eye: Vector3) -> Dictionary:
+	var out := {}
+	if not View.ragdolls:
+		return out
+	var wants: Array = []
+	for s: View.Sprite in sprites:
+		var e := s.who as Enemy
+		if not e.alive:
+			continue
+		var id := e.get_instance_id()
+		var view: ActorView = _shown.get(id)
+		var running := view != null and view.live != null
+		if running or clock - e.struck_at < ActorView.LIVE_LATE or Stagger.reeling(e):
+			var d := (
+				Vector2(s.x - eye.x, s.y - eye.y).length_squared() if eye != Vector3.INF else 0.0
+			)
+			wants.append([d, id])
+	if wants.is_empty():
+		return out
+	wants.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	for k in mini(wants.size(), LiveBody.most_now()):
+		out[wants[k][1]] = true
+	return out
 
 
 ## A model no longer shown: hidden and kept for its body (or the next of its

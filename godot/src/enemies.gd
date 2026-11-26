@@ -63,6 +63,8 @@ static var hunting := true
 ## seconds, flinch seconds]. Champions take a quarter. The sawed-off's shove
 ## is per pellet, so a full load at close range throws a body back.
 static var REACTIONS: Dictionary = HitData.section("reaction")
+## The least a hit flinches (hits.cfg [punch], pass 15).
+static var FLINCH_FLOOR: float = HitData.value("punch", "flinch_floor", .18)
 
 
 static func _static_init() -> void:
@@ -378,6 +380,7 @@ func hurt(
 	if champion and by == null:
 		# A boss's weak spot (or armour) where the player's hit struck.
 		amount *= BossKit.weak(self, game as Game, how, amount)
+	Stagger.point = game.hit_point
 	game.hit_point = Vector3.INF
 	var from_x: float = game.player.x if by == null else by.x
 	var from_y: float = game.player.y if by == null else by.y
@@ -389,15 +392,12 @@ func hurt(
 	struck_at = game.clock
 	struck_sum += amount
 	hit_flash = minf(.18, hit_flash + .075 + minf(.06, amount * .0016))
-	flinch = maxf(flinch, .08 if champion else .14 + minf(.16, amount * .004))
+	# (Pass 15: the floor .14 -> .18, so every hit reads.)
+	flinch = maxf(flinch, .08 if champion else FLINCH_FLOOR + minf(.16, amount * .004))
 	if hp > 0.0 and hostile and not champion and amount >= 20.0:
 		var away := atan2(y - from_y, x - from_x)
-		game.move_actor(
-			self,
-			cos(away) * .10 * minf(3.0, amount / 30.0),
-			sin(away) * .10 * minf(3.0, amount / 30.0),
-			radius
-		)
+		var back := .10 * minf(3.0, amount / 30.0) * HitZones.shove_by(self, from_x, from_y)
+		Stagger.shove(self, game, cos(away) * back, sin(away) * back)
 	if (
 		hp > 0.0
 		and hostile
@@ -473,7 +473,7 @@ func hurt(
 		"shell" if SHELL_ACTORS.has(kind) else "tool" if TOOL_ACTORS.has(kind) else "cloth"
 	)
 	if by == null:
-		game.struck(amount, hostile and not alive, champion)
+		game.struck(amount, hostile and not alive, champion, self, how)
 	HitZones.land(self, game as Game, amount, by)
 	if alive:
 		if hostile and amount >= 14.0 and not was_stunned and not interrupt:
@@ -743,6 +743,9 @@ func tick(dt: float, game: Game) -> void:
 	hit_flash = maxf(0.0, hit_flash - dt)
 	flinch = maxf(0.0, flinch - dt)
 	soak = maxf(0.0, soak - dt / 6.0)
+	if not notes.is_empty() and notes.has(Stagger.KEY):
+		# Knocked off balance (src/stagger.gd): the pendulum and its steps.
+		Stagger.tick(self, dt, game)
 	if mind != null and alerted:
 		Squad.watch(self, game)
 	if not cover_hunt.is_empty():
@@ -1056,7 +1059,11 @@ func _react(how: String, champion: bool, game: GameWorld, from_x: float, from_y:
 	shove *= scale
 	if shove > 0.0:
 		var away := atan2(y - from_y, x - from_x)
-		game.move_actor(self, cos(away) * shove, sin(away) * shove, radius)
+		if champion:
+			game.move_actor(self, cos(away) * shove, sin(away) * shove, radius)
+		else:
+			shove *= HitZones.shove_by(self, from_x, from_y)
+			Stagger.shove(self, game, cos(away) * shove, sin(away) * shove)
 	var held: float = r[1]
 	held *= scale
 	if how == "shotgun" and struck_sum >= 36.0:
