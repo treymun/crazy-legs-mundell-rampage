@@ -1,7 +1,51 @@
-# Meshy models track: handover (2026-11-26, third session)
+# Meshy models track: handover (2026-11-26, fourth session)
 
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
+
+## Fourth session (read first)
+
+Done: 18c/17c quick fixes (steeper carry "carry_dir"/"carry_at": revenue
+man's both hands on the gun; spectacle rim painted over "rim_px"; sheriff
+"clearance" .05), 19b/19c jerry, 20 rudy. Credits now 907 of 2,500
+(balance 2,031; jerry took three concepts). Paid calls one at a time.
+
+New this session (all in meshy/tools):
+- build_actor: "football" (a held part rebuilt as a pigskin), "to_body"
+  [{x,y,z,near}] (vertices in a box ride the trunk: a sack, a back frame),
+  "skin_rgb" (a gloved character's skin colour; Meshy's white gloves made
+  rudy's face grey), "carry_dir"/"carry_at", "clearance" per kind.
+- shed.py box rules: "cut" (the faces themselves go with the piece: a face
+  mask, horns, a brim - a copy would leave them on), "radial" [x,y,z] (lift
+  copies away from that point; Meshy normals point in here and there),
+  "within"/"outside" (xy distance from radial), "head_only", "under": "cap"
+  (paint the left-over in the cap colour), "shag" {shrink, amp, clamp} (the
+  head under a helmet drawn in to a shaggy outline), "grow_dark", "rim_px".
+  Hat rule: "within", "head_only", "radial"+"lift" (push the cut piece out,
+  horizontal), "rim_drop", "cap_shift", "cap_ymin", "cap_shag",
+  "cap_noise". Several rules may share one piece ("gear": name). Hat cuts
+  now also bring long sliver tips down under the cut and split faces that
+  touch a piece only at a corner (they stretched to the piece's bone when
+  it flew off). 17/18/19 were built before those two fixes (rebuild before
+  merging if their bare heads show a spike).
+- Engine: ActorView._keep_arm_lengths - a blend no longer shrinks a forearm
+  on a big swing (jerry's throw arm went to a tenth of its length).
+- Look at a bare head: `meshy-work/headshots.sh <kind> <hide,bones> <cz>
+  <out.png>` (worn above, bare below, four sides; KV_SCALE env).
+  Scratch probes in meshy-work/scripts4: headcols.py (head faces by colour
+  per height), piececheck.py (piece extents), above.py (vertices above a z
+  by group: finds what a hat cut left), shard.py.
+- bosses.cfg [boss_gear] "at"/"half"/"wide" are the old models'; when the
+  models merge, rerun tools/gear_fit.gd and retune (jerry helmet now at
+  [0.01, 0, 0.85] half .110).
+
+Left, in order: foreman, baron, maw (+maw_bare), swamp_king; then the
+humanoids (list below). Same recipe as jerry/rudy: prompts entry via a
+small add_prompt_<kind>.py, meshy_kind.sh concept (look; retry if not
+A-pose or props misplaced), model, kind_config, list old held parts from
+dump/<kind>_poses.json (gear_skip strays, grip_parts when gold/white parts
+pass for the old hands), iter.sh, headshots for the shed pieces, finish.sh
+(SKIP_BUILD=1), boss checks.
 
 ## State
 
