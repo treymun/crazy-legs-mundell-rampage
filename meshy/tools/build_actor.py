@@ -1772,6 +1772,10 @@ def depth_in(surface, gname, M, skip=0.0):
         # (A clearance kept, so the living body's reel has room.)
         d = (q - Vector(pts[i])).dot(Vector(nrm[i])) - clear
         if d < 0:
+            if -d > worst and it is not None:
+                ab = it["hi"] - it["lo"]
+                KEEP_WHY[gname] = (_KEEP_BONES[int(numpy.argmax(KEEP_W[i]))],
+                                   (Vector(g) - it["lo"]).dot(ab) / max(ab.length_squared, 1e-9), float(pts[i][2]))
             worst = max(worst, -d)
             out += Vector(nrm[i])
     return worst, (out.normalized() if out.length > 1e-6 else Vector((0, -1, 0)))
@@ -1793,12 +1797,15 @@ def keep_out(surface, gname, M, name, skip=0.0):
             break
         M = Matrix.Translation(-Vector(TWIST["fwd"].col[2]) * (d + .012)) @ M
     if first > .004:
-        print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, gname, first, d))
+        print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, gname, first, d)
+              + (" (worst on %s at %.2f of its length, z %.2f)" % KEEP_WHY[gname]
+                 if os.environ.get("MESHY_DEBUG_KEEP") and gname in KEEP_WHY else ""))
     PEN[name + ":" + gname] = d
     return M
 
 
 PEN = {}
+KEEP_WHY = {}
 CLEAR = float(CFG.get("clearance", .02))
 
 
@@ -1831,7 +1838,57 @@ def plumb(Di, amount, up=None):
     return Matrix.Translation(piv) @ q_.to_matrix().to_4x4() @ Matrix.Translation(-piv) @ Di
 
 
+# The cheek on the gun's side at rest: under the cheekbone, over the jaw
+# (from the Meshy rig's Head bone, the skull's base at the jaw's height).
+CHEEK_K = OLD_H / 1.73
+
+
+def cheek_rest(side):
+    sx = 1.0 if J["upperarm_" + side].x > J["hips"].x else -1.0
+    c = CFG.get("cheek_at", [.04, .065, .03])
+    return heads["Head"] + Vector((sx * c[0], -c[1], c[2])) * CHEEK_K
+
+
+def cheek_weld(D, it, Di, R_t, at):
+    """Turns D["head"] so the cheek lies on the gun (see solve); returns the
+    gap left (m)."""
+    main = it["main"]
+    Tn = TWIST["fwd"]
+    Fw, Rt = -Vector(Tn.col[2]), Vector(Tn.col[0])
+    toward = Rt if main == "r" else -Rt
+    lo_e, hi_e = Di @ it["lo"], Di @ it["hi"]
+    G = (hi_e - lo_e).normalized()
+    pts = [Di @ Vector(g) for g in ITEM_PTS.get(it["bone"], [])]
+    base = D["head"]
+    piv = base @ J["neck"]
+    cr = cheek_rest(main)
+    best = None
+    for pitch in [i * .05 for i in range(0, 11)]:
+        for roll in [i * .05 for i in range(-7, 10)]:
+            Rq = (Matrix.Rotation(pitch, 3, Rt) @ Matrix.Rotation(roll if main == "r" else -roll, 3, -Fw))
+            Dh = Matrix.Translation(piv) @ Rq.to_4x4() @ Matrix.Translation(-piv) @ base
+            c = Dh @ cr
+            t = (c - lo_e).dot(G)
+            ax = lo_e + G * t
+            near = [q for q in pts if abs((q - lo_e).dot(G) - t) < .035]
+            top = max((q.z for q in near), default=ax.z + it["rad"])
+            side_off = (c - ax) - G * (c - ax).dot(G)
+            side_off.z = 0
+            gap = c.z - (top + .004)
+            cost = abs(gap) * (1.0 if gap > 0 else 3.0) + side_off.length * .7 + (pitch + abs(roll)) * .01
+            if best is None or cost < best[0]:
+                best = (cost, Dh, gap, side_off.length, pitch, roll)
+    D["head"] = best[1]
+    CHEEK[NAME_NOW[0]] = (round(best[2], 3), round(best[3], 3), round(best[4], 2), round(best[5], 2))
+    return abs(best[2]) + best[3] * .5
+
+
+CHEEK = {}
+NAME_NOW = [""]
+
+
 def solve(name, dz=0.0, held0=None):
+    NAME_NOW[0] = name
     P = old_points(name)
     D = {}
     To = torso_basis(P[HIP_L], P[HIP_R], P[SH_L], P[SH_R])
@@ -1885,10 +1942,10 @@ def solve(name, dz=0.0, held0=None):
     # down on the stock when shouldering a long gun (the cheek on it).
     R_h = rel_rot(head_anchor, name) if head_anchor >= 0 else R_t
     aiming = any(it["two"] for it in ITEMS) and name.replace("hurt_", "") in AIMS
-    if aiming:
+    if aiming and not CFG.get("cheek_weld", False):
         main = next(it["main"] for it in ITEMS if it["two"])
         Tn = TWIST["fwd"]
-        R_h = (Matrix.Rotation(.32, 3, Vector(Tn.col[0])) @ Matrix.Rotation(
+        R_h = (Matrix.Rotation(float(CFG.get("aim_head_pitch", .32)), 3, Vector(Tn.col[0])) @ Matrix.Rotation(
             (.28 if main == "r" else -.28), 3, -Vector(Tn.col[2]))) @ R_h
     # (kind config "head_keys" {key: [pitch, turn, roll] degrees}: the head
     # set on the trunk for that key instead of the old head's turn - Maw's
@@ -1931,7 +1988,14 @@ def solve(name, dz=0.0, held0=None):
     for it in ITEMS:
         Di, shown = item_delta(it, name, P, D, R_t, hipc)
         if Di is not None and shown and it["two"]:
-            Di = keep_out(surface, it["bone"], Di, name, .22 if name.replace("hurt_", "") in AIMS else 0.0)
+            # (kind config "wind_clear": the low ready keeps the whole gun,
+            # butt too, a clearance off the body - the live reel pushed the
+            # shoulder 5 cm into a butt set in it)
+            _bare_k = name.replace("hurt_", "")
+            _skip = float(CFG.get("aim_skip", .22)) if _bare_k in AIMS else 0.0
+            if _bare_k == "wind" and CFG.get("wind_clear"):
+                _skip = 0.0
+            Di = keep_out(surface, it["bone"], Di, name, _skip)
         moves[it["bone"]] = (Di, shown)
         if Di is not None and shown and it["two"]:
             for side in it["holds"]:
@@ -1948,8 +2012,23 @@ def solve(name, dz=0.0, held0=None):
                     t = max(0.0, min(1.0, (hp - lo_e).dot(hi_e - lo_e) / max((hi_e - lo_e).length_squared, 1e-6)))
                     if (lo_e + (hi_e - lo_e) * t - hp).length > .24 * OLD_H / 1.7:
                         continue
-                on[side] = (it, Di)
+                # (kind config "aim_holds" {side: share}: where each hand
+                # takes the shouldered gun - the carry's grips from the old
+                # model sat a long way up a long gun, so the arms went out
+                # straight and the body leaned after them)
+                if bare in AIMS and CFG.get("aim_holds"):
+                    on[side] = (dict(it, holds=dict(it["holds"], **CFG["aim_holds"])), Di)
+                else:
+                    on[side] = (it, Di)
 
+    # The cheek down on the stock (kind config "cheek_weld", opt-in):
+    # the head pitched and rolled (within a neck's reach) until the cheek on
+    # the gun's side lies on the top of the shouldered gun, over its line.
+    if aiming and CFG.get("cheek_weld", False):
+        it_c = next((x for x in ITEMS if x["two"] and moves[x["bone"]][0] is not None and moves[x["bone"]][1]), None)
+        if it_c is not None:
+            Di_c = moves[it_c["bone"]][0]
+            joints["cheek"] = cheek_weld(D, it_c, Di_c, R_t, at)
     for side, sh, ha, el in (("l", SH_L, HA_L, EL_L), ("r", SH_R, HA_R, EL_R)):
         out = 1.0 if side == "l" else -1.0
         sh_f = at(J["upperarm_" + side])
@@ -2510,23 +2589,27 @@ def pose_key(name):
         if key not in AIM_BEST:
             best = None
             for tw in (30, 40, 50):
-                for drop in (0.0, .02, .04):
+                for drop in CFG.get("aim_drops", [-.06, -.03, 0.0, .02, .04] if CFG.get("cheek_weld") else [0.0, .02, .04]):
                     for inn in (0.0, .03, .06):
                         CFG.update(aim_twist=tw, aim_drop=drop, aim_in=inn)
                         _D, jt, _P = solve(key, 0.0, HELD0)
                         miss = sum(jt["miss"].values())
                         pen = max([v for k, v in PEN.items() if k.startswith(key + ":")] or [0.0])
-                        score = miss * 4 + pen * 10 + tw * .0006 + drop * .1
+                        score = miss * 4 + pen * 10 + tw * .0006 + abs(drop) * .1 + jt.get("cheek", 0.0) * 3
                         if best is None or score < best[0]:
                             best = (score, tw, drop, inn, miss, pen)
             AIM_BEST[key] = best
             print("MESHY shouldered %s: bladed %d, butt %.2f down, %.2f in (hands %.3f m off, %.3f m in)" % (
                 (key,) + best[1:]))
+        CHEEK.pop(key, None)
         _s, tw, drop, inn, _m, _p = AIM_BEST[key]
         CFG.update(aim_twist=tw, aim_drop=drop, aim_in=inn)
         D, joints, P = solve(name, 0.0, HELD0)
         for k in ("aim_twist", "aim_drop", "aim_in"):
             del CFG[k]
+        if name in CHEEK:
+            print("MESHY cheek on the stock %s: gap %.3f m, %.3f m off the line, head pitch %.2f roll %.2f" % (
+                (name,) + CHEEK[name]))
         for side, m in joints["miss"].items():
             if m > .03:
                 print("MESHY %s: the %s hand is %.2f m short of its grip" % (name, side, m))
@@ -2750,14 +2833,39 @@ for f, dn in zip(bm.faces, _dens):
         _fixed += 1
 bmesh.update_edit_mesh(lo.data)
 print("MESHY faces with collapsed UVs given their own: %d (median density %.3f)" % (_fixed, _dmed))
+# (kind config "face_uv" {k, brim_k, r, z}: the face's islands - inside
+# radius r of the skull's axis, between z[0] and z[1] over the Meshy Head
+# bone (m at 1.73) - take k times the texture's scale and a wide hat's brim
+# brim_k: a straw hat's brim took twelve times the face's texels, the eyes
+# came out a few texels across)
+_fuv = CFG.get("face_uv")
+_mw = lo.matrix_world
+_nf = 0
 for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
     heady = sum(1 for f in island for v in f.verts if v[deform].get(head_gi, 0) > .5)
     if heady < len(island):
         continue
+    k_isl = HEAD_FAVOUR
+    if _fuv:
+        _hc = heads["Head"]
+        _r = float(_fuv.get("r", .17)) * CHEEK_K
+        _z0, _z1 = [_hc.z + float(z_) * CHEEK_K for z_ in _fuv.get("z", [-.04, .17])]
+        _in = 0
+        for f in island:
+            c_ = _mw @ f.calc_center_median()
+            if math.hypot(c_.x - _hc.x, c_.y - _hc.y) < _r and _z0 < c_.z < _z1:
+                _in += 1
+        if _in > len(island) * .5:
+            k_isl = float(_fuv.get("k", 2.4))
+            _nf += len(island)
+        elif _in < len(island) * .2:
+            k_isl = float(_fuv.get("brim_k", HEAD_FAVOUR))
     loops = [loop for f in island for loop in f.loops]
     mid = sum((loop[uv].uv for loop in loops), Vector((0.0, 0.0))) / len(loops)
     for loop in loops:
-        loop[uv].uv = mid + (loop[uv].uv - mid) * HEAD_FAVOUR
+        loop[uv].uv = mid + (loop[uv].uv - mid) * k_isl
+if _fuv:
+    print("MESHY face islands favoured: %d faces" % _nf)
 bmesh.update_edit_mesh(lo.data)
 bpy.ops.mesh.select_all(action="SELECT")
 bpy.ops.uv.select_all(action="SELECT")
@@ -2852,10 +2960,24 @@ ZONES = CFG.get("skin_zones", ["head", "hand_l", "hand_r", "forearm_l", "forearm
 ZONES = ZONES + [g.name for g in lo.vertex_groups if g.name.startswith(("fl_", "fr_"))]
 zattr = lo.data.color_attributes.new("zone", "FLOAT_COLOR", "POINT")
 zidx = [lo.vertex_groups[z].index for z in ZONES if z in lo.vertex_groups]
+# (blue: the face's front - inside the skull's radius, between the jaw and
+# the brow, ahead of the ears; kind config "face_box" {r, z, back} as
+# face_uv's, at 1.73 m)
+_fb = CFG.get("face_box", {})
+_fbr = float(_fb.get("r", .17)) * CHEEK_K
+_fbz = [heads["Head"].z + float(z_) * CHEEK_K for z_ in _fb.get("z", [-.16, .16])]
+_fby = heads["Head"].y + float(_fb.get("back", -.025)) * CHEEK_K
 for v in lo.data.vertices:
     zv = sum(g.weight for g in v.groups if g.group in zidx)
     hv = sum(g.weight for g in v.groups if g.group == lo.vertex_groups["head"].index)
-    zattr.data[v.index].color = (zv, hv, 0, 1)
+    w_ = lo.matrix_world @ v.co
+    # (and the neck all round, down to the collar: blotched as the face)
+    _rr = math.hypot(w_.x - heads["Head"].x, w_.y - heads["Head"].y)
+    fv = float((hv > .5 and _rr < _fbr and _fbz[0] < w_.z < _fbz[1] and w_.y < _fby)
+               or (_rr < .12 * CHEEK_K and _fbz[0] < w_.z < heads["Head"].z))
+    if not fv and hv > .5 and _rr < _fbr and _fbz[0] < w_.z < heads["Head"].z + float(_fb.get("back_top", .08)) * CHEEK_K:
+        fv = .5  # (behind the ears, under the hair: skin only, not the hair)
+    zattr.data[v.index].color = (zv, hv, fv, 1)
 saved_trees = {}
 for m in lo.data.materials:
     nt = m.node_tree
@@ -2877,6 +2999,8 @@ bake_op(type="EMIT", margin=TEXTURE // 128, use_clear=True)
 _zp = pixels(zimg)
 ZONE = _zp[:, 0] > .5
 HEADZONE = _zp[:, 1] > .5
+FACEZONE = _zp[:, 2] > .75
+BACKZONE = (_zp[:, 2] > .25) & ~FACEZONE
 for m in lo.data.materials:
     for n in saved_trees[m.name]:
         m.node_tree.nodes.remove(n)
@@ -2953,7 +3077,7 @@ bpy.context.view_layer.update()
 # (kind config "face_albedo": Meshy's own unlit colour, for a face shadowed
 # by a helmet and its face mask in the lit bake - see face_lift)
 ALBEDO = None
-if CFG.get("face_albedo"):
+if CFG.get("face_albedo") or CFG.get("face_clean"):
     scene.cycles.samples = 8
     select([hi, lo], lo)
     bake_op(type="DIFFUSE", pass_filter={"COLOR"}, margin=TEXTURE // 128, use_clear=True,
@@ -3656,7 +3780,27 @@ def gloves(px):
     return px
 
 
+def face_clean(px):
+    """Kind config "face_clean" (see meshy/tools/face_clean.py)."""
+    if not CFG.get("face_clean") or ALBEDO is None:
+        return px
+    import face_clean as _fc
+    out, info = _fc.clean(px, ALBEDO, HEADZONE, FACEZONE | BACKZONE, HANDMASK if "HANDMASK" in globals() else None, TEXTURE,
+                          CFG["face_clean"] if isinstance(CFG["face_clean"], dict) else {}, NOSHADOW, BACKZONE)
+    print("MESHY face clean: %s" % info)
+    return out
+
+
 total = gloves(total)
+if os.environ.get("MESHY_DUMP_FACE"):
+    # (scratch: the finished body texels and the masks, to try face passes
+    # outside Blender)
+    numpy.savez_compressed(os.path.abspath(os.environ["MESHY_DUMP_FACE"]), total=total, headzone=HEADZONE, zone=ZONE,
+                           hand=HANDMASK if "HANDMASK" in globals() else numpy.zeros(len(total), bool),
+                           skin_done=SKIN_DONE, albedo=ALBEDO if ALBEDO is not None else numpy.zeros((0, 3)),
+                           noshadow=NOSHADOW if NOSHADOW is not None else numpy.zeros((0, 3)), tex=TEXTURE,
+                           facezone=FACEZONE, backzone=BACKZONE)
+total = face_clean(total)
 _fsk = HEADZONE & SKIN_DONE if "SKIN_DONE" in globals() else HEADZONE
 shed.paint(lo, image, total, CFG, pixels, bake_op, select, TEXTURE,
            skin=numpy.median(total[_fsk, :3], axis=0) if _fsk.sum() > 50 else None)
