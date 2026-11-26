@@ -171,6 +171,18 @@ func run(row: Array) -> void:
 	p.y = keep.y
 	print("  %s: %s zone %s, killed by %s" % [name, kind, e.last_zone, e.killed_by])
 	var done := 0
+	if OS.get_environment("ROW_VIDEO") != "":
+		# Every other tick to the last moment, one picture each
+		# (video_<row>_<n>.png: meshy/tools/make_video.py's frames).
+		var n := 0
+		for t in range(2, int(TICKS[-1]) + 1, 2):
+			await _ticks(g, t - done, cam, at, top)
+			done = t
+			await _snap()
+			_frames[-1].save_png(String(tool.get("out")).path_join("video_%s_%03d.png" % [name, n]))
+			n += 1
+		_frames.clear()
+		return
 	for t: int in TICKS.slice(1):
 		await _ticks(g, t - done, cam, at, top)
 		done = t

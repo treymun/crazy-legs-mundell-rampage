@@ -15,7 +15,9 @@ the dusk stage, four turns, matched to the old look's light. Kind config:
 
   kind, meshy (the Meshy glb), old_glb, old_tex, out, tris, texture,
   smooth (rings of weight softening, default 2), rigid (bones whose
-  vertices are not softened), stand (the key the Meshy model stands as,
+  vertices are not softened), hard (bones whose border is not softened
+  from either side), legs [[hip, knee, foot]...] and torso (each old leg
+  moved to the Meshy leg's place, keys and all), stand (the key the Meshy model stands as,
   default "0"), icp (rounds of closest points, default 12), gain.
   Not yet: a boss's old gear kept (its weapon parts), a hurt look.
 """
@@ -204,6 +206,140 @@ print("BEAST fit: turn %d, scale %.4f, chamfer %.4f -> %.4f" % (YAW, S, _c, cham
 M = Matrix.Translation(Vector(T.tolist())) @ (Matrix(Rm.tolist()).to_4x4() @ Matrix.Diagonal((S, S, S, 1)))
 hi.data.transform(M)
 
+
+# ------------------------------------------------------------ the legs
+def group_of(me, names):
+    """Each vertex's strongest group's name (None without one)."""
+    gname = {g.index: g.name for g in old_mesh.vertex_groups}
+    out = []
+    for v in me.vertices:
+        best = max(v.groups, key=lambda g: g.weight, default=None)
+        out.append(gname.get(best.group) if best is not None else None)
+    return out
+
+
+def square_feet(legs, old_feet, shift, floor):
+    """The Meshy model stands square, as the old one does (its walk keys
+    swing each leg from a square stance; a Meshy cow came with a hind foot
+    stepped 16 cm ahead of the other, and the ragdoll's hip found between
+    them pulled a leg off the body as it lay). Each pair of legs (left and
+    right, as listed) is put level: each foot moved to the pair's mean
+    front-back place and the same width out, its lower leg bent there from
+    the hock down (the hi mesh: the bake follows), shift updated."""
+    QH = numpy.array([v.co[:] for v in hi.data.vertices])
+    feet = old_feet + shift
+    mid = feet.mean(axis=0)
+    target = feet.copy()
+    for a_ in range(0, len(legs), 2):
+        b_ = a_ + 1
+        along = (feet[a_][1] + feet[b_][1]) / 2
+        out = (abs(feet[a_][0] - mid[0]) + abs(feet[b_][0] - mid[0])) / 2
+        for k in (a_, b_):
+            target[k] = (mid[0] + math.copysign(out, feet[k][0] - mid[0]), along)
+    top = floor + OLD_H * float(CFG.get("hock", .33))
+    near = numpy.linalg.norm(QH[:, None, :2] - feet[None, :, :2], axis=2)
+    leg = near.argmin(axis=1)
+    reach = near.min(axis=1) < OLD_H * .11
+    t = numpy.clip((top - QH[:, 2]) / (top - floor), 0, 1)
+    w = t * t * (3 - 2 * t) * reach * (QH[:, 2] < top)
+    delta = (target - feet)[leg] * w[:, None]
+    for i in numpy.nonzero(w > 0)[0]:
+        v = hi.data.vertices[int(i)]
+        v.co.x += float(delta[i][0])
+        v.co.y += float(delta[i][1])
+    hi.data.update()
+    for k in range(len(legs)):
+        print("BEAST leg %s: foot set square, %.3f, %.3f m" % (legs[k][-1], *(target[k] - feet[k])))
+        shift[k] = target[k] - old_feet[k]
+
+
+def realign_legs():
+    """Each old leg moved (bones, keys and the old mesh the weights come
+    from) to stand where the Meshy model's own leg stands: Meshy's legs are
+    seldom at the old block legs' place, and a leg weighted by the nearest
+    old face then rides the body or the wrong leg (stretching in the dead
+    key). Config "legs": [[hip, knee, foot], ...] (old bone names), "torso"
+    (the bone the legs hang from)."""
+    legs = CFG.get("legs", [])
+    if not legs:
+        return
+    torso = CFG.get("torso", "b0")
+    owner = group_of(src_me, None)
+    PV = numpy.array([v.co[:] for v in src_me.vertices])
+    QH = numpy.array([v.co[:] for v in hi.data.vertices])
+    floor = PV[:, 2].min()
+    low_new = QH[QH[:, 2] < floor + OLD_H * .12]
+    old_feet = []
+    for chain in legs:
+        ids = [i for i, n in enumerate(owner) if n == chain[-1] and PV[i, 2] < floor + OLD_H * .12]
+        if not ids:
+            ids = [i for i, n in enumerate(owner) if n == chain[-1]]
+        old_feet.append(PV[ids, :2].mean(axis=0))
+    old_feet = numpy.array(old_feet)
+    shift = numpy.zeros_like(old_feet)
+    for _ in range(4):
+        at = old_feet + shift
+        near = numpy.linalg.norm(low_new[:, None, :2] - at[None, :, :2], axis=2).argmin(axis=1)
+        for k in range(len(legs)):
+            mine = low_new[near == k]
+            if len(mine):
+                shift[k] = mine[:, :2].mean(axis=0) - old_feet[k]
+    if CFG.get("square", True) and len(legs) % 2 == 0:
+        square_feet(legs, old_feet, shift, floor)
+    for k, chain in enumerate(legs):
+        print("BEAST leg %s moved %.3f, %.3f m to the Meshy leg" % ("/".join(chain), shift[k][0], shift[k][1]))
+    # The old mesh's legs (the weights' source) moved with them.
+    for i, n in enumerate(owner):
+        for k, chain in enumerate(legs):
+            if n in chain:
+                src_me.vertices[i].co.x += float(shift[k][0])
+                src_me.vertices[i].co.y += float(shift[k][1])
+    src_me.update()
+    # The keys: each leg turns as before about its hip, now at its new place,
+    # carried by the torso as if it had always hung there.
+    pbs = arm.pose.bones
+    AW = arm.matrix_world
+    frames = sorted({int(round(f)) for f in FRAMES.values()})
+    world = {}
+    for f in frames:
+        scene.frame_set(f)
+        bpy.context.view_layer.update()
+        world[f] = {pb.name: AW @ pb.matrix for pb in pbs}
+    stand = world[STAND]
+    want = {}
+    for k, chain in enumerate(legs):
+        d = Vector((float(shift[k][0]), float(shift[k][1]), 0.0))
+        q = stand[chain[0]].translation + d
+        for f in frames:
+            q_f = world[f][torso] @ stand[torso].inverted() @ q
+            s_f = q_f - world[f][chain[0]] @ stand[chain[0]].inverted() @ q
+            for name in chain:
+                want[(f, name)] = Matrix.Translation(s_f) @ world[f][name]
+    for f in frames:
+        scene.frame_set(f)
+        for (ff, name), mw in want.items():
+            if ff != f:
+                continue
+            pb = pbs[name]
+            pb.matrix = AW.inverted() @ mw
+            bpy.context.view_layer.update()
+            for path in ("location", "rotation_quaternion", "scale"):
+                pb.keyframe_insert(path, frame=f)
+    act = arm.animation_data.action
+    try:
+        fcs = list(act.fcurves)
+    except Exception:
+        fcs = [fc for la in act.layers for st in la.strips for cb in st.channelbags for fc in cb.fcurves]
+    for fc in fcs:
+        for kp in fc.keyframe_points:
+            kp.interpolation = "LINEAR"
+    scene.frame_set(STAND)
+    bpy.context.view_layer.update()
+
+
+realign_legs()
+OWNER = group_of(src_me, None)
+
 # ------------------------------------------------------------ the game mesh
 lo = hi.copy()
 lo.data = hi.data.copy()
@@ -251,11 +387,165 @@ for e in lo.data.edges:
     a, b = e.vertices
     nbr[a].append(b)
     nbr[b].append(a)
+
+# A bone's vertices in one piece: where the Meshy shape reaches past the old
+# one (a long tail down by the hocks) the nearest old face is another part's
+# (the tail's tip ridden by a hind leg, stretched into a blade when the legs
+# go up). Each bone keeps its biggest connected piece (and any other at
+# least 40% of it); the rest take their neighbours' bone, grown inward.
+def one_piece(W):
+    lab = numpy.where(W.max(axis=1) > 0, W.argmax(axis=1), -1)
+    n = len(lab)
+    moved = 0
+    for g in numpy.unique(lab[lab >= 0]):
+        seen = numpy.zeros(n, dtype=bool)
+        parts = []
+        for s in numpy.nonzero(lab == g)[0]:
+            if seen[s]:
+                continue
+            stack, part = [s], []
+            seen[s] = True
+            while stack:
+                i = stack.pop()
+                part.append(i)
+                for j in nbr[i]:
+                    if not seen[j] and lab[j] == g:
+                        seen[j] = True
+                        stack.append(j)
+            parts.append(part)
+        big = max(len(p) for p in parts)
+        for p in parts:
+            if len(p) < big * .4:
+                lab[p] = -1
+                moved += len(p)
+    while (lab < 0).any():
+        took = 0
+        new_lab = lab.copy()
+        for i in numpy.nonzero(lab < 0)[0]:
+            got = [lab[j] for j in nbr[i] if lab[j] >= 0]
+            if got:
+                new_lab[i] = max(set(got), key=got.count)
+                took += 1
+        lab = new_lab
+        if not took:
+            break
+    out = numpy.zeros_like(W)
+    ok = lab >= 0
+    out[numpy.nonzero(ok)[0], lab[ok]] = 1
+    print("BEAST weights: %d vertices off their bone's piece given their neighbours' bone" % moved)
+    return out
+
+
+
+
+def legs_below_hips(W):
+    """No leg bone above its hip: the Meshy barrel is wider than the old
+    block body, so its rump's and chest's sides lie nearest the old legs'
+    outer faces and would swing out with the legs (a blade in the dead key).
+    A leg's vertex higher than the old leg's top (and "leg_top" of the
+    height more) is the torso's."""
+    legs = CFG.get("legs", [])
+    if not legs:
+        return W
+    torso = lo.vertex_groups[CFG.get("torso", "b0")].index
+    co_ = numpy.array([v.co[:] for v in lo.data.vertices])
+    scene.frame_set(STAND)
+    bpy.context.view_layer.update()
+    lab = W.argmax(axis=1)
+    took = 0
+    for chain in legs:
+        top = max(src_me.vertices[i].co.z for i, n in enumerate(OWNER) if n == chain[0])
+        top += OLD_H * float(CFG.get("leg_top", 0.0))
+        ids = [lo.vertex_groups[n].index for n in chain]
+        mask = numpy.isin(lab, ids) & (co_[:, 2] > top)
+        W[mask] = 0
+        W[mask, torso] = 1
+        took += int(mask.sum())
+        print("BEAST leg %s: top at %.3f m (standing %.3f)" % (chain[0], top, OLD_H))
+    print("BEAST weights: %d vertices above their hips given to the torso" % took)
+    return W
+
+
+
+
+def heat_weights():
+    """Weights by Blender's bone heat over a stand-in skeleton: each old part
+    a bone along its own long axis (its vertices' main direction, end to
+    end, the legs where realign_legs moved them). The old parts are blocks
+    and the Meshy shape reaches past them (a long tail, a wider barrel), so
+    the nearest old face is often another part's; heat follows the mesh
+    itself, smooth over a joint and nothing across the body. Kind config
+    "weights": "heat"."""
+    pv = numpy.array([v.co[:] for v in src_me.vertices])
+    names = numpy.array([n or "" for n in OWNER])
+    tdata = bpy.data.armatures.new("heat")
+    tarm = bpy.data.objects.new("heat", tdata)
+    scene.collection.objects.link(tarm)
+    select([tarm])
+    bpy.ops.object.mode_set(mode="EDIT")
+    made = 0
+    for g in old_mesh.vertex_groups:
+        pts = pv[names == g.name]
+        if len(pts) < 4:
+            continue
+        c = pts.mean(axis=0)
+        ax = numpy.linalg.svd(pts - c, full_matrices=False)[2][0]
+        pr = (pts - c) @ ax
+        a_, b_ = c + ax * pr.min(), c + ax * pr.max()
+        if numpy.linalg.norm(b_ - a_) < OLD_H * .01:
+            b_ = a_ + numpy.array([0, 0, OLD_H * .01])
+        eb = tdata.edit_bones.new(g.name)
+        eb.head = Vector(a_.tolist())
+        eb.tail = Vector(b_.tolist())
+        made += 1
+    bpy.ops.object.mode_set(mode="OBJECT")
+    for g in lo.vertex_groups:
+        g.remove(list(range(len(lo.data.vertices))))
+    select([lo, tarm], tarm)
+    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    out = numpy.zeros((len(lo.data.vertices), len(lo.vertex_groups)))
+    index = {g.name: i for i, g in enumerate(old_mesh.vertex_groups)}
+    for v in lo.data.vertices:
+        for g in v.groups:
+            k = index.get(lo.vertex_groups[g.group].name)
+            if k is not None:
+                out[v.index, k] = g.weight
+    for m in list(lo.modifiers):
+        lo.modifiers.remove(m)
+    wm2 = lo.matrix_world.copy()
+    lo.parent = None
+    lo.matrix_world = wm2
+    bpy.data.objects.remove(tarm)
+    # (groups the heat made beyond the old ones, none expected)
+    for g in list(lo.vertex_groups)[len(old_mesh.vertex_groups):]:
+        lo.vertex_groups.remove(g)
+    bare = out.sum(axis=1) <= 0
+    if bare.any():
+        # (no heat reached: the old way, the nearest old part)
+        out[bare] = W[bare]
+    print("BEAST weights by heat: %d stand-in bones, %d vertices left to the nearest part" % (made, int(bare.sum())))
+    return out / numpy.maximum(out.sum(axis=1, keepdims=True), 1e-9)
+
+
+WEIGHTS = CFG.get("weights", "nearest")
+if WEIGHTS == "heat":
+    W = heat_weights()
+else:
+    W = legs_below_hips(W)
+    W = one_piece(W)
 keep = {lo.vertex_groups[n].index for n in CFG.get("rigid", []) if n in lo.vertex_groups}
-for _ in range(int(CFG.get("smooth", 2))):
+# "hard": bones whose border is not softened from either side (a tail that
+# turns square to the rump in the dead key: a soft root stretched into a blade).
+hard = {lo.vertex_groups[n].index for n in CFG.get("hard", []) if n in lo.vertex_groups}
+own = W.argmax(axis=1)
+for _ in range(0 if WEIGHTS == "heat" else int(CFG.get("smooth", 2))):
     W2 = W.copy()
     for i, ns in enumerate(nbr):
-        if ns and not (keep and W[i].argmax() in keep):
+        if ns and not (keep and own[i] in keep):
+            if hard:
+                ns = [j for j in ns if (own[j] in hard) == (own[i] in hard)]
+                if not ns:
+                    continue
             W2[i] = W[i] * .5 + W[ns].mean(axis=0) * .5
     W = W2
 for i in range(len(W)):
@@ -418,6 +708,9 @@ lo.data.calc_loop_triangles()
 entry = dict(meta_old)
 entry["faces"] = float(len(lo.data.loop_triangles))
 entry["meshy"] = True
+if CFG.get("legs"):
+    # (BeastRig takes the legs' bones from here: a smooth skin has no blocks)
+    entry["beast_legs"] = CFG["legs"]
 meta_path = os.path.join(OUT, "actors.json")
 meta = json.load(open(meta_path)) if os.path.exists(meta_path) else {}
 meta[KIND] = entry

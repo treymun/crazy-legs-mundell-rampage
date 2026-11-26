@@ -389,12 +389,23 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 	var low_bone := -1
 	for m: Node in view.find_children("*", "MeshInstance3D", true, false):
 		var mesh := m as MeshInstance3D
+		if mesh.skin == null:
+			# (A held thing on its own bone, unskinned: the Meshy models'.)
+			continue
 		var arrays := mesh.mesh.surface_get_arrays(0)
 		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		if arrays[Mesh.ARRAY_BONES] == null:
+			continue
 		var vb: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+		var vw: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
 		var per := vb.size() / verts.size()
 		for v in range(0, verts.size(), 5):
-			var bind := vb[v * per]
+			# (Its strongest bone: a Meshy model's vertex may have several.)
+			var best := 0
+			for k in per:
+				if vw[v * per + k] > vw[v * per + best]:
+					best = k
+			var bind := vb[v * per + best]
 			var bone := mesh.skin.get_bind_bone(bind)
 			if bone < 0:
 				bone = skel.find_bone(mesh.skin.get_bind_name(bind))
@@ -414,7 +425,22 @@ func _lies_low(game: Game, kind: String, view: Node, r: RagdollRig, info: Dictio
 			low = minf(low, y)
 	if doll.awake:
 		return "%s: its ragdoll is still moving" % kind
-	if top > maxf(height * DOWN_HIGH, .5 / size):
+	# A beast lying on its side stands as high as its torso is wide: the
+	# Meshy cow's barrel is 0.94 across (the old block cow's 0.82) and lies
+	# 1.01 up, its standing height 1.45; a part higher than the torso's width
+	# and a tenth more is one left up in the air.
+	var wide := 0.0
+	if r is BeastRig:
+		var box := AABB()
+		var first := true
+		for b in mini(r.bone_seg.size(), r.bone_lo.size()):
+			if r.bone_seg[b] == 0 and r.bone_hi[b] != r.bone_lo[b]:
+				var part := AABB(r.bone_lo[b], r.bone_hi[b] - r.bone_lo[b])
+				box = part if first else box.merge(part)
+				first = false
+		# (Its narrower way across the floor: its width, whichever way it faces.)
+		wide = minf(box.size.x, box.size.z)
+	if top > maxf(maxf(height * DOWN_HIGH, .5 / size), wide * 1.1):
 		return (
 			"%s: a part (of segment %d) lies %.2f up (standing %.2f)" % [kind, top_seg, top, height]
 		)

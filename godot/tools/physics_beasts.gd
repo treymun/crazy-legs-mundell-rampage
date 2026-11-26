@@ -201,8 +201,14 @@ func _kind(game: Game, kind: String) -> void:
 			if hit > STRETCH_HIT:
 				faults.append("%s: a rigid link stretched %.0f%%" % [name, hit * 100.0])
 				print("    (worst link %s)" % worst_link)
-			if _stretch(doll) > STRETCH:
-				faults.append("%s: a rigid link lies stretched" % name)
+			var lying := _stretch(doll)
+			if lying > STRETCH:
+				faults.append(
+					(
+						"%s: a rigid link lies stretched (%s, %.0f%%)"
+						% [name, worst_link, lying * 100.0]
+					)
+				)
 			if doll.awake or t > REST_BY:
 				faults.append("%s: still moving after %.1f s" % [name, t])
 			var steps := doll.steps
