@@ -1,4 +1,4 @@
-# Meshy models track: handover (2026-11-26, second session)
+# Meshy models track: handover (2026-11-26, third session)
 
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
@@ -26,14 +26,14 @@ check_all quick: see the last line of this file for the latest result.
 
 ## Open, in order
 
-1. **13b hog (open)**: physics_check "hog blast from 0.0: a rigid link
-   stretched 73% (9-10)": a front leg's knee-foot link stays stretched
-   ~10 cm for 0.25 s while the blasted hog flies (0.42-0.68 s). Knee ball
-   size is not it. Suspect a joint limit fighting the link on the new rest
-   shape, or the leg root found high on the shoulder. Try: rebuild hog with
-   the new realign formula (this session changed it after the hog's last
-   build), "realign": false, or "realign": "mesh" (as BLUE).
-2. **Bosses** (baron, boss, foreman, jerry, maw, maw_bare, revenue_man,
+1. ~~13b hog~~ DONE (13c): physics_beasts shot every beast inside a wall
+   (Hickston's row 30 was walled in by pass 15); deaths now on open ground
+   (OPEN 30.5, 26.5), and BeastDoll FOOT_SLIDE slides a dead standing
+   beast's feet out (a crawler stood dead on its splayed feet). PHYSICS OK.
+2. **Bosses** - boss (sheriff) DONE as 17 on the people's path (see "Bosses
+   on the people's path" below). Left: jerry, rudy, foreman, baron,
+   revenue_man, maw, maw_bare (humanoid: same path), swamp_king (on his
+   airboat: beast path or keep the boat). Old notes: (baron, boss, foreman, jerry, maw, maw_bare, revenue_man,
    rudy, swamp_king; skip derby_champ) with their OLD weapon parts kept,
    and one boss physics video. Not written: build_beast.py needs the gear
    path (cut the old gear parts off the old mesh like build_actor's gear,
@@ -52,6 +52,36 @@ check_all quick: see the last line of this file for the latest result.
 4. Small open bits: noodler's red forearm cross-hatch and flat-peach
    hands; gator's dark crease at the back of the skull when the jaw lifts
    high; BLUE's lifted front paw folds flat at the wrist up close.
+
+## Bosses on the people's path (third session)
+
+build_actor.py with kind options (meshy/kinds/boss.json is the example):
+- "phases": true -> textures ["", "p2", "p3"] (sooted / charred + blood from
+  his own look); the held gear takes the old phase looks' gear texels
+  (<kind>_gear_p2/p3.png, gear_paste.py).
+- "shed": {name: rule} (meshy/tools/shed.py): boss_gear pieces as their own
+  bones "<name>_gear" (actors.json "gear" written from them; labels/segs of
+  the bone they ride). Hat rule {z, keep_z, keep_x (antennae kept on the
+  head), cap (skull cap height share), cap_colour, stalk_colour, ring_pct,
+  cap_base, cap_grow}; box rule {box{x,y,z}, hue, sat, val, lift} copies the
+  faces out (a badge). Find the z's with scratch scripts3/headprobe.py and
+  goldprobe.py on the built glb (rest pose), then look at the bare head with
+  `KV_HIDE=hat_gear,badge_gear KV_SCALE=.7 KV_C=0,1.95 blender -b -P
+  meshy-work/keys_zoom.py -- glb png out keys angles`.
+- "akimbo": [side] a fist on the hip (elbow out) in every living key.
+- "grip_parts": {side: [old bones]} when the colour rule takes gold/white
+  parts (badge, hat, white gloves) for the old hands; "gear_extra" for gold
+  gun parts the skin rule would drop; "gear_skip" stray bits.
+- For a masked/gloved boss: "skin_zones": ["hand_l", "hand_r"],
+  "face_lift_most": 1.0 (else the face lift and skin passes paint the
+  sleeves orange and lighten the mask); "gloves" [r,g,b] not too light
+  (it clips white); pale cloth needs more colour or it dithers pink
+  ("recolour" hat_straw in boss.json).
+- tour_for.py adds a "p2" shot for bosses (ingame_sheet day_p2/night_p2).
+- Physics video for a boss: boss_end_frames.gd big=<every 2nd frame> then
+  ffmpeg (17_boss_fall_physics.mp4; the commands are in this session's
+  INDEX line 17).
+- Bosses have no hit-reaction rows in live_frames (all rows read the same).
 
 ## The beast path now (build_beast.py; meshy/tools/beast.sh <kind> <NN>)
 
@@ -177,9 +207,4 @@ it worse, left off).
 - The make sheet's default keys skip `wind`; pass keys
   (`make_sheet.sh <kind> <out> <title> w1,wind,aim,fire,pain,die_2,down`).
 
-Last check_all quick (after BLUE 16): actor_check failed on BLUE's size
-(fixed in 16b, actor_check OK alone), voice_check failed in the parallel
-run only ("tough guy ... is an enemy kind"; passes alone - flaky, as
-tune/physics were last session), and wreck_motion_check hung once (a
-headless child sat 11 minutes; killed it by its command line; not seen
-before - watch for it). physics_check: the hog blast (open item 1).
+Last check_all quick: see the end of this session's report (third session).
