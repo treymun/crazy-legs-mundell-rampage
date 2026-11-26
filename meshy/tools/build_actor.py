@@ -2786,6 +2786,9 @@ def skin_even(px):
     near0 = (numpy.abs(((h - s0h + 180) % 360) - 180) < float(opt.get("hue_band", 14))) & (
         numpy.abs(sat - s0sat) < float(opt.get("sat_band", .2)))
     ext = ~HEADZONE & ~hm & warm & near0 & ~arm
+    if not opt.get("arms", True):
+        # (sleeves to the wrist: only the hands and the face are skin)
+        arm[:] = False
     if not opt.get("ext", True):
         # (sleeved arms: no bare elbows to find; pale boots or an apron of
         # the skin's hue must not be taken for skin)
@@ -2794,6 +2797,8 @@ def skin_even(px):
     ref = arm & SKIN_DONE
     if ref.sum() < 50:
         ref = arm
+    if ref.sum() < 50:
+        ref = hm
     lm = float(numpy.median(lum[ref]))
     # (cloth in the forearm zone - a rolled plaid cuff - is darker or far
     # more saturated than the skin; it stays)

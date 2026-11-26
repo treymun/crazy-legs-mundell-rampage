@@ -12,5 +12,9 @@
   "r": "pistol"
  },
  "colour": 1.6,
- "light": 0.9
+ "light": 0.9,
+ "skin_even": {
+  "ext": false,
+  "arms": false
+ }
 }
