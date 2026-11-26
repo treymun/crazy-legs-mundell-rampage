@@ -122,6 +122,9 @@ var bone_ride := PackedInt32Array()
 ## its end (a whole arm modelled as one piece, bent as it stands): it does
 ## not bend at its elbow or knee (1), else 0 (_find_gear).
 var stiff := PackedByteArray()
+## Each arm (left, right) whose hand holds a thing riding it (actors.json
+## "rides"): it does not let go to clutch a wound (LiveBody).
+var holds := PackedByteArray([0, 0])
 
 static var _built := {}
 ## How many rigs this process found from their models' vertices (_build),
@@ -210,6 +213,7 @@ static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 	if row.size() != 11 or row[0] != BAKED_FORMAT or row[1] != info_key(info):
 		return null
 	var rig := RagdollRig.new()
+	rig.holds = holds_of(info)
 	if not row[2]:
 		return rig
 	var skeletons := view.find_children("*", "Skeleton3D", true, false)
@@ -371,6 +375,34 @@ func _build(view: Node, info: Dictionary) -> void:
 				if v % 3 == 0:
 					every.append(at)
 					every_bone.append(bone)
+	# A held thing modelled as its own mesh hung off a bone (a
+	# BoneAttachment3D: the Meshy models' guns, never skinned) is a part of
+	# that bone, every vertex wholly its.
+	for m: Node in meshes:
+		var held := m as MeshInstance3D
+		if held.mesh == null or held.skin != null or not held.get_parent() is BoneAttachment3D:
+			continue
+		var attach := held.get_parent() as BoneAttachment3D
+		var bone := skeleton.find_bone(attach.bone_name)
+		if bone < 0 or bone_keep[bone] == 0:
+			continue
+		var local := held.transform
+		for surface in held.mesh.get_surface_count():
+			var arrays := held.mesh.surface_get_arrays(surface)
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			for v in verts.size():
+				var at := bone_rest[bone] * (local * verts[v])
+				part_mid[bone] += at
+				if part_n[bone] == 0:
+					bone_lo[bone] = at
+					bone_hi[bone] = at
+				else:
+					bone_lo[bone] = bone_lo[bone].min(at)
+					bone_hi[bone] = bone_hi[bone].max(at)
+				part_n[bone] += 1
+				all_at.append(at)
+				all_bone.append(bone)
+				all_label.append(bone_label[bone] if dead_scale[bone].x >= .2 else -1)
 	# Each label's cloud in the vertices' order, made in one pass (appending
 	# to an array held in a Dictionary copied it whole every time).
 	var clouds := {}
@@ -395,6 +427,9 @@ func _build(view: Node, info: Dictionary) -> void:
 	anchors.fill(-1)
 	var biggest := PackedInt32Array()
 	biggest.resize(ENDS.size())
+	var rides: Dictionary = info.get("rides", {})
+	var segs: Dictionary = info.get("segs", {})
+	holds = holds_of(info)
 	for i in bones:
 		var label: String = labels.get(skeleton.get_bone_name(i), "body")
 		var mid: Vector3 = part_mid[i] / float(part_n[i]) if part_n[i] > 0 else bone_rest[i].origin
@@ -410,6 +445,19 @@ func _build(view: Node, info: Dictionary) -> void:
 				seg = _half(mid, HIP_L, FOOT_L, 6)
 			"leg_r":
 				seg = _half(mid, HIP_R, FOOT_R, 8)
+		# A model that names each bone's segment (actors.json "segs": the
+		# Meshy models, a bone a body piece) is not guessed at: a bent
+		# forearm's middle can sit in the upper half of the shoulder-to-hand
+		# reach. A held thing rides the hand that holds it ("rides": the
+		# Meshy models' guns, the gun hand's forearm) and never stands for a
+		# limb's motion.
+		if segs.has(skeleton.get_bone_name(i)):
+			var named: int = segs[skeleton.get_bone_name(i)]
+			seg = clampi(named, 0, ENDS.size() - 1)
+		elif rides.has(skeleton.get_bone_name(i)):
+			var ride: int = rides[skeleton.get_bone_name(i)]
+			bone_seg[i] = clampi(ride, 0, ENDS.size() - 1)
+			continue
 		bone_seg[i] = seg
 		if part_n[i] > biggest[seg]:
 			biggest[seg] = part_n[i]
@@ -862,6 +910,20 @@ func _points(clouds: Dictionary) -> bool:
 		and points[SH_L].distance_to(points[SH_R]) > height * .06
 		and points[HIP_L].distance_to(points[HIP_R]) > height * .02
 	)
+
+
+## Which arms (left, right) hold a thing riding them (actors.json "rides":
+## the segment 3 is the left forearm, 5 the right).
+static func holds_of(info: Dictionary) -> PackedByteArray:
+	var out := PackedByteArray([0, 0])
+	var rides: Dictionary = info.get("rides", {})
+	for held_name: String in rides:
+		var ride: int = rides[held_name]
+		if ride == 3:
+			out[0] = 1
+		elif ride == 5:
+			out[1] = 1
+	return out
 
 
 ## A model rigged with a bone on each of the ragdoll's points (actors.json

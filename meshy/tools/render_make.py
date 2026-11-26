@@ -125,6 +125,33 @@ for k in KEYS:
         aim(35 if not k.startswith("d") else 90)
         render(os.path.join(OUT, "%s_%s_key_%s.png" % (KIND, who, k)))
 
+# The hands close up (what they hold), new and old, at a few keys: framed
+# on the new model's hands.
+for k in ["0", "w1", "aim", "fire"]:
+    if k not in frames:
+        continue
+    sc.frame_set(int(frames[k]))
+    bpy.context.view_layer.update()
+    hl = new_arm.matrix_world @ new_arm.pose.bones["hand_l"].head if "hand_l" in new_arm.pose.bones else None
+    hr = new_arm.matrix_world @ new_arm.pose.bones["hand_r"].head if "hand_r" in new_arm.pose.bones else None
+    mid = (hl + hr) / 2 if hl and hr else Vector((0, 0, H * .55))
+    span = max(.42, (hl - hr).length * 1.5) if hl and hr else .5
+    cd.ortho_scale = span
+    for who, meshes, fr in (("new", new_meshes, frames), ("old", old_meshes, old_frames)):
+        show(old_meshes, who == "old")
+        show(new_meshes, who == "new")
+        sc.frame_set(int(fr.get(k, fr["0"])))
+        for vname, ang in (("front", 15), ("side", 70)):
+            a = math.radians(ang)
+            cam.location = mid + Vector((math.sin(a) * 6, -math.cos(a) * 6, 0))
+            cam.rotation_euler = (mid - cam.location).to_track_quat("-Z", "Y").to_euler()
+            sc.render.resolution_x = 300
+            sc.render.resolution_y = 300
+            render(os.path.join(OUT, "%s_%s_hands_%s_%s.png" % (KIND, who, k, vname)))
+sc.render.resolution_x = 360
+sc.render.resolution_y = 440
+cd.ortho_scale = H * 1.22
+
 # The rest (A-pose) with its skeleton and the ragdoll's points.
 show(old_meshes, False)
 show(new_meshes, True)

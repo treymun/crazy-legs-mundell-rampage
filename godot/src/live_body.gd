@@ -304,11 +304,16 @@ func hit(j: Vector2, hz: float, lat: float, zone: String, seed: int) -> void:
 			hand = 1 - limp_arm
 		elif absf(across) < radius[R.BELLY] * .5:
 			hand = 0 if dice.randf() < .5 else 1
-		# An arm modelled as one piece (RagdollRig.stiff) cannot bend to it:
-		# the other hand, or none.
-		if _stiff(R.SH_L if hand == 0 else R.SH_R):
+		# An arm modelled as one piece (RagdollRig.stiff) cannot bend to it,
+		# and a hand holding a gun keeps it (RagdollRig.holds): the other
+		# hand, or none.
+		if _stiff(R.SH_L if hand == 0 else R.SH_R) or _holding(hand):
 			hand = 1 - hand
-		if _stiff(R.SH_L if hand == 0 else R.SH_R) or (zone == "arms" and hand == limp_arm):
+		if (
+			_stiff(R.SH_L if hand == 0 else R.SH_R)
+			or _holding(hand)
+			or (zone == "arms" and hand == limp_arm)
+		):
 			hand = -1
 		clutch_hand = hand
 		var lo: float = CLUTCH[0]
@@ -355,6 +360,11 @@ func done() -> bool:
 	for i in R.POINTS:
 		off = maxf(off, pos[i].distance_to(target[i]))
 	return off < .06 * size
+
+
+## Whether hand `hand` (0 left, 1 right) holds a thing it keeps hold of.
+func _holding(hand: int) -> bool:
+	return rig != null and hand >= 0 and hand < rig.holds.size() and rig.holds[hand] == 1
 
 
 ## The muscles' stiffness now for group `g` (soft after a hit, back over RECOVER).

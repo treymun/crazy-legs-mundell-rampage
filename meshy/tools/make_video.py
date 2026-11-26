@@ -19,11 +19,29 @@ shutil.rmtree(tmp, ignore_errors=True)
 os.makedirs(tmp)
 font = ImageFont.truetype("C:/Windows/Fonts/consolab.ttf", 22)
 n = 0
+CROP = (440, 120, 760, 520)
 for row, caption in rows:
-    files = sorted(f for f in os.listdir(os.path.join(src, row)) if f.endswith(".png"))
-    for speed, tag in ((1, "real speed"), (2, "half speed")):
-        for f in files:
-            im = Image.open(os.path.join(src, row, f)).convert("RGB").resize((960, 600), Image.NEAREST)
+    close = row.startswith("close=")
+    if close:
+        # A close-up: the full window's frames (ROW_FULL), the body's middle.
+        row = row[6:]
+        full = src + "_full"
+        files = sorted((f for f in os.listdir(full) if f.startswith("full_%s_" % row)),
+                       key=lambda f: int(f.rsplit("_", 1)[1][:-4]))
+        paths = [os.path.join(full, f) for f in files]
+        speeds = ((2, "half speed"), (4, "quarter speed"))
+    else:
+        files = sorted(f for f in os.listdir(os.path.join(src, row)) if f.endswith(".png"))
+        paths = [os.path.join(src, row, f) for f in files]
+        speeds = ((1, "real speed"), (2, "half speed"))
+    for speed, tag in speeds:
+        for path in paths:
+            if close:
+                c = Image.open(path).convert("RGB").crop(CROP).resize((480, 600), Image.NEAREST)
+                im = Image.new("RGB", (960, 600), (16, 16, 18))
+                im.paste(c, (240, 0))
+            else:
+                im = Image.open(path).convert("RGB").resize((960, 600), Image.NEAREST)
             d = ImageDraw.Draw(im)
             text = "%s (new Meshy model): %s, %s" % (kind, caption, tag)
             d.rectangle([0, 0, 960, 30], fill=(0, 0, 0))

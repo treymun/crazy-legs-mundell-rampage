@@ -33,11 +33,13 @@ def make(tiles, kind, out, title, keys):
     rig = [tile("rig_front"), tile("rig_side")]
     keyrow_old = [tile("old_key_" + k) for k in keys]
     keyrow_new = [tile("new_key_" + k) for k in keys]
+    hand_keys = [k for k in ("0", "w1", "aim", "fire") if tile("new_hands_%s_front" % k)]
     tw, th = 360, 440
     sc = .62
     tw2, th2 = int(tw * sc), int(th * sc)
-    width = max(4 * tw, 2 * tw + 10, len(keys) * tw2) + 20
-    height = 60 + 2 * (th + 30) + (th + 30) + 2 * (th2 + 30) + 20
+    width = max(4 * tw, 2 * tw + 10, len(keys) * tw2, len(hand_keys) * (2 * 194 + 10)) + 20
+    hs = 190
+    height = 60 + 2 * (th + 30) + (th + 30) + 2 * (th2 + 30) + 20 + (2 * hs + 60 if hand_keys else 0)
     sheet = Image.new("RGB", (width, height), (24, 24, 28))
     label(sheet, title, 24, (10, 12))
     y = 56
@@ -62,6 +64,21 @@ def make(tiles, kind, out, title, keys):
                 sheet.paste(im.resize((tw2, th2), Image.LANCZOS), (10 + i * tw2, y))
                 label(sheet, keys[i], 13, (14 + i * tw2, y + 2))
         y += th2 + 6
+    if hand_keys:
+        label(sheet, "HANDS close up (what they hold): " + ", ".join("key " + k for k in hand_keys)
+              + " - each key front and side; NEW above, OLD below", 16, (10, y))
+        y += 24
+        for row, who in enumerate(("new", "old")):
+            x = 10
+            for k in hand_keys:
+                for v in ("front", "side"):
+                    im = tile("%s_hands_%s_%s" % (who, k, v))
+                    if im:
+                        sheet.paste(im.resize((hs, hs), Image.LANCZOS), (x, y))
+                        label(sheet, "%s %s %s" % (who.upper(), k, v), 12, (x + 3, y + 2))
+                    x += hs + 4
+                x += 10
+            y += hs + 6
     sheet.save(out, optimize=True)
     print("sheet", out, sheet.size, os.path.getsize(out) // 1024, "KB")
 

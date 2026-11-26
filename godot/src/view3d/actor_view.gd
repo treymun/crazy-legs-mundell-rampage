@@ -45,6 +45,10 @@ const BOSS_EASE := .22
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
 
+## Knocked down with a gun in hand, how far ahead of the chest the gun hand
+## holds it (shoulder widths).
+const HELD_THRUST := 1.3
+
 var models: ActorModels
 ## The dead body's ragdoll (null while alive or with a scripted fall); the
 ## layer keeps it while the body is out of sight.
@@ -389,6 +393,18 @@ func _live_step(e: Enemy, level: LevelData, clock: float, body: Vector3) -> void
 	var pitch: float = 0.0 if note.is_empty() else note[Stagger.PITCH]
 	var pitched := pitch > .5
 	live.play_says(not note.is_empty(), 1 if down > 0.0 else -1 if down < 0.0 else 0, pitched)
+	# Knocked down holding a gun (RagdollRig.holds), the gun hand thrusts it
+	# out in front, clear of the folding legs and belly.
+	for side in 2:
+		if side < _rig.holds.size() and _rig.holds[side] == 1:
+			var hand := RagdollRig.HAND_L if side == 0 else RagdollRig.HAND_R
+			if down != 0.0:
+				var chest := (aim[RagdollRig.SH_L] + aim[RagdollRig.SH_R]) * .5
+				var ahead := (aim[RagdollRig.BELLY] - aim[RagdollRig.BACK]).normalized()
+				var reach := aim[RagdollRig.SH_L].distance_to(aim[RagdollRig.SH_R])
+				live.aim_override[hand] = chest + ahead * reach * HELD_THRUST
+			else:
+				live.aim_override[hand] = Vector3.INF
 	live.advance(level, dt)
 	var back := transform.affine_inverse()
 	var alpha := live.alpha()

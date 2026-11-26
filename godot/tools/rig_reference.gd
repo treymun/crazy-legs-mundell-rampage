@@ -181,6 +181,31 @@ func _build(view: Node, info: Dictionary) -> void:
 				if v % 3 == 0:
 					every.append(at)
 					every_bone.append(bone)
+	# (The Meshy models: a held thing as its own mesh under a BoneAttachment3D
+	# is wholly its bone's.)
+	for m: Node in meshes:
+		var held := m as MeshInstance3D
+		if held.mesh == null or held.skin != null or not held.get_parent() is BoneAttachment3D:
+			continue
+		var bone := skeleton.find_bone((held.get_parent() as BoneAttachment3D).bone_name)
+		if bone < 0 or bone_rest[bone].basis.get_scale().x < .2:
+			continue
+		var label: String = labels.get(skeleton.get_bone_name(bone), "body")
+		if dead_scale[bone].x < .2:
+			label = "lost"
+		for surface in held.mesh.get_surface_count():
+			var verts: PackedVector3Array = held.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+			for v in verts.size():
+				var at := bone_rest[bone] * (held.transform * verts[v])
+				if not clouds.has(label):
+					clouds[label] = PackedVector3Array()
+				var cloud: PackedVector3Array = clouds[label]
+				cloud.append(at)
+				clouds[label] = cloud
+				part_mid[bone] += at
+				part_n[bone] += 1
+				all_at.append(at)
+				all_bone.append(bone)
 	_mirror_limbs(clouds)
 	for label: String in LIMBS:
 		var cloud: PackedVector3Array = clouds.get(label, PackedVector3Array())
@@ -188,6 +213,15 @@ func _build(view: Node, info: Dictionary) -> void:
 			return
 	if not _points(clouds):
 		return
+	# (The Meshy models: the points on the bones actors.json "joints" names.)
+	var joints: Dictionary = info.get("joints", {})
+	for key: String in joints:
+		var bone := skeleton.find_bone(str(joints[key]))
+		var i := key.to_int()
+		if bone >= 0 and i >= 0 and i < BELLY:
+			points[i] = bone_rest[bone].origin
+	var rides: Dictionary = info.get("rides", {})
+	var segs: Dictionary = info.get("segs", {})
 	# Each part's segment: by label, then the upper or lower half of the limb.
 	bone_seg.resize(bones)
 	anchors.resize(ENDS.size())
@@ -209,6 +243,13 @@ func _build(view: Node, info: Dictionary) -> void:
 				seg = _half(mid, HIP_L, FOOT_L, 6)
 			"leg_r":
 				seg = _half(mid, HIP_R, FOOT_R, 8)
+		if segs.has(skeleton.get_bone_name(i)):
+			var named: int = segs[skeleton.get_bone_name(i)]
+			seg = clampi(named, 0, ENDS.size() - 1)
+		elif rides.has(skeleton.get_bone_name(i)):
+			var ride: int = rides[skeleton.get_bone_name(i)]
+			bone_seg[i] = clampi(ride, 0, ENDS.size() - 1)
+			continue
 		bone_seg[i] = seg
 		if part_n[i] > biggest[seg]:
 			biggest[seg] = part_n[i]

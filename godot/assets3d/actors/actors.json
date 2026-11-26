@@ -673,12 +673,12 @@
 		]
 	},
 	"billy": {
-		"bones": 22.0,
+		"bones": 15.0,
 		"canvas": [
 			1.75,
 			1.86
 		],
-		"faces": 10597.0,
+		"faces": 9999.0,
 		"frames": {
 			"0": 0.0,
 			"aim": 6.0,
@@ -734,13 +734,6 @@
 			"forearm_l": "arm_l",
 			"forearm_r": "arm_r",
 			"gear0": "arm_r",
-			"gear1": "arm_r",
-			"gear2": "arm_r",
-			"gear3": "arm_r",
-			"gear4": "arm_r",
-			"gear5": "arm_r",
-			"gear6": "arm_r",
-			"gear7": "arm_r",
 			"hand_l": "arm_l",
 			"hand_r": "arm_r",
 			"head": "head",
@@ -753,7 +746,26 @@
 		},
 		"lit": true,
 		"meshy": true,
-		"parts": 22.0,
+		"parts": 15.0,
+		"rides": {
+			"gear0": 5.0
+		},
+		"segs": {
+			"body": 0.0,
+			"foot_l": 7.0,
+			"foot_r": 9.0,
+			"forearm_l": 3.0,
+			"forearm_r": 5.0,
+			"hand_l": 3.0,
+			"hand_r": 5.0,
+			"head": 1.0,
+			"shin_l": 7.0,
+			"shin_r": 9.0,
+			"thigh_l": 6.0,
+			"thigh_r": 8.0,
+			"upperarm_l": 2.0,
+			"upperarm_r": 4.0
+		},
 		"textures": [
 			"",
 			"hurt"
