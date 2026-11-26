@@ -70,9 +70,9 @@
     50,
     40
    ],
-   "ring_pct": 85,
-   "cap_base": 0.006,
-   "cap_grow": 0.85,
+   "ring_pct": 94,
+   "cap_base": 0.012,
+   "cap_grow": 0.95,
    "within": 0.27,
    "radial": [
     0,
@@ -80,7 +80,14 @@
     1.68
    ],
    "lift": 0.015,
-   "rim_drop": 0.012
+   "rim_drop": 0.012,
+   "cap_noise": 0.3,
+   "cap_shift": [
+    0,
+    0.03
+   ],
+   "cap_shag": 0.007,
+   "cap_ymin": -0.17
   },
   "helmet_mask": {
    "gear": "helmet",
@@ -138,7 +145,12 @@
     -0.07,
     1.68
    ],
-   "within": 0.25
+   "within": 0.25,
+   "shag": {
+    "shrink": 0.012,
+    "amp": 0.012,
+    "clamp": 0.2
+   }
   },
   "helmet_low": {
    "gear": "helmet",
@@ -181,7 +193,12 @@
    "val": [
     0.25,
     1
-   ]
+   ],
+   "shag": {
+    "shrink": 0.012,
+    "amp": 0.012,
+    "clamp": 0.2
+   }
   },
   "helmet_brim": {
    "gear": "helmet",
@@ -212,7 +229,7 @@
     0.2,
     1
    ],
-   "lift": 0.008,
+   "lift": 0.018,
    "radial": [
     0,
     -0.07,
@@ -223,7 +240,12 @@
     66,
     50,
     40
-   ]
+   ],
+   "shag": {
+    "shrink": 0.012,
+    "amp": 0.012,
+    "clamp": 0.2
+   }
   }
  }
 }

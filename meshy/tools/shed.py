@@ -242,6 +242,23 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                         f[paint] = PAINT_ZONE
             for f in take:
                 f[paint] = {"skin": PAINT_SKIN, "cap": PAINT_CAP}.get(rule.get("under"), PAINT_INPAINT)
+            # "shag" {shrink, amp, clamp}: the head left under a helmet's
+            # shell drawn in from the shell's round bulk to a shaggy outline
+            # - clumps of hair round the ears and the back, nothing standing
+            # out past `clamp` m from the radial centre.
+            sg = rule.get("shag")
+            if sg and rc is not None:
+                rng = numpy.random.default_rng(int(sg.get("seed", 3)))
+                tv = {v for f in take for v in f.verts}
+                for v in sorted(tv, key=lambda v: v.index):
+                    d_ = v.co - rc
+                    ln = d_.length
+                    if ln < 1e-4:
+                        continue
+                    th = math.atan2(d_.y, d_.x)
+                    n = .6 * math.sin(7 * th + v.co.z * 40) + .4 * (rng.random() * 2 - 1)
+                    want = min(ln, float(sg.get("clamp", 9))) - float(sg.get("shrink", .01)) + float(sg.get("amp", .008)) * n
+                    v.co = rc + d_ / ln * max(want, ln * .6)
             for f in new_f + back_f:
                 f[paint] = 0
             claimed.update(take + new_f + back_f)
@@ -308,7 +325,22 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
             if rule.get("cap"):
                 hz = float(rule["cap"]) * (rx + ry) / 2
                 cg = float(rule.get("cap_grow", .97))
-                cap_f = _dome(bm, cen, rx * cg, ry * cg, hz, base=float(rule.get("cap_base", .03)))
+                cs = rule.get("cap_shift", [0.0, 0.0])
+                cap_c = cen + Vector((float(cs[0]), float(cs[1]), 0.0))
+                cap_f = _dome(bm, cap_c, rx * cg, ry * cg, hz, base=float(rule.get("cap_base", .03)))
+                # ("cap_ymin": its front kept behind a helmet's brow)
+                if rule.get("cap_ymin") is not None:
+                    for v in {v for f in cap_f for v in f.verts}:
+                        v.co.y = max(v.co.y, float(rule["cap_ymin"]))
+                # ("cap_shag": hair, not a smooth cap - clumps in and out)
+                if rule.get("cap_shag"):
+                    rng = numpy.random.default_rng(11)
+                    for v in sorted({v for f in cap_f for v in f.verts}, key=lambda v: v.index):
+                        d_ = v.co - cap_c
+                        th = math.atan2(d_.y, d_.x)
+                        n = .6 * math.sin(6 * th + v.co.z * 50) + .4 * (rng.random() * 2 - 1)
+                        if d_.length > 1e-4:
+                            v.co += d_.normalized() * float(rule["cap_shag"]) * n
                 tops = []
                 kept = [v for v in bm.verts if v not in hv and keep(v.co)]
                 for side in (-1, 1):
@@ -464,7 +496,7 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, sk
                 m = idm == pid
                 c = numpy.array(rule[key], dtype=float) / 255.0
                 # a little light from above in the texel's own noise
-                k = 1.0 + (numpy.random.default_rng(7).random(m.sum()) - .5) * .06
+                k = 1.0 + (numpy.random.default_rng(7).random(m.sum()) - .5) * float(rule.get("cap_noise", .06))
                 rgb[m] = numpy.clip(c[None, :] * k[:, None], 0, 1)
                 log("MESHY shed: %d texels the %s %s" % (int(m.sum()), key, rule[key]))
     total[:, :3] = rgb.reshape(-1, 3)

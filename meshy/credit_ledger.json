@@ -610,6 +610,39 @@
    "time": "2026-11-26 10:57:04",
    "after": 2075,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "rudy_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a218f6-bde9-70f2-b5cf-f12bb26ac499",
+   "before": 2075,
+   "cost": 9,
+   "body": "rudy_concept.json",
+   "time": "2026-11-26 11:45:56",
+   "after": 2066,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "rudy_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a218f7-7880-776c-bb11-7ff8abcd2673",
+   "before": 2066,
+   "cost": 30,
+   "body": "rudy_model.json",
+   "time": "2026-11-26 11:46:46",
+   "after": 2036,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "rudy_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a218f8-a391-71f2-b56f-85f785b4511a",
+   "before": 2036,
+   "cost": 5,
+   "body": "rudy_rig.json",
+   "time": "2026-11-26 11:48:03",
+   "after": 2031,
+   "status": "SUCCEEDED"
   }
  ]
 }

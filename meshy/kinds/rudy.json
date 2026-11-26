@@ -1,0 +1,22 @@
+{
+ "kind": "rudy",
+ "rigged": "../meshy-work/meshy_out/rudy_rig/rigged.glb",
+ "poses": "../meshy-work/dump/rudy_poses.json",
+ "old_glb": "../meshy-work/old/rudy.glb",
+ "old_tex": "../meshy-work/old/actor3d_rudy.png",
+ "out": "../meshy-work/raw/rudy",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "phases": true,
+ "hold_legs": true,
+ "skin_zones": [
+  "head"
+ ],
+ "hands_paint": "texture",
+ "gloves": [
+  150,
+  147,
+  138
+ ]
+}
