@@ -830,8 +830,13 @@ if gear_obj is not None:
         ctr = Vector(pts.mean(axis=0))
         ax = Vector(numpy.linalg.svd(pts - pts.mean(axis=0))[2][0])
         proj = (pts - numpy.array(ctr[:])) @ numpy.array(ax[:])
-        lo_e, hi_e = ctr + ax * float(proj.min()), ctr + ax * float(proj.max())
         perp = (pts - numpy.array(ctr[:])) - numpy.outer(proj, numpy.array(ax[:]))
+        # The rear end (lo) is the thicker one: a stock, a grip, a handle.
+        pw = numpy.linalg.norm(perp, axis=1)
+        if pw[proj > 0].mean() > pw[proj < 0].mean():
+            ax = -ax
+            proj = -proj
+        lo_e, hi_e = ctr + ax * float(proj.min()), ctr + ax * float(proj.max())
         rad = float(numpy.percentile(numpy.linalg.norm(perp, axis=1), 70))
         holds = {}
         for side in ("l", "r"):
@@ -844,7 +849,10 @@ if gear_obj is not None:
             near = min(("l", "r"), key=lambda sd: (old_hand(sd, "0", P0) - ctr).length)
             holds[near] = .5
         it = {"bone": gname, "big": cluster[0], "lo": lo_e, "hi": hi_e, "rad": min(rad, .05), "holds": holds,
-              "two": len(holds) == 2, "main": "r" if "r" in holds else "l", "fwd": _new_front - _old_front}
+              "two": len(holds) == 2,
+              # (the hand on the rear end is the gun hand)
+              "main": min(holds, key=lambda sd: holds[sd]) if len(holds) == 2 else ("r" if "r" in holds else "l"),
+              "fwd": _new_front - _old_front}
         ITEMS.append(it)
         print("MESHY item %s: %.2f m, held %s, forward fix %.3f" % (
             gname, (hi_e - lo_e).length, {k: round(v, 2) for k, v in holds.items()}, it["fwd"]))
@@ -2135,6 +2143,11 @@ def hand_match(px):
         hsel = hm & (lum2 >= numpy.percentile(lum2[hm], 40))
         have = numpy.median(rgb[hsel], axis=0)
         rgb[hm] = numpy.clip(rgb[hm] * (want / numpy.maximum(have, 1e-4))[None, :], 0, 1)
+        # The hands take only that one tone, shaded by their own light: no
+        # hot red or orange texel (blush, bake noise) left on a knuckle.
+        wl = float(want @ numpy.array([.299, .587, .114]))
+        hl = rgb[hm] @ numpy.array([.299, .587, .114])
+        rgb[hm] = numpy.clip(want[None, :] * (hl / max(wl, 1e-4))[:, None], 0, 1)
         print("MESHY hands matched to the body's skin", numpy.round(want * 255).astype(int))
     # Skin a little more coloured than Meshy paints it: a pale, greyish skin
     # falls between the palette's entries and dithers into beige and teal
