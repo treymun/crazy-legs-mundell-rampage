@@ -52,6 +52,11 @@ clone 04f: DONE (44 cr; balance 1,581, track 1,357 of 2,500). Built with
 dark smudge again (the owner's complaint). USE "head_noshadow": true FOR
 EVERY KIND WITH A HAT, HELMET OR BRIM (cheap: one more bake per turn).
 Face close-up: headshots.sh <kind> none <cz> out.png (KV_SCALE .5).
+clone open: live probe chest row reads the gun 5.1 cm into the body at one
+blended picture (key 7) - look at live/clone_probe/chest.png picture 10.
+NEXT SESSION, in order: jerry 19f (eyes + bare head, see above), baron
+22c (redo; use head_noshadow - top hat brim), then swamp_king, the 16
+humanoids, skeeter, rudy 20b etc. Latest commit: see git log.
 Then baron 22c, swamp_king, the 16 humanoids (see the coordinator order).
 
 ## Fifth session
