@@ -1320,6 +1320,17 @@ def solve(name, dz=0.0, held0=None):
                 Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
                 palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (it["rad"] * .6)
                 Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-grip)
+            elif held0 is None and side in HANDF and ITEM_TYPE.get(side, "carry") == "carry":
+                # Carried hanging (a jug, a bottle, a lantern): by its top (the
+                # handle or neck) in the fist, the thing hanging below the hand.
+                wrist0, a0, n0 = HANDF[side]
+                Rh = D["hand_" + side].to_3x3()
+                a_w = (Rh @ a0).normalized()
+                pts = [Vector(g) for g in ITEM_PTS.get(it["bone"], [])]
+                top = min(pts, key=lambda g: g.dot(a_w)) if pts else it["lo"]
+                # (its top a little into the fist, past the palm's middle)
+                hold = D["hand_" + side] @ J["hand_" + side] + a_w * (HANDS[side].length * .12 if side in HANDS else .02)
+                Di = Matrix.Translation(hold - top)
             elif held0 is None:
                 # The standing key: the old thing's grip put into the new palm.
                 lo_e, hi_e = it["lo"], it["hi"]

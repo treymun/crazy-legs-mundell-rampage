@@ -11,7 +11,7 @@ sh meshy/tools/ingame.sh $K $AHEAD > /dev/null
 .venv/Scripts/python.exe meshy/tools/ingame_sheet.py $K "$SP/meshy-work/ingame/${K}_old" "$SP/meshy-work/ingame/${K}_new" "$SP/meshy-previews/${NN}_${K}_ingame.png" "$NN $K"
 cd "$SP/meshy-work"
 rm -rf live/${K}_probe; mkdir -p live/${K}_probe
-./gd.sh --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/live_frames.gd -- out=$(pwd -W)/live/${K}_probe rows=chest,legs,arm,head,running,knock kind=$K probe 2>&1 | grep -E "GEAR PROBE|SCRIPT ERROR"
+./gd.sh --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/live_frames.gd -- out=$(pwd -W)/live/${K}_probe rows=chest,legs,arm,head,running,stacked,buckshot,knock kind=$K probe 2>&1 | grep -E "PROBE|ARMS|SCRIPT ERROR" > probe_$K.txt; cat probe_$K.txt
 rm -rf death/${K}_new; mkdir -p death/${K}_new
 ./gd.sh --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/death_frames.gd -- out=$(pwd -W)/death/${K}_new audit rows=billy_shotgun_near,billy_head kind=$K 2>&1 | grep -E "SCRIPT ERROR"
 "/c/Users/treym/AppData/Local/Programs/Blender/blender.exe" -b -P scripts/hands_render.py -- "$SP/p16-meshy/godot/assets3d/actors/$K.glb" "$SP/p16-meshy/assets/art/actor3d_$K.png" q/h_$K 0,2,6,8 > /dev/null 2>&1

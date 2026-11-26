@@ -337,6 +337,15 @@ def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name):
     # As thick at the wrist as the forearm it joins (a chunky body's hands).
     kw = max(kw, min(1.35, wrist_r * 2.0 / (length * info["width"] * .62)))
     kt = max(kt, min(1.35, wrist_r * 1.6 / (length * info["thick"] * 1.1)))
+    # The wrist sleeved a little way up into the forearm (no gap at the seam
+    # however the forearm's cut runs), its ring narrowed toward the forearm.
+    for v in obj.data.vertices:
+        z = v.co.z
+        if z < .07:
+            k = (.07 - z) / .07
+            v.co.z = z - k * .09
+            v.co.x *= 1.0 - .18 * k
+            v.co.y *= 1.0 - .18 * k
     S = Matrix.Diagonal((length * kt, length * kw, length, 1))
     M = Matrix((n, t, a)).transposed().to_4x4()
     X = Matrix.Translation(wrist) @ M @ S
