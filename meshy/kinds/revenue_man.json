@@ -1,0 +1,103 @@
+{
+ "kind": "revenue_man",
+ "rigged": "../meshy-work/meshy_out/revenue_man_rig/rigged.glb",
+ "poses": "../meshy-work/dump/revenue_man_poses.json",
+ "old_glb": "../meshy-work/old/revenue_man.glb",
+ "old_tex": "../meshy-work/old/actor3d_revenue_man.png",
+ "out": "../meshy-work/raw/revenue_man",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "phases": true,
+ "skin_even": {
+  "ext": false,
+  "arms": false
+ },
+ "hold_legs": true,
+ "grip_parts": {
+  "r": [
+   "b111"
+  ],
+  "l": [
+   "b115"
+  ]
+ },
+ "slung": {
+  "a": [
+   -0.22,
+   0.34,
+   1.02
+  ],
+  "b": [
+   0.22,
+   0.25,
+   1.83
+  ],
+  "side": 1,
+  "r": 0.016,
+  "head": [
+   0.11,
+   0.2,
+   0.036
+  ],
+  "head_colour": [
+   214,
+   36,
+   28
+  ],
+  "edge_colour": [
+   175,
+   175,
+   172
+  ]
+ },
+ "shed": {
+  "hat": {
+   "z": 1.752,
+   "cap": 0.55,
+   "cap_colour": [
+    118,
+    116,
+    110
+   ],
+   "ring_pct": 92,
+   "cap_base": 0.006,
+   "cap_grow": 1.0
+  },
+  "shades": {
+   "box": {
+    "x": [
+     -0.13,
+     0.13
+    ],
+    "y": [
+     -0.45,
+     -0.1
+    ],
+    "z": [
+     1.62,
+     1.75
+    ]
+   },
+   "hue": [
+    185,
+    255
+   ],
+   "sat": [
+    0.2,
+    1
+   ],
+   "val": [
+    0.15,
+    1
+   ],
+   "lift": 0.008,
+   "under": "skin"
+  }
+ },
+ "skin_zones": [
+  "head",
+  "hand_l",
+  "hand_r"
+ ]
+}

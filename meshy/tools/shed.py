@@ -33,6 +33,7 @@ from mathutils import Matrix, Vector
 PAINT_INPAINT = 1
 PAINT_CAP = 2
 PAINT_STALK = 3
+PAINT_SKIN = 7
 
 
 def _meshy_image(hi):
@@ -173,7 +174,7 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                     del v[dl][k]
                 v[dl][gidx[bone]] = 1.0
             for f in take:
-                f[paint] = PAINT_INPAINT
+                f[paint] = PAINT_SKIN if rule.get("under") == "skin" else PAINT_INPAINT
             for f in new_f + back_f:
                 f[paint] = 0
             pieces[bone] = new_v + back_v
@@ -198,6 +199,17 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                      if any(f in hat_set for f in e.link_faces) and any(f not in hat_set for f in e.link_faces)]
             bmesh.ops.split_edges(bm, edges=edges)
             hv = {v for f in hat_f for v in f.verts}
+            # The cut's two rims evened onto one level (a ragged edge of
+            # triangle tips round the bare head otherwise): the hat's lower
+            # edge at z, the head's just under it, where the cap meets it.
+            if rule.get("even_rim", True):
+                for e in bm.edges:
+                    if e.is_boundary:
+                        for v in e.verts:
+                            if v in hv:
+                                v.co.z = max(v.co.z, z0) if v.co.z > z0 - .03 else v.co.z
+                            elif abs(v.co.z - z0) < .05:
+                                v.co.z = min(v.co.z, z0 - .004)
             for v in hv:
                 for k in list(v[dl].keys()):
                     del v[dl][k]
@@ -269,7 +281,7 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
     return out
 
 
-def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print):
+def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, skin=None):
     """After the bake: the painted-over faces filled from the cloth round
     them, the cap and stalks their colours. `total` is changed in place."""
     att = lo.data.attributes.get("paint_id")
@@ -320,6 +332,22 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print):
             good |= take
             miss &= ~take
         log("MESHY shed: %d texels painted over from round about" % int(over.sum()))
+    # plain colours by paint id (kind config "paint" {id: [r, g, b]}: the
+    # slung axe's wood, head and edge), a little light from above
+    for pid, col in cfg.get("paint", {}).items():
+        m = idm == int(pid)
+        if m.any():
+            c = numpy.array(col, dtype=float) / 255.0
+            k = 1.0 + (numpy.random.default_rng(int(pid)).random(m.sum()) - .5) * .08
+            rgb[m] = numpy.clip(c[None, :] * k[:, None], 0, 1)
+            log("MESHY paint %s: %d texels %s" % (pid, int(m.sum()), col))
+    # under a face piece (shades): the face's own skin, a little shaded
+    m = idm == PAINT_SKIN
+    if m.any() and skin is not None:
+        k = 1.0 + (numpy.random.default_rng(5).random(m.sum()) - .5) * .06
+        rgb[m] = numpy.clip(numpy.asarray(skin)[None, :3] * .92 * k[:, None], 0, 1)
+        log("MESHY shed: %d texels under a face piece the face's skin %s" % (
+            int(m.sum()), numpy.round(numpy.asarray(skin)[:3] * 255).astype(int)))
     shed = cfg.get("shed", {})
     for rule in shed.values():
         for pid, key in ((PAINT_CAP, "cap_colour"), (PAINT_STALK, "stalk_colour")):

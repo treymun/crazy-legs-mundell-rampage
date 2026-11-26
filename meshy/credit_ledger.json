@@ -522,6 +522,39 @@
    "time": "2026-11-26 09:00:21",
    "after": 2181,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "revenue_man_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21884-b96f-7451-9933-22fe6e6b650e",
+   "before": 2181,
+   "cost": 9,
+   "body": "revenue_man_concept.json",
+   "time": "2026-11-26 09:41:23",
+   "after": 2172,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "revenue_man_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21885-be5b-74d4-a1bc-1cff0e36f8d5",
+   "before": 2172,
+   "cost": 30,
+   "body": "revenue_man_model.json",
+   "time": "2026-11-26 09:42:33",
+   "after": 2142,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "revenue_man_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21886-e788-7067-a7b1-9d5f76bff2fe",
+   "before": 2142,
+   "cost": 5,
+   "body": "revenue_man_rig.json",
+   "time": "2026-11-26 09:43:49",
+   "after": 2137,
+   "status": "SUCCEEDED"
   }
  ]
 }

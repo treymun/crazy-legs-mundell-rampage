@@ -382,6 +382,79 @@ if CFG.get("bandolier"):
     lo.data.calc_loop_triangles()
     print("MESHY bandolier: %d bottles on the strap" % placed)
 
+# A thing slung on the back that Meshy left off (kind config "slung": the
+# revenue man's fire axe): a wooden handle from "a" to "b" (rest metres, b the
+# head's end) and a head ["head": along, out, thick] with its edge "out" the
+# way "side" points (+1 the left, -1 the right), painted by the bake from
+# plain colours ("wood", "head_colour", "edge_colour"), rigid on the trunk.
+if CFG.get("slung"):
+    sc_ = CFG["slung"]
+    A_, B_ = Vector(sc_["a"]), Vector(sc_["b"])
+    ax_ = (B_ - A_).normalized()
+    bm_s = bmesh.new()
+    rot_ = ax_.to_track_quat("Z", "Y").to_matrix().to_4x4()
+    r_ = float(sc_.get("r", .016))
+    bmesh.ops.create_cone(bm_s, cap_ends=True, segments=8, radius1=r_, radius2=r_ * .85,
+                          depth=(B_ - A_).length, matrix=Matrix.Translation((A_ + B_) / 2) @ rot_)
+    n_wood = len(bm_s.faces)
+    hl_, ho_, ht_ = sc_.get("head", [.075, .17, .028])
+    back_n = Vector((0, 1, 0))
+    out_ = (back_n.cross(ax_)).normalized() * float(sc_.get("side", 1))
+    if out_.x * float(sc_.get("side", 1)) < 0:
+        out_ = -out_
+    up_ = ax_
+    th_ = up_.cross(out_).normalized()  # (right-handed: the head's faces outward)
+    cen_ = B_ - ax_ * (hl_ * .5) + out_ * (ho_ * .25)
+    M_ = Matrix((out_, th_, up_)).transposed().to_4x4()
+    M_.translation = cen_
+    res_ = bmesh.ops.create_cube(bm_s, size=1.0, matrix=M_ @ Matrix.Diagonal((ho_, ht_, hl_, 1)))
+    head_f = list({f for v in res_["verts"] for f in v.link_faces})
+    # which is which by place: the head's box (its edge the outer third),
+    # the rest the handle
+    head_set = set(head_f)
+    for f_ in bm_s.faces:
+        if f_ in head_set:
+            off_ = (f_.calc_center_median() - cen_).dot(out_)
+            f_.material_index = 2 if off_ > ho_ * .3 else 1
+        else:
+            f_.material_index = 0
+    bmesh.ops.triangulate(bm_s, faces=bm_s.faces[:])
+    sme = bpy.data.meshes.new("slung")
+    bm_s.to_mesh(sme)
+    bm_s.free()
+    for nm_, key_, dflt in (("slung_wood", "wood", [120, 82, 46]), ("slung_head", "head_colour", [178, 30, 24]),
+                            ("slung_edge", "edge_colour", [150, 150, 150])):
+        mt_ = bpy.data.materials.new(nm_)
+        mt_.use_nodes = True
+        bs_ = mt_.node_tree.nodes["Principled BSDF"]
+        cc_ = [c / 255.0 for c in sc_.get(key_, dflt)]
+        bs_.inputs["Base Color"].default_value = (cc_[0], cc_[1], cc_[2], 1)
+        bs_.inputs["Roughness"].default_value = 1.0
+        if "Specular IOR Level" in bs_.inputs:
+            bs_.inputs["Specular IOR Level"].default_value = 0.0
+        sme.materials.append(mt_)
+    # (painted after the bake in plain colours: shed.paint, kind config
+    # "paint"; the bake took the wood for the head)
+    _pa = sme.attributes.new("paint_id", "INT", "FACE")
+    for _p in sme.polygons:
+        _pa.data[_p.index].value = 4 + _p.material_index
+    CFG.setdefault("paint", {}).update({"4": sc_.get("wood", [120, 82, 46]), "5": sc_.get("head_colour", [178, 30, 24]),
+                                        "6": sc_.get("edge_colour", [150, 150, 150])})
+    ob_h = bpy.data.objects.new("slung_hi", sme.copy())
+    scene.collection.objects.link(ob_h)
+    select([hi, ob_h], hi)
+    bpy.ops.object.join()
+    ob_l = bpy.data.objects.new("slung_lo", sme)
+    scene.collection.objects.link(ob_l)
+    for g in lo.vertex_groups:
+        ob_l.vertex_groups.new(name=g.name)
+    _bg = ob_l.vertex_groups.get("Spine02") or ob_l.vertex_groups.get("Spine01") or ob_l.vertex_groups.get("Spine")
+    ob_l.vertex_groups[_bg.name].add(list(range(len(sme.vertices))), 1.0, "REPLACE")
+    select([lo, ob_l], lo)
+    bpy.ops.object.join()
+    lo.data.calc_loop_triangles()
+    print("MESHY slung: a %.2f m handle and its head on the back, rigid on the trunk" % (B_ - A_).length)
+
 # ------------------------------------------------- merge the skin weights
 src_groups = {g.index: g.name for g in lo.vertex_groups}
 nv = len(lo.data.vertices)
@@ -3225,6 +3298,10 @@ def hand_dilate(px, reach=10):
     img = px[:, :3].reshape(TEXTURE, TEXTURE, 3)
     have = HANDMASK.reshape(TEXTURE, TEXTURE).copy()
     empty = img.max(axis=2) < .03
+    # (only texels no face covers: a black suit's own texels are dark too,
+    # and took the hands' skin as tan blotches on the revenue man's trousers)
+    if "inside" in globals():
+        empty &= ~inside.reshape(TEXTURE, TEXTURE)
     grown = 0
     for _ in range(reach):
         acc = numpy.zeros_like(img)
@@ -3262,7 +3339,9 @@ def gloves(px):
 
 
 total = gloves(total)
-shed.paint(lo, image, total, CFG, pixels, bake_op, select, TEXTURE)
+_fsk = HEADZONE & SKIN_DONE if "SKIN_DONE" in globals() else HEADZONE
+shed.paint(lo, image, total, CFG, pixels, bake_op, select, TEXTURE,
+           skin=numpy.median(total[_fsk, :3], axis=0) if _fsk.sum() > 50 else None)
 image.pixels.foreach_set(total.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + ".png")
 image.file_format = "PNG"

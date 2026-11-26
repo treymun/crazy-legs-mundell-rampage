@@ -75,5 +75,12 @@
   "face": "no face visible: the gas mask's two glowing green goggle eyes stare out cold and unblinking, the head tilted a little forward with quiet menace, shoulders square like a man used to being obeyed",
   "texture": "alien sheriff, cream straw cowboy hat with dark band and gold star, antennae with green tips, grey gas mask with glowing green goggles, long brown leather duster coat, bandolier of glowing cyan cells, gold star badge, cyan belt buckle, charcoal trousers, dark grey boots, white gloves, empty hands, no weapon",
   "height": 1.95
+ },
+ "revenue_man": {
+  "who": "hard-nosed government revenue agent, a big pot-bellied federal moonshine-buster from the 1930s",
+  "design": "a grey felt campaign hat with a flat wide brim and a pinched crown, small round blue-tinted spectacles, a thick bushy grey walrus moustache, a big ruddy bulbous nose, a black three-piece suit with wide lapels stretched over a big round belly, a crisp white shirt and white waistcoat front showing over the belly with a gold watch chain across it, a thin black necktie, black trousers, scuffed black shoes, a fire axe with a bright red head and a long wooden handle slung diagonally across his back on a strap, its red head showing over his right shoulder, bare ruddy hands",
+  "face": "jowly and stern, a self-satisfied sneer under the moustache, small mean eyes behind the round tinted spectacles, the look of a man who enjoys smashing stills",
+  "texture": "1930s revenue agent, grey campaign hat, round blue tinted spectacles, grey walrus moustache, red nose, black suit, white shirt and waistcoat, gold watch chain, black tie, black shoes, red fire axe on his back, empty hands, no gun",
+  "height": 1.85
  }
 }
