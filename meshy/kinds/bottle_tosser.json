@@ -9,7 +9,15 @@
  "texture": 512,
  "gear": "old",
  "item_types": {
-  "r": "throw"
+  "r": "throw",
+  "l": "bottle"
  },
- "bandolier": true
+ "bandolier": {
+  "from": "r",
+  "colour": [
+   22,
+   62,
+   30
+  ]
+ }
 }

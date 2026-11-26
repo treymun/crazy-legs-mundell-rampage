@@ -338,7 +338,7 @@ if CFG.get("bandolier"):
         if hit is None:
             continue
         hn = hn if hn.dot(front) > 0 else front
-        ax = (perp * .75 + up_ * .25).normalized()
+        ax = (perp * float(bc.get("tilt", .2)) + up_ * (1 - float(bc.get("tilt", .2)))).normalized()
         cen = hit + hn.normalized() * (BR * .85)
         rot = ax.to_track_quat("Z", "Y").to_matrix().to_4x4()
         for (d, r1, r2, off) in ((.62, 1.0, 1.0, -.08), (.16, 1.0, .42, .31), (.24, .4, .4, .5)):
@@ -1746,6 +1746,43 @@ def solve(name, dz=0.0, held0=None):
                 U1 = (Rh @ t0).normalized()
                 Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
                 palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (HANDS[side].thick * .55 if side in HANDS else .015)
+                Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-grip)
+            elif held0 is None and side in HANDF and ITEM_TYPE.get(side) in ("bottle", "throw"):
+                # A bottle in the fist as one is held: its neck across the
+                # palm under the fingers (along the knuckles, toward the
+                # thumb), the body below the little finger, so the fingers
+                # close round the neck.
+                pts = numpy.array([g[:] for g in ITEM_PTS.get(it["bone"], [])])
+                ctr = pts.mean(axis=0)
+                G0 = Vector(numpy.linalg.svd(pts - ctr)[2][0])
+                al = (pts - ctr) @ numpy.array(G0[:])
+                perp = numpy.linalg.norm((pts - ctr) - numpy.outer(al, G0[:]), axis=1)
+                span = float(al.max() - al.min())
+                r_lo = float(perp[al < al.min() + span * .25].mean())
+                r_hi = float(perp[al > al.max() - span * .25].mean())
+                if r_hi > r_lo:
+                    G0 = -G0
+                    al = -al
+                # (G0 now from the body toward the neck; the grip a fifth
+                # down from the neck's end)
+                g_at = float(al.max()) - span * float(CFG.get("bottle_grip", .2))
+                grip = Vector(ctr) + G0 * g_at
+                near = numpy.abs(al - g_at) < span * .08
+                r_g = float(perp[near].mean()) if near.any() else .015
+                wrist0, a0, n0 = HANDF[side]
+                t0 = a0.cross(n0).normalized()
+                th = HANDS[side].chains.get("th") if side in HANDS else None
+                if th is not None and (th[1] - wrist0).dot(t0) < 0:
+                    t0 = -t0
+                Rh = D["hand_" + side].to_3x3()
+                U1 = (Rh @ t0).normalized()
+                A1 = (Rh @ a0).normalized()
+                # the bottle's other axis as near the hand's own as it goes
+                X0 = Vector((1, 0, 0)) if abs(G0.x) < .9 else Vector((0, 1, 0))
+                X0 = (X0 - G0 * X0.dot(G0)).normalized()
+                Rg = Matrix((U1, A1, U1.cross(A1))).transposed() @ Matrix((G0, X0, G0.cross(X0))).transposed().inverted()
+                palm = (D["hand_" + side] @ (J["hand_" + side] + a0 * (HANDS[side].length * .12 if side in HANDS else .02))
+                        + (Rh @ n0) * (r_g + (HANDS[side].thick * .5 if side in HANDS else .012)))
                 Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-grip)
             elif held0 is None and side in HANDF and ITEM_TYPE.get(side, "carry") == "carry":
                 # Carried hanging (a jug, a bottle, a lantern): by its top (the
