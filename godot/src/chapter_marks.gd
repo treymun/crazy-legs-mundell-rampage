@@ -21,8 +21,11 @@ const MARKER := "marker"
 const BEFORE := "marker-before"
 const KINDS: Array[String] = [BOSS, MARKER, BEFORE]
 
-## A write going on a worker thread (-1 none).
+## A write going on a worker thread (-1 none), and whether settle() is hung
+## on the scene tree's root leaving: the program closing waits for the write
+## (a task never waited for crashed it on quit, pass 15).
 static var _task := -1
+static var _exit_hooked := false
 
 
 static func folder() -> String:
@@ -65,7 +68,19 @@ static func write_soon(kind: String, game: Game, keep := "") -> void:
 	if OS.has_feature("web"):
 		job.call()
 	else:
+		_hook_exit()
 		_task = WorkerThreadPool.add_task(job, false, "chapter mark")
+
+
+## settle() runs as the scene tree's root leaves (the program closing).
+static func _hook_exit() -> void:
+	if _exit_hooked:
+		return
+	var loop := Engine.get_main_loop()
+	if loop is SceneTree:
+		var tree: SceneTree = loop
+		tree.root.tree_exiting.connect(Callable(ChapterMarks, &"settle"))
+		_exit_hooked = true
 
 
 ## `from`'s file put in place of `to`'s (a copy: `from`'s stays).

@@ -1013,9 +1013,6 @@ func _exit_tree() -> void:
 	for old: NetPlay in net_old:
 		old.finish()
 	replays.settle()
-	# (A chapter marker's write on a worker never waited for crashed the
-	# program as it closed: pass 15, a --play-bench past hickston's marker.)
-	ChapterMarks.settle()
 	if crash_log != null:
 		crash_log.close()
 		crash_log = null
