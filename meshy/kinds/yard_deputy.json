@@ -11,10 +11,11 @@
  "item_types": {
   "r": "pistol"
  },
- "colour": 1.6,
- "light": 0.9,
- "skin_even": {
-  "ext": false,
-  "arms": false
- }
+ "hands_paint": "texture",
+ "colour": 1.4,
+ "relaxed_curl": 1.6,
+ "hand_hue": [
+  8,
+  30
+ ]
 }

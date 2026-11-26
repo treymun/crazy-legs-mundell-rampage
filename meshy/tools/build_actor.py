@@ -900,6 +900,19 @@ if CFG.get("gear", "old") == "old" and LOST:
             _vbone.append(DUMP["bones"].index(best) if best in DUMP["bones"] else LOST[0])
     _gco = numpy.array([v.co[:] for v in gm.vertices])
     _vb = numpy.array(_vbone)
+    # (kind config "gear_scale" [{parts: [old bones], k, side}]: a held thing
+    # grown about the point of it nearest the old hand - Maw's dryer was a
+    # lollipop in a 4.4 m fist)
+    for _gs in CFG.get("gear_scale", []):
+        _sel = numpy.isin(_vb, [DUMP["bones"].index(b) for b in _gs["parts"] if b in DUMP["bones"]])
+        if not _sel.any():
+            continue
+        _hp = numpy.array(g2b(DUMP["points"]["0"][8 if _gs.get("side", "r") == "r" else 6])[:])
+        _piv = _gco[_sel][numpy.argmin(numpy.linalg.norm(_gco[_sel] - _hp, axis=1))]
+        _gco[_sel] = _piv + (_gco[_sel] - _piv) * float(_gs["k"])
+        for _i in numpy.nonzero(_sel)[0]:
+            gm.vertices[int(_i)].co = _gco[_i]
+        print("MESHY gear scaled x%.2f about %s: %d vertices" % (float(_gs["k"]), numpy.round(_piv, 3), int(_sel.sum())))
     # A megaphone the old model drew as a flat disc (its bell's mouth; kind
     # config "megaphone"): the disc's part rebuilt as a real horn - a cone
     # from the disc back toward the hand to a mouthpiece, a pistol handle
@@ -1877,6 +1890,15 @@ def solve(name, dz=0.0, held0=None):
         Tn = TWIST["fwd"]
         R_h = (Matrix.Rotation(.32, 3, Vector(Tn.col[0])) @ Matrix.Rotation(
             (.28 if main == "r" else -.28), 3, -Vector(Tn.col[2]))) @ R_h
+    # (kind config "head_keys" {key: [pitch, turn, roll] degrees}: the head
+    # set on the trunk for that key instead of the old head's turn - Maw's
+    # old pain dropped her face out of sight)
+    _hk = CFG.get("head_keys", {}).get(name.replace("hurt_", ""))
+    if _hk is not None:
+        Tn = TWIST["fwd"]
+        R_h = (Matrix.Rotation(math.radians(_hk[0]), 3, Vector(Tn.col[0]))
+               @ Matrix.Rotation(math.radians(_hk[1]), 3, Vector(Tn.col[1]))
+               @ Matrix.Rotation(math.radians(_hk[2]), 3, -Vector(Tn.col[2]))) @ R_t
     D["head"] = place(R_h, J["neck"], at(J["neck"]))
     joints = {"miss": {}}
     for side, hp, kn, ft, li in (("l", HIP_L, KN_L, FT_L, 2), ("r", HIP_R, KN_R, FT_R, 3)):

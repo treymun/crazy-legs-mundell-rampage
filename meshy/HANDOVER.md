@@ -1,9 +1,92 @@
-# Meshy models track: handover (2026-11-26, fourth session)
+# Meshy models track: handover (2026-11-26, fifth session)
 
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
 
-## Fourth session (read first)
+## Fifth session (read first)
+
+THE OWNER'S RULE CHANGED (2026-11-26): the models need not copy the old
+ones. Keep each character's role, prop and how it is used, outfit idea and
+colours; give a natural, well-proportioned body and a clear, good-looking,
+ORIGINAL face (no real person's likeness). Pick the best-looking concept,
+do not spend credits chasing old details. Everything else in the bar stays
+(gripping hands, rigid gear, stances, arms in hits, palette, sizes, checks).
+In INDEX lines say what was kept and what changed for the better.
+For a redo or new kind: prompts entry with "refs": "cel" (make_requests.py
+then sends the cel alone, not the old model's render, and adds the natural
+body / original face note).
+
+Credits: 1,172 of 2,500 spent (balance 1,766). Keep ~150 in reserve.
+
+Done this session: 23 maw, 24 maw_bare, 03h yard_deputy (redo). See INDEX.
+
+ORDER from the coordinator (do in this order):
+1. Maw fixes still open: (a) the dryer is too small for her: gear_scale
+   [{parts, k, side}] (build_actor, new) grows it - maw_bare takes 1.7x
+   cleanly (1 cm), but the housecoat Maw at any k >= 1.25 has the dryer
+   15 cm into the wide skirt in the walk keys and keep_out cannot get it
+   out (keep_out/depth_in look only 0.14 m deep - absolute, not scaled;
+   scaling that by height made it measure 0.35 m false depths: reverted).
+   So maw (23) is at 1.0 and maw_bare (24) at 1.7 - inconsistent; fix the
+   giant's keep-out (or carry the dryer forward, the old keys held it
+   ahead of her) and give both 1.7. (b) pain: "head_keys" {key: [pitch,
+   turn, roll]} (new) - [-20, 0, 15] lifts her face back into view (done,
+   both). (c) down: she lies on her back face up (checked, keys_views
+   angle 0 = front, 180 = back).
+2. swamp_king - NOT STARTED (no credits spent). The old model is the King
+   (people's skeleton drawn by person()) standing on the airboat (hull,
+   bow shield = shoot-off "shield", engine, caged prop, pennant); his
+   crown is shoot-off "crown"; dump_actor gives ok=false (the boat's parts
+   are labelled legs); fit.json down_cel (the sunk-boat cel). Plan: Meshy
+   the King alone (crown over a mesh cap, red airboat muffs, cigar, ginger
+   brush beard, gator-hide cape with its head on his shoulder, belly);
+   build on the BEAST path with a new "keep_parts" option: fit the Meshy
+   King onto the old King's person parts only (P restricted to their
+   vertices), weights from those parts only, and keep the old boat parts'
+   geometry rigid on their bones with their old texels baked into the new
+   atlas (an emission source like build_actor's gear bake, pasted by
+   gear mask); shield/crown stay gear names. Check boss_end (the boat's
+   fall), arena_wreck (shield, crown), physics, actor_check.
+3. Redos (fresh concepts, "refs": "cel"): barker (09c), chum_tosser (10d),
+   jerry (19d: heavyset athletic, a clear cocky ORIGINAL cartoon face
+   readable behind the face mask - check a zoomed face close-up), clone
+   (04f: clean readable face), baron (22c: a real neck and head, readable
+   face, the copper rig worn on a portly body). Then the 16 humanoids, then
+   rudy if budget. Write each redo into this file too.
+
+New tools/options this session (meshy/tools):
+- build_actor: "skin_texels" {hue, sat, val} (a non-human skin: Maw's grey-
+  green; the people's skin tests want red > green > blue), "bottle_grip"
+  (share of the length from the end where a "bottle" item is gripped: .08
+  takes a rolling pin by its handle), "gear_scale", "head_keys", an empty
+  "shed": {} clears the old model's gear names.
+- A hand with fewer "fingers" leaves open holes where the others were cut
+  (black triangles up close): Maw has five; the alien (05b, three) may
+  show the same up close - check its hands sheet large.
+- make_requests: "refs": "cel", "extra_refs" [paths under SP] +
+  "extra_note" (one face across two models: maw_bare used maw's concept).
+- hands_sheet.sh crop grows with the kind's height; tour_for.py: giants
+  (maw, maw_bare, swamp_king) shot on Hickston's open street, view tipped
+  up; ingame.sh maw 9.0 (and pass "old" to re-shoot the old side).
+- Engine (branch): ActorLayer3D.kind_of draws Maw as "maw_bare" under a
+  third of her health and in her fall (before, the 3D view never showed
+  the bare set: it stripped "bare_" and drew the housecoat model); main.gd
+  view tour takes an actor "hp" share. fit.json maw/maw_bare: down_cel off,
+  hand_over false (her model's fall, as the baron).
+- Maw's dump is patched: scratch `meshy-work/scripts4/maw_fallfix.py`
+  rewrote dump/maw_poses.json's die/down torso points from her grey body
+  (b0) - the old falls were drawn in the bare set and the housecoat
+  anchors stood still (original kept as maw_poses_orig.json). Both Maws
+  build from this dump and maw's old glb.
+- Scratch probes (meshy-work/scripts4): handdark.py / handdark2.py (hand
+  faces on dark texels), handwind.py (flipped hand faces), hueprobe.py
+  (built-model faces by graded colour in a z band), meshyhsv.py (Meshy
+  model faces by Meshy colour in a build-space box: use it to pick shed
+  hue windows), q/strip2.py (tile keys_views output). keys_zoom.py now
+  deletes KV_HIDE pieces' vertices (Blender 5 put muted scales back).
+
+## Fourth session
+
 
 Done: 18c/17c quick fixes (steeper carry "carry_dir"/"carry_at": revenue
 man's both hands on the gun; spectacle rim painted over "rim_px"; sheriff
