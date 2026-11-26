@@ -190,16 +190,21 @@ levels (`features/fight_music.gd` decides, `src/score_layers.gd` plays):
 - **CALM**: the chapter's track. **BUILD** (a hand on the player, or an
   alerted one within `NEAR` that sees or hunts him; held `BUILD_HOLD` 5 s):
   the track gives way (ScorePlayer's crossfade, in over 1 s, out over 3 s) to
-  the fight loop's own drums alone. **FIGHT** (`CROWD` 2 hands on him, or one
-  that hurt him within `HURT_HOT` 4 s, or the director's intensity
-  `FIGHT_HEAT` .5 or more with a hand on him; held `HOLD` 12 s while a hand
+  the fight loop's own drums alone. **FIGHT** (`CROWD` 4 hands on him, or one
+  that hurt him within `HURT_HOT` 3 s, or the director's intensity
+  `FIGHT_HEAT` .65 or more with a hand on him; held `HOLD` 10 s while a hand
   about is still awake and after him, `QUIET_HOLD` 5 s once none is, and
   dropped within `BREATHER_DROP` 1 s when the director calls a breather and
   nobody is on him): the whole loop. **PEAK** (a director's peak with a hand on him,
   or this machine's player on a RAMPAGE; held `PEAK_HOLD` 3 s): the loop with
   its riff laid over it. A hit landed only keeps the BUILD; the Crossroads
   is CALM. `fighting` (what `flow_report` counts as "fight loop %") is FIGHT
-  or PEAK.
+  or PEAK. The numbers are in `data/tuning/fight_music.cfg` (the balance
+  step moved them there: with the director's bigger crowds two hands on him
+  were most of the fighting and the whole loop played 59 to 67 % of the
+  Moonshine Run, the Mothership and the bayou; `CROWD` 2 -> 4, `HOLD` 12 ->
+  10, `HURT_HOT` 4 -> 3, `FIGHT_HEAT` .5 -> .65 took it under 60 %, see
+  gameplay.md "Difficulty and pacing as numbers").
 - **The layers** are free, made from each loop by `scripts/audio_layers.py`
   (`audio_build.py --layers`): the loop as a ring is split into its drums and
   its tune by median filtering its spectrogram (along time for what holds a

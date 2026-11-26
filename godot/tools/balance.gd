@@ -54,17 +54,24 @@ const MOST_DEATHS := 6
 ## tuning: boss 6.2/8.2, jerry 10.2, rudy 10.9/13.4, foreman 14.1, baron 17.7,
 ## swamp_king 12.6/13.0, derby_champ 13.7/15.3, revenue_man 12.0/12.5, maw
 ## 24.3/24.1; each band about 45 % either side).
+## Pass 15 (T10, after every track: the director is off in a rematch, so
+## what moved them is the punch's hitstop and reeling, the bodies' stagger
+## and RAMPAGE's boost): boss 6.2/8.2 -> 8.3/10.0, rudy 10.9/13.4 ->
+## 12.0/13.1, swamp_king 12.6/13.0 -> 16.8/15.6, derby_champ 13.7/15.3 ->
+## 13.3/16.6, maw 24.3/24.1 -> 24.7/27.7 (jerry 10.1/10.4, foreman, baron
+## and revenue_man as they were); those bands set again about 45 % either
+## side of the new times, the rest unchanged.
 const BOSS_SEEDS := [1, 2]
 const BOSS_BANDS := {
-	"boss": [4.0, 12.0],
+	"boss": [5.0, 15.0],
 	"jerry": [6.0, 15.0],
-	"rudy": [7.0, 18.0],
+	"rudy": [7.0, 19.0],
 	"foreman": [8.0, 21.0],
 	"baron": [10.0, 26.0],
-	"swamp_king": [7.0, 19.0],
-	"derby_champ": [8.0, 22.0],
+	"swamp_king": [9.0, 24.0],
+	"derby_champ": [8.0, 24.0],
 	"revenue_man": [7.0, 18.0],
-	"maw": [14.0, 36.0],
+	"maw": [15.0, 40.0],
 }
 ## The guard's chapters: the SHARP bot at NORMAL from the chapter kit, seed 1,
 ## cleared within CHAPTER_DEATHS deaths and inside its band of seconds (after
@@ -79,21 +86,26 @@ const BOSS_BANDS := {
 ## little (ids and caches are carried over from the chapters before it).
 ## Pass 15 (PACE: the fight-rhythm director, drops by need, lighter sponges)
 ## moved two: the bayou 572 s with one death -> 214 s with none, the
-## Moonshine Run 482 -> 230 s, both by the SHARP bot from the chapter kit;
-## their bands are about 35 % either side of the new times. The rest stayed
-## inside theirs (hickston 232, fair 315, sawmill 218, quarry 243, speedway
-## 207, mothership 254; the bosses' rematches are untouched: the director is
-## off in a rematch). T10 sets them all again from the long report.
-const CHAPTER_DEATHS := 1
+## Moonshine Run 482 -> 230 s. T10 (the balance step, every pass 15 track in:
+## the director's peaks and breathers, drops by need, markers, RAMPAGE, the
+## moves, the punch, the bodies) set them all again about 35 % either side
+## of the SHARP bot's new times from the chapter kit: hickston 235 -> 245,
+## fair 270 -> 265, sawmill 204 -> 225, quarry 225 -> 208, bayou 572 (one
+## death) -> 254, speedway 198 -> 214, moonshine 482 -> 202, mothership 270 ->
+## 248, none dying (v3.12.1 -> now). The long report's SHARP campaigns at
+## NORMAL (three seeds, each chapter carried into the next) took 0 to 16 %
+## less than v3.12.1's in every chapter, with no death; so CHAPTER_DEATHS
+## 1 -> 0: a death here is now news.
+const CHAPTER_DEATHS := 0
 const CHAPTER_BANDS := {
-	"hickston": [160.0, 335.0],
-	"fair": [180.0, 370.0],
-	"sawmill": [135.0, 275.0],
-	"quarry": [140.0, 285.0],
-	"bayou": [140.0, 290.0],
-	"speedway": [125.0, 265.0],
-	"moonshine": [150.0, 310.0],
-	"mothership": [175.0, 700.0],
+	"hickston": [160.0, 330.0],
+	"fair": [170.0, 360.0],
+	"sawmill": [145.0, 305.0],
+	"quarry": [135.0, 280.0],
+	"bayou": [165.0, 345.0],
+	"speedway": [140.0, 290.0],
+	"moonshine": [130.0, 275.0],
+	"mothership": [160.0, 335.0],
 }
 ## check_all's rows: the bosses, then two chapters a row.
 const CHECK_PARTS := 5

@@ -3701,7 +3701,11 @@ attempt by the tool, so a run is the same every time.
   picked.
 - **report**: the tables from many runs' lines (`balance_report.gd`):
   chapters by difficulty, deaths by skill, where the deaths cluster, the
-  bosses, the guns, the bench, COUNTY RUN. `tools/balance_runs.sh <dir>`
+  bosses, the guns, the bench, COUNTY RUN, and (pass 15) the flow: a
+  run's rows carry `tools/flow_probe.gd`'s measures (`flow=0`: not; play is
+  the same either way), and the report adds pass 15's targets by difficulty
+  and skill, each chapter's time by skill at NORMAL and `flow_tables.gd`'s
+  tables at NORMAL. `tools/balance_runs.sh <dir>`
   runs the long report (4 difficulties x 3 skills x 3 seeds, a third of
   the runs without the hound, plus COUNTY RUN, each Godot process with its
   own APPDATA and LOCALAPPDATA; about 400 MB each, so mind `jobs`).
@@ -3762,6 +3766,81 @@ shortest at every difficulty, NORMAL and HARD hardly apart) was measured,
 not changed: its runs and daily board are balanced on its own cards, and its
 bot is too weak a yardstick to tune them by. (The aliens' and deputies'
 new drops fall in its hordes too, as every hand's drop always has.)
+
+### Pass 15's balance step
+
+Pass 15 changed play on purpose (the director's peaks and breathers, drops by
+need, lighter sponges, trail markers, RAMPAGE, the moves, the punch, the
+bodies). The long report (36 campaigns and County Run on each build, v3.12.1
+against pass 15 with every track in) measured it against the audit's
+targets, the owning numbers were tuned toward them, and the bands were set
+last.
+
+Tuned: `director.cfg` at NORMAL (crowds of 3+ were 35-37 % of the fighting
+with only 1 to 2.6 peaks a chapter while 20 to 44 hands sat held and unsent;
+peaks were kept off by `boss_quiet` 45, which covered most of Hickston and
+the Mothership): `hold_share` .35 -> .45, `extra_share` .2 -> .25,
+`peak_first` 5 -> 6, `peak_group_most` 7 -> 8, `build_for` 35 -> 28,
+`long_fight` 35 -> 28; for every difficulty `boss_quiet` 45 -> 32,
+`build_least` 10 -> 16 (two peaks in one unbroken fight made the 113-129 s
+fights of one try), `hush_reach` 32 -> 40. The fight music's numbers moved
+to `fight_music.cfg` and the whole loop now needs a crowd (`crowd` 2 -> 4,
+`hurt_hot` 4 -> 3, `fight_heat` .5 -> .65, `hold` 12 -> 10;
+[audio.md](audio.md#the-fight-music-in-four-levels-pass-15)).
+
+Against the targets at NORMAL (ROOKIE / REGULAR / SHARP, seeds 1-3, every
+attempt; v3.12.1 -> pass 15):
+
+| | target | v3.12.1 | pass 15 |
+| --- | --- | --- | --- |
+| 3+ alerted within 14, % of fighting | 40 or more | 23 / 26 / 28 | 41 / 41 / 44 |
+| whole fight loop, % of a chapter (chapter median) | under 60 | 90 / 87 / 86 | 40 to 56 in the four most fought chapters (1) |
+| ROOKIE melee kills | under 3 % | 6.7 % | 0.9 % |
+| longest fight with no boss in it, s | ROOKIE 65 at most | 137 / 132 / 84 | 95 / 74 / 43 (2) |
+| a ROOKIE death outside a boss fight costs | under 60 s | 110 (most 140) | none died outside one |
+| deaths a run | pass 9's table | 2.33 / 0 / 0 | 0.67 / 0 / 0 |
+| chapters' clear s summed | SHARP within 20 % | 1949 / 1838 / 1706 | 1737 / 1682 / 1609 (SHARP -6 %, every chapter 0 to -16 %) |
+| HOG WILD the hardest | | deaths a run 34 / 15.3 / 9.7 (HARD 12.7 / 2 / 2) | 24.7 / 13 / 11.3 (HARD 7.3 / 1.7 / 2) |
+
+(1) measured with the final music numbers on the same games (the music is
+looks only): the Moonshine Run 67 -> 56, the Mothership 59 -> 43, the bayou
+59 -> 52, Hickston 49 -> 40; the rest were under 52 already. (2) Fights of
+the level's own hands at a chapter's opening (the Mothership's, the
+sawmill's) in open yards where every hand sees the player from afar, so the
+long-fight guard cannot hush them: 7 to 39 damage taken in them, kill runs
+rather than the grinders of 376 to 437 damage that killed the ROOKIE before.
+Not tuned further: holding more of an opening's hands thins the crowds the
+peaks are made of.
+
+Deaths a run by chapter (all three skills, 9 campaigns a difficulty),
+v3.12.1 / pass 15:
+
+| | hickston | fair | sawmill | quarry | bayou | speedway | moonshine | mothership |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| EASY | 0 / 0 | 0 / .11 | 0 / 0 | 0 / 0 | .22 / 0 | .11 / 0 | 0 / 0 | 0 / 0 |
+| NORMAL | .22 / 0 | .33 / 0 | 0 / 0 | 0 / 0 | .22 / .22 | 0 / 0 | 0 / 0 | 0 / 0 |
+| HARD | 2.67 / 1.33 | .22 / .11 | .11 / .11 | 0 / .44 | .56 / .56 | .22 / .22 | .44 / .22 | 1.33 / .67 |
+| HOG WILD | 3.11 / 3.56 | 1.33 / .22 | .33 / .33 | 1.44 / .89 | 3.56 / 2.22 | .89 / 1.56 | 3.00 / 1.56 | 6.00 / 6.00 |
+
+Every NORMAL death left is in the swamp king's fight (RETRY THE FIGHT);
+the Fair's opening crawlers no longer kill. A ROOKIE (seed 2, the build
+before the punch and bodies were merged) died three times to the sawmill's
+foreman: enemy gunfire ("FIRE" is an enemy shot's cause) in the arena with
+the backup about, the retry at the right door with `[boss_retry]`'s
+floor; not seen in the 45 campaigns at NORMAL after it (four tunings and
+the final report). Boss times
+in the campaign (REGULAR's medians) moved a little with the punch and the
+bodies: rudy 20 -> 24 s, the baron 16 -> 19, the swamp king 24 -> 20, the
+derby champ 20 -> 16. County Run, which the director leaves alone, moved
+with RAMPAGE and the moves only (NORMAL's survival medians 105 to 238 s,
+as before).
+
+Set last from the same build: `BOSS_BANDS` (the sheriff, Rudy, the swamp
+king, the derby champ and Maw moved in their rematches), `CHAPTER_BANDS`
+(each about 35 % either side of the SHARP bot's new time from the chapter
+kit) and `CHAPTER_DEATHS` 1 -> 0 (`balance.gd`'s comments give the times),
+BOSS REMATCH's `par` for the swamp king 14 -> 15 (bosses.cfg), and the
+chapter PAR (modes.cfg `[par]`, the SHARP campaigns' mean times 1.5).
 
 ## Fight rhythm (pass 15)
 
