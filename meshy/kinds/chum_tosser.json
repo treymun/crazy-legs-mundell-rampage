@@ -9,15 +9,53 @@
  "texture": 512,
  "gear": "old",
  "hold_legs": true,
- "skin_even": {
-  "ext": false
- },
+ "gloves": [
+  190,
+  142,
+  36
+ ],
  "recolour": [
+  {
+   "name": "cuff_l",
+   "x": [
+    0.4,
+    0.62
+   ],
+   "z": [
+    0.46,
+    0.575
+   ],
+   "to": [
+    190,
+    142,
+    36
+   ],
+   "contrast": 0.35,
+   "not_skin": false
+  },
+  {
+   "name": "cuff_r",
+   "x": [
+    -0.62,
+    -0.4
+   ],
+   "z": [
+    0.46,
+    0.575
+   ],
+   "to": [
+    190,
+    142,
+    36
+   ],
+   "contrast": 0.35,
+   "not_skin": false
+  },
   {
    "name": "cap",
    "z": [
-    0.915,
-    1.02
+    0.93,
+    1.03
    ],
    "hue": [
     340,
@@ -29,20 +67,14 @@
    ],
    "val": [
     0,
-    0.85
+    0.9
    ],
    "to": [
     176,
     40,
     30
    ],
-   "contrast": 0.7,
-   "not_skin": false
+   "contrast": 0.7
   }
- ],
- "gloves": [
-  206,
-  160,
-  40
  ]
 }

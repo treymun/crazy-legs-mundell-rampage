@@ -58,11 +58,12 @@
   "height": 1.78
  },
  "chum_tosser": {
-  "who": "stocky bayou fisherman",
-  "design": "a red baseball cap, a blue and white checked flannel shirt, a big yellow rubber fishing apron, olive-grey trousers, white rubber fishing boots",
-  "face": "a red nose, a sunburnt round face, a scowl",
-  "texture": "fisherman, red cap, blue checked flannel shirt, yellow rubber apron, grey trousers, white rubber boots, empty hands, no weapon, nothing held",
-  "height": 1.75
+  "refs": "cel",
+  "who": "bayou commercial fisherman who throws fish guts, a weathered working man of the swamp",
+  "design": "WEARING a faded red baseball cap on his head, a blue-and-white plaid flannel work shirt with the sleeves rolled up to the forearms, bright yellow rubber bib-and-brace fishing overalls (proper bib waders with a chest bib, two shoulder straps with buckles and a front pocket, slick rubber with creases and fish-gut stains) worn over the shirt, the overall legs tucked into tall white rubber fishing boots, yellow rubber work gloves, a solid sturdy working build with broad shoulders and a natural belly",
+  "face": "a stylized game-character face, slightly caricatured but natural: a sunburnt weathered face, a red nose, squinting eyes, a stubbly jaw, a grumpy scowl with a cigarette-stained grin at one corner",
+  "texture": "bayou fisherman, red baseball cap, blue and white plaid flannel shirt with rolled sleeves, bright yellow rubber bib fishing overalls with shoulder straps, white rubber boots, yellow rubber gloves, sunburnt skin, red nose, empty hands, no weapon, nothing held",
+  "height": 1.76
  },
  "noodler": {
   "who": "burly bare-armed bayou fisherman, a catfish noodler",

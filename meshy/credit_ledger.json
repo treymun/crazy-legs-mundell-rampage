@@ -896,6 +896,39 @@
    "time": "2026-11-26 15:26:15",
    "after": 1722,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "chum_tosser_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a219c7-6dd8-7668-8ebe-a94bcc403788",
+   "before": 1722,
+   "cost": 9,
+   "body": "chum_tosser_concept.json",
+   "time": "2026-11-26 15:33:50",
+   "after": 1713,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chum_tosser_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a219c8-cdf7-703e-910e-bda1727c3c8f",
+   "before": 1713,
+   "cost": 30,
+   "body": "chum_tosser_model.json",
+   "time": "2026-11-26 15:35:23",
+   "after": 1683,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chum_tosser_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a219c9-d3b2-777d-95ee-0bc5203877e1",
+   "before": 1683,
+   "cost": 5,
+   "body": "chum_tosser_rig.json",
+   "time": "2026-11-26 15:36:31",
+   "after": 1678,
+   "status": "SUCCEEDED"
   }
  ]
 }
