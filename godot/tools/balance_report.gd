@@ -3,8 +3,13 @@
 ## death rate, clear time, health, rounds and scrap at the end, finishers,
 ## boots, hazard kills and the hound's work; where the deaths cluster; the
 ## bosses' times; each gun's kills and shots a kill; when the bench's mods
-## were bought; COUNTY RUN's survival, XP curve and cards picked.
+## were bought; COUNTY RUN's survival, XP curve and cards picked; and (pass
+## 15) the flow: per difficulty and skill against the pass's targets, each
+## chapter's time by skill at NORMAL, and tools/flow_tables.gd's tables at
+## NORMAL (rows from runs that carried tools/flow_probe.gd's measures).
 extends RefCounted
+
+const Flow := preload("res://tools/flow_tables.gd")
 
 const DIFFS := ["EASY", "NORMAL", "HARD", "HOG WILD"]
 const SKILLS := ["rookie", "regular", "sharp"]
@@ -21,12 +26,14 @@ static func load_rows(source: String) -> Array:
 	var rows: Array = []
 	for path: String in files:
 		var f := FileAccess.open(path, FileAccess.READ)
+		var run := path.get_file().get_basename()
 		while not f.eof_reached():
 			var line := f.get_line().strip_edges()
 			if line == "":
 				continue
 			var row: Variant = JSON.parse_string(line)
 			if row is Dictionary:
+				row["run"] = run
 				rows.append(row)
 	return rows
 
@@ -68,6 +75,7 @@ static func tables(source: String) -> String:
 	_guns(chapter_rows, out)
 	_bench(chapter_rows, out)
 	_county(county_rows, out)
+	_flow(chapter_rows, out)
 	return "\n".join(out) + "\n"
 
 
@@ -441,3 +449,127 @@ static func _county(rows: Array, out: PackedStringArray) -> void:
 				]
 			)
 		)
+
+
+# ------------------------------------------------------------- flow (pass 15)
+
+
+## Pass 15's targets by difficulty and skill (every attempt with the flow's
+## measures), each chapter's clear time by skill at NORMAL, and the flow
+## report's tables at NORMAL.
+static func _flow(rows: Array, out: PackedStringArray) -> void:
+	var measured: Array = []
+	for r: Dictionary in rows:
+		if r.has("flow"):
+			measured.append(r)
+	if measured.is_empty():
+		return
+	out.append("\n## Flow against pass 15's targets (by difficulty and skill)")
+	out.append(
+		(
+			"| diff | skill | runs | 3+ alerted % of fighting | fight % (chapter med)"
+			+ " | whole loop % (chapter med) | melee kills % | longest fight, no boss s"
+			+ " | deaths/run | death cost s (med / most, no boss) | RAMPAGES a chapter"
+			+ " | on one % | chapters' clear s summed |"
+		)
+	)
+	out.append("| --- ".repeat(13) + "|")
+	for d in 4:
+		for s in 3:
+			var mine: Array = []
+			for r: Dictionary in measured:
+				if int(r["diff"]) == d and int(r["skill"]) == s:
+					mine.append(r)
+			if not mine.is_empty():
+				out.append(_flow_line(mine, d, s))
+	out.append("\n## Clear s by chapter and skill at NORMAL (median a run, deaths' tries in)")
+	out.append("| skill | " + " | ".join(PackedStringArray(Campaign.ORDER)) + " | sum |")
+	out.append("| --- ".repeat(Campaign.ORDER.size() + 2) + "|")
+	for s in 3:
+		var line := "| %s |" % SKILLS[s]
+		var sum := 0.0
+		for chapter: String in Campaign.ORDER:
+			var per_run := {}
+			for r: Dictionary in rows:
+				if int(r["diff"]) == 1 and int(r["skill"]) == s and r["chapter"] == chapter:
+					per_run[r["run"]] = float(per_run.get(r["run"], 0.0)) + float(r["secs"])
+			var m := median(per_run.values())
+			sum += m
+			line += " %.0f |" % m
+		out.append(line + " %.0f |" % sum)
+	var normal: Array = []
+	for r: Dictionary in measured:
+		if int(r["diff"]) == 1:
+			normal.append(r)
+	if normal.is_empty():
+		return
+	out.append("\n## The flow at NORMAL (tools/flow_tables.gd)\n")
+	out.append(Flow._targets(normal))
+	out.append(Flow._chapters(normal))
+	out.append(Flow._fights(normal))
+	out.append(Flow._crowds(normal))
+	out.append(Flow._feel(normal))
+	out.append(Flow._music(normal))
+	out.append(Flow._director(normal))
+	out.append(Flow._deaths(normal))
+	out.append(Flow._kinds(normal))
+
+
+## One line of the targets table: the attempts of difficulty `d`, skill `s`.
+static func _flow_line(mine: Array, d: int, s: int) -> String:
+	var runs := {}
+	var deaths := 0
+	var costs: Array = []
+	var fight: Array = []
+	var loop: Array = []
+	var rampages := 0.0
+	var raging := 0.0
+	var secs := 0.0
+	for r: Dictionary in mine:
+		runs[r["run"]] = true
+		var fl: Dictionary = r["flow"]
+		var t := maxf(.1, float(r["secs"]))
+		secs += t
+		fight.append(100.0 * float(fl["fight"]) / t)
+		loop.append(100.0 * float(fl.get("music_fight", 0.0)) / t)
+		rampages += float(fl.get("rampages", 0))
+		raging += float(fl.get("raging", 0.0))
+		if r["outcome"] == "clear":
+			continue
+		deaths += 1
+		if str(r.get("fighting", "")) == "":
+			costs.append(float(r.get("death_cost", r["secs"])))
+	var mk := Flow._melee_kills(mine)
+	var n := maxi(1, runs.size())
+	var most := 0.0
+	for c: float in costs:
+		most = maxf(most, c)
+	var cleared := 0.0
+	for chapter: String in Campaign.ORDER:
+		var per_run := {}
+		for r: Dictionary in mine:
+			if r["chapter"] == chapter:
+				per_run[r["run"]] = float(per_run.get(r["run"], 0.0)) + float(r["secs"])
+		cleared += median(per_run.values())
+	return (
+		(
+			"| %s | %s | %d | %.0f | %.0f | %.0f | %.1f | %.0f | %.2f | %.0f / %.0f | %.2f"
+			+ " | %.1f | %.0f |"
+		)
+		% [
+			DIFFS[d],
+			SKILLS[s],
+			runs.size(),
+			Flow._share_at_least(Flow._hist(mine), 3),
+			Flow.median(fight),
+			Flow.median(loop),
+			100.0 * mk[0] / maxf(1.0, mk[1]),
+			Flow._longest_fight(mine, false),
+			float(deaths) / n,
+			Flow.median(costs),
+			most,
+			rampages / maxf(1.0, mine.size()),
+			100.0 * raging / secs,
+			cleared
+		]
+	)

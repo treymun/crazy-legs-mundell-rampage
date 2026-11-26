@@ -64,22 +64,34 @@ static func _game(main: Control, id: String, events := 2) -> Game:
 
 
 static func _twister_edge(main: Control, check: Callable, id: String) -> void:
-	var g := _game(main, id)
-	for t in 30:
-		g.tick(STEP, Game.Controls.new())
-	var ev: CountyEvents = g.features["events"]
-	if not ev.begin("twister"):
-		check.call(false, "%s: a twister starts" % id)
-		return
+	# Where a twister wanders is the game's dice; the first game's went past
+	# the edge until pass 15's balance step moved the director's draws at a
+	# chapter's start (more hands held), so a few other dice are tried too:
+	# one twister past the edge is what this holds.
+	var played := true
 	var off := false
-	var w := g.world
-	for t in 60 * 180:
-		g.tick(STEP, Game.Controls.new())
-		var at := ev.tw_at
-		off = off or at.x < 0.0 or at.y < 0.0 or at.x >= w.width or at.y >= w.height
-		if ev.kind == "":
+	var w: LevelData = null
+	for attempt in 6:
+		var g := _game(main, id)
+		if attempt > 0:
+			g.rng = GameState.Rng.new(7717 * attempt)
+		for t in 30:
+			g.tick(STEP, Game.Controls.new())
+		var ev: CountyEvents = g.features["events"]
+		if not ev.begin("twister"):
+			check.call(false, "%s: a twister starts" % id)
+			return
+		w = g.world
+		for t in 60 * 180:
+			g.tick(STEP, Game.Controls.new())
+			var at := ev.tw_at
+			off = off or at.x < 0.0 or at.y < 0.0 or at.x >= w.width or at.y >= w.height
+			if ev.kind == "":
+				break
+		played = played and ev.kind == ""
+		if off:
 			break
-	check.call(ev.kind == "", "%s: a twister plays out" % id)
+	check.call(played, "%s: a twister plays out" % id)
 	check.call(off, "%s: it lifts past the map's edge (no script error reading the ground)" % id)
 	check.call(
 		is_equal_approx(w.elevation_near(-5.0, w.height + 3.0), w.elevation(0.0, w.height - 1.0)),

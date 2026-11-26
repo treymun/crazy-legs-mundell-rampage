@@ -5,7 +5,8 @@
 ##   it, and the fight player gets the three as one synchronized stream;
 ## - the layers' gains move at their own pace toward what each level wants,
 ##   and start at it while the fight player is silent;
-## - one hand on the player is BUILD, two a FIGHT, a hand and a blow a FIGHT;
+## - one hand on the player is BUILD, CROWD a FIGHT (fewer and no blow lately
+##   still BUILD), a hand and a blow a FIGHT;
 ##   the FIGHT holds once they are gone; with the director in a BREATHER and
 ##   nobody on him it is out of FIGHT within BREATHER_LIMIT; a director's peak
 ##   with a hand on him, or his RAMPAGE, is the PEAK; the Crossroads is CALM;
@@ -123,6 +124,14 @@ func _ticks(g: Game, seconds: float) -> void:
 		g.tick(STEP, Game.Controls.new())
 
 
+## `n` hands by the player that see him, `ahead` cells on and half a cell apart.
+func _crowd(g: Game, ahead: float, n: int) -> Array:
+	var out: Array = []
+	for i in n:
+		out.append(_on_him(g, ahead + .5 * i))
+	return out
+
+
 ## A hand by the player that sees him (stunned for good: it stands there).
 func _on_him(g: Game, ahead: float) -> Enemy:
 	var p := g.player
@@ -159,23 +168,26 @@ func _levels() -> void:
 	check(fm.level == ScoreLayers.FIGHT, "and a blow: the FIGHT (%s)" % ScoreLayers.NAMES[fm.level])
 	var two := _on_him(g, 5.0)
 	_ticks(g, FightMusic.HURT_HOT + .5)
-	check(fm.level == ScoreLayers.FIGHT, "two on him: the FIGHT")
+	var more := _crowd(g, 6.0, FightMusic.CROWD - 2)
+	_ticks(g, .3)
+	check(fm.level == ScoreLayers.FIGHT, "%d on him: the FIGHT" % FightMusic.CROWD)
 	# One still hunting him out of sight, farther off: the FIGHT holds HOLD.
 	var lurker := _on_him(g, 14.0)
 	lurker.player_seen = false
 	lurker.hunt_until = 1e9
 	one.hp = 0.0
 	two.hp = 0.0
+	for e: Enemy in more:
+		e.hp = 0.0
 	_ticks(g, FightMusic.HOLD - 2.0)
 	check(fm.level == ScoreLayers.FIGHT, "it holds while a hand still hunts him")
 	_ticks(g, 3.0)
 	check(fm.level < ScoreLayers.FIGHT, "and gives way after %.0f s" % FightMusic.HOLD)
 	lurker.hp = 0.0
-	var six := _on_him(g, 4.0)
-	var seven := _on_him(g, 5.0)
+	var gang := _crowd(g, 4.0, FightMusic.CROWD)
 	_ticks(g, 1.0)
-	six.hp = 0.0
-	seven.hp = 0.0
+	for e: Enemy in gang:
+		e.hp = 0.0
 	var quiet := 0.0
 	while fm.level >= ScoreLayers.FIGHT and quiet < 15.0:
 		_ticks(g, STEP)
@@ -185,12 +197,11 @@ func _levels() -> void:
 		"nobody left awake about: out of the FIGHT in %.1f s" % quiet
 	)
 	# A breather from the director: out of the FIGHT soon.
-	var three := _on_him(g, 4.0)
-	var four := _on_him(g, 5.0)
+	var again := _crowd(g, 4.0, FightMusic.CROWD)
 	_ticks(g, 1.0)
-	check(fm.level == ScoreLayers.FIGHT, "two on him again: the FIGHT")
-	three.hp = 0.0
-	four.hp = 0.0
+	check(fm.level == ScoreLayers.FIGHT, "a crowd on him again: the FIGHT")
+	for e: Enemy in again:
+		e.hp = 0.0
 	d.on = true
 	d.started = true
 	d.phase = Director.BREATHER
