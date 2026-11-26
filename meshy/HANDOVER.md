@@ -6,8 +6,9 @@ version, every decision) first. SP = the session scratchpad.
 ## State
 
 Branch `meshy-models` (all work committed; only `meshy_test/` untracked,
-not ours). Credits: 713 of 2,500 spent (balance 2,225): this session hog,
-gator, crawler, hound (4 x 39). The four concepts ran in parallel and
+not ours). Credits: 801 of 2,500 spent (balance 2,137); third session: boss
+(sheriff) 44, revenue_man 44 (run paid calls one at a time; ledger exact).
+Third session done: 13c hog fix, 17/17b boss (sheriff), 18/18b revenue_man. The four concepts ran in parallel and
 meshy.py's ledger kept one line for the 36; it was split by hand - run paid
 calls ONE AT A TIME (meshy.py's ledger write is not safe in parallel).
 
@@ -30,10 +31,13 @@ check_all quick: see the last line of this file for the latest result.
    (Hickston's row 30 was walled in by pass 15); deaths now on open ground
    (OPEN 30.5, 26.5), and BeastDoll FOOT_SLIDE slides a dead standing
    beast's feet out (a crawler stood dead on its splayed feet). PHYSICS OK.
-2. **Bosses** - boss (sheriff) DONE as 17 on the people's path (see "Bosses
-   on the people's path" below). Left: jerry, rudy, foreman, baron,
-   revenue_man, maw, maw_bare (humanoid: same path), swamp_king (on his
-   airboat: beast path or keep the boat). Old notes: (baron, boss, foreman, jerry, maw, maw_bare, revenue_man,
+2. **Bosses** - boss (sheriff) 17b and revenue_man 18b DONE on the people's
+   path (see "Bosses on the people's path" below; 18b's open items are in
+   INDEX). Left: jerry, rudy, foreman, baron, maw, maw_bare (humanoid: same
+   path), swamp_king (on his airboat: beast path or keep the boat). Hands:
+   use "hands_paint": "texture" for every new kind (the flat master skin
+   reads as paper hands up close: coordinator's note on 18) and leave
+   skin_even off unless Meshy's arm paint is blotchy. Old notes: (baron, boss, foreman, jerry, maw, maw_bare, revenue_man,
    rudy, swamp_king; skip derby_champ) with their OLD weapon parts kept,
    and one boss physics video. Not written: build_beast.py needs the gear
    path (cut the old gear parts off the old mesh like build_actor's gear,
@@ -207,4 +211,12 @@ it worse, left off).
 - The make sheet's default keys skip `wind`; pass keys
   (`make_sheet.sh <kind> <out> <title> w1,wind,aim,fire,pain,die_2,down`).
 
-Last check_all quick: see the end of this session's report (third session).
+Last check_all quick (third session, after 18b/17b, scratch profile): ALL
+CHECKS OK (54 checks listed ok, 154 s). physics_check, actor_check,
+boss_check, boss_end_check, boss_rematch_check, arena_wreck_check,
+live_body_check, view3d_check also run alone: OK.
+Scratch for this session: SP/meshy-work/scripts3 (headprobe, goldprobe,
+backprobe, partcol, partbox, islands, meshy_view), gds/hog_blast.gd and
+crawl_diag.gd (ragdoll stretch diagnostics), keys_zoom.py (KV_SCALE, KV_C,
+KV_HIDE). The hands sheet script is meshy-work/scripts/hands_render.py
+(iter.sh points at a wrong path for it).
