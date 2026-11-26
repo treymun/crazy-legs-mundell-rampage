@@ -30,6 +30,9 @@ if animal:
              ("far", {"state": "idle", "turn": 0.5, "ahead": near * 2.6}),
              ("aim", {"state": "aim", "turn": 1.0}),
              ("wind", {"state": "windup", "turn": 1.3}))
+# A boss also under half health (his phase-two look, battle-worn).
+if kind in {"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "revenue_man", "maw", "maw_bare"}:
+    POSES = POSES + (("p2", {"state": "hurt", "gait": 0.3, "turn": 0.6}),)
 shots = []
 for tod, base in (("day", DAY), ("night", NIGHT)):
     for tag, spec in POSES:

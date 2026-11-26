@@ -1,0 +1,152 @@
+{
+ "kind": "boss",
+ "rigged": "../meshy-work/meshy_out/boss_rig/rigged.glb",
+ "poses": "../meshy-work/dump/boss_poses.json",
+ "old_glb": "../meshy-work/old/boss.glb",
+ "old_tex": "../meshy-work/old/actor3d_boss.png",
+ "out": "../meshy-work/raw/boss",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "item_types": {
+  "r": "pistol"
+ },
+ "hold_legs": true,
+ "gear_extra": [
+  "b65",
+  "b66",
+  "b67",
+  "b68"
+ ],
+ "gear_skip": [
+  "b76",
+  "b77"
+ ],
+ "grip_parts": {
+  "r": [
+   "b72",
+   "b73"
+  ]
+ },
+ "gloves": [
+  176,
+  172,
+  160
+ ],
+ "phases": true,
+ "shed": {
+  "hat": {
+   "z": 1.935,
+   "keep_z": 2.215,
+   "keep_x": 0.12,
+   "cap": 0.7,
+   "cap_colour": [
+    64,
+    66,
+    68
+   ],
+   "stalk_colour": [
+    104,
+    108,
+    112
+   ],
+   "cap_base": 0.006,
+   "ring_pct": 92,
+   "cap_grow": 1.0
+  },
+  "badge": {
+   "box": {
+    "x": [
+     0.07,
+     0.24
+    ],
+    "y": [
+     -0.32,
+     -0.19
+    ],
+    "z": [
+     1.48,
+     1.64
+    ]
+   },
+   "hue": [
+    28,
+    65
+   ],
+   "sat": [
+    0.3,
+    1
+   ],
+   "val": [
+    0.3,
+    1
+   ],
+   "lift": 0.006
+  }
+ },
+ "akimbo": [
+  "l"
+ ],
+ "skin_zones": [
+  "hand_l",
+  "hand_r"
+ ],
+ "face_lift_most": 1.0,
+ "recolour": [
+  {
+   "name": "goggles",
+   "z": [
+    0.76,
+    0.81
+   ],
+   "y": [
+    -9,
+    -0.12
+   ],
+   "hue": [
+    140,
+    200
+   ],
+   "sat": [
+    0.25,
+    1
+   ],
+   "val": [
+    0.2,
+    1
+   ],
+   "to": [
+    70,
+    235,
+    80
+   ],
+   "contrast": 0.8
+  },
+  {
+   "name": "hat_straw",
+   "z": [
+    0.835,
+    1.0
+   ],
+   "hue": [
+    15,
+    70
+   ],
+   "sat": [
+    0.03,
+    0.45
+   ],
+   "val": [
+    0.42,
+    1
+   ],
+   "to": [
+    204,
+    182,
+    120
+   ],
+   "contrast": 0.8,
+   "not_skin": false
+  }
+ ]
+}

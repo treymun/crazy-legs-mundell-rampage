@@ -638,6 +638,20 @@ J["neck"] = (J["upperarm_l"] + J["upperarm_r"]) / 2
 J["neck"].z = heads["neck"].z
 J["body"] = (J["thigh_l"] + J["thigh_r"]) / 2
 J["hips"] = J["body"].copy()
+# A hand on the hip (kind config "akimbo": [side]): where the waist's side is,
+# from the hip joint, at rest (the body's outermost skin a hand above it).
+WAIST_OFF = {}
+for _sd in CFG.get("akimbo", []):
+    _j = J["thigh_" + _sd]
+    _sg = 1.0 if J["upperarm_" + _sd].x > 0 else -1.0
+    _bc = cloud(["body", "thigh_l", "thigh_r"])
+    _zb = float(CFG.get("akimbo_z", .13))
+    _m = (numpy.abs(_bc[:, 2] - (_j.z + _zb)) < .04) & (numpy.abs(_bc[:, 1] - _j.y) < .1) & (_bc[:, 0] * _sg > 0)
+    if _m.sum() > 5:
+        _xo = float((_bc[_m, 0] * _sg).max()) * _sg
+        WAIST_OFF[_sd] = Vector((_xo - _j.x, float(numpy.median(_bc[_m, 1])) - _j.y, _zb))
+        print("MESHY akimbo %s: the waist's side %.3f m out from the hip joint" % (_sd, abs(_xo - _j.x)))
+AKIMBO_KEYS = set()
 ORIGIN = {b: J[b] for b in BONES}
 
 # ------------------------------------------------------------------ gear
@@ -743,6 +757,13 @@ if CFG.get("gear", "old") == "old" and LOST:
             continue
         GRIP_AT[_side] = (_g, None)
         _used.append(_g)
+    # (kind config "grip_parts" {side: [old bones]}: the old hands named where
+    # the colour rule takes gold or white for skin - a boss's badge and hat,
+    # white gloves)
+    if "grip_parts" in CFG:
+        GRIP_AT.clear()
+        for _side, _bns in CFG["grip_parts"].items():
+            GRIP_AT[_side] = ([DUMP["bones"].index(_b) for _b in _bns], None)
     print("MESHY hands:", {k: [DUMP["bones"][i] for i in v[0]] for k, v in GRIP_AT.items()})
     want = {DUMP["bones"][i] for i in LOST}
     keep_v = set()
@@ -1737,7 +1758,33 @@ def solve(name, dz=0.0, held0=None):
         off = (oel - P[sh]) - chord.normalized() * (oel - P[sh]).dot(chord.normalized())
         if DUMP["stiff"] and not DUMP["stiff"][0 if side == "l" else 1] and off.length > .03 and side not in on:
             pole = off
-        if side in main_hand:
+        if (side in WAIST_OFF and side not in on and side not in main_hand and side in HANDF
+                and not bare_name.startswith("die") and bare_name != "down"
+                and bare_name not in CFG.get("akimbo_skip", [])):
+            # The hand on the hip: a fist, its knuckles on the waist's side
+            # just over the belt, the palm back, the elbow out to the side and
+            # a little back (a lawman's stance).
+            Tn = TWIST["fwd"]
+            Fw, Up, Rt = -Vector(Tn.col[2]), Vector(Tn.col[1]), Vector(Tn.col[0])
+            outward = (D["body"].to_3x3() @ Vector((WAIST_OFF[side].x, 0, 0))).normalized()
+            inward = -outward
+            surf = D["body"] @ (J["thigh_" + side] + WAIST_OFF[side])
+            a1 = (-Up * .7 + inward * .55 - Fw * .1).normalized()
+            face = (-Fw * .7 + inward * .3)
+            n1 = (face - a1 * face.dot(a1)).normalized()
+            wrist0, a0, n0 = HANDF[side]
+            R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
+            hl = (J["hand_" + side] - wrist0).length
+            wrist_t = surf - a1 * hl * 1.25 + outward * .02
+            pole_t = (outward * 1.0 - Fw * .4 - Up * .15).normalized()
+            R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                        sh_f, wrist_t, pole_t, Vector((0, -1, 0)))
+            D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+            D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+            D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
+            joints["miss"][side] = (wr_f - wrist_t).length
+            AKIMBO_KEYS.add(name + ":" + side)
+        elif side in main_hand:
             Dh = main_hand[side]
             wrist_t = Dh @ J["wrist_" + side]
             R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side],
@@ -2220,6 +2267,9 @@ def solve(name, dz=0.0, held0=None):
             # flat or splayed)
             rc = float(CFG.get("relaxed_curl", 1.15))
             curls = {c: hands.spread(c, rc if c != "th" else rc * .45) for c in hnd.chains}
+            if name + ":" + side in AKIMBO_KEYS:
+                # (the hand on the hip a fist, the thumb along the fingers)
+                curls = {c: hands.spread(c, 2.1 if c != "th" else .9) for c in hnd.chains}
             fm = hands.curl_moves(hnd, curls)
         for bname, M in fm.items():
             D[bname] = Dh @ M
@@ -2318,9 +2368,11 @@ if TAIL_AT and ITEMS:
     for pb in rig.pose.bones:
         pb.rotation_mode = "QUATERNION"
     print("MESHY tail bones:", [t[0] for t in TAILS])
+ALL_D = {}
 for t in KEYS:
     name = BY_KEY[t]
     D, P = pose_key(name)
+    ALL_D[t] = D
     for _tn, _tp, _ib in TAILS:
         D[_tn] = D[_ib]
     for b in BONES + [g for g, _c in GEAR] + [t_[0] for t_ in TAILS]:
@@ -2364,6 +2416,10 @@ for fc in fcurves(action):
         kp.interpolation = "LINEAR"
 bpy.ops.object.mode_set(mode="OBJECT")
 scene.frame_set(0)
+
+# A boss's gear that can be shot off (kind config "shed": shed.py).
+import shed  # noqa: E402
+SHED = shed.setup(lo, hi, rig, CFG, ALL_D, KEYS, select)
 
 # ----------------------------------------------- join the gear to the body
 lo.data.materials.clear()
@@ -3206,6 +3262,7 @@ def gloves(px):
 
 
 total = gloves(total)
+shed.paint(lo, image, total, CFG, pixels, bake_op, select, TEXTURE)
 image.pixels.foreach_set(total.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + ".png")
 image.file_format = "PNG"
@@ -3224,6 +3281,26 @@ if gear_obj is not None:
     gimg.filepath_raw = os.path.join(OUT, KIND + "_gear.png")
     gimg.file_format = "PNG"
     gimg.save()
+    # (a boss's phase looks: the old phase look's gear texels)
+    for _tag in (("p2", "p3") if CFG.get("phases") else ()):
+        _op = CFG["old_tex"].replace(".png", "_%s.png" % _tag)
+        if not os.path.exists(_op):
+            continue
+        _oi = bpy.data.images.load(_op)
+        for _m in gear_obj.data.materials:
+            if _m and _m.use_nodes:
+                for _n in _m.node_tree.nodes:
+                    if _n.type == "TEX_IMAGE":
+                        _n.image = _oi
+        _gp = bpy.data.images.new("gear_" + _tag, TEXTURE, TEXTURE, alpha=False)
+        for m in lo.data.materials:
+            m.node_tree.nodes["bake_target"].image = _gp
+        select([gear_obj, lo], lo)
+        bake_op(type="EMIT", margin=2, use_clear=True, use_selected_to_active=True,
+                cage_extrusion=.01, max_ray_distance=.02)
+        _gp.filepath_raw = os.path.join(OUT, KIND + "_gear_" + _tag + ".png")
+        _gp.file_format = "PNG"
+        _gp.save()
     # Mask: the gear slot emits white, the body black.
     for m, val in ((mat_body, 0.0), (mat_gear, 1.0), (mat_hand, 0.0), (mat_fish, .1)):
         nt = m.node_tree
@@ -3359,6 +3436,26 @@ hurt[:, :3] = hurt[:, :3] * (1 - blood[:, None] * .85) + mixc * blood[:, None] *
 image.pixels.foreach_set(hurt.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + "_hurt.png")
 image.save()
+# A boss's phase looks (kind config "phases": true; the old ones were every
+# material scorched plus his own rags and breakage): p2 under half health
+# sooted in blotches and bloodied, p3 under a fifth charred darker all over,
+# the blotches spread and the blood heavier. The held gear keeps the old
+# phase looks' texels (gear_paste.py) and takes neither.
+LOOKS = ["", "hurt"]
+if CFG.get("phases"):
+    LOOKS = ["", "p2", "p3"]
+    _gm = (pixels(mimg)[:, 0] < .2) if gear_obj is not None else numpy.ones(len(noise_px), bool)
+    _soot_dark = numpy.array([.07, .055, .045])
+    for _tag, _thr, _soot_k, _all, _bk in (("p2", .58, .7, .93, .6), ("p3", .48, .85, .8, 1.0)):
+        _soot = numpy.clip((noise_px - _thr) * 5, 0, 1) * _gm
+        _ph = total.copy()
+        _ph[:, :3] = _ph[:, :3] * numpy.where(_gm, _all, 1.0)[:, None]
+        _ph[:, :3] = _ph[:, :3] * (1 - _soot[:, None] * _soot_k) + _soot_dark * _soot[:, None] * _soot_k
+        _b = blood * _bk
+        _ph[:, :3] = _ph[:, :3] * (1 - _b[:, None] * .85) + mixc * _b[:, None] * .85
+        image.pixels.foreach_set(_ph.ravel())
+        image.filepath_raw = os.path.join(OUT, KIND + "_" + _tag + ".png")
+        image.save()
 image.pixels.foreach_set(total.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + ".png")
 
@@ -3588,6 +3685,8 @@ bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, KIND + ".blend"))
 # --------------------------------------------------------------- actors.json
 lo.data.calc_loop_triangles()
 labels = {b: LABEL[b] for b in BONES}
+for _sb, (_g, _on) in SHED.items():
+    labels[_sb] = LABEL[_on]
 RIDES = {}
 for it in ITEMS:
     labels[it["bone"]] = "arm_" + it["main"]
@@ -3602,16 +3701,16 @@ for _tn, _tp, _ib in TAILS:
     FLOP[_tn] = _tp
 old_entry = json.load(open(os.path.join(os.path.dirname(CFG["old_glb"]), "actors.json")))[KIND]
 entry = {
-    "bones": float(len(BONES) + len(GEAR) + len(TAILS)),
+    "bones": float(len(BONES) + len(GEAR) + len(TAILS) + len(SHED)),
     "canvas": old_entry.get("canvas", [1.75, 1.86]),
     "faces": float(len(lo.data.loop_triangles)),
     "frames": FRAMES,
-    "gear": old_entry.get("gear", {}),
+    "gear": {b: g for b, (g, _on) in SHED.items()} if CFG.get("shed") else old_entry.get("gear", {}),
     "height": OLD_H,
     "labels": labels,
     "lit": old_entry.get("lit", True),
-    "parts": float(len(BONES) + len(GEAR) + len(TAILS)),
-    "textures": ["", "hurt"],
+    "parts": float(len(BONES) + len(GEAR) + len(TAILS) + len(SHED)),
+    "textures": LOOKS,
     "joints": JOINTS,
     "rides": RIDES,
     **({"flop": FLOP} if FLOP else {}),
@@ -3620,7 +3719,8 @@ entry = {
     "segs": dict({"body": 0, "head": 1, "upperarm_l": 2, "forearm_l": 3, "hand_l": 3, "upperarm_r": 4,
                   "forearm_r": 5, "hand_r": 5, "thigh_l": 6, "shin_l": 7, "foot_l": 7, "thigh_r": 8,
                   "shin_r": 9, "foot_r": 9},
-                 **{b: (3 if b.startswith("fl_") else 5) for b in BONES if b.startswith(("fl_", "fr_"))}),
+                 **{b: (3 if b.startswith("fl_") else 5) for b in BONES if b.startswith(("fl_", "fr_"))},
+                 **{_sb: {"body": 0, "head": 1}[_on] for _sb, (_g, _on) in SHED.items()}),
     "meshy": True,
 }
 meta_path = os.path.join(OUT, "actors.json")

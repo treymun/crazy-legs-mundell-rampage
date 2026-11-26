@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:\\Users\\treym\\AppData\\Local\\Temp\\claude\\1dc8348830e70b38\\f2338a2e-3874-4eaf-9e39-f1352f903b29\\scratchpad\\meshy-work\\meshy_out\\boss_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "alien sheriff, cream straw cowboy hat with dark band and gold star, antennae with green tips, grey gas mask with glowing green goggles, long brown leather duster coat, bandolier of glowing cyan cells, gold star badge, cyan belt buckle, charcoal trousers, dark grey boots, white gloves, empty hands, no weapon"
+}

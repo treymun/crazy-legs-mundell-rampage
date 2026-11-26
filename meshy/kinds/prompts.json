@@ -68,5 +68,12 @@
   "face": "a broad grin, small eyes, a sunburnt face",
   "texture": "bayou noodler, olive green cap, brown beard, white sleeveless undershirt, dark olive wader overalls with suspenders, dark boots, bare arms, empty hands, no weapon, nothing held",
   "height": 1.73
+ },
+ "boss": {
+  "who": "crooked small-town sheriff who is secretly a space alien in disguise, a tall lanky menacing lawman",
+  "design": "a wide cream straw cowboy hat with a dark brown band and a small gold star on the band, two thin alien antennae poking up through the hat's crown each tipped with a glowing green-cyan bulb, a smooth grey alien head wearing a dark grey rubber gas mask with two big round glowing green goggle eyes and a short round respirator snout, a long worn brown leather duster coat reaching his knees with wide lapels, a diagonal leather bandolier across the chest from the right shoulder to the left hip lined with glowing cyan-green energy cells, a big gold five-pointed sheriff's star badge on the left chest, a brown belt with a big glowing cyan square buckle, dark charcoal-grey trousers, scuffed dark grey cowboy boots, clean white cotton gloves on both hands",
+  "face": "no face visible: the gas mask's two glowing green goggle eyes stare out cold and unblinking, the head tilted a little forward with quiet menace, shoulders square like a man used to being obeyed",
+  "texture": "alien sheriff, cream straw cowboy hat with dark band and gold star, antennae with green tips, grey gas mask with glowing green goggles, long brown leather duster coat, bandolier of glowing cyan cells, gold star badge, cyan belt buckle, charcoal trousers, dark grey boots, white gloves, empty hands, no weapon",
+  "height": 1.95
  }
 }

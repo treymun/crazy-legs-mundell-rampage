@@ -14,7 +14,9 @@ F = ImageFont.truetype("C:/Windows/Fonts/consolab.ttf", 15)
 FT = ImageFont.truetype("C:/Windows/Fonts/consolab.ttf", 22)
 SHOTS = [("day_idle", "day, standing"), ("day_walk", "day, mid-stride"), ("day_far", "day, a few cells off"),
          ("night_idle", "night, standing"), ("night_walk", "night, mid-stride"), ("night_far", "night, a few cells off"),
-         ("day_aim", "day, aiming (gun pose)"), ("day_wind", "day, the wind-up to fire (gun pose)")]
+         ("day_aim", "day, aiming (gun pose)"), ("day_wind", "day, the wind-up to fire (gun pose)"),
+         ("day_p2", "day, a boss under half health (phase two look)"),
+         ("night_p2", "night, a boss under half health (phase two look)")]
 W1, H1 = 320, 156
 CROP = (100, 8, 220, 156)  # the body's middle third of the view
 if kind in ("cow", "hog", "gator", "crawler", "hound"):

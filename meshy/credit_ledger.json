@@ -489,6 +489,39 @@
    "time": "2026-11-26 06:57:18",
    "after": 2225,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "boss_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2185d-523a-70b8-b7cd-6a7b74efa526",
+   "before": 2225,
+   "cost": 9,
+   "body": "boss_concept.json",
+   "time": "2026-11-26 08:58:21",
+   "after": 2216,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "boss_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a2185d-f649-7335-9f38-5e114f893f0b",
+   "before": 2216,
+   "cost": 30,
+   "body": "boss_model.json",
+   "time": "2026-11-26 08:59:05",
+   "after": 2186,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "boss_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a2185f-1ed7-773a-a53c-c21d11f6cabb",
+   "before": 2186,
+   "cost": 5,
+   "body": "boss_rig.json",
+   "time": "2026-11-26 09:00:21",
+   "after": 2181,
+   "status": "SUCCEEDED"
   }
  ]
 }
