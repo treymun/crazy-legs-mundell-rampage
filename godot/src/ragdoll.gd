@@ -901,18 +901,23 @@ func _on_bodies(touching: PackedByteArray) -> void:
 			# (A body of another level, kept by the view, is no body here.)
 			continue
 		var om := o.middle()
-		var reach := extent + o.extent
+		var o_extent := o.extent
+		var reach := extent + o_extent
 		if absf(om.x - mid.x) > reach or absf(om.y - mid.y) > reach or absf(om.z - mid.z) > reach:
 			continue
 		var share := .5 if o.awake else 1.0
+		# (Its balls read once: another body's fields cost more to ask.)
+		var o_pos := o.pos
+		var o_radius := o.radius
+		var o_n := o_pos.size()
 		for i in pos.size():
 			var p := pos[i]
 			var r := radius[i]
-			if p.distance_to(om) > o.extent + r:
+			if p.distance_to(om) > o_extent + r:
 				continue
-			for j in o.pos.size():
-				var off := p - o.pos[j]
-				var least := r + o.radius[j]
+			for j in o_n:
+				var off := p - o_pos[j]
+				var least := r + o_radius[j]
 				var d2 := off.length_squared()
 				if d2 >= least * least or d2 < 1e-10:
 					continue
@@ -937,17 +942,15 @@ func _on_boxes(world: LevelData, touching: PackedByteArray) -> void:
 	var mid := middle()
 	for item: Variant in boxes:
 		var b: PhysCore.Box = item
-		var reach := extent + b.reach
-		if (
-			absf(b.p.x - mid.x) > reach
-			or absf(b.p.y - mid.y) > reach
-			or absf(b.p.z - mid.z) > reach
-		):
+		var bp := b.p
+		var b_reach := b.reach
+		var reach := extent + b_reach
+		if absf(bp.x - mid.x) > reach or absf(bp.y - mid.y) > reach or absf(bp.z - mid.z) > reach:
 			continue
 		for i in pos.size():
 			var p := pos[i]
 			var r := radius[i]
-			if p.distance_squared_to(b.p) > (b.reach + r) * (b.reach + r):
+			if p.distance_squared_to(bp) > (b_reach + r) * (b_reach + r):
 				continue
 			var out := b.ball_out(p, r)
 			var deep := out.length()
