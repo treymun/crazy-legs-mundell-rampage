@@ -63,6 +63,9 @@ var _probe_worst := 0.0
 var _probe_at := -1
 var _piece_worst := 0.0
 var _probe_key := ""
+## The arms' showing share at the row's first picture, and each view's worst.
+var _arms_rest := {}
+var _arms_worst := {}
 var _piece_said := ""
 var _at: Array = AT.duplicate()
 
@@ -193,6 +196,13 @@ func _row(row: Array) -> void:
 		_probe_at = -1
 		_piece_worst = 0.0
 		_piece_said = ""
+		var arms_said := ""
+		for key: String in _arms_worst:
+			var worst_at: Array = _arms_worst[key]
+			arms_said += " %s %.0f%%@%d" % [key, float(worst_at[0]) * 100.0, int(worst_at[1])]
+		print("ARMS SEEN %s %s (share of the first picture's, worst):%s" % [name, kind, arms_said])
+		_arms_rest = {}
+		_arms_worst = {}
 
 
 func _probe(kind: String) -> void:
@@ -215,6 +225,17 @@ func _probe(kind: String) -> void:
 						str(float(view.get("_blend_at")) >= 0.0)
 					]
 				)
+			var seen: Dictionary = probe.arms_seen(view, info.get("labels", {}))
+			if _arms_rest.is_empty():
+				_arms_rest = seen
+			for w: String in seen:
+				var now: Array = seen[w]
+				var was: Array = _arms_rest.get(w, [1.0, 1.0])
+				for a in 2:
+					var share: float = float(now[a]) / maxf(float(was[a]), .05)
+					var key := "%s %s" % [w, "left" if a == 0 else "right"]
+					if share < float(_arms_worst.get(key, [9.0])[0]):
+						_arms_worst[key] = [share, _rows._frames.size() - 1]
 			var rig: RagdollRig = RagdollRig.of(kind, view, info)
 			var bad: Array = probe.pieces(view, rig)
 			var badness: float = bad[0]

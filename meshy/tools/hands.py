@@ -245,6 +245,7 @@ def build(side, wrist, a, n, t, length, width, thick, wrist_r, name):
 
 
 def curl_moves(h, curls, oppose=0.0):
+    oppose = curls.get("_oppose", oppose) if isinstance(curls, dict) else oppose
     """Each finger bone's move (rest world -> curled, before the hand's own
     move): curls is {chain: [angle per joint]}; `oppose` swings the thumb
     round under the palm first (about the hand's axis), to close on a grip
@@ -373,3 +374,52 @@ def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name):
     h.obj = obj
     h.meshy = True
     return h
+
+
+def contact_curls(h, gear_pts, relaxed=.3):
+    """Each finger closed until it touches the held thing's own surface
+    (gear_pts: its vertices in the hand's rest world): the most curl at which
+    no point of the finger (its thickness kept) is inside, so it rests on
+    the surface; the thumb swung round under first. Returns (curls, report):
+    report per finger [gap to the surface at the curl chosen (m), whether it
+    started inside]."""
+    from mathutils.kdtree import KDTree
+
+    tree = KDTree(len(gear_pts))
+    for i, p in enumerate(gear_pts):
+        tree.insert(p, i)
+    tree.balance()
+
+    def near(pts):
+        return min(tree.find(p)[2] for p in pts)
+
+    out = {}
+    report = {}
+    for c in h.chains:
+        r_f = h.radius[c]
+        opp = 0.0
+        if c == "th":
+            # The thumb swung round as far under as it goes clear of the thing.
+            for o in (THUMB_OPPOSE, .7, .5, .3, .1, 0.0, -.3, -.6, -.9):
+                opp = o
+                if near(finger_points(h, c, 0.0, o)) >= r_f * .8:
+                    break
+        best = None
+        gap = None
+        start_in = near(finger_points(h, c, 0.0, opp)) < r_f * .8
+        for k in range(0, 75):
+            total = k * .04
+            d = near(finger_points(h, c, total, opp))
+            if d < r_f * .95 and not start_in:
+                break
+            if start_in and d >= r_f * .95:
+                start_in = False
+            best = total
+            gap = d - r_f
+        if best is None:
+            best, gap = 0.0, near(finger_points(h, c, 0.0, opp)) - r_f
+        out[c] = spread(c, best)
+        report[c] = (gap, start_in)
+        if c == "th":
+            out["_oppose"] = opp
+    return out, report

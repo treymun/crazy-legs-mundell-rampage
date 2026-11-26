@@ -963,7 +963,22 @@ def hand_on(it, side, Di, R_t, el_guess):
     wrist0, a0, n0 = HANDF[side]
     R_h = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
     palm = HANDS[side].thick * .5 if side in HANDS else .014 * OLD_H / 1.7
-    hc = grip - n1 * (it["rad"] * .85 + palm * .8)
+    # The palm on the thing's own surface under the grip (not a mean radius).
+    surf = it["rad"]
+    pts = ITEM_PTS.get(it["bone"], [])
+    if len(pts):
+        ga = it["lo"] + (it["hi"] - it["lo"]) * it["holds"][side]
+        ab = (it["hi"] - it["lo"]).normalized()
+        n_loc = (Di.to_3x3().inverted() @ n1).normalized()
+        best = None
+        for g in pts:
+            g = Vector(g)
+            if abs((g - ga).dot(ab)) < .035:
+                o = -(g - ga).dot(n_loc)
+                best = o if best is None or o > best else best
+        if best is not None:
+            surf = max(best, .008)
+    hc = grip - n1 * (surf + palm * .9)
     wrist = hc - R_h @ (J["hand_" + side] - wrist0)
     return R_h, wrist, grip
 
@@ -980,12 +995,24 @@ KEEP_N = numpy.array([lo.data.vertices[int(i)].normal[:] for i in KEEP_IDX])
 KEEP_W = numpy.stack([W[b][KEEP_IDX] for b in _KEEP_BONES], axis=1)
 KEEP_W = KEEP_W / numpy.maximum(KEEP_W.sum(axis=1, keepdims=True), 1e-6)
 ITEM_PTS = {}
+ITEM_PTS_DENSE = {}
+CONTACT = {}
 if gear_obj is not None:
     _gco2 = numpy.array([v.co[:] for v in gear_obj.data.vertices])
     _vg2 = numpy.array(vert_gear)
     for gi, (gname, _c) in enumerate(GEAR):
         _p = _gco2[_vg2 == gi]
         ITEM_PTS[gname] = _p[:: max(1, len(_p) // 240)]
+        # (The surface finer for the fingers: its vertices and its faces' middles.)
+        _dense = [Vector(v) for v in _p]
+        for poly in gear_obj.data.polygons:
+            if _vg2[poly.vertices[0]] == gi:
+                _dense.append(Vector(poly.center))
+                for k_ in range(len(poly.vertices)):
+                    a_ = gear_obj.data.vertices[poly.vertices[k_]].co
+                    b_ = gear_obj.data.vertices[poly.vertices[(k_ + 1) % len(poly.vertices)]].co
+                    _dense.append((a_ + b_) / 2)
+        ITEM_PTS_DENSE[gname] = _dense
 
 
 def body_surface(D):
@@ -1357,7 +1384,18 @@ def solve(name, dz=0.0, held0=None):
         if held_by is not None and held_by[1] is not None:
             it, Di = held_by
             inv = Dh.inverted()
-            curls = hands.grip_curls(hnd, inv @ (Di @ it["lo"]), inv @ (Di @ it["hi"]), it["rad"])
+            gp = [inv @ (Di @ Vector(g)) for g in ITEM_PTS_DENSE.get(it["bone"], [])]
+            if gp:
+                curls, rep = hands.contact_curls(hnd, gp)
+                gaps = [g for c_, (g, _i) in rep.items() if c_ != "pk"]
+                inside = [c_ for c_, (_g, i_) in rep.items() if i_]
+                touching = sum(1 for g in gaps if g < .004)
+                CONTACT[name + ":" + side] = (touching / max(1, len(gaps)), max(gaps), inside)
+                if os.environ.get("MESHY_DEBUG") and name in ("0", "aim", "pain"):
+                    print("DBG contact", name, side, {c_: (round(g, 3), i_) for c_, (g, i_) in rep.items()},
+                          {c_: round(sum(v), 2) if isinstance(v, list) else v for c_, v in curls.items()})
+            else:
+                curls = hands.grip_curls(hnd, inv @ (Di @ it["lo"]), inv @ (Di @ it["hi"]), it["rad"])
             fm = hands.curl_moves(hnd, curls, hands.THUMB_OPPOSE)
         else:
             curls = {c: hands.spread(c, .55 if c != "th" else .3) for c in hnd.chains}
@@ -1452,6 +1490,12 @@ for t in KEYS:
             pb.scale = (1, 1, 1)
         pb.keyframe_insert("scale", frame=t)
 print("MESHY wrists: worst bend %d degrees" % round(max(WRIST.values()) if WRIST else 0))
+if CONTACT:
+    _wf = min(CONTACT, key=lambda k: CONTACT[k][0])
+    _wg = max(CONTACT, key=lambda k: CONTACT[k][1])
+    _ins = sorted({k for k, v in CONTACT.items() if v[2]})
+    print("MESHY hand contact: worst %.0f%% of fingers touching (%s), worst gap %.3f m (%s), fingers through: %s" % (
+        CONTACT[_wf][0] * 100, _wf, CONTACT[_wg][1], _wg, _ins[:6] or "none"))
 if COM:
     _k = max(COM, key=lambda k: abs(COM[k]))
     print("MESHY body's middle over the feet: worst %.3f m (%s; + ahead)" % (COM[_k], _k))

@@ -119,6 +119,10 @@ static func most_now() -> int:
 ## A gun hand keeps at least this share of its standing distance from the
 ## chest, belly and head (made_live).
 const HOLD_NEAR := .98
+## The hand on a wound rests this many of its own radii off the torso's
+## surface, its elbow this many out from the ribs (_keep_out).
+const CLUTCH_REST := .9
+const CLUTCH_ELBOW := 2.6
 ## How much firmer a gun-holding arm's muscles stay through a hit (at most
 ## the full tone).
 const HOLD_TONE := 6.0
@@ -651,9 +655,23 @@ func _keep_out() -> void:
 	var skip := -1
 	if clutch_hand >= 0 and age < clutch_until:
 		skip = R.HAND_L if clutch_hand == 0 else R.HAND_R
+	if skip >= 0:
+		# The hand on the wound rests ON the body (the torso's capsule, its
+		# belly as thick as it is, the hand's own half thickness kept), and
+		# its elbow stays out from the ribs, so the arm keeps its shape and
+		# shows from every side.
+		var hips := (pos[R.HIP_L] + pos[R.HIP_R]) * .5
+		var neck := (pos[R.SH_L] + pos[R.SH_R]) * .5
+		var core := maxf(radius[R.BELLY], radius[R.HIP_L])
+		for i: int in [skip, skip - 1]:
+			var c := Geometry3D.get_closest_point_to_segment(pos[i], hips, neck)
+			var off := pos[i] - c
+			var d := off.length()
+			var least := core + radius[i] * (CLUTCH_REST if i == skip else CLUTCH_ELBOW)
+			if d < least and d > 1e-6:
+				pos[i] = c + off * (least / d)
 	for i in range(R.ELBOW_L, R.FOOT_R + 1):
 		if i == skip or i == skip - 1:
-			# (The hand and its elbow: the arm folded onto the body.)
 			continue
 		var off := pos[i] - mid
 		var d := off.length()

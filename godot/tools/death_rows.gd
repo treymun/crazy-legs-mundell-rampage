@@ -283,13 +283,16 @@ func _camera(g: Game, at: Vector2, way: Vector2, top: float, near := 1.0) -> Vec
 	var across := (
 		Vector2(-way.y, way.x) * (-1.0 if OS.get_environment("ROW_SIDE") == "other" else 1.0)
 	)
-	for c: Vector2 in [
+	var spots: Array[Vector2] = [
 		at + (across * 4.0 + way * .8) * near,
 		at - (across * 4.0 - way * .8) * near,
 		at + (across * 2.4 - way * 1.6) * near,
 		at - (across * 2.4 + way * 1.6) * near,
 		at - (way * 3.4 - across * .8) * near,
-	]:
+	]
+	if OS.get_environment("ROW_SIDE") == "front":
+		spots.push_front(at - (way * 3.4 - across * .8) * near)
+	for c: Vector2 in spots:
 		if c.x < 1 or c.y < 1 or c.x > w.width - 1 or c.y > w.height - 1:
 			continue
 		var z := w.floor_under(c.x, c.y, top + .6)

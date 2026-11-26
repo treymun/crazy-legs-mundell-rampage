@@ -167,3 +167,84 @@ static func pieces(view: Node, rig: RagdollRig) -> Array:
 			worst = deep
 			said = "%s hand %.3f m inside the torso" % [side, deep]
 	return [worst, said]
+
+
+## How much of each arm shows from the front, the back and either side
+## (model space): the body's vertices posed as drawn, the rest of the body
+## drawn into a depth grid, an arm's vertex showing where nothing of the body
+## is in front of it. Returns {view: [left arm share, right arm share]}.
+static func arms_seen(view: Node, labels: Dictionary) -> Dictionary:
+	var out := {}
+	var skels := view.find_children("*", "Skeleton3D", true, false)
+	if skels.is_empty():
+		return out
+	var skel := skels[0] as Skeleton3D
+	var body: MeshInstance3D = null
+	for n in view.find_children("*", "MeshInstance3D", true, false):
+		if (n as MeshInstance3D).skin != null:
+			body = n as MeshInstance3D
+	if body == null:
+		return out
+	var skin := body.skin
+	var bind_xf: Array[Transform3D] = []
+	var bind_side := PackedInt32Array()
+	for b in skin.get_bind_count():
+		var bone := skin.get_bind_bone(b)
+		if bone < 0:
+			bone = skel.find_bone(skin.get_bind_name(b))
+		var label: String = labels.get(skel.get_bone_name(bone), "body") if bone >= 0 else "body"
+		bind_side.append(0 if label == "arm_l" else 1 if label == "arm_r" else -1)
+		bind_xf.append(
+			skel.get_bone_global_pose(bone) * skin.get_bind_pose(b) if bone >= 0 else Transform3D()
+		)
+	var pts := PackedVector3Array()
+	var side := PackedInt32Array()
+	for s in body.mesh.get_surface_count():
+		var arr := body.mesh.surface_get_arrays(s)
+		var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var vb: PackedInt32Array = arr[Mesh.ARRAY_BONES]
+		var vw: PackedFloat32Array = arr[Mesh.ARRAY_WEIGHTS]
+		var per := vb.size() / maxi(verts.size(), 1)
+		for v in verts.size():
+			var best := 0
+			var p := Vector3.ZERO
+			for k in per:
+				var w := vw[v * per + k]
+				if w > vw[v * per + best]:
+					best = k
+				if w > 0.0:
+					p += bind_xf[vb[v * per + k]] * verts[v] * w
+			pts.append(p)
+			side.append(bind_side[vb[v * per + best]])
+	var cell := .02
+	for way: Array in [
+		["front", Vector3(0, 0, 1)],
+		["back", Vector3(0, 0, -1)],
+		["left", Vector3(1, 0, 0)],
+		["right", Vector3(-1, 0, 0)]
+	]:
+		var name: String = way[0]
+		var d: Vector3 = way[1]
+		var u := Vector3.UP
+		var r := d.cross(u)
+		var near := {}
+		for i in pts.size():
+			if side[i] >= 0:
+				continue
+			var key := Vector2i(floori(pts[i].dot(r) / cell), floori(pts[i].dot(u) / cell))
+			var z := pts[i].dot(d)
+			if not near.has(key) or z > float(near[key]):
+				near[key] = z
+		var seen := [0, 0]
+		var all := [0, 0]
+		for i in pts.size():
+			if side[i] < 0:
+				continue
+			all[side[i]] += 1
+			var key := Vector2i(floori(pts[i].dot(r) / cell), floori(pts[i].dot(u) / cell))
+			if not near.has(key) or pts[i].dot(d) > float(near[key]) - .01:
+				seen[side[i]] += 1
+		out[name] = [
+			float(seen[0]) / maxf(1.0, float(all[0])), float(seen[1]) / maxf(1.0, float(all[1]))
+		]
+	return out
