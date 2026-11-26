@@ -64,6 +64,15 @@ static func _ticks(g: Game, seconds: float, actors := false) -> void:
 		g.events.ticked.emit(DT)
 
 
+## The hand's reel (src/stagger.gd) played out, up to three seconds.
+static func _reel_out(g: Game, e: Enemy) -> void:
+	for _k in 180:
+		if not Stagger.reeling(e):
+			return
+		g.clock += DT
+		Stagger.tick(e, DT, g)
+
+
 ## The first of a kind, every other enemy put to sleep out of the way.
 static func _only(g: Game, kind: String) -> Enemy:
 	var found: Enemy = null
@@ -212,15 +221,21 @@ static func _zones(main, check: Callable) -> void:
 	g2.hit_point = Vector3(hand.x, hand.y, g2.world.stand(hand) + 1.0)
 	g2.hit_from = Vector2(g2.player.x, g2.player.y)
 	hand.hurt(8.0, g2, false, false, null, "revolver")
+	# (Pass 15: a shove is a reel over the hand's own ticks, src/stagger.gd:
+	# measured once it has played out. Before: .02 and .2 at once; now the
+	# small one a few hundredths, the big one about .25.)
+	_reel_out(g2, hand)
 	var small := hand.x - from
 	hand.x = from
 	hand.hp = 500.0
 	g2.clock += 1.0
 	g2.hit_point = Vector3(hand.x, hand.y, g2.world.stand(hand) + 1.0)
 	hand.hurt(64.0, g2, false, false, null, "rifle")
+	var stunned := hand.stun > 0.0
+	_reel_out(g2, hand)
 	var big := hand.x - from
 	check.call(
-		big > small + .1 and hand.stun > 0.0,
+		big > small + .1 and stunned,
 		"a big instant reels a hand back %.2f, a small one %.2f" % [big, small]
 	)
 

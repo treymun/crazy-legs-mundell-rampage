@@ -2,7 +2,8 @@
 ## sound of what it struck (a wet slap on a body, a rubbery thump on a shell,
 ## a ping or a clang and sparks off tin), the hat knocked off a head and
 ## tumbling down (tumble.gd), a head shot that kills popping, now and then a
-## HEADSHOT! call, the crosshair's head mark, and a dropped weapon flying to
+## HEADSHOT! call, a ding on every head hit (pass 15), the crosshair's head
+## mark (a red splat on a head kill: game_view.gd), and a dropped weapon flying to
 ## where the play put it and lying there till its hand picks it up. All looks
 ## and sound, its own dice; nothing saved.
 extends GameFeature
@@ -44,6 +45,8 @@ const CALL_GAP := 24.0
 ## Seconds between the struck sounds (a load of buckshot is one sound).
 const SOUND_GAP := .07
 const SPECK_CAP := 170
+## The head hit's ding (Assets.MADE_CUES head_ding), how loud.
+const DING := .5
 
 
 class Bit:
@@ -72,6 +75,8 @@ var _feel := Tumble.Feel.new(.05, .35, .32, 3.2)
 var _sound_next := 0.0
 var _call_at := -1000.0
 var _pops := 0
+var _dings := 0
+var _ding_next := 0.0
 
 
 func id() -> String:
@@ -91,6 +96,11 @@ func pops() -> int:
 	return _pops
 
 
+## How many head hits rang this game (tools read it).
+func dings() -> int:
+	return _dings
+
+
 ## A player's hit with a zone landed (HitZones.land): its sound, its sparks,
 ## and a hat off on the head.
 func landed(e: Enemy, amount: float) -> void:
@@ -101,6 +111,13 @@ func landed(e: Enemy, amount: float) -> void:
 	var at_z := floor_z + tall * (.9 if head else .56)
 	if head and game.hit_feedback:
 		game.hit_mark_head = true
+	if head and game.acting_local() and game.clock >= _ding_next:
+		# Pass 15: every head hit rings (a tin sign struck; a load of buckshot
+		# rings once).
+		_ding_next = game.clock + SOUND_GAP
+		_dings += 1
+		if game.hit_feedback:
+			game.sound.play("head_ding", DING)
 	if game.clock >= _sound_next:
 		_sound_next = game.clock + SOUND_GAP
 		game.sound_at(_cue(e, amount, head), e.x, e.y, .62 if metal else .4)

@@ -231,9 +231,12 @@ static func to_map(xf: Transform3D, p: Vector3) -> Vector3:
 
 ## A ragdoll for a body hung on `rig`, its points at `model` (model space;
 ## the gear's sticks after the rig's points, else as it stood) under the
-## model's transform `xf`.
-static func made(rig: RagdollRig, xf: Transform3D, model: PackedVector3Array) -> Ragdoll:
-	var doll := Ragdoll.new()
+## model's transform `xf` (`into`: a body of a class under this one to start,
+## DyingDoll).
+static func made(
+	rig: RagdollRig, xf: Transform3D, model: PackedVector3Array, into: Ragdoll = null
+) -> Ragdoll:
+	var doll := into if into != null else Ragdoll.new()
 	var scale := xf.basis.get_scale().x
 	var at := PackedVector3Array()
 	var rest := PackedVector3Array()

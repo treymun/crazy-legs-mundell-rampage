@@ -786,6 +786,9 @@ func _slide_step(s: Array, dt: float) -> bool:
 			return false
 	_domino(e, vx, vy, s)
 	if moved < Vector2(dx, dy).length() * .5:
+		# Over a low rail he goes, or a slam puts him down (src/body_play.gd).
+		if BodyPlay.slide_stopped(e, game, Vector2(vx, vy), _num(KICK, "slam_least")):
+			return false
 		if speed > _num(KICK, "slam_least"):
 			_strike(p, e, _num(KICK, "slam") * speed, .55, "kick")
 			game.sound_at("cover_slam", e.x, e.y, .8)

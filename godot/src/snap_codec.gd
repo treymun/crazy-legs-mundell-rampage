@@ -121,7 +121,7 @@ const SKIP_FIELDS := {
 	# hit throws hangs on the specks already about, which are never carried)
 	# and when HEADSHOT! was last called (this machine's callouts).
 	"critters": ["speck_dice"],
-	"hit_reads": ["speck_dice", "_call_at"],
+	"hit_reads": ["speck_dice", "_call_at", "_dings", "_ding_next"],
 	# When a hat, a gun or a bit came down and how it was turned: only how
 	# the 3D view settles it (each machine its own).
 	"hit_reads.Bit": ["landed", "spin0"],

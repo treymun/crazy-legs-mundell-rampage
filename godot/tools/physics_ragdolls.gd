@@ -10,7 +10,7 @@
 ## goes over and lies on the ground below; thrown softly it stays on the loft.
 ## Every rigged kind but the bosses and the kinds with no legs gets a rig.
 ##
-## Slow-mo finishers (features/finishers.gd): killing the last of two hands in
+## Slow-mo finishers (features/finishers.gd): killing the last of three hands in
 ## a fight starts it (the first kill does not), it eases and ends; with SLOW-MO
 ## FINISHERS off, with a second player, or on a host it never starts.
 extends RefCounted
@@ -675,17 +675,27 @@ func _rails(main: Node) -> void:
 
 
 func finishers(main: Node) -> void:
-	var g := _fight(main, {})
+	# Pass 15: only a fight of hits.cfg [finisher] fight_least kills (3) or
+	# more ends in slow motion; a fight of two does not.
+	var two := _fight(main, {}, 2)
+	two.enemies[_pair[0]].hurt(999.0, two, false, false, null, "revolver")
+	_tick(two, 3)
+	two.enemies[_pair[1]].hurt(999.0, two, false, false, null, "revolver")
+	_check(two.slowmo == 0.0, "a fight of two kills ends with no slow motion (%.2f)" % two.slowmo)
+	var g := _fight(main, {}, 3)
 	var a: Enemy = g.enemies[_pair[0]]
 	var b: Enemy = g.enemies[_pair[1]]
+	var c: Enemy = g.enemies[_pair[2]]
 	a.hurt(999.0, g, false, false, null, "revolver")
-	_check(g.slowmo == 0.0, "the first of two kills in a fight is no finisher")
+	_check(g.slowmo == 0.0, "the first of three kills in a fight is no finisher")
 	_tick(g, 3)
 	b.hurt(999.0, g, false, false, null, "revolver")
+	_tick(g, 3)
+	c.hurt(999.0, g, false, false, null, "revolver")
 	var started := g.slowmo
 	_check(
 		started > 0.0 and g.slowmo_for > 0.0,
-		"the last kill of a fight starts the slow motion (%.2f s)" % started
+		"the last kill of a fight of three starts the slow motion (%.2f s)" % started
 	)
 	var paces: Array = []
 	var clock := g.clock
@@ -705,7 +715,7 @@ func finishers(main: Node) -> void:
 		)
 	)
 	_check(g.clock - clock < 60 * DT, "the world went slower meanwhile")
-	_ok("the last of two kills slows the world to %.2f, eased, for %.2f s" % [least, started])
+	_ok("the last of three kills slows the world to %.2f, eased, for %.2f s" % [least, started])
 	# Off, with company, or on a host: never.
 	for case: String in ["off", "two players", "host"]:
 		var h := _fight(main, {"finish_slowmo": 0} if case == "off" else {})
@@ -713,8 +723,8 @@ func finishers(main: Node) -> void:
 			Modes.join_beside(h, h.player)
 		elif case == "host":
 			h.host = true
-		h.enemies[_pair[0]].hurt(999.0, h, false, false, null, "revolver")
-		h.enemies[_pair[1]].hurt(999.0, h, false, false, null, "revolver")
+		for i: int in _pair:
+			h.enemies[i].hurt(999.0, h, false, false, null, "revolver")
 		_tick(h, 2)
 		_check(h.slowmo == 0.0, "no slow motion %s (%.2f)" % [case, h.slowmo])
 	_ok("never with SLOW-MO FINISHERS off, with a second player or on a host")
@@ -723,8 +733,8 @@ func finishers(main: Node) -> void:
 var _pair: Array = []
 
 
-## Hickston with two hands fighting the player near each other, the rest asleep.
-func _fight(main: Node, options: Dictionary) -> Game:
+## Hickston with `hands` hands fighting the player near each other, the rest asleep.
+func _fight(main: Node, options: Dictionary, hands := 3) -> Game:
 	var g: Game = main.make_game("hickston")
 	g.configure(options)
 	g.cheats.god = true
@@ -733,7 +743,7 @@ func _fight(main: Node, options: Dictionary) -> Game:
 	for i in g.enemies.size():
 		var e: Enemy = g.enemies[i]
 		e.dormant = true
-		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind) and _pair.size() < 2:
+		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind) and _pair.size() < hands:
 			if first < 0:
 				first = i
 				_pair.append(i)

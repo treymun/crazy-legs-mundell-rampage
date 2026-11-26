@@ -84,6 +84,13 @@ const GIB_SIZES := {
 	"hand": .13,
 	"gut": .24
 }
+## Pass 15 (hits.cfg [punch]): chunks more a share of an overkill's excess,
+## how much bigger each, and the most of it (times the plain overkill).
+static var GIB_MORE: float = HitData.value("punch", "gib_more", 6.0)
+static var GIB_GROW: float = HitData.value("punch", "gib_grow", .18)
+static var GIB_MOST: float = HitData.value("punch", "gib_most", 2.0)
+## The extra chunks an overkill's excess throws, in turn.
+const EXTRA_PARTS := ["meat", "chunk", "gut", "meat", "rib", "organ", "chunk", "meat"]
 var gibs: Array = []
 var puffs: Array = []
 ## Blood thrown onto the lens by a close overkill: [x, y, radius, age, green].
@@ -227,10 +234,17 @@ func burst(enemy: Enemy) -> void:
 			"mark_scorch_%d" % (dice.randi() % 3)
 		)
 		blood_marks.append(Tumble.lay(game.world, soot, floor_z + .2, .003))
-	for part: String in GIB_PARTS:
+	# Pass 15: the further past the overkill line, the more and the bigger
+	# the chunks and the harder they fly (hits.cfg [punch] gib_*).
+	var more := excess(enemy)
+	var parts: Array = GIB_PARTS.duplicate()
+	for k in roundi(more * GIB_MORE):
+		parts.append(EXTRA_PARTS[k % EXTRA_PARTS.size()])
+	var grow := 1.0 + more * GIB_GROW
+	for part: String in parts:
 		var g := Gib.new()
 		var angle := away + dice.randf_range(-1.5, 1.5)
-		var speed := dice.randf_range(1.0, 3.6)
+		var speed := dice.randf_range(1.0, 3.6) * (1.0 + more * .25)
 		g.x = enemy.x
 		g.y = enemy.y
 		g.z = floor_z + enemy.height * dice.randf_range(.3, .8)
@@ -240,7 +254,8 @@ func burst(enemy: Enemy) -> void:
 		g.image = prefix + part
 		if charred and dice.randf() < .5:
 			g.image = "gib_c_" + part
-		g.size = GIB_SIZES[part]
+		var base_size: float = GIB_SIZES[part]
+		g.size = base_size * grow
 		g.flip = dice.randf() < .5
 		g.green = green
 		g.spin_rate = spin_rate(g.size)
@@ -278,6 +293,16 @@ func burst(enemy: Enemy) -> void:
 			lens.append([lx, ly, dice.randf_range(1.5, 4.5), 0.0, green])
 		while lens.size() > 18:
 			lens.pop_front()
+
+
+## How far past the overkill line the killing instant went (0 at it, up to
+## GIB_MOST - 1): the load over what took it apart (HitZones.overkill's
+## line; a blast's struck sum over its own).
+static func excess(enemy: Enemy) -> float:
+	var line := maxf(48.0, enemy.max_hp * .7)
+	if enemy.killed_by == "blast":
+		line = maxf(30.0, enemy.max_hp * .45)
+	return clampf(enemy.struck_sum / line - 1.0, 0.0, GIB_MOST - 1.0)
 
 
 ## A body that fell whole still bleeds where it lies.

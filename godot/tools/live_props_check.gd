@@ -234,6 +234,8 @@ static func _chair(main, check: Callable) -> void:
 	check.call(t.state == Carry.FLY and not p.armory.holstered, "FIRE throws it, the gun comes up")
 	for _k in 240:
 		_ticks(g, DT)
+		# (Pass 15: a shove is a reel over the hand's own ticks, src/stagger.gd.)
+		Stagger.tick(e, DT, g)
 		if t.state == Carry.STAND:
 			break
 	check.call(

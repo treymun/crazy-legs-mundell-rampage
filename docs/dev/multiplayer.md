@@ -131,7 +131,9 @@ A carried field must never be decided by one that is not: a client's copy
 that is put back on a snapshot keeps its own presentation, so anything
 carried that read it parts the copies again (county_net_check found three).
 Play kept on an object goes in a field (an enemy's `notes` for a boss's
-moves and the like), never in its metas, which no snapshot carries (pass 12,
+moves and the like; since pass 15 a hand's stagger, `src/stagger.gd`, one
+note an older peer simply never has: copy a note's array before changing
+it, as a snapshot put on another game may share it), never in its metas, which no snapshot carries (pass 12,
 net_check scans for them). `game.bark_next` decides whether a hand's own
 `Mind.bark_next` is set, so it is a SIM field; a simulation feature's looks keep their own dice that the
 snapshot skips (`SnapCodec.SKIP_FIELDS`: the specks of `hit_reads` and

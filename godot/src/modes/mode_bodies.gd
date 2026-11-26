@@ -61,6 +61,8 @@ static func for_player(game: Game, q: Player, kind: String, tall: float) -> Enem
 	e.gait = q.walk_phase
 	e.height = tall
 	e.died_at = fell_at(game, q)
+	# (How much shine is in them: their walk as a drunk's, ActorView.drunk_of.)
+	e.set_note("shine", q.drunk)
 	return e
 
 
