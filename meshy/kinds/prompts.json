@@ -50,11 +50,12 @@
   "height": 1.75
  },
  "barker": {
-  "who": "pot-bellied carnival barker, a fast-talking country fair showman",
-  "design": "a straw boater hat with a red band, a thick black handlebar moustache, a white long-sleeved shirt, a red-and-cream vertically striped vest over a round belly, grey-olive trousers, dark brown shoes",
-  "face": "a wide toothy showman's grin, bushy black eyebrows, a ruddy face",
-  "texture": "carnival barker, straw boater hat, black handlebar moustache, white shirt, red and cream striped vest, grey trousers, brown shoes, empty hands, no weapon, nothing held",
-  "height": 1.75
+  "refs": "cel",
+  "who": "fast-talking carnival barker, a country-fair showman working the midway",
+  "design": "WEARING a straw boater hat with a flat crown, a flat stiff brim and a red hat band on his head, a thick waxed black handlebar moustache, a white long-sleeved dress shirt with the sleeves held up by red arm garters, a black string bow tie, a red-and-cream vertically striped waistcoat vest buttoned down the front with brass buttons and a watch chain, grey-olive trousers, dark brown lace-up shoes, a normal trim build with straight shoulders and a flat stomach",
+  "face": "a stylized game-character face, slightly caricatured but natural: a wide toothy salesman's grin, bright eager eyes, one bushy black eyebrow raised, ruddy cheeks, slicked dark hair at the temples",
+  "texture": "carnival barker, straw boater hat with red band, black handlebar moustache, white shirt with red arm garters, black bow tie, red and cream striped vest with brass buttons, grey olive trousers, brown shoes, empty hands, no weapon, nothing held",
+  "height": 1.78
  },
  "chum_tosser": {
   "who": "stocky bayou fisherman",

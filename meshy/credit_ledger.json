@@ -863,6 +863,39 @@
    "time": "2026-11-26 14:40:13",
    "after": 1766,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "barker_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a219be-78a0-713e-b351-fafd6865cb99",
+   "before": 1766,
+   "cost": 9,
+   "body": "barker_concept.json",
+   "time": "2026-11-26 15:24:03",
+   "after": 1757,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "barker_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a219bf-58af-766f-a71a-330347e06eb5",
+   "before": 1757,
+   "cost": 30,
+   "body": "barker_model.json",
+   "time": "2026-11-26 15:25:06",
+   "after": 1727,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "barker_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a219c0-6e46-74f6-ad80-f20451e751ce",
+   "before": 1727,
+   "cost": 5,
+   "body": "barker_rig.json",
+   "time": "2026-11-26 15:26:15",
+   "after": 1722,
+   "status": "SUCCEEDED"
   }
  ]
 }

@@ -11,5 +11,12 @@
  "item_types": {
   "r": "raise"
  },
- "megaphone": true
+ "megaphone": true,
+ "hands_paint": "texture",
+ "skin_sat": 1.6,
+ "colour": 1.4,
+ "hand_hue": [
+  5,
+  30
+ ]
 }
