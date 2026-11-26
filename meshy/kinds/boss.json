@@ -149,5 +149,6 @@
    "not_skin": false
   }
  ],
- "hands_paint": "texture"
+ "hands_paint": "texture",
+ "clearance": 0.05
 }

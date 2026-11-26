@@ -34,6 +34,7 @@ PAINT_INPAINT = 1
 PAINT_CAP = 2
 PAINT_STALK = 3
 PAINT_SKIN = 7
+PAINT_ZONE = 8  # the rest of a face piece's box (where its rim may be)
 
 
 def _meshy_image(hi):
@@ -156,6 +157,28 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
             if not take:
                 log("MESHY shed %s: nothing in its box" % name)
                 continue
+            # "grow_dark" [rings, val]: dark faces in the box touching the
+            # piece join it (a spectacle frame's rim round the lenses, left
+            # painted round the eyes otherwise).
+            gd = rule.get("grow_dark")
+            if gd and cols is not None:
+                got = set(f.index for f in take)
+                for _ in range(int(gd[0])):
+                    ring = []
+                    for f in take:
+                        for v in f.verts:
+                            for f2 in v.link_faces:
+                                if f2.index in got:
+                                    continue
+                                c = f2.calc_center_median()
+                                if not (bx["x"][0] <= c.x <= bx["x"][1] and bx["y"][0] <= c.y <= bx["y"][1]
+                                        and bx["z"][0] <= c.z <= bx["z"][1]):
+                                    continue
+                                if max(float(x) for x in cols[f2.index][:3]) <= float(gd[1]):
+                                    got.add(f2.index)
+                                    ring.append(f2)
+                    take += ring
+                log("MESHY shed %s: %d faces with the dark rim grown on (%d)" % (name, len(take), len(got)))
             lift = float(rule.get("lift", .006))
             dup = bmesh.ops.duplicate(bm, geom=take)
             new_f = [e for e in dup["geom"] if isinstance(e, bmesh.types.BMFace)]
@@ -173,6 +196,12 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 for k in list(v[dl].keys()):
                     del v[dl][k]
                 v[dl][gidx[bone]] = 1.0
+            if rule.get("rim_px"):
+                for f in bm.faces:
+                    c = f.calc_center_median()
+                    if f[paint] == 0 and (bx["x"][0] <= c.x <= bx["x"][1] and bx["y"][0] <= c.y <= bx["y"][1]
+                                          and bx["z"][0] <= c.z <= bx["z"][1]):
+                        f[paint] = PAINT_ZONE
             for f in take:
                 f[paint] = PAINT_SKIN if rule.get("under") == "skin" else PAINT_INPAINT
             for f in new_f + back_f:
@@ -343,6 +372,28 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, sk
             log("MESHY paint %s: %d texels %s" % (pid, int(m.sum()), col))
     # under a face piece (shades): the face's own skin, a little shaded
     m = idm == PAINT_SKIN
+    # The frame's own texels round the painted patch (a spectacle rim the
+    # face selection did not take): within "rim_px" texels of it, any texel
+    # in the piece's hue range or dark joins the skin paint.
+    for rule in cfg.get("shed", {}).values():
+        rp = int(rule.get("rim_px", 0))
+        if rp and m.any() and rule.get("under") == "skin":
+            near = m.copy()
+            for _ in range(rp):
+                grow = near.copy()
+                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    grow |= numpy.roll(numpy.roll(near, dy, 0), dx, 1)
+                near = grow
+            near &= idm == PAINT_ZONE
+            mx = rgb.max(axis=2)
+            mn = rgb.min(axis=2)
+            sat = (mx - mn) / numpy.maximum(mx, 1e-4)
+            r_, g_, b_ = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+            blue = (b_ >= r_) & (b_ >= g_ * .95) & (sat > .12)
+            dark = mx < float(rule.get("rim_dark", .3))
+            add = near & (blue | dark)
+            m = m | add
+            log("MESHY shed: %d frame texels round a face piece joined its skin paint" % int(add.sum()))
     if m.any() and skin is not None:
         k = 1.0 + (numpy.random.default_rng(5).random(m.sum()) - .5) * .06
         rgb[m] = numpy.clip(numpy.asarray(skin)[None, :3] * .92 * k[:, None], 0, 1)

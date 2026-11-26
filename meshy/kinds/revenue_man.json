@@ -88,7 +88,12 @@
     1
    ],
    "lift": 0.008,
-   "under": "skin"
+   "under": "skin",
+   "grow_dark": [
+    2,
+    0.3
+   ],
+   "rim_px": 6
   }
  },
  "skin_zones": [
@@ -96,5 +101,15 @@
   "hand_l",
   "hand_r"
  ],
- "hands_paint": "texture"
+ "hands_paint": "texture",
+ "carry_dir": [
+  0.45,
+  0.88,
+  0.05
+ ],
+ "carry_at": [
+  0.08,
+  0.21,
+  0.06
+ ]
 }

@@ -1541,8 +1541,12 @@ def item_delta(it, name, P, D, R_t, hipc):
     beat = {"w0": 0, "w1": 1, "w2": 2, "w3": 3, "w4": 0}.get(bare, -1)
     # (Held high enough that the stock's butt rides by the hip, clear of
     # the thigh's swing in the walk.)
-    G1 = (-out * .8 + U * .5 + F * .05).normalized()
-    at = hips + out * .12 + U * .17 + F * (_front(hips.z + .05, hips.z + .3) + .09)
+    # (kind config "carry_dir"/"carry_at" [out, up, fwd]: a big belly holds
+    # the gun out, so a steeper carry brings the fore-end to the other hand.)
+    cd_ = CFG.get("carry_dir", [.8, .5, .05])
+    ca_ = CFG.get("carry_at", [.12, .17, .09])
+    G1 = (-out * cd_[0] + U * cd_[1] + F * cd_[2]).normalized()
+    at = hips + out * ca_[0] + U * ca_[1] + F * (_front(hips.z + .05, hips.z + .3) + ca_[2])
     if beat >= 0:
         G1 = (Matrix.Rotation(.05 * math.sin(beat * math.pi / 2), 3, F) @ G1).normalized()
         at = at + U * (.012 * math.cos(beat * math.pi))
