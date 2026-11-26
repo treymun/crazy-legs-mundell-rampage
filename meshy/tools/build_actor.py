@@ -2036,6 +2036,8 @@ def face_lift(px):
             old_l = float(numpy.median(o[oskin] @ numpy.array([.299, .587, .114])))
             want = max(want, (old_l - .024) / 1.18 * float(CFG.get("face_light", 1.0)))
     skin_all = face | rest
+    # (not hair or a beard: a texel much darker than the skin's middle stays)
+    skin_all &= lum > float(numpy.median(lum[skin_all])) * .6
     if "HANDMASK" in globals():
         skin_all = skin_all & ~HANDMASK
     k = min(float(CFG.get("face_lift_most", 1.8)), max(1.0, want / max(have, 1e-4)))
@@ -2126,7 +2128,7 @@ def hand_match(px):
     # falls between the palette's entries and dithers into beige and teal
     # blotches; a third more colour lands on its smooth brown ramp.
     k_s = float(CFG.get("skin_sat", 1.3))
-    sk_m = (SKIN_DONE | hm)
+    sk_m = (SKIN_DONE & ~HEADZONE) | hm  # (the face keeps its eased blush)
     grey = rgb[sk_m].mean(axis=1, keepdims=True)
     rgb[sk_m] = numpy.clip(grey + (rgb[sk_m] - grey) * k_s, 0, 1)
     px[:, :3] = rgb

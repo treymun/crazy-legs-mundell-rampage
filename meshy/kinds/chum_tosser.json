@@ -1,0 +1,11 @@
+{
+ "kind": "chum_tosser",
+ "rigged": "../meshy-work/meshy_out/chum_tosser_rig/rigged.glb",
+ "poses": "../meshy-work/dump/chum_tosser_poses.json",
+ "old_glb": "../meshy-work/old/chum_tosser.glb",
+ "old_tex": "../meshy-work/old/actor3d_chum_tosser.png",
+ "out": "../meshy-work/raw/chum_tosser",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old"
+}

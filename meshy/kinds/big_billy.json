@@ -1,0 +1,11 @@
+{
+ "kind": "big_billy",
+ "rigged": "../meshy-work/meshy_out/big_billy_rig/rigged.glb",
+ "poses": "../meshy-work/dump/big_billy_poses.json",
+ "old_glb": "../meshy-work/old/big_billy.glb",
+ "old_tex": "../meshy-work/old/actor3d_big_billy.png",
+ "out": "../meshy-work/raw/big_billy",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old"
+}

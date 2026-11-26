@@ -1,0 +1,14 @@
+{
+ "kind": "drunk_coot",
+ "rigged": "../meshy-work/meshy_out/drunk_coot_rig/rigged.glb",
+ "poses": "../meshy-work/dump/drunk_coot_poses.json",
+ "old_glb": "../meshy-work/old/drunk_coot.glb",
+ "old_tex": "../meshy-work/old/actor3d_drunk_coot.png",
+ "out": "../meshy-work/raw/drunk_coot",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "item_types": {
+  "r": "pistol"
+ }
+}

@@ -221,6 +221,125 @@
    "time": "2026-11-26 00:47:15",
    "after": 2669,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "big_billy_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a216a7-557b-7089-9869-0bf08634396f",
+   "before": 2669,
+   "cost": 30,
+   "body": "big_billy_model.json",
+   "time": "2026-11-26 01:00:00",
+   "after": 2639,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "big_billy_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a216a8-beae-7372-80ab-5148db31cc02",
+   "before": 2639,
+   "cost": 5,
+   "body": "big_billy_rig.json",
+   "time": "2026-11-26 01:01:32",
+   "after": 2634,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "drunk_coot_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a216a9-2833-73d8-b3b6-58cb0eea5a01",
+   "before": 2634,
+   "cost": 30,
+   "body": "drunk_coot_model.json",
+   "time": "2026-11-26 01:01:59",
+   "after": 2604,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "drunk_coot_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a216ab-7312-771a-bb33-6273bbb93a55",
+   "before": 2604,
+   "cost": 5,
+   "body": "drunk_coot_rig.json",
+   "time": "2026-11-26 01:04:29",
+   "after": 2599,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "bottle_tosser_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a216ab-de61-723a-83e2-ecf4491673f3",
+   "before": 2599,
+   "cost": 30,
+   "body": "bottle_tosser_model.json",
+   "time": "2026-11-26 01:04:57",
+   "after": 2569,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "bottle_tosser_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a216ad-ecb9-775e-ba2d-c2cfc5c447f1",
+   "before": 2569,
+   "cost": 5,
+   "body": "bottle_tosser_rig.json",
+   "time": "2026-11-26 01:07:11",
+   "after": 2564,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "barker_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a216ae-5726-70fa-ba58-469e2566db38",
+   "before": 2564,
+   "cost": 30,
+   "body": "barker_model.json",
+   "time": "2026-11-26 01:07:38",
+   "after": 2534,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "barker_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a216af-e5c5-760d-8fc7-8f7732dc74c4",
+   "before": 2534,
+   "cost": 5,
+   "body": "barker_rig.json",
+   "time": "2026-11-26 01:09:20",
+   "after": 2529,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chum_tosser_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a216b0-4f62-70f7-ad3b-d4d0a620cd72",
+   "before": 2529,
+   "cost": 30,
+   "body": "chum_tosser_model.json",
+   "time": "2026-11-26 01:09:48",
+   "after": 2499,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chum_tosser_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a216b1-59ad-722d-8a6d-f53939b336f7",
+   "before": 2499,
+   "cost": 5,
+   "body": "chum_tosser_rig.json",
+   "time": "2026-11-26 01:10:56",
+   "after": 2494,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "noodler_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a216b1-c2a8-720e-9884-02a59c5f0e74",
+   "before": 2494,
+   "cost": null,
+   "body": "noodler_model.json",
+   "time": "2026-11-26 01:11:23"
   }
  ]
 }

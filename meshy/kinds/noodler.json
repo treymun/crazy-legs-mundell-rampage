@@ -1,0 +1,11 @@
+{
+ "kind": "noodler",
+ "rigged": "../meshy-work/meshy_out/noodler_rig/rigged.glb",
+ "poses": "../meshy-work/dump/noodler_poses.json",
+ "old_glb": "../meshy-work/old/noodler.glb",
+ "old_tex": "../meshy-work/old/actor3d_noodler.png",
+ "out": "../meshy-work/raw/noodler",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old"
+}

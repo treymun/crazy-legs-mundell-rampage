@@ -1,0 +1,11 @@
+{
+ "kind": "barker",
+ "rigged": "../meshy-work/meshy_out/barker_rig/rigged.glb",
+ "poses": "../meshy-work/dump/barker_poses.json",
+ "old_glb": "../meshy-work/old/barker.glb",
+ "old_tex": "../meshy-work/old/actor3d_barker.png",
+ "out": "../meshy-work/raw/barker",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old"
+}
