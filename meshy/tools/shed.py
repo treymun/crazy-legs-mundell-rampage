@@ -73,6 +73,33 @@ def _in_hsv(rgb, rule):
     return ok_h and s0 <= ss <= s1 and v0 <= vv <= v1
 
 
+def _split_corners(bm, fs):
+    """Every vertex shared by faces in set `fs` and faces outside it gets
+    its own copy for the outside faces (split_edges leaves corner-only
+    contacts joined)."""
+    n = 0
+    for v in list(bm.verts):
+        lf = v.link_faces
+        if not lf:
+            continue
+        ins = [f for f in lf if f in fs]
+        if not ins or len(ins) == len(lf):
+            continue
+        nv = bm.verts.new(v.co, v)
+        for f in [f for f in lf if f not in fs]:
+            vs = [nv if x is v else x for x in f.verts]
+            try:
+                nf = bm.faces.new(vs, f)
+            except ValueError:
+                continue
+            for la, lb in zip(f.loops, nf.loops):
+                lb.copy_from(la)
+            bm.faces.remove(f)
+        n += 1
+    bm.verts.ensure_lookup_table()
+    return n
+
+
 def _paint_layer(bm):
     lay = bm.faces.layers.int.get("paint_id")
     return lay if lay is not None else bm.faces.layers.int.new("paint_id")
@@ -156,6 +183,10 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                     continue
                 if rule.get("within") and math.hypot(c.x - rule["radial"][0], c.y - rule["radial"][1]) > float(rule["within"]):
                     continue
+                # ("outside": only faces farther than this across from the
+                # radial centre - shoulder horns round a top hat)
+                if rule.get("outside") and math.hypot(c.x - rule["radial"][0], c.y - rule["radial"][1]) < float(rule["outside"]):
+                    continue
                 if rule.get("head_only") and not all(
                         v[dl] and max(v[dl].items(), key=lambda kv: kv[1])[0] == gidx.get(on, -1) for v in f.verts):
                     continue
@@ -195,6 +226,10 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 edges = [e for e in bm.edges
                          if any(f in ts for f in e.link_faces) and any(f not in ts for f in e.link_faces)]
                 bmesh.ops.split_edges(bm, edges=edges)
+                # (faces meeting the rest only at a corner share that vertex
+                # still: it would stretch a sliver to the piece's bone when
+                # the piece flies off)
+                _split_corners(bm, ts)
                 hv = {v for f in take for v in f.verts}
                 for v in hv:
                     for k in list(v[dl].keys()):
@@ -291,6 +326,7 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
             edges = [e for e in bm.edges
                      if any(f in hat_set for f in e.link_faces) and any(f not in hat_set for f in e.link_faces)]
             bmesh.ops.split_edges(bm, edges=edges)
+            _split_corners(bm, hat_set)
             hv = {v for f in hat_f for v in f.verts}
             # The cut's two rims evened onto one level (a ragged edge of
             # triangle tips round the bare head otherwise): the hat's lower
@@ -321,6 +357,13 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
             pieces[bone] = list(hv)
             log("MESHY shed %s: %d faces above %.3f m cut off the body (%d edges split)"
                 % (name, len(hat_f), z0, len(edges)))
+            # (Long Meshy slivers whose middle is under the cut but whose tip
+            # reaches up the hat stay on the head: their tips are brought
+            # down under the cut.)
+            for v in bm.verts:
+                if v not in hv and v.link_faces and not any(f in claimed for f in v.link_faces):
+                    if v.co.z > z0 and not keep(v.co) and math.hypot(v.co.x - cen.x, v.co.y - cen.y) < float(rule.get("within", 9)):
+                        v.co.z = z0 - .004
             # The bare head: a cap on the ring, stalks to the kept antennae.
             if rule.get("cap"):
                 hz = float(rule["cap"]) * (rx + ry) / 2

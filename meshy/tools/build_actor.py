@@ -583,6 +583,10 @@ if _img is not None:
             _cols.append(_ipx[min(_ih - 1, int(_u.y * _ih)), min(_iw - 1, int(_u.x * _iw)), :3])
     if _cols:
         _skin = numpy.median(numpy.array(_cols), axis=0)
+# (kind config "skin_rgb": a gloved character's skin taken from this, not
+# from Meshy's white gloves - the face otherwise turns to the gloves' grey)
+if CFG.get("skin_rgb"):
+    _skin = numpy.array(CFG["skin_rgb"], dtype=float) / 255.0
 print("MESHY skin colour of the hands", numpy.round(_skin * 255).astype(int))
 _cut = numpy.zeros(len(co), dtype=bool)
 _measure = {}
