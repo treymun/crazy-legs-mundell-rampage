@@ -101,8 +101,16 @@ def blender_tiles():
     reach = max(hi.x - lo.x, hi.y - lo.y, hi.z - lo.z)
     cd.ortho_scale = reach * 1.12
 
+    # (A beast facing another way than +z, fit.json "beast" "front": the
+    # views turned with it.)
+    fit_p = os.path.join(os.path.dirname(new_glb), "fit.json")
+    front = [0.0, 1.0]
+    if os.path.exists(fit_p):
+        front = json.load(open(fit_p)).get(kind, {}).get("beast", {}).get("front", front)
+    yaw = math.degrees(math.atan2(front[0], front[1]))
+
     def shoot(path, angle, mid, up=0.0):
-        a_ = math.radians(angle)
+        a_ = math.radians(angle + yaw)
         e_ = math.radians(up)
         d = 12.0
         cam.location = mid + Vector((math.sin(a_) * math.cos(e_), -math.cos(a_) * math.cos(e_), math.sin(e_))) * d

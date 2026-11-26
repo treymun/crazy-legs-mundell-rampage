@@ -25,6 +25,10 @@ const STRETCH_LET := .02
 ## (A crawler's links are a few centimetres: a blast stretches one by half
 ## for a frame.)
 const STRETCH_HIT := .6
+## (and in a hit a link may give this much more in metres: the Meshy gator's
+## front leg roots sit 4 cm from the torso's corners, and a blast stretches
+## that link 3 cm, 73%, for a frame; the old block gator's was 12 cm long.)
+const STRETCH_HIT_LET := .035
 const REST_BY := Ragdoll.MOST_AWAKE + .1
 const TOL := .03
 const KINDS := ["gator", "crawler", "hog", "cow"]
@@ -106,19 +110,24 @@ func _victim(at: Vector2, z: float, how: String, way: float) -> Enemy:
 func _settle(doll: BeastDoll, world: LevelData) -> Array:
 	var t := 0.0
 	var worst := 0.0
+	var link := ""
 	while doll.awake and t < REST_BY + .5:
 		doll.step(world)
 		t += Ragdoll.STEP
-		worst = maxf(worst, _stretch(doll))
+		var now := _stretch(doll, STRETCH_HIT_LET)
+		if now > worst:
+			worst = now
+			link = "%s at %.2f s" % [worst_link, t]
+	worst_hit = link
 	return [t, worst]
 
 
-static func _stretch(doll: Ragdoll) -> float:
+static func _stretch(doll: Ragdoll, let := STRETCH_LET) -> float:
 	var worst := 0.0
 	for k in doll.la.size():
 		if doll.lmin[k] == doll.lmax[k] and doll.lmin[k] > 0.0:
 			var d := doll.pos[doll.la[k]].distance_to(doll.pos[doll.lb[k]])
-			var st := maxf(0.0, absf(d - doll.lmin[k]) - STRETCH_LET) / doll.lmin[k]
+			var st := maxf(0.0, absf(d - doll.lmin[k]) - let) / doll.lmin[k]
 			if st > worst:
 				worst = st
 				worst_link = "%d-%d" % [doll.la[k], doll.lb[k]]
@@ -126,6 +135,7 @@ static func _stretch(doll: Ragdoll) -> float:
 
 
 static var worst_link := ""
+static var worst_hit := ""
 
 
 ## "" when every knee lies on its own side of the line from root to foot.
@@ -199,7 +209,9 @@ func _kind(game: Game, kind: String) -> void:
 			var hit: float = ran[1]
 			rests.append(t)
 			if hit > STRETCH_HIT:
-				faults.append("%s: a rigid link stretched %.0f%%" % [name, hit * 100.0])
+				faults.append(
+					"%s: a rigid link stretched %.0f%% (%s)" % [name, hit * 100.0, worst_hit]
+				)
 				print("    (worst link %s)" % worst_link)
 			var lying := _stretch(doll)
 			if lying > STRETCH:

@@ -455,6 +455,9 @@ func _fit(
 		var thick := _quantile(perp, .5)
 		var off_most := 0.0
 		for b: int in groups[g]:
+			if count[b] == 0:
+				# (A named leg's bone the skin gives nothing: no middle.)
+				continue
 			var t := clampf((mids[b] - root).dot(run) / maxf(leg_len * leg_len, 1e-6), 0.0, 1.0)
 			var d := mids[b].distance_to(root + run * t)
 			if d > off_most and d > leg_len * BENT:

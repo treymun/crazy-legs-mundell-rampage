@@ -263,7 +263,7 @@ def realign_legs():
     key). Config "legs": [[hip, knee, foot], ...] (old bone names), "torso"
     (the bone the legs hang from)."""
     legs = CFG.get("legs", [])
-    if not legs:
+    if not legs or not CFG.get("realign", True):
         return
     torso = CFG.get("torso", "b0")
     owner = group_of(src_me, None)
@@ -470,6 +470,47 @@ def legs_below_hips(W):
 
 
 
+def split_moving(groups, pv, names):
+    """A group's parts that the live keys move apart (a gator's jaw opening
+    to bite, in the same ragdoll segment as its skull) are split off into
+    their own group, parts that move together staying together. The dead
+    keys ("down", "die_*") are not asked: the old block bodies come apart
+    there and a smooth skin must not follow."""
+    live = sorted({int(round(f)) for k, f in FRAMES.items() if k != "down" and not k.startswith("die")})
+    mats = {}
+    for f in live:
+        scene.frame_set(f)
+        bpy.context.view_layer.update()
+        mats[f] = {pb.name: arm.matrix_world @ pb.matrix for pb in arm.pose.bones}
+    scene.frame_set(STAND)
+    bpy.context.view_layer.update()
+    st = mats.get(STAND) or {pb.name: arm.matrix_world @ pb.matrix for pb in arm.pose.bones}
+    tol = OLD_H * float(CFG.get("split_tol", .03))
+
+    def apart(a_, b_):
+        pts = pv[names == b_]
+        if not len(pts):
+            return 0.0
+        c = Vector(pts.mean(axis=0).tolist())
+        return max(((mats[f][a_] @ st[a_].inverted() @ c) - (mats[f][b_] @ st[b_].inverted() @ c)).length
+                   for f in live)
+
+    out = []
+    for grp in groups:
+        subs = []
+        for b_ in grp:
+            for sub in subs:
+                if apart(sub[0], b_) < tol:
+                    sub.append(b_)
+                    break
+            else:
+                subs.append([b_])
+        if len(subs) > 1:
+            print("BEAST group %s split by the keys into %s" % (grp[0], [x[0] for x in subs]))
+        out.extend(subs)
+    return out
+
+
 def heat_weights():
     """Weights by Blender's bone heat over a stand-in skeleton: each old part
     a bone along its own long axis (its vertices' main direction, end to
@@ -491,6 +532,8 @@ def heat_weights():
     # body built of many small blocks (the hog's bristles and slabs) whose
     # keys do not move them as one would tear a smooth skin apart.
     groups = CFG.get("groups") or [[g.name] for g in old_mesh.vertex_groups]
+    if CFG.get("groups"):
+        groups = split_moving(groups, pv, names)
     for grp in groups:
         if not grp:
             continue
@@ -563,6 +606,64 @@ for i in range(len(W)):
     if (row > 0).sum() > 4:
         row[numpy.argsort(row)[:-4]] = 0
     W[i] = row / max(row.sum(), 1e-9)
+
+
+def jaw_sides(W):
+    """A jaw that opens (kind config "jaw": {"upper": bone, "lower": bone}):
+    the Meshy head's closed mouth is cut along its lips. Each head vertex
+    ahead of the old lower jaw's hinge goes wholly to the old part it is
+    nearest of the two (the old jaws' own shape gives the mouth line).
+    Returns each vertex's side (0 none, 1 upper, 2 lower)."""
+    jaw = CFG.get("jaw")
+    side = numpy.zeros(len(W), dtype=numpy.int32)
+    if not jaw:
+        return side
+    up = lo.vertex_groups[jaw["upper"]].index
+    dn = lo.vertex_groups[jaw["lower"]].index
+    pv = numpy.array([v.co[:] for v in src_me.vertices])
+    own = numpy.array([n or "" for n in OWNER])
+    pu, pd = pv[own == jaw["upper"]], pv[own == jaw["lower"]]
+    fr = CFG.get("front", [0.0, 1.0])
+    fwd = numpy.array([fr[0], -fr[1], 0.0])
+    fwd /= numpy.linalg.norm(fwd)
+    hinge = float((pd @ fwd).min()) + OLD_H * float(jaw.get("hinge", 0.0))
+    co_ = numpy.array([v.co[:] for v in lo.data.vertices])
+    head = numpy.isin(W.argmax(axis=1), [up, dn]) & (co_ @ fwd > hinge)
+    # The mouth line: in each slice along the snout, the old lower jaw's top
+    # as a share of the old head's height there, put on the new head's.
+    po = numpy.vstack([pu, pd])
+    tip = float(max((po @ fwd).max(), (co_[head] @ fwd).max()))
+    bins = numpy.linspace(hinge, tip, 9)
+    share = []
+    for k in range(8):
+        a_, b_ = bins[k], bins[k + 1]
+        so = po[(po @ fwd >= a_) & (po @ fwd <= b_)]
+        sd = pd[(pd @ fwd >= a_) & (pd @ fwd <= b_)]
+        if len(so) and len(sd):
+            share.append((sd[:, 2].max() - so[:, 2].min()) / max(float(numpy.ptp(so[:, 2])), 1e-6))
+        else:
+            share.append(share[-1] if share else .4)
+    share = numpy.clip(numpy.array(share) + float(jaw.get("lift", 0.0)), .1, .9)
+    for k in range(8):
+        a_, b_ = bins[k], bins[k + 1] + (1e-3 if k == 7 else 0)
+        inb = head & (co_ @ fwd >= a_) & (co_ @ fwd < b_)
+        if not inb.any():
+            continue
+        z0, z1 = co_[inb, 2].min(), co_[inb, 2].max()
+        cut_z = z0 + share[k] * (z1 - z0)
+        for i in numpy.nonzero(inb)[0]:
+            side[i] = 2 if co_[i, 2] < cut_z else 1
+    print("BEAST jaw line: %s of the head's height" % numpy.round(share, 2).tolist())
+    for i in numpy.nonzero(head)[0]:
+        lower = side[i] == 2
+        side[i] = 2 if lower else 1
+        W[i] = 0
+        W[i, dn if lower else up] = 1
+    print("BEAST jaw: %d upper and %d lower vertices ahead of the hinge" % ((side == 1).sum(), (side == 2).sum()))
+    return side
+
+
+JAW_SIDE = jaw_sides(W)
 for g in lo.vertex_groups:
     g.remove(list(range(len(lo.data.vertices))))
 for gi in range(NB):
@@ -585,6 +686,59 @@ for i, v in enumerate(lo.data.vertices):
     v.co = rest[i]
 print("BEAST carried back to rest: %.3f m at most" % moved)
 
+
+def cut_mouth():
+    """The lips parted (jaw_sides) and each side's open edge capped, the caps
+    marked (material 1) to be painted as the inside of the mouth."""
+    if not JAW_SIDE.any():
+        return
+    bm = bmesh.new()
+    bm.from_mesh(lo.data)
+    bm.verts.ensure_lookup_table()
+    lay = [int(x) for x in JAW_SIDE]
+
+    def face_side(f):
+        got = [lay[v.index] for v in f.verts]
+        if not any(got):
+            return 0
+        return 2 if got.count(2) > got.count(1) else 1
+
+    fs = {f: face_side(f) for f in bm.faces}
+    cut = []
+    for e in bm.edges:
+        if len(e.link_faces) == 2:
+            a_, b_ = (fs[f] for f in e.link_faces)
+            if {a_, b_} == {1, 2} and all(lay[v.index] in (1, 2) for v in e.verts):
+                cut.append(e)
+    bmesh.ops.split_edges(bm, edges=cut)
+    # (each parted vertex rides the jaw its faces are on)
+    jaw = CFG["jaw"]
+    gi = {1: lo.vertex_groups[jaw["upper"]].index, 2: lo.vertex_groups[jaw["lower"]].index}
+    dl = bm.verts.layers.deform.active
+    for v in bm.verts:
+        sides = {fs.get(f, 0) for f in v.link_faces} - {0}
+        if len(sides) == 1:
+            sd = sides.pop()
+            if v.is_valid and (lay[v.index] if v.index < len(lay) else 0) != sd or v.index >= len(lay):
+                v[dl].clear()
+                v[dl][gi[sd]] = 1.0
+    open_edges = [e for e in bm.edges if e.is_boundary]
+    made = bmesh.ops.holes_fill(bm, edges=open_edges, sides=0)
+    tri = bmesh.ops.triangulate(bm, faces=made.get("faces", []))
+    caps = [f for f in tri.get("faces", []) if f.is_valid]
+    for f in bm.faces:
+        f.material_index = 0
+    for f in caps:
+        f.material_index = 1
+    n_caps = len(caps)
+    bm.to_mesh(lo.data)
+    bm.free()
+    lo.data.update()
+    print("BEAST mouth cut: %d edges parted, %d cap faces" % (len(cut), n_caps))
+
+
+cut_mouth()
+
 # ------------------------------------------------------------ unwrap, bake
 # (baked at the standing key: the low mesh posed as the Meshy one stands)
 select([lo])
@@ -600,6 +754,7 @@ scene.frame_set(STAND)
 bpy.context.view_layer.update()
 old_mesh.hide_render = True
 src.hide_render = True
+CAPS = [p_.index for p_ in lo.data.polygons if p_.material_index == 1]
 lo.data.materials.clear()
 mat = bpy.data.materials.new("bake")
 mat.use_nodes = True
@@ -685,6 +840,39 @@ n_l = float(numpy.median(lum(total[inside, :3])))
 gain = float(numpy.clip(o_l / max(n_l, 1e-4), .6, 1.6)) * float(CFG.get("gain", 1.0))
 total[:, :3] = numpy.clip(total[:, :3] * gain * numpy.array(CFG.get("tint", [1, 1, 1])), 0, 1)
 print("BEAST gain %.3f to the old look's light" % gain)
+
+
+def paint_mouth():
+    """The mouth's caps (material 1) painted as a mouth's inside: a dark
+    red-pink, darker toward the throat."""
+    caps = [lo.data.polygons[k] for k in CAPS]
+    if not caps:
+        return
+    uv = lo.data.uv_layers.active.data
+    rgb = total[:, :3].reshape(TEX, TEX, 3)
+    col = numpy.array(CFG.get("jaw", {}).get("mouth", [.42, .14, .13]))
+    n = 0
+    for p_ in caps:
+        pts = numpy.array([uv[li].uv[:] for li in p_.loop_indices]) * TEX
+        lo_ = numpy.floor(pts.min(axis=0)).astype(int) - 1
+        hi_ = numpy.ceil(pts.max(axis=0)).astype(int) + 1
+        a_, b_, c_ = pts[0], pts[1], pts[2]
+        den = (b_[1] - c_[1]) * (a_[0] - c_[0]) + (c_[0] - b_[0]) * (a_[1] - c_[1])
+        if abs(den) < 1e-9:
+            continue
+        for y in range(max(lo_[1], 0), min(hi_[1], TEX)):
+            for x in range(max(lo_[0], 0), min(hi_[0], TEX)):
+                px, py = x + .5, y + .5
+                l1 = ((b_[1] - c_[1]) * (px - c_[0]) + (c_[0] - b_[0]) * (py - c_[1])) / den
+                l2 = ((c_[1] - a_[1]) * (px - c_[0]) + (a_[0] - c_[0]) * (py - c_[1])) / den
+                if l1 >= 0 and l2 >= 0 and 1 - l1 - l2 >= 0:
+                    rgb[y, x] = col
+                    n += 1
+    total[:, :3] = rgb.reshape(-1, 3)
+    print("BEAST mouth painted: %d texels" % n)
+
+
+paint_mouth()
 img.pixels.foreach_set(total.ravel())
 img.filepath_raw = os.path.join(OUT, KIND + ".png")
 img.file_format = "PNG"

@@ -62,9 +62,10 @@ for tag in ("day_idle", "day_walk", "night_idle"):
             de.text((x + 3, 36), "%s %s" % (who, tag), font=F, fill=(255, 255, 255))
             x += hw // 2 + 6
     x += 8
-full = Image.new("RGB", (width, sheet.size[1] + extra.size[1]), (22, 22, 26))
-full.paste(sheet, (0, 0))
-full.paste(extra, (0, sheet.size[1]))
-sheet = full
+if kind not in ("cow", "hog", "gator", "crawler", "hound"):  # (animals hold nothing)
+    full = Image.new("RGB", (width, sheet.size[1] + extra.size[1]), (22, 22, 26))
+    full.paste(sheet, (0, 0))
+    full.paste(extra, (0, sheet.size[1]))
+    sheet = full
 sheet.save(out, optimize=True)
 print("ingame sheet", out, sheet.size, os.path.getsize(out) // 1024, "KB")
