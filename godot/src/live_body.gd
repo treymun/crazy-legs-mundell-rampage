@@ -179,9 +179,12 @@ var _frame_t := Basis.IDENTITY
 
 
 ## A live body for a body hung on `rig`, posed as `model` (model space,
-## the rig's fifteen points) under the model's transform `xf`.
-static func made_live(rig: RagdollRig, xf: Transform3D, model: PackedVector3Array) -> LiveBody:
-	var live := LiveBody.new()
+## the rig's fifteen points) under the model's transform `xf` (`into`: a body
+## of a class under this one to start, ActiveBody).
+static func made_live(
+	rig: RagdollRig, xf: Transform3D, model: PackedVector3Array, into: LiveBody = null
+) -> LiveBody:
+	var live := into if into != null else LiveBody.new()
 	var scale := xf.basis.get_scale().x
 	var at := PackedVector3Array()
 	var rest := PackedVector3Array()

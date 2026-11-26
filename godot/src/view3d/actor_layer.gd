@@ -240,9 +240,11 @@ func show_actors(
 
 
 ## The living bodies that may run a live body this frame (pass 15,
-## src/live_body.gd): those just hit, reeling or running one already, the
-## nearest LiveBody.most_now() of them (fewer on a phone); the rest keep the
-## plain animation and its rigid flinch. Enemy instance id -> true.
+## src/live_body.gd): those just hit, reeling or running one already, a
+## drunk near (src/active_body.gd), a body just killed or still dying
+## (src/dying_doll.gd), the nearest LiveBody.most_now() of them (fewer on a
+## phone); the rest keep the plain animation and its rigid flinch, the plain
+## ragdoll. Enemy instance id -> true.
 func _live_ones(sprites: Array, clock: float, eye: Vector3) -> Dictionary:
 	var out := {}
 	if not View.ragdolls:
@@ -250,12 +252,22 @@ func _live_ones(sprites: Array, clock: float, eye: Vector3) -> Dictionary:
 	var wants: Array = []
 	for s: View.Sprite in sprites:
 		var e := s.who as Enemy
-		if not e.alive:
-			continue
 		var id := e.get_instance_id()
 		var view: ActorView = _shown.get(id)
+		if not e.alive:
+			# Dying (src/dying_doll.gd): just killed, or still moving of itself.
+			var dying: DyingDoll = null
+			if view != null:
+				dying = view.doll as DyingDoll
+			var fresh := e.died_at >= 0.0 and clock - e.died_at < ActorView.LIVE_LATE
+			if (fresh and (view == null or view.doll == null)) or (dying != null and dying.active()):
+				wants.append([_far2(s, eye), id])
+			continue
 		var running := view != null and view.live != null
-		if running or clock - e.struck_at < ActorView.LIVE_LATE or Stagger.reeling(e):
+		var drunk := (
+			ActorView.drunk_of(e) > 0.0 and _far2(s, eye) < ActiveBody.DRUNK_REACH * ActiveBody.DRUNK_REACH
+		)
+		if running or drunk or clock - e.struck_at < ActorView.LIVE_LATE or Stagger.reeling(e):
 			var d := (
 				Vector2(s.x - eye.x, s.y - eye.y).length_squared() if eye != Vector3.INF else 0.0
 			)
@@ -266,6 +278,10 @@ func _live_ones(sprites: Array, clock: float, eye: Vector3) -> Dictionary:
 	for k in mini(wants.size(), LiveBody.most_now()):
 		out[wants[k][1]] = true
 	return out
+
+
+static func _far2(s: View.Sprite, eye: Vector3) -> float:
+	return Vector2(s.x - eye.x, s.y - eye.y).length_squared() if eye != Vector3.INF else 0.0
 
 
 ## A model no longer shown: hidden and kept for its body (or the next of its

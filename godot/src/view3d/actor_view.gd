@@ -138,6 +138,9 @@ const FLINCH_RISE := .045
 ## sight mid-reel), and a live body hands back over LIVE_EASE.
 const LIVE_LATE := .15
 const LIVE_EASE := .18
+## A drunk (Variants.STUMBLE) or a player on shine past SHINE walks as a live
+## body (src/active_body.gd) while near (ActorLayer3D's budget).
+const SHINE := 62.0
 const R_POINTS := RagdollRig.POINTS
 ## Standing at idle, a body breathes and sways a touch (its own phase).
 const BREATH := .012
@@ -256,6 +259,7 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	if e.alive:
 		_track(Vector3(s.x, s.y, z), clock)
 		_live_begin(e, clock)
+		_drunk_begin(e, clock)
 	elif live != null:
 		live = null
 	var turn := PI * .5 - e.angle + _yaw()
@@ -348,8 +352,9 @@ func _live_begin(e: Enemy, clock: float) -> void:
 			_rig = RagdollRig.of(kind, self, info)
 		if not _rig.ok or _rig is BeastRig:
 			return
-		live = LiveBody.made_live(_rig, transform, _rig.posed_points(_skeletons[0]))
+		live = ActiveBody.made_active(_rig, transform, _rig.posed_points(_skeletons[0]))
 		live.omega = Stagger.rate(e)
+		live.dice.seed = hash([e.uid, e.struck_at, 7])
 		_live_clock = clock
 		_hand_from = []
 	var note := Stagger.of(e)
@@ -371,6 +376,40 @@ func _live_begin(e: Enemy, clock: float) -> void:
 	live.hit(j, hz, lat, zone, hash([e.uid, e.struck_at]))
 
 
+## A drunk's walk (or a player's on shine) as a live body while the budget
+## lets it (live_ok): started from the pose last drawn, with no hit.
+func _drunk_begin(e: Enemy, clock: float) -> void:
+	if live != null or not live_ok or not View.ragdolls or drunk_of(e) <= 0.0:
+		return
+	if not _shown_alive or _skeletons.is_empty() or Enemy.BOSS_TITLES.has(e.kind):
+		return
+	var info: Dictionary = models.kinds[kind]
+	if not info.get("ragdoll", true):
+		return
+	if _rig == null:
+		_rig = RagdollRig.of(kind, self, info)
+	if not _rig.ok or _rig is BeastRig:
+		return
+	var act := ActiveBody.made_active(_rig, transform, _rig.posed_points(_skeletons[0]))
+	act.omega = Stagger.rate(e)
+	act.dice.seed = hash([e.uid, 11])
+	act.drunk = drunk_of(e)
+	live = act
+	_live_clock = clock
+	_hand_from = []
+
+
+## How drunk `e` walks: 1 the drunk coot (Variants.STUMBLE), a player's
+## stand-in on shine past SHINE by how far (ModeBodies' "shine" note), else 0.
+static func drunk_of(e: Enemy) -> float:
+	if Variants.STUMBLE.has(e.kind):
+		return 1.0
+	var shine: float = e.get_note("shine", 0.0)
+	if shine <= SHINE:
+		return 0.0
+	return clampf((shine - SHINE) / (100.0 - SHINE) * 1.5, 0.0, 1.0)
+
+
 ## The live body this frame: the pose sought is its target, play's body and
 ## word (reeling, down) given, stepped, and the bones posed from it; done,
 ## it hands back to the animation (eased from its last pose).
@@ -388,6 +427,11 @@ func _live_step(e: Enemy, level: LevelData, clock: float, body: Vector3) -> void
 	var note := Stagger.of(e)
 	var pitch: float = 0.0 if note.is_empty() else note[Stagger.PITCH]
 	var pitched := pitch > .5
+	var act := live as ActiveBody
+	if act != null:
+		act.stunned = e.stun > .05
+		act.grab_point = BodyPlay.holding(e, clock)
+		act.drunk = drunk_of(e) if live_ok else 0.0
 	live.play_says(not note.is_empty(), 1 if down > 0.0 else -1 if down < 0.0 else 0, pitched)
 	live.advance(level, dt)
 	var back := transform.affine_inverse()
@@ -525,8 +569,13 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 					# open floor): the pose eased from was the model's under it.
 					var ahead := transform.basis.z
 					turn = atan2(ahead.x, ahead.z)
+		var was_live := live
+		live = null
 		if _rig is BeastRig:
 			doll = BeastDoll.made_beast(_rig as BeastRig, from, start, kind)
+		elif fresh and live_ok and not Enemy.BOSS_TITLES.has(e.kind):
+			# Near enough (the live budget): he dies, not drops (src/dying_doll.gd).
+			doll = DyingDoll.made_dying(_rig, from, start)
 		else:
 			doll = Ragdoll.made(_rig, from, start)
 		doll.died_at = e.died_at
@@ -542,9 +591,16 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 				doll.carry_on(_fall_speeds(doll.pos.size()))
 				doll.slack = BOSS_SLACK
 			else:
-				if _shown_alive:
+				if was_live != null and from == transform:
+					# Going on as the live body went, every ball its own way.
+					for i in mini(R_POINTS, doll.pos.size()):
+						doll.add_speed(i, (was_live.pos[i] - was_live.old[i]) / Ragdoll.STEP)
+				elif _shown_alive:
 					doll.drift(Vector3(_going.x, _going.y, 0.0))
 				doll.knock(e, dice)
+				var dying := doll as DyingDoll
+				if dying != null:
+					dying.begin(e, hash([e.uid, e.died_at, 3]))
 		else:
 			# Lying already: a few steps fit it to the floor, the rest as it is drawn.
 			doll.settle(level, SETTLE, true)
@@ -552,6 +608,10 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 		_posed = -1
 	var dt := clampf(clock - _doll_clock, 0.0, .1)
 	_doll_clock = clock
+	var dying_now := doll as DyingDoll
+	if dying_now != null and not live_ok:
+		# (Out of the budget: the rest of the way a plain ragdoll.)
+		dying_now.muscles = false
 	doll.follow(at, up, dt)
 	doll.advance(level, dt)
 	var xf := Transform3D(

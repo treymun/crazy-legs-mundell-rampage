@@ -549,7 +549,8 @@ func advance(dt: float, game: GameWorld, direction: float, pace := 1.0) -> float
 			soak = maxf(0.0, soak - .25)
 			game.sound_at("enemy_slip", x, y, .8)
 			return 0.0
-	if Variants.STUMBLE.has(kind):
+	var drunk := Variants.STUMBLE.has(kind)
+	if drunk:
 		direction += Variants.wobble(self)
 	pace *= Mud.pace(game, x, y)
 	game.move_actor(
@@ -557,7 +558,11 @@ func advance(dt: float, game: GameWorld, direction: float, pace := 1.0) -> float
 	)
 	var moved := sqrt(pow(x - ox, 2) + pow(y - oy, 2))
 	if moved > .001:
+		var was_gait := gait
 		gait += moved * 6.0
+		if drunk:
+			# The drunk's lurch (src/body_play.gd).
+			BodyPlay.lurch(self, game, was_gait)
 		last_stride = pose
 		angle = direction
 		if absf(cos(direction)) > .38:
@@ -747,6 +752,8 @@ func tick(dt: float, game: Game) -> void:
 	if not notes.is_empty() and notes.has(Stagger.KEY):
 		# Knocked off balance (src/stagger.gd): the pendulum and its steps.
 		Stagger.tick(self, dt, game)
+	if not notes.is_empty() and notes.has(BodyPlay.KEY):
+		BodyPlay.tick(self, game)
 	if mind != null and alerted:
 		Squad.watch(self, game)
 	if not cover_hunt.is_empty():

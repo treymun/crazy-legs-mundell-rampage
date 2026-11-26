@@ -521,6 +521,8 @@ func _run_over(
 			game.focus(driver)
 			e.hurt(amount, game, false, false, null, "roadkill")
 			game.focus(game.local_player)
+			# Still up: thrown off his feet by it (src/body_play.gd).
+			BodyPlay.rammed(e, game, heading * speed)
 			game.sound_at("lap_car_hit", e.x, e.y, .9)
 			_hurt(v, amount * .04)
 			var keep := -.3 if boss else .86

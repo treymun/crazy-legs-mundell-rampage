@@ -247,9 +247,11 @@ static func tick(e: Enemy, dt: float, game: GameWorld) -> void:
 			swing = 0.0
 			var left := (xi - p).length()
 			if left > ANKLE and (steps >= STEPS_MOST or want.length() > reach * FALL_PAST):
-				# No step catches it: down he goes.
-				_fall(e, s, v, buckle > 0.0)
-				return
+				# No step catches it: down he goes, unless a hand finds
+				# something to hold on to (src/body_play.gd).
+				if not BodyPlay.holds_on(e, game, s, v):
+					_fall(e, s, v, buckle > 0.0)
+					return
 	elif (xi - p).length() > ANKLE * 1.2:
 		swing = FIRST_SWING if steps == 0.0 else SWING_TIME
 	s[SWING] = maxf(0.0, swing)
@@ -281,7 +283,10 @@ static func _move(e: Enemy, game: GameWorld, v: Vector2, dt: float, s: Array) ->
 	var moved := Vector2(e.x - ox, e.y - oy)
 	var want := v * dt
 	if want.length_squared() > 1e-12 and moved.length_squared() < want.length_squared() * .98:
-		# Stopped (a wall, a body): only what moved is kept as speed.
+		# Stopped (a wall, a body): only what moved is kept as speed; a low
+		# rail taken hard he goes over (src/body_play.gd).
+		if BodyPlay.over_rail(e, game, v, s):
+			return
 		v = moved / dt
 	s[VX] = v.x
 	s[VY] = v.y
