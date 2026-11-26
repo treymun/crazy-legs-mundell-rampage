@@ -1,9 +1,58 @@
-# Meshy models track: handover (2026-11-26, fifth session)
+# Meshy models track: handover (2026-11-26, seventh session)
 
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
 
-## Sixth session (read first, then the fifth)
+## Seventh session (read first, then the sixth)
+
+SPLIT (coordinator, 2026-11-26): agent A (this branch, meshy-models) keeps
+clone/jerry fixes, the long-gun pose sweep, baron 22c, swamp_king, and the
+humanoids boilerback, chain_hand, chalk_spitter, flagman, gas_man. Agent B
+(scratchpad/p18-meshy, branch meshy-models-b, own SP/meshy-work-b) takes
+millhand, mundell, nitro_huffer, pit_mechanic, revenooer, shield_deputy,
+still_buster, tin_guard, tire_roller, valve_rat, drone, skeeter. Leftovers
+(rudy, maw dryer, alien hand holes, hat-cut rebuilds, gear_fit): whoever
+finishes first, ask the coordinator. A's credit budget: stop at 2,007 total
+in the ledger (650 on top of 1,357). INDEX.md is shared: append one line in
+one write only. Minor enemies: no in-game sheet; per model actor_check,
+live_body_check, physics_check (+ boss checks for bosses); broad checks and
+check_all quick once per ~4 models.
+B: PULL face_clean / face_uv / cheek_weld (build_actor.py + face_clean.py,
+commit of 04g) for your long-gun and hatted characters.
+
+New kind options this session (all opt-in, build_actor.py):
+- "face_clean": true or {detail .55, hue .6, floor .62, eye_lift 1.15,
+  hair_hue 31, blend 1} - the face's front (and neck, and the skin behind
+  the ears) rebuilt from Meshy's albedo bake (meshy/tools/face_clean.py):
+  the finished skin colour with the albedo's own variation a share, the
+  light from the head's no-shadow bake (median-filtered), grime eased,
+  eyes kept at full contrast. Fixes stubble/grime turning into lilac
+  "rot" blotches and unreadable eyes. Zone: "face_box" {r .17, z [-.16,
+  .16], back -.025, back_top .08} (m at 1.73, about the Meshy Head bone,
+  which sits at the BACK of the skull at jaw height).
+- "face_uv": {k 2.6, brim_k .7, r, z} - the face's UV islands take k times
+  the texture scale, a hat brim brim_k (a straw brim had 12x the face's
+  texels: eyes were 5 texels across at 512).
+- "cheek_weld": true - shouldered long gun: the head is pitched/rolled
+  until the gun-side cheek lies on the stock (cheek_at [.04,.065,.03]);
+  the stance search then also tries raising the butt ("aim_drops", default
+  [-.06,-.03,0,.02,.04] with the weld, else the old [0,.02,.04]) and
+  scores the cheek gap. "aim_holds" {side: share}: grips on the
+  shouldered gun (the old carry grips .4/.7 on the clone's 1.13 m gun put
+  the arms out straight and the body leaning after them). "aim_skip"
+  (.22), "upright_aim_deg" (14; clone 4), "aim_head_pitch" (only without
+  the weld), "wind_clear" (low ready kept off the body; did not change the
+  chest probe).
+- Scratch: MESHY_DEBUG_KEEP=1 prints which body bone a keep-out hit;
+  MESHY_DUMP_FACE=<npz> dumps the finished texels + masks + albedo, and
+  `python meshy/tools/face_clean.py <npz> <out.png> '<json>'` tries options
+  offline (render with keys_zoom.py on raw/<kind>/<kind>.glb).
+- Scratch helpers (SP/meshy-work/q): aimview.sh <kind> <out> [cz] (aim and
+  fire from 4 sides, zoomed), sheets.sh <kind> <NN> [cz] (make + hands +
+  face close-up sheets of the installed build), checks.sh <a,b,c>,
+  facetry.sh.
+
+## Sixth session
 
 Order from the coordinator: redos barker 09c, chum_tosser 10d, jerry 19d,
 clone 04f, baron 22c; then swamp_king; then the 16 humanoids; then skeeter;
