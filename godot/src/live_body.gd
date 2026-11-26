@@ -122,7 +122,13 @@ const HOLD_NEAR := .98
 ## The hand on a wound rests this many of its own radii off the torso's
 ## surface, its elbow this many out from the ribs (_keep_out).
 const CLUTCH_REST := .9
-const CLUTCH_ELBOW := 2.6
+const CLUTCH_ELBOW := 1.6
+## The clutching elbow: how far down the upper arm hangs (its length's share)
+## and how far ahead of the belly it comes (the belly's and elbow's radii).
+const CLUTCH_DROP := .62
+const CLUTCH_AHEAD := 1.6
+## How much of the clutch's pull the elbow takes (the hand's whole).
+const CLUTCH_ELBOW_PULL := .35
 ## How much firmer a gun-holding arm's muscles stay through a hit (at most
 ## the full tone).
 const HOLD_TONE := 6.0
@@ -640,6 +646,30 @@ func _reach() -> void:
 		pos[hand] += fix * .85
 		for i: int in [R.HIP_L, R.HIP_R, R.SH_L, R.SH_R]:
 			pos[i] -= fix * .15 * .25
+		# A protective clutch that reads from every side: the elbow down and
+		# forward of the belly (the upper arm hanging a little ahead of the
+		# chest line, the forearm up at an angle to the wound), not flat on
+		# the ribs.
+		var elbow := hand - 1
+		var ahead := pos[R.BELLY] - pos[R.BACK]
+		ahead = ahead.normalized() if ahead.length() > 1e-5 else _ahead()
+		var neck := (pos[R.SH_L] + pos[R.SH_R]) * .5
+		var down := (hips - neck).normalized()
+		var upper := rig.points[sh].distance_to(rig.points[elbow]) * size
+		var out := (pos[sh] - neck).normalized()
+		var elbow_want := (
+			pos[sh]
+			+ down * upper * CLUTCH_DROP
+			+ ahead * (radius[R.BELLY] + radius[elbow]) * CLUTCH_AHEAD
+			+ out * radius[elbow]
+		)
+		# (Gently, its pull taken back from the torso: a pull on the elbow
+		# alone threw the whole body about.)
+		var efix := (elbow_want - pos[elbow]) * k * CLUTCH_ELBOW_PULL
+		pos[elbow] += efix * .85
+		old[elbow] += efix * .85
+		for i: int in [R.SH_L, R.SH_R]:
+			pos[i] -= efix * .15 * .5
 	for i in aim_override.size():
 		var w := aim_override[i]
 		if w != Vector3.INF:
