@@ -653,26 +653,40 @@ func _ease_over(k: float) -> void:
 			skeleton.set_bone_pose_rotation(
 				b, turns[b].slerp(skeleton.get_bone_pose_rotation(b), k)
 			)
-		_keep_in_hand(skeleton, to_at, to_turn)
+		_keep_in_hand(skeleton, at, turns, to_at, to_turn, k)
 
 
-## Each held thing put back in its hand as the pose blended to holds it: a
-## blend lerps every bone apart, so a gun and the hand it is in drifted
-## (through the body) between two keys or easing out of a living body.
+## Each held thing put back in its hand: a blend lerps every bone apart, so
+## a gun and the hand it is in drifted (through the body) between two keys or
+## easing out of a living body. The thing's place in the hand goes from the
+## one pose's to the other's by `k` (at 0 the pose blended from exactly, so
+## the first draw of a blend does not jump).
 func _keep_in_hand(
-	skeleton: Skeleton3D, to_at: PackedVector3Array, to_turn: Array[Quaternion]
+	skeleton: Skeleton3D,
+	from_at: PackedVector3Array,
+	from_turn: Array[Quaternion],
+	to_at: PackedVector3Array,
+	to_turn: Array[Quaternion],
+	k: float
 ) -> void:
-	for k in range(0, _held_pairs.size(), 2):
-		var g := _held_pairs[k]
-		var h := _held_pairs[k + 1]
-		if g >= to_at.size() or h >= to_at.size() or g >= to_turn.size() or h >= to_turn.size():
+	var n := mini(mini(from_at.size(), to_at.size()), mini(from_turn.size(), to_turn.size()))
+	for i in range(0, _held_pairs.size(), 2):
+		var g := _held_pairs[i]
+		var h := _held_pairs[i + 1]
+		if g >= n or h >= n:
 			continue
-		var hand_to := Transform3D(Basis(to_turn[h]), to_at[h])
-		var held_to := Transform3D(Basis(to_turn[g]), to_at[g])
+		var in_from := (
+			Transform3D(Basis(from_turn[h]), from_at[h]).affine_inverse()
+			* Transform3D(Basis(from_turn[g]), from_at[g])
+		)
+		var in_to := (
+			Transform3D(Basis(to_turn[h]), to_at[h]).affine_inverse()
+			* Transform3D(Basis(to_turn[g]), to_at[g])
+		)
 		var hand_now := Transform3D(
 			Basis(skeleton.get_bone_pose_rotation(h)), skeleton.get_bone_pose_position(h)
 		)
-		var held := hand_now * (hand_to.affine_inverse() * held_to)
+		var held := hand_now * in_from.interpolate_with(in_to, k)
 		skeleton.set_bone_pose_position(g, held.origin)
 		skeleton.set_bone_pose_rotation(g, held.basis.get_rotation_quaternion())
 
@@ -915,7 +929,7 @@ func _blend(clock: float) -> void:
 			skeleton.set_bone_pose_position(b, at_a[b].lerp(at_b[b], k))
 			skeleton.set_bone_pose_rotation(b, turn_a[b].slerp(turn_b[b], k))
 			skeleton.set_bone_pose_scale(b, size_a[b].lerp(size_b[b], k))
-		_keep_in_hand(skeleton, at_b, turn_b)
+		_keep_in_hand(skeleton, at_a, turn_a, at_b, turn_b, k)
 
 
 ## A living body's looks-only motion over its pose (model space, about its

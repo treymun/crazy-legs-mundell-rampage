@@ -319,6 +319,7 @@ func _measure(
 		"drop": 0.0,
 		"knee": 0.0,
 		"gap": INF,
+		"clutch": -1,
 		"low": 1.0,
 		"apart": 0.0
 	}
@@ -359,6 +360,7 @@ func _measure(
 			out["knee"] = maxf(out["knee"], absf(_knee(live.pos, 0) - _knee(live.pos, 1)))
 		if absf(t - .5) < DT * .5:
 			out["gap"] = live.hand_gap()
+			out["clutch"] = live.clutch_hand
 		out["low"] = minf(out["low"], (live.pos[RagdollRig.HEAD].z - z) / head_tall)
 		for k in live.la.size():
 			if live.lmin[k] == live.lmax[k]:
@@ -396,6 +398,17 @@ func _looks(main: Node) -> void:
 	# A light hit from afar (no catch step): the knee alone.
 	var leg_light := _measure(main, "revolver", 10.0, 9.0, .3, .1)
 	var chest_light := _measure(main, "revolver", 10.0, 9.0, .62, .08)
+	# The coot holds his pistol (right) and his jug (left): a hand holding a
+	# thing never lets go of it to clutch (RagdollRig.holds, actors.json
+	# "rides", LiveBody._holding), so his own chest hit clutches with
+	# neither. The clutch itself is measured on his rig bare-handed, and
+	# with the pistol alone the free left hand takes the wound.
+	var holds := rig.holds
+	rig.holds = PackedByteArray([0, 0])
+	var bare := _measure(main, "revolver", 30.0, 3.0, .62, .08)
+	rig.holds = PackedByteArray([0, 1])
+	var pistol := _measure(main, "revolver", 30.0, 3.0, .62, .08)
+	rig.holds = holds
 	if verbose:
 		for row: Array in [
 			["chest", chest],
@@ -483,8 +496,22 @@ func _looks(main: Node) -> void:
 		)
 	)
 	_check(
-		chest["gap"] < .12,
-		"a hand goes to the chest wound and holds it (%.3f off at half a second)" % chest["gap"]
+		bare["gap"] < .12,
+		"a hand goes to the chest wound and holds it (%.3f off at half a second)" % bare["gap"]
+	)
+	_check(
+		int(pistol["clutch"]) == 0 and pistol["gap"] < .12,
+		(
+			"a pistol in the right hand: the left takes the wound (hand %d, %.3f off)"
+			% [pistol["clutch"], pistol["gap"]]
+		)
+	)
+	_check(
+		int(chest["clutch"]) == -1,
+		(
+			"both hands holding things (pistol, jug): neither lets go to clutch (hand %d)"
+			% chest["clutch"]
+		)
 	)
 	_check(
 		limp["low"] < .45,
