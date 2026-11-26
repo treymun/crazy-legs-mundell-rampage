@@ -46,3 +46,16 @@ Engine changes the models need (all in this branch): RagdollRig reads
 `joints`, `segs`, `rides`, attached held meshes and `holds`; LiveBody keeps a
 gun hand from clutching; ActorView thrusts a held gun clear when knocked down;
 rig_reference.gd follows; live_frames.gd and death_frames.gd take `kind=`.
+
+## Held things made with Meshy, and animals/bosses
+
+- A held thing can be made with Meshy too (`held_model` in the kind config:
+  the noodler's catfish, `meshy/assets/catfish.glb`): it takes the old
+  gear's place, is baked lit with the body, and may be cut into rigid
+  pieces on tail bones that the game swings (actors.json `flop`,
+  `src/view3d/held_tail.gd`, looks only).
+- Animals and bosses keep their OLD armature and animation:
+  `blender -b -P meshy/tools/build_beast.py -- meshy/kinds/<kind>.json`
+  fits the unrigged Meshy mesh onto the old mesh, transfers the old weights
+  by nearest face, bakes the look, and exports with the old skeleton; then
+  `tools/install.sh` as for people. Bosses' old gear is not handled yet.
