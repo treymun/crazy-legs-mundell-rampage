@@ -105,7 +105,7 @@ func _hold(
 func _holds(main: Node) -> void:
 	var far: Array = _hold(main, 8.0, "revolver", 80.0, 1, 70.0)
 	var close: Array = _hold(main, 2.2, "revolver", 80.0, 1, 70.0)
-	var sawed: Array = _hold(main, 1.2, "shotgun", 80.0, 8, 70.0)
+	var sawed: Array = _hold(main, .9, "shotgun", 80.0, 8, 70.0)
 	var heavy: Array = _hold(main, 5.0, "revolver", 45.0, 1, 300.0)
 	var light: Array = _hold(main, 5.0, "revolver", 20.0, 1, 300.0)
 	if verbose:
@@ -144,7 +144,7 @@ func _holds(main: Node) -> void:
 	)
 	var g := _game(main)
 	Modes.join_beside(g, g.player)
-	var e := _hand(g, 1.2)
+	var e := _hand(g, .9)
 	g.hitstop = 0.0
 	g.hitstop_next = 0.0
 	_hit(g, e, "shotgun", 80.0, .6, 8)
@@ -199,7 +199,7 @@ func _gibs(main: Node) -> void:
 	g.gore = true
 	g.events.enemy_gibbed.connect(count)
 	g.armory.last_spent = 1
-	var e := _hand(g, 1.2, "billy", 30.0)
+	var e := _hand(g, .9, "billy", 30.0)
 	_hit(g, e, "shotgun", 60.0, .6, 8)
 	var near: int = gibbed[0]
 	g = _game(main)

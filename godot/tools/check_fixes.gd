@@ -820,8 +820,15 @@ func _tactics(main) -> void:
 	var before := Vector2(target.x, target.y)
 	for i in 8:
 		target.hurt(6.0, town, false, false, null, "shotgun")
+	var stunned := target.stun > .2
+	# (Pass 15: the shove is a reel over his own ticks, src/stagger.gd.)
+	for _k in 120:
+		if not Stagger.reeling(target):
+			break
+		town.clock += 1.0 / 60.0
+		Stagger.tick(target, 1.0 / 60.0, town)
 	check(
-		Vector2(target.x, target.y).distance_to(before) > .3 and target.stun > .2,
+		Vector2(target.x, target.y).distance_to(before) > .3 and stunned,
 		"a full load of the sawed-off throws a body back"
 	)
 	for i in 4:
