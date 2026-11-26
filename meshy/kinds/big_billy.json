@@ -7,5 +7,14 @@
  "out": "../meshy-work/raw/big_billy",
  "tris": 10000,
  "texture": 512,
- "gear": "old"
+ "gear": "old",
+ "belly": {
+  "z": 0.42,
+  "k": 0.7,
+  "rx": 0.21,
+  "ry": 0.3,
+  "rz": 0.22
+ },
+ "skin_even": true,
+ "hold_near": 1.08
 }

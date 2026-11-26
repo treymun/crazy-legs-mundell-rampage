@@ -125,6 +125,14 @@ var stiff := PackedByteArray()
 ## Each arm (left, right) whose hand holds a thing riding it (actors.json
 ## "rides"): it does not let go to clutch a wound (LiveBody).
 var holds := PackedByteArray([0, 0])
+## How near a holding hand may come to the chest, belly and head in the
+## living body, as a share of its standing distance (actors.json
+## "hold_near"; a big belly with a long gun across it wants it at least
+## standing distance or a little more).
+var hold_near := .98
+## Whether a holding hand also keeps its distance from the hips and knees
+## (actors.json "hold_legs": a bucket carried at the side).
+var hold_legs := false
 
 static var _built := {}
 ## How many rigs this process found from their models' vertices (_build),
@@ -214,6 +222,10 @@ static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 		return null
 	var rig := RagdollRig.new()
 	rig.holds = holds_of(info)
+	var near: float = info.get("hold_near", .98)
+	var legs: bool = info.get("hold_legs", false)
+	rig.hold_near = near
+	rig.hold_legs = legs
 	if not row[2]:
 		return rig
 	var skeletons := view.find_children("*", "Skeleton3D", true, false)
@@ -430,6 +442,10 @@ func _build(view: Node, info: Dictionary) -> void:
 	var rides: Dictionary = info.get("rides", {})
 	var segs: Dictionary = info.get("segs", {})
 	holds = holds_of(info)
+	var near: float = info.get("hold_near", .98)
+	var legs: bool = info.get("hold_legs", false)
+	hold_near = near
+	hold_legs = legs
 	for i in bones:
 		var label: String = labels.get(skeleton.get_bone_name(i), "body")
 		var mid: Vector3 = part_mid[i] / float(part_n[i]) if part_n[i] > 0 else bone_rest[i].origin

@@ -7,5 +7,6 @@
  "out": "../meshy-work/raw/chum_tosser",
  "tris": 10000,
  "texture": 512,
- "gear": "old"
+ "gear": "old",
+ "hold_legs": true
 }

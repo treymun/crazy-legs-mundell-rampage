@@ -232,9 +232,13 @@ static func made_live(rig: RagdollRig, xf: Transform3D, model: PackedVector3Arra
 	for side in rig.holds.size():
 		if rig.holds[side] == 1:
 			var hand := R.HAND_L if side == 0 else R.HAND_R
-			for torso: int in [R.BELLY, R.SH_L, R.SH_R, R.HEAD]:
+			var near := rig.hold_near if rig.hold_near > 0.0 else HOLD_NEAR
+			var keep: Array[int] = [R.BELLY, R.SH_L, R.SH_R, R.HEAD]
+			if rig.hold_legs:
+				keep.append_array([R.HIP_L, R.HIP_R, R.KNEE_L, R.KNEE_R])
+			for torso: int in keep:
 				var d := rest[torso].distance_to(rest[hand])
-				live._link(torso, hand, d * HOLD_NEAR, d * 4.0)
+				live._link(torso, hand, d * near, d * 4.0)
 	live.aim_override.resize(R.POINTS)
 	live.aim_override.fill(Vector3.INF)
 	return live

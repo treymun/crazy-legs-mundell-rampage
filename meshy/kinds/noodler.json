@@ -7,5 +7,6 @@
  "out": "../meshy-work/raw/noodler",
  "tris": 10000,
  "texture": 512,
- "gear": "old"
+ "gear": "old",
+ "gear_one": true
 }

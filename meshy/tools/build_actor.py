@@ -217,6 +217,36 @@ for k in heads:
 mesh.name = KIND + "_hi"
 print("MESHY fitted: scale %.4f, height %.3f" % (s, OLD_H))
 
+# A rounder belly where the old cel had a ball (kind config "belly": its
+# height and radii as shares of the height, "k" how far it swells): the
+# front of the trunk scaled out from a centre inside the belly, faded to
+# nothing at the radii; arms and hands untouched.
+if CFG.get("belly"):
+    _bc = CFG["belly"]
+    co = numpy.array([v.co[:] for v in mesh.data.vertices])
+    _armg = {g.index for g in mesh.vertex_groups if any(t in g.name for t in ("Arm", "Hand", "Shoulder"))}
+    _armw = numpy.zeros(len(co))
+    for v in mesh.data.vertices:
+        _armw[v.index] = sum(g.weight for g in v.groups if g.group in _armg)
+    zb = float(_bc.get("z", .45)) * OLD_H
+    band = (numpy.abs(co[:, 2] - zb) < .08 * OLD_H) & (numpy.abs(co[:, 0]) < .12 * OLD_H) & (_armw < .2)
+    # (the Meshy model faces -Y here, as the hurt look's "front" assumes)
+    fdir = float(_bc.get("front", -1.0))
+    yf = float((co[band, 1] * fdir).max())
+    cen = numpy.array([0.0, fdir * yf * float(_bc.get("depth", .2)), zb])
+    rad = numpy.array([float(_bc.get("rx", .2)), float(_bc.get("ry", .25)), float(_bc.get("rz", .2))]) * OLD_H
+    d = co - cen
+    e = numpy.sqrt(((d / rad) ** 2).sum(axis=1))
+    w = numpy.clip(1 - e, 0, 1) ** 1.5 * (3 - 2 * numpy.clip(1 - e, 0, 1))
+    fw = numpy.clip(d[:, 1] * fdir / (.05 * OLD_H) + .5, 0, 1)
+    w = w * fw * numpy.clip(1 - _armw * 2, 0, 1)
+    k = float(_bc.get("k", .25))
+    co2 = co + d * (k * w)[:, None]
+    for i, v in enumerate(mesh.data.vertices):
+        v.co = co2[i]
+    print("MESHY belly: front %+d, out %.3f m at most, %d vertices moved" % (
+        fdir, float(numpy.linalg.norm(co2 - co, axis=1).max()), int((w > .01).sum())))
+
 # Matte, as the game's plain bakes are.
 for slot in mesh.material_slots:
     m = slot.material
@@ -255,6 +285,81 @@ tri = lo.modifiers.new("tri", "TRIANGULATE")
 bpy.ops.object.modifier_apply(modifier="tri")
 lo.data.calc_loop_triangles()
 print("MESHY tris %d" % len(lo.data.loop_triangles))
+
+# A row of bottles on the bandolier (kind config "bandolier": the cel shows
+# them and Meshy kept only the strap): small glass bottles stood in the
+# strap from one shoulder across to the other hip, on the chest's surface,
+# part of the body (on its bone, so rigid), in the Meshy model too so the
+# bake paints them.
+if CFG.get("bandolier"):
+    from mathutils.bvhtree import BVHTree
+    bc = CFG["bandolier"] if isinstance(CFG["bandolier"], dict) else {}
+    dg = bpy.context.evaluated_depsgraph_get()
+    tree = BVHTree.FromObject(hi, dg)
+    sa = heads.get("LeftArm", heads.get("LeftShoulder"))
+    sb = heads.get("RightUpLeg")
+    if bc.get("from", "l") == "r":
+        sa, sb = heads.get("RightArm", heads.get("RightShoulder")), heads.get("LeftUpLeg")
+    front = Vector((0, -1, 0))
+    nb = int(bc.get("count", 5))
+    t0, t1 = bc.get("span", [.2, .62])
+    BH = float(bc.get("height", .13)) * OLD_H / 1.7
+    BR = float(bc.get("radius", .021)) * OLD_H / 1.7
+    dirn = (sb - sa).normalized()
+    up_ = Vector((0, 0, 1))
+    perp = (up_ - dirn * up_.dot(dirn)).normalized()
+    bm_b = bmesh.new()
+    placed = 0
+    for i in range(nb):
+        t = t0 + (t1 - t0) * (i / max(nb - 1, 1))
+        p = sa + (sb - sa) * t
+        hit, hn, _fi, _d = tree.ray_cast(p + front * .6, -front, 2.0)
+        if hit is None:
+            continue
+        hn = hn if hn.dot(front) > 0 else front
+        ax = (perp * .75 + up_ * .25).normalized()
+        cen = hit + hn.normalized() * (BR * .85)
+        rot = ax.to_track_quat("Z", "Y").to_matrix().to_4x4()
+        for (d, r1, r2, off) in ((.62, 1.0, 1.0, -.08), (.16, 1.0, .42, .31), (.24, .4, .4, .5)):
+            bmesh.ops.create_cone(bm_b, cap_ends=True, segments=8, radius1=BR * r1, radius2=BR * r2, depth=BH * d,
+                                  matrix=Matrix.Translation(cen + ax * (BH * off)) @ rot)
+        placed += 1
+    bmesh.ops.triangulate(bm_b, faces=bm_b.faces[:])
+    bme = bpy.data.meshes.new("bottles")
+    bm_b.to_mesh(bme)
+    bm_b.free()
+    bmat = bpy.data.materials.new("bottle_glass")
+    bmat.use_nodes = True
+    _bs = bmat.node_tree.nodes["Principled BSDF"]
+    _gc = [c / 255.0 for c in bc.get("colour", [52, 104, 50])]
+    _bs.inputs["Base Color"].default_value = (_gc[0], _gc[1], _gc[2], 1)
+    _bs.inputs["Roughness"].default_value = 1.0
+    if "Specular IOR Level" in _bs.inputs:
+        _bs.inputs["Specular IOR Level"].default_value = 0.0
+    bme.materials.append(bmat)
+    # into the Meshy model (painted by the bake) ...
+    ob_h = bpy.data.objects.new("bottles_hi", bme.copy())
+    scene.collection.objects.link(ob_h)
+    select([hi, ob_h], hi)
+    bpy.ops.object.join()
+    # ... and the game mesh, each vertex weighted as the body's nearest
+    from mathutils.kdtree import KDTree
+    kd = KDTree(len(lo.data.vertices))
+    for v in lo.data.vertices:
+        kd.insert(v.co, v.index)
+    kd.balance()
+    ob_l = bpy.data.objects.new("bottles_lo", bme)
+    scene.collection.objects.link(ob_l)
+    for g in lo.vertex_groups:
+        ob_l.vertex_groups.new(name=g.name)
+    for v in bme.vertices:
+        _co, near, _dd = kd.find(v.co)
+        for g in lo.data.vertices[near].groups:
+            ob_l.vertex_groups[lo.vertex_groups[g.group].name].add([v.index], g.weight, "REPLACE")
+    select([lo, ob_l], lo)
+    bpy.ops.object.join()
+    lo.data.calc_loop_triangles()
+    print("MESHY bandolier: %d bottles on the strap" % placed)
 
 # ------------------------------------------------- merge the skin weights
 src_groups = {g.index: g.name for g in lo.vertex_groups}
@@ -413,10 +518,39 @@ bm = bmesh.new()
 bm.from_mesh(lo.data)
 bm.verts.ensure_lookup_table()
 bmesh.ops.delete(bm, geom=[bm.verts[i] for i in numpy.nonzero(_cut)[0]], context="VERTS")
+# The forearm's cut rim evened: the cut runs through a decimated mesh and
+# leaves a ragged edge whose teeth stand proud of the hand's wrist sleeve
+# (angular panels and spikes at the wrist up close). The rim is put on one
+# ring across the forearm, drawn in a little toward the sleeve, and the row
+# behind it half-way, so the forearm tapers into the wrist.
+_rim_n = 0
+for side, (wrist, a0, n0, t0, length, width, thick, wrist_r) in _measure.items():
+    rim = [v for v in bm.verts if v.is_boundary and (v.co - wrist).length < .1]
+    if len(rim) < 4:
+        continue
+    ts = [(v.co - wrist).dot(a0) for v in rim]
+    t_ring = float(numpy.median(ts))
+    rads = [((v.co - wrist) - a0 * (v.co - wrist).dot(a0)).length for v in rim]
+    r_ring = float(numpy.median(rads)) * float(CFG.get("rim_tuck", .9))
+    rimset = set(rim)
+    behind = {e.other_vert(v) for v in rim for e in v.link_edges} - rimset
+    for group, share in ((rim, 1.0), (list(behind), .5)):
+        for v in group:
+            d = v.co - wrist
+            t = d.dot(a0)
+            rv = d - a0 * t
+            r = rv.length
+            if r < 1e-6:
+                continue
+            nt = t + (min(t, t_ring) - t) * share if v not in rimset else t_ring
+            nr = r + (min(r, r_ring) - r) * share
+            v.co = wrist + a0 * nt + rv * (nr / r)
+    _rim_n += len(rim)
+print("MESHY forearm rims evened: %d vertices" % _rim_n)
 bm.to_mesh(lo.data)
 bm.free()
 _keep = ~_cut
-co = co[_keep]
+co = numpy.array([v.co[:] for v in lo.data.vertices])
 dominant = dominant[_keep]
 for b in list(W):
     W[b] = W[b][_keep]
@@ -626,6 +760,94 @@ if CFG.get("gear", "old") == "old" and LOST:
             _vbone.append(DUMP["bones"].index(best) if best in DUMP["bones"] else LOST[0])
     _gco = numpy.array([v.co[:] for v in gm.vertices])
     _vb = numpy.array(_vbone)
+    # A megaphone the old model drew as a flat disc (its bell's mouth; kind
+    # config "megaphone"): the disc's part rebuilt as a real horn - a cone
+    # from the disc back toward the hand to a mouthpiece, a pistol handle
+    # under it near the narrow end - in one plain colour.
+    if CFG.get("megaphone"):
+        mcfg = CFG["megaphone"] if isinstance(CFG["megaphone"], dict) else {}
+        best = None
+        for _x in LOST:
+            pts = _gco[_vb == _x]
+            if len(pts) < 8:
+                continue
+            sv = numpy.linalg.svd(pts - pts.mean(0), full_matrices=False)
+            flat = sv[1][2] / max(sv[1][0], 1e-6)
+            if best is None or flat < best[0]:
+                best = (flat, _x, pts.mean(0), sv[2][2], float(numpy.linalg.norm(pts - pts.mean(0), axis=1).max()))
+        if best is not None:
+            _flat, _xb, _c, _nrm, _rad = best
+            _c = Vector(_c)
+            _nrm = Vector(_nrm).normalized()
+            # (toward the hand that holds it at the standing key)
+            _hp = min((g2b(DUMP["points"]["0"][k]) for k in (6, 8)), key=lambda q: (q - _c).length)
+            if _nrm.dot(_hp - _c) < 0:
+                _nrm = -_nrm
+            L = float(mcfg.get("length", 1.5)) * _rad * 2
+            r_bell = _rad * float(mcfg.get("bell", 1.0))
+            r_tip = float(mcfg.get("tip", .02)) * OLD_H / 1.7
+            bmm = bmesh.new()
+            bmm.from_mesh(gm)
+            bmm.verts.ensure_lookup_table()
+            bmesh.ops.delete(bmm, geom=[bmm.verts[i] for i in numpy.nonzero(_vb == _xb)[0]], context="VERTS")
+            nk = len(bmm.verts)
+            a_ = _nrm
+            u_ = (Vector((0, 0, 1)) - a_ * a_.dot(Vector((0, 0, 1)))).normalized()
+            w_ = a_.cross(u_)
+            seg = 16
+            rings = []
+            for t, r, th in ((0.0, r_bell, .006), (0.0, r_bell * .94, 0), (1.0, r_tip, 0), (1.06, r_tip * 1.2, 0)):
+                ring = []
+                for k in range(seg):
+                    ang = 2 * math.pi * k / seg
+                    ring.append(bmm.verts.new(_c + a_ * (t * L) + (u_ * math.cos(ang) + w_ * math.sin(ang)) * r))
+                rings.append(ring)
+            for ra, rb in zip(rings, rings[1:]):
+                for k in range(seg):
+                    bmm.faces.new((ra[k], ra[(k + 1) % seg], rb[(k + 1) % seg], rb[k]))
+            # the inside of the bell (seen from the front: a dark mouth)
+            inner = [bmm.verts.new(_c + a_ * (L * .5) + (u_ * math.cos(2 * math.pi * k / seg)
+                                                       + w_ * math.sin(2 * math.pi * k / seg)) * r_tip * 2.2)
+                     for k in range(seg)]
+            for k in range(seg):
+                bmm.faces.new((rings[1][(k + 1) % seg], rings[1][k], inner[k], inner[(k + 1) % seg]))
+            bmm.faces.new(list(reversed(inner)))
+            bmm.faces.new(rings[3])
+            # the handle: a box under the horn a third of the way from the tip
+            hc = _c + a_ * (L * .72) - u_ * (r_tip + (r_bell - r_tip) * .28)
+            hl = float(mcfg.get("handle", .1)) * OLD_H / 1.7
+            hw = .014 * OLD_H / 1.7
+            box = bmesh.ops.create_cube(bmm, size=1.0)["verts"]
+            for v in box:
+                q = v.co.copy()
+                v.co = hc + a_ * (q.x * hw * 2) + w_ * (q.y * hw * 1.6) - u_ * ((q.z + .5) * hl)
+            bmm.normal_update()
+            bmesh.ops.recalc_face_normals(bmm, faces=bmm.faces[:])
+            nnew = len(bmm.verts) - nk
+            for f in bmm.faces:
+                if any(v.index < 0 or v.index >= nk for v in f.verts) or all(v.index >= nk for v in f.verts):
+                    pass
+            bmm.verts.index_update()
+            # a plain colour slot for the new faces
+            pmat = bpy.data.materials.new("gear_plain")
+            pmat.use_nodes = True
+            pnt = pmat.node_tree
+            pnt.nodes.clear()
+            po = pnt.nodes.new("ShaderNodeOutputMaterial")
+            pe = pnt.nodes.new("ShaderNodeEmission")
+            col = [c / 255.0 for c in mcfg.get("colour", [168, 118, 66])]
+            pe.inputs[0].default_value = (col[0], col[1], col[2], 1)
+            pnt.links.new(pe.outputs[0], po.inputs[0])
+            gm.materials.append(pmat)
+            for f in bmm.faces:
+                if all(v.index >= nk for v in f.verts):
+                    f.material_index = len(gm.materials) - 1
+            bmm.to_mesh(gm)
+            bmm.free()
+            _vb = numpy.concatenate([_vb[_vb != _xb], numpy.full(nnew, _xb)])
+            _gco = numpy.array([v.co[:] for v in gm.vertices])
+            print("MESHY megaphone: the flat disc (%s) rebuilt as a horn %.2f m long, bell %.3f m" % (
+                DUMP["bones"][_xb], L, r_bell))
     _link = {i: {i} for i in LOST}
     for _x in LOST:
         for _y in LOST:
@@ -652,12 +874,18 @@ if CFG.get("gear", "old") == "old" and LOST:
                         _u = _link[_x] | _link[_y]
                         for _k in _u:
                             _link[_k] = _u
+    # (kind config "gear_one": every held part is one thing - a catfish
+    # the old model built of five pieces)
+    if CFG.get("gear_one"):
+        _all = set(LOST)
+        for _k in LOST:
+            _link[_k] = _all
     _items = []
     for _i in LOST:
         if not any(_i in it for it in _items):
             _items.append(sorted(_link[_i]))
     vert_gear = []
-    for _b in _vbone:
+    for _b in _vb:
         vert_gear.append(next(k for k, it in enumerate(_items) if _b in it))
     for ci, it in enumerate(_items):
         _big = max(it, key=lambda i: int((_vb == i).sum()))
@@ -1296,6 +1524,82 @@ def solve(name, dz=0.0, held0=None):
             D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
             D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
             joints["miss"][side] = (wr_f - wrist_t).length
+        elif ITEM_TYPE.get(side) in ("throw", "raise") and name.replace("hurt_", "") in AIMS and any(
+                it["main"] == side and moves[it["bone"]][1] for it in ITEMS):
+            # "throw": an overhand throw of a bottle or a jar held by its neck
+            # - the wind-up cocks the arm back past the head (elbow up and
+            # out, the thing trailing behind), the aim holds it cocked at the
+            # ear, the fire is the release with the arm driven through
+            # forward and down across the body.
+            # "raise": a thing raised to the mouth (a megaphone): the fist
+            # under the chin, a little out, the thing's mouth forward.
+            bare = name.replace("hurt_", "")
+            Tn = TWIST["fwd"]
+            Fw, Up, Rt = -Vector(Tn.col[2]), Vector(Tn.col[1]), Vector(Tn.col[0])
+            inward = -Rt if side == "r" else Rt
+            reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
+                     + (J["wrist_" + side] - J["forearm_" + side]).length)
+            mode = ITEM_TYPE.get(side)
+            if mode == "throw":
+                if bare == "wind":
+                    wrist_t = sh_f - Fw * reach * .32 + Up * reach * .5 - inward * reach * .12
+                    a1 = (-Fw * .9 + Up * .25 - inward * .1).normalized()
+                    face = (Up * .6 + Fw * .4)
+                    pole_t = (-inward * .8 + Up * .2 - Fw * .3)
+                elif bare == "aim":
+                    wrist_t = sh_f - Fw * reach * .12 + Up * reach * .55 - inward * reach * .08
+                    a1 = (-Fw * .45 + Up * .9).normalized()
+                    face = (Fw * .7 + inward * .3)
+                    pole_t = (-inward * .9 - Up * .2)
+                else:
+                    wrist_t = sh_f + Fw * reach * .82 + Up * reach * .05 + inward * reach * .22
+                    a1 = (Fw * 1.0 + Up * .1 + inward * .15).normalized()
+                    face = (-Up * .6 + inward * .4)
+                    pole_t = (-inward * .4 - Up * .8 - Fw * .2)
+            R_hand = None
+            if mode == "raise" and held0 is not None:
+                # The thing's narrow end at the mouth and its axis straight
+                # out ahead, its own up kept up: the hand turned and put
+                # wherever that puts the grip.
+                it = next(it for it in ITEMS if it["main"] == side)
+                pts = numpy.array([g[:] for g in ITEM_PTS.get(it["bone"], [])])
+                ax0 = (it["hi"] - it["lo"]).normalized()
+                al = (pts - numpy.array(it["lo"][:])) @ numpy.array(ax0[:])
+                perp = numpy.linalg.norm((pts - numpy.array(it["lo"][:])) - numpy.outer(al, ax0[:]), axis=1)
+                span = max(float(al.max() - al.min()), 1e-4)
+                lo_r = float(perp[al < al.min() + span * .2].max())
+                hi_r = float(perp[al > al.max() - span * .2].max())
+                narrow, wide = (it["lo"], it["hi"]) if lo_r < hi_r else (it["hi"], it["lo"])
+                H0 = held0["hand_" + side]
+                Rel = H0.inverted() @ held0["@" + it["bone"]]
+                ax_h = (Rel.to_3x3() @ (wide - narrow)).normalized()
+                up_h = (H0.to_3x3().inverted() @ Vector((0, 0, 1))).normalized()
+                up_h = (up_h - ax_h * up_h.dot(ax_h)).normalized()
+                want_ax = (Fw + Up * (.12 if bare == "fire" else .05)).normalized()
+                want_up = (Up - want_ax * Up.dot(want_ax)).normalized()
+                R_hand = (Matrix((want_ax, want_up, want_ax.cross(want_up))).transposed()
+                          @ Matrix((ax_h, up_h, ax_h.cross(up_h))).transposed().inverted())
+                mouth = D["head"] @ J["head"] + Fw * (.1 if bare != "wind" else .07) - Up * .06
+                n_loc = Rel @ narrow
+                wrist_t = mouth - R_hand @ (n_loc - J["wrist_" + side])
+                pole_t = (-inward * .6 - Up * 1.0)
+            elif mode == "raise":
+                mouth = D["head"] @ J["head"] + Fw * .1 - Up * .1
+                wrist_t = mouth - inward * .04
+                a1 = Fw
+                face = inward
+                pole_t = (-inward * .5 - Up * 1.0)
+            if R_hand is None:
+                n1 = face - a1 * face.dot(a1)
+                n1.normalize()
+                wrist0, a0, n0 = HANDF[side]
+                R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
+            R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                        sh_f, wrist_t, pole_t.normalized(), Vector((0, -1, 0)))
+            D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+            D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+            D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
+            joints["miss"][side] = (wr_f - wrist_t).length
         else:
             end_r = J["tip_" + side]
             target = sh_f + (P[ha] - P[sh])
@@ -1635,6 +1939,57 @@ bm = bmesh.from_edit_mesh(lo.data)
 uv = bm.loops.layers.uv.active
 deform = bm.verts.layers.deform.active
 head_gi = lo.vertex_groups["head"].index
+# The hands unwrapped again on their own with a wider angle: at 60 degrees
+# a finger falls apart into one-triangle islands a texel or two across,
+# whose colour is whatever bleeds in from the next island (dark slivers at
+# the finger roots up close).
+_hand_gi = {g.index for g in lo.vertex_groups if g.name.startswith(("fl_", "fr_", "hand_"))}
+_nh = 0
+for f in bm.faces:
+    hw = sum(sum(w for k, w in v[deform].items() if k in _hand_gi) for v in f.verts) / len(f.verts)
+    f.select = hw > .5
+    _nh += f.select
+bmesh.update_edit_mesh(lo.data)
+if _nh:
+    bpy.ops.uv.smart_project(angle_limit=math.radians(float(CFG.get("hand_uv_angle", 85))), island_margin=0.0)
+    # (one texel density for all, as one smart project would give)
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.select_all(action="SELECT")
+    bpy.ops.uv.average_islands_scale()
+    bm = bmesh.from_edit_mesh(lo.data)
+    uv = bm.loops.layers.uv.active
+    deform = bm.verts.layers.deform.active
+    print("MESHY hand faces unwrapped on their own: %d" % _nh)
+# A face seen edge-on by its island's projection gets a UV triangle a texel
+# or two across and samples whatever bleeds in (a dark sliver): each such
+# face gets its own flat projection at the body's texel density.
+_dens = []
+for f in bm.faces:
+    a3 = f.calc_area()
+    if a3 < 1e-10:
+        _dens.append(-1.0)
+        continue
+    us = [l_[uv].uv for l_ in f.loops]
+    au = 0.0
+    for k_ in range(1, len(us) - 1):
+        au += abs((us[k_] - us[0]).cross(us[k_ + 1] - us[0])) / 2
+    _dens.append(math.sqrt(au / a3))
+_dv = numpy.array(_dens)
+_dmed = float(numpy.median(_dv[_dv > 0]))
+_fixed = 0
+for f, dn in zip(bm.faces, _dens):
+    if 0 <= dn < _dmed * float(CFG.get("uv_collapse", .35)):
+        n_ = f.normal
+        t_ = (f.verts[1].co - f.verts[0].co).normalized()
+        b_ = n_.cross(t_)
+        o_ = f.loops[0][uv].uv.copy()
+        p0 = f.verts[0].co
+        for l_ in f.loops:
+            d_ = l_.vert.co - p0
+            l_[uv].uv = o_ + Vector((d_.dot(t_), d_.dot(b_))) * _dmed
+        _fixed += 1
+bmesh.update_edit_mesh(lo.data)
+print("MESHY faces with collapsed UVs given their own: %d (median density %.3f)" % (_fixed, _dmed))
 for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
     heady = sum(1 for f in island for v in f.verts if v[deform].get(head_gi, 0) > .5)
     if heady < len(island):
@@ -1647,6 +2002,35 @@ bmesh.update_edit_mesh(lo.data)
 bpy.ops.mesh.select_all(action="SELECT")
 bpy.ops.uv.select_all(action="SELECT")
 bpy.ops.uv.pack_islands(rotate=True, margin_method="FRACTION", margin=GAP, shape_method="CONCAVE")
+# A hand island of a face or two is a texel or two across and bakes to
+# whatever bleeds in from its neighbours (a dark sliver at a finger root up
+# close): its UVs moved onto the middle of the biggest hand island's
+# biggest face, so it takes the hands' one skin tone.
+bm = bmesh.from_edit_mesh(lo.data)
+uv = bm.loops.layers.uv.active
+deform = bm.verts.layers.deform.active
+_hisl = []
+for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
+    hw = sum(sum(w for k, w in v[deform].items() if k in _hand_gi) for f in island for v in f.verts)
+    nvv = sum(len(f.verts) for f in island)
+    if nvv and hw / nvv > .5:
+        _hisl.append(island)
+if _hisl:
+    def _uv_area(f):
+        us = [l_[uv].uv for l_ in f.loops]
+        return sum(abs((us[k_] - us[0]).cross(us[k_ + 1] - us[0])) / 2 for k_ in range(1, len(us) - 1))
+    big = max(_hisl, key=len)
+    bf = max(big, key=_uv_area)
+    spot = sum((l_[uv].uv for l_ in bf.loops), Vector((0.0, 0.0))) / len(bf.loops)
+    _moved = 0
+    for island in _hisl:
+        if len(island) <= int(CFG.get("tiny_island", 3)):
+            for f in island:
+                for l_ in f.loops:
+                    l_[uv].uv = spot.copy()
+                _moved += 1
+    bmesh.update_edit_mesh(lo.data)
+    print("MESHY tiny hand islands moved onto the hand's skin: %d faces (%d hand islands)" % (_moved, len(_hisl)))
 bpy.ops.object.mode_set(mode="OBJECT")
 
 # -------------------------------------------------------------------- bake
@@ -2164,6 +2548,135 @@ total = skin_fix(total)
 total = blush_down(total)
 total = face_lift(total)
 total = hand_match(total)
+
+
+def skin_even(px):
+    """Bare arms and hands in one even skin tone (kind config "skin_even"):
+    Meshy sometimes paints forearms with hot-pink or red blotches that the
+    palette turns into loud specks. The arm skin and the hands take the old
+    cel's skin colour (graded back), shaded only by their own smoothed light,
+    so no blotch keeps its own hue; the face's hue is drawn a share toward it
+    ("face_even") with its ruddy nose and cheeks kept."""
+    opt = CFG.get("skin_even")
+    if not opt:
+        return px
+    opt = opt if isinstance(opt, dict) else {}
+    px = px.copy(); _before = px[:, :3].copy()
+    rgb = px[:, :3]
+    LW = numpy.array([.299, .587, .114])
+    lum = rgb @ LW
+    mx, mn = rgb.max(axis=1), rgb.min(axis=1)
+    sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+    d = numpy.maximum(mx - mn, 1e-6)
+    r, g, b = rgb[:, 0], rgb[:, 1], rgb[:, 2]
+    h = numpy.where(mx == r, (60 * ((g - b) / d)) % 360,
+                    numpy.where(mx == g, 60 * ((b - r) / d) + 120, 60 * ((r - g) / d) + 240))
+    hm = HANDMASK if "HANDMASK" in globals() else numpy.zeros(len(lum), dtype=bool)
+    warm = ((h < 45) | (h > 320)) & (mx > .06) & (sat > .1)
+    arm = ZONE & ~HEADZONE & ~hm & warm
+    # (bare skin outside the forearm zones - an elbow under a short sleeve -
+    # found by its colour: near the Meshy skin's hue and colour)
+    sk0 = SKIN * GAIN
+    s0mx, s0mn = float(sk0.max()), float(sk0.min())
+    s0sat = (s0mx - s0mn) / max(s0mx, 1e-4)
+    import colorsys
+    s0h = colorsys.rgb_to_hsv(*[float(x) for x in sk0])[0] * 360
+    near0 = (numpy.abs(((h - s0h + 180) % 360) - 180) < float(opt.get("hue_band", 14))) & (
+        numpy.abs(sat - s0sat) < float(opt.get("sat_band", .2)))
+    ext = ~HEADZONE & ~hm & warm & near0 & ~arm
+    arm = arm | ext
+    ref = arm & SKIN_DONE
+    if ref.sum() < 50:
+        ref = arm
+    lm = float(numpy.median(lum[ref]))
+    # (cloth in the forearm zone - a rolled plaid cuff - is darker or far
+    # more saturated than the skin; it stays)
+    # (a dark hair or grime speck on the forearm itself is evened too; the
+    # colour-found skin elsewhere only where it is lit skin)
+    arm &= ~((sat > .7) & (lum < lm * .9)) & (lum > lm * float(opt.get("dark", 0.0)))
+    arm &= ~ext | (lum > lm * .55)
+    # The tone: the old cel's skin, graded back (as face_lift's light).
+    tone = None
+    if _old is not None:
+        o = _old
+        omx, omn = o.max(axis=1), o.min(axis=1)
+        osat = numpy.where(omx > 1e-4, (omx - omn) / numpy.maximum(omx, 1e-4), 0)
+        oskin = (o[:, 0] > o[:, 1]) & (o[:, 1] > o[:, 2]) & (osat > .2) & (osat < .6) & (omx > .35)
+        if oskin.sum() > 50:
+            tone = numpy.clip((numpy.median(o[oskin], axis=0) - .024) / 1.18, 0, 1)
+    if "tone" in opt:
+        tone = numpy.array(opt["tone"], dtype=float) / 255.0
+    if tone is None:
+        return px
+    tl = float(tone @ LW)
+    # The light: each texel's own, its blotches' hot or dark spots clamped
+    # to the arm's middle and smoothed, the hands brought to the arms' light.
+    L = lum.copy()
+    if hm.any():
+        L[hm] *= lm / max(float(numpy.median(lum[hm])), 1e-4)
+    sk = arm | hm
+    L[sk] = numpy.clip(L[sk], lm * float(opt.get("floor", .75)), lm * 1.15)
+    Lr = L.reshape(TEXTURE, TEXTURE)
+    m2 = sk.reshape(TEXTURE, TEXTURE)
+    for _ in range(int(opt.get("smooth", 12))):
+        acc = numpy.zeros_like(Lr)
+        cnt = numpy.zeros_like(Lr)
+        for dy, dx in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+            mm = numpy.roll(numpy.roll(m2, dy, 0), dx, 1)
+            acc += numpy.roll(numpy.roll(Lr, dy, 0), dx, 1) * mm
+            cnt += mm
+        Lr[m2] = (acc / numpy.maximum(cnt, 1))[m2]
+    L = Lr.reshape(-1)
+    # (the old cel's skin light, a little lifted: "light")
+    out = tone[None, :] * (L / max(lm, 1e-4) * float(opt.get("light", 1.1)))[:, None]
+    rgb[sk] = numpy.clip(out[sk], 0, 1)
+    # The face: hue and colour a share toward the tone, its light kept, the
+    # redder-than-skin nose and cheeks keeping their extra red.
+    fk = float(opt.get("face_even", .7))
+    face = HEADZONE & warm & SKIN_DONE
+    if fk > 0 and face.any():
+        ft = tone[None, :] * (lum[face] / max(tl, 1e-4))[:, None]
+        rgb[face] = numpy.clip(rgb[face] * (1 - fk) + ft * fk, 0, 1)
+    if os.environ.get("MESHY_DEBUG"):
+        numpy.save(os.path.join(OUT, "dbg_masks.npy"), numpy.stack([ZONE & ~HEADZONE, arm, hm, HEADZONE]))
+        numpy.save(os.path.join(OUT, "dbg_before.npy"), _before)
+    px[:, :3] = rgb
+    print("MESHY skin evened: %d arm texels, %d hand texels, %d face texels to %s" % (
+        int(arm.sum()), int(hm.sum()), int(face.sum()), numpy.round(tone * 255).astype(int)))
+    return px
+
+
+total = skin_even(total)
+
+
+def hand_dilate(px, reach=10):
+    """The hands' skin grown outward into the unbaked (black) texels round
+    their islands: a thin webbing triangle at a finger root whose UV corner
+    falls past the bake margin otherwise samples black (a dark sliver)."""
+    if "HANDMASK" not in globals() or not HANDMASK.any():
+        return px
+    px = px.copy()
+    img = px[:, :3].reshape(TEXTURE, TEXTURE, 3)
+    have = HANDMASK.reshape(TEXTURE, TEXTURE).copy()
+    empty = img.max(axis=2) < .03
+    grown = 0
+    for _ in range(reach):
+        acc = numpy.zeros_like(img)
+        cnt = numpy.zeros((TEXTURE, TEXTURE))
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            mm = numpy.roll(numpy.roll(have, dy, 0), dx, 1)
+            acc += numpy.roll(numpy.roll(img, dy, 0), dx, 1) * mm[:, :, None]
+            cnt += mm
+        new = empty & ~have & (cnt > 0)
+        img[new] = acc[new] / cnt[new][:, None]
+        have |= new
+        grown += int(new.sum())
+    px[:, :3] = img.reshape(-1, 3)
+    print("MESHY hands' skin grown into %d empty texels" % grown)
+    return px
+
+
+total = hand_dilate(total)
 image.pixels.foreach_set(total.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + ".png")
 image.file_format = "PNG"
@@ -2253,6 +2766,46 @@ pos = pixels(pimg)
 px_ = (pos[:, 0] - .5) * 2
 py_ = (pos[:, 1] - .5) * 2
 pz_ = pos[:, 2]
+# Recolours a kind asks for (kind config "recolour": a list of rules, each a
+# box in model space - "z" [lo, hi] as shares of the height, "x"/"y" [lo, hi]
+# in metres - and the colours it takes - hue [lo, hi] (wrapping), "sat" [lo,
+# hi], "val" [lo, hi] - turned to "to" [r, g, b] (0-255) at each texel's own
+# light relative to the rule's middle light): a Meshy hat painted the wrong
+# colour, made the cel's.
+for rule in CFG.get("recolour", []):
+    rgbv = total[:, :3]
+    mx = rgbv.max(axis=1)
+    mn = rgbv.min(axis=1)
+    sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+    dd = numpy.maximum(mx - mn, 1e-6)
+    r_, g_, b_ = rgbv[:, 0], rgbv[:, 1], rgbv[:, 2]
+    hh = numpy.where(mx == r_, (60 * ((g_ - b_) / dd)) % 360,
+                     numpy.where(mx == g_, 60 * ((b_ - r_) / dd) + 120, 60 * ((r_ - g_) / dd) + 240))
+    m = (pz_ >= rule.get("z", [0, 2])[0]) & (pz_ <= rule.get("z", [0, 2])[1])
+    m &= (px_ >= rule.get("x", [-9, 9])[0]) & (px_ <= rule.get("x", [-9, 9])[1])
+    m &= (py_ >= rule.get("y", [-9, 9])[0]) & (py_ <= rule.get("y", [-9, 9])[1])
+    if "hue" in rule:
+        h0, h1 = rule["hue"]
+        m &= ((hh >= h0) & (hh <= h1)) if h0 <= h1 else ((hh >= h0) | (hh <= h1))
+    m &= (sat >= rule.get("sat", [0, 1])[0]) & (sat <= rule.get("sat", [0, 1])[1])
+    m &= (mx >= rule.get("val", [0, 1])[0]) & (mx <= rule.get("val", [0, 1])[1])
+    if rule.get("not_skin", True):
+        m &= ~SKIN_DONE
+        if "HANDMASK" in globals():
+            m &= ~HANDMASK
+    if m.sum() < 10:
+        print("MESHY recolour %s: nothing" % rule.get("name", "?"))
+        continue
+    lum = rgbv @ numpy.array([.299, .587, .114])
+    lmid = float(numpy.median(lum[m]))
+    to = numpy.array(rule["to"], dtype=float) / 255.0
+    k = numpy.clip(lum / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
+    total[m, :3] = numpy.clip(to[None, :] * k[m, None], 0, 1)
+    print("MESHY recolour %s: %d texels to %s" % (rule.get("name", "?"), int(m.sum()), rule["to"]))
+if CFG.get("recolour"):
+    image.pixels.foreach_set(total.ravel())
+    image.filepath_raw = os.path.join(OUT, KIND + ".png")
+    image.save()
 front = py_ < 0.02
 wounds = numpy.zeros(len(pz_))
 # brow/face cut, chest and belly, the gut, one arm (the left upper arm)
@@ -2335,6 +2888,92 @@ bsdf.inputs["Roughness"].default_value = 1.0
 # past twice its length, or a face turned over, is a tear.
 _ish2 = lo.data.attributes.get("is_hand")
 _hand_faces = [p_ for p_ in lo.data.polygons if _ish2 is not None and _ish2.data[p_.index].value == 1]
+
+
+def hand_flips():
+    """Hand triangles turned over in some key against how their own bones
+    turned them (a finger root folding into the palm shows its inside: a
+    dark sliver up close). Returns {vertex: count} and the face count."""
+    gname = {g.index: g.name for g in lo.vertex_groups}
+    rest = numpy.array([v.co[:] for v in lo.data.vertices])
+    tris = [tuple(p_.vertices) for p_ in _hand_faces if len(p_.vertices) == 3]
+    tri = numpy.array(tris)
+    n0 = numpy.cross(rest[tri[:, 1]] - rest[tri[:, 0]], rest[tri[:, 2]] - rest[tri[:, 0]])
+    # each face's own bone: the most weight over its corners
+    fb = []
+    for t_ in tris:
+        acc = {}
+        for vi in t_:
+            for g in lo.data.vertices[vi].groups:
+                acc[g.group] = acc.get(g.group, 0) + g.weight
+        fb.append(gname[max(acc, key=acc.get)])
+    bad_v = {}
+    faces = set()
+    for t in KEYS:
+        scene.frame_set(t)
+        dg = bpy.context.evaluated_depsgraph_get()
+        evm = lo.evaluated_get(dg).to_mesh()
+        now = numpy.empty_like(rest)
+        evm.vertices.foreach_get("co", now.ravel())
+        lo.evaluated_get(dg).to_mesh_clear()
+        n1 = numpy.cross(now[tri[:, 1]] - now[tri[:, 0]], now[tri[:, 2]] - now[tri[:, 0]])
+        rot = {}
+        for bn in set(fb):
+            pb = rig.pose.bones.get(bn)
+            rot[bn] = numpy.array((pb.matrix @ pb.bone.matrix_local.inverted()).to_3x3()) if pb else numpy.eye(3)
+        exp = numpy.array([rot[fb[i]] @ n0[i] for i in range(len(tris))])
+        dot = (exp * n1).sum(axis=1) / numpy.maximum(numpy.linalg.norm(exp, axis=1) * numpy.linalg.norm(n1, axis=1), 1e-12)
+        for i in numpy.nonzero(dot < 0)[0]:
+            faces.add(i)
+            for vi in tris[i]:
+                bad_v[vi] = bad_v.get(vi, 0) + 1
+    scene.frame_set(0)
+    import collections
+    print("MESHY turned-over faces by bone:", collections.Counter(fb[i] for i in faces).most_common(12))
+    return bad_v, len(faces)
+
+
+if _hand_faces:
+    hand_flips()
+
+
+if _hand_faces and CFG.get("unflip", False):
+    _adj = {}
+    for e_ in lo.data.edges:
+        a_, b_ = e_.vertices
+        _adj.setdefault(a_, set()).add(b_)
+        _adj.setdefault(b_, set()).add(a_)
+    for _round in range(int(CFG.get("unflip_rounds", 6))):
+        bad_v, nf = hand_flips()
+        print("MESHY hand faces turned over: %d (round %d)" % (nf, _round))
+        if not bad_v:
+            break
+        # their corners' weights relaxed toward their neighbours' (and the
+        # neighbours a little toward theirs), so the fold spreads out
+        grow = set(bad_v)
+        for vi in list(bad_v):
+            grow |= _adj.get(vi, set())
+        old_w = {}
+        for vi in grow:
+            old_w[vi] = {g.group: g.weight for g in lo.data.vertices[vi].groups}
+        for vi in grow:
+            acc = {}
+            ring = [vi] + list(_adj.get(vi, ()))
+            for u in ring:
+                for gk, w in old_w.get(u, {g.group: g.weight for g in lo.data.vertices[u].groups}).items():
+                    acc[gk] = acc.get(gk, 0) + w
+            tot = sum(acc.values())
+            share = .7 if vi in bad_v else .35
+            mine = old_w[vi]
+            for gk in set(acc) | set(mine):
+                w = mine.get(gk, 0) * (1 - share) + acc.get(gk, 0) / max(tot, 1e-6) * share
+                if w > 1e-4:
+                    lo.vertex_groups[gk].add([vi], w, "REPLACE")
+                elif gk in mine:
+                    lo.vertex_groups[gk].remove([vi])
+    else:
+        bad_v, nf = hand_flips()
+        print("MESHY hand faces turned over: %d (after)" % nf)
 print("MESHY hand faces checked: %d" % len(_hand_faces))
 BAD_E = [0]
 WORST_E = None
@@ -2405,6 +3044,8 @@ entry = {
     "textures": ["", "hurt"],
     "joints": JOINTS,
     "rides": RIDES,
+    **({"hold_near": float(CFG["hold_near"])} if "hold_near" in CFG else {}),
+    **({"hold_legs": True} if CFG.get("hold_legs") else {}),
     "segs": dict({"body": 0, "head": 1, "upperarm_l": 2, "forearm_l": 3, "hand_l": 3, "upperarm_r": 4,
                   "forearm_r": 5, "hand_r": 5, "thigh_l": 6, "shin_l": 7, "foot_l": 7, "thigh_r": 8,
                   "shin_r": 9, "foot_r": 9},

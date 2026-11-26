@@ -7,5 +7,9 @@
  "out": "../meshy-work/raw/bottle_tosser",
  "tris": 10000,
  "texture": 512,
- "gear": "old"
+ "gear": "old",
+ "item_types": {
+  "r": "throw"
+ },
+ "bandolier": true
 }
