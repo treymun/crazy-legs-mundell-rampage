@@ -217,6 +217,27 @@ for k in heads:
 mesh.name = KIND + "_hi"
 print("MESHY fitted: scale %.4f, height %.3f" % (s, OLD_H))
 
+# A bulb nose where the cel has one (kind config "nose": "k" how far it
+# swells, "r" its radius in metres): the face's most forward point in the
+# nose's height band, the vertices round it scaled out from just behind it.
+NOSE = None
+if CFG.get("nose"):
+    _nc = CFG["nose"]
+    co = numpy.array([v.co[:] for v in mesh.data.vertices])
+    zb = numpy.array(_nc.get("z", [.84, .92])) * OLD_H
+    band = (co[:, 2] > zb[0]) & (co[:, 2] < zb[1]) & (numpy.abs(co[:, 0]) < .04 * OLD_H / 1.7)
+    tip = co[band][numpy.argmin(co[band][:, 1])]
+    r = float(_nc.get("r", .03)) * OLD_H / 1.7
+    cen = tip + numpy.array([0, r * .9, 0])
+    d = co - cen
+    e = numpy.linalg.norm(d, axis=1) / (r * float(_nc.get("reach", 1.8)))
+    w = numpy.clip(1 - e, 0, 1) ** 1.2
+    co2 = co + d * (float(_nc.get("k", .6)) * w)[:, None]
+    for i, v in enumerate(mesh.data.vertices):
+        v.co = co2[i]
+    NOSE = Vector(tip.tolist())
+    print("MESHY nose: tip at %s, %d vertices swelled" % (numpy.round(tip, 3), int((w > .01).sum())))
+
 # A rounder belly where the old cel had a ball (kind config "belly": its
 # height and radii as shares of the height, "k" how far it swells): the
 # front of the trunk scaled out from a centre inside the belly, faded to
@@ -887,6 +908,65 @@ if CFG.get("gear", "old") == "old" and LOST:
     vert_gear = []
     for _b in _vb:
         vert_gear.append(next(k for k, it in enumerate(_items) if _b in it))
+    # Bits of the old gear that only made sense round the old fist (kind
+    # config "gear_drop": [{"part", "above"}]: a stack of blocks over a jug's
+    # neck where the old hand closed) taken away.
+    for _gd in CFG.get("gear_drop", []):
+        _x = DUMP["bones"].index(_gd["part"]) if _gd["part"] in DUMP["bones"] else -1
+        if _x < 0:
+            continue
+        _sel = (_vb == _x) & (_gco[:, 2] > float(_gd.get("above", -9.0)))
+        if not _sel.any():
+            continue
+        _bmg = bmesh.new()
+        _bmg.from_mesh(gm)
+        _bmg.verts.ensure_lookup_table()
+        bmesh.ops.delete(_bmg, geom=[_bmg.verts[int(i)] for i in numpy.nonzero(_sel)[0]], context="VERTS")
+        _bmg.to_mesh(gm)
+        _bmg.free()
+        _vb = _vb[~_sel]
+        _gco = numpy.array([v.co[:] for v in gm.vertices])
+        print("MESHY gear part %s: %d vertices above %.3f taken away" % (_gd["part"], int(_sel.sum()), _gd.get("above", -9)))
+        vert_gear = [next(k for k, it in enumerate(_items) if _b in it) for _b in _vb]
+    # Parts of a held thing floating clear of the rest (a jug's cork above
+    # the gap where the old fist was; kind config "gear_snap": [part, ...])
+    # dropped straight down onto the part under them.
+    for _sn in CFG.get("gear_snap", []):
+        _above = -9.0
+        if isinstance(_sn, dict):
+            _sn, _above = _sn["part"], float(_sn.get("above", -9.0))
+        _x = DUMP["bones"].index(_sn) if _sn in DUMP["bones"] else -1
+        if _x < 0 or not (_vb == _x).any():
+            continue
+        _sel = (_vb == _x) & (_gco[:, 2] > _above)
+        if not _sel.any():
+            continue
+        _mine = _gco[_sel]
+        _rest = _gco[~_sel & numpy.isin(_vb, list(_link[_x]))]
+        if not len(_rest):
+            continue
+        # the rest under its footprint
+        _cx, _cy = _mine[:, 0].mean(), _mine[:, 1].mean()
+        _r = max(float(numpy.linalg.norm(_mine[:, :2] - [_cx, _cy], axis=1).max()), .01)
+        _under = _rest[(numpy.linalg.norm(_rest[:, :2] - [_cx, _cy], axis=1) < _r * 1.5) & (_rest[:, 2] < _mine[:, 2].min() + .005)]
+        if not len(_under):
+            continue
+        _drop = float(_mine[:, 2].min() - _under[:, 2].max())
+        if _drop > .002:
+            for _vi in numpy.nonzero(_sel)[0]:
+                gm.vertices[int(_vi)].co.z -= _drop
+            _gco = numpy.array([v.co[:] for v in gm.vertices])
+            print("MESHY gear part %s dropped %.3f m onto the part under it" % (_sn, _drop))
+    if os.environ.get("MESHY_DEBUG"):
+        for _x in LOST:
+            _zz = numpy.sort(_gco[_vb == _x][:, 2])
+            if len(_zz) > 1 and numpy.diff(_zz).max() > .01:
+                _k = int(numpy.argmax(numpy.diff(_zz)))
+                print("MESHY part %s has a gap %.3f-%.3f" % (DUMP["bones"][_x], _zz[_k], _zz[_k + 1]))
+            if (_vb == _x).any():
+                _pp = _gco[_vb == _x]
+                print("MESHY part %s z %.3f-%.3f x %.2f y %.2f n %d" % (DUMP["bones"][_x], _pp[:, 2].min(), _pp[:, 2].max(),
+                                                               _pp[:, 0].mean(), _pp[:, 1].mean(), len(_pp)))
     for ci, it in enumerate(_items):
         _big = max(it, key=lambda i: int((_vb == i).sum()))
         GEAR.append(("gear%d" % ci, [_big] + [i for i in it if i != _big]))
@@ -1636,10 +1716,25 @@ def solve(name, dz=0.0, held0=None):
                 far = pd > numpy.percentile(pd, 80)
                 grip = Vector(pts[far].mean(axis=0))
                 down0 = Vector(perp[far].mean(axis=0)).normalized()
-                # the muzzle: the barrel's end away from the grip
-                g_al = (grip - Vector(ctr)).dot(G0)
-                if g_al > 0:
-                    G0 = -G0
+                # the muzzle: the end the old model pointed at the target in
+                # its aim key (the model faces -Y); failing that, the
+                # barrel's end away from the grip
+                decided = False
+                if "aim" in FRAMES:
+                    _q0, _r0, _s0 = old_bone("0", it["big"])
+                    _q1, _r1, _s1 = old_bone("aim", it["big"])
+                    if _s1.x > .2:
+                        g_aim = (_r1 @ _r0.inverted()) @ G0
+                        if abs(g_aim.y) > .3 * g_aim.length:
+                            if g_aim.y > 0:
+                                G0 = -G0
+                            decided = True
+                if not decided:
+                    g_al = (grip - Vector(ctr)).dot(G0)
+                    if g_al > 0:
+                        G0 = -G0
+                print("MESHY pistol %s: muzzle %s (%s)" % (it["bone"], numpy.round(G0[:], 2),
+                                                         "from the old aim" if decided else "away from the grip"))
                 U0 = -(down0 - G0 * down0.dot(G0)).normalized()
                 wrist0, a0, n0 = HANDF[side]
                 t0 = a0.cross(n0).normalized()
@@ -1659,7 +1754,10 @@ def solve(name, dz=0.0, held0=None):
                 Rh = D["hand_" + side].to_3x3()
                 a_w = (Rh @ a0).normalized()
                 pts = [Vector(g) for g in ITEM_PTS.get(it["bone"], [])]
-                top = min(pts, key=lambda g: g.dot(a_w)) if pts else it["lo"]
+                # (its top as it hangs - the highest point, a neck or a
+                # handle - not the end nearest the elbow: a forearm held
+                # forward put the jug's side against the palm)
+                top = max(pts, key=lambda g: g.z) if pts else it["lo"]
                 # (its top a little into the fist, past the palm's middle)
                 hold = D["hand_" + side] @ J["hand_" + side] + a_w * (HANDS[side].length * .12 if side in HANDS else .02)
                 Di = Matrix.Translation(hold - top)
@@ -2788,6 +2886,9 @@ for rule in CFG.get("recolour", []):
         h0, h1 = rule["hue"]
         m &= ((hh >= h0) & (hh <= h1)) if h0 <= h1 else ((hh >= h0) | (hh <= h1))
     m &= (sat >= rule.get("sat", [0, 1])[0]) & (sat <= rule.get("sat", [0, 1])[1])
+    if rule.get("at") == "nose" and NOSE is not None:
+        rr = float(rule.get("r", .035)) * OLD_H / 1.7
+        m &= numpy.sqrt((px_ - NOSE.x) ** 2 + (py_ - NOSE.y) ** 2 + ((pz_ * OLD_H) - NOSE.z) ** 2) < rr
     m &= (mx >= rule.get("val", [0, 1])[0]) & (mx <= rule.get("val", [0, 1])[1])
     if rule.get("not_skin", True):
         m &= ~SKIN_DONE
@@ -2802,6 +2903,9 @@ for rule in CFG.get("recolour", []):
     k = numpy.clip(lum / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
     total[m, :3] = numpy.clip(to[None, :] * k[m, None], 0, 1)
     print("MESHY recolour %s: %d texels to %s" % (rule.get("name", "?"), int(m.sum()), rule["to"]))
+if os.environ.get("MESHY_DEBUG"):
+    numpy.save(os.path.join(OUT, "dbg_pos.npy"), numpy.stack([px_, py_, pz_]))
+    numpy.save(os.path.join(OUT, "dbg_total.npy"), total[:, :3])
 if CFG.get("recolour"):
     image.pixels.foreach_set(total.ravel())
     image.filepath_raw = os.path.join(OUT, KIND + ".png")

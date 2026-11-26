@@ -2666,6 +2666,7 @@
 		},
 		"gear": {},
 		"height": 1.789,
+		"hold_legs": true,
 		"joints": {
 			"0": "thigh_l",
 			"1": "thigh_r",
