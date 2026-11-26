@@ -643,6 +643,39 @@
    "time": "2026-11-26 11:48:03",
    "after": 2031,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "foreman_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21923-835e-76aa-92a9-caafe83df66b",
+   "before": 2031,
+   "cost": 9,
+   "body": "foreman_concept.json",
+   "time": "2026-11-26 12:34:50",
+   "after": 2022,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "foreman_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21924-3297-72a1-83ac-9bfa7ea8b0bd",
+   "before": 2022,
+   "cost": 30,
+   "body": "foreman_model.json",
+   "time": "2026-11-26 12:35:37",
+   "after": 1992,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "foreman_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21925-7873-72e7-b132-e76e027dfb4a",
+   "before": 1992,
+   "cost": 5,
+   "body": "foreman_rig.json",
+   "time": "2026-11-26 12:37:01",
+   "after": 1987,
+   "status": "SUCCEEDED"
   }
  ]
 }

@@ -96,5 +96,12 @@
   "face": "a showman's wide grin full of teeth, eyes popping with excitement, eyebrows raised high, the look of a man about to announce the greatest show on earth",
   "texture": "circus ringmaster, black top hat with red bulb band, red nose, black handlebar moustache, white cravat, red tailcoat with gold braid and epaulettes, tan bass drum on his belly, cream and brown striped trousers, grey boots, white gloves, two brass horns over his shoulders, empty hands",
   "height": 1.9
+ },
+ "foreman": {
+  "who": "brutal backwoods sawmill foreman, a hulking barrel-chested lumberjack boss",
+  "design": "a scuffed bright yellow hard hat with a round headlamp on its front and a few faded stickers, small mean eyes, a big red nose, a huge bushy ginger-red beard down to his chest, a red and dark red buffalo-plaid flannel shirt with thick rolled sleeves pushed up to the elbows, enormous bare freckled forearms, a quilted bright orange safety vest with two shiny silver reflective stripes round the chest, a wide brown leather tool belt with a hammer and a yellow tape measure, baggy tan-brown canvas work trousers with dark knee patches, heavy brown laced work boots, and strapped on his back a black steel saw rig: a small grey motor box with two spare circular saw blades and a double-bladed red axe sticking up over his left shoulder",
+  "face": "a furious scowl under the hard hat, teeth bared in the beard, thick ginger eyebrows knitted, the look of a man who fires people by throwing them in the chipper",
+  "texture": "sawmill foreman, yellow hard hat with headlamp, ginger beard, red nose, red buffalo plaid shirt, bare forearms, orange quilted safety vest with silver reflective stripes, brown tool belt with hammer, tan work trousers with knee patches, brown boots, black saw rig with blades and red axe on his back, empty hands",
+  "height": 1.85
  }
 }

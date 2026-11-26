@@ -762,7 +762,10 @@ for _i, _b in enumerate(DUMP["bones"]):
     _lab = DUMP["labels"].get(_b, "body")
     _s0 = DUMP["poses"]["0"][_i][7]
     _sd = DUMP["poses"]["down"][_i][7]
-    if _sd >= .2 or _s0 < .2 or _b in CFG.get("gear_skip", []):
+    # ("gear_force": parts held although the old body keeps them at "down" -
+    # a boss's scripted fall never dropped the foreman's saw blade)
+    _force = _b in CFG.get("gear_force", [])
+    if ((_sd >= .2 or _s0 < .2) and not _force) or _b in CFG.get("gear_skip", []):
         continue
     # Kept when nearer a hand or an elbow than the head, a knee or a foot
     # (RagdollRig._find_gear's rule, per part: a cigarette or a boot's toe
@@ -771,7 +774,7 @@ for _i, _b in enumerate(DUMP["bones"]):
     _p0 = [g2b(q) for q in DUMP["points"]["0"]]
     _held = min((_p0[k] - _o).length for k in (5, 6, 7, 8))
     _other = min((_p0[k] - _o).length for k in (4, 9, 10, 11, 12))
-    if _held < _other or _b in CFG.get("gear_extra", []):
+    if _held < _other or _b in CFG.get("gear_extra", []) or _force:
         LOST.append(_i)
 if CFG.get("gear", "old") == "old" and LOST:
     old_new = import_glb(CFG["old_glb"])
@@ -3015,6 +3018,13 @@ if HANDS:
     _mx, _mn = _rgb.max(axis=1), _rgb.min(axis=1)
     _sat = numpy.where(_mx > 1e-4, (_mx - _mn) / numpy.maximum(_mx, 1e-4), 0)
     _skinlike = ZONE & ~HANDMASK & (_rgb[:, 0] > _rgb[:, 1]) & (_rgb[:, 1] > _rgb[:, 2] * .9) & (_sat > .18) & (_sat < .7) & (_mx > .15)
+    # (kind config "hand_hue" [lo, hi] degrees: only skin of that hue - a
+    # yellow hard hat and a ginger beard in the head zone made the hands
+    # yellow)
+    if CFG.get("hand_hue"):
+        _d = numpy.maximum(_mx - _mn, 1e-6)
+        _hue = (60 * ((_rgb[:, 1] - _rgb[:, 2]) / _d)) % 360
+        _skinlike &= (_hue >= float(CFG["hand_hue"][0])) & (_hue <= float(CFG["hand_hue"][1]))
     if _skinlike.sum() > 50 and HANDMASK.any():
         _want = numpy.median(_rgb[_skinlike], axis=0)
         _have = numpy.median(htot[HANDMASK], axis=0)
