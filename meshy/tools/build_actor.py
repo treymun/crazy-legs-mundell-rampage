@@ -2109,6 +2109,13 @@ def hand_match(px):
         have = numpy.median(rgb[hsel], axis=0)
         rgb[hm] = numpy.clip(rgb[hm] * (want / numpy.maximum(have, 1e-4))[None, :], 0, 1)
         print("MESHY hands matched to the body's skin", numpy.round(want * 255).astype(int))
+    # Skin a little more coloured than Meshy paints it: a pale, greyish skin
+    # falls between the palette's entries and dithers into beige and teal
+    # blotches; a third more colour lands on its smooth brown ramp.
+    k_s = float(CFG.get("skin_sat", 1.3))
+    sk_m = (SKIN_DONE | hm)
+    grey = rgb[sk_m].mean(axis=1, keepdims=True)
+    rgb[sk_m] = numpy.clip(grey + (rgb[sk_m] - grey) * k_s, 0, 1)
     px[:, :3] = rgb
     return px
 

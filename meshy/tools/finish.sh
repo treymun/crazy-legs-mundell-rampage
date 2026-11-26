@@ -23,4 +23,5 @@ for r,(f,sd) in enumerate([(f,sd) for f in (0,2,6,8) for sd in ('hand_l','hand_r
     try: s.paste(Image.open(f'q/h_${K}_{f}_{sd}_{i}.png').resize((170,170)),(i*170,r*170))
     except Exception: pass
 s.save('q/hands_$K.png')"
+sh "$SP/p16-meshy/meshy/tools/hands_sheet.sh" $K "$SP/meshy-previews/${NN}_${K}_hands.png"
 echo "finished $K"
