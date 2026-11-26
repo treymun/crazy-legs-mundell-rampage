@@ -929,7 +929,38 @@ func _blend(clock: float) -> void:
 			skeleton.set_bone_pose_position(b, at_a[b].lerp(at_b[b], k))
 			skeleton.set_bone_pose_rotation(b, turn_a[b].slerp(turn_b[b], k))
 			skeleton.set_bone_pose_scale(b, size_a[b].lerp(size_b[b], k))
+		_keep_arm_lengths(skeleton, at_a, at_b, k)
 		_keep_in_hand(skeleton, at_a, turn_a, at_b, turn_b, k)
+
+
+## A flat skeleton's arm blended bone by bone shortens on a big swing (the
+## elbow and the wrist each go straight from key to key: a forearm raised
+## behind the head blending down to the hip passed through a tenth of its
+## length). The elbow and the wrist are put back at the arm's own lengths
+## (the two keys' lengths, blended) along where the blend put them.
+func _keep_arm_lengths(
+	skeleton: Skeleton3D, at_a: PackedVector3Array, at_b: PackedVector3Array, k: float
+) -> void:
+	for side: String in ["l", "r"]:
+		var ua := skeleton.find_bone("upperarm_" + side)
+		var fa := skeleton.find_bone("forearm_" + side)
+		var hd := skeleton.find_bone("hand_" + side)
+		if ua < 0 or fa < 0 or hd < 0 or maxi(ua, maxi(fa, hd)) >= mini(at_a.size(), at_b.size()):
+			continue
+		var top := skeleton.get_bone_parent(ua)
+		if skeleton.get_bone_parent(fa) != top or skeleton.get_bone_parent(hd) != top:
+			continue
+		var len_u := lerpf(at_a[ua].distance_to(at_a[fa]), at_b[ua].distance_to(at_b[fa]), k)
+		var len_f := lerpf(at_a[fa].distance_to(at_a[hd]), at_b[fa].distance_to(at_b[hd]), k)
+		var sh := skeleton.get_bone_pose_position(ua)
+		var el := skeleton.get_bone_pose_position(fa)
+		var wr := skeleton.get_bone_pose_position(hd)
+		if (el - sh).length() < 1e-4 or (wr - el).length() < 1e-4:
+			continue
+		var el2 := sh + (el - sh).normalized() * len_u
+		var wr2 := el2 + (wr - el).normalized() * len_f
+		skeleton.set_bone_pose_position(fa, el2)
+		skeleton.set_bone_pose_position(hd, wr2)
 
 
 ## A living body's looks-only motion over its pose (model space, about its
