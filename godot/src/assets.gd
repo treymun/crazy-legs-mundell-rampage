@@ -137,6 +137,8 @@ var _sfx_file: FileAccess
 ## A chapter's own cues' files by name (sfx_<stem>.bin), opened as needed.
 var _sfx_files := {}
 var _sfx_cache: Dictionary = {}
+## The looping copies of cues (looped()), by name.
+var _loop_cache: Dictionary = {}
 
 var music_index: Dictionary = {}
 var music_ends: Dictionary = {}
@@ -487,6 +489,27 @@ func cue(name: String) -> AudioStream:
 	return stream
 
 
+## Cue `name` to loop on a voice of its own (a room's ambience, a bed, the
+## fuse, the ripsaw's motor, the jukebox): a looping copy, made once, of the
+## stream cue() hands every effect. The effects' own never loops: until
+## 3.13.1 the loops set looping on that shared stream, and from then on each
+## one-shot of the cue (a tosser's fuse, the mower's engine, a fire's crackle)
+## looped for good on its effect voice, till none was left for Mundell's
+## lines or the player's sounds (tools/audio_flow_check.gd). null when the
+## cue is not made.
+func looped(name: String) -> AudioStream:
+	var cached: Variant = _loop_cache.get(name)
+	if cached != null:
+		return cached
+	var once := cue(name)
+	if once == null:
+		return null
+	var copy := once.duplicate() as AudioStream
+	set_loop(copy, true)
+	_loop_cache[name] = copy
+	return copy
+
+
 func track(name: String) -> AudioStreamOggVorbis:
 	var cached: Variant = _music_cache.get(name)
 	if cached != null:
@@ -782,7 +805,8 @@ static func _pluck(t: float, f: float) -> float:
 
 
 ## Ambience, the jukebox, the fuse and the saw motor all loop in the reference.
-## Cached streams are shared, so only looping-only cues ever get this call.
+## Cached streams are shared: a cue's loop takes its own copy (looped()), and
+## only the music's tracks (a stream each, never an effect) get this call.
 static func set_loop(stream: AudioStream, enabled: bool) -> void:
 	if stream is AudioStreamWAV:
 		var wav := stream as AudioStreamWAV
@@ -797,3 +821,12 @@ static func set_loop(stream: AudioStream, enabled: bool) -> void:
 	elif stream is AudioStreamOggVorbis:
 		var ogg := stream as AudioStreamOggVorbis
 		ogg.loop = enabled
+
+
+## Whether `stream` loops (set_loop).
+static func loops(stream: AudioStream) -> bool:
+	if stream is AudioStreamWAV:
+		return (stream as AudioStreamWAV).loop_mode != AudioStreamWAV.LOOP_DISABLED
+	if stream is AudioStreamOggVorbis:
+		return (stream as AudioStreamOggVorbis).loop
+	return false
