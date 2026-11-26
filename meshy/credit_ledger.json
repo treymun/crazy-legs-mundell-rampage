@@ -375,6 +375,28 @@
    "time": "2026-11-26 04:48:07",
    "after": 2420,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "cow_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a217ae-026f-7255-9639-ca5c5bb17876",
+   "before": 2420,
+   "cost": 9,
+   "body": "cow_concept.json",
+   "time": "2026-11-26 05:46:52",
+   "after": 2411,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "cow_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a217af-6bf2-7773-a107-dda4678112ad",
+   "before": 2411,
+   "cost": 30,
+   "body": "cow_model.json",
+   "time": "2026-11-26 05:48:27",
+   "after": 2381,
+   "status": "SUCCEEDED"
   }
  ]
 }

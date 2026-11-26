@@ -1,0 +1,9 @@
+{
+ "kind": "cow",
+ "meshy": "meshy/assets/cow.glb",
+ "old_glb": "../meshy-work/old/cow.glb",
+ "old_tex": "../meshy-work/old/actor3d_cow.png",
+ "out": "../meshy-work/raw/cow",
+ "tris": 9000,
+ "texture": 512
+}

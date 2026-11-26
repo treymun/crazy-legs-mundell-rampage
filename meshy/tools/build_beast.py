@@ -1,0 +1,425 @@
+"""Blender: an animal or a boss remade with Meshy on its OLD armature.
+
+    blender -b -P meshy/tools/build_beast.py -- meshy/kinds/<kind>.json
+
+The old model keeps its skeleton, every key of its animation and its
+actors.json entry (labels, frames, gear): only the mesh and its look are new.
+The Meshy mesh (unrigged, standing as the old one stands at its standing
+key) is fitted onto the old mesh (turned the best of four ways, scaled and
+moved, then a few rounds of closest points), decimated, and given the old
+mesh's weights by its nearest old face (the old parts are rigid: one bone a
+vertex), softened over a few rings so a knee or a neck bends instead of
+splitting, at most four bones a vertex. It is then carried back to the old
+rest pose (inverse skinning) and its look baked from the Meshy model lit by
+the dusk stage, four turns, matched to the old look's light. Kind config:
+
+  kind, meshy (the Meshy glb), old_glb, old_tex, out, tris, texture,
+  smooth (rings of weight softening, default 2), rigid (bones whose
+  vertices are not softened), stand (the key the Meshy model stands as,
+  default "0"), icp (rounds of closest points, default 12), gain.
+  Not yet: a boss's old gear kept (its weapon parts), a hurt look.
+"""
+import json
+import math
+import os
+import sys
+
+import bmesh
+import bpy
+import numpy
+from mathutils import Matrix, Vector
+from mathutils.kdtree import KDTree
+
+CFG = json.load(open(sys.argv[sys.argv.index("--") + 1], encoding="utf-8"))
+KIND = CFG["kind"]
+OUT = os.path.abspath(CFG["out"])
+TRIS = int(CFG.get("tris", 9000))
+TEX = int(CFG.get("texture", 512))
+os.makedirs(OUT, exist_ok=True)
+TURNS = (0, 90, 180, 270)
+
+
+def select(objs, active=None):
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in objs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = active or objs[0]
+
+
+def import_glb(path):
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    new = [o for o in bpy.data.objects if o not in before]
+    for o in list(new):
+        if o.type == "MESH" and o.name.startswith("Icosphere"):
+            bpy.data.objects.remove(o)
+            new.remove(o)
+    return new
+
+
+def stage():
+    scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.cycles.device = "CPU"
+    world = bpy.data.worlds.new("world")
+    scene.world = world
+    world.use_nodes = True
+    nt = world.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputWorld")
+    bg = nt.nodes.new("ShaderNodeBackground")
+    bg.inputs[0].default_value = (.56, .54, .58, 1)
+    bg.inputs[1].default_value = .42
+    nt.links.new(bg.outputs[0], out.inputs[0])
+    for name, travel, power, color in (("key", (.50, .58, -.70), 4.9, (1, .86, .66)),
+                                       ("fill", (-.7, .55, -.25), 1.0, (.66, .70, 1)),
+                                       ("rim", (-.35, -.75, -.55), 6.5, (1, .70, .42)),
+                                       ("rim2", (.6, -.7, -.35), 4.0, (.72, .80, 1))):
+        light = bpy.data.lights.new(name, "SUN")
+        light.energy = power
+        light.color = color
+        light.angle = math.radians(6)
+        ob = bpy.data.objects.new(name, light)
+        ob.rotation_euler = Vector(travel).to_track_quat("-Z", "Y").to_euler()
+        scene.collection.objects.link(ob)
+
+
+bpy.ops.wm.read_factory_settings(use_empty=True)
+stage()
+scene = bpy.context.scene
+
+# ------------------------------------------------------------ the old model
+old = import_glb(CFG["old_glb"])
+arm = next(o for o in old if o.type == "ARMATURE")
+old_mesh = max((o for o in old if o.type == "MESH"), key=lambda o: len(o.data.vertices))
+meta_old = json.load(open(os.path.join(os.path.dirname(CFG["old_glb"]), "actors.json")))[KIND]
+FRAMES = meta_old["frames"]
+STAND = int(round(FRAMES[CFG.get("stand", "0")]))
+scene.frame_set(STAND)
+bpy.context.view_layer.update()
+dg = bpy.context.evaluated_depsgraph_get()
+src_me = bpy.data.meshes.new_from_object(old_mesh.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+src_me.transform(old_mesh.matrix_world)
+src = bpy.data.objects.new("old_standing", src_me)
+scene.collection.objects.link(src)
+for g in old_mesh.vertex_groups:
+    src.vertex_groups.new(name=g.name)
+# (each old bone's move from rest to the standing key, for the way back)
+POSE = {pb.name: arm.matrix_world @ pb.matrix @ pb.bone.matrix_local.inverted() @ arm.matrix_world.inverted()
+        for pb in arm.pose.bones}
+P = numpy.array([v.co[:] for v in src_me.vertices])
+OLD_H = float(P[:, 2].max() - P[:, 2].min())
+
+# ------------------------------------------------------------ the new mesh
+new = import_glb(CFG["meshy"])
+hi = next(o for o in new if o.type == "MESH")
+for o in new:
+    if o is not hi:
+        bpy.data.objects.remove(o)
+wm_ = hi.matrix_world.copy()
+hi.parent = None
+hi.matrix_world = wm_
+select([hi])
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+hi.name = KIND + "_hi"
+for slot in hi.material_slots:
+    m = slot.material
+    if m is not None and m.use_nodes:
+        for n in m.node_tree.nodes:
+            if n.type == "BSDF_PRINCIPLED":
+                for inp, val in (("Roughness", 1.0), ("Metallic", 0.0)):
+                    for lk in list(n.inputs[inp].links):
+                        m.node_tree.links.remove(lk)
+                    n.inputs[inp].default_value = val
+                if "Specular IOR Level" in n.inputs:
+                    n.inputs["Specular IOR Level"].default_value = 0.0
+Q0 = numpy.array([v.co[:] for v in hi.data.vertices])
+
+
+def tree_of(pts):
+    t = KDTree(len(pts))
+    for i, p in enumerate(pts):
+        t.insert(p, i)
+    t.balance()
+    return t
+
+
+Ps = P[:: max(1, len(P) // 3000)]
+Qs = Q0[:: max(1, len(Q0) // 3000)]
+TP = tree_of(Ps)
+
+
+def chamfer(Qx):
+    tq = tree_of(Qx)
+    a = numpy.mean([TP.find(q)[2] for q in Qx])
+    b = numpy.mean([tq.find(p)[2] for p in Ps])
+    return a + b
+
+
+def floor_fit(Qx):
+    """Uniform scale by height and length, the boxes' middles together, on the floor."""
+    k = float(numpy.mean(numpy.ptp(Ps, axis=0)[[0, 1, 2]] / numpy.maximum(numpy.ptp(Qx, axis=0), 1e-6)))
+    Qx = (Qx - Qx.mean(axis=0)) * k
+    Qx = Qx + (Ps.min(axis=0) + Ps.max(axis=0)) / 2 - (Qx.min(axis=0) + Qx.max(axis=0)) / 2
+    Qx[:, 2] += Ps[:, 2].min() - Qx[:, 2].min()
+    return Qx, k
+
+
+best = None
+for yaw in (0, 90, 180, 270):
+    R = numpy.array(Matrix.Rotation(math.radians(yaw), 3, "Z"))
+    Qr = Qs @ R.T
+    # (the length matched first: the four turns give different boxes)
+    Qf, _k = floor_fit(Qr)
+    c = chamfer(Qf)
+    print("BEAST fit turn %d: %.4f" % (yaw, c))
+    if best is None or c < best[0]:
+        best = (c, yaw)
+_c, YAW = best
+R0 = numpy.array(Matrix.Rotation(math.radians(YAW), 3, "Z"))
+Qr = Qs @ R0.T
+ctr0 = Qr.mean(axis=0)
+k0 = float(numpy.mean(numpy.ptp(Ps, axis=0) / numpy.maximum(numpy.ptp(Qr, axis=0), 1e-6)))
+# The similarity so far as a matrix: x -> s R x + t
+S = k0
+Rm = R0.copy()
+Qf, _ = floor_fit(Qr)
+T = Qf.mean(axis=0) - S * (Rm @ Qs.mean(axis=0))
+# A few rounds of closest points (scale, a turn about the upright, a move).
+for it in range(int(CFG.get("icp", 12))):
+    Qx = (Qs @ Rm.T) * S + T
+    near = numpy.array([Ps[TP.find(q)[1]] for q in Qx])
+    mq, mp = Qx.mean(axis=0), near.mean(axis=0)
+    A, B = Qx - mq, near - mp
+    # (turn about Z only: 2D Procrustes in the floor plane)
+    hxy = (A[:, :2].T @ B[:, :2])
+    ang = math.atan2(hxy[0, 1] - hxy[1, 0], hxy[0, 0] + hxy[1, 1])
+    Rz = numpy.array(Matrix.Rotation(ang, 3, "Z"))
+    # (the scale stays the boxes': closest points pull a shape small)
+    Rm = Rz @ Rm
+    T = Rz @ (T - mq) + mp
+Qx = (Qs @ Rm.T) * S + T
+T[2] += Ps[:, 2].min() - Qx[:, 2].min()
+print("BEAST fit: turn %d, scale %.4f, chamfer %.4f -> %.4f" % (YAW, S, _c, chamfer((Qs @ Rm.T) * S + T)))
+M = Matrix.Translation(Vector(T.tolist())) @ (Matrix(Rm.tolist()).to_4x4() @ Matrix.Diagonal((S, S, S, 1)))
+hi.data.transform(M)
+
+# ------------------------------------------------------------ the game mesh
+lo = hi.copy()
+lo.data = hi.data.copy()
+lo.name = KIND
+scene.collection.objects.link(lo)
+select([lo])
+bpy.ops.object.mode_set(mode="EDIT")
+bpy.ops.mesh.select_all(action="SELECT")
+bpy.ops.mesh.remove_doubles(threshold=0.0003)
+bpy.ops.object.mode_set(mode="OBJECT")
+for _ in range(5):
+    lo.data.calc_loop_triangles()
+    now = len(lo.data.loop_triangles)
+    if now <= TRIS * 1.03:
+        break
+    d_ = lo.modifiers.new("dec", "DECIMATE")
+    d_.ratio = TRIS / now
+    bpy.ops.object.modifier_apply(modifier="dec")
+lo.data.calc_loop_triangles()
+print("BEAST mesh: %d triangles" % len(lo.data.loop_triangles))
+
+# ------------------------------------------------------------ the weights
+for g in old_mesh.vertex_groups:
+    lo.vertex_groups.new(name=g.name)
+dt = lo.modifiers.new("weights", "DATA_TRANSFER")
+dt.object = src
+dt.use_vert_data = True
+dt.data_types_verts = {"VGROUP_WEIGHTS"}
+dt.vert_mapping = "POLYINTERP_NEAREST"
+dt.layers_vgroup_select_src = "ALL"
+dt.layers_vgroup_select_dst = "NAME"
+select([lo])
+bpy.ops.object.modifier_apply(modifier="weights")
+NB = len(lo.vertex_groups)
+W = numpy.zeros((len(lo.data.vertices), NB))
+for v in lo.data.vertices:
+    for g in v.groups:
+        W[v.index, g.group] = g.weight
+# Each vertex its nearest old part's bone outright (the transfer blends
+# across faces of two parts), then softened over a few rings.
+W = (W == W.max(axis=1, keepdims=True)) * (W.max(axis=1, keepdims=True) > 0)
+W = W / numpy.maximum(W.sum(axis=1, keepdims=True), 1e-9)
+nbr = [[] for _ in range(len(lo.data.vertices))]
+for e in lo.data.edges:
+    a, b = e.vertices
+    nbr[a].append(b)
+    nbr[b].append(a)
+keep = {lo.vertex_groups[n].index for n in CFG.get("rigid", []) if n in lo.vertex_groups}
+for _ in range(int(CFG.get("smooth", 2))):
+    W2 = W.copy()
+    for i, ns in enumerate(nbr):
+        if ns and not (keep and W[i].argmax() in keep):
+            W2[i] = W[i] * .5 + W[ns].mean(axis=0) * .5
+    W = W2
+for i in range(len(W)):
+    row = W[i]
+    if (row > 0).sum() > 4:
+        row[numpy.argsort(row)[:-4]] = 0
+    W[i] = row / max(row.sum(), 1e-9)
+for g in lo.vertex_groups:
+    g.remove(list(range(len(lo.data.vertices))))
+for gi in range(NB):
+    ids = numpy.nonzero(W[:, gi] > 1e-4)[0]
+    for i in ids:
+        lo.vertex_groups[gi].add([int(i)], float(W[i, gi]), "REPLACE")
+print("BEAST weights: %d bones used" % int((W.max(axis=0) > .5).sum()))
+# Back to the old rest pose: each vertex by its bones' moves undone.
+Minv = {gi: numpy.array(POSE[lo.vertex_groups[gi].name].inverted()) for gi in range(NB)
+        if lo.vertex_groups[gi].name in POSE}
+co = numpy.array([v.co[:] for v in lo.data.vertices])
+h = numpy.hstack([co, numpy.ones((len(co), 1))])
+rest = numpy.zeros_like(co)
+for gi, Mi in Minv.items():
+    w = W[:, gi:gi + 1]
+    if w.max() > 0:
+        rest += (h @ Mi.T)[:, :3] * w
+moved = float(numpy.linalg.norm(rest - co, axis=1).max())
+for i, v in enumerate(lo.data.vertices):
+    v.co = rest[i]
+print("BEAST carried back to rest: %.3f m at most" % moved)
+
+# ------------------------------------------------------------ unwrap, bake
+# (baked at the standing key: the low mesh posed as the Meshy one stands)
+select([lo])
+bpy.ops.object.mode_set(mode="EDIT")
+bpy.ops.mesh.select_all(action="SELECT")
+bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.0)
+bpy.ops.uv.pack_islands(rotate=True, margin_method="FRACTION", margin=.004, shape_method="CONCAVE")
+bpy.ops.object.mode_set(mode="OBJECT")
+lo.parent = arm
+mod = lo.modifiers.new("rig", "ARMATURE")
+mod.object = arm
+scene.frame_set(STAND)
+bpy.context.view_layer.update()
+old_mesh.hide_render = True
+src.hide_render = True
+lo.data.materials.clear()
+mat = bpy.data.materials.new("bake")
+mat.use_nodes = True
+lo.data.materials.append(mat)
+img = bpy.data.images.new("bake", TEX, TEX, alpha=False)
+node = mat.node_tree.nodes.new("ShaderNodeTexImage")
+node.image = img
+mat.node_tree.nodes.active = node
+
+
+def pixels(im):
+    px = numpy.empty(len(im.pixels), dtype=numpy.float32)
+    im.pixels.foreach_get(px)
+    return px.reshape(-1, 4)
+
+
+nimg = bpy.data.images.new("normals", TEX, TEX, alpha=False, float_buffer=True)
+nimg.colorspace_settings.name = "Non-Color"
+node.image = nimg
+scene.cycles.samples = 1
+select([lo])
+bpy.ops.object.bake(type="NORMAL", normal_space="OBJECT", margin=TEX // 128, use_clear=True)
+NORMALS = pixels(nimg)
+node.image = img
+for flag in ("visible_shadow", "visible_diffuse", "visible_glossy", "visible_transmission", "visible_volume_scatter"):
+    setattr(lo, flag, False)
+nx = NORMALS[:, 0] * 2 - 1
+ny = NORMALS[:, 1] * 2 - 1
+total = None
+weight = None
+kept = [hi.matrix_world.copy(), arm.matrix_world.copy()]
+for k, angle in enumerate(TURNS):
+    spin = Matrix.Rotation(math.radians(angle), 4, "Z")
+    hi.matrix_world = spin @ kept[0]
+    arm.matrix_world = spin @ kept[1]
+    bpy.context.view_layer.update()
+    scene.cycles.samples = 32 if k == 0 else 20
+    select([hi, lo], lo)
+    bpy.ops.object.bake(type="COMBINED", pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE"},
+                        margin=TEX // 128, use_clear=True, use_selected_to_active=True,
+                        cage_extrusion=OLD_H * .012, max_ray_distance=OLD_H * .05)
+    px = pixels(img)
+    c, sn = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+    w = (numpy.clip(-(sn * nx + c * ny), 0, 1) ** 2 + 1e-4) * (px[:, :3].sum(axis=1) > .003)
+    if total is None:
+        total = px.copy()
+        total[:, :3] *= w[:, None]
+        weight = w.copy()
+    else:
+        total[:, :3] += px[:, :3] * w[:, None]
+        weight += w
+hi.matrix_world, arm.matrix_world = kept
+bpy.context.view_layer.update()
+found = weight > 0
+total[found, :3] /= weight[found, None]
+inside = NORMALS[:, :3].sum(axis=1) > .05
+print("BEAST bake: %d of %d texels unreached" % (int((inside & ~found).sum()), int(inside.sum())))
+rgb = total[:, :3].reshape(TEX, TEX, 3)
+good = found.reshape(TEX, TEX).copy()
+missing = (inside & ~found).reshape(TEX, TEX)
+for _ in range(24):
+    if not missing.any():
+        break
+    acc = numpy.zeros_like(rgb)
+    cnt = numpy.zeros((TEX, TEX), dtype=numpy.float32)
+    for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)):
+        g_ = numpy.roll(numpy.roll(good, dy, 0), dx, 1)
+        acc += numpy.roll(numpy.roll(rgb, dy, 0), dx, 1) * g_[:, :, None]
+        cnt += g_
+    take = missing & (cnt > 0)
+    rgb[take] = acc[take] / cnt[take][:, None]
+    good |= take
+    missing &= ~take
+total[:, :3] = rgb.reshape(-1, 3)
+total[:, 3] = 1
+# The old look's light: the baked texels' middle light matched to the old
+# texture's (both before the game's grade).
+oimg = bpy.data.images.load(os.path.abspath(CFG["old_tex"]))
+op = pixels(oimg)[:, :3]
+lum = lambda a: a @ numpy.array([.299, .587, .114])  # noqa: E731
+o_l = float(numpy.median(lum(op[op.sum(axis=1) > .03])))
+n_l = float(numpy.median(lum(total[inside, :3])))
+gain = float(numpy.clip(o_l / max(n_l, 1e-4), .6, 1.6)) * float(CFG.get("gain", 1.0))
+total[:, :3] = numpy.clip(total[:, :3] * gain, 0, 1)
+print("BEAST gain %.3f to the old look's light" % gain)
+img.pixels.foreach_set(total.ravel())
+img.filepath_raw = os.path.join(OUT, KIND + ".png")
+img.file_format = "PNG"
+img.save()
+if "hurt" in meta_old.get("textures", []):
+    # TODO: a hurt look (the people's blood splashes); the plain one for now.
+    print("BEAST NOTE: %s has a hurt look; written as the plain look (no blood yet)" % KIND)
+    img.filepath_raw = os.path.join(OUT, KIND + "_hurt.png")
+    img.save()
+
+# ------------------------------------------------------------ export
+lo.data.materials.clear()
+bpy.data.objects.remove(old_mesh)
+bpy.data.objects.remove(src)
+scene.frame_set(0)
+select([lo, arm], arm)
+bpy.ops.export_scene.gltf(
+    filepath=os.path.join(OUT, KIND + ".glb"), export_format="GLB", use_selection=True,
+    export_materials="NONE", export_yup=True, export_animations=True, export_skins=True,
+    export_morph=False, export_force_sampling=False, export_def_bones=False,
+)
+view = bpy.data.materials.new(KIND + "_look")
+view.use_nodes = True
+vt = view.node_tree.nodes.new("ShaderNodeTexImage")
+vt.image = bpy.data.images.load(os.path.join(OUT, KIND + ".png"))
+view.node_tree.links.new(vt.outputs[0], view.node_tree.nodes["Principled BSDF"].inputs["Base Color"])
+lo.data.materials.append(view)
+hi.hide_render = True
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, KIND + ".blend"))
+lo.data.calc_loop_triangles()
+entry = dict(meta_old)
+entry["faces"] = float(len(lo.data.loop_triangles))
+entry["meshy"] = True
+meta_path = os.path.join(OUT, "actors.json")
+meta = json.load(open(meta_path)) if os.path.exists(meta_path) else {}
+meta[KIND] = entry
+json.dump(meta, open(meta_path, "w"), indent=1, sort_keys=True)
+print("BEAST %s done: %d triangles on the old %d-bone armature" % (KIND, len(lo.data.loop_triangles), len(arm.data.bones)))
