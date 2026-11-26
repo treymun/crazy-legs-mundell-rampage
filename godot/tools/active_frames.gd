@@ -9,14 +9,16 @@
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/active_frames.gd -- out=<dir> [rows=caught,rail] [off]
 ##
-## Rows (brace, crawl and get_up shot from behind, the rest from the front):
-## caught (a boot on open ground, caught), rail (a boot into the rail
-## of the sawmill's raised walkway: over it and down), steps (a boot down the
-## walkway's stairs), brace (both barrels: knocked over onto his hands), grab
-## (a reel along the walkway's rail: he holds on), writhe, crawl, get_up (a killing shot and the last of
-## him: each style made sure of), slack (a killing shot, no style), car (run
-## down by the speedway's car), car_flat (run into and left up: knocked flat),
-## drunk (the drunk coot walking). off: the active bodies off (RAGDOLLS off).
+## Rows (brace, crawl and get_up shot from behind, the rest from the
+## front): caught (a boot on open ground, caught), rail (a boot into the
+## rail of the sawmill's raised walkway: over it and down), steps (a boot
+## down the walkway's stairs), brace (both barrels: knocked over onto his
+## hands), grab (a reel along the walkway's rail: he holds on), writhe,
+## crawl, get_up (a killing shot and the last of him: each style made sure
+## of), slack (a killing shot, no style), car (run down by the speedway's
+## car), car_flat (run into and left up: knocked flat), drunk (the drunk coot
+## walking). off: the active bodies off (RAGDOLLS off). CAM=x,y,z puts the
+## camera there instead.
 ## Point APPDATA at a scratch folder.
 extends "res://tools/death_frames.gd"
 
@@ -156,8 +158,6 @@ func _row(name: String) -> void:
 				_drive(ride, name)
 			await _rows._ticks(g, 1, cam, at, top)
 			done += 1
-		if OS.get_environment("CAM") != "":
-			print("    t%d man %.2f %.2f floor %.2f alive %s dormant %s p %.2f %.2f %.2f" % [done, e.x, e.y, e.floor_z, e.alive, e.dormant, g.player.x, g.player.y, g.player.eye])
 		await _rows._snap()
 	_save15(name)
 
@@ -173,14 +173,12 @@ func _act(g: Game, e: Enemy, name: String, way: Vector2, ride: VehicleDrive.Ride
 		"grab":
 			_shot(g, e, way, "shotgun", 60.0, .6, 1.0)
 		"writhe", "crawl", "get_up", "slack":
-			DyingDoll.force_style = (
-				{
-					"writhe": DyingDoll.WRITHE,
-					"crawl": DyingDoll.CRAWL,
-					"get_up": DyingDoll.GET_UP,
-					"slack": DyingDoll.LIMP
-				}[name]
-			)
+			DyingDoll.force_style = ({
+				"writhe": DyingDoll.WRITHE,
+				"crawl": DyingDoll.CRAWL,
+				"get_up": DyingDoll.GET_UP,
+				"slack": DyingDoll.LIMP
+			}[name])
 			e.hp = 10.0
 			_shot(g, e, way, "revolver", 30.0, .6, 3.0)
 		"car", "car_flat":
@@ -213,7 +211,9 @@ func _boot(g: Game, e: Enemy, way: Vector2) -> void:
 
 
 ## A shot along `way` from `far` cells: gun `how`, `amount`, at `up` of him.
-func _shot(g: Game, e: Enemy, way: Vector2, how: String, amount: float, up: float, far: float) -> void:
+func _shot(
+	g: Game, e: Enemy, way: Vector2, how: String, amount: float, up: float, far: float
+) -> void:
 	var p := g.player
 	var keep := Vector2(p.x, p.y)
 	var from := Vector2(e.x, e.y) - way * far
@@ -277,7 +277,10 @@ func _cam_for(g: Game, at: Vector2, way: Vector2, top: float) -> Vector3:
 			for k2 in range(1, 12):
 				var q := c.lerp(mid, k2 / 12.0)
 				var hz := lerpf(z + .95, top + .6, k2 / 12.0)
-				if w.blocked(q.x, q.y, .1, hz) or PhysCore.rail_at(w, Vector3(q.x, q.y, hz), .05) != null:
+				if (
+					w.blocked(q.x, q.y, .1, hz)
+					or PhysCore.rail_at(w, Vector3(q.x, q.y, hz), .05) != null
+				):
 					clear = false
 					break
 			if not clear:

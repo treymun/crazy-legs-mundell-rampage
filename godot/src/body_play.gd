@@ -73,7 +73,13 @@ const TOP_ROOM := .16
 ## height, the nearest of those looked at round `way` (Vector3.INF none).
 ## `fine` false looks at fewer (the looks, every few frames).
 static func edge(
-	world: LevelData, at: Vector2, feet: float, tall: float, way: Vector2, reach: float, fine := true
+	world: LevelData,
+	at: Vector2,
+	feet: float,
+	tall: float,
+	way: Vector2,
+	reach: float,
+	fine := true
 ) -> Vector3:
 	if world == null or world.geo == null:
 		return Vector3.INF
@@ -175,7 +181,10 @@ static func over_rail(e: Enemy, game: GameWorld, v: Vector2, s: Array) -> bool:
 			or PhysCore.rail_at(w, Vector3(q.x, q.y, feet + .3), e.radius + .02) != null
 		):
 			continue
-		if w.blocked(q.x, q.y, e.radius, under + .3) or PhysCore.in_wall(w, Vector3(q.x, q.y, under)):
+		if (
+			w.blocked(q.x, q.y, e.radius, under + .3)
+			or PhysCore.in_wall(w, Vector3(q.x, q.y, under))
+		):
 			continue
 		# (All of him over that floor: not still on the edge he went over.)
 		var back := q - way * (e.radius + .03)

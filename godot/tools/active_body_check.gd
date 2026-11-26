@@ -89,8 +89,6 @@ static func _man(g: Game, at: Vector2, angle: float, kind := "billy") -> Enemy:
 	return e
 
 
-
-
 ## Hickston's loft by its rail (the rail along x at y 9.5, top .95 over the
 ## loft's floor at 1.55; open ground 1.55 below past it).
 const LOFT := Vector2(44.0, 9.12)
@@ -133,7 +131,7 @@ func _play(main: Node) -> void:
 	_check(
 		hard["over"] and float(hard["at"].y) > 9.6 and float(hard["z"]) < .2 and hard["down"],
 		(
-			"a man driven hard into a low rail goes over it and falls to the ground below (at y %.2f, floor %.2f)"
+			"driven hard into a low rail he goes over and falls below (y %.2f, floor %.2f)"
 			% [hard["at"].y, hard["z"]]
 		)
 	)
@@ -178,7 +176,7 @@ func _play(main: Node) -> void:
 	var rammed := _reel(g, e, 3.0)
 	_check(
 		rammed["down"] and from.distance_to(rammed["at"]) > .3,
-		"a vehicle that leaves him up knocks him off his feet (%.2f cells)" % from.distance_to(rammed["at"])
+		"a vehicle that leaves him up knocks him flat (%.2f cells)" % from.distance_to(rammed["at"])
 	)
 	# The drunk's walk: lurches, now and then down; the same twice, no dice.
 	var walks: Array = []
@@ -279,7 +277,9 @@ const SIZE := 1.51 / 1.7
 ## The model's transform for a coot standing at `at` on floor `z` facing `angle`.
 static func _xf(at: Vector2, z: float, angle: float) -> Transform3D:
 	var turn := PI * .5 - angle
-	return Transform3D(Basis(Vector3.UP, turn).scaled(Vector3(SIZE, SIZE, SIZE)), Vector3(at.x, z, at.y))
+	return Transform3D(
+		Basis(Vector3.UP, turn).scaled(Vector3(SIZE, SIZE, SIZE)), Vector3(at.x, z, at.y)
+	)
 
 
 func _pose(xf: Transform3D, model: PackedVector3Array = PackedVector3Array()) -> PackedVector3Array:
@@ -402,7 +402,7 @@ func _looks(main: Node) -> void:
 	_check(
 		head["lean"] > hips["lean"] and int(big["catches"]) >= int(chest["catches"]),
 		(
-			"higher on him it tips him further (lean %.2f against %.2f); harder, as many steps or more (%d, %d)"
+			"higher on him tips him further (%.2f against %.2f); harder, more steps (%d, %d)"
 			% [head["lean"], hips["lean"], big["catches"], chest["catches"]]
 		)
 	)
@@ -452,7 +452,10 @@ func _brace_check(main: Node) -> void:
 	var off: Dictionary = runs[1]
 	_say("brace on %s / off %s" % [on, off])
 	_check(
-		float(on["hand"]) >= 0.0 and (float(on["torso"]) < 0.0 or float(on["hand"]) < float(on["torso"])),
+		(
+			float(on["hand"]) >= 0.0
+			and (float(on["torso"]) < 0.0 or float(on["hand"]) < float(on["torso"]))
+		),
 		(
 			"knocked over, a hand reaches the floor first (%.2f s; head or shoulder %.2f s)"
 			% [on["hand"], on["torso"]]
@@ -533,10 +536,15 @@ func _stairs_check(main: Node) -> void:
 		var h := snappedf(under, .05)
 		if not heights.has(h):
 			heights.append(h)
-	_say("stairs: %d steps, tread heights %s, went %.2f down" % [live.step_log.size(), heights, start - e.floor_z])
+	_say(
+		(
+			"stairs: %d steps, tread heights %s, went %.2f down"
+			% [live.step_log.size(), heights, start - e.floor_z]
+		)
+	)
 	_check(
 		heights.size() >= 2 and on_floor and start - e.floor_z > .2,
-		"carried down the stairs his feet step onto the treads (%d heights, each on its floor)" % heights.size()
+		"down the stairs his feet step onto the treads (%d heights)" % heights.size()
 	)
 
 
@@ -572,7 +580,7 @@ func _rail_check(main: Node) -> void:
 	_check(
 		st["held_back"] and int(st["through"]) == 0 and int(st["over"]) >= 10,
 		(
-			"carried over the rail his legs catch on it and go over its top, none through (%d over, %d through)"
+			"over the rail his legs catch and go over its top, none through (%d over, %d through)"
 			% [st["over"], st["through"]]
 		)
 	)
@@ -655,7 +663,10 @@ func _same_play(main: Node) -> void:
 				each.call(live, t)
 		trace.append(g.rng.state)
 		traces.append(trace)
-	_check(traces[0] == traces[1], "play is the same to the bit with the active bodies stepped beside it")
+	_check(
+		traces[0] == traces[1],
+		"play is the same to the bit with the active bodies stepped beside it"
+	)
 
 
 # ------------------------------------------------------------------ dying
@@ -735,7 +746,12 @@ func _dying_check(main: Node) -> void:
 				aim = minf(aim, (hand - sh).angle_to(dying.brace_at - sh))
 	first_hand = dying.hand_down_at
 	first_torso = dying.torso_down_at
-	_say("dying tones %s, let go (dying, plain) %s, slack over %.2f s" % [tones, gone, dying.slack_for])
+	_say(
+		(
+			"dying tones %s, let go (dying, plain) %s, slack over %.2f s"
+			% [tones, gone, dying.slack_for]
+		)
+	)
 	_check(
 		float(tones[0]) > .9 and float(tones[1]) > .2 and float(tones[3]) < .02,
 		"a dying man goes slack over time (tone %.2f, %.2f, %.2f, %.2f)" % tones
@@ -750,7 +766,10 @@ func _dying_check(main: Node) -> void:
 	var g0: Array = gone[0]
 	_check(
 		float(g0[0]) < float(g0[1]) * .8,
-		"at first his arms hold the pose he was hit in (let go %.2f against a plain ragdoll's %.2f)" % g0
+		(
+			"at first his arms hold the pose he was hit in (let go %.2f against a plain ragdoll's %.2f)"
+			% g0
+		)
 	)
 	_say("dying fall: hand %.2f torso %.2f aim %.2f" % [first_hand, first_torso, aim])
 	_check(
@@ -763,7 +782,9 @@ func _dying_check(main: Node) -> void:
 	# On the ground: writhing works the muscles for seconds, then nothing;
 	# crawling drags him along; the muscles off, nothing.
 	var results: Array = []
-	for row: Array in [[DyingDoll.WRITHE, true], [DyingDoll.CRAWL, true], [DyingDoll.WRITHE, false]]:
+	for row: Array in [
+		[DyingDoll.WRITHE, true], [DyingDoll.CRAWL, true], [DyingDoll.WRITHE, false]
+	]:
 		var style: int = row[0]
 		var on: bool = row[1]
 		var gg := _game(main)
@@ -792,13 +813,18 @@ func _dying_check(main: Node) -> void:
 		if lay_mid != Vector3.INF:
 			went = Vector2(doll.middle().x - lay_mid.x, doll.middle().y - lay_mid.y).length()
 		results.append([busy, late, went, doll.lay_at])
-		_say("style %d muscles %s: work %.3f then %.4f, went %.2f, lay at %.2f" % (row + results[-1]))
+		_say(
+			"style %d muscles %s: work %.3f then %.4f, went %.2f, lay at %.2f" % (row + results[-1])
+		)
 	var writhe: Array = results[0]
 	var crawl: Array = results[1]
 	var off: Array = results[2]
 	_check(
 		float(writhe[0]) > .05 and float(writhe[1]) < float(writhe[0]) * .02,
-		"on the ground he writhes (muscle work %.3f) and then lies still (%.4f)" % [writhe[0], writhe[1]]
+		(
+			"on the ground he writhes (muscle work %.3f) and then lies still (%.4f)"
+			% [writhe[0], writhe[1]]
+		)
 	)
 	_check(
 		float(crawl[2]) > .1 and float(crawl[2]) > float(writhe[2]),

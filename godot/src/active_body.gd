@@ -239,7 +239,9 @@ func live_step() -> void:
 		# floor (the grip lost), the share `skid` of play's move.
 		for f in 2:
 			if planted[f] != Vector3.INF:
-				planted[f] = _floored(planted[f] + Vector3(play_v.x, play_v.y, 0.0) * STEP * skid, FEET[f])
+				planted[f] = _floored(
+					planted[f] + Vector3(play_v.x, play_v.y, 0.0) * STEP * skid, FEET[f]
+				)
 	super.live_step()
 	if world != null and not _open_all:
 		for i in R.POINTS:
@@ -379,7 +381,13 @@ func _get_up() -> void:
 func _arm_len(arm: int) -> float:
 	var sh := R.SH_L if arm == 0 else R.SH_R
 	var el := sh + 3 if arm == 0 else sh + 4
-	return (rig.points[sh].distance_to(rig.points[el]) + rig.points[el].distance_to(rig.points[el + 1])) * size
+	return (
+		(
+			rig.points[sh].distance_to(rig.points[el])
+			+ rig.points[el].distance_to(rig.points[el + 1])
+		)
+		* size
+	)
 
 
 ## The arm `arm` (0 left, 1 right) reaching along the world way `dir` (its
@@ -486,7 +494,9 @@ func _end_brace() -> void:
 
 ## Reeling fast: the arms round the way he goes.
 func _windmill(dt: float) -> void:
-	var fast := maxf(Vector2(play_v.x, play_v.y).length(), Vector2(mid_speed.x, mid_speed.y).length())
+	var fast := maxf(
+		Vector2(play_v.x, play_v.y).length(), Vector2(mid_speed.x, mid_speed.y).length()
+	)
 	milling = reeling and down == 0 and fast > MILL_FROM * size
 	if not milling:
 		return

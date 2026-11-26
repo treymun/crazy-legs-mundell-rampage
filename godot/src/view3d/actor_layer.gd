@@ -260,12 +260,16 @@ func _live_ones(sprites: Array, clock: float, eye: Vector3) -> Dictionary:
 			if view != null:
 				dying = view.doll as DyingDoll
 			var fresh := e.died_at >= 0.0 and clock - e.died_at < ActorView.LIVE_LATE
-			if (fresh and (view == null or view.doll == null)) or (dying != null and dying.active()):
+			if (
+				(fresh and (view == null or view.doll == null))
+				or (dying != null and dying.active())
+			):
 				wants.append([_far2(s, eye), id])
 			continue
 		var running := view != null and view.live != null
 		var drunk := (
-			ActorView.drunk_of(e) > 0.0 and _far2(s, eye) < ActiveBody.DRUNK_REACH * ActiveBody.DRUNK_REACH
+			ActorView.drunk_of(e) > 0.0
+			and _far2(s, eye) < ActiveBody.DRUNK_REACH * ActiveBody.DRUNK_REACH
 		)
 		if running or drunk or clock - e.struck_at < ActorView.LIVE_LATE or Stagger.reeling(e):
 			var d := (

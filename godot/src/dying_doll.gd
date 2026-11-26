@@ -271,7 +271,9 @@ func _mark_down() -> void:
 	# whatever is under it, a gun, an arm.)
 	var fr := LiveBody._torso_frame(pos)
 	var mid := middle()
-	var sinking := (mid.z - (old[R.HIP_L].z + old[R.HIP_R].z + old[R.SH_L].z + old[R.SH_R].z) * .25) / STEP
+	var sinking := (
+		(mid.z - (old[R.HIP_L].z + old[R.HIP_R].z + old[R.SH_L].z + old[R.SH_R].z) * .25) / STEP
+	)
 	var flat := absf(fr.y.z) < .55 and absf(sinking) < .25 and age > .25
 	if lay_at < 0.0 and (torso >= 3 or flat):
 		lay_at = age
@@ -396,7 +398,10 @@ func _get_up(fr: Basis, t: float) -> void:
 		var sh := R.SH_L if arm == 0 else R.SH_R
 		var hand := R.HAND_L if arm == 0 else R.HAND_R
 		var arm_len := (
-			(rig.points[sh].distance_to(rig.points[hand - 1]) + rig.points[hand - 1].distance_to(rig.points[hand]))
+			(
+				rig.points[sh].distance_to(rig.points[hand - 1])
+				+ rig.points[hand - 1].distance_to(rig.points[hand])
+			)
 			* size
 		)
 		if phase < .5:
@@ -426,7 +431,10 @@ func _crawl(fr: Basis, t: float) -> void:
 	var other := R.HAND_R if arm == 0 else R.HAND_L
 	grips.erase(other)
 	var arm_len := (
-		(rig.points[sh].distance_to(rig.points[hand - 1]) + rig.points[hand - 1].distance_to(rig.points[hand]))
+		(
+			rig.points[sh].distance_to(rig.points[hand - 1])
+			+ rig.points[hand - 1].distance_to(rig.points[hand])
+		)
 		* size
 	)
 	if u < .45:
