@@ -2883,6 +2883,25 @@ def hand_dilate(px, reach=10):
 
 
 total = hand_dilate(total)
+
+
+def gloves(px):
+    """Gloved hands (kind config "gloves": [r, g, b], e.g. yellow rubber):
+    the hands and their wrist sleeve take the glove's colour at their own
+    light, a little contrast added for a rubber sheen."""
+    if not CFG.get("gloves") or "HANDMASK" not in globals() or not HANDMASK.any():
+        return px
+    px = px.copy()
+    g = numpy.array(CFG["gloves"], dtype=float) / 255.0
+    lum = px[:, :3] @ numpy.array([.299, .587, .114])
+    lm = float(numpy.median(lum[HANDMASK]))
+    k = numpy.clip(lum / max(lm, 1e-4), .55, 1.5) ** 1.3
+    px[HANDMASK, :3] = numpy.clip(g[None, :] * k[HANDMASK, None], 0, 1)
+    print("MESHY gloves: %d hand texels to %s" % (int(HANDMASK.sum()), CFG["gloves"]))
+    return px
+
+
+total = gloves(total)
 image.pixels.foreach_set(total.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + ".png")
 image.file_format = "PNG"

@@ -39,5 +39,10 @@
    "contrast": 0.7,
    "not_skin": false
   }
+ ],
+ "gloves": [
+  206,
+  160,
+  40
  ]
 }
