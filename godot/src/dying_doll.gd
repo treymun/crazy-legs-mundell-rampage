@@ -48,6 +48,8 @@ static var SLACK_END: float = Effects.RAGDOLL.get("dying_slack_end", 1.0)
 static var CRAWL_CYCLE: float = Effects.RAGDOLL.get("dying_crawl", .9)
 static var HOOD: Array = Effects.RAGDOLL.get("dying_hood", [.36, 1.1, .75, .45])
 static var MUSCLE_MOST: float = Effects.RAGDOLL.get("dying_muscle_most", .02)
+## Seconds the arms take the fall once a hand is down before they give.
+static var BRACE_GIVE: float = Effects.RAGDOLL.get("dying_brace_give", .35)
 
 var style := LIMP
 var slack_for := 1.5
@@ -261,13 +263,25 @@ func _mark_down() -> void:
 		torso += _touch[i]
 	if torso_down_at < 0.0 and (_touch[R.HEAD] or _touch[R.SH_L] or _touch[R.SH_R]):
 		torso_down_at = age
-	if lay_at < 0.0 and torso >= 3:
+	# (Lying: the torso down on the floor, or flat and come to rest on
+	# whatever is under it, a gun, an arm.)
+	var fr := LiveBody._torso_frame(pos)
+	var mid := middle()
+	var sinking := (mid.z - (old[R.HIP_L].z + old[R.HIP_R].z + old[R.SH_L].z + old[R.SH_R].z) * .25) / STEP
+	var flat := absf(fr.y.z) < .55 and absf(sinking) < .25 and age > .25
+	if lay_at < 0.0 and (torso >= 3 or flat):
 		lay_at = age
 		grips.clear()
 
 
 ## Going down: the arms toward where the chest will land, the head off it.
 func _brace(fr: Basis) -> void:
+	# (Once a hand is down the fall lands on it and the arms give.)
+	var give := 1.0
+	if hand_down_at >= 0.0:
+		give = 1.0 - (age - hand_down_at) / BRACE_GIVE
+		if give <= 0.0:
+			return
 	var up := fr.y
 	var sh := (pos[R.SH_L] + pos[R.SH_R]) * .5
 	var fall := (sh - old[R.SH_L].lerp(old[R.SH_R], .5)) / STEP
@@ -282,14 +296,14 @@ func _brace(fr: Basis) -> void:
 	lean = lean.normalized()
 	var floor_at := minf(feet.z, pos[R.HIP_L].z) - radius[R.FOOT_L]
 	var tall := maxf(.2, sh.z - floor_at)
-	var at := feet + lean * tall * .85
+	var at := Vector3(sh.x, sh.y, floor_at) + lean * tall * .45
 	brace_at = Vector3(at.x, at.y, floor_at)
 	for arm in 2:
 		var side := fr.x * radius[R.SH_L] * (-1.0 if arm == 0 else 1.0)
 		_hand_to(fr, arm, brace_at + side, .97)
 		var hand := R.HAND_L if arm == 0 else R.HAND_R
-		_k[hand] *= 1.6
-		_k[hand - 1] *= 1.6
+		_k[hand] *= 1.6 * give
+		_k[hand - 1] *= 1.6 * give
 	# The head off the fall.
 	var away := fr.transposed() * -lean
 	var h := held[R.HEAD]
@@ -347,7 +361,7 @@ func _writhe(fr: Basis, t: float) -> void:
 	_hand_to(fr, other, sh + sweep.normalized() * .5 * size, .9)
 	_want[R.HEAD] = Basis(Vector3(1.0, 0.0, 0.0), .35 + .25 * sin(t * 1.7)) * _rest[R.HEAD]
 	_k[R.HEAD] = TONE * env
-	_roll(fr, .010 * sin(t * 2.6))
+	_roll(fr, .005 * sin(t * 2.6))
 
 
 ## The torso turned about its own length by `by` (radians) on the floor:

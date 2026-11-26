@@ -51,6 +51,10 @@ static var DRUNK_NOISE: float = Effects.RAGDOLL.get("active_drunk_noise", .1)
 static var DRUNK_SWAY: float = Effects.RAGDOLL.get("active_drunk_sway", .8)
 static var DRUNK_UPRIGHT: float = Effects.RAGDOLL.get("active_drunk_upright", .4)
 static var SHOVED_FROM: float = Effects.RAGDOLL.get("active_shoved_from", 1.5)
+## A move of play's body bigger than JUMP in a frame (map units) is carried
+## over JUMP_FOR seconds.
+const JUMP := .3
+const JUMP_FOR := .3
 ## A drunk this near the eye (cells) walks as a live body (ActorLayer3D).
 static var DRUNK_REACH: float = Effects.RAGDOLL.get("active_drunk_reach", 9.0)
 
@@ -63,6 +67,8 @@ var _open_all := true
 var play_v := Vector3.ZERO
 ## Stunned by play (a boot, a slam): fast, he is shoved.
 var stunned := false
+## Off: no behaviour sets anything (LiveBody's muscles alone; the checks).
+var acts := true
 ## The drunk's share (0 sober, 1 the drunk coot) and his next look and sway.
 var drunk := 0.0
 var _look_in := 0.0
@@ -105,6 +111,17 @@ func aim(points: PackedVector3Array, at: Vector3, frames: int) -> void:
 	super.aim(points, at, frames)
 	body = at
 	if was != Vector3.INF:
+		var jump := Vector2(at.x - was.x, at.y - was.y).length()
+		if jump > JUMP and jump <= 1.5:
+			# Play put him somewhere at once (over a rail): the torso is
+			# carried there over JUMP_FOR steps, so the rail can turn him over.
+			_carry_left = maxi(_carry_left, roundi(JUMP_FOR / STEP))
+			_carry_step = Vector3(at.x - was.x, at.y - was.y, 0.0) / float(_carry_left)
+			# (His feet go with him as they will, no grip.)
+			planted[0] = Vector3.INF
+			planted[1] = Vector3.INF
+			swing_foot = -1
+	if was != Vector3.INF:
 		var moved := at - was
 		moved.z = 0.0
 		var v := moved / (maxf(1.0, float(frames)) * STEP)
@@ -137,15 +154,27 @@ func done() -> bool:
 func live_step() -> void:
 	_ask_floors()
 	super.live_step()
-	if world == null or _open_all:
-		return
-	for i in R.POINTS:
-		if pins.has(i):
-			continue
-		_walls(world, i)
-		var low := floors[i] + (_foot_up(i) if FEET.has(i) else radius[i])
-		if pos[i].z < low:
-			pos[i] = Vector3(pos[i].x, pos[i].y, low)
+	if world != null and not _open_all:
+		for i in R.POINTS:
+			if pins.has(i):
+				continue
+			# (A ball that went through a thin rail within the step is put
+			# back to where it met it: the walls then hold it on its side or
+			# lift it over the top.)
+			if not _solid(world, pos[i], radius[i]):
+				for k: float in [.25, .5, .75]:
+					var on := old[i].lerp(pos[i], k)
+					if _solid(world, on, radius[i]):
+						pos[i] = on
+						break
+			_walls(world, i)
+			var low := floors[i] + (_foot_up(i) if FEET.has(i) else radius[i])
+			if pos[i].z < low:
+				pos[i] = Vector3(pos[i].x, pos[i].y, low)
+	# Held balls end the step where they are held.
+	for i: int in pins:
+		var at: Vector3 = pins[i]
+		pos[i] = at
 
 
 func _ask_floors() -> void:
@@ -206,7 +235,7 @@ func _floored(p: Vector3, i: int) -> Vector3:
 func _behave(dt: float) -> void:
 	tone = PackedFloat32Array([1.0, 1.0, 1.0, 1.0])
 	upright = 1.0
-	if not muscles or target.size() < R.POINTS:
+	if not muscles or not acts or target.size() < R.POINTS:
 		return
 	if drunk > 0.0:
 		_drunk(dt)
@@ -262,8 +291,10 @@ func _brace(_dt: float) -> void:
 	if lean.length() < 1e-4:
 		lean = _ahead()
 	lean = lean.normalized()
+	# (Where the shoulders come down as he goes over: ahead of them by
+	# about half their height.)
 	var tall := maxf(.3, sh.z - floor_z)
-	var at := feet + lean * tall * .85
+	var at := Vector3(sh.x, sh.y, floor_z) + lean * tall * .45
 	var under := floor_z
 	if world != null:
 		under = Tumble.floor_at(world, at.x, at.y, sh.z, .05)
