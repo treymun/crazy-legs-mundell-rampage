@@ -373,3 +373,5 @@ check_all's parallel load; cpu_check run alone right after: CPU CHECK OK
 (1.14 yardsticks). actor_check, boss_check, boss_end_check,
 boss_rematch_check, arena_wreck_check, live_body_check, physics_check all OK
 after every boss of this session (run alone).
+
+Last check_all quick (fifth session, after 03h and the maw fixes, scratch profile): ALL CHECKS OK (54 checks listed ok, 153 s).
