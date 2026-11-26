@@ -250,7 +250,8 @@ func live_step() -> void:
 			# (A ball that went through a thin rail within the step is put
 			# back to where it met it: the walls then hold it on its side or
 			# lift it over the top.)
-			if not _solid(world, pos[i], radius[i]):
+			var r := radius[i]
+			if pos[i].distance_squared_to(old[i]) > r * r * .25 and not _solid(world, pos[i], r):
 				for k: float in [.25, .5, .75]:
 					var on := old[i].lerp(pos[i], k)
 					if _solid(world, on, radius[i]):
@@ -285,13 +286,20 @@ func _ask_floors() -> void:
 	_open_all = PhysCore.plain_rect(
 		world, int(lo.x - .3), int(lo.y - .3), int(hi.x + .3), int(hi.y + .3)
 	)
+	_fl.size_to(R.POINTS)
 	for i in R.POINTS:
 		var p := pos[i]
 		if _open_all:
 			floors[i] = world.ground[int(p.y) * world.width + int(p.x)]
 		else:
 			var r := radius[i]
-			floors[i] = Tumble.floor_at(world, p.x, p.y, maxf(p.z, old[i].z) - r + .03, r * .6)
+			var z := maxf(p.z, old[i].z) - r + .03
+			# (A ball that has hardly moved keeps the floor it was given.)
+			if _fl.held(i, p.x, p.y, z):
+				floors[i] = _fl.floor[i]
+				continue
+			floors[i] = Tumble.floor_at(world, p.x, p.y, z, r * .6)
+			_fl.keep(i, p.x, p.y, z, floors[i])
 
 
 ## Every ball on the floor under it (LiveBody's, each its own floor).
