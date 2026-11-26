@@ -3278,7 +3278,9 @@ have saved nothing.
 a **trail marker**, a whole save that `src/chapter_marks.gd` writes to
 `marker-<chapter>[-replay|-party].json` beside the boss checkpoint (put
 together on the tick, about 2 ms of a chapter on the desktop, turned into
-text and written on a worker thread; whatever reads it waits for it):
+text and written on a worker thread; whatever reads it waits for it, and
+so does the program as it closes, `ChapterMarks.settle()` in main's
+`_exit_tree`: a write never waited for crashed it on quit):
 
 - on an objective (a station done, a key or task item taken, a vehicle run
   over, a boss down) and on first standing in a district, once `gap_least`

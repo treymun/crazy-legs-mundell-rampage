@@ -17,7 +17,10 @@
 ##     with none, a replay run's file is its own;
 ##   - BOSSES ONLY takes none and the death screen is as before;
 ##   - the pin's way after a load: the game's own key ring, and walked again
-##     once a door has stopped swinging.
+##     once a door has stopped swinging;
+##   - the program closing (main leaving the tree) waits for a marker still
+##     being written on a worker (a write never waited for crashed a window
+##     --play-bench on quit, pass 15).
 ##
 ##   godot --headless --path godot --script res://tools/marker_check.gd
 ##   godot ... -- stall     (also the 1.11 run: HARD, REGULAR bot, seed 1,
@@ -69,6 +72,7 @@ func _run() -> void:
 	_route()
 	if OS.get_cmdline_user_args().has("stall"):
 		_stall()
+	_exit_waits()
 	ChapterMarks.clear_all()
 	tally.stop()
 	check(
@@ -80,7 +84,8 @@ func _run() -> void:
 	)
 	print("")
 	print("MARKER CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
-	main.queue_free()
+	# (Out of the tree already: _exit_waits.)
+	main.free()
 	await process_frame
 	quit(1 if not failures.is_empty() else 0)
 
@@ -755,6 +760,16 @@ func _route() -> void:
 
 ## 1.11 itself: HARD, the REGULAR bot, seed 1 dies at Jerry, RETRY THE FIGHT,
 ## and now walks on to Bessie (it stood 880 s by the rodeo grandstand).
+## A marker's write left going on a worker as the program closes: main's
+## _exit_tree waits for it (ChapterMarks.settle). Takes main out of the tree.
+func _exit_waits() -> void:
+	var g := _start()
+	ChapterMarks.write_soon(ChapterMarks.MARKER, g)
+	check(ChapterMarks._task >= 0, "a marker's write goes on a worker")
+	root.remove_child(main)
+	check(ChapterMarks._task == -1, "the program closing waits for a marker's write")
+
+
 func _stall() -> void:
 	print("THE 1.11 RUN (HARD, REGULAR, seed 1)")
 	for key: String in SessionStore.defaults():
