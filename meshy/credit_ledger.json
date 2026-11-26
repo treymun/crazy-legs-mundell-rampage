@@ -709,6 +709,116 @@
    "time": "2026-11-26 12:56:38",
    "after": 1943,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21953-ba2e-7347-9dbe-42b1531d4433",
+   "before": 1943,
+   "cost": 9,
+   "body": "maw_concept.json",
+   "time": "2026-11-26 13:27:30",
+   "after": 1934,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21955-282e-70d4-ad88-075959457dba",
+   "before": 1934,
+   "cost": 9,
+   "body": "maw_concept.json",
+   "time": "2026-11-26 13:29:03",
+   "after": 1925,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21956-8afb-7606-a360-945cffa95aba",
+   "before": 1925,
+   "cost": 30,
+   "body": "maw_model.json",
+   "time": "2026-11-26 13:30:38",
+   "after": 1895,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21958-182b-752a-9e71-56c779c93da6",
+   "before": 1895,
+   "cost": 5,
+   "body": "maw_rig.json",
+   "time": "2026-11-26 13:32:19",
+   "after": 1890,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_bare_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21958-d273-7592-8ad7-61c5876a83f8",
+   "before": 1890,
+   "cost": 9,
+   "body": "maw_bare_concept.json",
+   "time": "2026-11-26 13:33:04",
+   "after": 1881,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_bare_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21959-8128-7370-8df5-640b61f34f55",
+   "before": 1881,
+   "cost": 9,
+   "body": "maw_bare_concept.json",
+   "time": "2026-11-26 13:33:49",
+   "after": 1872,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_bare_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2195a-3219-7769-820a-0c5332a16624",
+   "before": 1872,
+   "cost": 9,
+   "body": "maw_bare_concept.json",
+   "time": "2026-11-26 13:34:34",
+   "after": 1863,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_bare_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2195a-e26d-76d9-9f37-5089c6e9d336",
+   "before": 1863,
+   "cost": 9,
+   "body": "maw_bare_concept.json",
+   "time": "2026-11-26 13:35:19",
+   "after": 1854,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_bare_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a2195b-8f37-7551-aba0-dc27762b372f",
+   "before": 1854,
+   "cost": 30,
+   "body": "maw_bare_model.json",
+   "time": "2026-11-26 13:36:06",
+   "after": 1824,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "maw_bare_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a2195c-b6b0-7095-ac3a-dc2faa0d9410",
+   "before": 1824,
+   "cost": 5,
+   "body": "maw_bare_rig.json",
+   "time": "2026-11-26 13:37:21",
+   "after": 1819,
+   "status": "SUCCEEDED"
   }
  ]
 }

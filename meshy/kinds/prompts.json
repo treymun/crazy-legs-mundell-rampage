@@ -110,5 +110,25 @@
   "face": "a smug, greedy, red-cheeked grin under the moustache, one eye squinting through the monocle, chin up like he owns the county",
   "texture": "copper baron, black top hat with copper pipe, gold monocle, red nose, white mutton chops and moustache, hammered copper boiler body with brass gauges and black vent grille, copper shoulder domes, charcoal sleeves and trousers, copper bracers, grey boots with white spats, copper smokestacks and coil on his back, empty hands",
   "height": 1.9
+ },
+ "maw": {
+  "she": true,
+  "who": "giant alien matriarch, the Alien Sheriff's mother, a towering grey alien housewife who runs the mothership like a trailer-park kitchen",
+  "design": "a big smooth grey-green alien head shaped like a dome, two huge glossy black bug eyes with glowing red irises, bright red lipstick on a small mouth, exactly TWO thin straight grey antennae standing up from the top of her head, one on the left and one on the right, symmetrical like a V, each ending in a round glowing green ball, a row of pink plastic hair rollers and silver tin curlers set in a ring on the top of her bald dome under a brown hairnet, the sides of her smooth grey head and her face bare, pink cat-eye glasses with little rhinestones hanging on a beaded chain under her chin, a pear-shaped body with wide hips in a knee-length quilted pink and dusty-rose plaid housecoat with big puffed shoulders, a ruffled cream collar, ruffled cream cuffs at the elbows, two front pockets and a white hanky poking out of the right pocket, thin bare grey-green alien forearms and long grey four-fingered hands, thin grey legs below the hem, and fluffy pink slippers with big pink pompoms",
+  "face": "a scolding, put-upon mother's glare, lips pursed, one antenna bent, the look of a mom about to swat somebody with a rolling pin",
+  "texture": "giant grey-green alien mother, black bug eyes with red irises, red lipstick, antennae with green glowing tips, pink and silver hair curlers under a brown hairnet, pink cat-eye glasses on a chain, pink plaid quilted housecoat with cream ruffled collar and cuffs, grey-green arms and legs, fluffy pink slippers with pompoms, empty hands",
+  "height": 1.9
+ },
+ "maw_bare": {
+  "she": true,
+  "who": "giant alien matriarch, the Alien Sheriff's mother, a towering grey alien whose burning housecoat has fallen away to show the battle girdle she wore under it",
+  "design": "she MUST have her two antennae: exactly two thin grey antennae, each about half as tall as her head, standing up out of the top of her dome in a V, each tipped with a round glowing red ball; a big smooth grey-green alien head shaped like a dome with a glowing red crack across the top, two huge glossy black bug eyes with glowing red irises, bright red lipstick on a small mouth, exactly TWO thin straight grey antennae standing up from the top of her head, one on the left and one on the right, symmetrical like a V, each ending in a round glowing red ball, no hair rollers and no glasses, a big round plump pear-shaped grey-green alien body, as wide and round as her housecoat was, a heavy round belly and very wide hips, her whole torso from the armpits down to the bloomers armoured by FOUR wide riveted dull tin hoops stacked close one above the other like a barrel's staves and hoops, the chest completely covered by a tin breastplate band, only narrow grey gaps between the hoops, a ring of eight glowing green power cells set upright round the girdle at the waist, plain dark brown bloomers snug under the round belly, round tin shoulder caps, thin bare grey-green alien arms with long grey four-fingered hands, thin grey legs, and fluffy pink slippers with big pink pompoms",
+  "face": "furious, eyes blazing red, lips pulled back, the look of a mother who has completely run out of patience",
+  "texture": "giant grey-green alien mother, glowing red crack on her dome, black bug eyes with red irises, red lipstick, antennae with red glowing tips, riveted dull tin hoop girdle with glowing green power cells round the waist, dark brown bloomers, tin shoulder caps, grey-green arms and legs, fluffy pink slippers with pompoms, empty hands",
+  "height": 1.9,
+  "extra_refs": [
+   "meshy-work/meshy_out/maw_concept/image_0.png"
+  ],
+  "extra_note": " The third reference image is this same character painted before in her housecoat: keep her head shape, face, bug eyes, lips, antennae, arms, hands, legs and slippers exactly as there, but WITHOUT the housecoat, the curlers, the hairnet and the glasses: her bald grey dome bare, and the riveted tin hoop girdle with glowing green cells and the dark brown bloomers described."
  }
 }

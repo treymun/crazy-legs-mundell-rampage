@@ -2780,6 +2780,22 @@ for m in lo.data.materials:
     m.node_tree.nodes.active = node
 
 
+def skin_texels(rgb):
+    """Kind config "skin_texels" {hue, sat, val} (degrees, shares): the
+    texels of a skin that is not a person's (Maw's grey-green), by colour
+    alone - the people's skin tests want red over green over blue."""
+    st = CFG["skin_texels"]
+    mx, mn = rgb.max(axis=1), rgb.min(axis=1)
+    d = numpy.maximum(mx - mn, 1e-6)
+    sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+    r, g, b = rgb[:, 0], rgb[:, 1], rgb[:, 2]
+    hue = numpy.where(mx == r, (60 * (g - b) / d) % 360, numpy.where(mx == g, 60 * (b - r) / d + 120, 60 * (r - g) / d + 240))
+    h0, h1 = st.get("hue", [60, 140])
+    s0, s1 = st.get("sat", [.06, .45])
+    v0, v1 = st.get("val", [.15, .95])
+    return (hue >= h0) & (hue <= h1) & (sat >= s0) & (sat <= s1) & (mx >= v0) & (mx <= v1)
+
+
 def bake_op(**kw):
     sc = bpy.context.scene
     try:
@@ -3025,6 +3041,8 @@ if HANDS:
         _d = numpy.maximum(_mx - _mn, 1e-6)
         _hue = (60 * ((_rgb[:, 1] - _rgb[:, 2]) / _d)) % 360
         _skinlike &= (_hue >= float(CFG["hand_hue"][0])) & (_hue <= float(CFG["hand_hue"][1]))
+    if CFG.get("skin_texels"):
+        _skinlike = ~HANDMASK & skin_texels(_rgb)
     if _skinlike.sum() > 50 and HANDMASK.any():
         _want = numpy.median(_rgb[_skinlike], axis=0)
         _have = numpy.median(htot[HANDMASK], axis=0)
@@ -3271,6 +3289,9 @@ def hand_match(px):
     # (Sleeves down to the wrist: the "forearm" is cloth, not skin; then the
     # face's skin is the hands' match.)
     head_sk = SKIN_DONE & HEADZONE & (sat > .2)
+    if CFG.get("skin_texels"):
+        other = ~hm & skin_texels(rgb)
+        head_sk = other[:0]
     if head_sk.sum() > 50 and other.sum() > 50:
         def _hue(c):
             import colorsys

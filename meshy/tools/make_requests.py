@@ -26,6 +26,10 @@ if os.path.exists(cel):
     bg.paste(im, ((bg.size[0] - im.size[0]) // 2, (bg.size[1] - im.size[1]) // 2), im)
     bg.save(os.path.join(ref_dir, kind + "_cel.png"))
     refs.append("@file:" + os.path.join(ref_dir, kind + "_cel.png"))
+# More references (another of the kind's concepts, for one face across
+# two models: Maw and Maw bare), named in the prompt by "extra_note".
+for extra in P.get("extra_refs", []):
+    refs.append("@file:" + os.path.join(SP, extra))
 he = "her" if P.get("she") else "his"
 concept = {
     "ai_model": "nano-banana-pro",
@@ -39,7 +43,7 @@ concept = {
         "holding nothing: no weapon, no gun, no tool, no props in the hands. Both feet planted shoulder-width apart. "
         "Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole figure in frame "
         "with space around it, sharp focus, one single subject, no text, no logo, no frame."
-    ) % (P["who"], he, P["design"], "her" if P.get("she") else "him", P["face"]),
+    ) % (P["who"], he, P["design"], "her" if P.get("she") else "him", P["face"]) + P.get("extra_note", ""),
     "reference_image_urls": refs,
     "aspect_ratio": "3:4",
 }
