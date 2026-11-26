@@ -523,6 +523,12 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, sk
             sat = (mx - mn) / numpy.maximum(mx, 1e-4)
             r_, g_, b_ = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
             blue = (b_ >= r_) & (b_ >= g_ * .95) & (sat > .12)
+            if rule.get("rim_hue"):
+                # (a gold monocle's rim: by hue, not blue)
+                _d = numpy.maximum(mx - mn, 1e-6)
+                _h = numpy.where(mx == r_, (60 * ((g_ - b_) / _d)) % 360,
+                                 numpy.where(mx == g_, 60 * ((b_ - r_) / _d) + 120, 60 * ((r_ - g_) / _d) + 240))
+                blue = (_h >= float(rule["rim_hue"][0])) & (_h <= float(rule["rim_hue"][1])) & (sat > .3)
             dark = mx < float(rule.get("rim_dark", .3))
             add = near & (blue | dark)
             m = m | add

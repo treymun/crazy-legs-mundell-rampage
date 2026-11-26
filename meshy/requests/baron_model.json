@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:\\Users\\treym\\AppData\\Local\\Temp\\claude\\1dc8348830e70b38\\f2338a2e-3874-4eaf-9e39-f1352f903b29\\scratchpad\\meshy-work\\meshy_out\\baron_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "copper baron, black top hat with copper pipe, gold monocle, red nose, white mutton chops and moustache, hammered copper boiler body with brass gauges and black vent grille, copper shoulder domes, charcoal sleeves and trousers, copper bracers, grey boots with white spats, copper smokestacks and coil on his back, empty hands"
+}

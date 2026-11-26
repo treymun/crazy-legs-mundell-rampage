@@ -103,5 +103,12 @@
   "face": "a furious scowl under the hard hat, teeth bared in the beard, thick ginger eyebrows knitted, the look of a man who fires people by throwing them in the chipper",
   "texture": "sawmill foreman, yellow hard hat with headlamp, ginger beard, red nose, red buffalo plaid shirt, bare forearms, orange quilted safety vest with silver reflective stripes, brown tool belt with hammer, tan work trousers with knee patches, brown boots, black saw rig with blades and red axe on his back, empty hands",
   "height": 1.85
+ },
+ "baron": {
+  "who": "pompous moonshine tycoon who has turned himself into a walking copper still, a portly old robber baron in steam-powered boiler armour",
+  "design": "a tall black top hat with a short copper pipe and cork sticking out of its crown, a gold monocle on a chain over his right eye, a big round red nose, huge bushy white mutton-chop sideburns joined to a white walrus moustache, his round body encased in a riveted hammered-copper boiler shell like a giant pot belly with two round brass pressure gauges on the chest, a black vent grille with yellow slats on the belly, little teal valve wheels and brass rivet bands round it, big round copper shoulder domes, dark charcoal sleeves with copper bracers bound in brass wire, dark charcoal trousers, grey boots with white spats, bare ruddy hands, and on his back two short copper smokestacks rising behind his shoulders and a coiled copper still worm pipe",
+  "face": "a smug, greedy, red-cheeked grin under the moustache, one eye squinting through the monocle, chin up like he owns the county",
+  "texture": "copper baron, black top hat with copper pipe, gold monocle, red nose, white mutton chops and moustache, hammered copper boiler body with brass gauges and black vent grille, copper shoulder domes, charcoal sleeves and trousers, copper bracers, grey boots with white spats, copper smokestacks and coil on his back, empty hands",
+  "height": 1.9
  }
 }

@@ -1,0 +1,156 @@
+{
+ "kind": "baron",
+ "rigged": "../meshy-work/meshy_out/baron_rig/rigged.glb",
+ "poses": "../meshy-work/dump/baron_poses.json",
+ "old_glb": "../meshy-work/old/baron.glb",
+ "old_tex": "../meshy-work/old/actor3d_baron.png",
+ "out": "../meshy-work/raw/baron",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "phases": true,
+ "hold_legs": true,
+ "skin_zones": [
+  "head",
+  "hand_l",
+  "hand_r"
+ ],
+ "hands_paint": "texture",
+ "item_types": {
+  "r": "hold",
+  "l": "bottle"
+ },
+ "grip_parts": {
+  "r": [
+   "b235"
+  ],
+  "l": [
+   "b270"
+  ]
+ },
+ "hand_hue": [
+  0,
+  15
+ ],
+ "gear_one": false,
+ "carry_keys": [
+  "fidget"
+ ],
+ "clearance": 0.03,
+ "to_body": [
+  {
+   "x": [
+    0.13,
+    0.45
+   ],
+   "y": [
+    0.06,
+    0.55
+   ],
+   "z": [
+    1.45,
+    2.05
+   ],
+   "near": 0.08
+  },
+  {
+   "x": [
+    -0.45,
+    -0.13
+   ],
+   "y": [
+    0.06,
+    0.55
+   ],
+   "z": [
+    1.45,
+    2.05
+   ],
+   "near": 0.08
+  }
+ ],
+ "shed": {
+  "tophat": {
+   "z": 1.685,
+   "on": "head",
+   "within": 0.34,
+   "cap": 0.6,
+   "cap_colour": [
+    168,
+    163,
+    156
+   ],
+   "ring_pct": 60,
+   "cap_base": 0.015,
+   "cap_grow": 0.95,
+   "cap_shag": 0.005,
+   "cap_noise": 0.3,
+   "head_only": true,
+   "even_rim": false
+  },
+  "tophat_brim": {
+   "gear": "tophat",
+   "on": "head",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.32,
+     0.32
+    ],
+    "y": [
+     -0.45,
+     0.1
+    ],
+    "z": [
+     1.63,
+     1.7
+    ]
+   },
+   "radial": [
+    0,
+    -0.06,
+    1.68
+   ],
+   "outside": 0.1,
+   "within": 0.36,
+   "head_only": false
+  },
+  "monocle": {
+   "on": "head",
+   "box": {
+    "x": [
+     -0.13,
+     0.0
+    ],
+    "y": [
+     -0.4,
+     -0.18
+    ],
+    "z": [
+     1.56,
+     1.69
+    ]
+   },
+   "hue": [
+    30,
+    70
+   ],
+   "sat": [
+    0.25,
+    1
+   ],
+   "val": [
+    0.25,
+    1
+   ],
+   "lift": 0.006,
+   "under": "skin",
+   "rim_px": 5,
+   "rim_hue": [
+    30,
+    65
+   ],
+   "rim_dark": 0.12
+  }
+ }
+}

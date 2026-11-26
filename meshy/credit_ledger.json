@@ -676,6 +676,39 @@
    "time": "2026-11-26 12:37:01",
    "after": 1987,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "baron_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21935-34dd-7641-9703-f5e92357cecc",
+   "before": 1987,
+   "cost": 9,
+   "body": "baron_concept.json",
+   "time": "2026-11-26 12:54:09",
+   "after": 1978,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "baron_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21936-2960-72ed-9196-269d309fbd01",
+   "before": 1978,
+   "cost": 30,
+   "body": "baron_model.json",
+   "time": "2026-11-26 12:55:14",
+   "after": 1948,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "baron_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21937-6e59-7298-883f-76c8f498ebbf",
+   "before": 1948,
+   "cost": 5,
+   "body": "baron_rig.json",
+   "time": "2026-11-26 12:56:38",
+   "after": 1943,
+   "status": "SUCCEEDED"
   }
  ]
 }

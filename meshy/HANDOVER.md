@@ -7,8 +7,19 @@ version, every decision) first. SP = the session scratchpad.
 
 Done: 18c/17c quick fixes (steeper carry "carry_dir"/"carry_at": revenue
 man's both hands on the gun; spectacle rim painted over "rim_px"; sheriff
-"clearance" .05), 19b/19c jerry, 20 rudy. Credits now 907 of 2,500
-(balance 2,031; jerry took three concepts). Paid calls one at a time.
+"clearance" .05), 19b/19c jerry, 20 rudy, 21 foreman, 22 baron (baron has
+open items: brim spikes, monocle ring/chain left, right fist off the
+nozzle - see INDEX 22). Credits now 995 of 2,500 (balance 1,943; jerry took
+three concepts). Paid calls one at a time.
+More options from 21/22: build_actor "gear_force" (old parts held although
+the old body keeps them at "down": the foreman's blade), "hand_hue" [lo,hi]
+(hand skin matched only to skin of that hue: hard hats, beards and copper
+made hands yellow); shed "rim_hue" (paint a gold rim by hue), hat
+"even_rim": false for a flat brim crossing the cut. Old held parts that
+are gold/white pass for the old hands: give "grip_parts" (find the old
+hand parts nearest dump points 6/8). "hold" item type follows the old
+keys exactly (used for the baron's nozzle and jug; "pistol" made a mess of
+his aim/fire).
 
 New this session (all in meshy/tools):
 - build_actor: "football" (a held part rebuilt as a pigskin), "to_body"
@@ -39,7 +50,15 @@ New this session (all in meshy/tools):
   models merge, rerun tools/gear_fit.gd and retune (jerry helmet now at
   [0.01, 0, 0.85] half .110).
 
-Left, in order: foreman, baron, maw (+maw_bare), swamp_king; then the
+22b: the baron's jug is held by the neck ("bottle") in every key (the
+coordinator saw the hand flat on the jug's side in the swig with "hold").
+drone (checked): an alien worker "grey" (enemies.cfg [drone]: millhand
+brain, melee lunges, 1.52 m tall, voice "grey") - a humanoid for
+build_actor like the alien (05b).
+
+Left, in order: maw (+maw_bare: same model, plates on, 4.4 m tall - a
+giant; check its size rules in actor_check), swamp_king (on his airboat:
+keep the boat as old gear or the beast path); then the
 humanoids (list below). Same recipe as jerry/rudy: prompts entry via a
 small add_prompt_<kind>.py, meshy_kind.sh concept (look; retry if not
 A-pose or props misplaced), model, kind_config, list old held parts from
