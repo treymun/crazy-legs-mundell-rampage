@@ -755,10 +755,11 @@ def two_bone(root, target, l1, l2, pole):
     return root + axis * a + side * h, target
 
 
-def limb(R_t, root_r, mid_r, end_r, root_f, target, pole, bend0):
-    """Upper and lower rotations of a limb (world) and its joints."""
-    l1 = (mid_r - root_r).length
-    l2 = (end_r - mid_r).length
+def limb(R_t, root_r, mid_r, end_r, root_f, target, pole, bend0, stretch=1.0):
+    """Upper and lower rotations of a limb (world) and its joints; `stretch`
+    lets the limb reach a little further (its skin stretching at the joints)."""
+    l1 = (mid_r - root_r).length * stretch
+    l2 = (end_r - mid_r).length * stretch
     mid_f, end_f = two_bone(root_f, target, l1, l2, pole)
     u0, v0 = mid_r - root_r, end_r - mid_r
     u1, v1 = mid_f - root_f, end_f - mid_f
@@ -910,9 +911,12 @@ def item_delta(it, name, P, D, R_t, hipc):
         front = _front(J["upperarm_l"].z - .12, J["upperarm_l"].z + .02)
         sh_c = J["upperarm_" + main] - J["hips"]
         depth = front + sh_c.dot(Vector((0, -1, 0)))
+        # The butt in the shoulder's pocket (inside the joint, on the chest's
+        # front, the shoulder rolled forward for the mount), the barrel level
+        # at the target under the cheek.
         G1 = (F - U * .03).normalized()
-        butt = (sh + F * max(.02, depth - .04) - out * float(CFG.get("aim_in", .04))
-                - U * float(CFG.get("aim_drop", .03)))
+        butt = (sh + F * (max(.02, depth * .7) + PROTRACT) - out * float(CFG.get("aim_in", .03))
+                - U * float(CFG.get("aim_drop", .0)))
         if bare == "fire":
             butt = butt - F * .03
             G1 = (G1 + U * .09).normalized()
@@ -1053,6 +1057,14 @@ CLEAR = float(CFG.get("clearance", .02))
 
 
 TWIST = {}
+# Shouldering a long gun: how far the shoulders roll forward, and how much
+# further the arms may reach (a few per cent: readable at 320x200 matters
+# more than a short-armed body's exact reach).
+PROTRACT = float(CFG.get("protract", .045))
+ARM_K = float(CFG.get("arm_stretch", 1.07))
+# What each hand holds when it is one-handed: "pistol" (aimed at the eye
+# line) or anything else (carried).
+ITEM_TYPE = CFG.get("item_types", {})
 
 
 UPRIGHT = math.radians(float(CFG.get("upright_deg", 5)))
@@ -1097,8 +1109,8 @@ def solve(name, dz=0.0, held0=None):
     if aiming:
         main = next(it["main"] for it in ITEMS if it["two"])
         Tn = TWIST["fwd"]
-        R_h = (Matrix.Rotation(.22, 3, Vector(Tn.col[0])) @ Matrix.Rotation(
-            (.18 if main == "r" else -.18), 3, -Vector(Tn.col[2]))) @ R_h
+        R_h = (Matrix.Rotation(.32, 3, Vector(Tn.col[0])) @ Matrix.Rotation(
+            (.28 if main == "r" else -.28), 3, -Vector(Tn.col[2]))) @ R_h
     D["head"] = place(R_h, J["neck"], at(J["neck"]))
     joints = {"miss": {}}
     for side, hp, kn, ft, li in (("l", HIP_L, KN_L, FT_L, 2), ("r", HIP_R, KN_R, FT_R, 3)):
@@ -1159,9 +1171,14 @@ def solve(name, dz=0.0, held0=None):
             # gun arm's elbow comes out a little, the other stays under.
             two_main = on[side][0]["main"] == side
             if aiming and two_main:
-                pole = R_t @ Vector((out * 1.0, .15, -.6))
+                pole = R_t @ Vector((out * 1.0, .1, -1.0))  # the firing elbow out about 45 degrees
+            elif aiming:
+                pole = R_t @ Vector((out * .05, 0.0, -1.0))  # the support elbow under the gun
             else:
                 pole = R_t @ Vector((out * .12, .25, -1.0))
+            if aiming:
+                # The shoulders rolled forward into the mount.
+                sh_f = sh_f + (-Vector((R_t @ T0).col[2])) * PROTRACT + Vector((0, 0, .015))
         oel = P[el]
         chord = P[ha] - P[sh]
         off = (oel - P[sh]) - chord.normalized() * (oel - P[sh]).dot(chord.normalized())
@@ -1182,7 +1199,7 @@ def solve(name, dz=0.0, held0=None):
             # A grip out of reach slides back along the thing toward the
             # main hand's (a short arm on the fore-end of a shouldered gun).
             reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
-                     + (J["wrist_" + side] - J["forearm_" + side]).length) * .97
+                     + (J["wrist_" + side] - J["forearm_" + side]).length) * .97 * (ARM_K if aiming else 1.0)
             want = it["holds"][side]
             floor = it["holds"][it["main"]] + .06 if side != it["main"] else want
             while True:
@@ -1200,8 +1217,38 @@ def solve(name, dz=0.0, held0=None):
                 pole_now = p2 if p2.length > .02 else pole
                 pole_now = pole_now + pole.normalized() * .25
                 R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side],
-                                            J["wrist_" + side], sh_f, wrist_t, pole_now, Vector((0, -1, 0)))
+                                            J["wrist_" + side], sh_f, wrist_t, pole_now, Vector((0, -1, 0)),
+                                            ARM_K if aiming else 1.0)
                 el_guess = el_f
+            D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+            D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+            D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
+            joints["miss"][side] = (wr_f - wrist_t).length
+        elif ITEM_TYPE.get(side) == "pistol" and name.replace("hurt_", "") in AIMS and any(
+                it["main"] == side and not it["two"] and moves[it["bone"]][1] for it in ITEMS):
+            # A pistol aimed one-handed: the arm out straight at the eye line
+            # (the elbow just soft), the palm in, the barrel at the target;
+            # fire flips the muzzle up, the wind-up holds it lower.
+            bare = name.replace("hurt_", "")
+            Tn = TWIST["fwd"]
+            Fw, Up, Rt = -Vector(Tn.col[2]), Vector(Tn.col[1]), Vector(Tn.col[0])
+            inward = -Rt if side == "r" else Rt
+            reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
+                     + (J["wrist_" + side] - J["forearm_" + side]).length)
+            eye = (D["head"] @ J["head"]).z - .06
+            a1 = (Fw * 1.0 + inward * .12).normalized()
+            if bare == "fire":
+                a1 = (a1 + Up * .22).normalized()
+            if bare == "wind":
+                a1 = (a1 - Up * .35).normalized()
+            n1 = inward - a1 * inward.dot(a1)
+            n1.normalize()
+            wrist0, a0, n0 = HANDF[side]
+            R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
+            wrist_t = sh_f + (a1 * .93 * reach)
+            wrist_t.z = eye - (J["hand_" + side] - wrist0).length * .2 if bare != "wind" else wrist_t.z - .12
+            R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                        sh_f, wrist_t, R_t @ Vector((0, .2, -1.0)), Vector((0, -1, 0)))
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
             D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
             D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
@@ -1227,7 +1274,23 @@ def solve(name, dz=0.0, held0=None):
         Di, shown = moves[it["bone"]]
         side = it["main"]
         if Di is None:
-            if held0 is None:
+            if held0 is None and ITEM_TYPE.get(side) == "pistol" and side in HANDF:
+                # A pistol in the fist: its barrel along the hand (the forearm's
+                # line), over the knuckles, the grip in the palm.
+                lo_e, hi_e = it["lo"], it["hi"]
+                grip = lo_e + (hi_e - lo_e) * it["holds"][side]
+                muzzle = lo_e if (lo_e - grip).length > (hi_e - grip).length else hi_e
+                G0 = (muzzle - grip).normalized()
+                wu = Vector((0, 0, 1))
+                U0 = (wu - G0 * wu.dot(G0)).normalized()
+                wrist0, a0, n0 = HANDF[side]
+                Rh = D["hand_" + side].to_3x3()
+                G1 = (Rh @ a0).normalized()
+                U1 = -(Rh @ n0).normalized()
+                Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
+                palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (it["rad"] * .6)
+                Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-grip)
+            elif held0 is None:
                 # The standing key: the old thing's grip put into the new palm.
                 lo_e, hi_e = it["lo"], it["hi"]
                 grip = lo_e + (hi_e - lo_e) * it["holds"][side]
@@ -1320,9 +1383,9 @@ def pose_key(name):
         key = name
         if key not in AIM_BEST:
             best = None
-            for tw in (30, 40, 50, 60):
-                for drop in (.02, .05, .08, .11):
-                    for inn in (-.04, 0.0, .04):
+            for tw in (30, 40, 50):
+                for drop in (0.0, .02, .04):
+                    for inn in (0.0, .03, .06):
                         CFG.update(aim_twist=tw, aim_drop=drop, aim_in=inn)
                         _D, jt, _P = solve(key, 0.0, HELD0)
                         miss = sum(jt["miss"].values())

@@ -59,7 +59,7 @@ def make(tiles, kind, out, title, keys):
         if im:
             sheet.paste(im, (10 + i * tw, y))
     y += th + 6
-    for cap, ims in (("OLD keys: " + ", ".join(keys), keyrow_old), ("NEW keys (retargeted from the old keys)", keyrow_new)):
+    for cap, ims in (("OLD keys: " + ", ".join(keys), keyrow_old), ("NEW keys (posed for the new body; the old keys' meaning and timing)", keyrow_new)):
         label(sheet, cap, 16, (10, y))
         y += 24
         for i, im in enumerate(ims):
