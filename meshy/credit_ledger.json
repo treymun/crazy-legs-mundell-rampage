@@ -353,6 +353,28 @@
    "time": "2026-11-26 01:12:38",
    "after": 2459,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "catfish_concept",
+   "endpoint": "v1/text-to-image",
+   "task": "01a21777-8f9f-75cf-849c-534c37bf91ce",
+   "before": 2459,
+   "cost": 9,
+   "body": "catfish_concept.json",
+   "time": "2026-11-26 04:47:22",
+   "after": 2450,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "catfish_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21778-32f1-711f-bedd-c03c5b4de0ba",
+   "before": 2450,
+   "cost": 30,
+   "body": "catfish_model.json",
+   "time": "2026-11-26 04:48:07",
+   "after": 2420,
+   "status": "SUCCEEDED"
   }
  ]
 }

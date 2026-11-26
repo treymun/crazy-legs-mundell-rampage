@@ -16,8 +16,21 @@
   "b26"
  ],
  "hold_legs": true,
- "carry_top": "up",
  "grip_skip": [
   "l"
- ]
+ ],
+ "item_types": {
+  "r": "bottle"
+ },
+ "held_model": {
+  "glb": "meshy/assets/catfish.glb",
+  "length": 0.62,
+  "tris": 2600,
+  "tails": [
+   0.45,
+   0.72
+  ],
+  "band": 0.025,
+  "grip": 0.05
+ }
 }

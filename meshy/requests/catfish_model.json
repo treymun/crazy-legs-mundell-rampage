@@ -1,0 +1,11 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:../meshy-work/meshy_out/catfish_concept/image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 12000,
+ "symmetry_mode": "auto",
+ "texture_prompt": "big channel catfish, mottled grey-olive back with dark blotches, pale cream belly, dark whisker barbels, small dark eyes, matte slimy skin"
+}

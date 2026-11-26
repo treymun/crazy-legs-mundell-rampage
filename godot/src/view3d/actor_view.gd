@@ -66,6 +66,8 @@ var _rig: RagdollRig
 ## "rides": the Meshy models' guns), pairs: a blend keeps the thing in the
 ## hand (_keep_in_hand).
 var _held_pairs := PackedInt32Array()
+## A held thing's tail swung by a spring (actors.json "flop"; null if none).
+var _tail: HeldTail
 var _doll_clock := 0.0
 ## Where the living body was last drawn and when (map), and how fast it was
 ## going (smoothed): a body killed on the run falls on with it.
@@ -196,6 +198,7 @@ func setup(p_models: ActorModels) -> bool:
 			var h := _skeletons[0].find_bone("hand_l" if seg == 3 else "hand_r")
 			if g >= 0 and h >= 0:
 				_held_pairs.append_array([g, h])
+		_tail = HeldTail.made(self, _skeletons[0], entry)
 	if _player == null or _player.get_animation_list().is_empty():
 		return false
 	_player.play(_player.get_animation_list()[0])
@@ -231,6 +234,8 @@ func revive() -> void:
 	_fall_at = -1.0
 	live = null
 	_live_hit = -1.0
+	if _tail != null:
+		_tail.reset()
 	for skeleton in _skeletons:
 		skeleton.reset_bone_poses()
 	visible = true
@@ -332,6 +337,8 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		# Handed back from a live body: eased onto the animation.
 		_ease_over(clampf((clock - _hand_at) / _hand_for, 0.0, 1.0))
 	_shown_alive = true
+	if _tail != null and e.alive:
+		_tail.step(_skeletons[0], clock, e.uid)
 	if handing and clock > _fall_at:
 		# Where the scripted fall has each part now, for the hand-over.
 		_fall_was = _fall_now

@@ -133,6 +133,10 @@ var hold_near := .98
 ## Whether a holding hand also keeps its distance from the hips and knees
 ## (actors.json "hold_legs": a bucket carried at the side).
 var hold_legs := false
+## Each bone's stand-in where the dead body's gear is clustered: a held
+## thing's tail bone (actors.json "flop": the noodler's catfish) by the bone it
+## hangs from, so the whole thing drops as one piece (_find_gear).
+var flop_root := PackedInt32Array()
 
 static var _built := {}
 ## How many rigs this process found from their models' vertices (_build),
@@ -261,6 +265,7 @@ static func baked(kind: String, view: Node, info: Dictionary) -> RagdollRig:
 	for f: Transform3D in rig.rest_frames:
 		rig._rest_inv.append(f.basis.inverse())
 	rig.down_points = rig.points_from(dead)
+	rig._take_flop(skeleton, info)
 	rig._find_gear()
 	rig._lie_down()
 	rig.ok = true
@@ -485,6 +490,7 @@ func _build(view: Node, info: Dictionary) -> void:
 		_rest_inv.append(f.basis.inverse())
 	_hull(all_at, all_bone)
 	down_points = points_from(dead)
+	_take_flop(skeleton, info)
 	_find_gear()
 	_lie_down()
 	ok = true
@@ -561,9 +567,9 @@ func _find_gear() -> void:
 		cluster[k] = clusters.size()
 		var at := 0
 		while at < group.size():
-			var o := bone_rest[lost[group[at]]].origin
+			var o := bone_rest[_root_of(lost[group[at]])].origin
 			for m in lost.size():
-				if cluster[m] < 0 and bone_rest[lost[m]].origin.distance_to(o) < join:
+				if cluster[m] < 0 and bone_rest[_root_of(lost[m])].origin.distance_to(o) < join:
 					cluster[m] = clusters.size()
 					group.append(m)
 			at += 1
@@ -926,6 +932,29 @@ func _points(clouds: Dictionary) -> bool:
 		and points[SH_L].distance_to(points[SH_R]) > height * .06
 		and points[HIP_L].distance_to(points[HIP_R]) > height * .02
 	)
+
+
+## Each tail bone's root (actors.json "flop": bone -> the bone it hangs
+## from, followed back to the first).
+func _take_flop(skeleton: Skeleton3D, info: Dictionary) -> void:
+	var flop: Dictionary = info.get("flop", {})
+	flop_root = PackedInt32Array()
+	if flop.is_empty():
+		return
+	flop_root.resize(skeleton.get_bone_count())
+	for i in flop_root.size():
+		var bone_name := skeleton.get_bone_name(i)
+		var hops := 0
+		while flop.has(bone_name) and hops < 8:
+			bone_name = str(flop[bone_name])
+			hops += 1
+		var root := skeleton.find_bone(bone_name)
+		flop_root[i] = root if root >= 0 else i
+
+
+## The bone standing for bone `i` where gear is clustered (_take_flop).
+func _root_of(i: int) -> int:
+	return flop_root[i] if i < flop_root.size() else i
 
 
 ## Which arms (left, right) hold a thing riding them (actors.json "rides":

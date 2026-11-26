@@ -646,6 +646,11 @@ GRIPS = []
 GRIP_AT = {}  # side -> (old bone, the hand's middle at the standing key)
 gear_obj = None
 MEGA = {}  # the rebuilt megaphone's handle (kind config "megaphone")
+HELD_MODEL = {}  # a held thing made with Meshy (kind config "held_model")
+FISH_HI = None  # its Meshy model, baked from with the body
+VERT_TAIL = []  # each gear vertex's piece (0 the front, 1.. the tail pieces)
+TAIL_AT = []  # each tail joint (gear-source space)
+TAILS = []  # [(bone, the bone before it, the item's bone)]
 # Every part the old body loses when it dies (shrunk at the key "down") that
 # is not a piece of its arms, legs or head: the gun and what else it holds.
 # One gear bone per old bone, keyed with that bone's own motion.
@@ -991,6 +996,150 @@ if CFG.get("gear", "old") == "old" and LOST:
                 _pp = _gco[_vb == _x]
                 print("MESHY part %s z %.3f-%.3f x %.2f y %.2f n %d" % (DUMP["bones"][_x], _pp[:, 2].min(), _pp[:, 2].max(),
                                                                _pp[:, 0].mean(), _pp[:, 1].mean(), len(_pp)))
+    # A held thing made anew with Meshy (kind config "held_model": {glb,
+    # length, tris, tails: [shares of its length from the front], band}): the
+    # noodler's catfish. It takes the old thing's place at the standing key
+    # (its front at the old one's top, in the hand), decimated to a game
+    # budget, and is cut across into rigid pieces at each tail joint - each
+    # its own unskinned mesh on its own bone (the tail flops in the game,
+    # looks only), the rear piece reaching a little forward into the one
+    # before so a bend shows no gap. Its look is baked lit from the Meshy
+    # model (FISH_HI) with the body, not copied from the old gear.
+    if CFG.get("held_model"):
+        _hm = CFG["held_model"]
+        _old_c = _gco.mean(axis=0)
+        _old_ax = Vector(numpy.linalg.svd(_gco - _old_c, full_matrices=False)[2][0])
+        if _old_ax.z < 0:
+            _old_ax = -_old_ax
+        _fnew = import_glb(_hm["glb"])
+        _fm = next(o for o in _fnew if o.type == "MESH")
+        for _o in _fnew:
+            if _o is not _fm:
+                bpy.data.objects.remove(_o)
+        _wmf = _fm.matrix_world.copy()
+        _fm.parent = None
+        _fm.matrix_world = _wmf
+        select([_fm])
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        _fc = numpy.array([v.co[:] for v in _fm.data.vertices])
+        # Its own frame: Meshy lays it along its longest way, back up (+Z);
+        # the front (the head) is the end that is wide across (the tail is
+        # tall and thin).
+        _ctr = _fc.mean(axis=0)
+        _ax = Vector(numpy.linalg.svd(_fc - _ctr, full_matrices=False)[2][0])
+        _ax.z = 0
+        _ax.normalize()
+        _sv = (_fc - _ctr) @ numpy.array(_ax[:])
+        _L = float(_sv.max() - _sv.min())
+        _wd = Vector((0, 0, 1)).cross(_ax).normalized()
+        _sw = (_fc - _ctr) @ numpy.array(_wd[:])
+        _w_hi = numpy.ptp(_sw[_sv > _sv.max() - _L * .15]) if (_sv > _sv.max() - _L * .15).any() else 0
+        _w_lo = numpy.ptp(_sw[_sv < _sv.min() + _L * .15]) if (_sv < _sv.min() + _L * .15).any() else 0
+        if _w_lo > _w_hi:
+            _ax = -_ax
+            _sv = -_sv
+            _wd = -_wd
+        _k = float(_hm.get("length", .62)) * OLD_H / 1.73 / _L
+        # The jaw: a little behind the snout, under the middle line - where
+        # the fist closes (its place in the fish's own frame, scaled).
+        _front = float(_sv.max())
+        _near = (_sv > _front - _L * .09) & (_sv < _front - _L * .03) & (numpy.abs(_sw) < _L * .03)
+        _zj = float(numpy.percentile(_fc[_near, 2], 25)) if _near.any() else float(_ctr[2])
+        _jaw_f = Vector(_ctr) + _ax * (_front - _L * .05)
+        _jaw_f.z = _zj
+        # Placed where the old one hung: its front up at the old top, its
+        # length along the old one's, its back out to the holding side.
+        _top_old = Vector(_gco[numpy.argmax((_gco - _old_c) @ numpy.array(_old_ax[:]))])
+        _side_x = 1.0 if J["upperarm_r"].x > 0 else -1.0
+        _hold_side = "r"
+        _out = Vector((_side_x if _hold_side == "r" else -_side_x, 0, 0))
+        _out = (_out - _old_ax * _out.dot(_old_ax)).normalized()
+        _Rf = (Matrix((_old_ax, _out, _old_ax.cross(_out))).transposed()
+               @ Matrix((_ax, Vector((0, 0, 1)), _ax.cross(Vector((0, 0, 1))))).transposed().inverted())
+        _snout = Vector(_ctr) + _ax * _front
+        _place = (Matrix.Translation(_top_old) @ (Matrix.Diagonal((_k, _k, _k, 1)) @ _Rf.to_4x4())
+                  @ Matrix.Translation(-_snout))
+        _fm.data.transform(_place)
+        FISH_HI = _fm.copy()
+        FISH_HI.data = _fm.data.copy()
+        scene.collection.objects.link(FISH_HI)
+        FISH_HI.name = "held_model_hi"
+        for _sl in FISH_HI.material_slots:
+            _m = _sl.material
+            if _m is not None and _m.use_nodes:
+                for _n in _m.node_tree.nodes:
+                    if _n.type == "BSDF_PRINCIPLED":
+                        for _inp, _val in (("Roughness", 1.0), ("Metallic", 0.0)):
+                            for _lk in list(_n.inputs[_inp].links):
+                                _m.node_tree.links.remove(_lk)
+                            _n.inputs[_inp].default_value = _val
+                        if "Specular IOR Level" in _n.inputs:
+                            _n.inputs["Specular IOR Level"].default_value = 0.0
+        # The game's copy: welded and decimated.
+        select([_fm])
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.mesh.remove_doubles(threshold=0.0003)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        _want = int(_hm.get("tris", 1800))
+        for _ in range(4):
+            _fm.data.calc_loop_triangles()
+            _now = len(_fm.data.loop_triangles)
+            if _now <= _want * 1.05:
+                break
+            _dm = _fm.modifiers.new("dec", "DECIMATE")
+            _dm.ratio = _want / _now
+            bpy.ops.object.modifier_apply(modifier="dec")
+        _fm.data.calc_loop_triangles()
+        _fc2 = numpy.array([v.co[:] for v in _fm.data.vertices])
+        _G = (_place.to_3x3() @ _ax).normalized()  # toward the front, placed
+        _s0 = (_fc2 - numpy.array(_top_old[:])) @ numpy.array(_G[:])  # 0 at the snout, negative back
+        _Lw = float(-_s0.min())
+        _cuts = [float(t) * _Lw for t in _hm.get("tails", [.45, .72])]
+        _band = float(_hm.get("band", .025)) * OLD_H / 1.73
+        # Each face's piece by its middle; the rear piece also takes the
+        # faces of the one before within `band` of the joint.
+        _faces = []
+        for _p in _fm.data.polygons:
+            _sc = -float(numpy.mean(_s0[list(_p.vertices)]))
+            _seg = sum(1 for _c in _cuts if _sc >= _c)
+            _faces.append((_p, _seg))
+            if _seg < len(_cuts) and _sc >= _cuts[_seg] - _band:
+                _faces.append((_p, _seg + 1))
+        _bmf = bmesh.new()
+        _vmap = {}
+        _vseg = []
+        for _p, _seg in _faces:
+            _vs = []
+            for _vi in _p.vertices:
+                if (_vi, _seg) not in _vmap:
+                    _vmap[(_vi, _seg)] = _bmf.verts.new(_fm.data.vertices[_vi].co)
+                    _vseg.append(_seg)
+                _vs.append(_vmap[(_vi, _seg)])
+            try:
+                _bmf.faces.new(_vs)
+            except ValueError:
+                pass
+        _bmf.verts.index_update()
+        gm.clear_geometry()
+        _bmf.to_mesh(gm)
+        _bmf.free()
+        bpy.data.objects.remove(_fm)
+        _gco = numpy.array([v.co[:] for v in gm.vertices])
+        _vb = numpy.full(len(_gco), LOST[0])
+        VERT_TAIL = list(_vseg)
+        _items = [sorted(LOST)]
+        vert_gear = [0] * len(_gco)
+        # The joints (gear-source space): each cut's middle on the fish's line.
+        TAIL_AT = []
+        for _c in _cuts:
+            _ring = _gco[numpy.abs(((_gco - numpy.array(_top_old[:])) @ numpy.array(_G[:])) + _c) < _Lw * .03]
+            TAIL_AT.append(Vector(_ring.mean(axis=0)) if len(_ring) else _top_old - _G * _c)
+        HELD_MODEL.update(jaw=_place @ _jaw_f, front=_top_old.copy(), G=_G.copy(), out=_out.copy(),
+                          length=_Lw, cuts=_cuts)
+        print("MESHY held model: %s, %.3f m long, %d triangles in %d pieces (tail joints at %s of its length)" % (
+            os.path.basename(_hm["glb"]), _Lw, len(gm.polygons), len(_cuts) + 1,
+            [round(c / _Lw, 2) for c in _cuts]))
     for ci, it in enumerate(_items):
         _big = max(it, key=lambda i: int((_vb == i).sum()))
         GEAR.append(("gear%d" % ci, [_big] + [i for i in it if i != _big]))
@@ -1444,6 +1593,18 @@ UPRIGHT_AIM = math.radians(float(CFG.get("upright_aim_deg", 14)))
 COM = {}
 
 
+def plumb(Di, amount, up=None):
+    """A held model hung from its jaw (HELD_MODEL): Di turned about the grip
+    so the fish's length goes `amount` of the way to plumb (its snout up),
+    or to point its snout along `up` (a swing)."""
+    g_now = (Di.to_3x3() @ HELD_MODEL["G"]).normalized()
+    if up is None:
+        up = Vector((0, 0, 1))
+    q_ = Quaternion().slerp(g_now.rotation_difference(up.normalized()), amount)
+    piv = Di @ HELD_MODEL["grip_pt"]
+    return Matrix.Translation(piv) @ q_.to_matrix().to_4x4() @ Matrix.Translation(-piv) @ Di
+
+
 def solve(name, dz=0.0, held0=None):
     P = old_points(name)
     D = {}
@@ -1826,6 +1987,27 @@ def solve(name, dz=0.0, held0=None):
                 grip = Vector(ctr) + G0 * g_at
                 near = numpy.abs(al - g_at) < span * .08
                 r_g = float(perp[near].mean()) if near.any() else .015
+                X0 = Vector((1, 0, 0)) if abs(G0.x) < .9 else Vector((0, 1, 0))
+                if HELD_MODEL and it is ITEMS[0]:
+                    # The Meshy catfish by its jaw: the snout up through the
+                    # fist (the thumb over it, the barbels out), the body
+                    # hanging below the little finger; its width along the
+                    # fingers, so the palm is on its cheek and the fingers
+                    # wrap round its jaws.
+                    G0 = HELD_MODEL["G"].copy()
+                    X0 = G0.cross(HELD_MODEL["out"]).normalized()
+                    grip = HELD_MODEL["front"] - G0 * (HELD_MODEL["length"] * float(CFG["held_model"].get("grip", .05)))
+                    rel_ = numpy.array([g[:] for g in ITEM_PTS_DENSE.get(it["bone"], [])]) - numpy.array(grip[:])
+                    sl_ = numpy.abs(rel_ @ numpy.array(G0[:])) < HELD_MODEL["length"] * .025
+                    dn_ = rel_[sl_] @ numpy.array(HELD_MODEL["out"][:]) if sl_.any() else numpy.array([-.02, .02])
+                    # (the jaws' thickness, back to belly, centred in the fist)
+                    # (the barbels left out: the lips' own thickness)
+                    lo_, hi_ = float(numpy.percentile(dn_, 12)), float(numpy.percentile(dn_, 88))
+                    grip = grip + HELD_MODEL["out"] * ((hi_ + lo_) / 2)
+                    r_g = (hi_ - lo_) / 2
+                    HELD_MODEL["grip_pt"] = grip.copy()
+                    print("MESHY held model grip: %.3f m from the snout, jaws %.3f m thick" % (
+                        HELD_MODEL["length"] * float(CFG["held_model"].get("grip", .05)), r_g * 2))
                 wrist0, a0, n0 = HANDF[side]
                 t0 = a0.cross(n0).normalized()
                 th = HANDS[side].chains.get("th") if side in HANDS else None
@@ -1835,9 +2017,20 @@ def solve(name, dz=0.0, held0=None):
                 U1 = (Rh @ t0).normalized()
                 A1 = (Rh @ a0).normalized()
                 # the bottle's other axis as near the hand's own as it goes
-                X0 = Vector((1, 0, 0)) if abs(G0.x) < .9 else Vector((0, 1, 0))
                 X0 = (X0 - G0 * X0.dot(G0)).normalized()
                 Rg = Matrix((U1, A1, U1.cross(A1))).transposed() @ Matrix((G0, X0, G0.cross(X0))).transposed().inverted()
+                if HELD_MODEL and it is ITEMS[0]:
+                    # (hung as a heavy thing is, along the hand past the
+                    # fingers: the snout up into the fist toward the wrist,
+                    # its width across the knuckles; the fish hangs as the
+                    # arm does, not out sideways along the thumb's line)
+                    # It swings free at the jaw: it hangs (nearly) plumb
+                    # whatever the hand's slant.
+                    dn_w = (Vector((0, 0, -1)) * (1 - float(CFG["held_model"].get("follow", .15)))
+                            + A1 * float(CFG["held_model"].get("follow", .15))).normalized()
+                    x_w = (U1 - dn_w * U1.dot(dn_w)).normalized()
+                    Rg = (Matrix((-dn_w, x_w, (-dn_w).cross(x_w))).transposed()
+                          @ Matrix((G0, X0, G0.cross(X0))).transposed().inverted())
                 palm = (D["hand_" + side] @ (J["hand_" + side] + a0 * (HANDS[side].length * .12 if side in HANDS else .02))
                         + (Rh @ n0) * (r_g + (HANDS[side].thick * .5 if side in HANDS else .012)))
                 Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-grip)
@@ -1868,6 +2061,23 @@ def solve(name, dz=0.0, held0=None):
                 Di = Matrix.Translation(palm - grip)
             else:
                 Di = D["hand_" + side] @ held0["hand_" + side].inverted() @ held0["@" + it["bone"]]
+            hang_ = None
+            bare_ = name.replace("hurt_", "")
+            if (HELD_MODEL and it is ITEMS[0] and "grip_pt" in HELD_MODEL and bare_ not in AIMS
+                    and bare_ not in ("pain", "fire", "aim", "wind") and not bare_.startswith("die")
+                    and "down" not in bare_):
+                # (carried, it swings back toward plumb from the jaw as the
+                # arm swings: turned about the grip in the fist)
+                hang_ = (float(CFG["held_model"].get("plumb", .75)) if held0 is not None else 1.0, None)
+            elif HELD_MODEL and it is ITEMS[0] and "grip_pt" in HELD_MODEL and bare_ in ("wind", "fire"):
+                # The slap: the wind-up swings the fish back behind the hip
+                # (its tail trailing low), the blow drives it through forward,
+                # the tail leading and a little down.
+                Fw_ = -Vector(TWIST["fwd"].col[2])
+                Up_ = Vector(TWIST["fwd"].col[1])
+                hang_ = (1.0, (Fw_ * .5 + Up_ * .87) if bare_ == "wind" else (-Fw_ + Up_ * .35))
+            if hang_ is not None:
+                Di = plumb(Di, hang_[0], hang_[1])
             if surface is not None and shown:
                 # In the body (a jug against a thigh, a pistol in the belly):
                 # the hand moves it out, the arm reaching after it.
@@ -1894,13 +2104,16 @@ def solve(name, dz=0.0, held0=None):
                         Dh_new = place(D["hand_" + side].to_3x3(), J["wrist_" + side], wr_f)
                     Di = Dh_new @ D["hand_" + side].inverted() @ Di
                     D["hand_" + side] = Dh_new
+                    if hang_ is not None:
+                        # (the fish swings back to its hang from the jaw)
+                        Di = plumb(Di, hang_[0], hang_[1])
                 d = depth_in(surface, it["bone"], Di)[0]
                 if first > .004:
                     print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d))
                 PEN[name + ":" + it["bone"]] = d
         D["@" + it["bone"]] = Di
         D[it["bone"]] = D["hand_" + side]
-        if it["two"] and held0 is not None and Di is not None:
+        if (it["two"] or (HELD_MODEL and it is ITEMS[0])) and held0 is not None and Di is not None:
             # A two-handed gun keeps its own place (each hand takes hold of
             # it afresh in each key, the wrists straight): its bone moves as
             # the gun did from the standing key, where it rested on the hand.
@@ -2043,10 +2256,32 @@ HELD0 = dict(pose_key("0")[0])
 ITEM_REST = {}
 for it in ITEMS:
     ITEM_REST[it["bone"]] = HELD0["hand_" + it["main"]].inverted() @ HELD0["@" + it["bone"]]
+# A held model's tail bones (kind config "held_model" "tails"): each rests on
+# its joint (the held piece's rest, where its own rest puts it), keyed with
+# the thing's bone in every key (rigid in the keys; ActorView swings them).
+if TAIL_AT and ITEMS:
+    _ib = ITEMS[0]["bone"]
+    bpy.ops.object.mode_set(mode="OBJECT")
+    select([rig])
+    bpy.ops.object.mode_set(mode="EDIT")
+    _prev = _ib
+    for _k, _at in enumerate(TAIL_AT):
+        _tn = "%s_t%d" % (_ib, _k + 1)
+        eb = data.edit_bones.new(_tn)
+        eb.head = ITEM_REST[_ib] @ _at
+        eb.tail = eb.head + Vector((0, 0, .08))
+        TAILS.append((_tn, _prev, _ib))
+        _prev = _tn
+    bpy.ops.object.mode_set(mode="POSE")
+    for pb in rig.pose.bones:
+        pb.rotation_mode = "QUATERNION"
+    print("MESHY tail bones:", [t[0] for t in TAILS])
 for t in KEYS:
     name = BY_KEY[t]
     D, P = pose_key(name)
-    for b in BONES + [g for g, _c in GEAR]:
+    for _tn, _tp, _ib in TAILS:
+        D[_tn] = D[_ib]
+    for b in BONES + [g for g, _c in GEAR] + [t_[0] for t_ in TAILS]:
         pb = rig.pose.bones[b]
         pb.matrix = D[b] @ data.bones[b].matrix_local
         bpy.context.view_layer.update()
@@ -2113,18 +2348,29 @@ if gear_obj is not None:
     gear_lo.data.materials.clear()
     gear_lo.data.materials.append(mat_body)
     gear_lo.data.materials.append(mat_gear)
+    # (A held model's faces their own slot, 3: baked lit from its Meshy
+    # model with the body, not copied from the old gear.)
+    mat_fish = bpy.data.materials.new("heldmodelslot")
+    mat_fish.use_nodes = True
+    if HELD_MODEL:
+        lo.data.materials.append(mat_fish)
+        gear_lo.data.materials.append(mat_hand)
+        gear_lo.data.materials.append(mat_fish)
     for p in gear_lo.data.polygons:
-        p.material_index = 1
+        p.material_index = 3 if HELD_MODEL else 1
     for g in list(gear_lo.vertex_groups):
         gear_lo.vertex_groups.remove(g)
     for gi, (gname, _c) in enumerate(GEAR):
         vgp = gear_lo.vertex_groups.new(name=gname)
-        ids = [i for i, x in enumerate(vert_gear) if x == gi]
+        ids = [i for i, x in enumerate(vert_gear) if x == gi and (not VERT_TAIL or VERT_TAIL[i] == 0)]
         vgp.add(ids, 1.0, "REPLACE")
+    for _k, (_tn, _tp, _ib) in enumerate(TAILS):
+        vgp = gear_lo.vertex_groups.new(name=_tn)
+        vgp.add([i for i, x in enumerate(VERT_TAIL) if x == _k + 1], 1.0, "REPLACE")
     for b in BONES:
         if b not in gear_lo.vertex_groups:
             gear_lo.vertex_groups.new(name=b)
-    for gname, _c in GEAR:
+    for gname in [g for g, _c in GEAR] + [t_[0] for t_ in TAILS]:
         if gname not in lo.vertex_groups:
             lo.vertex_groups.new(name=gname)
     select([lo, gear_lo], lo)
@@ -2320,6 +2566,9 @@ for o in (lo,):
     o.visible_volume_scatter = False
 if gear_obj is not None:
     gear_obj.hide_render = True
+if FISH_HI is not None:
+    # (the held model lights as the body does but casts nothing on it)
+    FISH_HI.visible_shadow = False
 total = None
 weight = None
 nx = NORMALS[:, 0] * 2 - 1
@@ -2329,9 +2578,11 @@ for k, angle in enumerate(TURNS):
     spin = Matrix.Rotation(math.radians(angle), 4, "Z")
     hi.matrix_world = spin @ kept[0]
     lo.matrix_world = spin @ kept[1]
+    if FISH_HI is not None:
+        FISH_HI.matrix_world = spin
     bpy.context.view_layer.update()
     scene.cycles.samples = 32 if k == 0 else 20
-    select([hi, lo], lo)
+    select([hi, lo] + ([FISH_HI] if FISH_HI is not None else []), lo)
     bake_op(type="COMBINED", pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE"},
             margin=TEXTURE // 128, use_clear=True, use_selected_to_active=True,
             cage_extrusion=OLD_H * .012, max_ray_distance=OLD_H * .05)
@@ -2348,6 +2599,8 @@ for k, angle in enumerate(TURNS):
         total[:, :3] += px[:, :3] * w[:, None]
         weight += w
 hi.matrix_world, lo.matrix_world = kept
+if FISH_HI is not None:
+    FISH_HI.matrix_world = Matrix.Identity(4)
 bpy.context.view_layer.update()
 found = weight > 0
 total[found, :3] /= weight[found, None]
@@ -2377,6 +2630,8 @@ total[:, 3] = 1
 # creases at the knuckles darker) lit by the stage, four turns as the body.
 if HANDS:
     hi.hide_render = True
+    if FISH_HI is not None:
+        FISH_HI.hide_render = True
     lo.visible_shadow = True
     lo.visible_diffuse = True
     for m in lo.data.materials:
@@ -2482,6 +2737,8 @@ if HANDS:
     print("MESHY hands baked: %d texels, mean colour %s" % (int(HANDMASK.sum()),
           numpy.round(htot[HANDMASK].mean(axis=0) * 255).astype(int) if HANDMASK.any() else "-"))
     hi.hide_render = False
+    if FISH_HI is not None:
+        FISH_HI.hide_render = False
     lo.visible_shadow = False
     lo.visible_diffuse = False
 
@@ -2926,7 +3183,7 @@ if gear_obj is not None:
     gimg.file_format = "PNG"
     gimg.save()
     # Mask: the gear slot emits white, the body black.
-    for m, val in ((mat_body, 0.0), (mat_gear, 1.0), (mat_hand, 0.0)):
+    for m, val in ((mat_body, 0.0), (mat_gear, 1.0), (mat_hand, 0.0), (mat_fish, .1)):
         nt = m.node_tree
         for n in list(nt.nodes):
             if n.name != "bake_target":
@@ -3051,7 +3308,7 @@ for cx, cz, rad, k in ((0.0, .9, .07, 1.0), (.05, .66, .12, 1.0), (-.06, .55, .0
 blood = numpy.clip((noise_px - (1.05 - wounds * .65)) * 6, 0, 1) * front
 if gear_obj is not None:
     gm_px = pixels(mimg)[:, 0]
-    blood *= gm_px < .5
+    blood *= gm_px < .2
 hurt = total.copy()
 dark = numpy.array([.36, .03, .02])
 wet = numpy.array([.55, .05, .03])
@@ -3080,7 +3337,7 @@ if ITEMS:
         dl = bm.verts.layers.deform.active
         gidx = lo.vertex_groups[it["bone"]].index
         for f in bm.faces:
-            f.select = f.material_index == 1 and all(v[dl].get(gidx, 0) > .5 for v in f.verts)
+            f.select = f.material_index in (1, 3) and all(v[dl].get(gidx, 0) > .5 for v in f.verts)
         bmesh.update_edit_mesh(lo.data)
         before = set(bpy.data.objects)
         bpy.ops.mesh.separate(type="SELECTED")
@@ -3099,12 +3356,41 @@ if ITEMS:
         HELD_OBJS.append(piece)
         print("MESHY held thing %s: its own mesh, %d triangles, on bone %s" % (
             piece.name, len(piece.data.polygons), it["bone"]))
+    # A held model's tail pieces: each its own mesh on its tail bone, at the
+    # rest of the thing they belong to (rigid on it until ActorView swings
+    # the bone about its joint).
+    for _tn, _tp, _ib in TAILS:
+        select([lo])
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="DESELECT")
+        bm = bmesh.from_edit_mesh(lo.data)
+        dl = bm.verts.layers.deform.active
+        gidx = lo.vertex_groups[_tn].index
+        for f in bm.faces:
+            f.select = f.material_index == 3 and all(v[dl].get(gidx, 0) > .5 for v in f.verts)
+        bmesh.update_edit_mesh(lo.data)
+        before = set(bpy.data.objects)
+        bpy.ops.mesh.separate(type="SELECTED")
+        bpy.ops.object.mode_set(mode="OBJECT")
+        piece = next(o for o in bpy.data.objects if o not in before)
+        piece.name = "held_" + _tn
+        piece.vertex_groups.clear()
+        for m in list(piece.modifiers):
+            piece.modifiers.remove(m)
+        piece.data.transform(ITEM_REST[_ib])
+        piece.parent = rig
+        piece.parent_type = "BONE"
+        piece.parent_bone = _tn
+        piece.matrix_world = Matrix.Identity(4)
+        piece.data.materials.clear()
+        HELD_OBJS.append(piece)
+        print("MESHY held tail piece %s: its own mesh, %d triangles" % (piece.name, len(piece.data.polygons)))
     rig.data.pose_position = "POSE"
     bpy.context.view_layer.update()
     # The body keeps no weights on the held things' bones.
-    for it in ITEMS:
-        if it["bone"] in lo.vertex_groups:
-            lo.vertex_groups.remove(lo.vertex_groups[it["bone"]])
+    for b_ in [it["bone"] for it in ITEMS] + [t_[0] for t_ in TAILS]:
+        if b_ in lo.vertex_groups:
+            lo.vertex_groups.remove(lo.vertex_groups[b_])
 if "handuv" in lo.data.uv_layers:
     lo.data.uv_layers.remove(lo.data.uv_layers["handuv"])
 lo.parent = rig
@@ -3266,9 +3552,15 @@ for it in ITEMS:
     # The held thing rides its main hand's forearm in the ragdoll and the
     # living body (RagdollRig segments: 3 the left forearm, 5 the right).
     RIDES[it["bone"]] = 3 if it["main"] == "l" else 5
+FLOP = {}
+for _tn, _tp, _ib in TAILS:
+    _it = next(it for it in ITEMS if it["bone"] == _ib)
+    labels[_tn] = "arm_" + _it["main"]
+    RIDES[_tn] = 3 if _it["main"] == "l" else 5
+    FLOP[_tn] = _tp
 old_entry = json.load(open(os.path.join(os.path.dirname(CFG["old_glb"]), "actors.json")))[KIND]
 entry = {
-    "bones": float(len(BONES) + len(GEAR)),
+    "bones": float(len(BONES) + len(GEAR) + len(TAILS)),
     "canvas": old_entry.get("canvas", [1.75, 1.86]),
     "faces": float(len(lo.data.loop_triangles)),
     "frames": FRAMES,
@@ -3276,10 +3568,11 @@ entry = {
     "height": OLD_H,
     "labels": labels,
     "lit": old_entry.get("lit", True),
-    "parts": float(len(BONES) + len(GEAR)),
+    "parts": float(len(BONES) + len(GEAR) + len(TAILS)),
     "textures": ["", "hurt"],
     "joints": JOINTS,
     "rides": RIDES,
+    **({"flop": FLOP} if FLOP else {}),
     **({"hold_near": float(CFG["hold_near"])} if "hold_near" in CFG else {}),
     **({"hold_legs": True} if CFG.get("hold_legs") else {}),
     "segs": dict({"body": 0, "head": 1, "upperarm_l": 2, "forearm_l": 3, "hand_l": 3, "upperarm_r": 4,
