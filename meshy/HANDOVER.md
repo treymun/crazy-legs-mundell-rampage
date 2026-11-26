@@ -283,3 +283,10 @@ backprobe, partcol, partbox, islands, meshy_view), gds/hog_blast.gd and
 crawl_diag.gd (ragdoll stretch diagnostics), keys_zoom.py (KV_SCALE, KV_C,
 KV_HIDE). The hands sheet script is meshy-work/scripts/hands_render.py
 (iter.sh points at a wrong path for it).
+
+Last check_all quick (fourth session, after 22b, scratch profile): 53 ok,
+1 FAILED - cpu_check "the bot game's tick 2.06 yardsticks (< 2.0)" under
+check_all's parallel load; cpu_check run alone right after: CPU CHECK OK
+(1.14 yardsticks). actor_check, boss_check, boss_end_check,
+boss_rematch_check, arena_wreck_check, live_body_check, physics_check all OK
+after every boss of this session (run alone).
