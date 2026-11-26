@@ -11,10 +11,12 @@ from PIL import Image
 kind = sys.argv[1]
 P = json.load(open("meshy/kinds/prompts.json", encoding="utf-8"))[kind]
 SP = os.path.abspath("..")
-ref_dir = os.path.join(SP, "meshy-work", "meshyref")
+# (MESHY_WORK: a second agent's own work folder)
+MW = os.environ.get("MESHY_WORK") or os.path.join(SP, "meshy-work")
+ref_dir = os.path.join(MW, "meshyref")
 os.makedirs(ref_dir, exist_ok=True)
 # References: the current model's front at its standing key, and its cel.
-front = Image.open(os.path.join(SP, "meshy-work", "ref", kind + "_front.png")).convert("RGB")
+front = Image.open(os.path.join(MW, "ref", kind + "_front.png")).convert("RGB")
 front.save(os.path.join(ref_dir, kind + "_front.png"))
 # ("refs": "cel" - the cel alone: the owner's rule of 2026-11-26, a natural
 # body in the theme rather than a copy of the old model's proportions)
@@ -58,7 +60,7 @@ if P.get("refs") == "cel":
         "(the 3D figure and the small game sprite are the same character)", "(a small low-resolution game sprite)")
 model = {
     "ai_model": "latest",
-    "image_url": "@file:" + os.path.join(SP, "meshy-work", "meshy_out", kind + "_concept", "image_0.png"),
+    "image_url": "@file:" + os.path.join(MW, "meshy_out", kind + "_concept", "image_0.png"),
     "should_texture": True,
     "enable_pbr": False,
     "topology": "triangle",
