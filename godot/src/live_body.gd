@@ -94,6 +94,8 @@ static var SETTLE_K: float = Effects.RAGDOLL.get("live_settle", 1.8)
 static var RISE_MOST: float = Effects.RAGDOLL.get("live_rise", .006)
 static var MUSCLE_MOST: float = Effects.RAGDOLL.get("live_muscle_most", .012)
 static var SPEED_MOST: float = Effects.RAGDOLL.get("live_speed_most", 5.0)
+## The fastest fall (map units a second).
+const FALL_MOST := 14.0
 static var DOWN_LEGS: float = Effects.RAGDOLL.get("live_down_legs", .1)
 static var DOWN_UPRIGHT: float = Effects.RAGDOLL.get("live_down_upright", .5)
 static var DOWN_KNEE: float = Effects.RAGDOLL.get("live_down_knee", 2.2)
@@ -407,8 +409,12 @@ func live_step() -> void:
 		var p := pos[i]
 		prev[i] = p
 		# (No part faster than SPEED_MOST: the joints' corrections fighting a
-		# planted foot and the floor never fling him.)
-		var v := ((p - old[i]) * AIR_LIVE).limit_length(SPEED_MOST * STEP)
+		# planted foot and the floor never fling him. A fall is gravity's,
+		# not held back so: off a ledge he drops with his weight.)
+		var v := (p - old[i]) * AIR_LIVE
+		var fall := minf(v.z, 0.0)
+		v = Vector3(v.x, v.y, maxf(v.z, 0.0)).limit_length(SPEED_MOST * STEP)
+		v.z += maxf(fall, -FALL_MOST * STEP)
 		old[i] = p
 		pos[i] = p + v - Vector3(0.0, 0.0, g)
 	# Play's body's move: whole to the torso, as no speed of its own.

@@ -55,9 +55,19 @@ static var SHOVED_FROM: float = Effects.RAGDOLL.get("active_shoved_from", 1.5)
 ## over JUMP_FOR seconds.
 const JUMP := .3
 const JUMP_FOR := .3
+## Going over a rail: the lift past clearing it (map units a second) and the
+## spin about the bar (radians a second).
+const OVER_LIFT := 0.0
+const OVER_SPIN := 3.2
 ## A drunk this near the eye (cells) walks as a live body (ActorLayer3D).
 static var DRUNK_REACH: float = Effects.RAGDOLL.get("active_drunk_reach", 9.0)
 
+## The bar he last went over (Vector3.INF none), its way across toward
+## the far side, its half thickness, until when a ball on it rolls off.
+var over_at := Vector3.INF
+var _over_n := Vector3.ZERO
+var _over_half := .05
+var _over_until := -1.0
 ## The level it stands in (the view's), each ball's floor this step, and
 ## whether all round is open floor (the cells' ground is all there is).
 var world: LevelData
@@ -67,6 +77,9 @@ var _open_all := true
 var play_v := Vector3.ZERO
 ## Stunned by play (a boot, a slam): fast, he is shoved.
 var stunned := false
+## Shoved faster than steps can keep up: the share of play's move his
+## planted boots skid with (0 none).
+var skid := 0.0
 ## Off: no behaviour sets anything (LiveBody's muscles alone; the checks).
 var acts := true
 ## The drunk's share (0 sober, 1 the drunk coot) and his next look and sway.
@@ -121,11 +134,75 @@ func aim(points: PackedVector3Array, at: Vector3, frames: int) -> void:
 			planted[0] = Vector3.INF
 			planted[1] = Vector3.INF
 			swing_foot = -1
+			_over(was, at)
+	if was != Vector3.INF and at.z < was.z - .002 and at.z > was.z - 1.0:
+		# Play's body falling (off a ledge, over a rail): the torso drops
+		# with it (the limbs come by their links, trailing).
+		_carry_step.z = (at.z - was.z) / float(maxi(1, _carry_left))
 	if was != Vector3.INF:
 		var moved := at - was
 		moved.z = 0.0
 		var v := moved / (maxf(1.0, float(frames)) * STEP)
 		play_v = play_v.lerp(v, .5) if v.length() < 12.0 else Vector3.ZERO
+
+
+## Play took him from `from` to `to` at once: across a rail (looked for along
+## the way at his hips), the bar catches him under the hips and turns him
+## over it: the body thrown up to clear it and spun about the bar, head
+## first over the far side, the legs swung up after (the rest is the rig,
+## gravity and the bar's contact).
+func _over(from: Vector3, to: Vector3) -> void:
+	if world == null:
+		return
+	var way := Vector3(to.x - from.x, to.y - from.y, 0.0)
+	var far := way.length()
+	if far < 1e-4:
+		return
+	way /= far
+	var hips := (pos[R.HIP_L] + pos[R.HIP_R]) * .5
+	var rail: LevelGeometry.Segment = null
+	var at := Vector3.INF
+	for k in range(1, 9):
+		var q := Vector3(from.x, from.y, hips.z) + way * far * k / 8.0
+		for up: float in [0.0, -.25, -.5]:
+			rail = PhysCore.rail_at(world, q + Vector3(0.0, 0.0, up * size), .05)
+			if rail != null:
+				at = q + Vector3(0.0, 0.0, up * size)
+				break
+		if rail != null:
+			break
+	if rail == null:
+		return
+	var pivot := Vector3(at.x, at.y, rail.z1)
+	var rise := maxf(0.0, rail.z1 + radius[R.HIP_L] * 1.3 - hips.z)
+	var lift := sqrt(2.0 * GRAVITY * rise) + OVER_LIFT
+	var spin := Vector3(0.0, 0.0, 1.0).cross(way) * OVER_SPIN
+	for i in R.POINTS:
+		add_speed(i, Vector3(0.0, 0.0, lift) + spin.cross(pos[i] - pivot))
+	over_at = pivot
+	var run := Vector2(rail.bx - rail.ax, rail.by - rail.ay).normalized()
+	var n := Vector2(-run.y, run.x)
+	if n.dot(Vector2(way.x, way.y)) < 0.0:
+		n = -n
+	_over_n = Vector3(n.x, n.y, 0.0)
+	_over_half = rail.half
+	_over_until = age + 1.5
+
+
+## A ball lying on the bar he went over rolls off it on his far side (the
+## walls hold a ball on top of a rail it came over; nothing else tips it).
+func _off_bar() -> void:
+	if age > _over_until:
+		return
+	for i in R.POINTS:
+		var p := pos[i]
+		var r := radius[i]
+		if p.z - r > over_at.z + .06 or p.z < over_at.z - r:
+			continue
+		var off := (p - over_at).dot(_over_n)
+		var reach := r + _over_half
+		if absf(off) < reach:
+			pos[i] = p + _over_n * minf(.025, reach - off)
 
 
 ## Play's word (LiveBody.play_says), a drunk always reeling, a man shoved
@@ -153,6 +230,12 @@ func done() -> bool:
 ## kept last.
 func live_step() -> void:
 	_ask_floors()
+	if skid > 0.0:
+		# Driven faster than he can step: his planted boots skid along the
+		# floor (the grip lost), the share `skid` of play's move.
+		for f in 2:
+			if planted[f] != Vector3.INF:
+				planted[f] = _floored(planted[f] + Vector3(play_v.x, play_v.y, 0.0) * STEP * skid, FEET[f])
 	super.live_step()
 	if world != null and not _open_all:
 		for i in R.POINTS:
@@ -167,10 +250,15 @@ func live_step() -> void:
 					if _solid(world, on, radius[i]):
 						pos[i] = on
 						break
+			var was_z := pos[i].z
 			_walls(world, i)
+			if pos[i].z > was_z:
+				# (Put up on a bar or a tread: held there, not thrown up.)
+				old[i] = Vector3(old[i].x, old[i].y, old[i].z + pos[i].z - was_z)
 			var low := floors[i] + (_foot_up(i) if FEET.has(i) else radius[i])
 			if pos[i].z < low:
 				pos[i] = Vector3(pos[i].x, pos[i].y, low)
+	_off_bar()
 	# Held balls end the step where they are held.
 	for i: int in pins:
 		var at: Vector3 = pins[i]
@@ -235,6 +323,10 @@ func _floored(p: Vector3, i: int) -> Vector3:
 func _behave(dt: float) -> void:
 	tone = PackedFloat32Array([1.0, 1.0, 1.0, 1.0])
 	upright = 1.0
+	skid = 0.0
+	var fast := Vector2(play_v.x, play_v.y).length()
+	if acts and stunned and down == 0 and fast > SHOVED_FROM:
+		skid = clampf((fast - SHOVED_FROM * .7) / fast, 0.0, .85)
 	if not muscles or not acts or target.size() < R.POINTS:
 		return
 	if drunk > 0.0:

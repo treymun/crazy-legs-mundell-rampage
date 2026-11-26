@@ -47,9 +47,11 @@ static var WRITHE_FOR: Array = Effects.RAGDOLL.get("dying_writhe", [1.8, 3.2])
 static var SLACK_END: float = Effects.RAGDOLL.get("dying_slack_end", 1.0)
 static var CRAWL_CYCLE: float = Effects.RAGDOLL.get("dying_crawl", .9)
 static var HOOD: Array = Effects.RAGDOLL.get("dying_hood", [.36, 1.1, .75, .45])
+## A style every dying body takes (-1: its own dice; the motion strips).
+static var force_style := -1
 static var MUSCLE_MOST: float = Effects.RAGDOLL.get("dying_muscle_most", .02)
 ## Seconds the arms take the fall once a hand is down before they give.
-static var BRACE_GIVE: float = Effects.RAGDOLL.get("dying_brace_give", .35)
+static var BRACE_GIVE: float = Effects.RAGDOLL.get("dying_brace_give", .2)
 
 var style := LIMP
 var slack_for := 1.5
@@ -132,6 +134,8 @@ func begin(e: Enemy, seed: int) -> void:
 			if roll < total:
 				style = k
 				break
+	if force_style >= 0:
+		style = force_style
 	var wlo: float = WRITHE_FOR[0]
 	var whi: float = WRITHE_FOR[1]
 	behave_for = dice.randf_range(wlo, whi)
@@ -302,8 +306,8 @@ func _brace(fr: Basis) -> void:
 		var side := fr.x * radius[R.SH_L] * (-1.0 if arm == 0 else 1.0)
 		_hand_to(fr, arm, brace_at + side, .97)
 		var hand := R.HAND_L if arm == 0 else R.HAND_R
-		_k[hand] *= 1.6 * give
-		_k[hand - 1] *= 1.6 * give
+		_k[hand] *= give
+		_k[hand - 1] *= give
 	# The head off the fall.
 	var away := fr.transposed() * -lean
 	var h := held[R.HEAD]
@@ -340,18 +344,22 @@ func _curl(leg: int, curl: float) -> void:
 	var foot := knee + 1
 	if _stiff(R.HIP_L if leg == 0 else R.HIP_R):
 		return
-	var turn := Basis(Vector3(1.0, 0.0, 0.0), -curl)
-	_want[knee] = turn * _rest[knee]
-	_want[foot] = Basis(Vector3(1.0, 0.0, 0.0), curl * .9) * (turn * _rest[foot])
-	_k[knee] = TONE * env * .8
-	_k[foot] = TONE * env * .8
+	# (Torso frame: the thigh swung ahead of straight down by `curl`, the
+	# shin back behind it by as much again and more: the knee folded, the
+	# foot back near the floor he lies on.)
+	var thigh := Vector3(0.0, -cos(curl), sin(curl))
+	var shin := Vector3(0.0, -cos(curl * .9), -sin(curl * .9))
+	_want[knee] = thigh * _rest[knee].length()
+	_want[foot] = shin * _rest[foot].length()
+	_k[knee] = TONE * env * .7
+	_k[foot] = TONE * env * .7
 
 
 ## Writhing: knees drawn up and let go, a hand on the wound, the head up,
 ## rocking side to side.
 func _writhe(fr: Basis, t: float) -> void:
 	for leg in 2:
-		_curl(leg, .75 + .55 * sin(t * (2.1 + leg * .6) + leg * 1.9))
+		_curl(leg, .6 + .3 * sin(t * (2.1 + leg * .6) + leg * 1.9))
 	if clutch_hand >= 0:
 		var hips := (pos[R.HIP_L] + pos[R.HIP_R]) * .5
 		_hand_to(fr, clutch_hand, hips + fr * wound, .95)
@@ -403,7 +411,7 @@ func _get_up(fr: Basis, t: float) -> void:
 		else:
 			grips.erase(hand)
 	for leg in 2:
-		_curl(leg, 1.1 if phase > .4 and phase < 1.35 else .5)
+		_curl(leg, 1.0 if phase > .4 and phase < 1.35 else .45)
 
 
 ## Crawling (face down): a hand reaches ahead, grips, the arm pulls him on
@@ -432,7 +440,7 @@ func _crawl(fr: Basis, t: float) -> void:
 		_k[hand] = TONE * env * 2.6
 		_k[hand - 1] = TONE * env * 2.6
 	for leg in 2:
-		_curl(leg, .35 + .35 * sin(t * TAU / CRAWL_CYCLE + leg * PI))
+		_curl(leg, .15 + .15 * sin(t * TAU / CRAWL_CYCLE + leg * PI))
 	_want[R.HEAD] = Basis(Vector3(1.0, 0.0, 0.0), .4) * _rest[R.HEAD]
 	_k[R.HEAD] = TONE * env
 

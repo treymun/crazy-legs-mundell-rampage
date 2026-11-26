@@ -84,7 +84,7 @@ static func _man(g: Game, at: Vector2, angle: float, kind := "billy") -> Enemy:
 	e.last_floor = e.floor_z
 	e.hp = 900.0
 	e.max_hp = 900.0
-	e.uid = 77
+	e.uid = 987654
 	g.enemies.append(e)
 	return e
 
@@ -558,11 +558,11 @@ func _rail_check(main: Node) -> void:
 		var was: PackedVector3Array = st["was"]
 		for i in R.POINTS:
 			if (was[i].y < line) != (b.pos[i].y < line) and absf(b.pos[i].x - 44.0) < 2.0:
-				var low := minf(was[i].z, b.pos[i].z) - b.radius[i]
-				if low < top - .1 and minf(was[i].z, b.pos[i].z) > 1.55:
+				# (Its middle's height where it crossed the bar's line.)
+				var k := clampf((line - was[i].y) / (b.pos[i].y - was[i].y), 0.0, 1.0)
+				var at_line := lerpf(was[i].z, b.pos[i].z, k)
+				if at_line < top - .02 and minf(was[i].z, b.pos[i].z) > 1.55:
 					st["through"] = int(st["through"]) + 1
-					if int(st["through"]) < 12:
-						_say("through %d at %.2f: %s -> %s body %s" % [i, _t, was[i], b.pos[i], b.body])
 				else:
 					st["over"] = int(st["over"]) + 1
 		st["was"] = b.pos.duplicate()
