@@ -3469,12 +3469,12 @@
 		]
 	},
 	"jerry": {
-		"bones": 50.0,
+		"bones": 51.0,
 		"canvas": [
 			2.1,
 			1.98
 		],
-		"faces": 16388.0,
+		"faces": 16023.0,
 		"frames": {
 			"0": 0.0,
 			"aim": 6.0,
@@ -3495,15 +3495,15 @@
 			"wind": 7.0
 		},
 		"gear": {
-			"helmet_brim_gear": "helmet",
 			"helmet_gear": "helmet",
-			"helmet_low_gear": "helmet",
 			"helmet_mask_gear": "helmet",
-			"helmet_shell_gear": "helmet"
+			"helmet_mask_l_gear": "helmet",
+			"helmet_mask_r_gear": "helmet",
+			"helmet_shell_gear": "helmet",
+			"helmet_stripe_gear": "helmet"
 		},
 		"height": 1.894,
 		"hold_legs": true,
-		"hold_near": 1.08,
 		"joints": {
 			"0": "thigh_l",
 			"1": "thigh_r",
@@ -3559,11 +3559,12 @@
 			"hand_l": "arm_l",
 			"hand_r": "arm_r",
 			"head": "head",
-			"helmet_brim_gear": "head",
 			"helmet_gear": "head",
-			"helmet_low_gear": "head",
 			"helmet_mask_gear": "head",
+			"helmet_mask_l_gear": "head",
+			"helmet_mask_r_gear": "head",
 			"helmet_shell_gear": "head",
+			"helmet_stripe_gear": "head",
 			"shin_l": "leg_l",
 			"shin_r": "leg_r",
 			"thigh_l": "leg_l",
@@ -3573,7 +3574,7 @@
 		},
 		"lit": true,
 		"meshy": true,
-		"parts": 50.0,
+		"parts": 51.0,
 		"rides": {
 			"gear0": 5.0
 		},
@@ -3616,11 +3617,12 @@
 			"hand_l": 3.0,
 			"hand_r": 5.0,
 			"head": 1.0,
-			"helmet_brim_gear": 1.0,
 			"helmet_gear": 1.0,
-			"helmet_low_gear": 1.0,
 			"helmet_mask_gear": 1.0,
+			"helmet_mask_l_gear": 1.0,
+			"helmet_mask_r_gear": 1.0,
 			"helmet_shell_gear": 1.0,
+			"helmet_stripe_gear": 1.0,
 			"shin_l": 7.0,
 			"shin_r": 9.0,
 			"thigh_l": 6.0,

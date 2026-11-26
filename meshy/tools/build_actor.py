@@ -2899,6 +2899,10 @@ if FISH_HI is not None:
     FISH_HI.visible_shadow = False
 total = None
 weight = None
+# (kind config "bake_ray": [cage, max ray] as shares of the height; a face
+# mask's bars standing a few cm off the face were baked onto the face as
+# grey stripes with the default reach)
+BAKE_RAY = [float(v) for v in CFG.get("bake_ray", [.012, .05])]
 nx = NORMALS[:, 0] * 2 - 1
 ny = NORMALS[:, 1] * 2 - 1
 kept = [hi.matrix_world.copy(), lo.matrix_world.copy()]
@@ -2913,7 +2917,7 @@ for k, angle in enumerate(TURNS):
     select([hi, lo] + ([FISH_HI] if FISH_HI is not None else []), lo)
     bake_op(type="COMBINED", pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE"},
             margin=TEXTURE // 128, use_clear=True, use_selected_to_active=True,
-            cage_extrusion=OLD_H * .012, max_ray_distance=OLD_H * .05)
+            cage_extrusion=OLD_H * BAKE_RAY[0], max_ray_distance=OLD_H * BAKE_RAY[1])
     px = pixels(image)
     c, sn = math.cos(math.radians(angle)), math.sin(math.radians(angle))
     toward = -(sn * nx + c * ny)
@@ -2930,6 +2934,15 @@ hi.matrix_world, lo.matrix_world = kept
 if FISH_HI is not None:
     FISH_HI.matrix_world = Matrix.Identity(4)
 bpy.context.view_layer.update()
+# (kind config "face_albedo": Meshy's own unlit colour, for a face shadowed
+# by a helmet and its face mask in the lit bake - see face_lift)
+ALBEDO = None
+if CFG.get("face_albedo"):
+    scene.cycles.samples = 8
+    select([hi, lo], lo)
+    bake_op(type="DIFFUSE", pass_filter={"COLOR"}, margin=TEXTURE // 128, use_clear=True,
+            use_selected_to_active=True, cage_extrusion=OLD_H * BAKE_RAY[0], max_ray_distance=OLD_H * BAKE_RAY[1])
+    ALBEDO = pixels(image)[:, :3].copy()
 found = weight > 0
 total[found, :3] /= weight[found, None]
 inside = NORMALS[:, :3].sum(axis=1) > .05
@@ -3226,6 +3239,56 @@ def face_lift(px):
         if oskin.sum() > 50:
             old_l = float(numpy.median(o[oskin] @ numpy.array([.299, .587, .114])))
             want = max(want, (old_l - .024) / 1.18 * float(CFG.get("face_light", 1.0)))
+    # (kind config "face_albedo": share - the face's skin rebuilt from
+    # Meshy's unlit colour at the wanted light, shaded only softly by its
+    # baked light: a helmet's brim and face-mask bars threw hard shadows
+    # across the face, which went grey-lilac under the fill light and kept
+    # out of the lift as not skin-coloured)
+    if CFG.get("face_albedo") and ALBEDO is not None:
+        a = ALBEDO
+        amx, amn = a.max(axis=1), a.min(axis=1)
+        asat = numpy.where(amx > 1e-4, (amx - amn) / numpy.maximum(amx, 1e-4), 0)
+        ad = numpy.maximum(amx - amn, 1e-6)
+        ah = numpy.where(amx == a[:, 0], (60 * ((a[:, 1] - a[:, 2]) / ad)) % 360,
+                         numpy.where(amx == a[:, 1], 60 * ((a[:, 2] - a[:, 0]) / ad) + 120, 60 * ((a[:, 0] - a[:, 1]) / ad) + 240))
+        s_ref = float(numpy.median(asat[HEADZONE & (asat > .12) & (asat < .8) & (a[:, 0] > a[:, 2])])) if (HEADZONE & (asat > .12)).sum() > 50 else .3
+        fm = HEADZONE & (a[:, 0] > a[:, 2]) & (asat > float(CFG.get("face_albedo_sat", .12))) & (asat < .8) & (amx > .12) & (
+            numpy.abs(((ah - s_h + 180) % 360) - 180) < float(CFG.get("face_albedo_hue", 22)))
+        if "HANDMASK" in globals():
+            fm &= ~HANDMASK
+        if fm.sum() > 50:
+            alum = a @ numpy.array([.299, .587, .114])
+            fm &= alum > float(numpy.median(alum[fm])) * .5
+            # (teeth and eye whites: light and nearly grey - they stay)
+            fm &= ~((asat < .14) & (alum > float(numpy.median(alum[fm])) * 1.12))
+            L = lum.copy().reshape(TEXTURE, TEXTURE)
+            m2 = fm.reshape(TEXTURE, TEXTURE)
+            for _ in range(6):
+                acc = numpy.zeros_like(L)
+                cnt = numpy.zeros_like(L)
+                for dy, dx in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                    mm = numpy.roll(numpy.roll(m2, dy, 0), dx, 1)
+                    acc += numpy.roll(numpy.roll(L, dy, 0), dx, 1) * mm
+                    cnt += mm
+                L[m2] = (acc / numpy.maximum(cnt, 1))[m2]
+            L = L.reshape(-1)
+            r = numpy.clip(L / max(float(numpy.median(L[fm])), 1e-4), float(CFG.get("face_albedo_shade", .82)), 1.12)
+            kf = want / max(float(numpy.median(alum[fm])), 1e-4)
+            gk = float(CFG["face_albedo"])
+            px = px.copy()
+            newc = numpy.clip(a[fm] * kf * r[fm, None], 0, 1)
+            # (a stubbled jaw's greyish albedo brought up to most of the
+            # skin's colour: grey skin dithers into grey blotches)
+            ng = newc.mean(axis=1, keepdims=True)
+            nsat = asat[fm][:, None]
+            want_s = s_ref * .75
+            newc = numpy.clip(ng + (newc - ng) * numpy.maximum(1.0, want_s / numpy.maximum(nsat, .03)), 0, 1)
+            px[fm, :3] = px[fm, :3] * (1 - gk) + newc * gk
+            rgbv = px[:, :3]
+            lum = rgbv @ numpy.array([.299, .587, .114])
+            face = face | fm
+            have = float(numpy.median(lum[face]))
+            print("MESHY face from the albedo: %d texels (light x%.2f)" % (int(fm.sum()), kf))
     skin_all = face | rest
     # (not hair or a beard: a texel much darker than the skin's middle stays)
     skin_all &= lum > float(numpy.median(lum[skin_all])) * .6
@@ -3245,6 +3308,28 @@ def face_lift(px):
     lm = float(numpy.median(lumn[skin_all]))
     hot = skin_all & (lumn > lm * 1.3)
     rgbn[hot] = rgbn[hot] * ((lm * 1.3) / numpy.maximum(lumn[hot], 1e-4))[:, None]
+    # (kind config "face_greys": share - grey texels in among the face's
+    # skin (Meshy's stubble and grime under a helmet: not skin-coloured
+    # enough to be lifted) dither into grey blotches beside the lifted skin;
+    # they take the lifted skin's colour at their own light, that share)
+    if CFG.get("face_greys"):
+        gk = float(CFG["face_greys"])
+        m2 = skin_all.reshape(TEXTURE, TEXTURE)
+        dil = m2.copy()
+        for _ in range(4):
+            dil = dil | numpy.roll(dil, 1, 0) | numpy.roll(dil, -1, 0) | numpy.roll(dil, 1, 1) | numpy.roll(dil, -1, 1)
+        mxn, mnn = rgbn.max(axis=1), rgbn.min(axis=1)
+        satn = numpy.where(mxn > 1e-4, (mxn - mnn) / numpy.maximum(mxn, 1e-4), 0)
+        cand = HEADZONE & ~skin_all & dil.reshape(-1) & (satn < .16) & (lumn > lm * .3) & (lumn < lm * 1.25)
+        if "HANDMASK" in globals():
+            cand &= ~HANDMASK
+        if cand.sum() > 10:
+            sc = numpy.median(rgbn[skin_all], axis=0)
+            scl = max(float(sc @ numpy.array([.299, .587, .114])), 1e-4)
+            new = sc[None, :] * (numpy.minimum(lumn[cand] * max(k, 1.0), lm * 1.15) / scl)[:, None]
+            rgbn[cand] = numpy.clip(rgbn[cand] * (1 - gk) + new * gk, 0, 1)
+            skin_all = skin_all | cand
+            print("MESHY face greys: %d texels toward the skin" % int(cand.sum()))
     smooth_in(px, skin_all, 3)
     SKIN_DONE[:] = skin_all
     return px
