@@ -27,18 +27,20 @@
 ## after the player last was, and hands back the moment the boss falls.
 extends GameFeature
 
-## Seconds the whole loop holds after the last of what keeps it (and how
-## soon it drops in a director's breather); BUILD's and PEAK's holds.
-const HOLD := 12.0
-const BREATHER_DROP := 1.0
-const QUIET_HOLD := 5.0
-const BUILD_HOLD := 5.0
-const PEAK_HOLD := 3.0
+## The numbers (data/tuning/fight_music.cfg [all]): seconds the whole loop
+## holds after the last of what keeps it (and how soon it drops in a
+## director's breather, and with nobody about); BUILD's and PEAK's holds.
+const DATA := "res://data/tuning/fight_music.cfg"
+static var HOLD: float = Tuning.value(DATA, "hold")
+static var BREATHER_DROP: float = Tuning.value(DATA, "breather_drop")
+static var QUIET_HOLD: float = Tuning.value(DATA, "quiet_hold")
+static var BUILD_HOLD: float = Tuning.value(DATA, "build_hold")
+static var PEAK_HOLD: float = Tuning.value(DATA, "peak_hold")
 ## FIGHT: this many on the player, or one and a blow within HURT_HOT s, or the
 ## director's intensity this high.
-const CROWD := 2
-const HURT_HOT := 4.0
-const FIGHT_HEAT := .5
+static var CROWD: int = Tuning.value(DATA, "crowd")
+static var HURT_HOT: float = Tuning.value(DATA, "hurt_hot")
+static var FIGHT_HEAT: float = Tuning.value(DATA, "fight_heat")
 ## How close an enemy hunting the player out of sight must be, and one
 ## winding up or recovering from an attack (sight itself reaches 14).
 const HUNT_RANGE := 9.0
