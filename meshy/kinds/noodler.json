@@ -8,5 +8,16 @@
  "tris": 10000,
  "texture": 512,
  "gear": "old",
- "gear_one": true
+ "gear_one": true,
+ "gear_skip": [
+  "b31",
+  "b34",
+  "b23",
+  "b26"
+ ],
+ "hold_legs": true,
+ "carry_top": "up",
+ "grip_skip": [
+  "l"
+ ]
 }

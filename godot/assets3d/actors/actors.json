@@ -4872,7 +4872,7 @@
 		]
 	},
 	"noodler": {
-		"bones": 49.0,
+		"bones": 45.0,
 		"canvas": [
 			1.8,
 			2.02
@@ -4910,6 +4910,7 @@
 		},
 		"gear": {},
 		"height": 1.695,
+		"hold_legs": true,
 		"joints": {
 			"0": "thigh_l",
 			"1": "thigh_r",
@@ -4962,10 +4963,6 @@
 			"fr_th2": "arm_r",
 			"fr_th3": "arm_r",
 			"gear0": "arm_r",
-			"gear1": "arm_r",
-			"gear2": "arm_r",
-			"gear3": "arm_r",
-			"gear4": "arm_l",
 			"hand_l": "arm_l",
 			"hand_r": "arm_r",
 			"head": "head",
@@ -4978,13 +4975,9 @@
 		},
 		"lit": true,
 		"meshy": true,
-		"parts": 49.0,
+		"parts": 45.0,
 		"rides": {
-			"gear0": 5.0,
-			"gear1": 5.0,
-			"gear2": 5.0,
-			"gear3": 5.0,
-			"gear4": 3.0
+			"gear0": 5.0
 		},
 		"segs": {
 			"body": 0.0,

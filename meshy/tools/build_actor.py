@@ -1712,7 +1712,7 @@ def solve(name, dz=0.0, held0=None):
         else:
             end_r = J["tip_" + side]
             target = sh_f + (P[ha] - P[sh])
-            if side in GRIP_AT:
+            if side in GRIP_AT and side not in CFG.get("grip_skip", []):
                 seen = [old_bone(name, i) for i in GRIP_AT[side][0] if old_bone(name, i)[2].x > .2]
                 if seen:
                     target = sum((q[0] for q in seen), Vector()) / len(seen)
