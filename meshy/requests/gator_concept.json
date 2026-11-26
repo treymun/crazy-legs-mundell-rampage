@@ -1,0 +1,9 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference images only as the animal's design (the 3D figure and the small game sprite are the same animal), paint a high-detail full-body concept of this American alligator for a gritty 1990s Southern comedy horror first-person shooter. Keep its design exactly: a long low olive-grey armoured body with rows of raised bony ridges down the back and the long thick tail, a long broad snout with a ragged row of yellowed teeth showing along the closed jaws, yellow-orange eyes on top of the head, a paler cream-grey belly, short splayed legs with clawed feet. Give it real personality: cold, patient and hungry, a swamp killer. Natural anatomy, a little caricatured. Worn and grimy: mud and swamp muck, matte hand-painted gritty texture detail, muted dusty colours, not glossy, not a clean modern render. Seen from the side and a little above, lying low on its belly on all four splayed legs, the tail straight out behind, jaws closed. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole animal in frame with space around it, sharp focus, one single animal, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:../meshy-work/meshyref/gator_three.png",
+  "@file:../meshy-work/meshyref/gator_cel.png"
+ ],
+ "aspect_ratio": "4:3"
+}

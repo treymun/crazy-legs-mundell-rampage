@@ -397,6 +397,98 @@
    "time": "2026-11-26 05:48:27",
    "after": 2381,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "hog_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a217e9-e338-7101-b2b3-33cbebf0c5d8",
+   "before": 2381,
+   "cost": 9,
+   "body": "hog_concept.json",
+   "time": "2026-11-26 06:52:16",
+   "after": 2372,
+   "status": "SUCCEEDED",
+   "note": "four concepts run at once; the ledger kept one line for the 36 together, split here (balance 2381 -> 2345)"
+  },
+  {
+   "label": "gator_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a217e9-e33a-7298-a14a-3323745f1e62",
+   "before": 2372,
+   "cost": 9,
+   "body": "gator_concept.json",
+   "time": "2026-11-26 06:52:16",
+   "after": 2363,
+   "status": "SUCCEEDED",
+   "note": "four concepts run at once; the ledger kept one line for the 36 together, split here (balance 2381 -> 2345)"
+  },
+  {
+   "label": "crawler_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a217e9-e337-71d0-acae-0364fa062aee",
+   "before": 2363,
+   "cost": 9,
+   "body": "crawler_concept.json",
+   "time": "2026-11-26 06:52:16",
+   "after": 2354,
+   "status": "SUCCEEDED",
+   "note": "four concepts run at once; the ledger kept one line for the 36 together, split here (balance 2381 -> 2345)"
+  },
+  {
+   "label": "hound_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a217e9-e3c3-7754-9924-986e9b453315",
+   "before": 2354,
+   "cost": 9,
+   "body": "hound_concept.json",
+   "time": "2026-11-26 06:52:16",
+   "after": 2345,
+   "status": "SUCCEEDED",
+   "note": "four concepts run at once; the ledger kept one line for the 36 together, split here (balance 2381 -> 2345)"
+  },
+  {
+   "label": "hog_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a217ea-f114-7752-8b2a-8b07dab88693",
+   "before": 2345,
+   "cost": 30,
+   "body": "hog_model.json",
+   "time": "2026-11-26 06:53:27",
+   "after": 2315,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "gator_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a217ec-bfe8-76b8-aee5-e88cd1085077",
+   "before": 2315,
+   "cost": 30,
+   "body": "gator_model.json",
+   "time": "2026-11-26 06:55:28",
+   "after": 2285,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "crawler_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a217ed-903b-74db-87c7-6bbdb104097c",
+   "before": 2285,
+   "cost": 30,
+   "body": "crawler_model.json",
+   "time": "2026-11-26 06:56:19",
+   "after": 2255,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "hound_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a217ee-79ec-77b6-a295-7057f1034bc6",
+   "before": 2255,
+   "cost": 30,
+   "body": "hound_model.json",
+   "time": "2026-11-26 06:57:18",
+   "after": 2225,
+   "status": "SUCCEEDED"
   }
  ]
 }

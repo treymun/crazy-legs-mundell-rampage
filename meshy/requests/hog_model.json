@@ -1,0 +1,11 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:../meshy-work/meshy_out/hog_concept/image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "texture_prompt": "feral wild boar razorback, dark brown-black coarse bristly hair, bristle ridge along the spine, pale pink snout, ivory tusks, dark hooves, mud"
+}

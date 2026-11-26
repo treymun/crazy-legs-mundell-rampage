@@ -1,0 +1,9 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference images only as the animal's design (the 3D figure and the small game sprite are the same animal), paint a high-detail full-body concept of this giant swamp spider-crab creature (a 'crawler') for a gritty 1990s Southern comedy horror first-person shooter. Keep its design exactly: a round, smooth, dome-shaped tan-brown body like a big shell with mottled darker brown patches, two big glossy black round eyes on its front, two short curved ivory fangs under the eyes, six long thin jointed brown legs arched high up from the body's sides and down to pointed tips on the ground, no head separate from the body. Give it real personality: creepy, skittering and hungry, a bayou horror. Natural anatomy, a little caricatured. Worn and grimy: mud and swamp muck, matte hand-painted gritty texture detail, muted dusty colours, not glossy, not a clean modern render. Seen from the front left three-quarter, standing on all six legs arched high, the body level, legs spread evenly round it. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole animal in frame with space around it, sharp focus, one single animal, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:../meshy-work/meshyref/crawler_three.png",
+  "@file:../meshy-work/meshyref/crawler_cel.png"
+ ],
+ "aspect_ratio": "4:3"
+}

@@ -18,7 +18,9 @@ the dusk stage, four turns, matched to the old look's light. Kind config:
   vertices are not softened), hard (bones whose border is not softened
   from either side), legs [[hip, knee, foot]...] and torso (each old leg
   moved to the Meshy leg's place, keys and all), stand (the key the Meshy model stands as,
-  default "0"), icp (rounds of closest points, default 12), gain.
+  default "0"), icp (rounds of closest points, default 12), gain (times
+  the light matched to the old look's), tint [r, g, b] (times the colour),
+  weights ("heat" or "nearest"), groups (bones weighted as one).
   Not yet: a boss's old gear kept (its weapon parts), a hurt look.
 """
 import json
@@ -484,10 +486,18 @@ def heat_weights():
     select([tarm])
     bpy.ops.object.mode_set(mode="EDIT")
     made = 0
-    for g in old_mesh.vertex_groups:
-        pts = pv[names == g.name]
+    # "groups": each a list of old bones that move as one in the ragdoll (a
+    # BeastRig segment; the first, its biggest part, takes the weights): a
+    # body built of many small blocks (the hog's bristles and slabs) whose
+    # keys do not move them as one would tear a smooth skin apart.
+    groups = CFG.get("groups") or [[g.name] for g in old_mesh.vertex_groups]
+    for grp in groups:
+        if not grp:
+            continue
+        pts = pv[numpy.isin(names, grp)]
         if len(pts) < 4:
             continue
+        g = old_mesh.vertex_groups[grp[0]]
         c = pts.mean(axis=0)
         ax = numpy.linalg.svd(pts - c, full_matrices=False)[2][0]
         pr = (pts - c) @ ax
@@ -673,7 +683,7 @@ lum = lambda a: a @ numpy.array([.299, .587, .114])  # noqa: E731
 o_l = float(numpy.median(lum(op[op.sum(axis=1) > .03])))
 n_l = float(numpy.median(lum(total[inside, :3])))
 gain = float(numpy.clip(o_l / max(n_l, 1e-4), .6, 1.6)) * float(CFG.get("gain", 1.0))
-total[:, :3] = numpy.clip(total[:, :3] * gain, 0, 1)
+total[:, :3] = numpy.clip(total[:, :3] * gain * numpy.array(CFG.get("tint", [1, 1, 1])), 0, 1)
 print("BEAST gain %.3f to the old look's light" % gain)
 img.pixels.foreach_set(total.ravel())
 img.filepath_raw = os.path.join(OUT, KIND + ".png")
