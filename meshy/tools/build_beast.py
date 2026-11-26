@@ -722,14 +722,44 @@ def cut_mouth():
             if v.is_valid and (lay[v.index] if v.index < len(lay) else 0) != sd or v.index >= len(lay):
                 v[dl].clear()
                 v[dl][gi[sd]] = 1.0
+    # The mouth's inside: a bag from every lip edge back to a throat point
+    # by the hinge (the upper lip's edges make the palate, the lower's the
+    # floor and tongue), each lip vertex's place along its lip kept (teeth).
+    t_lay = bm.verts.layers.float.new("mouth_t")
+    s_lay = bm.verts.layers.float.new("mouth_s")
+    dl = bm.verts.layers.deform.active
     open_edges = [e for e in bm.edges if e.is_boundary]
-    made = bmesh.ops.holes_fill(bm, edges=open_edges, sides=0)
-    tri = bmesh.ops.triangulate(bm, faces=made.get("faces", []))
-    caps = [f for f in tri.get("faces", []) if f.is_valid]
+    lipv = {v for e in open_edges for v in e.verts}
+    pts = numpy.array([v.co[:] for v in lipv])
+    fr = CFG.get("front", [0.0, 1.0])
+    fwd = numpy.array([fr[0], -fr[1], 0.0])
+    fwd /= numpy.linalg.norm(fwd)
+    along = pts @ fwd
+    throat = pts.mean(axis=0) - fwd * (along.mean() - along.min()) * float(jaw.get("throat", .9))
+    # (low in the head and riding the lower jaw: held between the jaws it
+    # rose through the neck's top when the upper jaw lifted)
+    throat[2] -= float(numpy.ptp(pts[:, 2])) * float(jaw.get("throat_low", .5))
+    tv = bm.verts.new(Vector(throat.tolist()))
+    tv[dl][gi[2]] = 1.0
+    tv[t_lay] = 1.0
+    for v in lipv:
+        v[s_lay] = float(numpy.dot(numpy.array(v.co[:]), fwd))
+    caps = []
+    for e in open_edges:
+        a_, b_ = e.verts
+        f0 = e.link_faces[0] if e.link_faces else None
+        sd = fs.get(f0, 1) or 1
+        # (wound so it faces into the mouth: against the lip face's own loop)
+        loop_ab = f0 is not None and any(l_.vert == a_ and l_.link_loop_next.vert == b_ for l_ in f0.loops)
+        try:
+            f = bm.faces.new((b_, a_, tv) if loop_ab else (a_, b_, tv))
+        except ValueError:
+            continue
+        f.material_index = sd
+        caps.append(f)
     for f in bm.faces:
-        f.material_index = 0
-    for f in caps:
-        f.material_index = 1
+        if f not in set(caps):
+            f.material_index = 0
     n_caps = len(caps)
     bm.to_mesh(lo.data)
     bm.free()
@@ -754,7 +784,7 @@ scene.frame_set(STAND)
 bpy.context.view_layer.update()
 old_mesh.hide_render = True
 src.hide_render = True
-CAPS = [p_.index for p_ in lo.data.polygons if p_.material_index == 1]
+CAPS = [(p_.index, p_.material_index) for p_ in lo.data.polygons if p_.material_index in (1, 2)]
 lo.data.materials.clear()
 mat = bpy.data.materials.new("bake")
 mat.use_nodes = True
@@ -811,6 +841,21 @@ bpy.context.view_layer.update()
 found = weight > 0
 total[found, :3] /= weight[found, None]
 inside = NORMALS[:, :3].sum(axis=1) > .05
+# The underside: the stage lights it from above and the sides only, so a
+# belly baked near-black (a gator on its back showed a dark grey slab). Its
+# own colour (the Meshy albedo) at the light the sides have, a little shaded.
+select([hi, lo], lo)
+bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"}, margin=TEX // 128, use_clear=True,
+                    use_selected_to_active=True, cage_extrusion=OLD_H * .012, max_ray_distance=OLD_H * .05)
+ALBEDO = pixels(img)[:, :3].copy()
+nz = NORMALS[:, 2] * 2 - 1
+lum3 = numpy.array([.299, .587, .114])
+side_ok = found & inside & (nz > -.2) & (ALBEDO @ lum3 > .03)
+ratio = float(numpy.median((total[side_ok, :3] @ lum3) / (ALBEDO[side_ok] @ lum3))) if side_ok.any() else 1.0
+down = numpy.clip((-nz - .2) / .6, 0, 1)[:, None] * (inside & (ALBEDO.sum(axis=1) > .01))[:, None]
+total[:, :3] = total[:, :3] * (1 - down) + ALBEDO * ratio * float(CFG.get("belly_light", .8)) * down
+found = found | (down[:, 0] > 0)
+print("BEAST underside: %d texels from the albedo at %.2f of its light" % (int((down > 0).sum()), ratio))
 print("BEAST bake: %d of %d texels unreached" % (int((inside & ~found).sum()), int(inside.sum())))
 rgb = total[:, :3].reshape(TEX, TEX, 3)
 good = found.reshape(TEX, TEX).copy()
@@ -843,31 +888,59 @@ print("BEAST gain %.3f to the old look's light" % gain)
 
 
 def paint_mouth():
-    """The mouth's caps (material 1) painted as a mouth's inside: a dark
-    red-pink, darker toward the throat."""
-    caps = [lo.data.polygons[k] for k in CAPS]
-    if not caps:
+    """The mouth's inside painted: teeth along both lips (ivory, a tooth a
+    pitch, upper ones hanging, lower ones standing), pale pink-cream palate
+    above, a pink tongue below, the throat dark; colours dull enough for the
+    game's palette."""
+    if not CAPS:
         return
     uv = lo.data.uv_layers.active.data
+    me_ = lo.data
+    tl = me_.attributes.get("mouth_t")
+    sl = me_.attributes.get("mouth_s")
     rgb = total[:, :3].reshape(TEX, TEX, 3)
-    col = numpy.array(CFG.get("jaw", {}).get("mouth", [.42, .14, .13]))
+    pitch = OLD_H * float(CFG["jaw"].get("pitch", .045))
+    ivory, gum = numpy.array([.78, .74, .6]), numpy.array([.42, .22, .2])
+    palate, tongue, throat_c = numpy.array([.66, .5, .45]), numpy.array([.55, .3, .29]), numpy.array([.12, .04, .04])
     n = 0
-    for p_ in caps:
+    for k, sd in CAPS:
+        p_ = me_.polygons[k]
+        vs = list(p_.vertices)
         pts = numpy.array([uv[li].uv[:] for li in p_.loop_indices]) * TEX
-        lo_ = numpy.floor(pts.min(axis=0)).astype(int) - 1
-        hi_ = numpy.ceil(pts.max(axis=0)).astype(int) + 1
+        tt = numpy.array([tl.data[v].value for v in vs])
+        ss = numpy.array([sl.data[v].value for v in vs])
         a_, b_, c_ = pts[0], pts[1], pts[2]
         den = (b_[1] - c_[1]) * (a_[0] - c_[0]) + (c_[0] - b_[0]) * (a_[1] - c_[1])
         if abs(den) < 1e-9:
             continue
+        lo_ = numpy.floor(pts.min(axis=0)).astype(int)
+        hi_ = numpy.ceil(pts.max(axis=0)).astype(int) + 1
         for y in range(max(lo_[1], 0), min(hi_[1], TEX)):
             for x in range(max(lo_[0], 0), min(hi_[0], TEX)):
                 px, py = x + .5, y + .5
                 l1 = ((b_[1] - c_[1]) * (px - c_[0]) + (c_[0] - b_[0]) * (py - c_[1])) / den
                 l2 = ((c_[1] - a_[1]) * (px - c_[0]) + (a_[0] - c_[0]) * (py - c_[1])) / den
-                if l1 >= 0 and l2 >= 0 and 1 - l1 - l2 >= 0:
-                    rgb[y, x] = col
-                    n += 1
+                l3 = 1 - l1 - l2
+                if min(l1, l2, l3) < -.05:
+                    continue
+                bw = numpy.clip(numpy.array([l1, l2, l3]), 0, 1)
+                bw /= bw.sum()
+                t = float(bw @ tt)
+                lipw = bw * (tt < .5)
+                sv = float(lipw @ ss / max(lipw.sum(), 1e-6))
+                ph = (sv / pitch) % 1.0
+                tooth = (1 - abs(2 * ph - 1))  # 0 at the gaps, 1 at a tooth's middle
+                if t < .1 * tooth + .01:
+                    col = ivory
+                elif t < .16:
+                    col = gum
+                elif t > .72:
+                    col = throat_c
+                else:
+                    col = palate if sd == 1 else tongue
+                    col = col * (1 - .6 * (t - .26) / .46)
+                rgb[y, x] = col
+                n += 1
     total[:, :3] = rgb.reshape(-1, 3)
     print("BEAST mouth painted: %d texels" % n)
 
