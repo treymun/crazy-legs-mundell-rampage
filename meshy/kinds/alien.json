@@ -10,5 +10,10 @@
  "gear": "old",
  "item_types": {
   "r": "pistol"
- }
+ },
+ "fingers": [
+  "ix",
+  "md",
+  "th"
+ ]
 }

@@ -318,7 +318,7 @@ THUMB_OPPOSE = .9
 MASTER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
 
-def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name):
+def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name, fingers=None):
     """The sculpted master hand (meshy/assets, made once from Meshy's hand by
     hand_master.py) put on this body: in the hand's frame (a, n, t), its
     length this hand's, its width and depth eased toward this hand's; the
@@ -353,6 +353,19 @@ def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name):
     if X.to_3x3().determinant() < 0:
         obj.data.flip_normals()
     obj.matrix_world = Matrix.Identity(4)
+    # A hand of fewer fingers (an alien's three): the others' vertices gone.
+    if fingers is not None:
+        gone = {obj.vertex_groups[g].index for g in ("rn1", "rn2", "rn3", "pk1", "pk2", "pk3", "ix1", "ix2",
+                                                     "ix3", "md1", "md2", "md3", "th1", "th2", "th3")
+                if g in obj.vertex_groups and g[:2] not in fingers}
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        dl = bm.verts.layers.deform.active
+        doomed = [v for v in bm.verts if dl is not None and v[dl] and
+                  max(v[dl].items(), key=lambda kv: kv[1])[0] in gone]
+        bmesh.ops.delete(bm, geom=doomed, context="VERTS")
+        bm.to_mesh(obj.data)
+        bm.free()
     # Its groups named for this side's bones.
     for g in obj.vertex_groups:
         if g.name == "hand":
@@ -370,6 +383,8 @@ def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name):
     h.length, h.width, h.thick = length, width, thick
     h.middle = wrist + a * (info["palm"] * length * .55)
     for cname, ch in info["chains"].items():
+        if fingers is not None and cname not in fingers:
+            continue
         joints = [X @ Vector(j) for j in ch["joints"]]
         tip = X @ Vector(ch["tip"])
         h.chains[cname] = (joints, tip)
@@ -434,7 +449,7 @@ def contact_curls(h, gear_pts, relaxed=.3):
     return out, report
 
 
-def wrap_curls(h, gear_pts, most=(1.6, 1.8, 1.4)):
+def wrap_curls(h, gear_pts, most=(2.0, 2.1, 1.7)):
     """Each finger wrapped round the held thing joint by joint: the first
     joint bends until its own segment rests on the surface (or, if it begins
     inside, until it is out), then the next joint the same with its segment,

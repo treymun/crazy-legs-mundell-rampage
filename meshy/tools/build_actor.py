@@ -422,7 +422,8 @@ for b in list(W):
     W[b] = W[b][_keep]
 for side, (wrist, a0, n0, t0, length, width, thick, wrist_r) in _measure.items():
     if CFG.get("hands", "meshy") == "meshy" and os.path.exists(os.path.join(hands.MASTER, "hand_master.blend")):
-        hnd = hands.build_meshy(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side)
+        hnd = hands.build_meshy(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side,
+                                CFG.get("fingers"))
     else:
         hnd = hands.build(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side)
     HANDS[side] = hnd
@@ -1763,7 +1764,18 @@ if HANDS:
             uvn = nt.nodes.new("ShaderNodeUVMap")
             uvn.uv_map = "handuv"
             nt.links.new(uvn.outputs[0], tx.inputs[0])
-            nt.links.new(tx.outputs[0], bs.inputs[0])
+            # Recoloured to this body's own hand colour (the master's painted
+            # detail kept): times the body's skin over the master's mean.
+            _mpx = numpy.array(tx.image.pixels[:]).reshape(-1, 4)[:, :3]
+            _mmean = numpy.median(_mpx[_mpx.sum(axis=1) > .15], axis=0)
+            _k = numpy.clip(SKIN / numpy.maximum(_mmean, 1e-3), .2, 3.0)
+            mixc = nt.nodes.new("ShaderNodeMix")
+            mixc.data_type = "RGBA"
+            mixc.blend_type = "MULTIPLY"
+            mixc.inputs[0].default_value = 1.0
+            mixc.inputs[7].default_value = (float(_k[0]), float(_k[1]), float(_k[2]), 1)
+            nt.links.new(tx.outputs[0], mixc.inputs[6])
+            nt.links.new(mixc.outputs[2], bs.inputs[0])
             nt.links.new(bs.outputs[0], o.inputs[0])
         elif m is mat_hand:
             bs = nt.nodes.new("ShaderNodeBsdfDiffuse")
@@ -1982,6 +1994,8 @@ def face_lift(px):
             old_l = float(numpy.median(o[oskin] @ numpy.array([.299, .587, .114])))
             want = max(want, (old_l - .024) / 1.18 * float(CFG.get("face_light", 1.0)))
     skin_all = face | rest
+    if "HANDMASK" in globals():
+        skin_all = skin_all & ~HANDMASK
     k = min(float(CFG.get("face_lift_most", 1.8)), max(1.0, want / max(have, 1e-4)))
     print("MESHY face light %.3f, other skin %.3f" % (have, want))
     if k > 1.02:
@@ -1989,12 +2003,91 @@ def face_lift(px):
         # (every skin texel, face, hands and arms alike; the hat and cloth stay)
         px[skin_all, :3] = numpy.clip(px[skin_all, :3] * k, 0, 1)
         print("MESHY face lifted x%.2f (face %.3f, other skin %.3f)" % (k, have, want))
+    # The lift makes Meshy's skin grain (light hairs, pores) loud: smoothed a
+    # little within the skin.
+    rgbn = px[:, :3]
+    lumn = rgbn @ numpy.array([.299, .587, .114])
+    lm = float(numpy.median(lumn[skin_all]))
+    hot = skin_all & (lumn > lm * 1.3)
+    rgbn[hot] = rgbn[hot] * ((lm * 1.3) / numpy.maximum(lumn[hot], 1e-4))[:, None]
+    smooth_in(px, skin_all, 3)
+    SKIN_DONE[:] = skin_all
+    return px
+
+
+def smooth_in(px, mask, passes):
+    img = px[:, :3].reshape(TEXTURE, TEXTURE, 3)
+    m2 = mask.reshape(TEXTURE, TEXTURE)
+    for _ in range(passes):
+        acc = numpy.zeros_like(img)
+        cnt = numpy.zeros((TEXTURE, TEXTURE, 1))
+        for dy, dx in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+            mm = numpy.roll(numpy.roll(m2, dy, 0), dx, 1)[:, :, None]
+            acc += numpy.roll(numpy.roll(img, dy, 0), dx, 1) * mm
+            cnt += mm
+        sm = acc / numpy.maximum(cnt, 1)
+        img[m2] = sm[m2]
+    px[:, :3] = img.reshape(-1, 3)
+
+
+SKIN_DONE = numpy.zeros(TEXTURE * TEXTURE, dtype=bool)
+
+
+def hand_match(px):
+    """The built hands' skin made the body's own: the speckle of the master
+    hand's paint smoothed out (texels far from the hand's median pulled in,
+    then a few passes of neighbour averaging within the hands), then its light
+    and colour matched channel by channel to the body's other skin (face and
+    forearms) as it now is."""
+    if "HANDMASK" not in globals() or not HANDMASK.any():
+        return px
+    px = px.copy()
+    hm = HANDMASK
+    med = numpy.median(px[hm, :3], axis=0)
+    rgb = px[:, :3]
+    lum = rgb @ numpy.array([.299, .587, .114])
+    mlum = float(med @ numpy.array([.299, .587, .114]))
+    over = hm & (lum > mlum * 1.25)
+    rgb[over] = rgb[over] * ((mlum * 1.25) / numpy.maximum(lum[over], 1e-4))[:, None]
+    img = rgb.reshape(TEXTURE, TEXTURE, 3)
+    m2 = hm.reshape(TEXTURE, TEXTURE)
+    for _ in range(3):
+        acc = numpy.zeros_like(img)
+        cnt = numpy.zeros((TEXTURE, TEXTURE, 1))
+        for dy, dx in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+            mm = numpy.roll(numpy.roll(m2, dy, 0), dx, 1)[:, :, None]
+            acc += numpy.roll(numpy.roll(img, dy, 0), dx, 1) * mm
+            cnt += mm
+        sm = acc / numpy.maximum(cnt, 1)
+        img[m2] = sm[m2]
+    rgb = img.reshape(-1, 3)
+    mx, mn = rgb.max(axis=1), rgb.min(axis=1)
+    sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+    other = SKIN_DONE & ~hm & ~HEADZONE
+    if other.sum() < 50:
+        other = SKIN_DONE & ~hm
+    if other.sum() < 50:
+        other = ZONE & ~hm & (rgb[:, 0] >= rgb[:, 2]) & (sat > .08) & (sat < .75) & (mx > .05)
+    # (the skin proper: its colourful, lit texels, not hair, grime or shade)
+    lum2 = rgb @ numpy.array([.299, .587, .114])
+    sel = other & (sat > .25)
+    if sel.sum() > 50:
+        sel &= lum2 >= numpy.percentile(lum2[sel], 40)
+        other = sel
+    if other.sum() > 50:
+        want = numpy.median(rgb[other], axis=0)
+        hsel = hm & (lum2 >= numpy.percentile(lum2[hm], 40))
+        have = numpy.median(rgb[hsel], axis=0)
+        rgb[hm] = numpy.clip(rgb[hm] * (want / numpy.maximum(have, 1e-4))[None, :], 0, 1)
+        print("MESHY hands matched to the body's skin", numpy.round(want * 255).astype(int))
+    px[:, :3] = rgb
     return px
 
 
 total = skin_fix(total)
 total = blush_down(total)
 total = face_lift(total)
+total = hand_match(total)
 image.pixels.foreach_set(total.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + ".png")
 image.file_format = "PNG"
