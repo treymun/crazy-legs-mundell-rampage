@@ -1428,6 +1428,27 @@ if gear_obj is not None:
               # (the hand on the rear end is the gun hand)
               "main": min(holds, key=lambda sd: holds[sd]) if len(holds) == 2 else ("r" if "r" in holds else "l"),
               "fwd": _new_front - _old_front}
+        # Handles (kind config "grip_handles": [side]): the hand closes on
+        # the part of the thing its old hand held (a Tommy gun's pistol grip
+        # and fore-grip, standing off the barrel) - that part's own axis
+        # across the palm, its middle in the fist - not on the barrel's line.
+        it["handles"] = {}
+        for side in CFG.get("grip_handles", []):
+            if side not in holds:
+                continue
+            hp = old_hand(side, "0", P0)
+            cl = pts[numpy.linalg.norm(pts - numpy.array(hp[:]), axis=1) < float(CFG.get("handle_reach", .055))]
+            if len(cl) < 12:
+                print("MESHY handle %s: too few points by the old hand" % side)
+                continue
+            cm = cl.mean(axis=0)
+            hax = Vector(numpy.linalg.svd(cl - cm)[2][0])
+            pr = (cl - cm) @ numpy.array(hax[:])
+            hr = float(numpy.percentile(numpy.linalg.norm((cl - cm) - numpy.outer(pr, numpy.array(hax[:])), axis=1), 70))
+            hlo, hhi = Vector(cm) + hax * float(pr.min()), Vector(cm) + hax * float(pr.max())
+            it["handles"][side] = (hlo, hhi, min(hr, .04))
+            print("MESHY handle %s: %.3f m long, %.3f thick, %d degrees off the barrel" % (
+                side, (hhi - hlo).length, hr * 2, round(math.degrees(hax.angle(ax)))))
         ITEMS.append(it)
         print("MESHY item %s: %.2f m, held %s, forward fix %.3f" % (
             gname, (hi_e - lo_e).length, {k: round(v, 2) for k, v in holds.items()}, it["fwd"]))
@@ -1532,6 +1553,9 @@ def hand_on(it, side, Di, R_t, el_guess):
     """The hand's turn and the wrist's place for holding item `it` (moved by
     Di) at its grip: the hand straight on from the forearm, the palm against
     the thing and the thing across the palm (the fingers then close on it)."""
+    hd = it.get("handles", {}).get(side)
+    if hd is not None:
+        it = dict(it, lo=hd[0], hi=hd[1], rad=hd[2], holds=dict(it["holds"], **{side: .5}))
     lo_e, hi_e = Di @ it["lo"], Di @ it["hi"]
     G = (hi_e - lo_e).normalized()
     grip = lo_e + (hi_e - lo_e) * it["holds"][side]
@@ -3117,7 +3141,9 @@ def hand_match(px):
     rgb[over] = rgb[over] * ((mlum * 1.25) / numpy.maximum(lum[over], 1e-4))[:, None]
     img = rgb.reshape(TEXTURE, TEXTURE, 3)
     m2 = hm.reshape(TEXTURE, TEXTURE)
-    for _ in range(3):
+    # (one pass: three blurred the creases and knuckles away, flat paper
+    # hands up close - the revenue man's; kind config "hand_smooth")
+    for _ in range(int(CFG.get("hand_smooth", 1))):
         acc = numpy.zeros_like(img)
         cnt = numpy.zeros((TEXTURE, TEXTURE, 1))
         for dy, dx in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
@@ -3161,7 +3187,11 @@ def hand_match(px):
         # hot red or orange texel (blush, bake noise) left on a knuckle.
         wl = float(want @ numpy.array([.299, .587, .114]))
         hl = rgb[hm] @ numpy.array([.299, .587, .114])
-        rgb[hm] = numpy.clip(want[None, :] * (hl / max(wl, 1e-4))[:, None], 0, 1)
+        # their own light's relief a little deeper (the creases, the
+        # knuckles, the side away from the key; kind config "hand_relief")
+        hmed = float(numpy.median(hl))
+        hl = hmed + (hl - hmed) * float(CFG.get("hand_relief", 1.35))
+        rgb[hm] = numpy.clip(want[None, :] * (numpy.maximum(hl, 0) / max(wl, 1e-4))[:, None], 0, 1)
         print("MESHY hands matched to the body's skin", numpy.round(want * 255).astype(int))
     # Skin a little more coloured than Meshy paints it: a pale, greyish skin
     # falls between the palette's entries and dithers into beige and teal

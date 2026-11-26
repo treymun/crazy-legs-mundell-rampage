@@ -29,9 +29,9 @@
   ]
  },
  "gloves": [
-  176,
-  172,
-  160
+  150,
+  147,
+  138
  ],
  "phases": true,
  "shed": {
@@ -148,5 +148,6 @@
    "contrast": 0.8,
    "not_skin": false
   }
- ]
+ ],
+ "hands_paint": "texture"
 }

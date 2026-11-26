@@ -9,10 +9,6 @@
  "texture": 512,
  "gear": "old",
  "phases": true,
- "skin_even": {
-  "ext": false,
-  "arms": false
- },
  "hold_legs": true,
  "grip_parts": {
   "r": [
@@ -99,5 +95,6 @@
   "head",
   "hand_l",
   "hand_r"
- ]
+ ],
+ "hands_paint": "texture"
 }
