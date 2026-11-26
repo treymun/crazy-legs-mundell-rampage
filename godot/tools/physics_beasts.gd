@@ -32,6 +32,10 @@ const STRETCH_HIT_LET := .035
 const REST_BY := Ragdoll.MOST_AWAKE + .1
 const TOL := .03
 const KINDS := ["gator", "crawler", "hog", "cow"]
+## Open ground on Hickston's street (two cells clear all round: the deaths
+## were shot at 30.5, 30.5 until pass 15 walled that row in, and a hog blasted
+## out of the wall's cell had a foot held outside it, its leg stretched 73%).
+const OPEN := Vector2(30.5, 26.5)
 const KILLS := ["revolver", "shotgun_near", "rifle", "blast", "revolver_b"]
 ## Boss hand-over: a part may move at the hand-over this many times its most
 ## in the frames before (and POP_LET more), and the body lie this far from
@@ -184,7 +188,12 @@ func _kind(game: Game, kind: String) -> void:
 			% [kind, rig.legs.size() / 3, rig.head.size(), rig.tail.size()]
 		)
 	)
-	var at := Vector2(30.5, 30.5)
+	var at := OPEN
+	var cell := Vector2i(at)
+	_check(
+		PhysCore.plain_rect(game.world, cell.x - 2, cell.y - 2, cell.x + 2, cell.y + 2),
+		"the beasts' deaths are shot on open ground (%s)" % at
+	)
 	var z := game.world.floor_under(at.x, at.y, 99.0)
 	var faults := PackedStringArray()
 	var ends := {}
@@ -401,7 +410,7 @@ func _boss(game: Game, kind: String) -> void:
 		_check(false, "%s's model poses" % kind)
 		view.queue_free()
 		return
-	var at := Vector2(30.5, 30.5)
+	var at := OPEN
 	var e := Enemy.new(kind, at.x, at.y, .4)
 	e.floor_z = game.world.floor_under(at.x, at.y, 99.0)
 	var clock := 10.0
