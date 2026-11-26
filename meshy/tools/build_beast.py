@@ -286,6 +286,34 @@ def realign_legs():
             mine = low_new[near == k]
             if len(mine):
                 shift[k] = mine[:, :2].mean(axis=0) - old_feet[k]
+    if CFG.get("realign") == "mesh":
+        # The Meshy legs moved onto the old ones instead (bones and keys left
+        # as they are): a gait whose speed was tuned to the old feet's paths
+        # (BLUE's, hound_pace) keeps them. Each leg's column shifted whole
+        # below the old leg's top, fading out over a band above it.
+        QH = numpy.array([v.co[:] for v in hi.data.vertices])
+        feet = old_feet + shift
+        near = numpy.linalg.norm(QH[:, None, :2] - feet[None, :, :2], axis=2)
+        # (each leg's move fades out smoothly up its haunch or shoulder and
+        # out across the body; the legs' moves add up, so the left and right
+        # moves meet without a seam at the middle: a hard edge streaked the
+        # texture)
+        band = OLD_H * float(CFG.get("mesh_band", .15))
+        r1, r2 = OLD_H * .07, OLD_H * float(CFG.get("mesh_reach", .2))
+        delta = numpy.zeros((len(QH), 2))
+        for k, chain in enumerate(legs):
+            top = max(PV[i_, 2] for i_, n in enumerate(owner) if n == chain[0])
+            t_ = numpy.clip((top + band - QH[:, 2]) / (2 * band), 0, 1)
+            h_ = numpy.clip((r2 - near[:, k]) / (r2 - r1), 0, 1)
+            w = (t_ * t_ * (3 - 2 * t_)) * (h_ * h_ * (3 - 2 * h_))
+            delta -= w[:, None] * shift[k][None, :2]
+            print("BEAST leg %s: the Meshy leg moved %.3f, %.3f m onto the old one" % (chain[-1], -shift[k][0], -shift[k][1]))
+        for i_ in numpy.nonzero(numpy.abs(delta).sum(axis=1) > 1e-6)[0]:
+            v = hi.data.vertices[int(i_)]
+            v.co.x += float(delta[i_][0])
+            v.co.y += float(delta[i_][1])
+        hi.data.update()
+        return
     if CFG.get("square", True) and len(legs) % 2 == 0:
         square_feet(legs, old_feet, shift, floor)
     for k, chain in enumerate(legs):
@@ -311,12 +339,18 @@ def realign_legs():
     want = {}
     for k, chain in enumerate(legs):
         d = Vector((float(shift[k][0]), float(shift[k][1]), 0.0))
-        q = stand[chain[0]].translation + d
         for f in frames:
-            q_f = world[f][torso] @ stand[torso].inverted() @ q
-            s_f = q_f - world[f][chain[0]] @ stand[chain[0]].inverted() @ q
+            # (the old leg's own motion, done where it stood, then carried
+            # the step d over by the torso's turn: no joint is assumed, the
+            # old block legs turn about their parts' own middles)
+            r_f = (world[f][torso] @ stand[torso].inverted()).to_3x3()
+            # (a small turn of the torso - a gait's bob - is left out: the
+            # feet then tread exactly the old paths, which the gaits' speeds
+            # were tuned to; a big one - sitting, lying - carries the leg)
+            if r_f.to_quaternion().angle < math.radians(float(CFG.get("carry_turn", 15))):
+                r_f = Matrix.Identity(3)
             for name in chain:
-                want[(f, name)] = Matrix.Translation(s_f) @ world[f][name]
+                want[(f, name)] = Matrix.Translation(r_f @ d) @ world[f][name] @ Matrix.Translation(-d)
     for f in frames:
         scene.frame_set(f)
         for (ff, name), mw in want.items():
@@ -341,6 +375,11 @@ def realign_legs():
 
 realign_legs()
 OWNER = group_of(src_me, None)
+# (the standing key's moves again: the legs' changed with the realignment)
+scene.frame_set(STAND)
+bpy.context.view_layer.update()
+POSE = {pb.name: arm.matrix_world @ pb.matrix @ pb.bone.matrix_local.inverted() @ arm.matrix_world.inverted()
+        for pb in arm.pose.bones}
 
 # ------------------------------------------------------------ the game mesh
 lo = hi.copy()
@@ -532,7 +571,7 @@ def heat_weights():
     # body built of many small blocks (the hog's bristles and slabs) whose
     # keys do not move them as one would tear a smooth skin apart.
     groups = CFG.get("groups") or [[g.name] for g in old_mesh.vertex_groups]
-    if CFG.get("groups"):
+    if CFG.get("groups") and CFG.get("split", True):
         groups = split_moving(groups, pv, names)
     for grp in groups:
         if not grp:
@@ -911,6 +950,15 @@ o_l = float(numpy.median(lum(op[op.sum(axis=1) > .03])))
 n_l = float(numpy.median(lum(total[inside, :3])))
 gain = float(numpy.clip(o_l / max(n_l, 1e-4), .6, 1.6)) * float(CFG.get("gain", 1.0))
 total[:, :3] = numpy.clip(total[:, :3] * gain * numpy.array(CFG.get("tint", [1, 1, 1])), 0, 1)
+if CFG.get("greys"):
+    # "greys": {rgb, sat}: the greys (saturation under sat) turned by rgb, the
+    # coloured parts left (BLUE's ticked coat bluer, his tan points and red
+    # collar as they are).
+    g_ = CFG["greys"]
+    mx, mn = total[:, :3].max(axis=1), total[:, :3].min(axis=1)
+    sat = (mx - mn) / numpy.maximum(mx, 1e-4)
+    k_ = numpy.clip(1 - sat / float(g_.get("sat", .25)), 0, 1)[:, None]
+    total[:, :3] = numpy.clip(total[:, :3] * (1 + (numpy.array(g_["rgb"]) - 1) * k_), 0, 1)
 print("BEAST gain %.3f to the old look's light" % gain)
 
 
