@@ -14,6 +14,10 @@
   142,
   36
  ],
+ "glove_light": 0.74,
+ "glove_grime_k": 1.1,
+ "glove_contrast": 1.7,
+ "hands_paint": "texture",
  "recolour": [
   {
    "name": "cuff_l",
@@ -26,11 +30,11 @@
     0.575
    ],
    "to": [
-    190,
-    142,
-    36
+    146,
+    106,
+    30
    ],
-   "contrast": 0.35,
+   "contrast": 0.7,
    "not_skin": false
   },
   {
@@ -44,11 +48,11 @@
     0.575
    ],
    "to": [
-    190,
-    142,
-    36
+    146,
+    106,
+    30
    ],
-   "contrast": 0.35,
+   "contrast": 0.7,
    "not_skin": false
   },
   {
@@ -76,5 +80,6 @@
    ],
    "contrast": 0.7
   }
- ]
+ ],
+ "glove_shade": true
 }

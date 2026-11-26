@@ -3,7 +3,25 @@
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
 
-## Fifth session (read first)
+## Sixth session (read first, then the fifth)
+
+Order from the coordinator: redos barker 09c, chum_tosser 10d, jerry 19d,
+clone 04f, baron 22c; then swamp_king; then the 16 humanoids; then skeeter;
+then rudy 20b / maw dryer / alien hand holes / hat-cut rebuilds as credits
+allow; check_all quick last.
+Recipe per redo: move meshy_out/<kind>_{concept,model,rig} to *_<oldNN>,
+meshy-work/add_prompt_<kind>.py ("refs": "cel"), meshy_kind.sh concept
+(look), meshy_kind.sh model, kind_config.py (old config kept as
+meshy-work/<kind>_<oldNN>.json), meshy-work/iter.sh, SKIP_BUILD=1
+finish.sh, actor_check + live_body_check + physics_check (gd.sh), unchurn,
+INDEX line, commit.
+Done: 09c barker (44 cr; "skin_sat" 1.6 + "colour" 1.4 + "hand_hue" stop
+the pale hand tone dithering grey), 10d chum_tosser (44 cr; gloves in flat
+paint mode - "hands_paint": "texture" made them flat; "recolour" boxes at
+the wrists paint Meshy's cut glove ring into a gauntlet cuff, cap recolour
+to red). Credits after 10d: 1,260 of 2,500 (balance 1,678).
+
+## Fifth session
 
 THE OWNER'S RULE CHANGED (2026-11-26): the models need not copy the old
 ones. Keep each character's role, prop and how it is used, outfit idea and

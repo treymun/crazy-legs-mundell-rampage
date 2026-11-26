@@ -3071,6 +3071,9 @@ if HANDS:
         htot = numpy.clip(htot * (_want / numpy.maximum(_have, 1e-4))[None, :], 0, 1)
         print("MESHY hands' skin matched to the body's", numpy.round(_want * 255).astype(int))
     total[HANDMASK, :3] = htot[HANDMASK]
+    # (the baked hand's own light, creases and knuckles - the skin passes
+    # after flatten its lit half; gloves() shades a glove from this)
+    globals()["HAND_SHADE"] = htot[:, :3] @ numpy.array([.299, .587, .114])
     print("MESHY hands baked: %d texels, mean colour %s" % (int(HANDMASK.sum()),
           numpy.round(htot[HANDMASK].mean(axis=0) * 255).astype(int) if HANDMASK.any() else "-"))
     hi.hide_render = False
@@ -3499,16 +3502,51 @@ total = hand_dilate(total)
 
 def gloves(px):
     """Gloved hands (kind config "gloves": [r, g, b], e.g. yellow rubber):
-    the hands and their wrist sleeve take the glove's colour at their own
-    light, a little contrast added for a rubber sheen."""
+    with "glove_shade": true the hands take the glove's colour shaded by the
+    baked hand's own light
+    (the master hand's creases and knuckles, kept from before the skin
+    passes flattened it), darker ochre in the folds and between the fingers,
+    a soft grime, and a little under the glove colour's full light so they
+    sit in the same light as the clothes ("glove_light", default .85)."""
     if not CFG.get("gloves") or "HANDMASK" not in globals() or not HANDMASK.any():
         return px
     px = px.copy()
     g = numpy.array(CFG["gloves"], dtype=float) / 255.0
-    lum = px[:, :3] @ numpy.array([.299, .587, .114])
-    lm = float(numpy.median(lum[HANDMASK]))
-    k = numpy.clip(lum / max(lm, 1e-4), .55, 1.5) ** 1.3
-    px[HANDMASK, :3] = numpy.clip(g[None, :] * k[HANDMASK, None], 0, 1)
+    if not CFG.get("glove_shade"):
+        # (the first way, kept for boss and rudy: glove colour at the
+        # hand's light after the skin passes)
+        lum = px[:, :3] @ numpy.array([.299, .587, .114])
+        lm = float(numpy.median(lum[HANDMASK]))
+        k = numpy.clip(lum / max(lm, 1e-4), .55, 1.5) ** 1.3
+        px[HANDMASK, :3] = numpy.clip(g[None, :] * k[HANDMASK, None], 0, 1)
+        print("MESHY gloves: %d hand texels to %s" % (int(HANDMASK.sum()), CFG["gloves"]))
+        return px
+    lumw = numpy.array([.299, .587, .114])
+    sh = HAND_SHADE if "HAND_SHADE" in globals() else px[:, :3] @ lumw
+    s = sh[HANDMASK]
+    r = s / max(float(numpy.median(s)), 1e-4)
+    print("MESHY gloves: hand light pct 5/25/50/75/95 (share of the median)",
+          numpy.round(numpy.percentile(r, [5, 25, 50, 75, 95]), 2))
+    # (shade deepened, highlights rolled off rather than clipped flat)
+    k = numpy.where(r < 1, numpy.clip(r, .3, 1) ** float(CFG.get("glove_contrast", 1.4)),
+                    r / (1 + .5 * numpy.maximum(r - 1, 0)))
+    col = g[None, :] * float(CFG.get("glove_light", .85)) * k[:, None]
+    # folds: toward a dark yellow-ochre where the hand is in its own shade
+    fold = numpy.array(CFG.get("glove_fold", [96, 62, 18]), dtype=float) / 255.0
+    t = numpy.clip((1.0 - r) * 1.5, 0, 1)[:, None] ** 1.2
+    col = col * (1 - t) + fold[None, :] * numpy.clip(r, .3, 1)[:, None] * t
+    # grime: a soft blotch field over the texture (low-frequency noise)
+    rng = numpy.random.default_rng(7)
+    lo_n = rng.random((TEXTURE // 16 + 2, TEXTURE // 16 + 2))
+    yy, xx = numpy.mgrid[0:TEXTURE, 0:TEXTURE] / 16.0
+    y0, x0 = yy.astype(int), xx.astype(int)
+    fy, fx = yy - y0, xx - x0
+    n = (lo_n[y0, x0] * (1 - fx) * (1 - fy) + lo_n[y0, x0 + 1] * fx * (1 - fy)
+         + lo_n[y0 + 1, x0] * (1 - fx) * fy + lo_n[y0 + 1, x0 + 1] * fx * fy).ravel()
+    grime = numpy.array(CFG.get("glove_grime", [120, 92, 40]), dtype=float) / 255.0
+    gm = (numpy.clip(n[HANDMASK] - .45, 0, 1) * float(CFG.get("glove_grime_k", .7)))[:, None]
+    col = col * (1 - gm) + grime[None, :] * k[:, None] * gm
+    px[HANDMASK, :3] = numpy.clip(col, 0, 1)
     print("MESHY gloves: %d hand texels to %s" % (int(HANDMASK.sum()), CFG["gloves"]))
     return px
 
