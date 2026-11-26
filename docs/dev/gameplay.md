@@ -605,6 +605,127 @@ set each frame before `advance`:
 | `planted[f]`, `swing_foot`, `catches`, `step_log` | the feet's state and the steps taken |
 | `play_says(reeling, down, pitched)` | play's word each frame; a new play state (a shove, a fall) goes in the stagger note and is read here |
 
+### Active bodies (pass 15, T11: the active bodies' steps two and three)
+
+Falling with intent, not dying at once, shoves and balance, the drunk's
+walk, weight. Everything is simulated on the rig above: a behaviour only
+says where a limb tries to go and how hard (a target and a tone) or holds a
+ball to a point (a pin); masses, links, joint stops, gravity and contacts do
+the rest. No clip is played. Play decides where a man goes, whether he goes
+down and for how long (`src/body_play.gd`, carried); the limbs' physics is
+looks on each screen with its own dice.
+
+**Play's say (`BodyPlay`, hits.cfg `[bodies]`; `play=false` turns it off).**
+Arithmetic on play's numbers and the level only, no dice (game.rng untouched),
+one note on the enemy (`BodyPlay.KEY`, `[mode, x, y, z, since, until]`,
+carried and saved like any note) for what the looks must know:
+
+- **Holding on.** A reel the catch steps cannot stop (Stagger.tick, where he
+  would go down) next to an edge within `grab_reach` of his height
+  (`BodyPlay.edge`: a point in a rail, fence, furniture, crate or car with
+  open air over it, between `grab_low` and `grab_high` of him, looked for
+  round the way he goes): he stays up, stunned `grab_hold`; the note keeps
+  the point (mode HOLDING) so every screen puts his hand on the same spot.
+- **Over a low rail.** Moving faster than `over_speed` and stopped by a rail
+  between `over_low` cells and `over_high` of his height (Stagger._move, a
+  boot's slide in features/brawl.gd): he is put on the far side if he fits
+  there (no more than `over_drop` down; off a loft he falls the rest,
+  Climbing) and is down `over_down` times as long as pitched over (mode
+  OVER, the bar's point). Gently pushed into it he stays on his side.
+- **Slammed.** A boot's slide stopped by a wall faster than `[kick]
+  slam_least` puts him down (`slam_down`), as well as the slam's damage.
+- **Run into** by a vehicle and left up (features/vehicles.gd `_run_over`):
+  knocked flat (`ram_down`), sliding on at `ram_share` of its speed.
+- **The drunk's lurch.** A drunk (Variants.STUMBLE, the drunk coot) walking
+  lurches across his way every `lurch_gait` of gait (his weave's side),
+  `lurch` cells, every `lurch_big`-th `lurch_big_k` times that: a shove for
+  the stagger's pendulum, which catches it with steps or puts him down.
+
+**The living body (`src/active_body.gd`, `ActiveBody` under `LiveBody`).**
+ActorView runs one for a hand just hit (as before), a drunk near the eye
+(`active_drunk_reach`, a player's stand-in on shine past `ActorView.SHINE`
+too) within the live budget. Numbers: effects.cfg `[ragdoll] active_*`.
+
+- **The world.** Each ball stands on the floor really under it
+  (Tumble.floor_at: a tread, a deck, a ramp) and keeps out of walls, slabs'
+  sides and rails (Ragdoll._walls with play's body as the side that is his;
+  a ball that went through a thin rail within a step is put back where it met
+  it, and a lift onto a bar or a tread gives no speed). A foot is put down on
+  the tread under it. Falls are gravity's (`LiveBody.FALL_MOST`, the old
+  speed cap holds only across and up).
+- **Bracing.** Going over (play's down, pitched, or the torso tipping past
+  `active_tip`): the arms swing toward where the shoulders will come down
+  (ahead of them by half their height), `active_brace` stiff; the head is
+  held off the fall (`active_head_guard`); the ankle lets him go over
+  (`active_brace_upright`). A hand reaching the floor is pinned there for
+  `active_brace_hold` and the arms then give. `braced_at`, `landed_at`.
+- **Getting up** (play's down running out, pitched): the hands go to the
+  floor under the shoulders and are pinned there, the arms stiff
+  (`active_rise_tone`), pushing him up while the legs take his weight; a hand
+  pushed past its reach lets go.
+- **Windmilling.** Reeling faster than `active_mill_from`: the arms go round
+  in the body's plane the way he goes (`active_mill_rate` turns a second,
+  `active_mill_tone`).
+- **Shoved** (stunned and moving faster than `active_shoved_from`, a boot's
+  slide): reeling; the planted boots skid with play's move (`skid`) so he
+  slides back on his heels and steps, not does the splits.
+- **Grabbing.** Reeling by an edge (play's HOLDING point, else the looks' own
+  `BodyPlay.edge` every .1 s): the near hand reaches and is pinned there;
+  let go after `active_grab_hold` (or when play's hold ends), or by force when
+  the arm is pulled past `active_grab_force` of its length. `grab_log`.
+- **Over a rail.** Play's body jumping across (more than `JUMP` in a frame)
+  is carried over `JUMP_FOR`, the feet let go; the bar found on the way turns
+  him over it (an impulse to clear it and a spin about it, `OVER_SPIN`), a
+  ball left lying on the bar rolls off on the far side; play's body falling
+  (Climbing) drops the torso with it.
+- **Drunk** (`drunk`): always reeling, so the feet are put down only by the
+  balance controller, which looks late (`active_drunk_late`) and steps too
+  far (`active_drunk_over` past the capture point, `active_drunk_noise`
+  off); arms out, the ankle weak (`active_drunk_upright`), a sway now and then
+  from his own dice (`active_drunk_sway`).
+- `acts` false: no behaviour sets anything (LiveBody's muscles alone, the
+  checks); `muscles` false: a ragdoll.
+
+**The dying body (`src/dying_doll.gd`, `DyingDoll` under `Ragdoll`).** A
+hand killed within the live budget dies with muscles still in him (the rest
+keep the plain ragdoll); play's body (features/corpses.gd) is where he lies.
+Each muscle pulls a limb ball toward a place from its chain parent in the
+torso's frame (and the parent back), stiffness the tone `env` times the
+group's share. Numbers: `[ragdoll] dying_*`.
+
+- **Going slack:** the muscles hold the pose he was hit in, fading over
+  `dying_slack` (a head shot `dying_head`), the legs going first
+  (`dying_legs`). A live body's balls go on at their own speeds into it.
+- **Half catching himself:** on the way down the arms swing toward where the
+  chest lands and the head is held off it, as strong as the tone left; once a
+  hand is down they give over `dying_brace_give`.
+- **On the ground** (its own dice, `dying_styles` [limp, writhe, get up,
+  crawl], a hit below the head and not a blast): writhing (knees drawn up and
+  let go, a hand on the wound, the head up, rocking off the floor), trying to
+  get up (face down: hands under the shoulders gripping the floor, the arms
+  pushing, knees drawn, then the tone goes; again), or crawling (face down: a
+  hand reaches ahead, grips, the arm pulls him on to it, then the other; play's
+  body's slack `slack` is wider for it), for `dying_writhe`, then slack over
+  `dying_slack_end`. Face up, a get-up or a crawl writhes instead.
+- **Run down** (killed_by "roadkill"): the vehicle's front a moving box for
+  `dying_hood`'s seconds (height, length, width in shares of him): the legs
+  swept by its face, the rest falling back onto its top and carried a share.
+- `muscles` false (out of the budget, the checks): the plain ragdoll.
+  `DyingDoll.force_style` makes every one take a style (the motion strips).
+
+**Budget.** `ActorLayer3D._live_ones`: those just hit, reeling, running a
+live body, a drunk near, a body just killed or still dying, the nearest
+`live_most` (4; `live_phone`, 2, on a phone or the LOW tier). A dying body
+that loses its place goes limp.
+
+**Online.** Play's notes are carried; each screen runs its own bodies with
+its own dice (hashes of the hand, the hit, the death). `active_body_check`
+holds play to the bit with the bodies stepped beside it.
+
+**Pictures.** `tools/active_frames.gd` (a window, scratch APPDATA): caught,
+rail, steps, brace, grab, writhe, crawl, get_up, slack, car, car_flat,
+drunk, fifteen moments each.
+
 ### Squads, idle life and variants
 
 New code lives outside `enemies.gd`, which only has small hooks: `mind`,

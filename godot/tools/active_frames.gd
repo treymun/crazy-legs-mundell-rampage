@@ -9,7 +9,8 @@
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/active_frames.gd -- out=<dir> [rows=caught,rail] [off]
 ##
-## Rows: caught (a boot on open ground, caught), rail (a boot into the rail
+## Rows (brace, crawl and get_up shot from behind, the rest from the front):
+## caught (a boot on open ground, caught), rail (a boot into the rail
 ## of the sawmill's raised walkway: over it and down), steps (a boot down the
 ## walkway's stairs), brace (both barrels: knocked over onto his hands), grab
 ## (a reel along the walkway's rail: he holds on), writhe, crawl, get_up (a killing shot and the last of
@@ -105,6 +106,9 @@ func _row(name: String) -> void:
 	var facing := atan2(-way.y, -way.x)
 	if name == "drunk":
 		facing = atan2(way.y, way.x) + PI * .5
+	elif name in ["brace", "crawl", "get_up"]:
+		# (Shot from behind: he goes over forwards, onto his hands, his face.)
+		facing = atan2(way.y, way.x)
 	var e := Enemy.new(kind, at.x, at.y, facing)
 	e.floor_z = top
 	e.last_floor = top
@@ -117,7 +121,7 @@ func _row(name: String) -> void:
 	if name == "rail":
 		cam = Vector3(50.6, 33.6, -.24)
 	elif name == "grab":
-		cam = Vector3(48.0, 33.8, -.24)
+		cam = Vector3(52.8, 38.3, 1.4)
 	elif name == "steps":
 		cam = Vector3(33.6, 33.8, -.24)
 	elif name.begins_with("car"):
@@ -177,16 +181,12 @@ func _act(g: Game, e: Enemy, name: String, way: Vector2, ride: VehicleDrive.Ride
 					"slack": DyingDoll.LIMP
 				}[name]
 			)
-			if name == "crawl" or name == "get_up":
-				# (Shot from behind: he goes down on his face.)
-				e.angle = atan2(way.y, way.x)
 			e.hp = 10.0
 			_shot(g, e, way, "revolver", 30.0, .6, 3.0)
-		"car":
-			e.hp = 30.0
-			_drive(ride, name)
-		"car_flat":
-			e.hp = 400.0
+		"car", "car_flat":
+			e.hp = 30.0 if name == "car" else 400.0
+			# (Dazed: he stands there and takes it, no step out of the way.)
+			e.stun = 2.0
 			_drive(ride, name)
 		"drunk":
 			pass

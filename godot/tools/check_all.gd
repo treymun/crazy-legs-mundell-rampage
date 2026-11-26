@@ -90,6 +90,7 @@ const CHECKS := [
 	["music_check", "MUSIC CHECK OK"],
 	["punch_check", "PUNCH CHECK OK"],
 	["live_body_check", "LIVE BODY OK"],
+	["active_body_check", "ACTIVE BODY OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK", ["seconds=30"]],
 	["net_soak_all", "NET SOAK ALL OK", ["quick"]],
@@ -176,6 +177,7 @@ const QUICK := [
 	"looks_check",
 	"punch_check",
 	"live_body_check",
+	"active_body_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows
@@ -210,6 +212,7 @@ const CI_SECONDS := {
 	"physics_check": 15,
 	"punch_check": 15,
 	"live_body_check": 15,
+	"active_body_check": 20,
 	"climb_check": 12,
 	"net_server_check": 10,
 	"vehicle_check": 10,

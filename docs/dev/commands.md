@@ -152,6 +152,7 @@ godot --path godot ... --script res://tools/hud_frames.gd -- out=<dir> [only=men
 godot --path godot ... --script res://tools/update_frames.gd -- out=<dir>   # the title's update sign (Windows, picked, Android), the in-game update's panel and CHECK FOR UPDATES
 godot --path godot ... --script res://tools/death_frames.gd -- out=<dir> [level=hickston] [gun=shotgun] [classic]   # falls: ragdolls, or the scripted ones
 godot --path godot ... --script res://tools/live_frames.gd -- out=<dir> [rows=chest,legs] [off]   # living bodies taking hits: motion strips (pass 15)
+godot --path godot ... --script res://tools/active_frames.gd -- out=<dir> [rows=caught,rail] [off]   # active bodies: shoves, rails, stairs, braces, grabs, the dying, cars, the drunk (pass 15 T11)
 godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bowling lane: a spread of rolls, what stands, the tick's cost
 ```
 

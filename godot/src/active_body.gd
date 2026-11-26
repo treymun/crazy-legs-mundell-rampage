@@ -50,6 +50,8 @@ static var DRUNK_OVER: float = Effects.RAGDOLL.get("active_drunk_over", 1.5)
 static var DRUNK_NOISE: float = Effects.RAGDOLL.get("active_drunk_noise", .1)
 static var DRUNK_SWAY: float = Effects.RAGDOLL.get("active_drunk_sway", .8)
 static var DRUNK_UPRIGHT: float = Effects.RAGDOLL.get("active_drunk_upright", .4)
+static var BRACE_UPRIGHT: float = Effects.RAGDOLL.get("active_brace_upright", .3)
+static var RISE_TONE: float = Effects.RAGDOLL.get("active_rise_tone", 1.8)
 static var SHOVED_FROM: float = Effects.RAGDOLL.get("active_shoved_from", 1.5)
 ## A move of play's body bigger than JUMP in a frame (map units) is carried
 ## over JUMP_FOR seconds.
@@ -94,6 +96,8 @@ var braced_at := -1.0
 var landed_at := -1.0
 var _brace_from := -1.0
 var _brace_pins := {}
+## Hands put down to push himself up (index -> true).
+var _rise_pins := {}
 ## Windmilling: the arms' turn now (radians), how fast it goes now.
 var mill := 0.0
 var milling := false
@@ -221,7 +225,7 @@ func advance(level: LevelData, dt: float) -> int:
 
 
 func done() -> bool:
-	if drunk > 0.0 or grab_hand >= 0 or not _brace_pins.is_empty():
+	if drunk > 0.0 or grab_hand >= 0 or not _brace_pins.is_empty() or not _rise_pins.is_empty():
 		return false
 	return super.done()
 
@@ -332,10 +336,50 @@ func _behave(dt: float) -> void:
 	if drunk > 0.0:
 		_drunk(dt)
 	_brace(dt)
+	_get_up()
 	if not bracing:
 		_grab(dt)
 		if grab_hand < 0:
 			_windmill(dt)
+
+
+## Getting up after going over (play's down running out, pitched): the hands
+## put on the floor under the shoulders and held there, the arms stiff,
+## pushing the torso up off them while the legs take his weight back, the
+## head up; then the hands let go.
+func _get_up() -> void:
+	if down >= 0 or not pitched:
+		for hand: int in _rise_pins:
+			unpin(hand)
+		_rise_pins.clear()
+		return
+	var fr := _torso_frame(pos)
+	var ahead := _ahead()
+	for arm in 2:
+		var hand := R.HAND_L if arm == 0 else R.HAND_R
+		var sh := pos[R.SH_L if arm == 0 else R.SH_R]
+		var under := Vector3(sh.x, sh.y, _floor_of(hand)) + ahead * .08 * size
+		if not _rise_pins.has(hand):
+			_arm_to(arm, (under - sh).normalized(), 1.0, .08)
+			if on_floor(hand):
+				_rise_pins[hand] = true
+				pin(hand, Vector3(pos[hand].x, pos[hand].y, _floor_of(hand) + radius[hand]))
+		elif pins.has(hand):
+			var held: Vector3 = pins[hand]
+			_arm_to(arm, (held - sh).normalized(), 1.0, .05)
+			if sh.distance_to(held) > _arm_len(arm) * 1.05:
+				# (Pushed up past his reach: the hand comes off the floor.)
+				unpin(hand)
+		else:
+			_arm_to(arm, -fr.y, .95, .1)
+	tone[ARMS] = RISE_TONE
+
+
+## Arm `arm`'s length (map units).
+func _arm_len(arm: int) -> float:
+	var sh := R.SH_L if arm == 0 else R.SH_R
+	var el := sh + 3 if arm == 0 else sh + 4
+	return (rig.points[sh].distance_to(rig.points[el]) + rig.points[el].distance_to(rig.points[el + 1])) * size
 
 
 ## The arm `arm` (0 left, 1 right) reaching along the world way `dir` (its
@@ -375,6 +419,10 @@ func _brace(_dt: float) -> void:
 		bracing = true
 		_brace_from = age
 		clutch_until = minf(clutch_until, age)
+	if down > 0 and pitched:
+		# Pitched over, he gives himself to it: the ankle lets the torso go
+		# over onto the hands rather than hold him kneeling.
+		upright = BRACE_UPRIGHT
 	var feet := (pos[R.FOOT_L] + pos[R.FOOT_R]) * .5
 	var sh := (pos[R.SH_L] + pos[R.SH_R]) * .5
 	var lean := Vector3(sh.x - feet.x, sh.y - feet.y, 0.0)
