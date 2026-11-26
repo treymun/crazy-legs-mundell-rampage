@@ -645,6 +645,7 @@ GEAR = []  # [(bone name, old bone index)]
 GRIPS = []
 GRIP_AT = {}  # side -> (old bone, the hand's middle at the standing key)
 gear_obj = None
+MEGA = {}  # the rebuilt megaphone's handle (kind config "megaphone")
 # Every part the old body loses when it dies (shrunk at the key "down") that
 # is not a piece of its arms, legs or head: the gun and what else it holds.
 # One gear bone per old bone, keyed with that bone's own motion.
@@ -823,27 +824,49 @@ if CFG.get("gear", "old") == "old" and LOST:
                     ang = 2 * math.pi * k / seg
                     ring.append(bmm.verts.new(_c + a_ * (t * L) + (u_ * math.cos(ang) + w_ * math.sin(ang)) * r))
                 rings.append(ring)
-            for ra, rb in zip(rings, rings[1:]):
+            part_of = {}
+            for ri, (ra, rb) in enumerate(zip(rings, rings[1:])):
                 for k in range(seg):
-                    bmm.faces.new((ra[k], ra[(k + 1) % seg], rb[(k + 1) % seg], rb[k]))
+                    f_ = bmm.faces.new((ra[k], ra[(k + 1) % seg], rb[(k + 1) % seg], rb[k]))
+                    part_of[f_] = ("rim", "body", "tip")[ri]
             # the inside of the bell (seen from the front: a dark mouth)
             inner = [bmm.verts.new(_c + a_ * (L * .5) + (u_ * math.cos(2 * math.pi * k / seg)
                                                        + w_ * math.sin(2 * math.pi * k / seg)) * r_tip * 2.2)
                      for k in range(seg)]
             for k in range(seg):
-                bmm.faces.new((rings[1][(k + 1) % seg], rings[1][k], inner[k], inner[(k + 1) % seg]))
-            bmm.faces.new(list(reversed(inner)))
-            bmm.faces.new(rings[3])
+                part_of[bmm.faces.new((rings[1][(k + 1) % seg], rings[1][k], inner[k], inner[(k + 1) % seg]))] = "inside"
+            part_of[bmm.faces.new(inner)] = "inside"
+            part_of[bmm.faces.new(rings[3])] = "tip"
             # the handle: a box under the horn a third of the way from the tip
             hc = _c + a_ * (L * .72) - u_ * (r_tip + (r_bell - r_tip) * .28)
             hl = float(mcfg.get("handle", .1)) * OLD_H / 1.7
             hw = .014 * OLD_H / 1.7
+            MEGA.update(handle=hc - u_ * (hl * .45), down=-u_, axis=a_, half=hw)
             box = bmesh.ops.create_cube(bmm, size=1.0)["verts"]
             for v in box:
                 q = v.co.copy()
                 v.co = hc + a_ * (q.x * hw * 2) + w_ * (q.y * hw * 1.6) - u_ * ((q.z + .5) * hl)
             bmm.normal_update()
-            bmesh.ops.recalc_face_normals(bmm, faces=bmm.faces[:])
+            bmesh.ops.recalc_face_normals(bmm, faces=[f for f in bmm.faces if part_of.get(f) != "inside"])
+            # Its paint: the old horn's red-brown body, a brass rim and
+            # mouthpiece, a dark mouth, a wooden handle; shaded by a light
+            # from above and in front (the old gear's bake was lit; this
+            # emission copy must carry its own light).
+            cols = {"body": mcfg.get("colour", [128, 50, 34]), "rim": mcfg.get("rim", [196, 150, 62]),
+                    "tip": mcfg.get("rim", [196, 150, 62]), "inside": [40, 22, 16], "handle": [96, 64, 40]}
+            lay = bmm.loops.layers.color.new("mcol")
+            Ld = Vector((.3, -.6, .75)).normalized()
+            for f in bmm.faces:
+                if f.index >= 0 and f not in part_of and not any(v in box for v in f.verts):
+                    continue
+                part = part_of.get(f, "handle")
+                if part == "inside":
+                    sh = .6
+                else:
+                    sh = .5 + .5 * max(0.0, f.normal.dot(Ld))
+                c = [ch / 255.0 * sh for ch in cols[part]]
+                for l_ in f.loops:
+                    l_[lay] = (c[0], c[1], c[2], 1.0)
             nnew = len(bmm.verts) - nk
             for f in bmm.faces:
                 if any(v.index < 0 or v.index >= nk for v in f.verts) or all(v.index >= nk for v in f.verts):
@@ -856,8 +879,9 @@ if CFG.get("gear", "old") == "old" and LOST:
             pnt.nodes.clear()
             po = pnt.nodes.new("ShaderNodeOutputMaterial")
             pe = pnt.nodes.new("ShaderNodeEmission")
-            col = [c / 255.0 for c in mcfg.get("colour", [168, 118, 66])]
-            pe.inputs[0].default_value = (col[0], col[1], col[2], 1)
+            pvc = pnt.nodes.new("ShaderNodeVertexColor")
+            pvc.layer_name = "mcol"
+            pnt.links.new(pvc.outputs[0], pe.inputs[0])
             pnt.links.new(pe.outputs[0], po.inputs[0])
             gm.materials.append(pmat)
             for f in bmm.faces:
@@ -1659,10 +1683,15 @@ def solve(name, dz=0.0, held0=None):
                 want_up = (Up - want_ax * Up.dot(want_ax)).normalized()
                 R_hand = (Matrix((want_ax, want_up, want_ax.cross(want_up))).transposed()
                           @ Matrix((ax_h, up_h, ax_h.cross(up_h))).transposed().inverted())
-                mouth = D["head"] @ J["head"] + Fw * (.1 if bare != "wind" else .07) - Up * .06
+                mouth = D["head"] @ J["head"] + Fw * (.13 if bare != "wind" else .1) - Up * .06
                 n_loc = Rel @ narrow
                 wrist_t = mouth - R_hand @ (n_loc - J["wrist_" + side])
-                pole_t = (-inward * .6 - Up * 1.0)
+                # (the elbow where the forearm runs on into the hand, so the
+                # wrist stays near straight)
+                lf = (J["wrist_" + side] - J["forearm_" + side]).length
+                want_el = wrist_t - (R_hand @ HANDF[side][1]).normalized() * lf
+                pole_t = (want_el - sh_f) if (want_el - sh_f).length > .02 else (-inward * .6 - Up * 1.0)
+                pole_t = pole_t.normalized() - Up * .3
             elif mode == "raise":
                 mouth = D["head"] @ J["head"] + Fw * .1 - Up * .1
                 wrist_t = mouth - inward * .04
@@ -1693,6 +1722,16 @@ def solve(name, dz=0.0, held0=None):
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
             D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
             D["hand_" + side] = place(R_l, J["forearm_" + side], el_f)
+            if ITEM_TYPE.get(side) == "raise":
+                # (a megaphone carried is tipped up at the wrist, its bell
+                # up and out as the cel holds it, so it reads as a horn and
+                # not end-on as a disc)
+                fa_ = (R_l @ (J["wrist_" + side] - J["forearm_" + side])).normalized()
+                k_ = fa_.cross(Vector((0, 0, 1)))
+                if k_.length > .1:
+                    Rk = Matrix.Rotation(math.radians(float(CFG.get("raise_carry_tip", 50))), 3, k_.normalized())
+                    wpt = D["hand_" + side] @ J["wrist_" + side]
+                    D["hand_" + side] = place(Rk @ R_l, J["wrist_" + side], wpt)
         joints["hand_" + side] = D["hand_" + side] @ J["hand_" + side]
     # Every held thing is a rigid piece on its main hand: its bone is posed as
     # that hand exactly (its mesh hangs off it, unskinned), shrunk away where
@@ -1747,6 +1786,24 @@ def solve(name, dz=0.0, held0=None):
                 Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
                 palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (HANDS[side].thick * .55 if side in HANDS else .015)
                 Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-grip)
+            elif held0 is None and side in HANDF and ITEM_TYPE.get(side) == "raise" and MEGA:
+                # The megaphone held as a pistol is: its handle across the
+                # palm under the fingers, the horn over the thumb running out
+                # along the hand, the bell ahead past the knuckles.
+                wrist0, a0, n0 = HANDF[side]
+                t0 = a0.cross(n0).normalized()
+                th = HANDS[side].chains.get("th") if side in HANDS else None
+                if th is not None and (th[1] - wrist0).dot(t0) < 0:
+                    t0 = -t0
+                Rh = D["hand_" + side].to_3x3()
+                G1 = (Rh @ a0).normalized()
+                U1 = (Rh @ t0).normalized()
+                G0 = -MEGA["axis"]
+                U0 = -MEGA["down"]
+                Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
+                palm = (D["hand_" + side] @ (J["hand_" + side] + a0 * (HANDS[side].length * .1 if side in HANDS else .02))
+                        + (Rh @ n0) * (MEGA["half"] * 1.6 + (HANDS[side].thick * .5 if side in HANDS else .012)))
+                Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-MEGA["handle"])
             elif held0 is None and side in HANDF and ITEM_TYPE.get(side) in ("bottle", "throw"):
                 # A bottle in the fist as one is held: its neck across the
                 # palm under the fingers (along the knuckles, toward the
@@ -1828,6 +1885,10 @@ def solve(name, dz=0.0, held0=None):
                     D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
                     # The hand straight on from the new forearm, the thing in it.
                     Dh_new = place(R_l, J["forearm_" + side], el_f)
+                    if ITEM_TYPE.get(side) == "raise":
+                        # (a thing held up to the mouth keeps its aim: the
+                        # hand keeps its turn, only moved)
+                        Dh_new = place(D["hand_" + side].to_3x3(), J["wrist_" + side], wr_f)
                     Di = Dh_new @ D["hand_" + side].inverted() @ Di
                     D["hand_" + side] = Dh_new
                 d = depth_in(surface, it["bone"], Di)[0]
@@ -1897,7 +1958,10 @@ def solve(name, dz=0.0, held0=None):
                 curls = hands.grip_curls(hnd, inv @ (Di @ it["lo"]), inv @ (Di @ it["hi"]), it["rad"])
             fm = hands.curl_moves(hnd, curls, hands.THUMB_OPPOSE)
         else:
-            curls = {c: hands.spread(c, .55 if c != "th" else .3) for c in hnd.chains}
+            # (a free hand hangs relaxed: the fingers softly curled, never
+            # flat or splayed)
+            rc = float(CFG.get("relaxed_curl", 1.15))
+            curls = {c: hands.spread(c, rc if c != "th" else rc * .45) for c in hnd.chains}
             fm = hands.curl_moves(hnd, curls)
         for bname, M in fm.items():
             D[bname] = Dh @ M
