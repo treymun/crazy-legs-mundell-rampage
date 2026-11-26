@@ -432,3 +432,73 @@ def contact_curls(h, gear_pts, relaxed=.3):
         if c == "th":
             out["_oppose"] = opp
     return out, report
+
+
+def wrap_curls(h, gear_pts, most=(1.6, 1.8, 1.4)):
+    """Each finger wrapped round the held thing joint by joint: the first
+    joint bends until its own segment rests on the surface (or, if it begins
+    inside, until it is out), then the next joint the same with its segment,
+    then the last: so the fingers follow the thing's shape (a thick stock, a
+    thin barrel) instead of one curl for the whole finger. The thumb is
+    swung round first as far as it goes clear. Returns (curls, report)."""
+    from mathutils.kdtree import KDTree
+
+    tree = KDTree(len(gear_pts))
+    for i, p in enumerate(gear_pts):
+        tree.insert(p, i)
+    tree.balance()
+    out = {}
+    report = {}
+    for c, (joints, tip) in h.chains.items():
+        r_f = h.radius[c]
+        opp = 0.0
+        if c == "th":
+            for o in (THUMB_OPPOSE, .7, .5, .3, .1, 0.0, -.3, -.6, -.9):
+                opp = o
+                if min(tree.find(p)[2] for p in finger_points(h, c, 0.0, o)) >= r_f * .8:
+                    break
+        angles = [0.0, 0.0, 0.0]
+        inside_any = False
+        for k in range(3):
+            def seg_pts(ang_k, k=k):
+                a = list(angles)
+                a[k] = ang_k
+                moves = curl_moves(h, {c: a, "_oppose": opp})
+                p0 = joints[k]
+                p1 = joints[k + 1] if k + 1 < len(joints) else tip
+                M = moves["f%s_%s%d" % (h.side, c, k + 1)]
+                return [M @ (p0 + (p1 - p0) * f) for f in (.35, .7, 1.0)]
+
+            def dist(ang_k):
+                return min(tree.find(p)[2] for p in seg_pts(ang_k))
+
+            start_in = dist(0.0) < r_f * .9
+            best = 0.0
+            steps = 40
+            for j in range(1, steps + 1):
+                a_k = most[k] * j / steps
+                d = dist(a_k)
+                if start_in:
+                    best = a_k
+                    if d >= r_f * .9:
+                        start_in = False
+                        break
+                else:
+                    if d < r_f * .9:
+                        break
+                    best = a_k
+            if start_in:
+                inside_any = True
+            angles[k] = best
+        moves = curl_moves(h, {c: angles, "_oppose": opp})
+        pts = []
+        for k, p0 in enumerate(joints):
+            p1 = joints[k + 1] if k + 1 < len(joints) else tip
+            M = moves["f%s_%s%d" % (h.side, c, k + 1)]
+            pts += [M @ (p0 + (p1 - p0) * f) for f in (.5, 1.0)]
+        gap = min(tree.find(p)[2] for p in pts) - r_f
+        out[c] = angles
+        report[c] = (gap, inside_any)
+        if c == "th":
+            out["_oppose"] = opp
+    return out, report

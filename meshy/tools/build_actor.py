@@ -1402,7 +1402,7 @@ def solve(name, dz=0.0, held0=None):
             inv = Dh.inverted()
             gp = [inv @ (Di @ Vector(g)) for g in ITEM_PTS_DENSE.get(it["bone"], [])]
             if gp:
-                curls, rep = hands.contact_curls(hnd, gp)
+                curls, rep = hands.wrap_curls(hnd, gp)
                 gaps = [g for c_, (g, _i) in rep.items() if c_ != "pk"]
                 inside = [c_ for c_, (_g, i_) in rep.items() if i_]
                 touching = sum(1 for g in gaps if g < .004)
@@ -1650,7 +1650,8 @@ zattr = lo.data.color_attributes.new("zone", "FLOAT_COLOR", "POINT")
 zidx = [lo.vertex_groups[z].index for z in ZONES if z in lo.vertex_groups]
 for v in lo.data.vertices:
     zv = sum(g.weight for g in v.groups if g.group in zidx)
-    zattr.data[v.index].color = (zv, zv, zv, 1)
+    hv = sum(g.weight for g in v.groups if g.group == lo.vertex_groups["head"].index)
+    zattr.data[v.index].color = (zv, hv, 0, 1)
 saved_trees = {}
 for m in lo.data.materials:
     nt = m.node_tree
@@ -1669,7 +1670,9 @@ for m in lo.data.materials:
     m.node_tree.nodes.active = m.node_tree.nodes["bake_target"]
 select([lo])
 bake_op(type="EMIT", margin=TEXTURE // 128, use_clear=True)
-ZONE = pixels(zimg)[:, 0] > .5
+_zp = pixels(zimg)
+ZONE = _zp[:, 0] > .5
+HEADZONE = _zp[:, 1] > .5
 for m in lo.data.materials:
     for n in saved_trees[m.name]:
         m.node_tree.nodes.remove(n)
@@ -1910,7 +1913,88 @@ total[:, :3] *= GAIN
 _grey = total[:, :3].mean(axis=1, keepdims=True)
 total[:, :3] = numpy.clip(_grey + (total[:, :3] - _grey) * float(CFG.get("colour", 1.2)), 0, 1)
 print("MESHY gain %.3f to the old look's light" % GAIN)
+def blush_down(px):
+    """Meshy paints cheeks and noses a saturated pink-red; at the palette it
+    reads as clown blush. In the skin zones, reds much more saturated than
+    this body's own skin are eased toward a sunburnt ruddiness (a share of
+    their excess saturation kept, the hue pulled a little toward the skin)."""
+    keep = float(CFG.get("blush_keep", .35))
+    rgbv = px[:, :3]
+    mx = rgbv.max(axis=1)
+    mn = rgbv.min(axis=1)
+    sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+    r, g, b = rgbv[:, 0], rgbv[:, 1], rgbv[:, 2]
+    d = numpy.maximum(mx - mn, 1e-6)
+    h = numpy.where(mx == r, (60 * ((g - b) / d)) % 360,
+                    numpy.where(mx == g, 60 * ((b - r) / d) + 120, 60 * ((r - g) / d) + 240))
+    sk = SKIN * GAIN
+    s_sat = float((sk.max() - sk.min()) / max(sk.max(), 1e-4))
+    reddish = ((h < 22) | (h > 330)) & (mx > .15)
+    band = ZONE & reddish & (sat > s_sat + .08)
+    grey = rgbv.mean(axis=1, keepdims=True)
+    target = s_sat + (sat - s_sat) * keep
+    k = numpy.where(sat > 1e-4, target / numpy.maximum(sat, 1e-4), 1.0)[:, None]
+    toned = grey + (rgbv - grey) * k
+    # (a touch toward the skin's own colour, at its light)
+    skin_at = sk / max(float(sk.mean()), 1e-4) * grey
+    toned = toned * .8 + skin_at * .2
+    px = px.copy()
+    px[band, :3] = numpy.clip(toned[band], 0, 1)
+    print("MESHY blush eased on %d texels" % int(band.sum()))
+    return px
+
+
+def face_lift(px):
+    """The face as light as the body's other skin (the hat brim and the dusk
+    key from above leave a Meshy face in shadow; the cels lit faces): the head
+    zone's skin texels scaled so their median light is the forearms' and
+    hands' skin's, at most `face_lift_most` times."""
+    rgbv = px[:, :3]
+    lum = rgbv @ numpy.array([.299, .587, .114])
+    mx = rgbv.max(axis=1)
+    mn = rgbv.min(axis=1)
+    sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+    skinlike = (rgbv[:, 0] > rgbv[:, 2]) & (sat > .12) & (sat < .75) & (mx > .03)
+    d = numpy.maximum(mx - mn, 1e-6)
+    r, g, b = rgbv[:, 0], rgbv[:, 1], rgbv[:, 2]
+    h = numpy.where(mx == r, (60 * ((g - b) / d)) % 360,
+                    numpy.where(mx == g, 60 * ((b - r) / d) + 120, 60 * ((r - g) / d) + 240))
+    sk = SKIN
+    sd = max(float(sk.max() - sk.min()), 1e-6)
+    s_h = (60 * ((sk[1] - sk[2]) / sd)) % 360 if sk.max() == sk[0] else 30.0
+    skinlike &= numpy.abs(((h - s_h + 180) % 360) - 180) < 14
+    face = HEADZONE & skinlike
+    rest = ZONE & ~HEADZONE & skinlike
+    if "HANDMASK" in globals():
+        rest = rest | (HANDMASK & skinlike)
+    print("MESHY face check: %d face texels, %d other skin texels" % (int(face.sum()), int(rest.sum())))
+    if face.sum() < 50 or rest.sum() < 50:
+        return px
+    want = float(numpy.median(lum[rest])) * float(CFG.get("face_light", 1.05))
+    have = float(numpy.median(lum[face]))
+    # As light as the old model's skin (the cels' faces), graded back.
+    if _old is not None:
+        o = _old
+        omx, omn = o.max(axis=1), o.min(axis=1)
+        osat = numpy.where(omx > 1e-4, (omx - omn) / numpy.maximum(omx, 1e-4), 0)
+        oskin = (o[:, 0] > o[:, 1]) & (o[:, 1] > o[:, 2]) & (osat > .2) & (osat < .6) & (omx > .35)
+        if oskin.sum() > 50:
+            old_l = float(numpy.median(o[oskin] @ numpy.array([.299, .587, .114])))
+            want = max(want, (old_l - .024) / 1.18 * float(CFG.get("face_light", 1.0)))
+    skin_all = face | rest
+    k = min(float(CFG.get("face_lift_most", 1.8)), max(1.0, want / max(have, 1e-4)))
+    print("MESHY face light %.3f, other skin %.3f" % (have, want))
+    if k > 1.02:
+        px = px.copy()
+        # (every skin texel, face, hands and arms alike; the hat and cloth stay)
+        px[skin_all, :3] = numpy.clip(px[skin_all, :3] * k, 0, 1)
+        print("MESHY face lifted x%.2f (face %.3f, other skin %.3f)" % (k, have, want))
+    return px
+
+
 total = skin_fix(total)
+total = blush_down(total)
+total = face_lift(total)
 image.pixels.foreach_set(total.ravel())
 image.filepath_raw = os.path.join(OUT, KIND + ".png")
 image.file_format = "PNG"
