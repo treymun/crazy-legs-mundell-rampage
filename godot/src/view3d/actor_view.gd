@@ -94,7 +94,16 @@ var _twist := 0.0
 var _twist_for := -1.0
 ## kind -> where its body lies at the end of its fall (_lying_middle).
 static var _lying := {}
-var _shaded := []
+## What _shade last handed the parts (false: nothing yet): kept as fields,
+## not an array made and compared every frame (pass 15).
+var _shaded := false
+var _sh_tone := Color()
+var _sh_wash := Color()
+var _sh_look := 0
+var _sh_down := 0.0
+var _sh_tell := 0.0
+var _sh_rim := Color()
+var _sh_mode := 0
 ## Its own rim (ActorRim, pass 15): when it came up (-1: none), whether this
 ## body was shown without one, and the clock the body is shown at.
 var rim_since := -1.0
@@ -202,7 +211,7 @@ func revive() -> void:
 	_seeked = NAN
 	_group = ""
 	_blend_at = -1.0
-	_shaded = []
+	_shaded = false
 	rim_since = -1.0
 	rim_off_seen = false
 	_posed = -1
@@ -685,10 +694,25 @@ func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: floa
 	var wash := Color(tint.r, tint.g, tint.b, hurt)
 	var tell := 0.0 if hurt > 0.0 else s.tell
 	var rim := ActorRim.quieted(ActorRim.of(self, s.who), hurt, s.tell)
-	var now := [tone, wash, look, down, tell, rim, ActorRim.mode]
-	if now == _shaded:
+	if (
+		_shaded
+		and tone == _sh_tone
+		and wash == _sh_wash
+		and look == _sh_look
+		and down == _sh_down
+		and tell == _sh_tell
+		and rim == _sh_rim
+		and ActorRim.mode == _sh_mode
+	):
 		return
-	_shaded = now
+	_shaded = true
+	_sh_tone = tone
+	_sh_wash = wash
+	_sh_look = look
+	_sh_down = down
+	_sh_tell = tell
+	_sh_rim = rim
+	_sh_mode = ActorRim.mode
 	for mesh in _meshes:
 		OwnMaterial.put(mesh, "tone", tone)
 		OwnMaterial.put(mesh, "wash", wash)
