@@ -217,12 +217,16 @@ static func arms_seen(view: Node, labels: Dictionary) -> Dictionary:
 			pts.append(p)
 			side.append(bind_side[vb[v * per + best]])
 	var cell := .02
-	for way: Array in [
-		["front", Vector3(0, 0, 1)],
-		["back", Vector3(0, 0, -1)],
-		["left", Vector3(1, 0, 0)],
-		["right", Vector3(-1, 0, 0)]
-	]:
+	# The views turn with the body (its torso's facing), so a body that has
+	# swung round is still seen from its own front, back and sides.
+	var fwd := Vector3(0, 0, 1)
+	var body_bone := skel.find_bone("body")
+	if body_bone >= 0:
+		fwd = skel.get_bone_global_pose(body_bone).basis * Vector3(0, 0, 1)
+		fwd.y = 0.0
+		fwd = fwd.normalized() if fwd.length() > 1e-4 else Vector3(0, 0, 1)
+	var lft := Vector3.UP.cross(fwd).normalized()
+	for way: Array in [["front", fwd], ["back", -fwd], ["left", lft], ["right", -lft]]:
 		var name: String = way[0]
 		var d: Vector3 = way[1]
 		var u := Vector3.UP

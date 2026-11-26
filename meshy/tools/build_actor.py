@@ -1270,13 +1270,16 @@ def solve(name, dz=0.0, held0=None):
             if bare == "fire":
                 a1 = (a1 + Up * .22).normalized()
             if bare == "wind":
-                a1 = (a1 - Up * .35).normalized()
+                # Brought up to fire: the muzzle raised, the arm drawn in.
+                a1 = (a1 + Up * .9).normalized()
             n1 = inward - a1 * inward.dot(a1)
             n1.normalize()
             wrist0, a0, n0 = HANDF[side]
             R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
             wrist_t = sh_f + (a1 * .93 * reach)
-            wrist_t.z = eye - (J["hand_" + side] - wrist0).length * .2 if bare != "wind" else wrist_t.z - .12
+            wrist_t.z = eye - (J["hand_" + side] - wrist0).length * .2
+            if bare == "wind":
+                wrist_t = sh_f + Fw * reach * .45 + inward * .05 + Up * reach * .3
             R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
                                         sh_f, wrist_t, R_t @ Vector((0, .2, -1.0)), Vector((0, -1, 0)))
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
@@ -1359,8 +1362,10 @@ def solve(name, dz=0.0, held0=None):
                                                 Vector((0, -1, 0)))
                     D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
                     D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
-                    D["hand_" + side] = Dh
-                    Di = move @ Di
+                    # The hand straight on from the new forearm, the thing in it.
+                    Dh_new = place(R_l, J["forearm_" + side], el_f)
+                    Di = Dh_new @ D["hand_" + side].inverted() @ Di
+                    D["hand_" + side] = Dh_new
                 d = depth_in(surface, it["bone"], Di)[0]
                 if first > .004:
                     print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d))
@@ -1847,6 +1852,22 @@ def skin_fix(px):
     h = numpy.where(mx == r, (60 * ((g - b) / d)) % 360,
                     numpy.where(mx == g, 60 * ((b - r) / d) + 120, 60 * ((r - g) / d) + 240))
     band = ZONE & (h > 5) & (h < 45) & (sat > .18) & (sat < .8) & (mx > .14)
+    # Only the colours of this body's own skin (its Meshy hands' colour, lit
+    # as the bake lights it): a khaki sleeve or a tan shirt in the same hue
+    # band is cloth, not skin.
+    sk = SKIN * GAIN
+    smx, smn = float(sk.max()), float(sk.min())
+    sd = max(smx - smn, 1e-6)
+    s_sat = (smx - smn) / max(smx, 1e-4)
+    if smx == sk[0]:
+        s_h = (60 * ((sk[1] - sk[2]) / sd)) % 360
+    elif smx == sk[1]:
+        s_h = 60 * ((sk[2] - sk[0]) / sd) + 120
+    else:
+        s_h = 60 * ((sk[0] - sk[1]) / sd) + 240
+    near_h = numpy.abs(((h - s_h + 180) % 360) - 180) < float(CFG.get("skin_hue_band", 9))
+    near_s = numpy.abs(sat - s_sat) < float(CFG.get("skin_sat_band", .16))
+    band &= near_h & near_s
     nh = (h - fix[0]) % 360
     ns = numpy.clip(sat * fix[1], 0, 1)
     nv = mx * fix[2]

@@ -1,0 +1,11 @@
+{
+ "kind": "clone",
+ "rigged": "../meshy-work/meshy_out/clone_rig/rigged.glb",
+ "poses": "../meshy-work/dump/clone_poses.json",
+ "old_glb": "../meshy-work/old/clone.glb",
+ "old_tex": "../meshy-work/old/actor3d_clone.png",
+ "out": "../meshy-work/raw/clone",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old"
+}

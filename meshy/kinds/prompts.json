@@ -5,5 +5,26 @@
   "face": "sunken cheeks, squinting suspicious little eyes under bushy white brows, a toothless sneer, deep wrinkles, ruddy leathery skin",
   "texture": "old hillbilly, olive-brown felt hat, long white beard, red nose, rust brown shirt, grey olive trousers with tan knee patch, dark brown boots, empty hands, no weapon",
   "height": 1.79
+ },
+ "yard_deputy": {
+  "who": "pot-bellied small-town sheriff's deputy, a middle-aged southern lawman",
+  "design": "black round bowler-crowned hat, a thick black walrus moustache, tan khaki uniform shirt with a row of brown buttons down the belly and a small gold star badge on the chest, a big round beer belly, a brown leather gun belt, dark charcoal-grey trousers, black boots",
+  "face": "puffy ruddy cheeks, small mean squinting eyes, a smug scowl under the moustache, sweaty sunburnt skin",
+  "texture": "sheriff's deputy, black hat, black moustache, tan khaki shirt with brown buttons and gold star badge, brown belt, charcoal grey trousers, black boots, empty hands, no weapon",
+  "height": 1.8
+ },
+ "clone": {
+  "who": "backwoods farmer, a lanky hillbilly in a straw hat",
+  "design": "wide-brim straw hat with a dark band, a green and dark-green checked flannel shirt, faded blue denim bib overalls, scuffed brown work boots, big rough hands",
+  "face": "weathered tanned face, small dark eyes, a big nose, a blank simple stare, stubble",
+  "texture": "hillbilly farmer, straw hat, green checked flannel shirt, blue denim bib overalls, brown boots, empty hands, no weapon",
+  "height": 1.8
+ },
+ "alien": {
+  "who": "grey bug-eyed space alien soldier in a dark segmented armour suit, comedic 1950s B-movie alien",
+  "design": "a big round olive-grey head with two thin antennae tipped with glowing cyan balls, huge round black goggle eyes rimmed in metal with cyan glints, a dark charcoal-grey padded armour suit with round shoulder pads, a glowing cyan round light on the chest, a belt with a small orange buckle, segmented dark-grey arms and legs with round knee pads, three-fingered grey hands",
+  "face": "no nose, a small slit mouth, wrinkled grey skin, the huge glossy black goggle eyes",
+  "texture": "grey alien, olive grey head with antennae with cyan tips, black goggle eyes, dark charcoal armour suit, cyan chest light, orange belt buckle, empty hands, no weapon",
+  "height": 2.05
  }
 }

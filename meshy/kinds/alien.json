@@ -1,0 +1,14 @@
+{
+ "kind": "alien",
+ "rigged": "../meshy-work/meshy_out/alien_rig/rigged.glb",
+ "poses": "../meshy-work/dump/alien_poses.json",
+ "old_glb": "../meshy-work/old/alien.glb",
+ "old_tex": "../meshy-work/old/actor3d_alien.png",
+ "out": "../meshy-work/raw/alien",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "item_types": {
+  "r": "pistol"
+ }
+}

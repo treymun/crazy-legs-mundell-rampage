@@ -56,6 +56,105 @@
    "time": "2026-11-25 22:16:07",
    "after": 2855,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "yard_deputy_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2164f-59bd-778b-8241-15b97107af46",
+   "before": 2855,
+   "cost": 9,
+   "body": "yard_deputy_concept.json",
+   "time": "2026-11-25 23:23:50",
+   "after": 2846,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "clone_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2164f-d3a3-751f-81f3-40757d727de5",
+   "before": 2846,
+   "cost": 9,
+   "body": "clone_concept.json",
+   "time": "2026-11-25 23:24:22",
+   "after": 2837,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "alien_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21650-2e87-77aa-ac71-b65f652cab25",
+   "before": 2837,
+   "cost": 9,
+   "body": "alien_concept.json",
+   "time": "2026-11-25 23:24:44",
+   "after": 2828,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "yard_deputy_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21651-3a3c-75a2-b6d9-f1f11790475f",
+   "before": 2828,
+   "cost": 30,
+   "body": "yard_deputy_model.json",
+   "time": "2026-11-25 23:25:56",
+   "after": 2798,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "yard_deputy_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21652-437b-73e7-94ff-167a5d173851",
+   "before": 2798,
+   "cost": 5,
+   "body": "yard_deputy_rig.json",
+   "time": "2026-11-25 23:27:04",
+   "after": 2793,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "clone_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21652-af48-71c6-b488-21043cf07f80",
+   "before": 2793,
+   "cost": 30,
+   "body": "clone_model.json",
+   "time": "2026-11-25 23:27:32",
+   "after": 2763,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "clone_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21654-3d80-750f-a066-1c0c3436b4b3",
+   "before": 2763,
+   "cost": 5,
+   "body": "clone_rig.json",
+   "time": "2026-11-25 23:29:13",
+   "after": 2758,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "alien_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21654-a249-7431-ad65-38c96a99a8b0",
+   "before": 2758,
+   "cost": 30,
+   "body": "alien_model.json",
+   "time": "2026-11-25 23:29:39",
+   "after": 2728,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "alien_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21655-e7c6-74c9-9499-0036687cfe5a",
+   "before": 2728,
+   "cost": 5,
+   "body": "alien_rig.json",
+   "time": "2026-11-25 23:31:03",
+   "after": 2723,
+   "status": "SUCCEEDED"
   }
  ]
 }
