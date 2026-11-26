@@ -178,6 +178,9 @@ var pins := {}
 var dice := RandomNumberGenerator.new()
 var _frame_r := Basis.IDENTITY
 var _frame_t := Basis.IDENTITY
+## Each group's stiff() this step (worked out once a step: it holds still
+## through the passes).
+var _st: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 
 ## A live body for a body hung on `rig`, posed as `model` (model space,
@@ -423,6 +426,8 @@ func live_step() -> void:
 			pos[i] += carry_now
 			old[i] += carry_now
 	_frame_t = _torso_frame(target)
+	for grp in 4:
+		_st[grp] = stiff(grp)
 	var supported := _supported()
 	for _pass in PASSES_LIVE:
 		if muscles:
@@ -479,7 +484,7 @@ func _supported() -> bool:
 func _upright(supported: bool) -> void:
 	if not supported:
 		return
-	var k := UPRIGHT * upright * (stiff(TORSO) / TONE)
+	var k := UPRIGHT * upright * (_st[TORSO] / TONE)
 	if down > 0:
 		k *= DOWN_UPRIGHT * (.6 if pitched else 1.0)
 	if k <= 0.0:
@@ -511,26 +516,29 @@ func _pull(supported: bool) -> void:
 	var turn := _frame_r * _frame_t.transposed()
 	var neck := (pos[R.SH_L] + pos[R.SH_R]) * .5
 	var neck_t := (target[R.SH_L] + target[R.SH_R]) * .5
+	# (What holds for every ball this pass, asked once.)
+	var give_l := _leg_give(0)
+	var give_r := _leg_give(1)
+	var clutching := clutch_hand >= 0 and age < clutch_until and down <= 0
+	var c_hand := R.HAND_L if clutch_hand == 0 else R.HAND_R
+	var limp := limp_arm >= 0 and age < clutch_until + .5
+	var limp_elbow := R.ELBOW_R if limp_arm == 1 else R.ELBOW_L
+	var limp_hand := R.HAND_R if limp_arm == 1 else R.HAND_L
 	for i in R.POINTS:
 		var par: int = PARENT_OF[i]
 		if par == -1:
 			continue
-		var k := stiff(GROUP_OF[i])
+		var k := _st[GROUP_OF[i]]
 		if i == R.KNEE_L or i == R.FOOT_L:
-			k *= _leg_give(0)
+			k *= give_l
 		elif i == R.KNEE_R or i == R.FOOT_R:
-			k *= _leg_give(1)
-		if clutch_hand >= 0 and age < clutch_until and down <= 0:
+			k *= give_r
+		if clutching:
 			# The clutching arm goes where the hand goes (_reach), not the pose.
-			var hand := R.HAND_L if clutch_hand == 0 else R.HAND_R
-			if i == hand or i == hand - 1:
+			if i == c_hand or i == c_hand - 1:
 				continue
-		if limp_arm >= 0 and age < clutch_until + .5:
-			var limp_balls: Array = (
-				[R.ELBOW_R, R.HAND_R] if limp_arm == 1 else [R.ELBOW_L, R.HAND_L]
-			)
-			if limp_balls.has(i):
-				k *= .25
+		if limp and (i == limp_elbow or i == limp_hand):
+			k *= .25
 		if k <= 0.0:
 			continue
 		var from := neck if par == -2 else pos[par]
@@ -561,7 +569,7 @@ func _pull(supported: bool) -> void:
 	var mid := middle()
 	var mid_t := (target[R.HIP_L] + target[R.HIP_R] + target[R.SH_L] + target[R.SH_R]) * .25
 	if supported:
-		var legs := stiff(LEGS) / TONE
+		var legs := _st[LEGS] / TONE
 		var up := clampf((mid_t.z - mid.z) * SUPPORT * legs, -RISE_MOST, RISE_MOST)
 		if down > 0:
 			up = minf(up, 0.0)
@@ -616,7 +624,7 @@ func _reach() -> void:
 	for i in aim_override.size():
 		var w := aim_override[i]
 		if w != Vector3.INF:
-			pos[i] += (w - pos[i]) * minf(1.0, stiff(GROUP_OF[i]) * 1.4)
+			pos[i] += (w - pos[i]) * minf(1.0, _st[GROUP_OF[i]] * 1.4)
 	for i: int in pins:
 		var at: Vector3 = pins[i]
 		pos[i] = at
@@ -664,7 +672,7 @@ func _feet(swinging := true) -> void:
 			var k := clampf(_swing_t, 0.0, 1.0)
 			var at := _swing_from.lerp(_swing_to, k * k * (3.0 - 2.0 * k))
 			at.z += LIFT * size * sin(PI * k)
-			var pull := minf(1.0, stiff(LEGS) * 1.6 + .25) if muscles else 0.0
+			var pull := minf(1.0, _st[LEGS] * 1.6 + .25) if muscles else 0.0
 			var d := at - pos[i]
 			pos[i] += d * pull
 			pos[KNEES[f]] += d * pull * .3

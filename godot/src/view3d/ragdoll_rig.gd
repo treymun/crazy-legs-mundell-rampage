@@ -122,6 +122,13 @@ var bone_ride := PackedInt32Array()
 ## its end (a whole arm modelled as one piece, bent as it stands): it does
 ## not bend at its elbow or knee (1), else 0 (_find_gear).
 var stiff := PackedByteArray()
+## Worked out once from the rest pose (pass 15; frames_of and pose ask them
+## every frame): each segment's start at rest and its end point, each
+## segment's rest frame turned back, each bone's size at rest.
+var _rest_start := PackedVector3Array()
+var _end_of := PackedInt32Array()
+var _rest_back: Array[Transform3D] = []
+var _bone_size := PackedVector3Array()
 
 static var _built := {}
 ## How many rigs this process found from their models' vertices (_build),
@@ -956,14 +963,20 @@ func frames_of(at: PackedVector3Array) -> Array[Transform3D]:
 			out[s] = Transform3D(torso, _from(at, s, shoulders))
 		return out
 	var turn_torso := torso * _rest_inv[TORSO]
+	if _rest_start.size() != ENDS.size():
+		_rest_start.resize(ENDS.size())
+		_end_of.resize(ENDS.size())
+		for s in range(1, ENDS.size()):
+			_rest_start[s] = _from(points, s, (points[SH_L] + points[SH_R]) * .5)
+			_end_of[s] = ENDS[s][1]
 	for s in range(1, ENDS.size()):
 		var parent: int = PARENT[s]
 		var base := out[parent].basis * _rest_inv[parent]
 		if parent == TORSO:
 			base = turn_torso
 		var start := _from(at, s, shoulders)
-		var rest_start := _from(points, s, (points[SH_L] + points[SH_R]) * .5)
-		var end_i: int = ENDS[s][1]
+		var rest_start := _rest_start[s]
+		var end_i := _end_of[s]
 		var was := base * (points[end_i] - rest_start)
 		var now := at[end_i] - start
 		var arc := _arc(was, now)
@@ -1027,9 +1040,17 @@ static func _arc(a: Vector3, b: Vector3) -> Basis:
 ## is shown (`dead`: the dead body's lost parts shrunk away).
 func pose(skeleton: Skeleton3D, at: PackedVector3Array, dead: bool) -> void:
 	var now := frames_of(at)
+	if _rest_back.size() != rest_frames.size():
+		_rest_back.clear()
+		for f: Transform3D in rest_frames:
+			_rest_back.append(f.affine_inverse())
+	if _bone_size.size() != bone_rest.size():
+		_bone_size.resize(bone_rest.size())
+		for i in bone_rest.size():
+			_bone_size[i] = bone_rest[i].basis.get_scale()
 	var moves: Array[Transform3D] = []
 	for s in segs():
-		moves.append(now[s] * rest_frames[s].affine_inverse())
+		moves.append(now[s] * _rest_back[s])
 	# The gear let go of: each piece turned as its three balls (`at` past
 	# POINTS) are from how they stood.
 	var held: Array[Transform3D] = []
@@ -1053,7 +1074,7 @@ func pose(skeleton: Skeleton3D, at: PackedVector3Array, dead: bool) -> void:
 		var p := moves[seg] * bone_rest[i]
 		if g >= 0 and g < held.size():
 			p = held[g] * bone_rest[i]
-		var size := bone_rest[i].basis.get_scale()
+		var size := _bone_size[i]
 		if dead and dead_scale[i].x < .2 and g < 0:
 			size = Vector3(.001, .001, .001)
 		skeleton.set_bone_pose_position(i, p.origin)

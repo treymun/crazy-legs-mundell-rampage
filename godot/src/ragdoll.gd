@@ -123,6 +123,8 @@ const HIP_IN := .2
 ## Play's body's move is given whole to the torso and to a limb up in the
 ## air; a limb on the floor takes this share of it and is dragged the rest.
 const DRAG := .8
+## Each leg's hip, knee and foot (made once, not each pass).
+const LEG_JOINTS: Array = [[R.HIP_L, R.KNEE_L, R.FOOT_L], [R.HIP_R, R.KNEE_R, R.FOOT_R]]
 
 const R := preload("res://src/view3d/ragdoll_rig.gd")
 const Corpses := preload("res://src/features/corpses.gd")
@@ -213,6 +215,10 @@ var slack := SLACK
 ## away, a tremble is rest): half a person's; a beast on its side has its
 ## legs up off it.
 var down_share := .5
+## Its own _floor (a beast's, in water): the step asks it ball by ball, else
+## _floor_balls does the floor for every ball at once (pass 15: the same
+## sums, fewer calls).
+var _floor_own := false
 
 ## The ragdolls about (ActorLayer3D sets it each frame: those shown and those
 ## kept out of sight): a body lies on another rather than through it.
@@ -763,9 +769,7 @@ func step(world: LevelData) -> void:
 		_muscles(tone, ease)
 		_links()
 		_hinges()
-		for i in count:
-			if _floor(i, floors[i], _roofs[i]):
-				touching[i] = 1
+		_floor_balls(floors, touching)
 	_on_bodies(touching)
 	_on_boxes(world, touching)
 	_hull_floor(touching)
@@ -773,9 +777,7 @@ func step(world: LevelData) -> void:
 	# body landing hard had a limb stretched for a frame or two), then the
 	# floor and the wreck pieces kept again.
 	_links()
-	for i in count:
-		if _floor(i, floors[i], _roofs[i]):
-			touching[i] = 1
+	_floor_balls(floors, touching)
 	_on_boxes(world, touching)
 	if not plain:
 		# Last, nothing ends the step inside a wall, a slab's side or a rail
@@ -1261,7 +1263,7 @@ func _hinges() -> void:
 	if ahead.length_squared() < 1e-8:
 		return
 	ahead = ahead.normalized()
-	for joint: Array in [[R.HIP_L, R.KNEE_L, R.FOOT_L], [R.HIP_R, R.KNEE_R, R.FOOT_R]]:
+	for joint: Array in LEG_JOINTS:
 		var a: int = joint[0]
 		var m: int = joint[1]
 		var b: int = joint[2]
@@ -1292,8 +1294,11 @@ func _walls(world: LevelData, i: int) -> void:
 		r = maxf(r, GEAR_WALL)
 	# Play's body went over this rail: the ball is lifted over its top bar
 	# rather than held behind it (the body goes over head first, the legs
-	# dragged across after).
-	var rail := _rail_at(world, p, r)
+	# dragged across after). (Most balls are where the geometry's grid says
+	# nothing is near: no rail asked for there.)
+	var rail: LevelGeometry.Segment = null
+	if world.geo != null and not world.geo.clear_at(p.x, p.y):
+		rail = _rail_at(world, p, r)
 	if rail != null and body != Vector3.INF:
 		var toward := _side(rail, body)
 		if _side(rail, o) != toward:
@@ -1310,7 +1315,11 @@ func _walls(world: LevelData, i: int) -> void:
 				p.x += n.x * (want - to_ball)
 				p.y += n.y * (want - to_ball)
 		pos[i] = p
-	if not _solid(world, p, r):
+	# (With no rail here the rail half of _solid is known: none.)
+	if rail == null:
+		if not world.blocked(p.x, p.y, r * .8, p.z):
+			return
+	elif not _solid(world, p, r):
 		return
 	if rail != null and body != Vector3.INF and _solid(world, o, r * .5):
 		# Stuck in a rail's bar on play's body's side: out to that side of it.
@@ -1373,6 +1382,30 @@ static func _rail_at(world: LevelData, p: Vector3, r: float) -> LevelGeometry.Se
 ## Which side of rail s point p is on.
 static func _side(s: LevelGeometry.Segment, p: Vector3) -> bool:
 	return (s.bx - s.ax) * (p.y - s.ay) - (s.by - s.ay) * (p.x - s.ax) > 0.0
+
+
+## Every ball on its floor (`floors`), as _floor does each; those touching
+## it marked in `touching`.
+func _floor_balls(floors: PackedFloat32Array, touching: PackedByteArray) -> void:
+	if _floor_own:
+		for i in pos.size():
+			if _floor(i, floors[i], _roofs[i]):
+				touching[i] = 1
+		return
+	var lifted := carry > -INF
+	for i in pos.size():
+		var p := pos[i]
+		var r := radius[i]
+		var low := floors[i] + r
+		if lifted and _core[i]:
+			low = maxf(low, carry + r * .5)
+		if p.z <= low:
+			p.z = low
+			touching[i] = 1
+		var roof := _roofs[i]
+		if roof > 0.0 and p.z + r > roof:
+			p.z = maxf(low, roof - r)
+		pos[i] = p
 
 
 ## Ball i on the floor under it (`under`), under any roof, and the torso no

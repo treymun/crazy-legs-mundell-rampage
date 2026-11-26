@@ -60,10 +60,13 @@ func tick_hands() -> void:
 	var brains: Array = n("enemy_muzzle", "brains", [])
 	var scatter: Array = n("enemy_muzzle", "scatter", [])
 	var seen := {}
+	var px := p.x
+	var py := p.y
 	for e: Enemy in game.enemies:
-		if not e.alive or not e.hostile or e.dormant:
+		# (The reach first: most of a level's hands are far off.)
+		if absf(e.x - px) > reach or absf(e.y - py) > reach:
 			continue
-		if absf(e.x - p.x) > reach or absf(e.y - p.y) > reach:
+		if not e.alive or not e.hostile or e.dormant:
 			continue
 		if not brains.has(e.brain) and not brains.has(e.kind):
 			continue

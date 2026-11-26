@@ -117,6 +117,7 @@ func start(at: PackedVector3Array, radii: PackedFloat32Array, rest: PackedVector
 	old = at.duplicate()
 	prev = at.duplicate()
 	radius = radii.duplicate()
+	_floor_own = true
 	var count := pos.size()
 	body_n = count
 	_torso_r = radius[R.HIP_L]
