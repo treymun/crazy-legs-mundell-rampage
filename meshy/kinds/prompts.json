@@ -26,5 +26,47 @@
   "face": "no nose, a small slit mouth, wrinkled grey skin, the huge glossy black goggle eyes",
   "texture": "grey alien, olive grey head with antennae with cyan tips, black goggle eyes, dark charcoal armour suit, cyan chest light, orange belt buckle, empty hands, no weapon",
   "height": 2.05
+ },
+ "big_billy": {
+  "who": "huge fat burly hillbilly brute, an enormous bearded redneck",
+  "design": "grey-green flat cap, a thick bushy dark-brown beard, a red and black plaid flannel shirt with rolled sleeves showing huge pink forearms, faded blue denim bib overalls over a giant round belly, dark brown work boots",
+  "face": "tiny mean eyes, a broad flat nose, a gap-toothed snarl in the beard, sunburnt skin",
+  "texture": "huge fat hillbilly, grey green cap, dark brown beard, red plaid shirt, blue denim bib overalls, brown boots, empty hands, no weapon, nothing held",
+  "height": 1.93
+ },
+ "drunk_coot": {
+  "who": "skinny drunk old moonshiner, a staggering elderly hillbilly",
+  "design": "a battered black bowler hat, a long pointed white beard, a big round bulbous bright red nose, a rust-brown work shirt with a dark vest, a dark belt, baggy olive-grey trousers with a tan knee patch, dark boots, bony arms",
+  "face": "bleary half-closed drunk eyes, a loose grin, wrinkled ruddy skin",
+  "texture": "old drunk hillbilly, black bowler hat, white beard, red nose, rust brown shirt, olive grey trousers with knee patch, dark boots, empty hands, no weapon, nothing held",
+  "height": 1.81
+ },
+ "bottle_tosser": {
+  "who": "lean young hillbilly in a cap",
+  "design": "a grey flat newsboy cap, a brown and dark-red plaid flannel shirt, a brown leather bandolier strap across the chest, olive-grey work trousers, dark brown boots",
+  "face": "a hard squinting stare, stubbly jaw, tanned skin",
+  "texture": "hillbilly, grey flat cap, brown plaid flannel shirt, leather strap across chest, olive grey trousers, brown boots, empty hands, no weapon, nothing held",
+  "height": 1.75
+ },
+ "barker": {
+  "who": "pot-bellied carnival barker, a fast-talking country fair showman",
+  "design": "a straw boater hat with a red band, a thick black handlebar moustache, a white long-sleeved shirt, a red-and-cream vertically striped vest over a round belly, grey-olive trousers, dark brown shoes",
+  "face": "a wide toothy showman's grin, bushy black eyebrows, a ruddy face",
+  "texture": "carnival barker, straw boater hat, black handlebar moustache, white shirt, red and cream striped vest, grey trousers, brown shoes, empty hands, no weapon, nothing held",
+  "height": 1.75
+ },
+ "chum_tosser": {
+  "who": "stocky bayou fisherman",
+  "design": "a red baseball cap, a blue and white checked flannel shirt, a big yellow rubber fishing apron, olive-grey trousers, white rubber fishing boots",
+  "face": "a red nose, a sunburnt round face, a scowl",
+  "texture": "fisherman, red cap, blue checked flannel shirt, yellow rubber apron, grey trousers, white rubber boots, empty hands, no weapon, nothing held",
+  "height": 1.75
+ },
+ "noodler": {
+  "who": "burly bare-armed bayou fisherman, a catfish noodler",
+  "design": "an olive-green cap, a bushy brown beard and sideburns, a white sleeveless undershirt over a big belly, dark olive-grey wader overalls with suspenders, dark boots, thick bare pink arms",
+  "face": "a broad grin, small eyes, a sunburnt face",
+  "texture": "bayou noodler, olive green cap, brown beard, white sleeveless undershirt, dark olive wader overalls with suspenders, dark boots, bare arms, empty hands, no weapon, nothing held",
+  "height": 1.73
  }
 }

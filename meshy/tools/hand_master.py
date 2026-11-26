@@ -216,7 +216,21 @@ def seg_d(pt, a_, b_):
     return numpy.linalg.norm(pt - (a_ + tt[:, None] * ab), axis=1), tt
 
 
-# (Now reduced: the fingers were found on the dense remesh.)
+# (Now reduced: the fingers were found on the dense remesh.) Loose bits off.
+bpy.ops.object.select_all(action="DESELECT")
+hand.select_set(True)
+bpy.context.view_layer.objects.active = hand
+bpy.ops.object.mode_set(mode="EDIT")
+bpy.ops.mesh.select_all(action="SELECT")
+bpy.ops.mesh.separate(type="LOOSE")
+bpy.ops.object.mode_set(mode="OBJECT")
+_parts = [o for o in bpy.context.scene.objects if o.type == "MESH"]
+hand = max(_parts, key=lambda o: len(o.data.vertices))
+for o in _parts:
+    if o is not hand:
+        bpy.data.objects.remove(o)
+co = numpy.array([v.co[:] for v in hand.data.vertices])
+z, y, x = co[:, 2], co[:, 1], co[:, 0]
 bpy.ops.object.select_all(action="DESELECT")
 hand.select_set(True)
 bpy.context.view_layer.objects.active = hand
@@ -295,6 +309,45 @@ for i in range(len(co)):
         groups["%s%d" % (nm, k_ + 2)][i] += 1 - sh
         w_here = sh
     groups["%s%d" % (nm, k_ + 1)][i] += w_here
+# Smoothed over the mesh's own edges (no hard seams where a finger meets the
+# palm or its neighbour: those tore into slivers and spikes when it bent),
+# a finger's weight never reaching another finger's chain.
+nv = len(co)
+nbr = [[] for _ in range(nv)]
+for e in hand.data.edges:
+    a_, b_ = e.vertices
+    nbr[a_].append(b_)
+    nbr[b_].append(a_)
+names = list(groups)
+Wm = numpy.stack([groups[n] for n in names], axis=1)
+Wm /= numpy.maximum(Wm.sum(axis=1, keepdims=True), 1e-6)
+chain_of = [n[:2] if n not in ("hand", "forearm") else n for n in names]
+for _ in range(8):
+    new = Wm.copy()
+    for i in range(nv):
+        if nbr[i]:
+            new[i] = Wm[i] * .5 + Wm[nbr[i]].mean(axis=0) * .5
+    Wm = new
+# Each vertex out along the fingers keeps the palm and at most one finger
+# (its strongest); in the webbing between the fingers' roots the neighbours
+# share it, so the skin there stretches evenly instead of tearing.
+_web = numpy.mean([c_["joints"][1][2] for k_, c_ in chains.items() if k_ != "th"])
+for i in range(nv):
+    if z[i] < _web:
+        continue
+    best_f = None
+    best_w = 0.0
+    for k_, ch_ in enumerate(chain_of):
+        if ch_ not in ("hand", "forearm"):
+            w_ = sum(Wm[i, j] for j, c2 in enumerate(chain_of) if c2 == ch_)
+            if w_ > best_w:
+                best_f, best_w = ch_, w_
+    for j, c2 in enumerate(chain_of):
+        if c2 not in ("hand", "forearm") and c2 != best_f:
+            Wm[i, j] = 0.0
+Wm /= numpy.maximum(Wm.sum(axis=1, keepdims=True), 1e-6)
+for j, nm in enumerate(names):
+    groups[nm] = Wm[:, j]
 for nm, w in groups.items():
     vg = hand.vertex_groups.new(name=nm)
     for i in numpy.nonzero(w > .004)[0]:

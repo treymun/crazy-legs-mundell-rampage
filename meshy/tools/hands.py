@@ -312,7 +312,7 @@ def grip_curls(h, line_a, line_b, radius, relaxed=.35):
     return out
 
 
-THUMB_OPPOSE = .9
+THUMB_OPPOSE = .5
 
 
 MASTER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
@@ -339,6 +339,9 @@ def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name, finge
     kt = max(kt, min(1.35, wrist_r * 1.6 / (length * info["thick"] * 1.1)))
     # The wrist sleeved a little way up into the forearm (no gap at the seam
     # however the forearm's cut runs), its ring narrowed toward the forearm.
+    gh = obj.vertex_groups.get("hand")
+    gf = obj.vertex_groups.get("forearm") or obj.vertex_groups.new(name="forearm")
+    finger_groups = {g.index for g in obj.vertex_groups if g.name not in ("hand", "forearm")}
     for v in obj.data.vertices:
         z = v.co.z
         if z < .07:
@@ -346,6 +349,19 @@ def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name, finge
             v.co.z = z - k * .09
             v.co.x *= 1.0 - .18 * k
             v.co.y *= 1.0 - .18 * k
+
+    # The sleeve rides the forearm and the wrist blends from forearm to hand
+    # over a fifth of the hand's length (a hard step there tore when the hand
+    # turned on the wrist).
+    for v in obj.data.vertices:
+        if any(g.group in finger_groups and g.weight > .05 for g in v.groups):
+            continue
+        z = v.co.z
+        if z < .2:
+            wf = min(1.0, max(0.0, (.2 - z) / .25))
+            gf.add([v.index], wf, "REPLACE")
+            if gh is not None:
+                gh.add([v.index], 1.0 - wf, "REPLACE")
     S = Matrix.Diagonal((length * kt, length * kw, length, 1))
     M = Matrix((n, t, a)).transposed().to_4x4()
     X = Matrix.Translation(wrist) @ M @ S
@@ -424,7 +440,7 @@ def contact_curls(h, gear_pts, relaxed=.3):
         opp = 0.0
         if c == "th":
             # The thumb swung round as far under as it goes clear of the thing.
-            for o in (THUMB_OPPOSE, .7, .5, .3, .1, 0.0, -.3, -.6, -.9):
+            for o in (THUMB_OPPOSE, .3, .1, 0.0, -.2, -.4):
                 opp = o
                 if near(finger_points(h, c, 0.0, o)) >= r_f * .8:
                     break
@@ -468,12 +484,13 @@ def wrap_curls(h, gear_pts, most=(2.0, 2.1, 1.7)):
         r_f = h.radius[c]
         opp = 0.0
         if c == "th":
-            for o in (THUMB_OPPOSE, .7, .5, .3, .1, 0.0, -.3, -.6, -.9):
+            for o in (THUMB_OPPOSE, .3, .1, 0.0, -.2, -.4):
                 opp = o
                 if min(tree.find(p)[2] for p in finger_points(h, c, 0.0, o)) >= r_f * .8:
                     break
         angles = [0.0, 0.0, 0.0]
         inside_any = False
+        lim = (.5, .9, .8) if c == "th" else most
         for k in range(3):
             def seg_pts(ang_k, k=k):
                 a = list(angles)
@@ -491,7 +508,7 @@ def wrap_curls(h, gear_pts, most=(2.0, 2.1, 1.7)):
             best = 0.0
             steps = 40
             for j in range(1, steps + 1):
-                a_k = most[k] * j / steps
+                a_k = lim[k] * j / steps
                 d = dist(a_k)
                 if start_in:
                     best = a_k

@@ -1,0 +1,9 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference images only as the character design (the 3D figure and the small game sprite are the same character), paint a high-detail full-body character concept of this lean young hillbilly in a cap for a gritty 1990s Southern comedy horror first-person shooter. Keep his design exactly: a grey flat newsboy cap, a brown and dark-red plaid flannel shirt, a brown leather bandolier strap across the chest, olive-grey work trousers, dark brown boots. Give him real personality: a hard squinting stare, stubbly jaw, tanned skin. Caricatured but natural anatomy. Worn and grimy: dirt, sweat stains, frayed cloth. Matte, hand-painted, gritty texture detail, muted dusty colours, not glossy, not a clean modern hero render. Front view facing the camera squarely, standing straight in a relaxed A-pose: arms straight down and held slightly away from the body, hands open and EMPTY, holding nothing: no weapon, no gun, no tool, no props in the hands. Both feet planted shoulder-width apart. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole figure in frame with space around it, sharp focus, one single subject, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:C:\\Users\\treym\\AppData\\Local\\Temp\\claude\\1dc8348830e70b38\\f2338a2e-3874-4eaf-9e39-f1352f903b29\\scratchpad\\meshy-work\\meshyref\\bottle_tosser_front.png",
+  "@file:C:\\Users\\treym\\AppData\\Local\\Temp\\claude\\1dc8348830e70b38\\f2338a2e-3874-4eaf-9e39-f1352f903b29\\scratchpad\\meshy-work\\meshyref\\bottle_tosser_cel.png"
+ ],
+ "aspect_ratio": "3:4"
+}

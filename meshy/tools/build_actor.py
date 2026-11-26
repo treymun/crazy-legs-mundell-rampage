@@ -1088,6 +1088,7 @@ CLEAR = float(CFG.get("clearance", .02))
 
 
 TWIST = {}
+FINGER_STEP = float(CFG.get("finger_step", .2))
 # Shouldering a long gun: how far the shoulders roll forward, and how much
 # further the arms may reach (a few per cent: readable at 320x200 matters
 # more than a short-armed body's exact reach).
@@ -1426,6 +1427,18 @@ def solve(name, dz=0.0, held0=None):
                     if c_ in curls and (g_ > .008 or i_):
                         fist = hands.spread(c_, 2.2 if c_ != "th" else 1.2)
                         curls[c_] = [max(x_, y_) for x_, y_ in zip(curls[c_], fist)]
+                # Neighbouring fingers bend at their roots within a little of
+                # each other (the skin between them tore into slivers when one
+                # closed far more than the next).
+                order = [c_ for c_ in ("ix", "md", "rn", "pk") if c_ in curls]
+                for _ in range(3):
+                    for a_, b_ in zip(order, order[1:]):
+                        for j_ in (0, 1):
+                            d_ = curls[a_][j_] - curls[b_][j_]
+                            if abs(d_) > FINGER_STEP:
+                                fix_ = (abs(d_) - FINGER_STEP) / 2 * (1 if d_ > 0 else -1)
+                                curls[a_][j_] -= fix_
+                                curls[b_][j_] += fix_
                 gaps = [g for c_, (g, _i) in rep.items() if c_ != "pk"]
                 inside = [c_ for c_, (_g, i_) in rep.items() if i_]
                 touching = sum(1 for g in gaps if g < .004)
@@ -2291,6 +2304,44 @@ vt.image = look
 bsdf = view_mat.node_tree.nodes["Principled BSDF"]
 view_mat.node_tree.links.new(vt.outputs[0], bsdf.inputs["Base Color"])
 bsdf.inputs["Roughness"].default_value = 1.0
+# The hands' triangles in every key against their rest: an edge stretched
+# past twice its length, or a face turned over, is a tear.
+_ish2 = lo.data.attributes.get("is_hand")
+_hand_faces = [p_ for p_ in lo.data.polygons if _ish2 is not None and _ish2.data[p_.index].value == 1]
+print("MESHY hand faces checked: %d" % len(_hand_faces))
+BAD_E = [0]
+WORST_E = None
+if _hand_faces:
+    _rest = {v.index: v.co.copy() for v in lo.data.vertices}
+    worst_s, worst_k, flips = 1.0, "", 0
+    for t in KEYS:
+        scene.frame_set(t)
+        dg = bpy.context.evaluated_depsgraph_get()
+        evm = lo.evaluated_get(dg).to_mesh()
+        for p_ in _hand_faces:
+            vs = list(p_.vertices)
+            for k_ in range(len(vs)):
+                a_, b_ = vs[k_], vs[(k_ + 1) % len(vs)]
+                r_ = (_rest[a_] - _rest[b_]).length
+                if r_ > 1e-5:
+                    q_ = (evm.vertices[a_].co - evm.vertices[b_].co).length / r_
+                    if q_ > worst_s:
+                        worst_s, worst_k = q_, BY_KEY[t]
+                        _gn = {g.index: g.name for g in lo.vertex_groups}
+                        WORST_E = ([(_gn[g.group], round(g.weight, 2)) for g in lo.data.vertices[a_].groups],
+                                   [(_gn[g.group], round(g.weight, 2)) for g in lo.data.vertices[b_].groups],
+                                   round(r_, 4))
+            if q_ > 2.0:
+                BAD_E[0] += 1
+            if len(vs) == 3:
+                n0 = (_rest[vs[1]] - _rest[vs[0]]).cross(_rest[vs[2]] - _rest[vs[0]])
+                n1 = (evm.vertices[vs[1]].co - evm.vertices[vs[0]].co).cross(evm.vertices[vs[2]].co - evm.vertices[vs[0]].co)
+                # (a face turned over against how the bones turned it is a
+                # flip; measured against the hand bone's turn)
+        lo.evaluated_get(dg).to_mesh_clear()
+    print("MESHY hand mesh: worst edge stretch x%.2f (%s), %d edge-keys past x2; worst edge %s" % (
+        worst_s, worst_k, BAD_E[0], WORST_E if worst_s > 1 else ""))
+    scene.frame_set(0)
 select([lo, rig] + HELD_OBJS, rig)
 bpy.ops.export_scene.gltf(
     filepath=os.path.join(OUT, KIND + ".glb"), export_format="GLB", use_selection=True,

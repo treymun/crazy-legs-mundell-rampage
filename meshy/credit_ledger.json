@@ -155,6 +155,72 @@
    "time": "2026-11-25 23:31:03",
    "after": 2723,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "big_billy_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21696-1649-7529-a4f9-f05dd514af90",
+   "before": 2723,
+   "cost": 9,
+   "body": "big_billy_concept.json",
+   "time": "2026-11-26 00:41:06",
+   "after": 2714,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "drunk_coot_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21696-af5d-7304-b975-c5e239d73d0a",
+   "before": 2714,
+   "cost": 9,
+   "body": "drunk_coot_concept.json",
+   "time": "2026-11-26 00:41:45",
+   "after": 2705,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "bottle_tosser_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21697-ed9a-740e-8e11-8f90fa900bfd",
+   "before": 2705,
+   "cost": 9,
+   "body": "bottle_tosser_concept.json",
+   "time": "2026-11-26 00:43:07",
+   "after": 2696,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "barker_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21699-26a0-7772-bd80-53f4e60ee159",
+   "before": 2696,
+   "cost": 9,
+   "body": "barker_concept.json",
+   "time": "2026-11-26 00:44:27",
+   "after": 2687,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chum_tosser_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2169a-60e3-7495-9347-883d2644c202",
+   "before": 2687,
+   "cost": 9,
+   "body": "chum_tosser_concept.json",
+   "time": "2026-11-26 00:45:47",
+   "after": 2678,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "noodler_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2169b-b893-73b0-bba4-0e4627df2a4b",
+   "before": 2678,
+   "cost": 9,
+   "body": "noodler_concept.json",
+   "time": "2026-11-26 00:47:15",
+   "after": 2669,
+   "status": "SUCCEEDED"
   }
  ]
 }

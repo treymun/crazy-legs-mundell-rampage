@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:\\Users\\treym\\AppData\\Local\\Temp\\claude\\1dc8348830e70b38\\f2338a2e-3874-4eaf-9e39-f1352f903b29\\scratchpad\\meshy-work\\meshy_out\\drunk_coot_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "old drunk hillbilly, black bowler hat, white beard, red nose, rust brown shirt, olive grey trousers with knee patch, dark boots, empty hands, no weapon, nothing held"
+}
