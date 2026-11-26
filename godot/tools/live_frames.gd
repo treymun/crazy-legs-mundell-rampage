@@ -61,6 +61,9 @@ var _video := false
 var _probe_on := false
 var _probe_worst := 0.0
 var _probe_at := -1
+var _piece_worst := 0.0
+var _probe_key := ""
+var _piece_said := ""
 var _at: Array = AT.duplicate()
 
 
@@ -180,10 +183,16 @@ func _row(row: Array) -> void:
 	_save15(name)
 	if _probe_on:
 		print(
-			"GEAR PROBE %s %s: worst %.3f m at picture %d" % [name, kind, _probe_worst, _probe_at]
+			(
+				"GEAR PROBE %s %s: worst %.3f m at picture %d (%s)"
+				% [name, kind, _probe_worst, _probe_at, _probe_key]
+			)
 		)
+		print("BODY PROBE %s %s: worst %.2f %s" % [name, kind, _piece_worst, _piece_said])
 		_probe_worst = 0.0
 		_probe_at = -1
+		_piece_worst = 0.0
+		_piece_said = ""
 
 
 func _probe(kind: String) -> void:
@@ -198,6 +207,20 @@ func _probe(kind: String) -> void:
 			if d > _probe_worst:
 				_probe_worst = d
 				_probe_at = _rows._frames.size() - 1
+				_probe_key = (
+					"key %.2f live %s blend %s"
+					% [
+						float(view.get("_seeked")) / ActorModels.KEY_TIME,
+						str(view.live != null),
+						str(float(view.get("_blend_at")) >= 0.0)
+					]
+				)
+			var rig: RagdollRig = RagdollRig.of(kind, view, info)
+			var bad: Array = probe.pieces(view, rig)
+			var badness: float = bad[0]
+			if badness > _piece_worst:
+				_piece_worst = badness
+				_piece_said = "%s at picture %d" % [bad[1], _rows._frames.size() - 1]
 
 
 ## One hit on `e` from the shooter along `way`: the player put there a moment

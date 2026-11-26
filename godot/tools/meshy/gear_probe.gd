@@ -98,3 +98,72 @@ static func depth(view: Node, labels: Dictionary) -> float:
 					if inside < 0.0:
 						worst = maxf(worst, -inside)
 	return worst
+
+
+## The body's pieces as drawn now, each against how it stands at rest: a
+## bone shrunk (hidden), a limb part stretched or squashed far from its
+## length, a hand inside the torso. Returns [worst problem, its words].
+static func pieces(view: Node, rig: RagdollRig) -> Array:
+	var skels := view.find_children("*", "Skeleton3D", true, false)
+	if skels.is_empty() or rig == null or not rig.ok:
+		return [0.0, ""]
+	var skel := skels[0] as Skeleton3D
+	var worst := 0.0
+	var said := ""
+	var names := [
+		"upperarm_l",
+		"forearm_l",
+		"hand_l",
+		"upperarm_r",
+		"forearm_r",
+		"hand_r",
+		"head",
+		"thigh_l",
+		"shin_l",
+		"thigh_r",
+		"shin_r"
+	]
+	for nm: String in names:
+		var b := skel.find_bone(nm)
+		if b < 0:
+			continue
+		var s := skel.get_bone_pose_scale(b).x
+		if s < .5:
+			var bad := 1.0 - s
+			if bad > worst:
+				worst = bad
+				said = "%s shrunk to %.2f" % [nm, s]
+	# Lengths: shoulder to elbow, elbow to wrist, as the rest has them.
+	for side: String in ["l", "r"]:
+		var ua := skel.find_bone("upperarm_" + side)
+		var fa := skel.find_bone("forearm_" + side)
+		var hd := skel.find_bone("hand_" + side)
+		if ua < 0 or fa < 0 or hd < 0:
+			continue
+		var p_ua := skel.get_bone_global_pose(ua).origin
+		var p_fa := skel.get_bone_global_pose(fa).origin
+		var p_hd := skel.get_bone_global_pose(hd).origin
+		var r_ua := skel.get_bone_global_rest(ua).origin
+		var r_fa := skel.get_bone_global_rest(fa).origin
+		var r_hd := skel.get_bone_global_rest(hd).origin
+		for pair: Array in [
+			[p_ua.distance_to(p_fa), r_ua.distance_to(r_fa), "upper arm"],
+			[p_fa.distance_to(p_hd), r_fa.distance_to(r_hd), "forearm"]
+		]:
+			var now: float = pair[0]
+			var was: float = pair[1]
+			var off := absf(now / maxf(was, 1e-4) - 1.0)
+			if off > .25 and off > worst:
+				worst = off
+				said = "%s %s at %.2f of its length" % [side, pair[2], now / maxf(was, 1e-4)]
+		# The hand inside the torso: nearer the hips-to-shoulders line than
+		# the belly's ball is thick.
+		var at := rig.posed_points(skel)
+		var hips := (at[RagdollRig.HIP_L] + at[RagdollRig.HIP_R]) * .5
+		var neck := (at[RagdollRig.SH_L] + at[RagdollRig.SH_R]) * .5
+		var c := Geometry3D.get_closest_point_to_segment(p_hd, hips, neck)
+		var deep := rig.radii[RagdollRig.BELLY] * .8 - p_hd.distance_to(c)
+		if deep > 0.0 and deep > worst:
+			worst = deep
+			said = "%s hand %.3f m inside the torso" % [side, deep]
+	return [worst, said]

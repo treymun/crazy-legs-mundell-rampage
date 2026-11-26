@@ -1,0 +1,6 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference only for the pose and proportions, paint one single realistic adult man's right hand for a 1990s Southern comedy horror game character: a weathered, work-worn backwoods hand, ruddy sun-tanned skin, thick strong fingers with clear knuckles and creases, short dirty fingernails, a little hair on the back of the hand and wrist. The hand is open and flat: palm facing the camera, the four fingers straight and slightly spread apart with clear gaps between them, the thumb held out to the side, the wrist cut off cleanly just above the wrist joint. Matte, hand-painted, high-detail sculpted look, not glossy. Front view, the whole hand in frame with space around it, plain flat light-grey studio background, soft even lighting, no shadows, no glove, no ring, no tattoo, no text, one single hand only.",
+ "reference_image_urls": ["@file:../meshy-work/meshyref/hand_ref.png"],
+ "aspect_ratio": "3:4"
+}

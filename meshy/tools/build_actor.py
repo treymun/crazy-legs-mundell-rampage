@@ -402,7 +402,7 @@ for side, S in (("l", "Left"), ("r", "Right")):
         wrist_r = width * .3
     # (The Meshy hand's own length; its width and thickness eased toward a
     # hand's: a mitten measures fat.)
-    length = min(length, OLD_H * float(CFG.get("hand_share", .108)))
+    length = min(length, OLD_H * float(CFG.get("hand_share", .118)))
     width = min(width, length * .5)
     thick = min(thick, length * .2)
     _measure[side] = (wrist, a0, n0, t0, length, width, thick, wrist_r)
@@ -421,7 +421,10 @@ dominant = dominant[_keep]
 for b in list(W):
     W[b] = W[b][_keep]
 for side, (wrist, a0, n0, t0, length, width, thick, wrist_r) in _measure.items():
-    hnd = hands.build(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side)
+    if CFG.get("hands", "meshy") == "meshy" and os.path.exists(os.path.join(hands.MASTER, "hand_master.blend")):
+        hnd = hands.build_meshy(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side)
+    else:
+        hnd = hands.build(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side)
     HANDS[side] = hnd
     HANDF[side] = (wrist, a0, n0)
     me = hnd.obj.data
@@ -960,7 +963,7 @@ def hand_on(it, side, Di, R_t, el_guess):
     wrist0, a0, n0 = HANDF[side]
     R_h = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
     palm = HANDS[side].thick * .5 if side in HANDS else .014 * OLD_H / 1.7
-    hc = grip - n1 * (it["rad"] + palm)
+    hc = grip - n1 * (it["rad"] * .85 + palm * .8)
     wrist = hc - R_h @ (J["hand_" + side] - wrist0)
     return R_h, wrist, grip
 
@@ -1689,7 +1692,17 @@ if HANDS:
             if nn.name != "bake_target":
                 nt.nodes.remove(nn)
         o = nt.nodes.new("ShaderNodeOutputMaterial")
-        if m is mat_hand:
+        if m is mat_hand and "handuv" in lo.data.uv_layers:
+            # The sculpted hand's own painted skin (its UVs), lit.
+            bs = nt.nodes.new("ShaderNodeBsdfDiffuse")
+            tx = nt.nodes.new("ShaderNodeTexImage")
+            tx.image = bpy.data.images.load(os.path.join(hands.MASTER, "hand_master.png"), check_existing=True)
+            uvn = nt.nodes.new("ShaderNodeUVMap")
+            uvn.uv_map = "handuv"
+            nt.links.new(uvn.outputs[0], tx.inputs[0])
+            nt.links.new(tx.outputs[0], bs.inputs[0])
+            nt.links.new(bs.outputs[0], o.inputs[0])
+        elif m is mat_hand:
             bs = nt.nodes.new("ShaderNodeBsdfDiffuse")
             vc = nt.nodes.new("ShaderNodeVertexColor")
             vc.layer_name = "shade"
@@ -1973,6 +1986,8 @@ if ITEMS:
     for it in ITEMS:
         if it["bone"] in lo.vertex_groups:
             lo.vertex_groups.remove(lo.vertex_groups[it["bone"]])
+if "handuv" in lo.data.uv_layers:
+    lo.data.uv_layers.remove(lo.data.uv_layers["handuv"])
 lo.parent = rig
 mod = lo.modifiers.new("rig", "ARMATURE")
 mod.object = rig

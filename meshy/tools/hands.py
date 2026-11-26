@@ -13,6 +13,7 @@ A-pose): `a` the hand's axis (wrist to fingertips), `n` the palm's normal
 """
 
 import math
+import os
 
 import bmesh
 import bpy
@@ -311,3 +312,64 @@ def grip_curls(h, line_a, line_b, radius, relaxed=.35):
 
 
 THUMB_OPPOSE = .9
+
+
+MASTER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+
+
+def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name):
+    """The sculpted master hand (meshy/assets, made once from Meshy's hand by
+    hand_master.py) put on this body: in the hand's frame (a, n, t), its
+    length this hand's, its width and depth eased toward this hand's; the
+    left hand its mirror. Bones and chains as build() makes them."""
+    import json
+
+    info = json.load(open(os.path.join(MASTER, "hand_master.json")))
+    with bpy.data.libraries.load(os.path.join(MASTER, "hand_master.blend")) as (src, dst):
+        dst.objects = ["hand_master"]
+    obj = dst.objects[0]
+    obj.data = obj.data.copy()
+    obj.name = name
+    bpy.context.scene.collection.objects.link(obj)
+    kw = max(1.0, min(1.3, (width / length) / max(info["width"], 1e-3)))
+    kt = max(1.0, min(1.3, (thick / length) / max(info["thick"], 1e-3)))
+    # As thick at the wrist as the forearm it joins (a chunky body's hands).
+    kw = max(kw, min(1.35, wrist_r * 2.0 / (length * info["width"] * .62)))
+    kt = max(kt, min(1.35, wrist_r * 1.6 / (length * info["thick"] * 1.1)))
+    S = Matrix.Diagonal((length * kt, length * kw, length, 1))
+    M = Matrix((n, t, a)).transposed().to_4x4()
+    X = Matrix.Translation(wrist) @ M @ S
+    obj.data.transform(X)
+    if X.to_3x3().determinant() < 0:
+        obj.data.flip_normals()
+    obj.matrix_world = Matrix.Identity(4)
+    # Its groups named for this side's bones.
+    for g in obj.vertex_groups:
+        if g.name == "hand":
+            g.name = "hand_" + side
+        elif g.name == "forearm":
+            g.name = "forearm_" + side
+        else:
+            g.name = "f%s_%s" % (side, g.name)
+    me = obj.data
+    if "handuv" in me.uv_layers and "UVMap" not in me.uv_layers:
+        uvm = me.uv_layers.new(name="UVMap")
+        me.uv_layers.active = uvm
+    h = Hand(side)
+    h.wrist, h.a, h.n, h.t = wrist.copy(), a.copy(), n.copy(), t.copy()
+    h.length, h.width, h.thick = length, width, thick
+    h.middle = wrist + a * (info["palm"] * length * .55)
+    for cname, ch in info["chains"].items():
+        joints = [X @ Vector(j) for j in ch["joints"]]
+        tip = X @ Vector(ch["tip"])
+        h.chains[cname] = (joints, tip)
+        d = (joints[1] - joints[0]).normalized()
+        to = (n - t * .5).normalized() if cname == "th" else n
+        axis = d.cross(to)
+        if axis.length < 1e-6:
+            axis = t.cross(d)
+        h.axes[cname] = axis.normalized()
+        h.radius[cname] = width * (.13 if cname == "th" else .1)
+    h.obj = obj
+    h.meshy = True
+    return h

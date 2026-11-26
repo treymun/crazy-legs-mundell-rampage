@@ -34,6 +34,28 @@
    "time": "2026-11-25 19:55:45",
    "after": 2894,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "hand_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21610-5790-7453-b470-3939d47ebf1f",
+   "before": 2894,
+   "cost": 9,
+   "body": "hand_concept.json",
+   "time": "2026-11-25 22:15:00",
+   "after": 2885,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "hand_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21611-51c0-74c0-890a-b60c545c3ba6",
+   "before": 2885,
+   "cost": 30,
+   "body": "hand_model.json",
+   "time": "2026-11-25 22:16:07",
+   "after": 2855,
+   "status": "SUCCEEDED"
   }
  ]
 }

@@ -118,7 +118,10 @@ static func most_now() -> int:
 ## The pose it tries to hold (map), this frame's (aim).
 ## A gun hand keeps at least this share of its standing distance from the
 ## chest, belly and head (made_live).
-const HOLD_NEAR := .92
+const HOLD_NEAR := .98
+## How much firmer a gun-holding arm's muscles stay through a hit (at most
+## the full tone).
+const HOLD_TONE := 6.0
 
 var target := PackedVector3Array()
 ## A world target per ball that wins over the pose (Vector3.INF: none).
@@ -530,6 +533,12 @@ func _pull(supported: bool) -> void:
 		if par == -1:
 			continue
 		var k := stiff(GROUP_OF[i])
+		# An arm holding a gun keeps its hold firm: the gun stays up in front
+		# instead of swinging away behind the hip.
+		if (i == R.ELBOW_L or i == R.HAND_L) and _holding(0):
+			k = minf(k * HOLD_TONE, TONE)
+		elif (i == R.ELBOW_R or i == R.HAND_R) and _holding(1):
+			k = minf(k * HOLD_TONE, TONE)
 		if i == R.KNEE_L or i == R.FOOT_L:
 			k *= _leg_give(0)
 		elif i == R.KNEE_R or i == R.FOOT_R:

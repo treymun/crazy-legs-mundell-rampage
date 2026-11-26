@@ -62,6 +62,10 @@ var live_ok := false
 var _live_hit := -1.0
 var _live_clock := 0.0
 var _rig: RagdollRig
+## Each held thing's bone and the hand bone it is held in (actors.json
+## "rides": the Meshy models' guns), pairs: a blend keeps the thing in the
+## hand (_keep_in_hand).
+var _held_pairs := PackedInt32Array()
 var _doll_clock := 0.0
 ## Where the living body was last drawn and when (map), and how fast it was
 ## going (smoothed): a body killed on the run falls on with it.
@@ -183,6 +187,15 @@ func setup(p_models: ActorModels) -> bool:
 			_skeletons.append(child as Skeleton3D)
 		elif child is AnimationPlayer and _player == null:
 			_player = child as AnimationPlayer
+	var entry: Dictionary = models.kinds.get(kind, {})
+	var rides: Dictionary = entry.get("rides", {})
+	if not _skeletons.is_empty():
+		for held_name: String in rides:
+			var seg: int = rides[held_name]
+			var g := _skeletons[0].find_bone(held_name)
+			var h := _skeletons[0].find_bone("hand_l" if seg == 3 else "hand_r")
+			if g >= 0 and h >= 0:
+				_held_pairs.append_array([g, h])
 	if _player == null or _player.get_animation_list().is_empty():
 		return false
 	_player.play(_player.get_animation_list()[0])
@@ -622,11 +635,39 @@ func _ease_over(k: float) -> void:
 		var from: Array = _hand_from[i]
 		var at: PackedVector3Array = from[0]
 		var turns: Array[Quaternion] = from[1]
+		# (The pose eased to, for the held things' place in their hands.)
+		var to_at := PackedVector3Array()
+		var to_turn: Array[Quaternion] = []
+		for b in skeleton.get_bone_count():
+			to_at.append(skeleton.get_bone_pose_position(b))
+			to_turn.append(skeleton.get_bone_pose_rotation(b))
 		for b in mini(skeleton.get_bone_count(), at.size()):
 			skeleton.set_bone_pose_position(b, at[b].lerp(skeleton.get_bone_pose_position(b), k))
 			skeleton.set_bone_pose_rotation(
 				b, turns[b].slerp(skeleton.get_bone_pose_rotation(b), k)
 			)
+		_keep_in_hand(skeleton, to_at, to_turn)
+
+
+## Each held thing put back in its hand as the pose blended to holds it: a
+## blend lerps every bone apart, so a gun and the hand it is in drifted
+## (through the body) between two keys or easing out of a living body.
+func _keep_in_hand(
+	skeleton: Skeleton3D, to_at: PackedVector3Array, to_turn: Array[Quaternion]
+) -> void:
+	for k in range(0, _held_pairs.size(), 2):
+		var g := _held_pairs[k]
+		var h := _held_pairs[k + 1]
+		if g >= to_at.size() or h >= to_at.size() or g >= to_turn.size() or h >= to_turn.size():
+			continue
+		var hand_to := Transform3D(Basis(to_turn[h]), to_at[h])
+		var held_to := Transform3D(Basis(to_turn[g]), to_at[g])
+		var hand_now := Transform3D(
+			Basis(skeleton.get_bone_pose_rotation(h)), skeleton.get_bone_pose_position(h)
+		)
+		var held := hand_now * (hand_to.affine_inverse() * held_to)
+		skeleton.set_bone_pose_position(g, held.origin)
+		skeleton.set_bone_pose_rotation(g, held.basis.get_rotation_quaternion())
 
 
 ## The model's light, wash, look, how fallen it is (the rim's shade), a
@@ -867,6 +908,7 @@ func _blend(clock: float) -> void:
 			skeleton.set_bone_pose_position(b, at_a[b].lerp(at_b[b], k))
 			skeleton.set_bone_pose_rotation(b, turn_a[b].slerp(turn_b[b], k))
 			skeleton.set_bone_pose_scale(b, size_a[b].lerp(size_b[b], k))
+		_keep_in_hand(skeleton, at_b, turn_b)
 
 
 ## A living body's looks-only motion over its pose (model space, about its

@@ -278,7 +278,11 @@ func _slab(id: String, what: String) -> Dictionary:
 ## sees the body (else behind the shooter's shoulder).
 func _camera(g: Game, at: Vector2, way: Vector2, top: float, near := 1.0) -> Vector3:
 	var w := g.world
-	var across := Vector2(-way.y, way.x)
+	# (ROW_SIDE=other: watched from the other side, the Meshy track's look at
+	# the far arm.)
+	var across := (
+		Vector2(-way.y, way.x) * (-1.0 if OS.get_environment("ROW_SIDE") == "other" else 1.0)
+	)
 	for c: Vector2 in [
 		at + (across * 4.0 + way * .8) * near,
 		at - (across * 4.0 - way * .8) * near,
