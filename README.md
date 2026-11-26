@@ -157,6 +157,12 @@ it is original.
 
 ## Lately
 
+- **3.13** Fun and flow: trail markers (die and you pick up a minute back), fights in waves with
+  breathers, drops of what you're short of and quicker tough guys, a RAMPAGE meter, music that
+  follows the fight, danger arrows and wind-up flashes, hazard kicks for COUNTY JUSTICE!, one tap
+  between chapters and a PAR/BEST end card, BLUE showing the way, a snappier walk with a slide,
+  KICK and THROW, punchier hits and headshot dings, enemy rims and glints, a hurt vignette, and
+  physics bodies that stagger, clutch wounds, grab rails, brace their falls and die slow.
 - **3.12** Touch fixed in the phone browser (SETTINGS, saves and party line codes by finger, the
   phone's keyboard for names); a WIDE view for 16:9 and wider; every frame drawn moves at 120 to
   240 Hz; rumble on pads and phones; Doppler on fast movers; CLEAR 16K voice chat; chapters load
