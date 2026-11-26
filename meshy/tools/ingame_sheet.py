@@ -17,6 +17,8 @@ SHOTS = [("day_idle", "day, standing"), ("day_walk", "day, mid-stride"), ("day_f
          ("day_aim", "day, aiming (gun pose)"), ("day_wind", "day, the wind-up to fire (gun pose)")]
 W1, H1 = 320, 156
 CROP = (100, 8, 220, 156)  # the body's middle third of the view
+if kind in ("cow", "hog", "gator", "crawler", "hound"):
+    CROP = (60, 8, 260, 156)  # a long animal side on: wider
 cw, ch = (CROP[2] - CROP[0]) * 3, (CROP[3] - CROP[1]) * 3
 row_h = max(H1 * 2 + 6, ch) + 26
 width = 10 + (W1 + 10) + (cw + 10) * 2 + 10

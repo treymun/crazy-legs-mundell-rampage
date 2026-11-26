@@ -12,13 +12,27 @@ DAY = {"level": "grainyard", "x": 44.4, "y": 6.6, "angle": -1.5708, "pitch": 0.0
 # A long street view by day (Hickston) for the shot a few cells off.
 DAY_FAR = {"level": "hickston", "x": 60.5, "y": 44.5, "angle": 1.5708, "pitch": 0.0, "weapon": False}
 NIGHT = {"level": "moonshine", "x": 86.5, "y": 91.7, "angle": -0.02, "pitch": 0.0, "weapon": False, "contrast": 6.5}
+# Animals (long and low) by day on Hickston's open street, whole body in
+# frame: three-quarter standing, side on mid-stride, and the attack keys
+# turned three-quarter (the grain yard's spot hid a cow behind its wall).
+ANIMALS = {"cow", "hog", "gator", "crawler", "hound"}
+animal = kind in ANIMALS
+if animal:
+    DAY = dict(DAY_FAR)
+POSES = (("idle", {"state": "idle", "turn": 0.35}),
+         ("walk", {"state": "walk", "gait": 0.3, "turn": 0.9}),
+         ("far", {"state": "idle", "turn": 0.2, "ahead": near * 2.6}),
+         ("aim", {"state": "aim", "turn": 0.5}),
+         ("wind", {"state": "windup", "left": 0.15, "turn": 0.0}))
+if animal:
+    POSES = (("idle", {"state": "idle", "turn": 0.8}),
+             ("walk", {"state": "walk", "gait": 0.3, "turn": 1.57}),
+             ("far", {"state": "idle", "turn": 0.5, "ahead": near * 2.6}),
+             ("aim", {"state": "aim", "turn": 1.0}),
+             ("wind", {"state": "windup", "turn": 1.3}))
 shots = []
 for tod, base in (("day", DAY), ("night", NIGHT)):
-    for tag, spec in (("idle", {"state": "idle", "turn": 0.35}),
-                      ("walk", {"state": "walk", "gait": 0.3, "turn": 0.9}),
-                      ("far", {"state": "idle", "turn": 0.2, "ahead": near * 2.6}),
-                      ("aim", {"state": "aim", "turn": 0.5}),
-                      ("wind", {"state": "windup", "left": 0.15, "turn": 0.0})):
+    for tag, spec in POSES:
         a = {"kind": kind, "ahead": near, "side": 0.0}
         a.update(spec)
         s = dict(DAY_FAR if (tod == "day" and tag == "far") else base)
