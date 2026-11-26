@@ -13,7 +13,8 @@ title = sys.argv[5] if len(sys.argv) > 5 else kind
 F = ImageFont.truetype("C:/Windows/Fonts/consolab.ttf", 15)
 FT = ImageFont.truetype("C:/Windows/Fonts/consolab.ttf", 22)
 SHOTS = [("day_idle", "day, standing"), ("day_walk", "day, mid-stride"), ("day_far", "day, a few cells off"),
-         ("night_idle", "night, standing"), ("night_walk", "night, mid-stride"), ("night_far", "night, a few cells off")]
+         ("night_idle", "night, standing"), ("night_walk", "night, mid-stride"), ("night_far", "night, a few cells off"),
+         ("day_aim", "day, aiming (gun pose)"), ("day_wind", "day, the wind-up to fire (gun pose)")]
 W1, H1 = 320, 156
 CROP = (100, 8, 220, 156)  # the body's middle third of the view
 cw, ch = (CROP[2] - CROP[0]) * 3, (CROP[3] - CROP[1]) * 3

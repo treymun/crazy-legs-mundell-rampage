@@ -16,7 +16,9 @@ shots = []
 for tod, base in (("day", DAY), ("night", NIGHT)):
     for tag, spec in (("idle", {"state": "idle", "turn": 0.35}),
                       ("walk", {"state": "walk", "gait": 0.3, "turn": 0.9}),
-                      ("far", {"state": "idle", "turn": 0.2, "ahead": near * 2.6})):
+                      ("far", {"state": "idle", "turn": 0.2, "ahead": near * 2.6}),
+                      ("aim", {"state": "aim", "turn": 0.5}),
+                      ("wind", {"state": "windup", "left": 0.15, "turn": 0.0})):
         a = {"kind": kind, "ahead": near, "side": 0.0}
         a.update(spec)
         s = dict(DAY_FAR if (tod == "day" and tag == "far") else base)

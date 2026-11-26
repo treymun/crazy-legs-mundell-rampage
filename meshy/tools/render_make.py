@@ -125,6 +125,17 @@ for k in KEYS:
         aim(35 if not k.startswith("d") else 90)
         render(os.path.join(OUT, "%s_%s_key_%s.png" % (KIND, who, k)))
 
+# The gun poses: carry, walk, aim, fire (its recoil), front and side, new.
+show(old_meshes, False)
+show(new_meshes, True)
+cd.ortho_scale = H * 1.22
+for k in ["0", "w1", "aim", "fire"]:
+    if k in frames:
+        sc.frame_set(int(frames[k]))
+        for vname, ang in (("front", 0), ("side", 90)):
+            aim(ang)
+            render(os.path.join(OUT, "%s_gun_%s_%s.png" % (KIND, k, vname)))
+
 # The hands close up (what they hold), new and old, at a few keys: framed
 # on the new model's hands.
 for k in ["0", "w1", "aim", "fire"]:

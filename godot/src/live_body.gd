@@ -116,6 +116,10 @@ static func most_now() -> int:
 
 
 ## The pose it tries to hold (map), this frame's (aim).
+## A gun hand keeps at least this share of its standing distance from the
+## chest, belly and head (made_live).
+const HOLD_NEAR := .92
+
 var target := PackedVector3Array()
 ## A world target per ball that wins over the pose (Vector3.INF: none).
 var aim_override := PackedVector3Array()
@@ -209,6 +213,15 @@ static func made_live(rig: RagdollRig, xf: Transform3D, model: PackedVector3Arra
 		)
 		* scale
 	)
+	# A hand holding a gun (RagdollRig.holds) is kept off the chest, the belly
+	# and the head as far as it stands from them (a little nearer at most):
+	# the body never folds over its own gun.
+	for side in rig.holds.size():
+		if rig.holds[side] == 1:
+			var hand := R.HAND_L if side == 0 else R.HAND_R
+			for torso: int in [R.BELLY, R.SH_L, R.SH_R, R.HEAD]:
+				var d := rest[torso].distance_to(rest[hand])
+				live._link(torso, hand, d * HOLD_NEAR, d * 4.0)
 	live.aim_override.resize(R.POINTS)
 	live.aim_override.fill(Vector3.INF)
 	return live

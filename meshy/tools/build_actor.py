@@ -338,57 +338,113 @@ def cloud(names):
 
 
 # ------------------------------------------------------------ the hands
-# Meshy's hands come open (no finger bones). A hand that holds something is
-# curled into a grip in the rest mesh itself, the fingers bent toward the
-# palm about the knuckles (the Meshy mesh it is baked from bent the same, so
-# the bake still finds them); a free hand curls a little. Each hand's rest
-# frame: its axis (wrist to the hand's middle) and its palm's normal (toward
-# the body's middle in the A-pose).
+# Meshy's hands are mittens (fingers fused, no finger bones). Each is cut off
+# at the wrist and a hand of hands.py put in its place, sized to it: a palm,
+# four fingers and a thumb with knuckles and nails, three bones a finger, so
+# it can close round a grip. Its skin is the Meshy hand's own colour.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import hands  # noqa: E402
+
 HANDF = {}
-_has_gear = any(DUMP["poses"]["down"][i][7] < .2 <= DUMP["poses"]["0"][i][7] for i in range(len(DUMP["bones"])))
-CURL = CFG.get("curl", {"l": 100 if _has_gear else 25, "r": 100 if _has_gear else 25})
-_lo_w = {"l": W["hand_l"], "r": W["hand_r"]}
-_hi_groups = {g.index: g.name for g in hi.vertex_groups}
+HANDS = {}
+_hand_w = {"l": W["hand_l"], "r": W["hand_r"]}
+# The skin's colour: the Meshy texture under its hands.
+_img = None
+for _m in hi.data.materials:
+    if _m and _m.use_nodes:
+        for _n in _m.node_tree.nodes:
+            if _n.type == "TEX_IMAGE" and _n.image:
+                _img = _n.image
+_skin = numpy.array([.62, .42, .33])
+if _img is not None:
+    _iw, _ih = _img.size
+    _ipx = numpy.empty(_iw * _ih * 4, dtype=numpy.float32)
+    _img.pixels.foreach_get(_ipx)
+    _ipx = _ipx.reshape(_ih, _iw, 4)
+    _uvl = hi.data.uv_layers.active.data
+    _hg = {g.index for g in hi.vertex_groups if g.name in ("LeftHand", "RightHand")}
+    _cols = []
+    for _pi in range(0, len(hi.data.polygons), 3):
+        _poly = hi.data.polygons[_pi]
+        _v = hi.data.vertices[_poly.vertices[0]]
+        if any(g.group in _hg and g.weight > .7 for g in _v.groups):
+            _u = _uvl[_poly.loop_indices[0]].uv
+            _cols.append(_ipx[min(_ih - 1, int(_u.y * _ih)), min(_iw - 1, int(_u.x * _iw)), :3])
+    if _cols:
+        _skin = numpy.median(numpy.array(_cols), axis=0)
+print("MESHY skin colour of the hands", numpy.round(_skin * 255).astype(int))
+_cut = numpy.zeros(len(co), dtype=bool)
+_measure = {}
 for side, S in (("l", "Left"), ("r", "Right")):
     wrist = heads[S + "Hand"]
-    sel = _lo_w[side] > .5
+    sel = _hand_w[side] > .5
     if sel.sum() < 8:
         continue
     hc = Vector(co[sel].mean(axis=0))
     a0 = (hc - wrist).normalized()
     mid = Vector((-1.0 if side == "l" else 1.0, 0.0, 0.0))
     n0 = (mid - a0 * mid.dot(a0)).normalized()
-    c0 = a0.cross(n0)
+    fwd = Vector((0.0, -1.0, 0.0))
+    t0 = (fwd - a0 * fwd.dot(a0) - n0 * fwd.dot(n0)).normalized()
+    rel = co[sel] - numpy.array(wrist[:])
+    length = float((rel @ numpy.array(a0[:])).max())
+    across = rel @ numpy.array(t0[:])
+    width = float(numpy.percentile(across, 95) - numpy.percentile(across, 5))
+    deep = rel @ numpy.array(n0[:])
+    thick = float(numpy.percentile(deep, 95) - numpy.percentile(deep, 5))
+    fa = (W["forearm_" + side] > .5)
+    rel_f = co[fa] - numpy.array(wrist[:])
+    near = rel_f[numpy.abs(rel_f @ numpy.array(a0[:])) < .025]
+    if len(near):
+        perp = near - numpy.outer(near @ numpy.array(a0[:]), numpy.array(a0[:]))
+        wrist_r = float(numpy.median(numpy.linalg.norm(perp, axis=1)))
+    else:
+        wrist_r = width * .3
+    # (The Meshy hand's own length; its width and thickness eased toward a
+    # hand's: a mitten measures fat.)
+    length = min(length, OLD_H * float(CFG.get("hand_share", .108)))
+    width = min(width, length * .5)
+    thick = min(thick, length * .2)
+    _measure[side] = (wrist, a0, n0, t0, length, width, thick, wrist_r)
+    # Cut it off past the wrist.
+    _cut |= (_hand_w[side] > .35) & (((co - numpy.array(wrist[:])) @ numpy.array(a0[:])) > .004)
+print("MESHY hands cut off: %d vertices" % int(_cut.sum()))
+bm = bmesh.new()
+bm.from_mesh(lo.data)
+bm.verts.ensure_lookup_table()
+bmesh.ops.delete(bm, geom=[bm.verts[i] for i in numpy.nonzero(_cut)[0]], context="VERTS")
+bm.to_mesh(lo.data)
+bm.free()
+_keep = ~_cut
+co = co[_keep]
+dominant = dominant[_keep]
+for b in list(W):
+    W[b] = W[b][_keep]
+for side, (wrist, a0, n0, t0, length, width, thick, wrist_r) in _measure.items():
+    hnd = hands.build(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side)
+    HANDS[side] = hnd
     HANDF[side] = (wrist, a0, n0)
-    sv = (co[sel] - numpy.array(wrist[:])) @ numpy.array(a0[:])
-    s_max = float(sv.max())
-    s_k = s_max * .5
-    ang = math.radians(float(CURL.get(side, 0)))
-    if ang < 1e-3:
-        continue
-    R = (s_max - s_k) / ang
-
-    def bend(p, w, wrist=wrist, a0=a0, n0=n0, c0=c0, s_k=s_k, R=R):
-        d = p - wrist
-        sa, na, ca = d.dot(a0), d.dot(n0), d.dot(c0)
-        if sa <= s_k or w <= 0:
-            return p
-        phi = (sa - s_k) / R * min(1.0, w * 1.4)
-        ns = s_k + (R - na) * math.sin(phi)
-        nn = R - (R - na) * math.cos(phi)
-        return wrist + a0 * ns + n0 * nn + c0 * ca
-
-    for v in lo.data.vertices:
-        w = float(_lo_w[side][v.index])
-        if w > 0:
-            v.co = bend(v.co.copy(), w)
-    gname = S + "Hand"
-    for v in hi.data.vertices:
-        w = sum(g.weight for g in v.groups if _hi_groups.get(g.group) == gname)
-        if w > 0:
-            v.co = bend(v.co.copy(), w)
-    print("MESHY %s hand curled %d degrees" % (side, round(math.degrees(ang))))
-co = numpy.array([v.co[:] for v in lo.data.vertices])
+    me = hnd.obj.data
+    att = me.attributes.new("is_hand", "INT", "FACE")
+    for i in range(len(me.polygons)):
+        att.data[i].value = 1
+    print("MESHY %s hand: %.3f m long, %.3f wide, %.3f thick, %d triangles" % (
+        side, length, width, thick, sum(len(p.vertices) - 2 for p in me.polygons)))
+for side, hnd in HANDS.items():
+    for bname, at_ in hnd.bones():
+        BONES.append(bname)
+        LABEL[bname] = "arm_" + side
+    for g in hnd.obj.vertex_groups:
+        if g.name not in lo.vertex_groups:
+            lo.vertex_groups.new(name=g.name)
+if HANDS:
+    for g in lo.vertex_groups:
+        for hnd in HANDS.values():
+            if g.name not in hnd.obj.vertex_groups:
+                hnd.obj.vertex_groups.new(name=g.name)
+    select([lo] + [h_.obj for h_ in HANDS.values()], lo)
+    bpy.ops.object.join()
+SKIN = _skin
 
 # ------------------------------------------------ the bones' origins (rest)
 J = {}
@@ -396,12 +452,18 @@ for side, S in (("l", "Left"), ("r", "Right")):
     J["upperarm_" + side] = heads[S + "Arm"]
     J["forearm_" + side] = heads[S + "ForeArm"]
     J["wrist_" + side] = heads[S + "Hand"]
-    hand = cloud(["hand_" + side])
-    J["hand_" + side] = Vector(hand.mean(axis=0)) if len(hand) else heads[S + "Hand"]
-    shoulder = heads[S + "Arm"]
-    tips = hand if len(hand) else cloud(["forearm_" + side])
-    far = tips[numpy.argmax(((tips - numpy.array(shoulder[:])) ** 2).sum(axis=1))]
-    J["tip_" + side] = Vector(far)
+    if side in HANDS:
+        J["hand_" + side] = HANDS[side].middle.copy()
+        J["tip_" + side] = HANDS[side].chains["md"][1].copy()
+        for bname, at_ in HANDS[side].bones():
+            J[bname] = at_.copy()
+    else:
+        hand = cloud(["hand_" + side])
+        J["hand_" + side] = Vector(hand.mean(axis=0)) if len(hand) else heads[S + "Hand"]
+        shoulder = heads[S + "Arm"]
+        tips = hand if len(hand) else cloud(["forearm_" + side])
+        far = tips[numpy.argmax(((tips - numpy.array(shoulder[:])) ** 2).sum(axis=1))]
+        J["tip_" + side] = Vector(far)
     J["thigh_" + side] = heads[S + "UpLeg"]
     J["shin_" + side] = heads[S + "Leg"]
     J["ankle_" + side] = heads[S + "Foot"]
@@ -798,74 +860,103 @@ if ITEMS:
         pb.rotation_mode = "QUATERNION"
 
 
+def _front(z_lo, z_hi):
+    """How far forward of the hips' middle the body's front is between two
+    heights (rest, the A-pose; the arms left out)."""
+    band = (KEEP0[:, 2] > z_lo) & (KEEP0[:, 2] < z_hi)
+    if not band.any():
+        return .15
+    return float(-(KEEP0[band, 1] - J["hips"].y).min())
+
+
+def gun_pose(it, butt_or_grip, at, G1, up):
+    """The move putting the item's point `butt_or_grip` (a share of its length
+    from its rear end) at `at`, its axis along G1, its top toward `up`."""
+    G0 = (it["hi"] - it["lo"]).normalized()
+    wu = Vector((0, 0, 1))
+    U0 = (wu - G0 * wu.dot(G0)).normalized()
+    U1 = (up - G1 * up.dot(G1)).normalized()
+    Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
+    p = it["lo"] + (it["hi"] - it["lo"]) * butt_or_grip
+    return Matrix.Translation(at) @ Rg.to_4x4() @ Matrix.Translation(-p)
+
+
 def item_delta(it, name, P, D, R_t, hipc):
-    """The item's move from where the old one stood at the standing key."""
+    """The item's move from where the old one stood at the standing key: a
+    two-handed gun posed as a man carries and shoots one (authored for this
+    body, the old key's meaning kept), a one-handed thing left to its hand."""
     p0, r0, _s0 = old_bone("0", it["big"])
     p1, r1, s1 = old_bone(name, it["big"])
     old_d = Matrix.Translation(p1) @ (r1 @ r0.inverted()).to_4x4() @ Matrix.Translation(-p0)
     if s1.x < .2:
         return old_d, False
+    if not it["two"]:
+        return None, True
     bare = name.replace("hurt_", "")
-    if it["two"] and bare in AIMS:
-        # Shouldered: the butt in the shoulder, the barrel straight out ahead
-        # (a hair down), level across; fire kicks it back and up a little.
-        To_now = TWIST.get("fwd", R_t @ T0)
-        fwd = -Vector(To_now.col[2])
-        up = Vector(To_now.col[1])
-        side = Vector(To_now.col[0])
-        sh = hipc + R_t @ (J["upperarm_" + it["main"]] - J["hips"])
-        inward = side if it["main"] == "l" else -side
-        # (Turned in toward the body's middle a little, the butt tucked in at
-        # the chest's side: a short-armed man's other hand must reach the
-        # fore-end.)
-        # Held in close: the butt at the chest's side under the gun arm, the
-        # barrel ahead and a little across, so the other hand reaches it.
-        tuck = float(CFG.get("aim_tuck", .06))
-        G1 = (fwd + up * .03 + inward * float(CFG.get("aim_turn", .35))).normalized()
-        kick = .04 if bare == "fire" else 0.0
-        butt = sh + fwd * (.08 - kick) + inward * tuck - up * float(CFG.get("aim_drop", .1))
+    To_now = TWIST.get("fwd", R_t @ T0)
+    F = -Vector(To_now.col[2])
+    U = Vector(To_now.col[1])
+    Rv = Vector(To_now.col[0])  # toward the character's right
+    main = it["main"]
+    out = Rv if main == "r" else -Rv  # toward the gun hand's side
+    hips = hipc
+    sh = hipc + R_t @ (J["upperarm_" + main] - J["hips"])
+    gr = it["holds"][main]
+    if bare in AIMS:
+        # Shouldered: the butt in the gun-side shoulder's pocket, the barrel
+        # straight out at the target (a hair down), the cheek down on the
+        # stock; fire kicks it back and up; the wind-up holds it at the low
+        # ready (muzzle dipped).
+        front = _front(J["upperarm_l"].z - .12, J["upperarm_l"].z + .02)
+        sh_c = J["upperarm_" + main] - J["hips"]
+        depth = front + sh_c.dot(Vector((0, -1, 0)))
+        G1 = (F - U * .03).normalized()
+        butt = (sh + F * max(.02, depth - .04) - out * float(CFG.get("aim_in", .04))
+                - U * float(CFG.get("aim_drop", .03)))
         if bare == "fire":
-            G1 = (G1 + up * .08).normalized()
-        U1 = (up - G1 * up.dot(G1)).normalized()
-        G0 = (it["hi"] - it["lo"]).normalized()
-        wu = Vector((0, 0, 1))
-        U0 = (wu - G0 * wu.dot(G0)).normalized()
-        Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
-        return Matrix.Translation(butt) @ Rg.to_4x4() @ Matrix.Translation(-it["lo"]), True
-    if it["two"]:
-        ref = "0" if bare in WALK or bare in CARRY else name
-        Pr = old_points(ref)
-        pr, rr, _sr = old_bone(ref, it["big"])
-        old_ref = Matrix.Translation(pr) @ (rr @ r0.inverted()).to_4x4() @ Matrix.Translation(-p0)
-        rel = chest(Pr).inverted() @ old_ref
-        sh_mid = hipc + R_t @ ((J["upperarm_l"] + J["upperarm_r"]) / 2 - J["hips"])
-        To_now = R_t @ T0
-        fwd = -Vector(To_now.col[2])
-        new_c = Matrix.Translation(fwd * it["fwd"]) @ chest(None, To_now, sh_mid)
-        if os.environ.get("MESHY_DEBUG"):
-            print("DBG", name, "old", [tuple(round(x, 2) for x in old_d @ e) for e in (it["lo"], it["hi"])],
-                  "new", [tuple(round(x, 2) for x in (new_c @ rel) @ e) for e in (it["lo"], it["hi"])],
-                  "chest_old", tuple(round(x, 2) for x in chest(Pr).translation), "sh_new", tuple(round(x, 2) for x in sh_mid))
-        return new_c @ rel, True
-    return None, True
+            butt = butt - F * .03
+            G1 = (G1 + U * .09).normalized()
+        if bare == "wind":
+            G1 = (F - U * .22).normalized()
+        return gun_pose(it, 0.0, butt, G1, U), True
+    if bare == "pain":
+        # Lowered to the gun side, muzzle down and ahead, in the one hand.
+        at = hips + out * .19 + F * (_front(hips.z - .05, hips.z + .15) * .6) + U * .1
+        return gun_pose(it, gr, at, (F * .55 - U * .8 - out * .1).normalized(), -out), True
+    # The carry ("port arms"): across the body, the grip at the belt on the
+    # gun side, the muzzle up past the other shoulder; the walk sways it a
+    # touch with the stride.
+    beat = {"w0": 0, "w1": 1, "w2": 2, "w3": 3, "w4": 0}.get(bare, -1)
+    # (Held high enough that the stock's butt rides by the hip, clear of
+    # the thigh's swing in the walk.)
+    G1 = (-out * .8 + U * .5 + F * .05).normalized()
+    at = hips + out * .12 + U * .17 + F * (_front(hips.z + .05, hips.z + .3) + .09)
+    if beat >= 0:
+        G1 = (Matrix.Rotation(.05 * math.sin(beat * math.pi / 2), 3, F) @ G1).normalized()
+        at = at + U * (.012 * math.cos(beat * math.pi))
+    return gun_pose(it, gr, at, G1, F), True
 
 
 def hand_on(it, side, Di, R_t, el_guess):
     """The hand's turn and the wrist's place for holding item `it` (moved by
-    Di) at its grip: the palm against it, the fingers round it."""
+    Di) at its grip: the hand straight on from the forearm, the palm against
+    the thing and the thing across the palm (the fingers then close on it)."""
     lo_e, hi_e = Di @ it["lo"], Di @ it["hi"]
     G = (hi_e - lo_e).normalized()
     grip = lo_e + (hi_e - lo_e) * it["holds"][side]
-    a1 = grip - el_guess
-    a1 = (a1 - G * a1.dot(G)).normalized()
-    n1 = G.cross(a1)
+    a1 = (grip - el_guess).normalized()
+    n1 = a1.cross(G)
+    if n1.length < .2:
+        n1 = a1.cross(Vector((0, 0, 1)))
+    n1.normalize()
     up = Vector((0, 0, 1))
     mid = R_t @ Vector((-1.0 if side == "l" else 1.0, 0, 0))
     if n1.dot(up) + .5 * n1.dot(mid) < 0:
         n1 = -n1
     wrist0, a0, n0 = HANDF[side]
     R_h = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
-    hc = grip - n1 * (it["rad"] * .8 + .014 * OLD_H / 1.7)
+    palm = HANDS[side].thick * .5 if side in HANDS else .014 * OLD_H / 1.7
+    hc = grip - n1 * (it["rad"] + palm)
     wrist = hc - R_h @ (J["hand_" + side] - wrist0)
     return R_h, wrist, grip
 
@@ -877,6 +968,7 @@ _KEEP_BONES = ["body", "head", "thigh_l", "thigh_r", "shin_l", "shin_r"]
 _kb = numpy.isin(dominant, [BONES.index(b) for b in _KEEP_BONES])
 KEEP_IDX = numpy.nonzero(_kb)[0][::2]
 KEEP_CO = co[KEEP_IDX]
+KEEP0 = KEEP_CO
 KEEP_N = numpy.array([lo.data.vertices[int(i)].normal[:] for i in KEEP_IDX])
 KEEP_W = numpy.stack([W[b][KEEP_IDX] for b in _KEEP_BONES], axis=1)
 KEEP_W = KEEP_W / numpy.maximum(KEEP_W.sum(axis=1, keepdims=True), 1e-6)
@@ -908,37 +1000,45 @@ def body_surface(D):
     return tree, pts, nrm
 
 
-def depth_in(surface, gname, M):
+def depth_in(surface, gname, M, skip=0.0):
     """How deep the held thing (its old shape moved by M) goes into the
-    body's surface, and the way out (the mean outward normal there)."""
+    body's surface, and the way out (the mean outward normal there); `skip`:
+    the share of its length from its rear end left out (a butt set in the
+    shoulder)."""
     tree, pts, nrm = surface
     worst = 0.0
     out = Vector()
+    it = next((x for x in ITEMS if x["bone"] == gname), None)
     for g in ITEM_PTS.get(gname, []):
+        clear = CLEAR
+        if skip and it is not None:
+            ab = it["hi"] - it["lo"]
+            if (Vector(g) - it["lo"]).dot(ab) / max(ab.length_squared, 1e-9) < skip:
+                clear = .003  # (the butt against the shoulder: touching, not in)
         q = M @ Vector(g)
         _co, i, dist = tree.find(q)
         if i is None or dist > .14:
             continue
         # (A clearance kept, so the living body's reel has room.)
-        d = (q - Vector(pts[i])).dot(Vector(nrm[i])) - CLEAR
+        d = (q - Vector(pts[i])).dot(Vector(nrm[i])) - clear
         if d < 0:
             worst = max(worst, -d)
             out += Vector(nrm[i])
     return worst, (out.normalized() if out.length > 1e-6 else Vector((0, -1, 0)))
 
 
-def keep_out(surface, gname, M, name):
+def keep_out(surface, gname, M, name, skip=0.0):
     """M moved out of the body until no part of the thing is inside."""
-    first, _w = depth_in(surface, gname, M)
+    first, _w = depth_in(surface, gname, M, skip)
     d = first
     for _ in range(12):
-        d, way = depth_in(surface, gname, M)
+        d, way = depth_in(surface, gname, M, skip)
         if d < .004:
             break
         M = Matrix.Translation(way * (d + .012)) @ M
     # Wedged (the way out turns back and forth): straight out ahead.
     for _ in range(8):
-        d, way = depth_in(surface, gname, M)
+        d, way = depth_in(surface, gname, M, skip)
         if d < .004:
             break
         M = Matrix.Translation(-Vector(TWIST["fwd"].col[2]) * (d + .012)) @ M
@@ -955,10 +1055,26 @@ CLEAR = float(CFG.get("clearance", .02))
 TWIST = {}
 
 
+UPRIGHT = math.radians(float(CFG.get("upright_deg", 5)))
+UPRIGHT_AIM = math.radians(float(CFG.get("upright_aim_deg", 14)))
+COM = {}
+
+
 def solve(name, dz=0.0, held0=None):
     P = old_points(name)
     D = {}
     To = torso_basis(P[HIP_L], P[HIP_R], P[SH_L], P[SH_R])
+    bare_name = name.replace("hurt_", "")
+    if not bare_name.startswith("die") and bare_name != "down":
+        # Stood up: the old body's stoop (the spine pitched forward over the
+        # feet) taken out, a slight lean left (a little more into a shot).
+        upv = Vector(To.col[1])
+        tilt = upv.angle(Vector((0, 0, 1)))
+        most = UPRIGHT_AIM if bare_name in AIMS else UPRIGHT
+        if tilt > most:
+            axis = upv.cross(Vector((0, 0, 1)))
+            if axis.length > 1e-6:
+                To = Matrix.Rotation(tilt - most, 3, axis.normalized()) @ To
     R_t = To @ T0.inverted()
     TWIST["fwd"] = R_t @ T0
     # Shouldering a long gun two-handed, the body turns the gun's side back
@@ -974,8 +1090,15 @@ def solve(name, dz=0.0, held0=None):
     def at(rest):
         return hipc + R_t @ (rest - J["hips"])
 
-    # Head: as the old head turned since the standing key, on the new neck.
+    # Head: as the old head turned since the standing key, on the new neck;
+    # down on the stock when shouldering a long gun (the cheek on it).
     R_h = rel_rot(head_anchor, name) if head_anchor >= 0 else R_t
+    aiming = any(it["two"] for it in ITEMS) and name.replace("hurt_", "") in AIMS
+    if aiming:
+        main = next(it["main"] for it in ITEMS if it["two"])
+        Tn = TWIST["fwd"]
+        R_h = (Matrix.Rotation(.22, 3, Vector(Tn.col[0])) @ Matrix.Rotation(
+            (.18 if main == "r" else -.18), 3, -Vector(Tn.col[2]))) @ R_h
     D["head"] = place(R_h, J["neck"], at(J["neck"]))
     joints = {"miss": {}}
     for side, hp, kn, ft, li in (("l", HIP_L, KN_L, FT_L, 2), ("r", HIP_R, KN_R, FT_R, 3)):
@@ -1008,7 +1131,7 @@ def solve(name, dz=0.0, held0=None):
     for it in ITEMS:
         Di, shown = item_delta(it, name, P, D, R_t, hipc)
         if Di is not None and shown and it["two"]:
-            Di = keep_out(surface, it["bone"], Di, name)
+            Di = keep_out(surface, it["bone"], Di, name, .22 if name.replace("hurt_", "") in AIMS else 0.0)
         moves[it["bone"]] = (Di, shown)
         if Di is not None and shown and it["two"]:
             for side in it["holds"]:
@@ -1026,17 +1149,23 @@ def solve(name, dz=0.0, held0=None):
                     if (lo_e + (hi_e - lo_e) * t - hp).length > .24 * OLD_H / 1.7:
                         continue
                 on[side] = (it, Di)
-                if side == it["main"] and held0 is not None:
-                    # The hand where the thing puts it: as it held it standing.
-                    main_hand[side] = Di @ held0["@" + it["bone"]].inverted() @ held0["hand_" + side]
+
     for side, sh, ha, el in (("l", SH_L, HA_L, EL_L), ("r", SH_R, HA_R, EL_R)):
         out = 1.0 if side == "l" else -1.0
         sh_f = at(J["upperarm_" + side])
         pole = R_t @ Vector((out * .3, .3, -1.0))
+        if side in on:
+            # Holding the gun: the elbows hang down and in; shouldered, the
+            # gun arm's elbow comes out a little, the other stays under.
+            two_main = on[side][0]["main"] == side
+            if aiming and two_main:
+                pole = R_t @ Vector((out * 1.0, .15, -.6))
+            else:
+                pole = R_t @ Vector((out * .12, .25, -1.0))
         oel = P[el]
         chord = P[ha] - P[sh]
         off = (oel - P[sh]) - chord.normalized() * (oel - P[sh]).dot(chord.normalized())
-        if DUMP["stiff"] and not DUMP["stiff"][0 if side == "l" else 1] and off.length > .03:
+        if DUMP["stiff"] and not DUMP["stiff"][0 if side == "l" else 1] and off.length > .03 and side not in on:
             pole = off
         if side in main_hand:
             Dh = main_hand[side]
@@ -1062,10 +1191,16 @@ def solve(name, dz=0.0, held0=None):
                     break
                 want = max(floor, want - .03)
             it = dict(it, holds=dict(it["holds"], **{side: want}))
-            for _ in range(3):
+            for _ in range(4):
                 R_hand, wrist_t, grip = hand_on(it, side, Di, R_t, el_guess)
+                # The elbow where the forearm runs straight into the hand, if
+                # the arm can put it there (the bend's side taken from it).
+                want_el = wrist_t - (R_hand @ HANDF[side][1]) * (J["wrist_" + side] - J["forearm_" + side]).length
+                p2 = want_el - sh_f
+                pole_now = p2 if p2.length > .02 else pole
+                pole_now = pole_now + pole.normalized() * .25
                 R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side],
-                                            J["wrist_" + side], sh_f, wrist_t, pole, Vector((0, -1, 0)))
+                                            J["wrist_" + side], sh_f, wrist_t, pole_now, Vector((0, -1, 0)))
                 el_guess = el_f
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
             D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
@@ -1102,14 +1237,71 @@ def solve(name, dz=0.0, held0=None):
                 Di = Matrix.Translation(palm - grip)
             else:
                 Di = D["hand_" + side] @ held0["hand_" + side].inverted() @ held0["@" + it["bone"]]
-            if surface is not None:
-                PEN[name + ":" + it["bone"]] = depth_in(surface, it["bone"], Di)[0]
+            if surface is not None and shown:
+                # In the body (a jug against a thigh, a pistol in the belly):
+                # the hand moves it out, the arm reaching after it.
+                first = depth_in(surface, it["bone"], Di)[0]
+                for _ in range(8):
+                    d, way = depth_in(surface, it["bone"], Di)
+                    if d < .004:
+                        break
+                    move = Matrix.Translation(way * (d + .012))
+                    Dh = move @ D["hand_" + side]
+                    sh_f = at(J["upperarm_" + side])
+                    out = 1.0 if side == "l" else -1.0
+                    pole = R_t @ Vector((out * .3, .3, -1.0))
+                    R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side],
+                                                J["wrist_" + side], sh_f, Dh @ J["wrist_" + side], pole,
+                                                Vector((0, -1, 0)))
+                    D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+                    D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+                    D["hand_" + side] = Dh
+                    Di = move @ Di
+                d = depth_in(surface, it["bone"], Di)[0]
+                if first > .004:
+                    print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d))
+                PEN[name + ":" + it["bone"]] = d
         D["@" + it["bone"]] = Di
         D[it["bone"]] = D["hand_" + side]
+        if it["two"] and held0 is not None and Di is not None:
+            # A two-handed gun keeps its own place (each hand takes hold of
+            # it afresh in each key, the wrists straight): its bone moves as
+            # the gun did from the standing key, where it rested on the hand.
+            D[it["bone"]] = Di @ held0["@" + it["bone"]].inverted() @ held0["hand_" + side]
         if not shown:
             c = ORIGIN["hand_" + side]
             D[it["bone"]] = (D["hand_" + side] @ Matrix.Translation(c) @ Matrix.Diagonal((1e-3, 1e-3, 1e-3, 1))
                              @ Matrix.Translation(-c))
+    # The body's middle over its feet (the hips' and the shoulders' middle,
+    # weighted as a trunk is) against the feet's middle, ahead or behind.
+    trunk = (D["body"] @ J["hips"]) * .55 + (D["body"] @ ((J["upperarm_l"] + J["upperarm_r"]) / 2)) * .45
+    feet = (joints["foot_l"] + joints["foot_r"]) / 2
+    fwd_now = -Vector((R_t @ T0).col[2])
+    joints["com"] = (trunk - feet).dot(Vector((fwd_now.x, fwd_now.y, 0)).normalized())
+    # The fingers: closed round whatever the hand holds (as tight as they go
+    # without going into it, the thumb over), else hanging a little curled.
+    for side, hnd in HANDS.items():
+        held_by = None
+        if side in on:
+            held_by = (on[side][0], moves[on[side][0]["bone"]][0])
+        for it in ITEMS:
+            if held_by is None and it["main"] == side and moves[it["bone"]][1] and ("@" + it["bone"]) in D:
+                held_by = (it, D["@" + it["bone"]])
+        Dh = D["hand_" + side]
+        if held_by is not None and held_by[1] is not None:
+            it, Di = held_by
+            inv = Dh.inverted()
+            curls = hands.grip_curls(hnd, inv @ (Di @ it["lo"]), inv @ (Di @ it["hi"]), it["rad"])
+            fm = hands.curl_moves(hnd, curls, hands.THUMB_OPPOSE)
+        else:
+            curls = {c: hands.spread(c, .55 if c != "th" else .3) for c in hnd.chains}
+            fm = hands.curl_moves(hnd, curls)
+        for bname, M in fm.items():
+            D[bname] = Dh @ M
+        # The joints' limits: the wrist's bend off the forearm's line.
+        fa = (D["forearm_" + side].to_3x3() @ (J["wrist_" + side] - J["forearm_" + side])).normalized()
+        ha = (Dh.to_3x3() @ HANDF[side][1]).normalized()
+        joints.setdefault("wrist", {})[side] = math.degrees(fa.angle(ha))
     return D, joints, P
 
 
@@ -1122,31 +1314,35 @@ AIM_BEST = {}
 def pose_key(name):
     bare = name.replace("hurt_", "")
     if any(it["two"] for it in ITEMS) and bare in AIMS and "aim_twist" not in CFG:
-        # The shouldered hold that fits this body: the turn of the body, how
-        # low and how far in the butt sits, how far across the barrel points;
-        # the one with both hands on the gun and nothing in the body wins.
-        bare = "aim" if "aim" in AIMS and "aim" in FRAMES else bare
-        if bare not in AIM_BEST:
+        # The shouldered stance that fits this body (how far it is bladed,
+        # how low and how far in the butt sits in the shoulder): the one with
+        # both hands on the gun and nothing in the body.
+        key = name
+        if key not in AIM_BEST:
             best = None
-            for tw in (0, 15, 30, 45):
-                for drop in (.04, .1, .16):
-                    for tuck in (0.0, .06, .12):
-                        for turn in (.15, .35, .55):
-                            CFG.update(aim_twist=tw, aim_drop=drop, aim_tuck=tuck, aim_turn=turn)
-                            _D, jt, _P = solve(name, 0.0, HELD0)
-                            miss = sum(jt["miss"].values())
-                            pen = max([v for k, v in PEN.items() if k.startswith(name + ":")] or [0.0])
-                            score = miss * 4 + pen * 10 + turn * .05 + tw * .001
-                            if best is None or score < best[0]:
-                                best = (score, tw, drop, tuck, turn, miss, pen)
-            AIM_BEST[bare] = best
-            print("MESHY %s hold: turn %d, drop %.2f, tuck %.2f, across %.2f (hands %.3f m off, %.3f m in)" % (
-                bare, best[1], best[2], best[3], best[4], best[5], best[6]))
-        _s, tw, drop, tuck, turn, _m, _p = AIM_BEST[bare]
-        CFG.update(aim_twist=tw, aim_drop=drop, aim_tuck=tuck, aim_turn=turn)
+            for tw in (30, 40, 50, 60):
+                for drop in (.02, .05, .08, .11):
+                    for inn in (-.04, 0.0, .04):
+                        CFG.update(aim_twist=tw, aim_drop=drop, aim_in=inn)
+                        _D, jt, _P = solve(key, 0.0, HELD0)
+                        miss = sum(jt["miss"].values())
+                        pen = max([v for k, v in PEN.items() if k.startswith(key + ":")] or [0.0])
+                        score = miss * 4 + pen * 10 + tw * .0006 + drop * .1
+                        if best is None or score < best[0]:
+                            best = (score, tw, drop, inn, miss, pen)
+            AIM_BEST[key] = best
+            print("MESHY shouldered %s: bladed %d, butt %.2f down, %.2f in (hands %.3f m off, %.3f m in)" % (
+                (key,) + best[1:]))
+        _s, tw, drop, inn, _m, _p = AIM_BEST[key]
+        CFG.update(aim_twist=tw, aim_drop=drop, aim_in=inn)
         D, joints, P = solve(name, 0.0, HELD0)
-        for k in ("aim_twist", "aim_drop", "aim_tuck", "aim_turn"):
+        for k in ("aim_twist", "aim_drop", "aim_in"):
             del CFG[k]
+        for side, m in joints["miss"].items():
+            if m > .03:
+                print("MESHY %s: the %s hand is %.2f m short of its grip" % (name, side, m))
+        for side, ang in joints.get("wrist", {}).items():
+            WRIST[name + ":" + side] = ang
         return D, P
     D, joints, P = solve(name, 0.0, HELD0)
     # Feet that could not reach the floor where the old ones stood: lower
@@ -1158,7 +1354,16 @@ def pose_key(name):
     for side, m in joints["miss"].items():
         if m > .03:
             print("MESHY %s: the %s hand is %.2f m short of its grip" % (name, side, m))
+    for side, ang in joints.get("wrist", {}).items():
+        WRIST[name + ":" + side] = ang
+        if ang > 60:
+            print("MESHY %s: the %s wrist bends %d degrees" % (name, side, round(ang)))
+    if not name.replace("hurt_", "").startswith("die") and "down" not in name:
+        COM[name] = joints.get("com", 0.0)
     return D, P
+
+
+WRIST = {}
 
 
 HELD0 = dict(pose_key("0")[0])
@@ -1180,6 +1385,10 @@ for t in KEYS:
         if b in BONES:
             pb.scale = (1, 1, 1)
         pb.keyframe_insert("scale", frame=t)
+print("MESHY wrists: worst bend %d degrees" % round(max(WRIST.values()) if WRIST else 0))
+if COM:
+    _k = max(COM, key=lambda k: abs(COM[k]))
+    print("MESHY body's middle over the feet: worst %.3f m (%s; + ahead)" % (COM[_k], _k))
 _worst = max(PEN.values()) if PEN else 0.0
 print("MESHY held things in the body: worst %.3f m over %d keys" % (_worst, len(KEYS)))
 action = rig.animation_data.action
@@ -1210,8 +1419,18 @@ mat_body.use_nodes = True
 mat_gear = bpy.data.materials.new("gearslot")
 mat_gear.use_nodes = True
 lo.data.materials.append(mat_body)
+lo.data.materials.append(mat_gear)
+# The built hands' faces their own slot (2): their skin is baked from the
+# hands themselves, not from the Meshy mesh.
+mat_hand = bpy.data.materials.new("handslot")
+mat_hand.use_nodes = True
+lo.data.materials.append(mat_hand)
+_ish = lo.data.attributes.get("is_hand")
+if _ish is not None:
+    for i, poly in enumerate(lo.data.polygons):
+        if _ish.data[i].value == 1:
+            poly.material_index = 2
 if gear_obj is not None:
-    lo.data.materials.append(mat_gear)
     gear_lo = gear_obj.copy()
     gear_lo.data = gear_obj.data.copy()
     scene.collection.objects.link(gear_lo)
@@ -1300,6 +1519,7 @@ NORMALS = pixels(nimg)
 # Where skin can be (head, hands, forearms; a kind may add zones): a vertex
 # colour of those bones' weights, baked as emission.
 ZONES = CFG.get("skin_zones", ["head", "hand_l", "hand_r", "forearm_l", "forearm_r"])
+ZONES = ZONES + [g.name for g in lo.vertex_groups if g.name.startswith(("fl_", "fr_"))]
 zattr = lo.data.color_attributes.new("zone", "FLOAT_COLOR", "POINT")
 zidx = [lo.vertex_groups[z].index for z in ZONES if z in lo.vertex_groups]
 for v in lo.data.vertices:
@@ -1394,6 +1614,90 @@ for _ in range(24):
 total[:, :3] = rgb.reshape(-1, 3)
 total[:, 3] = 1
 
+# The built hands: their skin (the Meshy hand's colour, nails lighter, the
+# creases at the knuckles darker) lit by the stage, four turns as the body.
+if HANDS:
+    hi.hide_render = True
+    lo.visible_shadow = True
+    lo.visible_diffuse = True
+    for m in lo.data.materials:
+        nt = m.node_tree
+        for nn in list(nt.nodes):
+            if nn.name != "bake_target":
+                nt.nodes.remove(nn)
+        o = nt.nodes.new("ShaderNodeOutputMaterial")
+        if m is mat_hand:
+            bs = nt.nodes.new("ShaderNodeBsdfDiffuse")
+            vc = nt.nodes.new("ShaderNodeVertexColor")
+            vc.layer_name = "shade"
+            mixn = nt.nodes.new("ShaderNodeMix")
+            mixn.data_type = "RGBA"
+            mixn.blend_type = "MULTIPLY"
+            mixn.inputs[0].default_value = 1.0
+            mixn.inputs[6].default_value = (float(SKIN[0]), float(SKIN[1]), float(SKIN[2]), 1)
+            nt.links.new(vc.outputs[0], mixn.inputs[7])
+            nt.links.new(mixn.outputs[2], bs.inputs[0])
+            nt.links.new(bs.outputs[0], o.inputs[0])
+        else:
+            e = nt.nodes.new("ShaderNodeEmission")
+            e.inputs[0].default_value = (0, 0, 0, 1)
+            nt.links.new(e.outputs[0], o.inputs[0])
+        nt.nodes["bake_target"].image = image
+        nt.nodes.active = nt.nodes["bake_target"]
+    htot = None
+    hwt = None
+    kept_lo = lo.matrix_world.copy()
+    for k, angle in enumerate(TURNS):
+        lo.matrix_world = Matrix.Rotation(math.radians(angle), 4, "Z") @ kept_lo
+        bpy.context.view_layer.update()
+        scene.cycles.samples = 24
+        select([lo])
+        bake_op(type="COMBINED", pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE"},
+                margin=TEXTURE // 128, use_clear=True)
+        px = pixels(image)
+        c, sn = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+        w = numpy.clip(-(sn * nx + c * ny), 0, 1) ** 2 + 1e-4
+        if htot is None:
+            htot = px[:, :3] * w[:, None]
+            hwt = w.copy()
+        else:
+            htot += px[:, :3] * w[:, None]
+            hwt += w
+    lo.matrix_world = kept_lo
+    bpy.context.view_layer.update()
+    htot /= hwt[:, None]
+    # Which texels are the hands': their slot emits white.
+    for m in lo.data.materials:
+        nt = m.node_tree
+        for nn in list(nt.nodes):
+            if nn.name != "bake_target":
+                nt.nodes.remove(nn)
+        o = nt.nodes.new("ShaderNodeOutputMaterial")
+        e = nt.nodes.new("ShaderNodeEmission")
+        val = 1.0 if m is mat_hand else 0.0
+        e.inputs[0].default_value = (val, val, val, 1)
+        nt.links.new(e.outputs[0], o.inputs[0])
+    select([lo])
+    bake_op(type="EMIT", margin=TEXTURE // 128, use_clear=True)
+    HANDMASK = pixels(image)[:, 0] > .5
+    # The same skin as the arms and face beside them: the hands' light and
+    # colour matched to the skin baked on the rest of the body (its median).
+    _rgb = total[:, :3]
+    _mx, _mn = _rgb.max(axis=1), _rgb.min(axis=1)
+    _sat = numpy.where(_mx > 1e-4, (_mx - _mn) / numpy.maximum(_mx, 1e-4), 0)
+    _skinlike = ZONE & ~HANDMASK & (_rgb[:, 0] > _rgb[:, 1]) & (_rgb[:, 1] > _rgb[:, 2] * .9) & (_sat > .18) & (_sat < .7) & (_mx > .15)
+    if _skinlike.sum() > 50 and HANDMASK.any():
+        _want = numpy.median(_rgb[_skinlike], axis=0)
+        _have = numpy.median(htot[HANDMASK], axis=0)
+        htot = numpy.clip(htot * (_want / numpy.maximum(_have, 1e-4))[None, :], 0, 1)
+        print("MESHY hands' skin matched to the body's", numpy.round(_want * 255).astype(int))
+    total[HANDMASK, :3] = htot[HANDMASK]
+    print("MESHY hands baked: %d texels, mean colour %s" % (int(HANDMASK.sum()),
+          numpy.round(htot[HANDMASK].mean(axis=0) * 255).astype(int) if HANDMASK.any() else "-"))
+    hi.hide_render = False
+    lo.visible_shadow = False
+    lo.visible_diffuse = False
+
 
 def skin_fix(px):
     """Skin the grade and the palette would turn yellow-orange (Meshy paints
@@ -1473,7 +1777,7 @@ if gear_obj is not None:
     gimg.file_format = "PNG"
     gimg.save()
     # Mask: the gear slot emits white, the body black.
-    for m, val in ((mat_body, 0.0), (mat_gear, 1.0)):
+    for m, val in ((mat_body, 0.0), (mat_gear, 1.0), (mat_hand, 0.0)):
         nt = m.node_tree
         for n in list(nt.nodes):
             if n.name != "bake_target":
@@ -1655,9 +1959,10 @@ entry = {
     "textures": ["", "hurt"],
     "joints": JOINTS,
     "rides": RIDES,
-    "segs": {"body": 0, "head": 1, "upperarm_l": 2, "forearm_l": 3, "hand_l": 3, "upperarm_r": 4,
-             "forearm_r": 5, "hand_r": 5, "thigh_l": 6, "shin_l": 7, "foot_l": 7, "thigh_r": 8,
-             "shin_r": 9, "foot_r": 9},
+    "segs": dict({"body": 0, "head": 1, "upperarm_l": 2, "forearm_l": 3, "hand_l": 3, "upperarm_r": 4,
+                  "forearm_r": 5, "hand_r": 5, "thigh_l": 6, "shin_l": 7, "foot_l": 7, "thigh_r": 8,
+                  "shin_r": 9, "foot_r": 9},
+                 **{b: (3 if b.startswith("fl_") else 5) for b in BONES if b.startswith(("fl_", "fr_"))}),
     "meshy": True,
 }
 meta_path = os.path.join(OUT, "actors.json")
