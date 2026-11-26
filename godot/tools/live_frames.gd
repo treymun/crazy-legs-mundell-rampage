@@ -7,7 +7,7 @@
 ## catch itself with real steps, hold the wound, buckle a knee.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
-##       --script res://tools/live_frames.gd -- out=<dir> [rows=chest,legs] [off]
+##       --script res://tools/live_frames.gd -- out=<dir> [rows=chest,legs] [off] [kind=coot]
 ##
 ## off: the active bodies off (RAGDOLLS off: the old rigid flinch) for a
 ## side by side. Point APPDATA at a scratch folder.
@@ -31,6 +31,13 @@ const LIVE_ROWS := [
 		false
 	],
 	["buckshot", "billy", [[0, "shotgun", "body", 3.0, 40.0]], false],
+	# Knocked down: both barrels close, then once more (the Meshy models track).
+	[
+		"knock",
+		"billy",
+		[[0, "shotgun", "body", 1.1, 90.0], [8, "shotgun", "body", 1.1, 90.0]],
+		false
+	],
 	["coot_chest", "coot", [[0, "revolver", "body", 3.0, 18.0]], false],
 	["coot_legs", "coot", [[0, "revolver", "legs", 4.0, 14.0]], false],
 	["coot_down", "coot", [[0, "shotgun", "body", 1.2, 90.0]], false],
@@ -46,6 +53,10 @@ const HEIGHT := {"head": .93, "body": .6, "arms": .62, "legs": .3}
 const ACROSS := {"head": 0.0, "body": .25, "arms": 1.0, "legs": .35}
 
 var _rows: Rows
+## kind=: every row with that kind instead (the Meshy models track).
+var _kind := ""
+var _video := false
+var _at: Array = AT.duplicate()
 
 
 func _run() -> void:
@@ -58,6 +69,15 @@ func _run() -> void:
 			only = a.substr(5)
 		elif a == "off":
 			classic = true
+		elif a.begins_with("kind="):
+			_kind = a.substr(5)
+		elif a == "video":
+			# Every other tick for two and a half seconds, each frame its own
+			# picture (<row>/f_NNN.png), for a clip at real speed (30 a second).
+			_video = true
+			_at = [0]
+			for k in range(2, 152, 2):
+				_at.append(k)
 	DirAccess.make_dir_recursive_absolute(out)
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
@@ -78,7 +98,7 @@ func _run() -> void:
 
 func _row(row: Array) -> void:
 	var name: String = row[0]
-	var kind: String = row[1]
+	var kind: String = row[1] if _kind == "" else _kind
 	var shots: Array = row[2]
 	var running: bool = row[3]
 	var spot: Dictionary = _rows._open("hickston", false)
@@ -123,7 +143,7 @@ func _row(row: Array) -> void:
 	await _rows._snap()
 	var done := 0
 	var next := 0
-	for t: int in AT.slice(1):
+	for t: int in _at.slice(1):
 		while next < shots.size():
 			var shot: Array = shots[next]
 			var when: int = shot[0]
@@ -179,6 +199,11 @@ func _hit(g: Game, e: Enemy, shot: Array, way: Vector2) -> void:
 
 
 func _save15(name: String) -> void:
+	if _video:
+		DirAccess.make_dir_recursive_absolute(out.path_join(name))
+		for k in _rows._frames.size():
+			_rows._frames[k].save_png(out.path_join(name).path_join("f_%03d.png" % k))
+		return
 	var sheet := Image.create(320 * 5, 202 * 3, false, Image.FORMAT_RGB8)
 	sheet.fill(Color(.1, .1, .1))
 	for k in _rows._frames.size():

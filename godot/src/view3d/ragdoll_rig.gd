@@ -388,6 +388,7 @@ func _build(view: Node, info: Dictionary) -> void:
 			return
 	if not _points(clouds):
 		return
+	_take_joints(skeleton, info)
 	# Each part's segment: by label, then the upper or lower half of the limb.
 	bone_seg.resize(bones)
 	anchors.resize(ENDS.size())
@@ -861,6 +862,19 @@ func _points(clouds: Dictionary) -> bool:
 		and points[SH_L].distance_to(points[SH_R]) > height * .06
 		and points[HIP_L].distance_to(points[HIP_R]) > height * .02
 	)
+
+
+## A model rigged with a bone on each of the ragdoll's points (actors.json
+## "joints": point -> bone; the Meshy models, meshy/README.md) takes them from
+## the standing key: a skinned limb bends where its bones meet, not halfway
+## along its reach where _points guesses the elbow and knee.
+func _take_joints(skeleton: Skeleton3D, info: Dictionary) -> void:
+	var joints: Dictionary = info.get("joints", {})
+	for key: String in joints:
+		var i := key.to_int()
+		var bone := skeleton.find_bone(str(joints[key]))
+		if bone >= 0 and i >= 0 and i < BELLY:
+			points[i] = bone_rest[bone].origin
 
 
 ## A limb with (almost) nothing of its own left once the dead body's lost

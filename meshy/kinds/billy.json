@@ -1,0 +1,11 @@
+{
+ "kind": "billy",
+ "rigged": "meshy_test/models/enemy_rigged_walk.glb",
+ "poses": "../meshy-work/dump/billy_poses.json",
+ "old_glb": "../meshy-work/old/billy.glb",
+ "old_tex": "../meshy-work/old/actor3d_billy.png",
+ "out": "../meshy-work/raw/billy",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old"
+}

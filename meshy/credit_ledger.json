@@ -1,0 +1,39 @@
+{
+ "start": 2938,
+ "limit": 2500,
+ "entries": [
+  {
+   "label": "coot_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a2158e-0269-7408-9b28-348daa005fa8",
+   "before": 2938,
+   "cost": 9,
+   "body": "coot_concept.json",
+   "time": "2026-11-25 19:52:39",
+   "after": 2929,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "coot_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a2158f-6b01-729c-9b3c-a0f462c95721",
+   "before": 2929,
+   "cost": 30,
+   "body": "coot_model.json",
+   "time": "2026-11-25 19:54:14",
+   "after": 2899,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "coot_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21590-d058-7567-bb11-f457842896a0",
+   "before": 2899,
+   "cost": 5,
+   "body": "coot_rig.json",
+   "time": "2026-11-25 19:55:45",
+   "after": 2894,
+   "status": "SUCCEEDED"
+  }
+ ]
+}
