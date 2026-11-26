@@ -1,14 +1,24 @@
-## Fight music: the chapter's fight loop swells in over its track when enemies
-## are on the player and gives way again once the area has been quiet a while
-## (sound.gd ScorePlayer does the crossfade: in over 1 s, out over 3 s). Looks
-## only: it reads the enemies and the game's events, never changes play, and
-## saves nothing (a loaded game works the fight out again within a tick).
+## Fight music in four levels (pass 15; src/score_layers.gd plays them):
+## CALM the chapter's track; BUILD the fight loop's drums alone, in the
+## track's place; FIGHT the whole loop; PEAK the loop with its top riff over
+## it. sound.gd ScorePlayer crossfades the track and the fight player (in
+## over 1 s, out over 3 s); ScoreLayers moves the layers under the one stream.
+## Looks only: it reads the enemies, the director's beat and the game's
+## events, never changes play, and saves nothing (a loaded game works the
+## level out again within a tick).
 ##
 ## An enemy is on the player when it is alive, hostile and alerted and it
 ## sees them, hunts them close by on the flow field, or is in the middle of an
-## attack near them. Damage taken or dealt counts too while an alerted enemy
-## is within NEAR. The fight is over HOLD seconds after the last of these, so
-## losing sight of someone for a moment never lets the music drop.
+## attack near them. BUILD while one is on the player or an alerted hand
+## hunts within NEAR (held BUILD_HOLD s). FIGHT while CROWD are on him, or one
+## is and has hurt him within HURT_HOT s, or the director's intensity is
+## FIGHT_HEAT or more; held HOLD s after the last of these, so losing sight of
+## someone for a moment never lets the music drop, but held only QUIET_HOLD s
+## once no hand about is awake and after him, and dropped within BREATHER_DROP s
+## once the director calls a breather and nobody is on him.
+## PEAK while a director's peak has hands on him or he is on a RAMPAGE (held
+## PEAK_HOLD s). Before pass 15 any hand on the player was the fight loop, held
+## 7 s: with a fight every 8 to 12 s it played 80 to 97 % of every chapter.
 ##
 ## A chapter's boss fight goes further: its boss loop (Sound.BOSSES) takes over
 ## from the track and the fight loop while the boss is alive, awake and the
@@ -17,8 +27,18 @@
 ## after the player last was, and hands back the moment the boss falls.
 extends GameFeature
 
-## Seconds of quiet before the fight loop gives way.
-const HOLD := 7.0
+## Seconds the whole loop holds after the last of what keeps it (and how
+## soon it drops in a director's breather); BUILD's and PEAK's holds.
+const HOLD := 12.0
+const BREATHER_DROP := 1.0
+const QUIET_HOLD := 5.0
+const BUILD_HOLD := 5.0
+const PEAK_HOLD := 3.0
+## FIGHT: this many on the player, or one and a blow within HURT_HOT s, or the
+## director's intensity this high.
+const CROWD := 2
+const HURT_HOT := 4.0
+const FIGHT_HEAT := .5
 ## How close an enemy hunting the player out of sight must be, and one
 ## winding up or recovering from an attack (sight itself reaches 14).
 const HUNT_RANGE := 9.0
@@ -36,7 +56,14 @@ const OWN_MUSIC := ["maw"]
 ## How high the boss loop plays once its boss is plum desperate (phase 3).
 const LIFT := 1.06
 
+## The whole fight loop is playing (FIGHT or PEAK; tools read it), and the
+## level (ScoreLayers.CALM .. PEAK).
 var fighting := false
+var level := ScoreLayers.CALM
+## When BUILD and PEAK were last called for, and the last blow in a fight.
+var build_heat := -100.0
+var peak_heat := -100.0
+var struck_at := -100.0
 ## The boss loop is wanted (tools read it), and when the player was last in
 ## an awake boss's arena.
 var boss_fight := false
@@ -54,13 +81,15 @@ func id() -> String:
 func attach() -> void:
 	tick_with(_tick)
 	# The local player's fight (another player's blows set no music here).
-	game.events.player_hurt.connect(func(_amount: float, _cause: String) -> void: _struck_here())
-	game.events.hit_landed.connect(func(_amount: float, _killed: bool) -> void: _struck_here())
+	game.events.player_hurt.connect(
+		func(_amount: float, _cause: String) -> void: _struck_here(true)
+	)
+	game.events.hit_landed.connect(func(_amount: float, _killed: bool) -> void: _struck_here(false))
 
 
-func _struck_here() -> void:
+func _struck_here(taken: bool) -> void:
 	if game.acting_local():
-		_struck()
+		_struck(taken)
 
 
 func _tick(dt: float) -> void:
@@ -68,17 +97,76 @@ func _tick(dt: float) -> void:
 	if scan_left <= 0.0:
 		scan_left = SCAN
 		engaged = _engaged()
-		if engaged > 0:
-			last_heat = game.clock
+		_heat()
 		_boss_scan()
-	fighting = not game.in_hub and game.clock - last_heat < HOLD
+	level = _level()
+	fighting = level >= ScoreLayers.FIGHT
 	if game.sound != null and game.sound.has_method("set_fight"):
-		game.sound.set_fight(fighting)
+		var node := game.sound.node()
+		var fight_track := str(Sound.FIGHTS.get(String(game.level.score), ""))
+		var layered := node != null and ScoreLayers.layered(node.assets, fight_track)
+		game.sound.set_fight(level >= (ScoreLayers.BUILD if layered else ScoreLayers.FIGHT))
+		if node != null:
+			ScoreLayers.step(dt, level, node.fight_mix())
 		_boss_music()
 		# The boss loop lifts a touch in its boss's last phase (sound.gd tick_score
 		# eases it there; only a boss loop is ever lifted).
 		var foe := boss()
 		game.sound.score_lift = LIFT if foe != null and foe.boss_phase >= 3 else 1.0
+
+
+## What calls for each level, from the look just taken.
+func _heat() -> void:
+	var phase := Director.phase_of(game)
+	var heat := Director.intensity_of(game)
+	var awake := engaged > 0 or _awake_near()
+	if awake:
+		build_heat = game.clock
+	if (
+		engaged >= CROWD
+		or (engaged > 0 and game.clock - struck_at < HURT_HOT)
+		or (engaged > 0 and heat >= FIGHT_HEAT)
+	):
+		last_heat = game.clock
+	if phase == Director.BREATHER and engaged == 0:
+		# A breather: the whole loop gives way soon, the drums a while after.
+		last_heat = minf(last_heat, game.clock - HOLD + BREATHER_DROP)
+	elif not awake:
+		# Nobody about at all: the whole loop holds only QUIET_HOLD.
+		last_heat = minf(last_heat, game.clock - HOLD + QUIET_HOLD)
+	if (phase == Director.PEAK and engaged > 0) or Rampage.raging(game, game.local_player):
+		# (The PEAK alone: once it is over the level is what the hands make it.)
+		peak_heat = game.clock
+
+
+func _level() -> int:
+	if game.in_hub:
+		return ScoreLayers.CALM
+	if game.clock - peak_heat < PEAK_HOLD:
+		return ScoreLayers.PEAK
+	if game.clock - last_heat < HOLD:
+		return ScoreLayers.FIGHT
+	if game.clock - build_heat < BUILD_HOLD:
+		return ScoreLayers.BUILD
+	return ScoreLayers.CALM
+
+
+## An alerted hand within NEAR that sees the player or hunts him: the fight
+## is coming.
+func _awake_near() -> bool:
+	var p := game.player
+	for enemy: Enemy in game.enemies:
+		if (
+			enemy.alerted
+			and enemy.alive
+			and enemy.hostile
+			and not enemy.dormant
+			and (enemy.player_seen or game.clock < enemy.hunt_until)
+			and absf(enemy.x - p.x) < NEAR
+			and absf(enemy.y - p.y) < NEAR
+		):
+			return true
+	return false
 
 
 ## The boss whose fight it is: the chapter's last boss, or Hickston's sheriff
@@ -121,8 +209,9 @@ func _boss_music() -> void:
 
 
 ## A hit taken or landed counts only with an alerted enemy about: a hot coal
-## or a shot pig is not a fight.
-func _struck() -> void:
+## or a shot pig is not a fight. One taken can make a FIGHT of one hand; one
+## landed only keeps the BUILD.
+func _struck(taken: bool) -> void:
 	var p := game.player
 	for enemy: Enemy in game.enemies:
 		if (
@@ -132,7 +221,9 @@ func _struck() -> void:
 			and absf(enemy.x - p.x) < NEAR
 			and absf(enemy.y - p.y) < NEAR
 		):
-			last_heat = game.clock
+			if taken:
+				struck_at = game.clock
+			build_heat = game.clock
 			return
 
 

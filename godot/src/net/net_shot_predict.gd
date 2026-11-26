@@ -741,7 +741,8 @@ func _blow(game: Game, me: Player, gun: int, ev: Dictionary, shown: Dictionary) 
 
 
 ## USE's boot (features/brawl.gd use(): a man in reach ahead, or a plain door
-## run at) for the first fresh press among our unplayed inputs: the grunt
+## run at), or KICK's (brawl.gd boot(): that or into the air, pass 15), for
+## the first fresh press among our unplayed inputs: the grunt
 ## once, and while it is up the boot drawn (brawl's kicked_at for our slot,
 ## put back after the frame) and the gun ducking out of its way, timed from
 ## our press. A finisher is the copy's to show (it picks the move off the
@@ -757,7 +758,7 @@ func _boot(
 	var held := me.use_held
 	for i in inputs.size():
 		var c: Game.Controls = inputs[i]
-		var fresh := c.use and not held
+		var fresh := (c.use and not held) or c.kick
 		held = c.use
 		if not fresh or first + i <= _boot_seq:
 			continue
@@ -766,7 +767,7 @@ func _boot(
 			ahead += maxi(0, ceili(float(client.game_tick) - client.view_at))
 		if finishes.press(game, me, first + i, ahead, _now()):
 			break  # a finisher, drawn from the press (net_finish_looks.gd)
-		if _would_kick(game, brawl, me, (inputs.size() - 1 - i) * STEP):
+		if _would_kick(game, brawl, me, (inputs.size() - 1 - i) * STEP, c.kick):
 			_boot_seq = first + i
 			stats["boots"] += 1
 			var shown := {
@@ -888,7 +889,9 @@ func _items(game: Game, me: Player, client: NetSync.Client, inputs: Array, playe
 ## brawl.gd use()'s choice for `me` as our screen has them, `ahead` seconds
 ## of our inputs past the copy's clock: a boot (not busy, rested, a man in
 ## reach who is not to be finished, or a plain door run at).
-static func _would_kick(game: Game, brawl: Game.BrawlScript, me: Player, ahead: float) -> bool:
+static func _would_kick(
+	game: Game, brawl: Game.BrawlScript, me: Player, ahead: float, any := false
+) -> bool:
 	if me.health <= 0 or game.showing_tally or game.boss_hold > 0.0 or brawl.busy(me):
 		return false
 	var ready: float = brawl.kick_ready.get(me.slot, 0.0)
@@ -904,7 +907,7 @@ static func _would_kick(game: Game, brawl: Game.BrawlScript, me: Player, ahead: 
 	var kick_cone: float = kick["cone"]
 	if brawl.target(me, kick_reach, kick_cone) != null:
 		return true
-	return brawl._door_ahead(me) >= 0
+	return any or brawl._door_ahead(me) >= 0
 
 
 # ------------------------------------------------------------------ pickups

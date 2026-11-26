@@ -14,6 +14,7 @@
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
 const GUNS := [
 	["revolver", []],
 	["revolver", ["scope"]],
@@ -41,6 +42,8 @@ var only: Array = []
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "BENCH FRAMES"):
+		return
 	_run.call_deferred()
 
 

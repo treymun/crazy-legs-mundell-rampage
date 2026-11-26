@@ -105,9 +105,10 @@ func steer(game: Game) -> Game.Controls:
 		if bool(skill["boots"]) and gap < 1.5 and absf(turn) < .4 and game.clock >= _boot_at:
 			var brawl: Object = game.features.get("brawl")
 			var open: bool = brawl != null and bool(brawl.call("finishable", foe))
-			# A finisher whenever one is open; the boot now and then.
+			# A finisher whenever one is open; the boot now and then (KICK,
+			# pass 15: the boot alone, as a player has it).
 			if open or dice.randf() < .35:
-				c.use = true
+				c.kick = true
 				boots_asked += 1
 			_boot_at = game.clock + .7
 	var eat_at: int = skill["eat_at"]

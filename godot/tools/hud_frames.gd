@@ -1,7 +1,8 @@
 ## Pictures of every menu screen and of the HUD in its crowded moments
 ## (tools/hud_crowd.gd) in a real window, to read for overlaps, clipped or
 ## tiny text and anything out of theme: menu_<state>.png (each SETTINGS page
-## as menu_setup_<n>.png), hud_<moment>.png, tally_<level>.png. Run it at
+## as menu_setup_<n>.png), hud_<moment>.png, tally_<level>.png and the end
+## card as a run leaves it, tally_card_<n>.png. Run it at
 ## several window sizes (--resolution) to see the picture scaled.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
@@ -71,10 +72,55 @@ func _run() -> void:
 			g.configure(SessionStore.defaults())
 			g.won = true  # the chapter won: its tally is up
 			await _snap("tally_" + level)
+		await _cards()
 	print("hud frames written to ", out)
 	main.queue_free()
 	await process_frame
 	quit()
+
+
+## The end card as a run leaves it (pass 15, src/tally_card.gd): the bests
+## beside the rows, the ribbon and NEW BEST, its plates in each device's
+## words, and in SMALL TEXT: tally_card_<n>.png.
+func _cards() -> void:
+	var looks := [
+		["fair", "keys", false, true],
+		["sawmill", "pad", false, false],
+		["bayou", "touch", true, true],
+		["hickston", "keys", true, false],
+	]
+	for i in looks.size():
+		var look: Array = looks[i]
+		var g: Game = main.make_game(str(look[0]))
+		main.game = g
+		main.state = "play"
+		g.configure(SessionStore.defaults())
+		g.kills = g.total_kills - 3
+		g.secrets = 1
+		g.clock = ChapterBests.par(g.level.id) * (.8 if look[3] else 1.3)
+		g.won = true
+		main.input_device = str(look[1])
+		g.input_device = main.input_device
+		main.watch_tally()
+		var show = g.features["tally"]
+		var faster: bool = look[3]
+		show.card = {
+			"settled": true,
+			"kept_bests": true,
+			"difficulty": "NORMAL",
+			"old":
+			{"time": g.clock + (20.0 if faster else -40.0), "kills": g.kills - 2, "secrets": 2},
+			"time": faster,
+			"kills": faster,
+			"secrets": false,
+		}
+		PixelType.clear_small = look[2]
+		main.touch.active = main.input_device == "touch"  # its buttons as a phone shows them
+		await _snap("tally_card_%d" % i)
+	PixelType.clear_small = false
+	main.input_device = "keys"
+	main.touch.active = false
+	main.touch.set_showing(false)
 
 
 func _menus() -> void:

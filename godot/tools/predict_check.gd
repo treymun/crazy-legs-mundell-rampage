@@ -1067,6 +1067,7 @@ func _door(main, on: bool) -> void:
 			and d.key == ""
 			and not d.secret
 			and not d.blast_only
+			and d.bar_side == 0
 			and not g.world.controlled_doors.has(cell)
 			and not g.world.crouch_doors.has(cell)
 		):

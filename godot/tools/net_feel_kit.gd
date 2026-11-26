@@ -81,6 +81,7 @@ func setup(host: Game) -> void:
 			d.key != ""
 			or d.secret
 			or d.blast_only
+			or d.bar_side != 0
 			or host.world.controlled_doors.has(cell)
 			or host.world.crouch_doors.has(cell)
 		):

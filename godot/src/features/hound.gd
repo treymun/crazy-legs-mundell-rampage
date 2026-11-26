@@ -59,7 +59,7 @@ const RIDE := 14
 ## What he is up to while he goes with his player (state FOLLOW): at heel,
 ## ranging out, nosing about where he ranged, circling back, running to
 ## catch up, stepping out of a player's sights, trailing behind (sulking),
-## waiting where he cannot follow.
+## waiting where he cannot follow, leading the way (HoundLead, pass 15).
 const HEEL := 0
 const RANGE := 1
 const NOSING := 2
@@ -68,7 +68,8 @@ const CATCH := 4
 const ASIDE := 5
 const TRAIL := 6
 const WAIT := 7
-const JOBS := ["HEEL", "RANGE", "NOSING", "CIRCLE", "CATCH", "ASIDE", "TRAIL", "WAIT"]
+const LEAD := 8
+const JOBS := ["HEEL", "RANGE", "NOSING", "CIRCLE", "CATCH", "ASIDE", "TRAIL", "WAIT", "LEAD"]
 ## How he feels: calm, happy (a still, a greeting), alert (a hand about),
 ## scared (a twister), sulking (shot near), hurt (backed off a fight).
 const CALM := 0
@@ -187,6 +188,10 @@ class Dog:
 	## player running into a wall stands) and where they stood last tick.
 	var p_v := Vector2.ZERO
 	var p_was := Vector2.INF
+	## Pass 15 (HoundLead): the stuck spell's least steps, since when, said.
+	var lead_best := -1
+	var lead_at := 0.0
+	var lead_said := false
 
 
 ## The hounds, one a player who has one.
@@ -233,6 +238,7 @@ var _danger: Array = []
 var _bosses: Array = []
 var _bosses_of := -1
 var _field: FlowField
+var _lead: HoundLead
 
 
 func id() -> String:
@@ -321,7 +327,8 @@ func _tick(dt: float) -> void:
 		asked = true
 		on = HoundNose.on(game)
 	if not on:
-		sleep()
+		if not HoundLead.alone(self, dt):
+			sleep()  # (with HOUND DOG off: the pin's pulse and Mundell's word)
 		return
 	for p: Player in game.players:
 		if p.away or dog_of(p) != null:
@@ -538,6 +545,9 @@ func _with(d: Dog, p: Player, dt: float) -> void:
 	d.p_angle = p.angle
 	var pv := d.p_v.length()
 	if HoundMoods.make_way(self, d, p, gap, dt):
+		return
+	if HoundLead.lead(self, d, p, dt):
+		_find_way(d, p, gap, dt)
 		return
 	# Out of a player's sights before all else.
 	if d.job != ASIDE or game.clock >= d.job_until:
@@ -959,8 +969,8 @@ func _sniff(d: Dog, p: Player) -> void:
 			growls += 1
 			game.sound_at("hound_growl_low", d.x, d.y, .8)
 			return
-	if HoundNose.fight_near(game, p.x, p.y, 10.0):
-		return
+	if HoundNose.fight_near(game, p.x, p.y, 10.0) or d.job == LEAD:
+		return  # (leading the way, his nose waits)
 	var to_p := Vector2(p.x - d.x, p.y - d.y).length()
 	if to_p > n("bay_owner") or game.clock < d.next_nose:
 		return

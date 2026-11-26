@@ -33,14 +33,16 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_break_art` | signs' `<name>_shot` and the bits `fx_brk_*` |
 | `wall_break_art` | the broken window tiles `<material>_brk` |
 | `build_impact_art` | holes, blood runs, wall scorches, splinters, grit and glints (features/impacts.gd) |
-| `build_world_fx` | brass, hulls, embers, ground scorches, crows, fireflies |
+| `build_world_fx` | brass, hulls, embers, ground scorches, crows, fireflies; pass 15: each newer gun's brass (`fx_casing_45`, `_357` nickel, `_44` sooty, `_long` bottlenecked; `fx_hull_riot` black) and the pickups' glint `fx_twinkle_0`, `_1` (a four-pointed star, white heart, pale gold to amber tips, small and big on one 13x13 canvas). The new pictures use no dice, so the older ones come out as they were (the repo's `mark_flood_*` differ from what the builder makes today: copy only the new pictures in) |
 | `build_county_art` | County Run's XP bottle caps `county_xp_<tier>_<n>` |
 | `build_weather_art` | prints in the mud: `mark_boot_mud`, `mark_hoof_mud`, `mark_claw_mud`, `mark_tyre_mud` |
 | `build_item_art` | the armory's wall pictures of guns with no pickup picture, and the crowbar's, .38's, sawed-off's, dynamite's and dynamite sticks' pickups (`item_<name>`, via `item_pictures.py`) |
 | `build_range_signs` | the firing range's signs |
 | `build_vehicle_signs` | the hand-painted KEYS IN IT signs left by the vehicles (`vehicle_sign_airboat`, `_car`, `_mower`: letters a pixel up or down, paint running, a key on a ring; sun-bleached bayou planks with a bite out, a checkered tin plate, the church's whitewash) |
+| `build_bar_art` | pass 15's barred door (`door_barred`, levels.md "Barred doors"): the plank door with a rough oak board dropped across it in two black iron brackets, nailed, rust run under them and the board's shadow on the planks |
 | `build_gun_signs` | what points a player at a gun not had yet (feature pass 7, `src/gun_finder.gd`), in the vehicle signs' hand: every word at least twice its size so a line reads from a few cells off: GUNS THIS WAY sawn to an arrow (`gun_sign_way_r`), Hickston's GUNS / HONOR SYSTEM with a rifle painted by it (`gun_sign_honor`), the fair's WIN A GUN / NO REFUNDS on striped tin (`_fair`), MILL LEAGUE / BOWLING NITE on grey tin (`_mill`), DANGER / COW LAUNCHER / NOT YOU MUNDELL on hazard tin (`_quarry`), a hobo's chalk gun and X (`_chalk`, the wall showing through); the glint over a gun lying out (`fx_gun_shine_0..2`: spark, cross, star); Mundell's shadow board for the trophy shack (`gun_board`: pegboard, a whitewash outline of each `GunFinder.BOARD` gun from its pickup picture, MUNDELL'S IRON in the last place) |
 | `build_bench_art` | Mundell's junk bench (content pass 8): the screen's board `bench_board` (pegboard, a two-by-four frame, MUNDELL'S JUNK BENCH lettered on duct tape, the scrap's coffee can, the foot's tape strip), each mod's manila price tag `bench_tag_<short>` (and `_dim`) with the part rendered on it and its name and line hand lettered, each gun on its pegs `bench_gun_<gun>` (and `_bare`, its whitewash outline), the ON stamp, the HUD's marks `bench_mod_<short>_hud` and nut, the scrap pickups `item_scrap_bolts/wire/hubcap`; the parts, guns and scrap are rendered by `scripts/blender/weapon_mods.py items` |
+| `build_touch_glyphs` | The touch overlay's KICK and THROW button pictures (pass 15): a cowboy boot mid-kick and a lit stick, 24x24 hard-edged glyphs in the HUD's ink with a dark rim, drawn from shapes at four times the size (`touch_kick`, `touch_throw`; `TouchControls.take_glyphs` blows them up nearest) |
 | `enemy_sheet` | `-- dirs=<old>,<new>` lays cels side by side (`docs/enemy_art/`) |
 
 Redrawn in polish pass 9 (each with a dice of its own, so the chapter's
@@ -460,6 +462,12 @@ on the old build too for a before; `docs/weapon_fx/` has the contact sheet):
 ```
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/gun_frames.gd -- out=<dir>
 ```
+
+`tools/looks_frames.gd` pictures the pass 15 looks (the rim, the glint, the
+hurt vignette, the hands' muzzle light, the brass, the muzzle smoke); see
+[view3d.md](view3d.md#looks-that-read-pass-15). The muzzle wisp is no file:
+`src/muzzle_looks.gd` paints its few frames once in code (grey, lit from
+the upper left, its pixels dropped in a 4x4 ordered dither as it thins).
 
 ## Guns in first person
 

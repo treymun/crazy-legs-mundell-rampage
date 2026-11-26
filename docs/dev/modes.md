@@ -514,11 +514,13 @@ whom by mode, the dead in the 5v5 rounds included, is in
   everyone on their own slots; snapshot numbers run on past the old game's,
   `seq_from`, and a client's input numbers carry on, so a packet of the old
   game still on its way is never taken for the new one):
-  - the chapter won: the host's ENTER on the tally (`ROLL ON, Y'ALL`; a
-    client sees `THE HOST TAKES THE PARTY ON`) makes the next chapter with
-    each player's own kit (`Modes.carry`) and history, opens its gate on the
-    host's profile (as local co-op does) and takes the party to the COUNTY
-    CROSSROADS (CLASSIC on: straight in). The hub's gates are the host's
+  - the chapter won: the host's pick on the tally (ENTER `ROLL ON, Y'ALL`
+    or the MAP key's `THE CROSSROADS`, ordered by the host's BETWEEN
+    CHAPTERS, pass 15; a client sees `THE HOST TAKES THE PARTY ON`) makes
+    the next chapter with each player's own kit (`Modes.carry`) and history,
+    opens its gate on the host's profile (as local co-op does) and takes the
+    party straight in or to the COUNTY CROSSROADS, player one in front of
+    its gate and the partners beside them. The hub's gates are the host's
     open ones, the chapter under way CONTINUE (`dress`: the clients make the
     same locked gates from START's `locked` and `gate_modes`);
   - any player's USE at a gate (`portal_request` on the host's game, seen in
@@ -622,6 +624,15 @@ Pass 12 (`tools/net_feel.gd`, multiplayer.md
   down: `NetPredict.held`) our inputs are not walked on, as the host plays
   none of them (the drawn player ran and turned through a card pick and was
   put back when it ended).
+- **One walk** (pass 15): `NetPredict.step` and `game.gd _walk` both end
+  in `Moves.body` (`src/moves.gd`: the crouch, the slide, the ease, walls,
+  the jump, the fall), so a slide is drawn as the host plays it; the slide's
+  fields are in `KEPT`, and a RAMPAGE's pace is in the prediction too.
+  KICK and THROW lead like USE's boot and the dynamite: the boot is drawn at
+  the press (`_boot`, an air boot for KICK with nobody there), a thrown
+  stick's "light" and "throw" at the press with its ghost
+  (`NetGunLead._quick_throw`), the gun put by coming back after
+  `throw_back`; FIRE stopping a reload with rounds in is led too.
 - Still walked as plain walking: a ladder or ledge (`Climbing.player_step`)
   and a drunk's wobble; both put right by the Smoother.
 

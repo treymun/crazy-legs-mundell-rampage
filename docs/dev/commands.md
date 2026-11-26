@@ -148,7 +148,7 @@ godot --path godot ... --script res://tools/tactical_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/county_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/range_frames.gd
 godot --path godot ... --script res://tools/camera_frames.gd -- out=<dir>   # the HUD (full, MINIMAL, 5v5, County Run), PHOTO MODE's filters and a saved picture, the KILL CAM
-godot --path godot ... --script res://tools/hud_frames.gd -- out=<dir> [only=menus,hud,tally]   # every menu screen and the HUD crowded (tools/hud_crowd.gd); run at several --resolution sizes
+godot --path godot ... --script res://tools/hud_frames.gd -- out=<dir> [only=menus,hud,tally]   # every menu screen, the HUD crowded (tools/hud_crowd.gd) and the end card; run at several --resolution sizes
 godot --path godot ... --script res://tools/update_frames.gd -- out=<dir>   # the title's update sign (Windows, picked, Android), the in-game update's panel and CHECK FOR UPDATES
 godot --path godot ... --script res://tools/death_frames.gd -- out=<dir> [level=hickston] [gun=shotgun] [classic]   # falls: ragdolls, or the scripted ones
 godot --path godot ... --script res://tools/live_frames.gd -- out=<dir> [rows=chest,legs] [off]   # living bodies taking hits: motion strips (pass 15)

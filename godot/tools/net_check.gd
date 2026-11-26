@@ -378,7 +378,7 @@ static func _door_for_two(main, check: Callable, id: String) -> void:
 	var g := _made(main, id, 2)
 	var door: LevelData.Door = null
 	for d: LevelData.Door in g.world.doors:
-		if not d.opened and d.key == "" and not d.secret and not d.blast_only:
+		if not d.opened and d.key == "" and not d.secret and not d.blast_only and d.bar_side == 0:
 			if not g.world.controlled_doors.has(Vector2i(d.x, d.y)):
 				door = d
 				break

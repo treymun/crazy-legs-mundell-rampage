@@ -34,5 +34,21 @@
  "fight_mothership": 54.551,
  "moonshine_score": 107.01,
  "fight_moonshine": 54.0,
- "boss_moonshine": 59.331
+ "boss_moonshine": 59.331,
+ "pulse_hickston": 46.085,
+ "peak_hickston": 46.085,
+ "pulse_fair": 60.0,
+ "peak_fair": 60.0,
+ "pulse_mill": 54.396,
+ "peak_mill": 54.396,
+ "pulse_quarry": 56.467,
+ "peak_quarry": 56.467,
+ "pulse_bayou": 48.0,
+ "peak_bayou": 48.0,
+ "pulse_speedway": 48.0,
+ "peak_speedway": 48.0,
+ "pulse_moonshine": 54.0,
+ "peak_moonshine": 54.0,
+ "pulse_mothership": 54.551,
+ "peak_mothership": 54.551
 }

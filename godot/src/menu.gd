@@ -80,7 +80,7 @@ const CONFIRM_UNDO := Rect2i(168, 96, 96, 14)
 ## Settings that only matter from the next run or chapter on.
 const NEXT_RUN := {
 	"supply_rule": "APPLIES TO YOUR NEXT RUN",
-	"classic": "APPLIES WHEN A CHAPTER ENDS",
+	"between": "APPLIES WHEN A CHAPTER ENDS",
 	"difficulty": "CHANGES THE RUN IN PROGRESS",
 }
 

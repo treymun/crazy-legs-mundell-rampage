@@ -126,6 +126,53 @@ hedges and parked things; `tools/set_piece_check.gd` brings them all down
 every way they may fall and walks to every station, key and exit again.
 The chapter the CHAPTER track builds puts its own through the same kit.
 
+### Barred doors, the loops (pass 15)
+
+A door may be barred on one side: the level file's `"bar_side"` (`n`, `s`,
+`e` or `w`, the side its bar is on; `LevelLoad.bar_side` reads it into
+`Door.bar_side`, -1 west or north, 1 east or south). In a plan,
+`b.door(x, y, vertical, {"bar": "n", ...})`; the builder writes the key only
+for such a door, so every other level file is as it was. From the bar's
+side USE (or a running boot) kicks it open (`GameUse._bar_kick`: the boot
+through `brawl.kick`, the door banged open, the bar busted) and it stays
+open, nothing to close; from the other side the prompt is BARRED FROM THE
+OTHER SIDE and USE says so. The hands never kick one (`hand_tactics.gd`),
+the bots never try one from the wrong side (`bot_pilot.gd door_ahead`), and
+a doors-open walk (the pin's `Game.route`, BLUE's lead) goes through one
+only the way it opens (`FlowField._barred`, and `downhill` never steps into
+one from the wrong side). The picture is `door_barred` (the plank door with
+a board in two iron brackets, `tools/art/build_bar_art.gd`, last in the
+tile list).
+
+Where: the plan (idea 3) was one or two a chapter where the walk back from
+the chapter's last objective to its start is longest. Measured (a walk from
+the start and one from each boss and the exit, every door open; every wall
+one or two cells thick with jambs either side and flat floor both ways
+tried as a door; steps saved on the walk home):
+
+| chapter | walk home from the boss / the exit | best door saves |
+| --- | --- | --- |
+| hickston | sheriff 270, Jerry 297 | 82, 136 (the rodeo's south fence) |
+| fair | Rudy 71, exit 107 | under 6 |
+| sawmill | foreman 66, exit 129 | 24 (the apron's wall) |
+| quarry | baron 75, exit 105 | under 6 |
+| bayou | exit 116 | under 6 |
+| speedway | derby champ 125, exit 100 | under 6 |
+| moonshine | Revenue Man 194, exit 190 | under 6 (the woods are thick) |
+| mothership | Maw 38, exit 6 | under 6 |
+
+So one: Hickston's rodeo back gate (100, 22) in the registry fence, barred
+on the rodeo side (layout 9; it is in Jerry's lock's doors, so it holds
+through his fight), added last in the plan (`loops()`) so every older door
+keeps its place in the list. The sawmill's apron back door (52, 6, 24 steps)
+was built and dropped: the apron is the exit's yard, so the walk back from
+it is seldom walked, and the door moved the SHARP bot's sawmill from 218 s
+to a death and 419 s (`balance_3`'s seed: chaos, not the door's fault, but
+not worth a band moved for 6 s of walking). The after-boss gate onto the road home was
+measured the same way: Hickston's field gate (the sheriff down) and the
+Mothership's (Maw down) already open; by no other arena does a gate save a
+walk. `tools/bar_door_check.gd` holds them.
+
 ### The guns along the way
 
 Feature pass 7 (`src/gun_finder.gd` makes a gun not had yet shine, go on
@@ -311,6 +358,9 @@ only changes how things look (a wall's or fixture's texture, where a board
 hangs) keeps the layout: a save holds none of it, and a new layout would send
 every player of that chapter back to its start for nothing. The hub is never
 saved, so a new hub layout needs no save fixtures.
+
+Pass 15's loops: Hickston layout 9 (its v11 fixtures kept as
+`v11_hickston_*_layout8.json`).
 
 The boss checkpoint and the trail markers (pass 15) are saves in this same
 format, each in a file of its own beside the quicksave (`chapter_marks.gd`:

@@ -22,7 +22,6 @@ const BELT := [1, 2, 3, 4, 5, 6, 7]
 const TITLE_FIRST := 101
 const TITLE_ROW := 9
 const CountyRunFeature := preload("res://src/features/county_run.gd")
-const TallyFeature := preload("res://src/features/tally.gd")
 
 var assets: Assets
 var plate := PackedByteArray()
@@ -525,6 +524,59 @@ func meter(c: Canvas, x: int, y: int, caption: String, value: float, colors: Arr
 			)
 
 
+# ---------------------------------------------------------------- RAMPAGE
+
+## The RAMPAGE meter's lamps (features/rampage.gd) along the foot of the
+## health box, under its well: where they start, how many, their pitch, and
+## the bar's row of the fuse's frame (five rows: frame, three of lamps, frame).
+const FUSE_X := 9
+const FUSE_LAMPS := 13
+const FUSE_PITCH := 3
+const FUSE_Y := 39
+const FUSE_WELL := Color(29 / 255.0, 23 / 255.0, 19 / 255.0)
+const FUSE_INKS: Array[Color] = [
+	Color(196 / 255.0, 44 / 255.0, 22 / 255.0),
+	Color(236 / 255.0, 112 / 255.0, 34 / 255.0),
+	Color(255 / 255.0, 206 / 255.0, 96 / 255.0),
+]
+const FUSE_HOT := Color(255 / 255.0, 242 / 255.0, 196 / 255.0)
+const RAGE_FACE := Color(86 / 255.0, 16 / 255.0, 10 / 255.0)
+const RAGE_EDGE := Color(214 / 255.0, 70 / 255.0, 30 / 255.0)
+
+
+## The local player's RAMPAGE meter under the health, drawn over the status
+## bar while there is anything on it: thirteen lamps, red to orange to
+## yellow like the gut's; on a RAMPAGE they run down with the time left,
+## flashing hot, and the box's caption burns RAMPAGE instead of HEALTH. At
+## the picture's left edge with the bar's left part (ASPECT WIDE).
+func rampage_meter(c: Canvas, game: Game) -> void:
+	var p := game.local_player
+	if p == null or p.health <= 0 or game.map:
+		return
+	var fill := Rampage.meter_of(game, p)
+	if fill <= 0.0:
+		return
+	var raging := Rampage.raging(game, p)
+	var hot := raging and int(game.clock * 8.0) % 2 == 0
+	c.anchor(-View.shift)
+	var y := View.VIEW + FUSE_Y
+	c.fill_rect(FUSE_X, y, FUSE_LAMPS * FUSE_PITCH + 1, 5, FUSE_WELL)
+	var lit := fill * FUSE_LAMPS
+	for i in FUSE_LAMPS:
+		var ink: Color = FUSE_INKS[mini(2, i * 3 / FUSE_LAMPS)]
+		var on := lit > i + .5 or (i == 0 and lit > 0.0)
+		if not on:
+			ink = ink.darkened(.78)
+		elif raging:
+			ink = FUSE_HOT if hot else FUSE_INKS[2]
+		c.fill_rect(FUSE_X + 1 + i * FUSE_PITCH, y + 1, FUSE_PITCH - 1, 3, ink)
+	if raging:
+		c.fill_rect(7, View.VIEW + 11, 45, 10, RAGE_EDGE)
+		c.fill_rect(8, View.VIEW + 12, 43, 8, RAGE_FACE)
+		text(c, "RAMPAGE", 29, View.VIEW + 13, "body", FUSE_HOT if hot else AMBER, true, true)
+	c.anchor(0)
+
+
 func gauge(c: Canvas, x: int, y: int, caption: String, value: float) -> void:
 	# The reference builds the dial on a 44x31 SRCALPHA surface and blits it, so
 	# undrawn pixels keep whatever is behind. Drawing straight into the canvas
@@ -682,6 +734,11 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 	var x := clampi(int(160.0 + side * 116.0), layout.pin_swing.x, layout.pin_swing.y)
 	var y := top + 1 + int(roundf(sin(game.clock * 4.2) * .6 + .4))
 	var label := str(int(distance))
+	# Pass 15: stuck with HOUND DOG off, the pin jumps and blinks its brackets.
+	var pulse := HoundLead.pulse(game)
+	if pulse > 0.0:
+		y += int(roundf(pulse * 2.0))
+		_pin_pulse(c, x, y, pulse)
 	if c.gpu:
 		# On a Godot 2D canvas every rect is a command: the arrow and the plate
 		# are drawn once in software (as below, pixel for pixel) and shown as
@@ -697,6 +754,19 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 		return
 	_pin_arrow(c, x, y, rel)
 	_pin_plate(c, x, y + 14, label)
+
+
+## Chalk-green brackets round the pin (pass 15, HoundLead.pulse), `k` 0..1.
+func _pin_pulse(c: Canvas, x: int, y: int, k: float) -> void:
+	if k < .35:
+		return
+	var ink := Lessons.INK
+	for sx: int in [-1, 1]:
+		var ex := x + sx * 11
+		c.fill_rect(mini(ex, ex - sx * 3), y - 2, 4, 1, ink)
+		c.fill_rect(ex, y - 2, 1, 5, ink)
+		c.fill_rect(mini(ex, ex - sx * 3), y + 13, 4, 1, ink)
+		c.fill_rect(ex, y + 10, 1, 4, ink)
 
 
 ## The objective pin's pictures for a Godot 2D canvas, by shape and label: the
@@ -819,6 +889,7 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	if c.gpu and controls:
 		shown_game = game
 		shown_armory = armory
+		rampage_meter(c, game)
 		return
 	var head := View.VIEW * Canvas.WIDTH * 3
 	if c.gpu:
@@ -836,6 +907,7 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			_draw_bar(c, game, armory)
 			_bar = c.pixels.slice(head)
 			_bar_key = key
+	rampage_meter(c, game)
 	if game.hints and not game.map and not minimal:
 		objective_pin(c, game, game.pin_top)
 
@@ -1255,75 +1327,11 @@ func title(c: Canvas, index: int, entries: PackedStringArray, note := "") -> voi
 func intermission(c: Canvas, game: Game) -> void:
 	if ModeScreens.results(c, game):
 		return  # a versus match's results (src/modes/)
-	var following := Campaign.next_level(game.level.id)
-	if following == "" and not game.history.is_empty() and not game.replay:
+	if TallyCard.is_finale(game):
 		campaign_report(c, game)
 		return
 	_blit_art(c, "title_backdrop", 0, 0)
-	panel(c, 10, 9, 211, 177)
-	var ys: Array[int] = [20, 38]
-	for i in mini(2, game.level.heading.size()):
-		text(c, game.level.heading[i], 21, ys[i], "heading", AMBER)
-	# The title under the heading, unless the heading says it already.
-	if not game.level.heading.has(game.level.title):
-		text(c, game.level.title, 21, 61, "body", INK)
-	c.line(21, 72, 208, 72, Color(135 / 255.0, 95 / 255.0, 63 / 255.0))
-	var minutes := int(game.clock) / 60
-	var seconds := int(game.clock) % 60
-	var rows := [
-		["VARMINTS", "%02d / %02d" % [game.kills, game.total_kills]],
-		["SECRETS", "%02d / %02d" % [game.secrets, game.total_secrets]],
-		["TIME", "%02d:%02d" % [minutes, seconds]]
-	]
-	# The chapter's guns had, under the secrets (src/gun_finder.gd).
-	var guns := GunFinder.tally(game)
-	if not guns.is_empty():
-		rows.insert(2, guns)
-	# Features add their own rows (features.gd: accuracy, each boss's time);
-	# room for three more, the rows closing up to fit.
-	rows.append_array(Features.tally_rows(game).slice(0, 3))
-	var gap: int = [18, 18, 18, 18, 16, 13, 12, 10][rows.size()]
-	var bar := mini(15, gap - 1)
-	# The rows come down one at a time with a thud, then the ribbon (tally.gd).
-	var show: TallyFeature = game.features.get("tally")
-	var shown: int = show.rows_shown(rows.size()) if show != null else rows.size() + 1
-	for i in mini(shown, rows.size()):
-		var y := 79 + i * gap
-		c.fill_rect(21, y, 187, bar, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
-		text(c, str(rows[i][0]), 26, y + int((bar - 7) / 2.0), "body", INK)
-		text(c, str(rows[i][1]), 202, y + int((bar - 7) / 2.0), "body", AMBER, false, true, true)
-	var ending_y: int = [142, 142, 142, 142, 146, 149, 152, 152][rows.size()]
-	# The last word kept inside the panel: a long one takes two lines, risen
-	# to stay clear of the row above ENTER.
-	var said := PixelType.wrap(game.level.ending, 186, "body")
-	if said.size() > 1:
-		ending_y = mini(ending_y, 165 - 2 - said.size() * 9)
-	for i in said.size():
-		text(c, said[i], 22, ending_y + i * 9, "body", AMBER)
-	if show != null and shown > rows.size():
-		_ribbon(c, show.ribbon())
-	var action := (
-		"ENTER  CONTINUE TO CROSSROADS"
-		if following != "" and not game.replay
-		else "ENTER  RETURN TO TITLE"
-	)
-	text(c, action, 22, 165, "body", INK)
-
-
-## The county fair ribbon pinned beside the tally: how the chapter went.
-func _ribbon(c: Canvas, word: String) -> void:
-	var red := Color(150 / 255.0, 30 / 255.0, 24 / 255.0)
-	var gold := Color(236 / 255.0, 196 / 255.0, 104 / 255.0)
-	c.fill_rect(229, 58, 84, 34, Color(.08, .05, .04))
-	c.fill_rect(228, 56, 84, 34, red)
-	c.fill_rect(230, 58, 80, 1, gold)
-	c.fill_rect(230, 87, 80, 1, gold)
-	text(c, "RANKED", 270, 61, "mini", gold, true)
-	text(c, word, 270, 72, "body", INK, true)
-	# The ribbon's two tails.
-	for x: int in [248, 288]:
-		c.fill_rect(x, 90, 8, 14, red)
-		c.fill_rect(x + 2, 104, 4, 3, red)
+	TallyCard.draw(c, game)  # the end card (src/tally_card.gd)
 
 
 ## After the last chapter: the true finale, the campaign's tally and the

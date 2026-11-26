@@ -13,6 +13,8 @@
 ## balance PARTS by.
 extends SceneTree
 
+const ScratchProfile := preload("res://tools/scratch_profile.gd")
+
 ## Every step in the order a whole run takes them.
 const STEPS := [
 	"parity",
@@ -62,6 +64,8 @@ var times := {}
 
 
 func _init() -> void:
+	if ScratchProfile.refuse(self, "PARITY FIXES"):
+		return
 	_run.call_deferred()
 
 
@@ -375,8 +379,8 @@ func _parity(main: Control) -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 88 + KeyBindings.ACTIONS.size(),
-		"all 88 settings and every control's key are on a page"
+		seen.size() == 89 + KeyBindings.ACTIONS.size(),
+		"all 89 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true

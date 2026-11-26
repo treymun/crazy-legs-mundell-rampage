@@ -80,6 +80,11 @@ static func key_play(main: MainInput, game: Game, code: int) -> bool:
 		if code == KEY_E or code == KEY_SPACE:
 			TacticalScreens.pending_use = true
 			return true
+		if code == KEY_K or code == KEY_N:
+			# KICK and THROW (pass 15) go with the next controls too.
+			TacticalScreens.pending_kick = code == KEY_K or TacticalScreens.pending_kick
+			TacticalScreens.pending_throw = code == KEY_N or TacticalScreens.pending_throw
+			return true
 	if code in [KEY_0, KEY_MINUS, KEY_EQUAL, KEY_BACKSLASH]:
 		return true  # the campaign's gun keys: nothing to carry there
 	if code == KEY_B:

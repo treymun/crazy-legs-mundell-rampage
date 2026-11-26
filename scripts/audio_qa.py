@@ -77,6 +77,7 @@ CUT_HOT_DB = -14.0              # the 30 ms before the end fade, against the lou
 SHORT_FADE_S = .06              # ... when that fade is this short or shorter
 SAME_TAKE = .97                 # normalised cross-correlation of two takes of a set
 MUSIC_LUFS = (-16.0, -14.0)     # every song is mastered to -15
+LAYER_LU = 1.0                  # a fight loop's layer (pass 15) off its own level
 MUSIC_TP = -0.8
 
 
@@ -371,9 +372,46 @@ def measure_song(path: Path, loops: bool) -> dict:
     return m
 
 
-def song_problems(m: dict, loops: bool) -> list[str]:
+def layer_facts(stem: str) -> dict:
+    """A fight loop's layer (audio_spec.LAYERS, pass 15) against its loop: both
+    as long to the sample (they play locked together), and the pulse at its
+    own level or the loop with its peak layer `sum_lift` LU over the loop."""
+    name, loop, kind = next(row for row in spec.LAYERS if row[0] == stem)
+    x = read_song(MUSIC / f"{name}.ogg", 44100)
+    base = read_song(MUSIC / f"{loop}.ogg", 44100)
+    facts = {"layer_of": loop, "samples": len(x), "loop_samples": len(base)}
+    if kind == "peak" and len(x) == len(base):
+        facts["with_loop_lift_lu"] = round(lufs_of(np.concatenate([x + base] * 2)) - lufs_of(
+            np.concatenate([base] * 2)), 2)
+    return facts
+
+
+def lufs_of(mono: np.ndarray) -> float:
+    """R128 integrated loudness of mono samples at 44.1 kHz, as both sides."""
+    stereo = np.repeat(mono[:, None], 2, 1).astype("<f4")
+    log = subprocess.run([shutil.which("ffmpeg"), "-hide_banner", "-nostats", "-f", "f32le", "-ar", "44100",
+                          "-ac", "2", "-i", "-", "-af", "ebur128", "-f", "null", "-"],
+                         input=stereo.tobytes(), capture_output=True, check=True).stderr.decode("utf-8", "replace")
+    tail = log[log.rindex("Summary"):]
+    return float(tail.split("I:")[1].split()[0])
+
+
+def layer_problems(m: dict, stem: str) -> list[str]:
+    kind = stem.split("_")[0]
+    shape = spec.LAYER_SHAPE[kind]
     out = []
-    if not MUSIC_LUFS[0] <= m["lufs"] <= MUSIC_LUFS[1]:
+    if m["samples"] != m["loop_samples"]:
+        out.append(f"{m['samples']} samples, its loop {m['loop_samples']}")
+    if kind == "pulse" and abs(m["lufs"] - shape["lufs"]) > LAYER_LU:
+        out.append(f"loudness {m['lufs']} LUFS")
+    if kind == "peak" and abs(m.get("with_loop_lift_lu", 99.0) - shape["sum_lift"]) > LAYER_LU:
+        out.append(f"with its loop {m.get('with_loop_lift_lu')} LU over it")
+    return out
+
+
+def song_problems(m: dict, loops: bool, layer: bool = False) -> list[str]:
+    out = []
+    if not layer and not MUSIC_LUFS[0] <= m["lufs"] <= MUSIC_LUFS[1]:
         out.append(f"loudness {m['lufs']} LUFS")
     if m["true_peak_db"] > MUSIC_TP:
         out.append(f"true peak {m['true_peak_db']} dBTP")
@@ -467,11 +505,15 @@ def run(music: bool) -> dict:
         # The fight and boss loops wrap seamlessly; the menu theme loops too,
         # but as a song that ends and starts again (faded both ways).
         loops = {s for s, *_ in spec.FIGHTS + spec.BOSSES}
+        layered = {row[0] for row in spec.LAYERS}
         for path in sorted(MUSIC.glob("*.ogg")):
             stem = path.stem
-            m = measure_song(path, stem in loops)
+            m = measure_song(path, stem in loops or stem in layered)
+            found = song_problems(m, stem in loops or stem in layered, stem in layered)
+            if stem in layered:
+                m.update(layer_facts(stem))
+                found += layer_problems(m, stem)
             report["songs"][stem] = m
-            found = song_problems(m, stem in loops)
             if stem in ends and ends[stem] > m["seconds"] + .01:
                 found.append(f"playback end {ends[stem]} s past the song's {m['seconds']} s")
             if found:

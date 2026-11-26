@@ -78,6 +78,7 @@ func configure(options: Dictionary) -> void:
 	smart_hands = options.get("smart_hands", 1)
 	hit_feedback = options.get("hit_feedback", 1)
 	danger_arrows = options.get("danger_arrows", 1)
+	ActorRim.mode = options.get("enemy_rim", ActorRim.SOFT)
 	var feel: int = options.get("weather", 0)
 	weather_feel = [1.0, .5, 0.0][clampi(feel, 0, 2)]
 	storm_on = options.get("county_storm", 1)

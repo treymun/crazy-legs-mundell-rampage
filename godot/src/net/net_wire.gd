@@ -31,7 +31,8 @@
 ##
 ## Controls go as CONTROL_BYTES: four halves (forward, strafe, turn, look),
 ## the buttons as bits (USE held and reload among them), then weapon, item,
-## cycle, the 5v5 store's buy and the ticks the host rewound the shots by. The
+## cycle, the 5v5 store's buy, the ticks the host rewound the shots by and
+## (protocol 6) a second byte of buttons, KICK and THROW. The
 ## host plays what came out of these bytes, its own players' too, so every
 ## copy plays the same.
 class_name NetWire
@@ -39,7 +40,10 @@ extends RefCounted
 
 ## 4: snapshot version 3 (a feature's guarded lists travel as tables).
 ## 5: a SNAP's echoed inputs packed, a big SNAP in SNAP_PARTs (pass 12).
-const PROTOCOL := 5
+## 6: KICK and THROW in a second byte of buttons (CONTROL_BYTES 15), and the
+## walk's slide carried with the player (pass 15). An older side is refused
+## at its HELLO with the version message.
+const PROTOCOL := 6
 const HELLO := 1
 const WELCOME := 2
 const INPUTS := 3
@@ -62,7 +66,10 @@ const MAP := 20
 ## first byte stays below it.
 const RELAY_FIRST := 0xF0
 const NO_BASE := 0xFFFFFFFF
-const CONTROL_BYTES := 14
+const CONTROL_BYTES := 15
+## The second byte of buttons (protocol 6): KICK and THROW, fresh presses.
+const MORE_KICK := 1
+const MORE_THROW := 2
 ## Inputs carried again in each INPUTS packet until confirmed.
 const REDUNDANT := 12
 ## A SNAP: kind, seq, base, tick, input ack, echo's first tick (u32 each),
@@ -102,6 +109,7 @@ static func pack_controls(c: Game.Controls) -> PackedByteArray:
 	out.encode_s8(11, clampi(c.cycle, -128, 127))
 	out.encode_s8(12, clampi(c.buy, -128, 127))
 	out[13] = clampi(c.rewind, 0, MAX_REWIND)
+	out[14] = (MORE_KICK if c.kick else 0) | (MORE_THROW if c.throw else 0)
 	return out
 
 
@@ -125,6 +133,9 @@ static func unpack_controls(bytes: PackedByteArray, at := 0) -> Game.Controls:
 	c.cycle = bytes.decode_s8(at + 11)
 	c.buy = bytes.decode_s8(at + 12)
 	c.rewind = bytes[at + 13]
+	var more := bytes[at + 14]
+	c.kick = more & MORE_KICK != 0
+	c.throw = more & MORE_THROW != 0
 	return c
 
 
@@ -134,11 +145,12 @@ static func quantized(c: Game.Controls) -> Game.Controls:
 
 
 ## The same held controls without the one-shot actions (USE, reload, a gun, an
-## item, a cycle, a buy): what the host plays again when a client's input is
-## late. The turn and look go too: a mouse moves once.
+## item, a cycle, a buy, KICK, THROW): what the host plays again when a
+## client's input is late. The turn and look go too: a mouse moves once.
 static func held_only(bytes: PackedByteArray) -> PackedByteArray:
 	var out := bytes.duplicate()
 	out[8] = out[8] & ~(32 | 128)
+	out[14] = 0
 	out.encode_half(4, 0.0)
 	out.encode_half(6, 0.0)
 	out.encode_s8(9, -1)
@@ -153,6 +165,7 @@ static func held_only(bytes: PackedByteArray) -> PackedByteArray:
 static func merged(skipped: PackedByteArray, later: PackedByteArray) -> PackedByteArray:
 	var out := later.duplicate()
 	out[8] = out[8] | (skipped[8] & (32 | 128))
+	out[14] = out[14] | skipped[14]
 	for at: int in [9, 10, 12]:
 		if out.decode_s8(at) < 0 and skipped.decode_s8(at) >= 0:
 			out.encode_s8(at, skipped.decode_s8(at))

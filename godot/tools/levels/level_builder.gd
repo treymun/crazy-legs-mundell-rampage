@@ -250,6 +250,8 @@ func set_skin(x0: int, y0: int, x1: int, y1: int, tile_name: String) -> void:
 
 ## A door in the wall cell (x, y): the cell opens with a lintel over the door,
 ## its floor and district from the side named `room_side` (n, s, e or w).
+## `bar` (n, s, e or w): a shortcut barred on that side (pass 15), kicked
+## open only from it; the level file's "bar_side".
 func door(x: int, y: int, vertical: bool, o := {}) -> Dictionary:
 	var i := at(x, y)
 	var side := String(o.get("from", "w" if vertical else "n"))
@@ -281,6 +283,9 @@ func door(x: int, y: int, vertical: bool, o := {}) -> Dictionary:
 	}
 	if d["opened"]:
 		d["progress"] = 1
+	if o.has("bar"):
+		# Pass 15's loops: barred on that side (n, s, e or w), opened only from it.
+		d["bar_side"] = String(o["bar"])
 	doors.append(d)
 	return d
 

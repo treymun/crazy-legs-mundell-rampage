@@ -23,6 +23,8 @@ const MADE_CUES := [
 	"mule_bray",
 	"bench_tape",
 	"marker_tie",
+	"rampage_sting",
+	"heart_thump",
 	"head_ding",
 ]
 ## The cues made in code (MADE_CUES), made by tools/pack_assets.gd (pass 10).
@@ -583,6 +585,8 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 			"mule_bray": 1.3,
 			"bench_tape": .62,
 			"marker_tie": .42,
+			"rampage_sting": 1.15,
+			"heart_thump": .5,
 			"head_ding": .38,
 		}
 		. get(name, .045)
@@ -652,6 +656,10 @@ static func _synth(name: String, rate: int) -> PackedByteArray:
 					)
 			"marker_tie":
 				v = _rag_tie(t, hiss)
+			"rampage_sting":
+				v = _rampage_sting(t, hiss)
+			"heart_thump":
+				v = _heart_thump(t, hiss)
 			_:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5
@@ -672,6 +680,42 @@ static func _rag_tie(t: float, hiss: float) -> float:
 		v += sin(TAU * (210.0 - knot * 140.0) * knot) * exp(-knot * 32.0) * .6
 		v += hiss * exp(-knot * 220.0) * .35
 	return v
+
+
+## A full RAMPAGE meter (features/rampage.gd): a barn door slammed (a low
+## thump and a crack of noise), then an overdriven twang guitar's power chord
+## raked up three steps and held, ringing out.
+static func _rampage_sting(t: float, hiss: float) -> float:
+	var v := sin(TAU * (78.0 - t * 60.0) * t) * exp(-t * 14.0) * .9
+	v += hiss * exp(-t * 60.0) * .7
+	var roots: Array[float] = [110.0, 123.47, 146.83]
+	for k in 3:
+		var at := t - .06 - k * .07
+		if at < 0.0:
+			continue
+		var held := 1.0 if k == 2 else exp(-maxf(0.0, at - .07) * 30.0)
+		var ring := exp(-at * (1.6 if k == 2 else 6.0)) * minf(1.0, at * 300.0) * held
+		var f: float = roots[k]
+		var chord := 0.0
+		for mult: float in [1.0, 1.5, 2.0]:
+			chord += fposmod(f * mult * t, 1.0) * 2.0 - 1.0
+		v += tanh(chord * 1.8) * ring * .32
+	return v * .8
+
+
+## A heart thumping in the ears under 20 health (features/hurt_looks.gd): a
+## dull lub and a softer dub, low and muffled, as if heard from inside.
+static func _heart_thump(t: float, hiss: float) -> float:
+	var v := 0.0
+	for k in 2:
+		var at := t - k * .17
+		if at < 0.0:
+			continue
+		var hit := exp(-at * 26.0) * minf(1.0, at * 400.0) * (1.0 if k == 0 else .62)
+		v += sin(TAU * (58.0 - at * 40.0) * at) * hit
+		v += sin(TAU * 31.0 * at) * hit * .5
+		v += hiss * exp(-at * 120.0) * .08 * (1.0 if k == 0 else .5)
+	return v * .85
 
 
 ## COUNTY RUN's own cues: a bottle cap's clink for XP, a three-note banjo

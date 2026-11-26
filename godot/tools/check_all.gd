@@ -80,7 +80,14 @@ const CHECKS := [
 	["wide_check", "WIDE CHECK OK"],
 	["onboard_check", "ONBOARD CHECK OK"],
 	["marker_check", "MARKER CHECK OK"],
+	["road_check", "ROAD CHECK OK"],
 	["danger_check", "DANGER CHECK OK"],
+	["bar_door_check", "BAR DOOR CHECK OK"],
+	["stuck_check", "STUCK CHECK OK"],
+	["rampage_check", "RAMPAGE CHECK OK"],
+	["move_check", "MOVE CHECK OK"],
+	["looks_check", "LOOKS CHECK OK"],
+	["music_check", "MUSIC CHECK OK"],
 	["punch_check", "PUNCH CHECK OK"],
 	["live_body_check", "LIVE BODY OK"],
 	["county_check", "COUNTY CHECK OK"],
@@ -136,6 +143,7 @@ const QUICK := [
 	"wide_check",
 	"opener_check",
 	"opener_camera_check",
+	"road_check",
 	"physics_check",
 	"live_props_check",
 	"brawl_check",
@@ -162,6 +170,10 @@ const QUICK := [
 	"update_check",
 	"update_flow_check",
 	"director_check",
+	"bar_door_check",
+	"rampage_check",
+	"move_check",
+	"looks_check",
 	"punch_check",
 	"live_body_check",
 ]
@@ -236,11 +248,22 @@ const CI_SECONDS := {
 	"onboard_check": 60,
 	"marker_check": 60,
 	"danger_check": 12,
+	"road_check": 20,
+	"bar_door_check": 15,
+	"stuck_check": 200,
+	"rampage_check": 20,
+	"move_check": 15,
+	"looks_check": 12,
+	"music_check": 60,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and
-## OS.get_cache_dir() (LOCALAPPDATA, XDG_CACHE_HOME): each row gets its own.
-const PROFILE_VARS := ["APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME", "XDG_CACHE_HOME"]
+## OS.get_cache_dir() (LOCALAPPDATA, XDG_CACHE_HOME): each row gets its own,
+## and CLMR_SCRATCH_PROFILE names it (tools/scratch_profile.gd: the tools
+## that write user:// refuse to run anywhere else).
+const PROFILE_VARS := [
+	"APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME", "XDG_CACHE_HOME", "CLMR_SCRATCH_PROFILE"
+]
 
 
 func _init() -> void:
@@ -285,7 +308,12 @@ func _init() -> void:
 				if tool == "gdformat"
 				else ["src", "tools", "addons"]
 			)
-			var code := OS.execute(venv.path_join(tool + ".exe"), tool_args, output, true)
+			# Through the venv's python (-m gdtoolkit...): Windows Application
+			# Control may refuse the venv's gdformat.exe / gdlint.exe launchers.
+			var module := "gdtoolkit.formatter" if tool == "gdformat" else "gdtoolkit.linter"
+			var code := OS.execute(
+				venv.path_join("python.exe"), ["-m", module] + tool_args, output, true
+			)
 			lint.append([tool, code == 0, "\n".join(output)])
 		# The sound measured (scripts/audio_qa.py: loudness against each family,
 		# true peak, clicks, silences, loop joins, same takes, wiring).

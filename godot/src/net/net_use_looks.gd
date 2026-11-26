@@ -50,7 +50,7 @@ func press(game: Game, me: Player, now_ms: float) -> String:
 		return ""
 	var door: LevelData.Door = target
 	var cell := Vector2i(door.x, door.y)
-	if game.world.controlled_doors.has(cell) or door.blast_only:
+	if game.world.controlled_doors.has(cell) or door.blast_only or door.bar_side != 0:
 		return ""
 	if door.key != "" and not game.keys.has(door.key):
 		return ""

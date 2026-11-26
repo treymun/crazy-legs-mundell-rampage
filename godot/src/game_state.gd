@@ -942,6 +942,10 @@ class Controls:
 	## of a networked game as controls do.
 	var reload := false
 	var buy := -1
+	## KICK and THROW on a fresh press (pass 15): the boot whatever USE would
+	## do, and a stick of dynamite lit and thrown from whatever gun is up.
+	var kick := false
+	var throw := false
 	## Online: how many ticks back the host judged this player's shots (what
 	## their screen showed; 0 now). Set by the host, carried to every copy.
 	var rewind := 0

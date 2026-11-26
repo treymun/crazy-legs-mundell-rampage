@@ -660,5 +660,68 @@
   "weapon": true,
   "x": 7.5,
   "y": 69.5
+ },
+ {
+  "actors": [
+   {
+    "ahead": 3.2,
+    "kind": "billy",
+    "side": -1.1
+   },
+   {
+    "ahead": 7.5,
+    "kind": "coot",
+    "side": 1.4
+   },
+   {
+    "ahead": 15.0,
+    "kind": "billy",
+    "side": -0.2
+   }
+  ],
+  "angle": 1.5708,
+  "level": "hickston",
+  "pitch": -4.0,
+  "tag": "looks_rim_0",
+  "weapon": false,
+  "x": 60.5,
+  "y": 44.5
+ },
+ {
+  "actors": [
+   {
+    "ahead": 5.5,
+    "kind": "cow",
+    "side": -1.6
+   },
+   {
+    "ahead": 3.6,
+    "kind": "pig",
+    "side": 1.2
+   },
+   {
+    "ahead": 2.6,
+    "kind": "chicken",
+    "side": -0.2
+   }
+  ],
+  "angle": 1.5708,
+  "level": "hickston",
+  "pitch": -14.0,
+  "tag": "looks_critters_0",
+  "weapon": false,
+  "x": 60.5,
+  "y": 44.5
+ },
+ {
+  "angle": 1.5708,
+  "health": 18,
+  "level": "hickston",
+  "pitch": 0.0,
+  "tag": "looks_hurt_18_0",
+  "unlock": true,
+  "weapon": true,
+  "x": 60.5,
+  "y": 44.5
  }
 ]

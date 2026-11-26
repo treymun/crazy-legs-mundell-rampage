@@ -39,11 +39,28 @@ const LABELS := {
 	"torch": "LIGHT",
 	"whistle": "WHISTLE",
 	"talk": "TALK",
+	"kick": "KICK",
+	"throw": "THROW",
 }
 ## One-shot roles: a press counts once, however long the finger rests there.
 const TAPPED := [
-	"use", "next", "menu", "rinds", "beer", "shine", "map", "photo", "torch", "whistle"
+	"use",
+	"next",
+	"menu",
+	"rinds",
+	"beer",
+	"shine",
+	"map",
+	"photo",
+	"torch",
+	"whistle",
+	"kick",
+	"throw",
 ]
+## The pictures on the KICK and THROW buttons (pass 15, tools/art/
+## build_touch_glyphs.gd: a boot, a lit stick), given by main.gd; a button
+## without one shows its word alone.
+var glyphs := {}
 ## TOUCH BUTTONS: MY LAYOUT puts the stick and buttons where the player
 ## dragged them (MOVE THEM), kept as parts of the overlay's width and height.
 const LAYOUT_FILE := "user://touch-layout.json"
@@ -128,6 +145,9 @@ func layout(rect: Rect2, again := false) -> void:
 		["torch", _place("torch", Vector2(.40, .10)), tiny],
 		["whistle", _place("whistle", Vector2(.31, .10)), tiny],
 		["talk", _place("talk", Vector2(.07, .36)), small],
+		# KICK and THROW (pass 15): by USE, and right of DUCK.
+		["kick", _place("kick", Vector2(.60, .66)), small],
+		["throw", _place("throw", Vector2(.94, .43)), small],
 	]
 	_done_rect = Rect2(rect.position + Vector2(w * .30, h * .40), Vector2(w * .18, h * .12))
 	_reset_rect = Rect2(rect.position + Vector2(w * .52, h * .40), Vector2(w * .18, h * .12))
@@ -225,6 +245,21 @@ func _edit_drag(event: InputEventScreenDrag) -> void:
 	custom[str(role)] = Vector2(clampf(at.x, .03, .97), clampf(at.y, .03, .97))
 	layout(area, true)
 	queue_redraw()
+
+
+## The KICK and THROW buttons' pictures from `art` (main.gd, once), each
+## blown up four times, nearest, so it stays crisp as its ring scales it.
+func take_glyphs(art: Assets) -> void:
+	for role: String in ["kick", "throw"]:
+		var pic := art.art("touch_" + role)
+		var w: int = pic["w"]
+		var h: int = pic["h"]
+		if w <= 1:
+			continue
+		var data: PackedByteArray = pic["data"]
+		var image := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, data)
+		image.resize(w * 4, h * 4, Image.INTERPOLATE_NEAREST)
+		glyphs[role] = ImageTexture.create_from_image(image)
 
 
 ## Shows or hides `role`'s button (LIGHT, WHISTLE): main.gd each frame.
@@ -426,7 +461,13 @@ func _draw() -> void:
 		draw_circle(center, radius, fill)
 		draw_arc(center, radius, 0.0, TAU, 48, edge, 2.0, true)
 		var label: String = LABELS[role]
+		var glyph: Texture2D = glyphs.get(role)
+		if glyph != null:
+			_draw_glyph(glyph, center, radius, hot)
+			center += Vector2(0.0, radius * .56)
 		var size := font_size if radius >= font_size * 1.9 else maxi(9, int(radius * .52))
+		if glyph != null:
+			size = maxi(8, int(size * .7))
 		var extent := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size)
 		if extent.x > radius * 1.8:
 			# A long word (WHISTLE) shrinks to sit inside its ring.
@@ -449,6 +490,16 @@ func _draw() -> void:
 	draw_arc(knob, stick_radius * .42, 0.0, TAU, 48, Color8(255, 240, 208, 188), 2.0, true)
 	if editing:
 		_draw_editing(font)
+
+
+## A button's picture, crisp (nearest), as big as the ring leaves room for
+## above its word.
+func _draw_glyph(glyph: Texture2D, center: Vector2, radius: float, hot: bool) -> void:
+	var side := radius * 1.05
+	var scale_ := side / maxf(1.0, maxf(glyph.get_width(), glyph.get_height()))
+	var size := Vector2(glyph.get_width(), glyph.get_height()) * scale_
+	var at := center - size * .5 - Vector2(0.0, radius * .16)
+	draw_texture_rect(glyph, Rect2(at, size), false, Color(1, 1, 1, .95 if hot else .78))
 
 
 func _draw_editing(font: Font) -> void:

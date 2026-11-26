@@ -30,6 +30,9 @@ const KEPT := [
 	"swing_hit",
 	"tnt_latched",
 	"fuse",
+	"throw_back",
+	"throw_from",
+	"trigger_held",
 ]
 
 ## Off: the scope goes up when the copy plays ALT FIRE (net_feel `old`).
@@ -133,6 +136,8 @@ static func step(
 				break
 	if c.reload:
 		_start_reload(arms, seq, events)
+	if c.throw and not busy and me.health > 0:
+		_quick_throw(arms, seq, events)
 	_tick(me, arms, dt, seq, events)
 	if busy:
 		if scopes:
@@ -179,7 +184,9 @@ static func _select(arms: Weapons.Armory, slot: int, seq: int, events: Array) ->
 	arms.swing_hit = false
 	arms.tnt_latched = false
 	arms.holstered = false
-	arms.switch = .23
+	arms.throw_back = 0.0
+	arms.throw_from = -1
+	arms.switch = Weapons.SWITCH_TIME
 	events.append(_event("equip", seq, slot, [["equip_" + str(Weapons.NAMES[slot]), .61]]))
 
 
@@ -208,6 +215,7 @@ static func _tick(me: Player, arms: Weapons.Armory, dt: float, seq: int, events:
 	arms.flash = maxf(0.0, arms.flash - dt)
 	arms.switch = maxf(0.0, arms.switch - dt)
 	arms.empty = maxf(0.0, arms.empty - dt)
+	arms.throw_return(dt)
 	var age_before := arms.shot_age
 	arms.shot_age += dt
 	if gun in Weapons.CYCLE_GUNS and arms.reserve[gun] > 0 and arms.reload <= 0.0:
@@ -259,10 +267,14 @@ static func _tick(me: Player, arms: Weapons.Armory, dt: float, seq: int, events:
 static func _fire(me: Player, both: bool, seq: int, events: Array) -> void:
 	var arms: Weapons.Armory = me.armory
 	var i := arms.active
+	var fresh := not arms.trigger_held
+	arms.trigger_held = true
 	if arms.holstered:
 		arms.holstered = false
 		arms.switch = .20
 		return
+	if arms.reload and not arms.switch and fresh and arms.cancels_reload():
+		arms.reload = 0.0  # FIRE with rounds in the gun stops the reload (pass 15)
 	if arms.cooldown or arms.reload or arms.switch or me.health <= 0:
 		return
 	if i == Weapons.DYNAMITE:
@@ -348,8 +360,27 @@ static func _light(arms: Weapons.Armory, seq: int, events: Array) -> void:
 		events.append(dry)
 
 
+## Armory.quick_throw (THROW, pass 15): a lit stick goes now; else a stick
+## lit and thrown from whatever gun is up ("light" and "throw" at once, the
+## stick's ghost from the throw: net_own_shots.gd).
+static func _quick_throw(arms: Weapons.Armory, seq: int, events: Array) -> void:
+	if arms.fuse > 0.0:
+		_release(arms, seq, events)
+		return
+	if not arms.owned[Weapons.DYNAMITE] or not arms.reserve[Weapons.CROSSBOW]:
+		return  # the copy says why
+	if arms.throw_back > 0.0 or (arms.active == Weapons.DYNAMITE and arms.cooldown > 0.0):
+		return
+	arms.take_throw()
+	events.append(_event("light", seq, Weapons.DYNAMITE, [["match_strike", .8]]))
+	var throw := _event("throw", seq, Weapons.DYNAMITE, [["tnt_throw", 1.0]])
+	throw["fuse"] = arms.fuse_time()
+	events.append(throw)
+
+
 ## Armory.release_dynamite: the trigger up with a stick lit throws it.
 static func _release(arms: Weapons.Armory, seq: int, events: Array) -> void:
+	arms.trigger_held = false
 	if arms.fuse > 0.0:
 		var throw := _event("throw", seq, Weapons.DYNAMITE, [["tnt_throw", 1.0]])
 		throw["fuse"] = arms.fuse  # what is left of it (net_own_shots.gd)

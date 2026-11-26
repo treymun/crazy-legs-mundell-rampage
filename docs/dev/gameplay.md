@@ -91,7 +91,10 @@ smoke and sparks off the muzzle; fuse and rocket sparks; its own dice, made
 whatever the view), `gun_flash.gd` (each gun's muzzle flash: weapons.cfg
 `flash_art`/`flash_size`, over the old flash as a glow), weapon_fx's fatter
 tracers with a glowing head, and each gun's own muzzle light
-(`[light.muzzle_<gun>]`). game_view.gd leaves the old `fx_blast` fireball out
+(`[light.muzzle_<gun>]`). Pass 15 adds a hand's shot lighting the yard round
+him and the smoke curling off the player's muzzle after a burst
+(`src/muzzle_looks.gd`), and each gun's own brass (effects.cfg `[casings]`,
+`features/debris.gd`): [view3d.md](view3d.md#looks-that-read-pass-15). game_view.gd leaves the old `fx_blast` fireball out
 then. The pictures are in [art.md](art.md#gun-effects-art).
 
 ### Blasts and wrecks (destruction pass 11)
@@ -1400,7 +1403,8 @@ looks feature), numbers in `data/tuning/hound.cfg`.
   `Dog.ride` which). `Dog.job` while FOLLOW (`Hound.JOBS`): HEEL, RANGE
   (`Dog.roam` where to), NOSING (sniffing about there), CIRCLE (back to
   heel), CATCH (running to catch up), ASIDE (out of a player's sights),
-  TRAIL (sulking behind), WAIT (where he cannot follow). `Dog.mood`
+  TRAIL (sulking behind), WAIT (where he cannot follow), LEAD (showing
+  the way, pass 15: below). `Dog.mood`
   (`Hound.MOODS`): CALM, HAPPY, ALERT, SCARED, SULK, HURT, till
   `Dog.mood_until`. `Dog.pace` is how fast he went last tick, `Dog.stride_v`
   how fast his legs go (eased over a few ticks) and `Dog.gait_kind` the gait
@@ -1734,6 +1738,55 @@ player walking him into a wall comes within .73 of the eye now and then,
 and his feet keep .64 of the ground flat out. hound_walk_check after pass
 12: stuck at most .5 s (pass 10: 1.6), far at most about 7 s (pass 10: 2.2;
 he catches up calmer), no hazard.
+
+#### BLUE shows the way (pass 15)
+
+The audit's bots never got lost (they follow the pin), but the owner's word
+was that a player does. `src/hound_lead.gd` (`HoundLead`, numbers in
+`hound.cfg [lead]`): his player calm (no hand awake within `lead_quiet`, 14;
+his mood easy; on foot, on the ground, not in deep water) and no nearer the
+objective by the pin's walk for `lead_after` (30 s, looked at every
+`lead_look`, .5 s of the game's clock) and more than `lead_least` (6) steps
+off it, BLUE takes the job LEAD: he lopes to a stop `lead_reach` (5) steps
+down the way (short of a shut door on it, where he waits pointing at the
+door; never in harm; fair for him and, as he picks it, out of every
+player's sights), turns back to his player with a bark (`hound_bark`) and
+stands on point down the way (the point pose; the badge says LEADIN'). As
+they come within `lead_near` (2) he goes on another stretch, barking every
+`lead_bark` at a stop. Getting `lead_gain` (20) steps nearer than they were
+stuck at, or near the objective, ends it (back on the way); a hand awake
+near, a mood, a seat in a vehicle, a partner's sights, his player off the
+other way (past 4 cells and walking off, or further than `lead_far`), or
+`lead_wait` (12 s) at a stop with nobody coming, and he gives it up till
+`lead_again` (60 s) after. Mundell says a "lost" line once a stuck spell
+(`barks.gd` "lost": BLUE KNOWS THE WAY. / FOLLER THE HOUND, DUMMY.), and the
+first time NEW PLAYER TIPS says BLUE'LL SHOW YA. FOLLOW HIM. (`lead`).
+With HOUND DOG off the objective pin jumps and blinks chalk-green brackets
+for `pulse_for` (8 s) instead, and Mundell says a "lost_pin" line (TURNED
+AROUND AGAIN. MIND THE ARROW. / I KNOW THESE PARTS. MOSTLY.): looks only,
+this machine's, the hound feature's tick with him off (`HoundLead.alone`,
+`hud.gd objective_pin`).
+
+- **The walk.** Play never reads `Game.route` (a VIEW field the HUD walks
+  over several frames), so the walk BLUE reads is his own: a field from the
+  objective with doors as the pin takes them (and barred doors one way),
+  walked in one go whenever what it was walked with changes (`HoundLead.sig`:
+  where to, the stations, the keys, the doors only something opens, the
+  walls, the floor's open cells), 3 to 6 ms on the desktop, once an
+  objective or so; while any door swings the look waits (a leaf blocks the
+  cells by it for a moment: the walk never depends on where one was). It is
+  never carried: a snapshot copy walks it again from the same things and
+  reads the same steps.
+- **Carried.** The job and `Dog.lead_best`, `lead_at`, `lead_said` (the
+  stuck spell) go with the Dog (SIM, no dice); the stop is `Dog.goal`, what
+  he points at `Dog.look`, the stop's time `Dog.until` (the BAY/POINT
+  fields, free while he follows). Co-op: each Dog leads his own player.
+  `HoundLead.ON` false (tools that measure his legs: `hound_walk_check`, the
+  stuck and barred-door checks, `flow_report -- lead=0`) and he never leads.
+- **Calm to look at.** He lopes (`lope`), eases and turns as ever; it starts
+  only after 30 s, so `hound_pace`'s scenes (30 s at most) never see it.
+
+`hound_check` LEAD holds it (checks.md).
 
 ### Mundell's junk bench (content pass 8)
 
@@ -3183,6 +3236,82 @@ hands the players a new one): every key door was shut to the pin until the
 next chapter; `objective_route` now takes the game's own. Play never reads
 `Game.route`: these change the pin and the bots, not the rules.
 
+## Stuck spots the bots found (pass 15)
+
+- **Caught in furniture.** A ROOKIE bot stood 660 s on the bayou's lagoon
+  bank by a dock piling after the swamp king fell (seed 3), the pin's way
+  reaching it (16 steps): it stood inside the square the piling blocks
+  (`LevelData.blocked` tests a body's square, radius each way), put or
+  shoved there, and every first small step out was refused and the velocity
+  died. A person would stand there too. `LevelData._walks_out`: a player
+  caught in a piece of furniture where they stand may take a step that goes
+  less deep into it and into nothing else (tested a hair narrower than that
+  depth); asked only when a step was refused, so play that never gets caught
+  is unchanged.
+- **Walled in after a boss.** The bots T2 saw shut in after the foreman,
+  the derby champ and the swamp king had the pin's way walked in the boss's
+  fall while the arena's gates swung open (the 1.11 mechanism, trail markers
+  above): `REWALK_GAP` walks it again. `tools/stuck_check.gd` plays every
+  chapter through and holds the way reaching the player after each boss.
+
+## Between chapters (pass 15)
+
+Before pass 15 a won chapter's card led to the Crossroads, the player at
+its spawn 32 to 51 cells (8 to 13 s running) from the next gate, then a
+load each way: 25 to 35 s of not playing at each of the seven boundaries.
+
+- **BETWEEN CHAPTERS** (PLAY page, `between`; it replaced CLASSIC LEVEL
+  FLOW, whose `classic` key is no longer read): STRAIGHT ON (the default)
+  or THE CROSSROADS says what the card's one tap does; the other is a plate
+  of its own. `BetweenChapters.choices` gives the card's ways on, each with
+  its slot (`GO`, `OTHER`, `AGAIN`) and key word; `main_flow.gd take_road`
+  does what a slot's plate says.
+- **Straight on** (`continue_campaign()`): `_next_chapter` starts the next
+  chapter with the kit and history carried, the won chapter kept in
+  `retained` for a revisit, its gate unlocked and saved; the campaign entry
+  is written there too, so skipping the Crossroads loses nothing.
+- **The Crossroads** (`continue_campaign(true)`): `open_hub(made, message,
+  following)` writes the entry as before and stands player one in front of
+  the next chapter's gate, facing it, `GATE_STEP` (1.8) out
+  (`BetweenChapters.stand_at_gate`; USE takes it: CONTINUE into the chapter
+  under way). Every gate has room in front of it (`road_check`).
+- **TRY TO BEAT IT** (`try_to_beat_it`): the chapter again as the hub's
+  REPLAY gate starts it (the gate's kit, `NetCoop.chapter_kit`); from the
+  campaign's own card the campaign goes on first, unseen (the next chapter
+  made, its gate opened, the entry written). A won replay's card offers HIT
+  THE ROAD (into the campaign's chapter under way), THE CROSSROADS (at its
+  gate) and TRY TO BEAT IT again (`back_on_the_road`); before pass 15 it
+  went to the title.
+- **The openers** play once a chapter (OPENERS: FIRST TIME) and one key,
+  button, click or tap skips all of one (unchanged; `road_check` holds it on
+  the straight road).
+- **The bests** (`src/chapter_bests.gd`): `chapter_bests.json` beside the
+  boss rematch bests (`BossRematch.folder()`: the profile, or the cache
+  folder in a tool run), never a save. For each chapter and difficulty the
+  best time, most varmints and most secrets, each its own best. Kept once
+  per won card (`BetweenChapters.settle`, from `main_flow.gd watch_tally`
+  each frame and `take_road`) for a campaign chapter played alone by a
+  person: not co-op or online, a rematch, a recorded replay, a tour, bench
+  or demo, or with cheats. Replays count. A first run sets them with no
+  NEW BEST.
+- **Par** (`modes.cfg [par]`): seconds of the chapter clock, the same at
+  every difficulty, from the SHARP bot's pass 15 audit times times 1.5 (the
+  file says which). The ribbon gives `pace_share` (.2) to keeping to par:
+  full at par, none at `slack` (2) times par. The balance step re-sets par
+  when play moves.
+- **Online co-op**: the host picks, as before (`online_input.gd`): ENTER
+  does what the host's BETWEEN CHAPTERS says, the MAP key the other
+  (`NetCoop.next(main, crossroads)`); at the Crossroads player one stands at
+  the gate, the partners gathered beside them.
+
+Measured (headless, this PC): ENTER to the next chapter playable 75 to 195
+ms straight on; by the Crossroads the hub's load as well, then the walk.
+Not playing at a boundary, a player who watches the card to its ribbon
+(seven or eight rows): before 3.0 to 3.4 s of card + 8.4 to 13.2 s running
+to the gate + two loads; after 2.1 to 2.3 s (0.6 s with a tap) + one load,
+the opener (first time only, skippable) either way. Over the seven
+boundaries about 80 to 120 s before, 5 to 17 s after.
+
 ## Reading danger (pass 15)
 
 The audit found 19 to 57 % of the damage taken came from outside the middle
@@ -3239,7 +3368,7 @@ drawn where it comes from, and a hazard kill pays. Numbers in hits.cfg
   (`_bonus_pick`: his kind's own enemies.cfg `drop`, else one of
   `bonus_drops` by `game.rng`; none with NO DROPS; the PACE track may point
   this one line at its drop by need), and `game.events.hazard_killed(enemy,
-  kind, slot)`; a RAMPAGE meter (not built yet) adds `bonus_rampage` for it.
+  kind, slot)`; the RAMPAGE meter adds `bonus_rampage` for it ([RAMPAGE](#rampage-pass-15)).
   Bosses (who only take their share) get none.
 - Carried online within PROTOCOL 5: nothing new is carried. The arrows, the
   tell, the rings, the glint, the brackets and the skull read what already
@@ -3248,6 +3377,175 @@ drawn where it comes from, and a hazard kill pays. Numbers in hits.cfg
   the same rules (no scrap: no bench there).
 - `tools/danger_check.gd` holds it; `tools/danger_frames.gd` (a window)
   pictures it; `brawl_check` holds the bonus.
+
+## RAMPAGE (pass 15)
+
+Kills landed the same way every time and a chain of them meant nothing but a
+callout. Now kill chains fill a meter, and a full one turns Mundell loose.
+`features/rampage.gd` (a simulation feature, last in `Features.ALL` and
+`SIM_FEATURES`), numbers in hits.cfg `[rampage]`.
+
+- **The meter** (0 to 1, per player by slot). A kill of his own (the hit
+  that killed was his: `hit_landed` with `killed`, then `enemy_killed`; a
+  hand killed by another hand fills nothing) adds `kill` (.11), more for a
+  head (`head` .06), an overkill that takes the body apart (`overkill` .06:
+  `Enemy.explosive`), a brawl finisher landing (`finisher` .12: brawl's
+  `last_moves` a wind-up ago), a boss (`boss` .5) and a hazard kill
+  (`hazard_killed`: [hazard] `bonus_rampage` .35); a kill within `chain_for`
+  (2.5 s) of the one before adds `chain` (.03) for every link, up to
+  `chain_most` (4). It holds `hold` (3.5 s) after a kill, then drains
+  `drain` (.08) a second. A burst of four or five kills fills it; the steady
+  kill a minute of a walk does not.
+- **RAMPAGE**, when it is full: `rampage_for` (8 s), each kill in it adding
+  `extend` (.5 s) up to `rampage_most` (14 s) in all. He moves `speed` (1.12)
+  times as fast (one factor in `game.gd _walk`, `Rampage.pace`) and his hits
+  do `damage` (1.2) times as much (one line in `Enemy.hurt` after the hit's
+  zone, `Rampage.might`, his own hits only). The meter is empty after.
+- **Looks** (this machine's player): the lamps under the health and RAMPAGE
+  on the health box ([ui.md](ui.md#the-huds-layout)), the view's edge
+  burning (`src/rampage_looks.gd`), a made sting (`rampage_sting`) and
+  Mundell's holler (barks `rampage`, forced) as it begins, the music at its
+  PEAK ([audio.md](audio.md#the-fight-music-in-four-levels-pass-15)). The
+  sting and holler come from `draw_view` once per RAMPAGE (`_said`, this
+  machine's, in `SnapCodec.SKIP_FIELDS`), so an online copy hears its own.
+  The callouts (TWOFER .. RAMPAGE!) stay as they were: words for a quick
+  streak.
+- **Where**: the campaign, co-op (each player his own) and County Run (its
+  cards stack on top); never deathmatch, team deathmatch, the 5v5, the hub
+  or the range.
+- **Online and saves**: every variable but `_said` is carried (no dice; the
+  host decides, a client's prediction reads the same `pace`), PROTOCOL stays
+  5 (a feature block an older build does not know is skipped); its block in
+  the save holds the meters, the holds, the RAMPAGES under way and the
+  chain, read back as floats (an older save: an empty meter). No save version.
+- `tools/rampage_check.gd` holds it; `tools/rampage_frames.gd` pictures it.
+
+The balance bot (`flow_report.gd`, REGULAR, SHARP and ROOKIE at NORMAL, seeds
+1 and 2; before is this pass's PACE, READ, MARKERS and ROAD tracks merged):
+
+| chapter | seconds (median) | kills a minute | whole fight loop % of the chapter | CALM / BUILD / FIGHT / PEAK % after | RAMPAGES an attempt | on one, s an attempt |
+| --- | --- | --- | --- | --- | --- | --- |
+| hickston | 258 -> 259 | 9.7 -> 10.1 | 82 -> 46 | 25 / 32 / 33 / 16 | 1.67 | 15.5 |
+| fair | 292 -> 273 | 10.1 -> 10.3 | 80 -> 49 | 26 / 27 / 21 / 24 | 1.71 | 14.6 |
+| sawmill | 203 -> 209 | 11.4 -> 11.4 | 84 -> 40 | 23 / 42 / 22 / 16 | 1.50 | 15.3 |
+| quarry | 211 -> 207 | 10.8 -> 10.9 | 81 -> 51 | 27 / 24 / 29 / 23 | 1.33 | 13.6 |
+| bayou | 201 -> 211 | 12.9 -> 11.4 | 83 -> 59 | 25 / 17 / 32 / 24 | 1.63 | 13.0 |
+| speedway | 186 -> 170 | 10.6 -> 11.5 | 82 -> 43 | 26 / 38 / 24 / 20 | 1.14 | 11.5 |
+| moonshine | 150 -> 159 | 11.8 -> 12.5 | 82 -> 66 | 15 / 23 / 34 / 28 | 1.29 | 13.3 |
+| mothership | 214 -> 213 | 12.5 -> 12.5 | 92 -> 65 | 16 / 22 / 53 / 12 | 0.86 | 6.2 |
+
+(Medians of the attempts; the level shares do not sum to 100, each being a
+median.) Over all the play the whole fight loop went from 83 % to 52 % of
+the time; the Moonshine Run and the Mothership, fought the most (46 and
+59 % of their time hot, crowds of three or more 44 and 24 % of it), still
+hear it about two thirds of theirs. RAMPAGES: 1.39 a chapter (ROOKIE 1.58,
+REGULAR 1.26, SHARP 1.31), about 6 % of the time on one. The chapters'
+median seconds summed: ROOKIE 1581 -> 1639, REGULAR 1715 -> 1645 (-4 %),
+SHARP 1690 -> 1644 (-3 %). Deaths a run: ROOKIE 2.5 -> 1.5, REGULAR 0 ->
+1.5 (at the derby champ, the revenue man and a crawfish boil fire, two of
+them in attempts with no RAMPAGE in them: play goes otherwise from the first
+change, one seed of each), SHARP 0 -> 0. The music is looks only: with every
+music change since, the same seeds played to the same chapters, seconds and
+kills (checked attempt by attempt). Speed: `tick_spikes.gd` on Hickston, three
+alternate runs back to back, the tick's median 1.202 -> 1.225 ms (+1.9 %; the
+bot's game is a different one with the boost).
+
+## Moves (pass 15)
+
+The walk was quick already (63 % of the speed in 43 ms), but it stopped soft,
+steered little in the air and had nothing to do on the run; swaps took a
+quarter second, a reload could not be stopped, and the boot and the dynamite
+hid behind USE and a gun slot. `src/moves.gd` (`Moves`), numbers in modes.cfg
+`[move]` and weapons.cfg `[all]`.
+
+- **The walk's numbers** moved from `game.gd _walk` to `[move]` first with
+  their exact values (the same bots played the same ticks: hickston, the
+  sawmill and the bayou, ROOKIE and SHARP, 7,200 ticks each, every state hash
+  the same), then: `run` 3.85 -> 4.1, `ease_stop` 30 -> 40, `ease_air` 7 ->
+  10. `game.gd _walk` works out the speed (keys, gut, drink, mud, a RAMPAGE,
+  water) and `Moves.body` does the rest (the crouch, the slide, the ease,
+  walls and bodies, the jump, the fall); an online client's
+  `NetPredict.step` ends in the same `Moves.body`, so its picture walks the
+  host's sums, slide and all (it gained the RAMPAGE's pace on the way).
+  Ladders, ledges, vehicles and the water's own rules are untouched.
+- **The slide.** CROUCH taken (a fresh crouch: `Player.crouched` was false)
+  on the ground going at least `slide_from` (3.4: running, not walking)
+  starts one along the way the player is going, at `slide_speed` (5.0, less
+  in mud or water, more if a sprint had him faster), easing (slow, then
+  quicker) to the crouch walk over `slide_for` (.55 s), turning toward the
+  keys at most `slide_steer` (1.6 radians a second). It ends on letting go
+  of CROUCH, a jump (the jump is allowed with CROUCH held while sliding: a
+  hop that keeps the speed), a wall or a body head on (less than
+  `slide_wall` of its step made), a knock-down, the air, or its end; another
+  waits `slide_rest` (.8 s). The eye is the crouch's. Landing with CROUCH
+  held going fast is a slide too. Sound: `slide_scuff` (free, a gravel step
+  smeared, `audio_build.py` scuff); the gun dips and leans (`feel.gd
+  _slide_dip`, looks). `Player.slide`, `slide_dir`, `slide_top`,
+  `slide_rest` are carried like the player's other fields and never saved
+  (a load stands).
+- **KICK** (K, the mouse's back side button, R3, the KICK button):
+  `Game.quick_kick` -> `brawl.gd boot`: what USE's boot does (a finisher on
+  a man open to one, a man booted, a door run at kicked in) and nothing else
+  USE does (no door opened, nothing toted, no switch); with nobody in reach
+  the boot all the same, into the air (`can_kick`). Where the boot is off
+  (deathmatch, the 5v5, the hub) it does nothing.
+- **THROW** (N, the mouse's front side button, LB, the THROW button):
+  `Game.quick_throw` -> `Armory.quick_throw`: with the dynamite carried and a
+  stick (`reserve[CROSSBOW]`), the stick lit and thrown at once with a full
+  fuse from whatever gun is up; the dynamite hand shows the throw and the
+  gun comes back up `throw_back` (.32 s) later (`throw_from`, its rise only);
+  a stick already lit goes now. Not with the hands full (a boot or a
+  finisher, something toted, a wheel, the gallery's gun).
+- **Swaps and reloads**: `switch_time` .23 -> .16 (`switch_lower` .09 ->
+  .065, the same share going down); FIRE pulled (a fresh pull:
+  `Armory.trigger_held`) with rounds still in the gun stops a reload and
+  shoots what is loaded; a reload from empty goes on (a bayonet jabs) and so
+  does one started with the trigger held.
+- **Controls**: `Game.Controls.kick` and `throw` (fresh presses). The
+  campaign's front end does them between ticks as actions (`act(["kick"])`,
+  `["throw"]`, kept in its replay); online, the round modes and a bot send
+  them as controls (`TacticalScreens.pending_kick`, `pending_throw`).
+  Replays are format 2 (the buttons as a varint), format 1 still plays; the
+  net codec's controls are 15 bytes and PROTOCOL is 6
+  ([multiplayer.md](multiplayer.md#the-transport)).
+- **County Run** walks, slides and kicks the same (THROW needs the dynamite,
+  as anywhere).
+- `tools/move_check.gd` holds it ([checks.md](checks.md)); `-- numbers`
+  prints the feel.
+
+How it feels, by numbers (`move_check.gd -- numbers`, a range lane, 60 Hz
+keys; before is v3.12's walk worked out by the same sums):
+
+| | before | now |
+| --- | --- | --- |
+| run | 3.85 cells/s | 4.1 |
+| 90 % of the run from standing | 117 ms | 117 ms |
+| a stop from the run | 150 ms over .13 cells | 117 ms over .07 cells |
+| the air: side speed .25 s after a jump with a strafe held | 3.2 cells/s | 3.8 |
+| a swap | 230 ms | 167 ms (ten ticks at 60) |
+| a slide | none | 5.0 cells/s, 2.3 cells in .57 s (a crouch-walk: 1.3) |
+
+The balance bot (`flow_report.gd`, REGULAR, SHARP and ROOKIE at NORMAL,
+seeds 1 and 2; before is this pass's tracks to RAMPAGE AND MUSIC merged; the
+bots run and boot with KICK, never slide or throw):
+
+| chapter | seconds (median) | kills a minute | fight % |
+| --- | --- | --- | --- |
+| hickston | 259 -> 255 | 10.1 -> 10.9 | 46 -> 48 |
+| fair | 273 -> 258 | 10.3 -> 10.5 | 46 -> 47 |
+| sawmill | 209 -> 204 | 11.4 -> 11.2 | 53 -> 54 |
+| quarry | 207 -> 196 | 10.9 -> 11.7 | 51 -> 52 |
+| bayou | 211 -> 211 | 11.4 -> 12.4 | 50 -> 51 |
+| speedway | 170 -> 175 | 11.5 -> 11.0 | 43 -> 48 |
+| moonshine | 159 -> 168 | 12.5 -> 13.1 | 46 -> 50 |
+| mothership | 213 -> 195 | 12.5 -> 12.8 | 59 -> 58 |
+
+The chapters' median seconds summed: ROOKIE 1639 -> 1667, REGULAR 1645 ->
+1644, SHARP 1644 -> 1612 (-2 %); deaths a run ROOKIE 1.5 -> 1.0, REGULAR
+1.5 -> 0, SHARP 0 -> 0 (play goes otherwise from the first changed tick:
+one seed of each, so these are a sign, not a measure). The run is 6.5 %
+quicker but the bot walks the pin and fights at the same pace, so a chapter
+is a few seconds shorter at most.
 
 ## Difficulty and pacing as numbers (polish pass 9)
 

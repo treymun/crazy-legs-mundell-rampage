@@ -6,6 +6,7 @@ extends MainState
 const BossRematchFeature := preload("res://src/features/boss_rematch.gd")
 const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
 const TrailMarkerFeature := preload("res://src/features/trail_marker.gd")
+const TallyFeature := preload("res://src/features/tally.gd")
 
 
 func start(
@@ -186,7 +187,10 @@ func open_county(from_run := false) -> void:
 	sound.play("menu_accept")
 
 
-func open_hub(origin: Game = null, message := "") -> void:
+## The COUNTY CROSSROADS. `at_gate`: a chapter whose gate the player is put in
+## front of, facing it (the card's THE CROSSROADS, BetweenChapters); else the
+## hub's start at the four-way stop.
+func open_hub(origin: Game = null, message := "", at_gate := "") -> void:
 	if origin != null and not origin.in_hub:
 		hub_origin = origin
 		if not origin.replay and campaign_run != null:
@@ -226,6 +230,8 @@ func open_hub(origin: Game = null, message := "") -> void:
 	hub.player.y = float(hub.level.spawn[1])
 	hub.player.angle = float(hub.level.spawn[2])
 	hub.district = int(hub.world.area[hub.world.cell(hub.player.x, hub.player.y)])
+	if at_gate != "":
+		BetweenChapters.stand_at_gate(hub, at_gate)
 	var hint := "COUNTY CROSSROADS. FACE A GATE AND PRESS %s." % use_button()
 	hub.message(message if message != "" else hint, 4.5)
 	play(hub)
@@ -322,7 +328,10 @@ func resume_entry() -> void:
 	open_hub(loaded, "CAMPAIGN READY. USE YOUR NEXT GATE.")
 
 
-func continue_campaign() -> void:
+## On from a won game's card: a versus round again, a rematch's result, a
+## replay's end, or the campaign's next chapter, straight in or by the
+## Crossroads (`crossroads`), standing at its gate.
+func continue_campaign(crossroads := false) -> void:
 	var current := game
 	if not Modes.is_versus(current) and UserMapPlay.finished(self):
 		return  # a player map's tally: back to the list (or the shed)
@@ -347,23 +356,122 @@ func continue_campaign() -> void:
 	if following == "":
 		open_hub(current, "THE SKY'S CLEAR. EVERY ROAD LEADS BACK TO A FINISHED CHAPTER.")
 		return
+	var made := _next_chapter(current)
+	var unlock_kept := SessionStore.save_unlocks("", unlocked)
+	if crossroads:
+		var message := "GATE OPEN: " + Campaign.title_of(following)
+		if not unlock_kept:
+			message = "GATE OPEN. UNLOCK COULD NOT BE SAVED."
+		open_hub(made, message, following)  # writes the campaign entry
+		return
+	# Straight on (BETWEEN CHAPTERS): the campaign entry written here, as the
+	# Crossroads would have, so skipping it loses nothing. A word only when
+	# something could not be kept.
+	if not write_campaign(made, _entry_path()):
+		notice("PROGRESS COULD NOT BE SAVED.", 3.0)
+	elif not unlock_kept:
+		notice("UNLOCK COULD NOT BE SAVED.", 3.0)
+
+
+## The chapter after a won one started (or waiting for its pack), the kit and
+## history carried, the won chapter kept for a revisit, its gate unlocked
+## (saved by the caller).
+func _next_chapter(current: Game) -> Game:
+	var following := Campaign.next_level(current.level.id)
 	var history: Array = current.history.duplicate()
 	history.append(current.result())
 	start(following, current.loadout(), history, false, current.supply_rule)
-	game.retained = current.retained.duplicate()
-	game.retained[current.level.id] = current
+	var made: Game = waiting_play if waiting_play != null else game
+	made.retained = current.retained.duplicate()
+	made.retained[current.level.id] = current
 	unlocked[following] = true
-	var message := "GATE OPEN: " + Campaign.title_of(following)
 	var merged := SessionStore.unlocks("")
 	for key: Variant in merged:
 		unlocked[key] = true
-	if not SessionStore.save_unlocks("", unlocked):
-		message = "GATE OPEN. UNLOCK COULD NOT BE SAVED."
-	var classic: int = options["classic"]
-	if classic != 0:
-		notice(message, 1.8)
+	return made
+
+
+## Each frame in play: a won chapter's card settled (its bests kept once) and
+## told its ways on (BetweenChapters).
+func watch_tally() -> void:
+	if state != "play" or game == null or not game.showing_tally:
 		return
-	open_hub(game, message)
+	var show: TallyFeature = game.features.get("tally")
+	if show == null:
+		return
+	BetweenChapters.settle(self, game)
+	show.choices = BetweenChapters.choices(self, game)
+	show.straight = BetweenChapters.straight(options)
+
+
+## A way on from a won chapter's card by its slot (BetweenChapters GO, OTHER,
+## AGAIN): what its plate says; with no plates (a versus match, a rematch, a
+## player's map, the finale) the one tap does what it always did.
+func take_road(target: Game, slot: int) -> void:
+	BetweenChapters.settle(self, target)
+	var ways := BetweenChapters.choices(self, target)
+	if ways.is_empty():
+		if slot == BetweenChapters.GO:
+			continue_campaign()
+		return
+	for way: Array in ways:
+		var way_slot: int = way[3]
+		if way_slot != slot:
+			continue
+		match str(way[2]):
+			"next":
+				continue_campaign()
+			"hub":
+				if target.replay:
+					back_on_the_road(target, true)
+				else:
+					continue_campaign(true)
+			"road":
+				back_on_the_road(target, false)
+			"replay":
+				try_to_beat_it(target)
+			_:
+				continue_campaign()
+		return
+
+
+## TRY TO BEAT IT: the chapter again as the hub's REPLAY gate starts it (its
+## gate's kit, nothing kept but the bests). From the campaign's own card the
+## campaign goes on first, unseen: the next chapter made, its gate opened and
+## the entry written, waiting for HIT THE ROAD.
+func try_to_beat_it(target: Game) -> void:
+	var level_id := target.level.id
+	if target.replay:
+		replay_runs.erase(level_id)
+		if hub_origin == target:
+			hub_origin = null
+	else:
+		var made := _next_chapter(target)
+		SessionStore.save_unlocks("", unlocked)
+		write_campaign(made, _entry_path())
+	var best := ChapterBests.best(level_id, target.difficulty)
+	start(level_id, null, [], true, null)
+	if waiting_play == null:
+		var seconds: float = best.get("time", target.clock)
+		game.message("BEAT %s. THE COUNTY'S WATCHING." % ChapterBests.clock_text(seconds), 3.5)
+
+
+## Off a won replay's card: HIT THE ROAD into the campaign's chapter under
+## way, or (`crossroads`, or a campaign already finished) the Crossroads at
+## that chapter's gate; the title when there is no campaign.
+func back_on_the_road(target: Game, crossroads: bool) -> void:
+	replay_runs.erase(target.level.id)
+	if hub_origin == target:
+		hub_origin = null
+	var run := campaign_run
+	if run == null:
+		return_to_title(true)
+		return
+	if crossroads or run.won:
+		open_hub(run, "", target.level.id if run.won else run.level.id)
+		return
+	face_into_level(run)
+	play(run)
 
 
 func return_to_title(discard := false) -> void:

@@ -207,13 +207,15 @@ and nothing at all is fetched). When one is, a sign on the title says NEW VERSIO
 | Keyboard and mouse | | Gamepad | |
 | --- | --- | --- | --- |
 | W A S D, mouse | Move and aim | Left / right stick | Move / look |
-| Shift, J, Z | Run, jump, crouch | Right / left trigger | Fire / alt fire |
+| Shift, J, Z | Run, jump, crouch (on the run: slide) | Right / left trigger | Fire / alt fire |
 | Mouse 1 / Mouse 2 | Fire / alt fire | A / B | Jump / crouch |
 | E, Space, middle click | Use, open, rescue; boot, finish; hold to revive | X / Y | Reload / use |
-| 1–9, 0, -, =, \\, wheel | Weapons | Bumpers | Previous / next weapon |
-| R | Reload | L3 / R3 | Run / flashlight (R3 runs when there's none) |
+| K, mouse back button | Kick: the boot alone | R3 | Kick (flashlight in a blackout) |
+| N, mouse front button | Throw a stick of dynamite from any gun | LB | Throw a stick |
+| 1–9, 0, -, =, \\, wheel | Weapons | RB / D-pad down | Next / previous weapon |
+| R; fire while reloading | Reload; fire what is loaded | L3 | Run |
 | 8, hold fire | Light the stick; let go to throw | D-pad up, left, right | Rinds, beer, moonshine |
-| C, B, M | Pork rinds, beer, moonshine | D-pad down | Use the picked item |
+| C, B, M | Pork rinds, beer, moonshine | | |
 | Q / F | Pick an item / use it | Start / Back | Pause / county map |
 | G | Whistle for Blue | Hold Back | Whistle for Blue |
 | L | Flashlight (in a blackout) | | |
@@ -227,14 +229,21 @@ them. USE picks up loose junk; fire chucks it and alt fire sets it down. NEW PLA
 PLAY page shows a short tip the first time something comes up (on by default). CHECKPOINTS on the
 PLAY page: TRAIL MARKERS (the default) ties a marker on the way through a chapter, so a death picks
 up from the last one (ENTER, A or a tap: BACK TO THE MARKER; R, X or the lower line: the chapter's
-start); BOSSES ONLY keeps just the boss doors, as before. DANGER ARROWS on the DISPLAY page (on by
+start); BOSSES ONLY keeps just the boss doors, as before. BETWEEN CHAPTERS on the PLAY page:
+STRAIGHT ON (the default) takes one tap from a won chapter's card straight into the next chapter,
+kit and all; THE CROSSROADS goes to the hub first, standing at the next gate. The card offers the
+other way too (Tab, Y or its sign) and TRY TO BEAT IT (R, X), the chapter again against your best
+time, par and most kills. DANGER ARROWS on the DISPLAY page (on by
 default): a red mark at the edge of the view points at whatever hit you, an amber one at a varmint
-winding up out of sight; OFF goes back to the words. RUMBLE on the INPUT
+winding up out of sight; OFF goes back to the words. ENEMY RIM on the DISPLAY page
+(SOFT by default, with LIGHTS AND GLOW): a varmint that has seen you wears a dull warm
+edge round his outline, a touch stronger far off so a hand down the road reads; BOLD
+makes it a brighter line, OFF takes it away. RUMBLE on the INPUT
 page shakes a pad (FULL by default); PHONE RUMBLE on the TOUCH page buzzes an Android phone, or a
 phone browser that can (LOW by default; an iPhone's browser cannot).
 
 On a touch screen the left thumb walks and a drag on the right half aims; FIRE, ALT, USE (hold it
-to revive), NEXT, JUMP and DUCK sit on the right, and RIND, BEER, SHINE, MAP, PHOTO and MENU along
+to revive), NEXT, JUMP, DUCK, KICK and THROW sit on the right, and RIND, BEER, SHINE, MAP, PHOTO and MENU along
 the top, with LIGHT and WHISTLE when there is a flashlight or a hound to work. Every menu takes a
 tap, the settings bars follow a finger, and tapping a name or a party line code brings up the
 phone's keyboard. Rinds fill the gut

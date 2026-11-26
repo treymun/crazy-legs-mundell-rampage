@@ -69,6 +69,10 @@ var hp_was := {}
 var music_on := 0.0
 var music_flips := 0
 var music_was := false
+## Seconds at each music level (features/fight_music.gd `level`, pass 15:
+## CALM, BUILD, FIGHT, PEAK), and the local player's RAMPAGES and seconds on one.
+var music_levels := [0.0, 0.0, 0.0, 0.0]
+var raging := 0.0
 var held := 0.0
 var slow := 0.0
 ## The director's beats (features/director.gd), when it is there: seconds in
@@ -79,6 +83,19 @@ var peak_hands := 0
 ## Each peak: [s into the attempt, hands, why, s it lasted]; hands held at the start.
 var peak_rows: Array = []
 var held_start := -1
+## Pass 15 (BLUE AND LOOPS): lost as the audit counted it (the pin's way no
+## shorter for 30 s with nothing hot: episodes and seconds past the 30),
+## backtracking (walking, nothing hot, in a 2x2 block last stood in 15 s or
+## more ago), and BLUE leading the way (HoundLead).
+var lost_n := 0
+var lost_s := 0.0
+var lost_best := FlowField.FAR
+var lost_at := 0.0
+var lost_in := false
+var lost_goal := Vector2.INF
+var t_back := 0.0
+var t_lead := 0.0
+var cell_last := {}
 var _phase_was := ""
 var _links: Array = []
 
@@ -223,6 +240,16 @@ static func dry(game: Game) -> bool:
 	return any
 
 
+## The local player's RAMPAGES this attempt (features/rampage.gd).
+func _rampages() -> int:
+	var rp: Object = g.features.get("rampage")
+	if rp == null:
+		return 0
+	var counts: Array = rp.get("count")
+	var slot: int = g.local_player.slot
+	return int(counts[slot]) if slot < counts.size() else 0
+
+
 ## After the tick.
 func after() -> void:
 	var now := g.clock - start
@@ -234,6 +261,12 @@ func after() -> void:
 		if on != music_was:
 			music_flips += 1
 			music_was = on
+		var lv = fm.get("level")
+		if lv != null:
+			music_levels[clampi(int(lv), 0, 3)] += STEP
+	var rp: Object = g.features.get("rampage")
+	if rp != null and Rampage.raging(g, g.local_player):
+		raging += STEP
 	if g.hitstop > 0.0 or g.boss_hold > 0.0:
 		held += STEP
 	if g.slowmo > 0.0:
@@ -312,8 +345,42 @@ func after() -> void:
 			_end_fight()
 		if moved:
 			t_walk += STEP
+			var back: float = cell_last.get(Vector2i(int(p.x / 2.0), int(p.y / 2.0)), -1.0)
+			if back >= 0.0 and now - back > 15.0:
+				t_back += STEP
 		else:
 			t_idle += STEP
+	cell_last[Vector2i(int(p.x / 2.0), int(p.y / 2.0))] = now
+	_lost(now, hot)
+
+
+## The audit's lost: read off Game.route as it stands (never walked here: the
+## bot's own asking walks it, as before).
+func _lost(now: float, hot: bool) -> void:
+	var hound: Object = g.features.get("hound")
+	if hound != null and bool(hound.get("on")):
+		var d: Object = hound.call("dog_of", g.player)
+		if d != null and int(d.get("job")) == 8 and int(d.get("state")) == 0:
+			t_lead += STEP
+	var goal: Variant = g.objective_target()
+	if goal == null or g.route == null:
+		return
+	var at: Vector2 = goal
+	var steps := g.route.distance(g.player.x, g.player.y, g.world.stand(g.player))
+	if at.distance_to(lost_goal) > .5:
+		lost_goal = at
+		lost_best = steps
+		lost_at = now
+		lost_in = false
+	elif steps < lost_best or hot:
+		lost_best = mini(lost_best, steps)
+		lost_at = now
+		lost_in = false
+	elif now - lost_at > 30.0:
+		if not lost_in:
+			lost_in = true
+			lost_n += 1
+		lost_s += STEP
 
 
 ## Hit ticks: a hostile's health went down while the player had fired lately.
@@ -395,6 +462,10 @@ func finish(row: Dictionary, outcome: String) -> void:
 	row["flow"] = {
 		"fight": snappedf(t_fight, .1),
 		"walk": snappedf(t_walk, .1),
+		"lost30_n": lost_n,
+		"lost30_s": snappedf(lost_s, .1),
+		"backtrack": snappedf(t_back, .1),
+		"lead": snappedf(t_lead, .1),
 		"idle": snappedf(t_idle, .1),
 		"dry": snappedf(t_dry, .1),
 		"melee_hot": snappedf(t_melee, .1),
@@ -403,6 +474,9 @@ func finish(row: Dictionary, outcome: String) -> void:
 		"longest_calm": snappedf(maxf(longest_calm, secs - last_fight), .1),
 		"music_fight": snappedf(music_on, .1),
 		"music_flips": music_flips,
+		"music_levels": music_levels.map(func(v): return snappedf(v, .1)),
+		"raging": snappedf(raging, .1),
+		"rampages": _rampages(),
 		"held": snappedf(held, .1),
 		"slowmo": snappedf(slow, .1),
 	}

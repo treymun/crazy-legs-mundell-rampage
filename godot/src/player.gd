@@ -25,6 +25,13 @@ var jump_held := false
 var vx := 0.0
 var vy := 0.0
 var crouched := false
+## The slide (src/moves.gd, pass 15): seconds of it left (0: none), the way
+## it goes (a unit vector), the speed it started at, and the seconds before
+## another may start. Carried like the rest; never saved (a load stands).
+var slide := 0.0
+var slide_dir := Vector2.ZERO
+var slide_top := 0.0
+var slide_rest := 0.0
 ## Climbing (src/climbing.gd): the level's ladder it is on (-1 none), and a
 ## move under way (a pull-up onto a ledge, a step on or off a ladder's top)
 ## from climb_from to climb_to over climb_time seconds, climb_t of them gone,

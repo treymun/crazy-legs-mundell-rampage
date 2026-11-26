@@ -33,13 +33,14 @@ const PAD := {
 	"reload": "X",
 	"jump": "A",
 	"crouch": "B",
-	"prev_weapon": "LB",
+	"prev_weapon": "D-PAD DOWN",
 	"next_weapon": "RB",
+	"kick": "R3",
+	"throw": "LB",
 	"run": "L3",
 	"map": "BACK",
 	"whistle": "HOLD BACK",
 	"flashlight": "R3",
-	"use_item": "D-PAD DOWN",
 }
 ## Touch buttons by play action (touch_controls.gd).
 const TOUCH := {
@@ -52,6 +53,8 @@ const TOUCH := {
 	"map": "MAP",
 	"whistle": "WHISTLE",
 	"flashlight": "LIGHT",
+	"kick": "KICK",
+	"throw": "THROW",
 }
 ## Mouse buttons for the actions the mouse does on a keyboard.
 const MOUSE := {"fire": "LEFT CLICK", "alt": "RIGHT CLICK"}
@@ -78,7 +81,10 @@ const TIPS := {
 		"touch": "THE ARROW UP TOP POINTS THE WAY, THE NUMBER'S STEPS LEFT. TAP MAP FOR THE MAP.",
 	},
 	"finish": {"all": "HE'S REELIN'! GET UP CLOSE AND {use} FINISHES HIM."},
-	"kick": {"all": "UP CLOSE, {use} PUTS THE BOOT TO HIM. KICK HIM INTO SOMETHIN' MEAN."},
+	"kick":
+	{
+		"all": "UP CLOSE, {kick} (OR {use}) PUTS THE BOOT TO HIM. KICK HIM INTO SOMETHIN' MEAN.",
+	},
 	"locked":
 	{
 		"all": "LOCKED TIGHT. THE ARROW LEADS TO ITS KEY; KEYS YOU CARRY SHOW UNDER KEYS.",
@@ -126,7 +132,7 @@ const TIPS := {
 	{
 		"keys":
 		"FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. {next_item} PICKS ONE, {use_item} HAS IT.",
-		"pad": "FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. {use_item} HAS THE PICKED ONE.",
+		"pad": "FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. THE D-PAD HAS ONE.",
 		"touch": "FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. TAP ONE TO HAVE IT.",
 	},
 	"scrap": {"all": "SCRAP! THE JUNK BENCH NEAR EVERY CHAPTER'S START TRADES IT FOR GUN MODS."},
@@ -146,6 +152,8 @@ const TIPS := {
 		"all":
 		"A LITTLE DRINK TAKES THE EDGE OFF HITS. TOO MUCH AND THE WORLD WOBBLES. IT WEARS OFF.",
 	},
+	# Pass 15: BLUE leading the way (src/hound_lead.gd).
+	"lead": {"all": "BLUE'LL SHOW YA. FOLLOW HIM."},
 }
 const ORDER := [
 	"fire",
@@ -167,6 +175,7 @@ const ORDER := [
 	"badge",
 	"gut",
 	"drunk",
+	"lead",
 ]
 ## Tips that wait out a fight (no hand after the player in sight).
 const QUIET := ["hound", "guns", "pockets", "scrap", "badge", "bench", "carry"]
@@ -181,14 +190,26 @@ const SPOKEN := ["hound", "carry", "ride", "bench", "locked"]
 
 static var taught := {}
 static var _loaded := false
-## Where the taught tips are kept (tools point it at a scratch file).
-static var file := FILE
+## Where the taught tips are kept: "" for the run's own (path()); tools may
+## point it at a scratch file of their own.
+static var file := ""
 ## The last tip shown and its id (tools/onboard_walk.gd reads them).
 static var last_shown := ""
 static var last_id := ""
 ## What the costlier moments looked like at the last scan, and when.
 static var _scan_at := -1.0
 static var _seen := {}
+
+
+## The file in use: `file`, else FILE, but a tool run (a SceneTree script)
+## keeps its tips under the cache folder, never in a player's profile.
+static func path() -> String:
+	if file != "":
+		return file
+	var loop := Engine.get_main_loop()
+	if loop != null and loop.get_script() != null:
+		return OS.get_cache_dir().path_join("clmr-lessons.json")
+	return FILE
 
 
 ## A brand-new profile's slate (tools): nothing taught, nothing read from disk.
@@ -204,8 +225,8 @@ static func forget() -> void:
 ## Every tip shown again from the next one (nothing kept on disk).
 static func reset() -> void:
 	forget()
-	if FileAccess.file_exists(file):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
+	if FileAccess.file_exists(path()):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path()))
 
 
 static func tick(game: Game) -> void:
@@ -227,7 +248,7 @@ static func tick(game: Game) -> void:
 	if not _loaded:
 		_loaded = true
 		# A new profile has no file: parsing "" would print an error.
-		var text := FileAccess.get_file_as_string(file) if FileAccess.file_exists(file) else ""
+		var text := FileAccess.get_file_as_string(path()) if FileAccess.file_exists(path()) else ""
 		var parsed: Variant = JSON.parse_string(text) if text != "" else null
 		taught = parsed if parsed is Dictionary else {}
 	if game.clock < _scan_at or game.clock - _scan_at >= SCAN:
@@ -295,6 +316,8 @@ static func _due(game: Game, id: String) -> bool:
 			return p.gut >= 66.0
 		"drunk":
 			return p.drunk >= 38.0
+		"lead":
+			return _dog_job(game) == Game.HoundScript.LEAD
 	return false
 
 
@@ -371,7 +394,7 @@ static func _teach(game: Game, id: String) -> void:
 	game.tip_until = game.clock + _shown_for(game)
 	if SPOKEN.has(id):
 		game.barks.say(game, "tip_" + id, true)
-	var out := FileAccess.open(file, FileAccess.WRITE)
+	var out := FileAccess.open(path(), FileAccess.WRITE)
 	if out != null:
 		out.store_string(JSON.stringify(taught))
 
@@ -396,6 +419,13 @@ static func _dog_health(game: Game) -> float:
 		return -1.0
 	var d: Game.HoundScript.Dog = hound.dog_of(game.player)
 	return d.health if d != null else -1.0
+
+
+## BLUE's job beside the player (Hound.JOBS), -1 when he is not along.
+static func _dog_job(game: Game) -> int:
+	var hound: Game.HoundScript = game.features.get("hound")
+	var d: Game.HoundScript.Dog = hound.dog_of(game.player) if hound != null else null
+	return d.job if d != null and d.state == Game.HoundScript.FOLLOW else -1
 
 
 static func _has_food(game: Game) -> bool:

@@ -68,6 +68,8 @@ const SKIP_FIELDS := {
 		"_barrels"
 	],
 	"stills": ["_cfg", "_images"],
+	# What this machine announced of each player's RAMPAGE (features/rampage.gd).
+	"rampage": ["_said"],
 	# The set pieces as the level makes them, and this machine's looks.
 	"set_pieces":
 	[
@@ -105,7 +107,8 @@ const SKIP_FIELDS := {
 		"_danger",
 		"_bosses",
 		"_bosses_of",
-		"_field"
+		"_field",
+		"_lead"
 	],
 	"events": ["_body", "_n"],
 	# The arena lights this machine's player is near (looks: each machine its own).

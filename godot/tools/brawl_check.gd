@@ -504,7 +504,7 @@ static func _door(main, check: Callable) -> void:
 	var b := brawl(g)
 	var done := false
 	for door: LevelData.Door in g.world.doors:
-		if door.opened or door.key != "" or door.secret or door.blast_only:
+		if door.opened or door.key != "" or door.secret or door.blast_only or door.bar_side != 0:
 			continue
 		var c := door.center()
 		for side in [-1.0, 1.0]:

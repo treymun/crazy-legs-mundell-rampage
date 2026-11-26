@@ -176,6 +176,13 @@ static func build() -> Array:
 					"RED MARKS AT THE EDGE POINT AT WHAT HIT YOU, AMBER AT A VARMINT WINDING UP"
 				),
 				SessionStore.choices(
+					"ENEMY RIM",
+					"enemy_rim",
+					1,
+					["OFF", "SOFT", "BOLD"],
+					"A WARM EDGE ROUND A VARMINT THAT'S SEEN YOU. NEEDS LIGHTS AND GLOW"
+				),
+				SessionStore.choices(
 					"WEAPON POSITION",
 					"weapon_view",
 					0,
@@ -446,11 +453,12 @@ static func build() -> Array:
 					["STANDARD", "SCARCE", "NO DROPS"],
 					"NEW RUNS ONLY. SCARCE CUTS BOXES. NO DROPS REMOVES BASIC FOE AMMO."
 				),
-				SessionStore.toggle(
-					"CLASSIC LEVEL FLOW",
-					"classic",
+				SessionStore.choices(
+					"BETWEEN CHAPTERS",
+					"between",
 					0,
-					"SKIP THE CROSSROADS. GO STRAIGHT TO THE NEXT CHAPTER."
+					["STRAIGHT ON", "THE CROSSROADS"],
+					"WHERE THE TAP AFTER A CHAPTER GOES. THE CARD OFFERS THE OTHER WAY TOO"
 				),
 				SessionStore.choices(
 					"AIM ASSIST",

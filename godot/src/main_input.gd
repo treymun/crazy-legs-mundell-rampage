@@ -334,8 +334,7 @@ func _key_play(code: int) -> void:
 		elif code == KEY_SPACE or code == KEY_E:
 			TacticalScreens.watch_next = true  # the next one up (main.gd)
 	elif target.showing_tally:
-		if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
-			continue_campaign()
+		_key_tally(target, code)
 	elif target.defeated():
 		var enter := code == KEY_ENTER or code == KEY_KP_ENTER
 		if in_rematch():
@@ -383,6 +382,10 @@ func _key_play(code: int) -> void:
 			target.map = not target.map
 	elif code == KEY_R:
 		act(target, ["reload"])
+	elif code == KEY_K:
+		act(target, ["kick"])  # KICK (pass 15): the boot alone
+	elif code == KEY_N:
+		act(target, ["throw"])  # THROW (pass 15): a stick from whatever gun is up
 	elif (code == KEY_H or code == KEY_SCROLLLOCK) and target.armory.fuse <= 0.0:
 		act(target, ["holster"])
 	elif code >= KEY_1 and code <= KEY_9:
@@ -436,6 +439,30 @@ func _key_play(code: int) -> void:
 		act(target, ["torch"])
 	elif code == KEY_Y:
 		sound.play("yee_haw")
+
+
+## A won chapter's card (pass 15): ENTER or SPACE the one tap's way on, the
+## MAP key the other, the RELOAD key TRY TO BEAT IT (main_flow.gd take_road).
+func _key_tally(target: Game, code: int) -> void:
+	if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
+		_tally_pick(target, BetweenChapters.GO)
+	elif code == KEY_TAB:
+		_tally_pick(target, BetweenChapters.OTHER)
+	elif code == KEY_R:
+		_tally_pick(target, BetweenChapters.AGAIN)
+
+
+## A way on picked on the card by a key, button, click or tap: while its rows
+## still come down it puts them all down instead, and a press in the moment
+## the chapter is won (fire or USE still being hammered) does nothing.
+## Online the lobby's keys have it (online_input.gd).
+func _tally_pick(target: Game, slot: int) -> void:
+	var show: TallyFeature = target.features.get("tally")
+	if net != null or (show != null and not show.taking_keys()):
+		return
+	if show != null and show.hurry():
+		return
+	take_road(target, slot)
 
 
 # ------------------------------------------------------------------- input
@@ -624,6 +651,19 @@ func _input(event: InputEvent) -> void:
 			key(KEY_ESCAPE)  # the mouse's back button goes back on every menu
 			return
 		if (
+			state == "play"
+			and game != null
+			and not game.showing_tally
+			and not game.defeated()
+			and (
+				button.button_index == MOUSE_BUTTON_XBUTTON1
+				or button.button_index == MOUSE_BUTTON_XBUTTON2
+			)
+		):
+			# The side buttons in play (pass 15): back KICK, front THROW.
+			key(KEY_K if button.button_index == MOUSE_BUTTON_XBUTTON1 else KEY_N)
+			return
+		if (
 			button.button_index == MOUSE_BUTTON_WHEEL_UP
 			or button.button_index == MOUSE_BUTTON_WHEEL_DOWN
 		):
@@ -675,6 +715,14 @@ func _input(event: InputEvent) -> void:
 		elif CountyScreens.covering(game) and button.button_index == MOUSE_BUTTON_LEFT:
 			CountyInput.tap(self, picture_point(button.position))  # a COUNTY RUN card or button
 			block_fire = true
+		elif (
+			game != null
+			and game.showing_tally
+			and button.button_index == MOUSE_BUTTON_LEFT
+			and TallyCard.plate_at(game, picture_point(button.position)) >= 0
+		):
+			# A won chapter's card: a click on a plate takes its way on.
+			_tally_pick(game, TallyCard.plate_at(game, picture_point(button.position)))
 		elif (
 			state == "play"
 			and button.button_index == MOUSE_BUTTON_MIDDLE
@@ -954,11 +1002,8 @@ func read_pad(dt: float) -> Dictionary:
 		"strafe": strafe,
 		"turn": turn,
 		"look": look,
-		"run":
-		(
-			Input.is_joy_button_pressed(device, JOY_BUTTON_LEFT_STICK)
-			or (Input.is_joy_button_pressed(device, JOY_BUTTON_RIGHT_STICK) and not has_torch())
-		),
+		# L3 runs; R3 kicks (pass 15: it ran too, as L3, without a flashlight).
+		"run": Input.is_joy_button_pressed(device, JOY_BUTTON_LEFT_STICK),
 		"fire": trigger_right > 0.5,
 		"alt": trigger_left > 0.5,
 		"jump": Input.is_joy_button_pressed(device, JOY_BUTTON_A),
@@ -967,14 +1012,16 @@ func read_pad(dt: float) -> Dictionary:
 
 
 ## The pad's buttons in play beyond _pad_bindings: R3 works the flashlight
-## while there is one (else it runs, as L3); BACK tapped opens the map on its
-## release, held PAD_WHISTLE_HOLD it whistles for BLUE instead.
+## while there is one, else it kicks (KICK, pass 15); BACK tapped opens the
+## map on its release, held PAD_WHISTLE_HOLD it whistles for BLUE instead.
 func _pad_play_extras(device: int, pressed: Dictionary, dt: float) -> void:
 	if game.showing_tally or game.defeated():
 		pad_back_held = -1.0
+		if game.showing_tally and pressed.has(JOY_BUTTON_Y):
+			key(KEY_TAB)  # the card's other way on (A the one tap's, X TRY TO BEAT IT)
 		return
-	if pressed.has(JOY_BUTTON_RIGHT_STICK) and has_torch():
-		key(KEY_L)
+	if pressed.has(JOY_BUTTON_RIGHT_STICK):
+		key(KEY_L if has_torch() else KEY_K)
 	if Input.is_joy_button_pressed(device, JOY_BUTTON_BACK):
 		if pressed.has(JOY_BUTTON_BACK):
 			pad_back_held = 0.0
@@ -1052,7 +1099,9 @@ func _touch_actions() -> void:
 			photo.next_filter(self, 1)
 		if touch.consume("use"):
 			photo.bare = not photo.bare
-		for role: String in ["rinds", "beer", "shine", "map", "photo", "torch", "whistle"]:
+		for role: String in [
+			"rinds", "beer", "shine", "map", "photo", "torch", "whistle", "kick", "throw"
+		]:
 			touch.consume(role)
 		touch.consume_tap()
 		return
@@ -1067,6 +1116,10 @@ func _touch_actions() -> void:
 		key(KEY_E)
 	if touch.consume("next") and not game.in_hub:
 		act(game, ["cycle", 1])
+	if touch.consume("kick"):
+		key(KEY_K)  # KICK (pass 15)
+	if touch.consume("throw"):
+		key(KEY_N)  # THROW (pass 15)
 	for pair: Array in [["rinds", KEY_C], ["beer", KEY_B], ["shine", KEY_M]]:
 		if touch.consume(str(pair[0])) and state == "play":
 			var bound: int = pair[1]
@@ -1085,8 +1138,9 @@ func _touch_actions() -> void:
 	var tap_at: Vector2 = Vector2.ZERO if tapped == null else tapped
 	if tapped != null and state == "play" and net != null:
 		var hit := LobbyScreens.zone_at(picture_point(tap_at))
-		if not hit.is_empty() and str(hit[0]) in ["yes", "no", "lobby_now"]:
-			key(KEY_ESCAPE if str(hit[0]) == "no" else KEY_ENTER)
+		if not hit.is_empty() and str(hit[0]) in ["yes", "no", "lobby_now", "lobby_other"]:
+			var answer: int = {"no": KEY_ESCAPE, "lobby_other": KEY_TAB}.get(str(hit[0]), KEY_ENTER)
+			key(answer)
 			tapped = null
 	if tapped != null and state == "play" and game != null and Modes.is_tactical(game):
 		if TacticalScreens.tap(game, picture_point(tap_at)):
@@ -1114,9 +1168,12 @@ func _touch_actions() -> void:
 	):
 		# With a boss checkpoint or a trail marker the death screen's second
 		# line (TAP HERE) is the chapter's start, the rest of the screen RETRY
-		# THE FIGHT or BACK TO THE MARKER.
+		# THE FIGHT or BACK TO THE MARKER. A won chapter's card: a plate its
+		# way on, anywhere else the one tap's (tally_card.gd).
 		var lower: bool = picture_point(tap_at).y >= 90
-		if game.defeated() and lower and _picked_up(game):
+		if game.showing_tally and net == null:
+			_tally_pick(game, TallyCard.zone_at(game, picture_point(tap_at)))
+		elif game.defeated() and lower and _picked_up(game):
 			key(KEY_R)
 		else:
 			key(KEY_ENTER)

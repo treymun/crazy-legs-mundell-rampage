@@ -58,9 +58,10 @@ draws the bar on the software canvas as before.
   (`src/vehicle_finder.gd`), on a map that has one; and NEW IRON with the
   little red gun a gun not had yet is marked with once seen
   (`src/gun_finder.gd`).
-- **The chapter tally** (`hud.gd intermission`) has a GUNS row under the
-  secrets in a campaign chapter (its guns had, `GunFinder.tally`); with
-  seven rows they close up to 10 pixels apart.
+- **The chapter tally** (`hud.gd intermission`, the card itself
+  `src/tally_card.gd`) has a GUNS row under the secrets in a campaign
+  chapter (its guns had, `GunFinder.tally`); with eight rows they close up
+  to 10 pixels apart ([the end card](#the-end-card-pass-15)).
 - **Scaling:** the overlay is the 320x200 picture (WIDE: as many columns as
   the screen's shape asks), scaled to the window by the display shader with
   crisp pixels (INTEGER 8:5 keeps every pixel the same size) inside the
@@ -124,6 +125,21 @@ inks past the margins, or an expected piece is missing; `png=<dir>` writes
 each moment's canvas with the rects outlined. `tools/hud_frames.gd` pictures
 every menu and the same moments in a window.
 
+**The RAMPAGE meter** (pass 15, `HUD.rampage_meter`, called at the end of
+`HUD.draw` so it lies over the status bar with or without the HUD's
+Controls): thirteen lamps (`FUSE_*`) along the foot of the health box,
+under its well, red to orange to yellow like the gut's, lit as the local
+player's meter fills (`Rampage.meter_of`) and drawn only while there is
+anything on it; on a RAMPAGE they run down with the time left, flashing hot,
+and a dark red plate burns RAMPAGE over the box's HEALTH caption. They keep
+the picture's left edge with the bar's left part in ASPECT WIDE
+(`c.anchor(-View.shift)`); with the touch buttons up they sit under the
+move stick's ring, as the health does. On a RAMPAGE the view's edges burn
+(`src/rampage_looks.gd`, from the feature's `draw_view`, under the gun and
+every banner): tongues of fire in the 1997 palette, dithered at the tips,
+flaring as it begins and guttering in its last `GUTTER` share.
+`tools/rampage_frames.gd` pictures both ([gameplay.md](gameplay.md#rampage-pass-15)).
+
 **DANGER ARROWS** (DISPLAY, pass 15, `src/danger_marks.gd`): red chevrons at
 the view's edge toward each blow, amber ones toward a hand winding up off
 the view, drawn where the hurt arc went, under every banner, each slid in
@@ -133,6 +149,11 @@ out) or left off when there is no clear spot; in WIDE they sit on the
 picture's own edges. The hazard brackets and the boot's skull under the
 crosshair draw at the same moment, whatever the setting. Detail:
 [gameplay.md](gameplay.md#reading-danger-pass-15).
+
+**ENEMY RIM** (DISPLAY, pass 15, `enemy_rim`: OFF, SOFT the default, BOLD;
+`ActorRim.mode`, set in `game_world.gd configure`): the warm edge round a
+hand that has seen you ([view3d.md](view3d.md#looks-that-read-pass-15)).
+Needs LIGHTS AND GLOW.
 
 A new HUD piece: take its rect in `hud_fixed`/`hud_flow`/`hud_late` (or in
 `_lay_hud` for play's own), draw it at `find(name)` between `begin`/`end`,
@@ -283,7 +304,8 @@ What each v3.6.0 screen and feature takes from a finger (`src/touch_controls.gd`
 | What | By touch |
 | --- | --- |
 | The junk bench's board | USE at the bench opens it; a tag tapped buys it, a tap off it (or USE, or MENU) shuts it; the stick picks and FIRE buys, as the keys do |
-| Finishers, the boot, a door kicked in | the USE button (USE's own) |
+| Finishers, the boot, a door kicked in | the USE button (USE's own), or KICK (pass 15: the boot alone) |
+| A stick of dynamite from any gun | THROW (pass 15) |
 | Holding USE: a partner's revive, BLUE got up, a 5v5 plant or defuse | the USE button held down (`state()["hold"]` -> `Controls.hold`; before pass 9 a finger could not hold USE at all) |
 | The county radio | nothing to press: it plays and captions by itself |
 | BLUE's commands | a tap on his badge whistles (SIC 'EM, FETCH, STAY, COME by what the sights are on) |
@@ -295,6 +317,14 @@ The buttons: the top row stands 9% of the width apart, so on a phone held
 upright (a browser) its rings shrink to fit (`TouchControls.layout`, pass
 14: they overlapped). MOVE THEM keeps the places in `user://touch-layout.json`,
 never written by a tool.
+
+KICK and THROW (pass 15) sit by USE (.60, .66) and right of DUCK (.94,
+.43), each with its picture over its word (`tools/art/build_touch_glyphs.gd`);
+on the keyboard they are K and N (the KEYS page, `KeyBindings.ACTIONS`) and
+the mouse's back and front side buttons; on a pad R3 kicks (it lights the
+flashlight in a blackout, as before) and LB throws, so previous weapon moved
+to the D-pad down (it used the last pocket item again) and R3 no longer runs
+(L3 does).
 
 Not checked by hand: none of it has been tried on a real phone.
 
@@ -310,6 +340,51 @@ key's name), X or a tap on the second line (`TAP HERE`, picture rows 90 and
 down) the chapter's start; F9 loads, ESC or B the title. Online the host
 picks (`net_coop.gd retry`) and a client reads THE HOST PICKS WHAT COMES
 NEXT. `touch_screens_check` taps both halves.
+
+## The end card (pass 15)
+
+A won chapter's card (`src/tally_card.gd`, drawn by `hud.gd intermission`
+over the title backdrop; the show is `features/tally.gd`, the ways on
+`src/between_chapters.gd`, [gameplay.md](gameplay.md#between-chapters-pass-15)):
+
+- **The panel**: the heading, then the rows: VARMINTS, SECRETS, GUNS, TIME,
+  PAR (the chapter's `modes.cfg [par]`, with `m:ss UNDER` in amber or
+  `m:ss OVER` in red beside it) and up to three of the features' rows.
+  `GAPS` by row count (18 down to 10 at eight rows); the chapter's last word
+  goes under the rows and rises to stay above row 183. The bests sit in a
+  `mini` column right-aligned at column 146 beside the number they stand
+  for (`BEST 41`, `BEST 03:58`, or `NEW BEST` in amber); ON NORMAL (the
+  difficulty they were kept at) on the title's line when it has room.
+  Nothing beside the rows on a first run, in co-op or with cheats.
+- **The show**: the rows thud down 260 ms apart (380 before), the ribbon
+  (`ribbon()`: kills, secrets, aim and the pace against par), then NEW BEST
+  stamped on in two lines over the ribbon's top with `stamp_thud` and
+  `yee_haw` when a best fell. Any key, button or tap while the rows come
+  down puts them all down (`hurry()`, one thud); nothing is taken in the
+  first 600 ms after the win (`KEY_WAIT`), so fire or USE hammered as the
+  chapter ends cannot throw the card away.
+- **The plates**: the ways on, nailed up right of the panel under the
+  ribbon (`PLATE_TOPS` 118, 141, 164), the one tap's lit: its key word in
+  the device's words over what it does. Slots: the one tap's (ENTER or
+  SPACE, A, a tap anywhere off the plates), the other way (the MAP key's
+  name, Y, its plate), TRY TO BEAT IT (the RELOAD key's name, X, its plate).
+  A mouse click on a plate takes it; a click elsewhere does nothing. With
+  no ways of its own (a player's map, the finale) the card shows the one
+  plate it always had.
+- **Touch**: the touch buttons step aside while the card is up offline
+  (`TallyCard.up`, `main_state.gd _apply_view`); the left half (anywhere off
+  the plates) is the one tap's, THE CROSSROADS plate on the right half the
+  other.
+- **Online co-op**: no plates; the lobby's line (`lobby_screens.gd
+  draw_match`) gives the host two buttons, `ENTER  ROLL ON, Y'ALL` (straight
+  on) and `TAB  THE CROSSROADS`, in BETWEEN CHAPTERS' order; a client reads
+  THE HOST TAKES THE PARTY ON.
+
+`road_check` holds every row count with every chapter's last word, the
+bests' column against the widest numbers, the plates and the stamp to the
+panel and the picture, in the 7-pixel letters and SMALL TEXT;
+`tools/hud_frames.gd -- only=tally` takes its pictures (`tally_card_<n>`:
+keys, pad, touch with its buttons, SMALL TEXT).
 
 ## Rumble's settings (pass 14)
 

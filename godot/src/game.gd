@@ -521,48 +521,18 @@ func _walk(p: Player, controls: Controls, dt: float) -> bool:
 	var forward: float = controls.forward
 	var strafe: float = controls.strafe + (sin(clock * 4.0) * .39 if p.drunk > 82.0 else 0.0)
 	var magnitude := maxf(1.0, sqrt(forward * forward + strafe * strafe))
-	var speed: float = (
-		(3.85 if controls.running else 2.75) * (1.42 if p.sprint else 1.0) / magnitude
-	)
+	var speed: float = Moves.speed_of(controls.running, p.sprint > 0.0, magnitude)
 	speed *= 1.0 - maxf(0.0, p.gut - 65.0) * .004 - maxf(0.0, p.drunk - 70.0) * .004
 	speed *= Modes.move_scale(self, p) * Mud.pace(self, p.x, p.y)
+	speed *= Rampage.pace(self, p)
 	if world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)])) == "water":
-		speed *= .69
-	p.crouched = controls.crouch and p.air <= .01
-	if p.crouched:
-		speed *= .51
-	if p.knocked > 0.0:
-		speed = 0.0
-	var vx := cos(p.view_angle())
-	var vy := sin(p.view_angle())
-	var ox := p.x
-	var oy := p.y
-	var response := (
-		1.0 - exp(-dt * (7.0 if p.air else 23.0 if forward != 0.0 or strafe != 0.0 else 30.0))
-	)
-	p.vx += (speed * (forward * vx - strafe * vy) - p.vx) * response
-	p.vy += (speed * (forward * vy + strafe * vx) - p.vy) * response
-	move_actor(p, p.vx * dt, p.vy * dt, PLAYER_RADIUS)
-	if p.x == ox and absf(p.vx) > .02:
-		p.vx = 0.0
-	if p.y == oy and absf(p.vy) > .02:
-		p.vy = 0.0
-	if (
-		controls.jump
-		and not p.jump_held
-		and p.air == 0.0
-		and not controls.crouch
-		and p.knocked <= 0.0
-	):
-		p.vertical_speed = 2.7
-	p.jump_held = controls.jump
-	var landed := false
-	if p.air > 0.0 or p.vertical_speed > 0.0:
-		p.air = maxf(0.0, p.air + p.vertical_speed * dt)
-		p.vertical_speed -= dt * 9.2
-		if p.air == 0.0:
-			p.vertical_speed = 0.0
-			landed = true
+		speed *= Moves.WATER
+	# The rest (crouch, the slide, the ease, walls, the jump and the fall):
+	# src/moves.gd, which an online client's prediction plays too.
+	var sliding := p.slide > 0.0
+	var landed := Moves.body(self, p, controls, speed, forward, strafe, p.knocked > 0.0, dt)
+	if not sliding and p.slide > 0.0:
+		sound.play("slide_scuff", .62)
 	return landed
 
 
@@ -783,6 +753,10 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	if controls.use and not p.use_held:
 		interact()
 	p.use_held = controls.use
+	if controls.kick:
+		quick_kick()
+	if controls.throw:
+		quick_throw()
 	p.holding = controls.use or controls.hold
 	# reaches_pickup()'s first test written out: most ticks nothing is near.
 	var near := false
@@ -857,6 +831,35 @@ func interact() -> void:
 	):
 		return
 	super()
+
+
+## KICK (pass 15): the boot that USE puts in a man in front (a finisher, a
+## boot, a door run at kicked in: features/brawl.gd boot), never USE's other
+## answers, and with nobody there the boot all the same, into the air.
+func quick_kick() -> void:
+	var brawl: BrawlScript = features.get("brawl")
+	if brawl != null and boss_hold <= 0.0 and not showing_tally and player.health > 0:
+		brawl.boot(player)
+
+
+## THROW (pass 15): a stick of dynamite lit and thrown from whatever gun is
+## up (Weapons.Armory.quick_throw), the acting player's; not with the hands
+## full (a boot or a finisher, something carried, a wheel, the gallery's gun).
+func quick_throw() -> void:
+	if in_hub or showing_tally or player.health <= 0 or boss_hold > 0.0:
+		return
+	var brawl: BrawlScript = features.get("brawl")
+	if brawl != null and brawl.allowed() and brawl.busy(player):
+		return
+	var carry: CarryScript = features.get("carry")
+	if carry != null and carry.held_by(player) >= 0:
+		return
+	var rides: VehiclesScript = features.get("vehicles")
+	if rides != null and rides.hands_busy(player):
+		return
+	if gallery != null and gallery.active and gallery.slot == player.slot:
+		return
+	armory.quick_throw(self)
 
 
 func use_prompt() -> String:

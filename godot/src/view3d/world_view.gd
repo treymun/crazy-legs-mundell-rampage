@@ -489,7 +489,11 @@ func _title_pieces() -> Array[Callable]:
 	plain.append_array(_twister_materials)
 	for sheet: MeshInstance3D in _rain:
 		plain.append(sheet.material_override as ShaderMaterial)
-	for shader: Shader in [props._shader, wrecks._shader, cab._shader, actors.models._shader]:
+	# (ActorRim.SHADER: the awake hands' edge pass, pass 15, hung as a next pass.)
+	var shaders: Array[Shader] = [
+		props._shader, wrecks._shader, cab._shader, actors.models._shader, ActorRim.SHADER
+	]
+	for shader: Shader in shaders:
 		var m := ShaderMaterial.new()
 		m.shader = shader
 		plain.append(m)

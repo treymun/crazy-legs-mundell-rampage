@@ -332,6 +332,7 @@ const SIM_FEATURES := [
 	"bench",
 	"events",
 	"director",
+	"rampage",
 ]
 ## Features that only look or sound (their own dice; never carried).
 const LOOKS_FEATURES := [
@@ -365,6 +366,7 @@ const LOOKS_FEATURES := [
 	"rumble",
 	"trail_marker",
 	"danger_looks",
+	"hurt_looks",
 ]
 
 

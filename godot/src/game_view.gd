@@ -368,8 +368,9 @@ func sprites() -> Array:
 			sprites.append(sprite)
 		else:
 			sprite_pool_n -= 1
-	# A pickup bobs (looks only); EASY ON THE EYES calms it (STILL: none).
-	var bob: float = [.035, .014, 0.0][clampi(view.world_motion, 0, 2)]
+	# A pickup bobs and glints (looks only, PickupLooks); EASY ON THE EYES
+	# calms it (STILL: no bob).
+	var bob := PickupLooks.bob(view.world_motion)
 	for entry: Array in pickups:
 		var x: float = entry[1]
 		var y: float = entry[2]
@@ -393,6 +394,7 @@ func sprites() -> Array:
 		var hover := .06 + sin(clock * 3.5 + x) * bob
 		var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
 		sprites.append(pooled(x, y, "item_" + str(entry[0]), .33, lies + hover))
+		PickupLooks.glint(self, entry, x, y, lies + hover + .24, player, sprites)
 	for shot: Shot in shots:
 		if (
 			shot.enemy

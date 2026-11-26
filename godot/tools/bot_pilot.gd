@@ -282,7 +282,7 @@ static func strike_target(game: Game, goal: Vector2) -> LevelData.Scenery:
 static func door_ahead(game: Game) -> LevelData.Door:
 	var p := game.player
 	for door: LevelData.Door in game.world.doors:
-		if door.opened or door.secret or door.blast_only:
+		if door.opened or door.secret or door.blast_only or door.barred_from(p.x, p.y):
 			continue
 		if door.key != "" and not game.keys.has(door.key):
 			continue

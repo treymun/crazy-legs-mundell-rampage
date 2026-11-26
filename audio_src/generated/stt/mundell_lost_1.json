@@ -1,0 +1,25 @@
+{
+ "text": "Follow the hound, dummy.",
+ "words": [
+  {
+   "text": "Follow",
+   "start": 0.04,
+   "end": 0.44
+  },
+  {
+   "text": "the",
+   "start": 0.5,
+   "end": 0.6
+  },
+  {
+   "text": "hound,",
+   "start": 0.68,
+   "end": 1.08
+  },
+  {
+   "text": "dummy.",
+   "start": 1.2,
+   "end": 1.62
+  }
+ ]
+}

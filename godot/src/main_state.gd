@@ -25,14 +25,14 @@ const TITLE := "Crazy Legs Mundell Rampage | The Hickston Incident"
 ## by ControlsScreen.rows_of().
 const CONTROL_ROWS := [
 	["{forward}{strafe_left}{back}{strafe_right} / MOUSE", "MOVE / AIM"],
-	["{run} / {jump} / {crouch}", "RUN / JUMP / CROUCH"],
+	["{run} / {jump} / {crouch}", "RUN / JUMP / CROUCH, SLIDE"],
 	["MOUSE 1 / 2", "FIRE / THE GUN'S OTHER FIRE"],
 	["1-9 0 - = / WHEEL", "PICK A GUN / NEXT GUN"],
 	["{reload} / 8 + HOLD", "RELOAD / LIGHT TNT, LET GO"],
 	["{use} / SPACE / MMB", "USE: OPEN, TOTE, BOOT"],
 	["TOTING: MOUSE 1/2", "CHUCK IT / SET IT DOWN"],
-	["{next_item} / {use_item}", "PICK AN ITEM / HAVE IT"],
-	["C / B / M", "RINDS / BEER / MOONSHINE"],
+	["{kick} / {throw}", "KICK / THROW A STICK"],
+	["{next_item} {use_item} / C B M", "ITEMS / RINDS, BEER, SHINE"],
 	["{whistle} / {flashlight}", "WHISTLE FOR BLUE / FLASHLIGHT"],
 	["{map} / F5 F6 F9", "MAP / SLOTS, SAVE, LOAD"],
 ]
@@ -42,10 +42,10 @@ const PAD_ROWS := [
 	["LEFT TRIGGER", "WEAPON ALT FIRE"],
 	["A / B", "JUMP / CROUCH"],
 	["X / Y", "RELOAD / USE, TOTE, BOOT"],
-	["BUMPERS", "PREVIOUS / NEXT WEAPON"],
-	["L3 / R3 STICK CLICK", "RUN / FLASHLIGHT"],
+	["LB / RB", "THROW A STICK / NEXT WEAPON"],
+	["L3 / R3 STICK CLICK", "RUN / KICK (BLACKOUT: LIGHT)"],
 	["D-PAD UP LEFT RIGHT", "RINDS / BEER / MOONSHINE"],
-	["D-PAD DOWN", "USE THE PICKED ITEM"],
+	["D-PAD DOWN", "PREVIOUS WEAPON"],
 	["START / BACK", "PAUSE / MAP"],
 	["HOLD BACK", "WHISTLE FOR BLUE"],
 ]
@@ -54,6 +54,7 @@ const TOUCH_ROWS := [
 	["DRAG RIGHT HALF", "AIM"],
 	["FIRE / ALT", "FIRE / WEAPON ALT FIRE"],
 	["USE", "OPEN / TOTE / BOOT"],
+	["KICK / THROW", "BOOT / THROW A STICK"],
 	["NEXT", "NEXT WEAPON"],
 	["JUMP / DUCK", "JUMP / CROUCH"],
 	["RIND BEER SHINE", "EAT OR DRINK"],
@@ -516,7 +517,8 @@ func _apply_view() -> void:
 	view.position = rect.position
 	view.size = rect.size
 	touch.layout(safe_rect())
-	touch.set_showing(state == "play" and not CountyScreens.covering(game))
+	var covered := CountyScreens.covering(game) or TallyCard.up(game)  # their own taps
+	touch.set_showing(state == "play" and not covered)
 
 
 func change_window_mode(mode: int) -> void:
@@ -921,10 +923,11 @@ func _pad_bindings() -> Array:
 				[JOY_BUTTON_B, KEY_ESCAPE],
 				[JOY_BUTTON_X, KEY_R]
 			]
+		# Pass 15: LB throws (THROW), D-pad down the previous weapon, R3 kicks.
 		return [
 			[JOY_BUTTON_X, KEY_R],
 			[JOY_BUTTON_Y, KEY_E],
-			[JOY_BUTTON_LEFT_SHOULDER, KEY_SEMICOLON],
+			[JOY_BUTTON_LEFT_SHOULDER, KEY_N],
 			[JOY_BUTTON_RIGHT_SHOULDER, KEY_APOSTROPHE],
 			[JOY_BUTTON_START, KEY_ESCAPE],
 			# BACK: a tap the map, held the whistle (main_input.gd _pad_back).
@@ -934,7 +937,7 @@ func _pad_bindings() -> Array:
 			[JOY_BUTTON_DPAD_UP, KEY_PAGEUP if game.map else KEY_C],
 			[JOY_BUTTON_DPAD_LEFT, KEY_B],
 			[JOY_BUTTON_DPAD_RIGHT, KEY_M],
-			[JOY_BUTTON_DPAD_DOWN, KEY_PAGEDOWN if game.map else KEY_F]
+			[JOY_BUTTON_DPAD_DOWN, KEY_PAGEDOWN if game.map else KEY_SEMICOLON]
 		]
 	# The menus: the D-pad and the left stick move the cursor and repeat while
 	# held (main_input.gd _pad_menu); Y resets a settings page.
@@ -1029,7 +1032,7 @@ func _look_uniforms() -> void:
 	var playing := gpu_look and game != null and state not in MENU_STATES
 	var look_on := playing and game.look_live
 	var tone_on := playing and game.tone_live
-	palette_material.set_shader_parameter("hurt", game.hurt_alpha if playing else 0)
+	HurtLooks.uniforms(palette_material, game, playing)  # the flash, vignette, drain
 	palette_material.set_shader_parameter("look", look_on)
 	palette_material.set_shader_parameter("tone_on", tone_on)
 	if look_on:

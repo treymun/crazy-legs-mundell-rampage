@@ -376,6 +376,7 @@ func hurt(
 	amount = ShipAliens.soak(self, amount, game as Game, how, explosive_hit, pressure, by)
 	# Head, body, arms or legs, where the player's hit struck (hit_zones.gd).
 	amount *= HitZones.strike(self, game as Game, how, by)
+	amount *= Rampage.might(game as Game, by)
 	var champion := BOSS_TITLES.has(kind)
 	if champion and by == null:
 		# A boss's weak spot (or armour) where the player's hit struck.

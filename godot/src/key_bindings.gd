@@ -24,6 +24,8 @@ const ACTIONS := [
 	["crouch", "CROUCH", KEY_Z, []],
 	["use", "USE", KEY_E, [KEY_SPACE]],
 	["reload", "RELOAD", KEY_R, []],
+	["kick", "KICK", KEY_K, []],
+	["throw", "THROW A STICK", KEY_N, []],
 	["prev_weapon", "PREVIOUS WEAPON", KEY_SEMICOLON, []],
 	["next_weapon", "NEXT WEAPON", KEY_APOSTROPHE, []],
 	["holster", "HOLSTER", KEY_H, [KEY_SCROLLLOCK]],
@@ -44,6 +46,8 @@ const ACTIONS := [
 const HINTS := {
 	"strafe_mode": "HOLD IT AND THE TURN KEYS STEP SIDEWAYS",
 	"fire_key": "FIRES FROM THE KEYBOARD; THE LEFT MOUSE BUTTON ALWAYS FIRES",
+	"kick": "THE BOOT ALONE (THE MOUSE'S BACK SIDE BUTTON TOO)",
+	"throw": "A STICK LIT AND THROWN FROM ANY GUN (MOUSE FRONT SIDE BUTTON)",
 	"holster": "PUTS THE GUN AWAY AND TAKES IT OUT AGAIN",
 	"always_run": "FLIPS ALWAYS RUN ON AND OFF",
 	"whistle": "AIMED AT A VARMINT: SIC 'EM. AT A PICKUP: FETCH. ELSE STAY/COME",

@@ -10,6 +10,7 @@ audio_src/manifest.json for the triggers). An entry is one of:
                          "room"  the indoor tail layered under `base`
                          "event" another hit taken from the same recording
                          "pitch" the same hit retuned
+                         "scuff" a step smeared into a boot's slide
   V(text, voice, fx)     a spoken line; `text` is the caption (`say`: what was sent
                          instead, `heard`: how its transcript spells the words)
 
@@ -1271,6 +1272,7 @@ MUNDELL_HEARD = {
     "mundell_hound_hush_1": "Blue, quit that hollering",
     "mundell_hound_shot_0": "Get out of my sights, Blue",
     "mundell_tip_locked_0": "Lock tight, figures",
+    "mundell_lost_1": "Follow the hound, dummy",
 }
 # Where the voice needs the words spelt as said (BLUE's "sic 'em").
 MUNDELL_SAY = {
@@ -1356,6 +1358,9 @@ add("report",
 add("foot", **{f"step_{floor}_{n + 2}": D(f"step_{floor}_0", "event", event=2 * n + 1, keep=.25, like=f"step_{floor}_{n}",
                                           **({"split": STEP_SPLIT[floor]} if floor in STEP_SPLIT else {}))
                for floor in ("grass", "gravel", "mud", "tile", "water", "wood") for n in range(2)})
+# The player's slide (pass 15, src/moves.gd): a boot scuffing along, smeared
+# from a gravel step (free, audio_build.py scuff).
+add("foot", slide_scuff=D("step_gravel_0", "scuff", event=0, keep=.42, seed=31, level=-20.0))
 add("impact",
     # Played since 2.0 (metal gibs, the tin guards, Jerry's scoreboard, the
     # propane tanks and fuel drums) but never made, so it was silent. Made
@@ -1488,6 +1493,18 @@ BOSSES = [
     ("boss_moonshine", "The Revenue Man Cometh", 170, "Furious dark outlaw country-metal at 170 BPM: a crushing low-tuned twangy guitar riff, a machine-gun snare and double kick rattling like a tommy gun, a screaming harmonica, a fiddle sawing like a siren, booming toms and anvil hits like a still about to blow. Heavy, fast and dangerous."),
     ("boss_mothership", "Maw's Last Supper", 148, "The biggest, heaviest cut on the record: a thundering country-metal riff on detuned twangy baritone guitars, booming toms and anvil hits, a church-organ swell under a screaming theremin lead, a slide guitar howling back at it, the whole band slamming unison stabs. Relentless and epic, a hoedown at the end of the world."),
 ]
+# The fight loops' layers (pass 15): free, made by audio_build.py --layers
+# (scripts/audio_layers.py) from each chapter's finished fight loop, as long
+# as it to the sample; src/score_layers.gd plays them locked to it. pulse_:
+# the loop's drums alone, low-passed (BUILD, in the score's place); peak_: its
+# tune's top, driven a little, laid over the whole loop (PEAK). (name, loop, kind)
+LAYERS = [(f"{kind}_{stem[len('fight_'):]}", stem, kind) for stem, *_ in FIGHTS for kind in ("pulse", "peak")]
+LAYER_SHAPE = {
+    # Quieter than a song (-15): the build-up before the fight's whole band.
+    "pulse": {"lp": 2000, "low": 2.0, "lufs": -18.0, "quality": 1},
+    # The loop and it together `sum_lift` LU louder than the loop alone.
+    "peak": {"hp": 650, "pres": 2.5, "drive": 1.6, "sum_lift": 2.0, "quality": 2},
+}
 # Seconds asked for each loop: the fights and bosses 70, the last boss more.
 LOOP_LENGTH = {"boss_mothership": 90}
 VICTORY = ("victory", "A short celebratory cowpunk victory tune for a score tally screen: jubilant twangy "

@@ -19,11 +19,13 @@
 ## the sheriff's fight begins and the party's boss checkpoint is taken (its
 ## own -party file, the host's own untouched); everyone down, the host's
 ## ENTER retries the fight on every copy (all up at the door, the boss whole);
-## the chapter won, the host's ENTER takes the party to the hub (the fair's
-## gate open, the rest shut, on every copy); a gate taken goes to the fair on
-## every copy with everyone's guns carried; CARL joins late (a new slot),
-## BOB leaves (his slot lies out of play), the host's F5 writes THE PARTY
-## SAVE and the lobby's THE PARTY SAVE starts from it with the people in.
+## the chapter won, the host's MAP key takes the party to the hub, player one
+## at the fair's gate (the fair's gate open, the rest shut, on every copy); a
+## gate taken goes to the fair on every copy with everyone's guns carried;
+## CARL joins late (a new slot), BOB leaves (his slot lies out of play), the
+## host's F5 writes THE PARTY SAVE and the lobby's THE PARTY SAVE starts from
+## it with the people in; the fair won, the host's ENTER (STRAIGHT ON) takes
+## the party straight into the sawmill, the kit carried (pass 15).
 ##
 ## Deathmatch on the sheriff's rodeo grounds: everyone fights by
 ## tools/mode_bot.gd (each client on its own copy), frags land and the feed
@@ -362,6 +364,7 @@ func _coop() -> void:
 	_hub_and_fair(alice, bob)
 	_late_and_leave(bob)
 	_party_save()
+	_straight_on()
 	host.back_to_lobby()
 	_wait(func() -> bool: return clients.all(func(c: NetPlay) -> bool: return c.phase != "match"))
 
@@ -539,8 +542,9 @@ func _boss_retry(alice: NetPlay) -> void:
 	fresh.cheats.god = true
 
 
-## The chapter won: ENTER, the hub (the fair's gate open on every copy), a
-## gate taken: the fair, everyone's guns carried.
+## The chapter won: the host's MAP key (THE CROSSROADS; ENTER goes straight
+## on, _straight_on), the hub (the fair's gate open on every copy, player one
+## in front of it), a gate taken: the fair, everyone's guns carried.
 func _hub_and_fair(alice: NetPlay, bob: NetPlay) -> void:
 	var g: Game = main.net.match_game()
 	var sb := bob.my_slot()
@@ -552,10 +556,15 @@ func _hub_and_fair(alice: NetPlay, bob: NetPlay) -> void:
 		g.showing_tally and alice.match_game().showing_tally,
 		"the chapter won: the tally on the host and the copies"
 	)
-	OnlineInput.key_online(main, KEY_ENTER)
+	OnlineInput.key_online(main, KEY_TAB)
 	_wait(func() -> bool: return _copies_on("hub"), 900)
 	_run_for(.5)
 	var hub: Game = main.net.match_game()
+	var in_front = GameUse.portal_target(hub)
+	_check(
+		in_front != null and in_front.destination == "fair",
+		"the host's MAP key: the party at the crossroads, in front of the fair's gate"
+	)
 	var copy := alice.match_game()
 	var shut := func(game: Game) -> Array:
 		var out: Array = []
@@ -566,10 +575,7 @@ func _hub_and_fair(alice: NetPlay, bob: NetPlay) -> void:
 	var host_shut: Array = shut.call(hub)
 	_check(
 		_copies_on("hub") and copy.in_hub and shut.call(copy) == host_shut,
-		(
-			"ENTER takes the party to the crossroads; the same gates shut on every copy %s"
-			% str(host_shut)
-		)
+		"the same gates shut on every copy %s" % str(host_shut)
 	)
 	_check(not host_shut.has("fair"), "the fair's gate is open")
 	hub.portal_request = "fair"
@@ -660,6 +666,32 @@ func _party_save() -> void:
 			),
 			"the people in now take its slots in order, the spare slot lies out of play"
 		)
+
+
+## The fair won: the host's ENTER (BETWEEN CHAPTERS: STRAIGHT ON) takes the
+## party straight into the sawmill on every copy, each kit carried.
+func _straight_on() -> void:
+	var g: Game = main.net.match_game()
+	if g == null or g.level.id != "fair":
+		_check(false, "the party on the fair to win it")
+		return
+	g.players[0].armory.owned[Weapons.CROSSBOW] = true
+	g.cheats.god = true
+	g.finish_level("yee_haw")
+	_run_for(1.0)
+	_check(BetweenChapters.straight(main.options), "the host's BETWEEN CHAPTERS: STRAIGHT ON")
+	OnlineInput.key_online(main, KEY_ENTER)
+	_wait(func() -> bool: return _copies_on("sawmill"), 900)
+	_run_for(.5)
+	var mill: Game = main.net.match_game()
+	_check(
+		(
+			_copies_on("sawmill")
+			and not mill.in_hub
+			and mill.players[0].armory.owned[Weapons.CROSSBOW]
+		),
+		"the host's ENTER: straight into the sawmill on every copy, the kit carried"
+	)
 
 
 # ------------------------------------------------------------ deathmatch

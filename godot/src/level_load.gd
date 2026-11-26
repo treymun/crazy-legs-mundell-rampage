@@ -377,6 +377,7 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 		door.texture = str(d.get("texture", ""))
 		door.material = LevelData._int(d.get("material", 0))
 		door.id = str(d.get("id", ""))
+		door.bar_side = LevelLoad.bar_side(str(d.get("bar_side", "")), door.vertical)
 		lv.doors.append(door)
 
 	for p: Variant in j.get("pane_tiles", []):
@@ -610,6 +611,22 @@ static func gate(lv: LevelData, g: Dictionary) -> LevelData.Gate:
 	gate.side = LevelData._int(g.get("side", 1))
 	gate.closed_tile = lv.tile_id("route_closed")
 	return gate
+
+
+## A barred door's side (pass 15, the level file's "bar_side": "n", "s", "e"
+## or "w", the side its bar is on) as Door.bar_side: -1 west or north, 1 east
+## or south, 0 none (or a side across the door's own wall).
+static func bar_side(side: String, vertical: bool) -> int:
+	match side:
+		"w":
+			return -1 if vertical else 0
+		"e":
+			return 1 if vertical else 0
+		"n":
+			return 0 if vertical else -1
+		"s":
+			return 0 if vertical else 1
+	return 0
 
 
 ## A list of numbers (or numbers written as text) as ints, read natively (as

@@ -121,6 +121,7 @@ func _ready() -> void:
 	# Drawn at window resolution over the scaled canvas, like the reference.
 	touch = TouchControls.new()
 	add_child(touch)
+	touch.take_glyphs(art)
 
 	# A view tour draws with the default settings, never this machine's own
 	# (its references must match CI's, which has no profile).
@@ -252,6 +253,9 @@ func _view_tour() -> void:
 		p.eye = .95 + game.world.stand(p)
 		p.pitch = shot_pitch
 		p.drunk = shot_drunk
+		if shot.has("health"):  # (pass 15: the hurt looks at that health)
+			var shot_health: int = shot["health"]
+			p.health = shot_health
 		p.sway = 0.0
 		game.message_until = 0.0
 		game.district_until = 0.0
@@ -814,6 +818,7 @@ func _process(delta: float) -> void:
 			if game.showing_tally or game.defeated():
 				grab(false)
 		watch_rematch()
+		watch_tally()
 	rumble.frame(self, dt)
 
 	sound.tick_score(dt)
