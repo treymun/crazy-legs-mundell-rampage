@@ -62,7 +62,7 @@ static var METAL: Array = ModeData.get_value("hit_zones", "metal")
 
 ## Pass 15 (hits.cfg [punch]): the sawed-off's arm's length, a close kill's
 ## reach, and the shoves by distance.
-static var POINT_BLANK: float = HitData.value("punch", "point_blank", 1.5)
+static var POINT_BLANK: float = HitData.value("punch", "point_blank", 1.0)
 static var CLOSE_REACH: float = HitData.value("punch", "close_reach", 3.0)
 static var SHOVE_NEAR: float = HitData.value("punch", "shove_near", 1.35)
 static var SHOVE_FAR: float = HitData.value("punch", "shove_far", .7)

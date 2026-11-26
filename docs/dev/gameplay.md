@@ -467,7 +467,7 @@ Ideas 11, 12 and 20 of the pass (numbers in hits.cfg `[punch]` and
   only as before): a kill holds the world `kill_hold` (.05 s), a boss's
   `boss_hold`, a hit of `heavy_hit` (40) or more `hit_hold`; a kill within
   `close_reach` (3 cells) by an instant's load (`struck_sum`) of `heavy_from`
-  (60) holds `close_hold` (.07), the sawed-off within `point_blank` (1.5)
+  (60) holds `close_hold` (.07), the sawed-off within `point_blank` (1.0)
   `sawed_hold` (.09), at most every `hold_gap`. That close kill kicks the
   view (`feel.punch`, `kill_kick` of a blow's jolt, scaled by SCREEN SHAKE).
   `struck()` now takes the one struck and the gun.
@@ -478,8 +478,9 @@ Ideas 11, 12 and 20 of the pass (numbers in hits.cfg `[punch]` and
   head kill draws a red splat ring round the crosshair for `SPLAT_FOR` (.2 s,
   `game_view.gd _splat_ring`, from the kill and head marks: no new field).
   HEADSHOT! stays rare (`CALL_GAP`).
-- **Overkill**: the sawed-off at arm's length always takes the body apart
-  (`HitZones.overkill`, one barrel too); a body taken apart throws
+- **Overkill**: the sawed-off within `point_blank` (1 cell) always takes the
+  body apart (`HitZones.overkill`, one barrel too; from there to
+  corpses.gd's `POINT_BLANK` one barrel still throws him, into a window); a body taken apart throws
   `gib_more` more chunks a share of the excess over the overkill line, each
   `gib_grow` bigger and faster, up to `gib_most` times (`Gore.excess`, gore's
   own dice).
