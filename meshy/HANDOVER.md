@@ -47,11 +47,11 @@ JERRY STILL OPEN (coordinator's 19d note, do first next session):
 Face options added this session (build_actor): face_albedo (+_shade,
 _sat, _hue; flattens the face - do not use for faces with detail),
 face_greys, bake_ray, head_noshadow.
-clone 04f: concept (9) + model (30) + rig (5) DONE and logged (balance
-1,581; track 1,357 of 2,500); old outputs in meshy_out/clone_*_04e; prompt in
-meshy-work/add_prompt_clone.py. NOT BUILT yet: next step
-kind_config.py clone 'hands_paint="texture"' (old config had no extras;
-a long gun, authored two-handed) then iter.sh clone 04f.
+clone 04f: DONE (44 cr; balance 1,581, track 1,357 of 2,500). Built with
+"head_noshadow": true - without it the hat brim's shadow made the face a
+dark smudge again (the owner's complaint). USE "head_noshadow": true FOR
+EVERY KIND WITH A HAT, HELMET OR BRIM (cheap: one more bake per turn).
+Face close-up: headshots.sh <kind> none <cz> out.png (KV_SCALE .5).
 Then baron 22c, swamp_king, the 16 humanoids (see the coordinator order).
 
 ## Fifth session
