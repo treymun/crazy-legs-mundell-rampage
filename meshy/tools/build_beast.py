@@ -580,9 +580,36 @@ def heat_weights():
     return out / numpy.maximum(out.sum(axis=1, keepdims=True), 1e-9)
 
 
+
+
+def legs_capped(W):
+    """Heat spreads a leg's bone over the shoulder and haunch (the hog's
+    front leg took its whole shoulder, and the ragdoll's leg root found from
+    it stood high and wide, its link torn by a blast): above the old leg's
+    top a leg's weight fades to the torso over "leg_band" of the height."""
+    legs = CFG.get("legs", [])
+    if not legs or CFG.get("leg_band", .06) <= 0:
+        return W
+    torso = lo.vertex_groups[CFG.get("torso", "b0")].index
+    co_ = numpy.array([v.co[:] for v in lo.data.vertices])
+    band = OLD_H * float(CFG.get("leg_band", .06))
+    moved = 0
+    for chain in legs:
+        top = max(src_me.vertices[i].co.z for i, n in enumerate(OWNER) if n == chain[0])
+        keep = numpy.clip((top + band - co_[:, 2]) / band, 0, 1)
+        for name in chain:
+            k = lo.vertex_groups[name].index
+            give = W[:, k] * (1 - keep)
+            W[:, k] -= give
+            W[:, torso] += give
+            moved += int((give > .5).sum())
+    print("BEAST legs capped at their old tops: %d vertices given to the torso" % moved)
+    return W
+
+
 WEIGHTS = CFG.get("weights", "nearest")
 if WEIGHTS == "heat":
-    W = heat_weights()
+    W = legs_capped(heat_weights())
 else:
     W = legs_below_hips(W)
     W = one_piece(W)
