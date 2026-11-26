@@ -2118,6 +2118,18 @@ def hand_match(px):
     if sel.sum() > 50:
         sel &= lum2 >= numpy.percentile(lum2[sel], 40)
         other = sel
+    # (Sleeves down to the wrist: the "forearm" is cloth, not skin; then the
+    # face's skin is the hands' match.)
+    head_sk = SKIN_DONE & HEADZONE & (sat > .2)
+    if head_sk.sum() > 50 and other.sum() > 50:
+        def _hue(c):
+            import colorsys
+            return colorsys.rgb_to_hsv(*[float(x) for x in c])[0] * 360
+        hf = _hue(numpy.median(rgb[other], axis=0))
+        hh = _hue(numpy.median(rgb[head_sk], axis=0))
+        if abs(((hf - hh + 180) % 360) - 180) > 10:
+            print("MESHY hands: the forearms are sleeved (hue %d vs face %d): matched to the face" % (hf, hh))
+            other = head_sk & (lum2 >= numpy.percentile(lum2[head_sk], 40))
     if other.sum() > 50:
         want = numpy.median(rgb[other], axis=0)
         hsel = hm & (lum2 >= numpy.percentile(lum2[hm], 40))

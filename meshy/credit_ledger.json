@@ -337,9 +337,22 @@
    "endpoint": "v1/image-to-3d",
    "task": "01a216b1-c2a8-720e-9884-02a59c5f0e74",
    "before": 2494,
-   "cost": null,
+   "cost": 30,
    "body": "noodler_model.json",
-   "time": "2026-11-26 01:11:23"
+   "time": "2026-11-26 01:11:23",
+   "after": 2464,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "noodler_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a216b2-eae4-747e-89de-f8b0e137ff71",
+   "before": 2464,
+   "cost": 5,
+   "body": "noodler_rig.json",
+   "time": "2026-11-26 01:12:38",
+   "after": 2459,
+   "status": "SUCCEEDED"
   }
  ]
 }
