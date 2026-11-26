@@ -421,6 +421,56 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   (since the load pass not part of the load: it runs on a worker in the
   level's first frames).
 
+### Measured in pass 15, PERF (2026-11-25)
+
+v3.12.1 (`dac2ca57`), the pass 15 tip before PERF (`ea8d19c6`) and PERF,
+back to back, alternating, three rounds (the PC shared with two other
+tracks' runs; medians of the rounds), `stress_bench.gd` in a window
+(1280x800, scratch `APPDATA`), frame median / p99 in ms:
+
+| Scene | v3.12.1 | tip | PERF | PERF vs v3.12.1 | the view's actors part |
+| --- | --- | --- | --- | --- | --- |
+| idle | 2.65 / 4.30 | 2.82 / 4.87 | 2.70 / 4.17 | +1.9% | .01 / .01 / .01 |
+| strike | 3.71 / 5.72 | 3.59 / 5.20 | 3.56 / 5.57 | -4.0% | .01 / .01 / .01 |
+| wreck48 | 9.42 / 16.88 | 8.86 / 17.03 | 8.51 / 15.46 | -9.7% | .01 / .01 / .01 |
+| fire | 3.58 / 6.08 | 3.51 / 5.87 | 3.67 / 6.28 | +2.5% | .01 / .01 / .01 |
+| chain6 | 5.06 / 10.04 | 5.16 / 10.20 | 5.22 / 9.56 | +3.2% | .01 / .01 / .01 |
+| arena | 3.36 / 4.70 | 3.38 / 4.93 | 3.25 / 4.78 | -3.3% | .12 / .14 / .13 |
+| fivev5 | 3.74 / 5.52 | 3.89 / 6.46 | 3.84 / 5.99 | +2.7% | .06 / .09 / .08 |
+| county | 9.37 / 17.58 | 10.77 / 18.28 | 10.58 / 17.80 | +12.9% | 1.19 / 2.52 / 2.34 |
+
+**county is not the scene it was.** Pass 15 changed play (the director,
+lighter sponges, the bot's run), so the County Run bot at 12 minutes stands
+somewhere else: over the timed frames the view shows 31.9 models on average
+(v3.12.1 26.8), 10.2 dead bodies (7.5) of which 2.1 are still moving (0.4),
+and 252 sprites at the end (94). The play hash of every scene is the same on
+the tip and PERF (`stress_bench -- check hash`). With the live and dying
+bodies turned off on the same scene the frame is about .45 ms less; the
+rest of the gap is the scene's own models and bodies. PERF took the doll
+steps 13-25% cheaper (the same sums, below) and the actors part from 2.52 to
+2.34 ms.
+
+`--view-bench=300`, the eight chapters' frame medians summed, three rounds:
+v3.12.1 25.02 ms, tip 25.28 (+1.0%), PERF 25.20 (+0.7%); the graphics
+card's 26.13, 26.42, 26.35.
+
+What PERF changed, all with the very same results (a scratch bench stepped
+ragdolls, dying dolls, live and active bodies near county_hickston's walls
+and hashed every ball and every bone posed: the same on the tip and PERF;
+the window picture tour byte for byte the same):
+
+- `Ragdoll.step`: the floor done for every ball in one call
+  (`_floor_balls`; a beast's own `_floor` still asked ball by ball), the
+  legs' joints a constant, `_walls` asks no rail where the geometry's grid
+  says nothing is near and no rail twice, `_on_bodies`/`_on_boxes` read the
+  other body's balls and the wreck piece's middle once.
+- `LiveBody.live_step`: each group's stiffness worked out once a step
+  (`_st`), the clutch and limp arm once a pass.
+- `RagdollRig`: the rest pose's sums kept (each segment's start and end,
+  each rest frame turned back, each bone's size).
+- `ActorView._shade` compares fields, not an array made every frame.
+- `MuzzleLooks.tick_hands` asks the reach first (most hands are far off).
+
 ### Measured in pass 14, WIDE (2026-11-24)
 
 `--view-bench=300`, the eight chapters' frame medians summed, three runs

@@ -28,6 +28,11 @@ const BAYER: Array[int] = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 ## Drawn wisps: key -> PackedByteArray.
 static var _made := {}
+## [enemy_muzzle]'s brains (and kinds) that fire guns and the scatterguns
+## among them as sets, read again when effects.cfg is (Effects.version).
+static var _sets_of := -1
+static var _gun_brains := {}
+static var _scatter_brains := {}
 
 var game: Game
 ## The flashes going: [x, y, z, born, light source].
@@ -57,8 +62,16 @@ static func n(section: String, key: String, fallback: Variant) -> Variant:
 func tick_hands() -> void:
 	var p := game.local_player if game.local_player != null else game.player
 	var reach: float = n("enemy_muzzle", "reach", 24.0)
-	var brains: Array = n("enemy_muzzle", "brains", [])
-	var scatter: Array = n("enemy_muzzle", "scatter", [])
+	if _sets_of != Effects.version:
+		_sets_of = Effects.version
+		_gun_brains = {}
+		_scatter_brains = {}
+		var brains: Array = n("enemy_muzzle", "brains", [])
+		var scatter: Array = n("enemy_muzzle", "scatter", [])
+		for b: Variant in brains:
+			_gun_brains[str(b)] = true
+		for b: Variant in scatter:
+			_scatter_brains[str(b)] = true
 	var seen := {}
 	var px := p.x
 	var py := p.y
@@ -68,12 +81,12 @@ func tick_hands() -> void:
 			continue
 		if not e.alive or not e.hostile or e.dormant:
 			continue
-		if not brains.has(e.brain) and not brains.has(e.kind):
+		if not _gun_brains.has(e.brain) and not _gun_brains.has(e.kind):
 			continue
 		var was: float = _was.get(e, e.recovery)
 		seen[e] = e.recovery
 		if e.recovery > was + .05:
-			var source := "enemy_muzzle_scatter" if scatter.has(e.brain) else "enemy_muzzle"
+			var source := "enemy_muzzle_scatter" if _scatter_brains.has(e.brain) else "enemy_muzzle"
 			var out := e.radius + .25
 			flashes.append(
 				[
