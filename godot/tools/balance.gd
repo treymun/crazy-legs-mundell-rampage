@@ -28,6 +28,22 @@ extends SceneTree
 const Pilot := preload("res://tools/balance_pilot.gd")
 const CountyBot := preload("res://tools/county_bot.gd")
 const Report := preload("res://tools/balance_report.gd")
+const Probe := preload("res://tools/flow_probe.gd")
+## What a run's row takes from tools/flow_probe.gd (pass 15): the flow
+## report's measures, so the long report shows the flow too.
+const FLOW_KEYS := [
+	"flow",
+	"fights",
+	"alive_hist",
+	"dmg",
+	"death_cost",
+	"kills_detail",
+	"progress",
+	"pickups_start",
+	"pickups_taken",
+	"pickups_left",
+	"beats"
+]
 const STEP := 1.0 / 60.0
 ## Game seconds an attempt may take before it counts as stuck.
 const ATTEMPT_LIMIT := 900.0
@@ -84,6 +100,8 @@ const CHECK_PARTS := 5
 
 var main
 var out_path := ""
+## A campaign run measures each attempt's flow too (`flow=0`: not).
+var measure_flow := false
 var lines := 0
 var failures: Array = []
 var args := {}
@@ -121,6 +139,7 @@ func _run() -> void:
 	elif args.has("county"):
 		_county()
 	else:
+		measure_flow = args.get("flow", "1") != "0"
 		_campaign()
 	main.queue_free()
 	await process_frame
@@ -334,8 +353,11 @@ func _attempt(g: Game, pilot: Pilot, row: Dictionary, _deaths: int, quiet := fal
 	var rides: Object = g.features.get("vehicles")
 	var outcome := "timeout"
 	var ticks := 0
+	var probe: Probe = Probe.new(g, pilot) if measure_flow and not quiet else null
 	while g.clock - start < ATTEMPT_LIMIT * (2.0 if quiet else 1.0):
 		ticks += 1
+		if probe != null:
+			probe.before()
 		if ticks % 15 == 0:
 			for e: Enemy in g.enemies:
 				if e.alive and not hit_at.has(e.kind) and BossKit.is_boss(e) and e.hp < e.max_hp:
@@ -346,6 +368,8 @@ func _attempt(g: Game, pilot: Pilot, row: Dictionary, _deaths: int, quiet := fal
 			stats["dry"] = int(stats["dry"]) + 1
 		g.tick(STEP, c)
 		pilot.moved(g)
+		if probe != null:
+			probe.after()
 		if rides != null and bool(rides.call("seated", g.player)):
 			stats["ride"] = int(stats["ride"]) + 1
 		if g.won:
@@ -365,6 +389,12 @@ func _attempt(g: Game, pilot: Pilot, row: Dictionary, _deaths: int, quiet := fal
 		var s: Signal = sig[0]
 		if s.is_connected(sig[1]):
 			s.disconnect(sig[1])
+	if probe != null:
+		var flow := {}
+		probe.finish(flow, outcome)
+		for key: String in FLOW_KEYS:
+			if flow.has(key):
+				row[key] = flow[key]
 	if quiet:
 		return outcome
 	var p := g.player
