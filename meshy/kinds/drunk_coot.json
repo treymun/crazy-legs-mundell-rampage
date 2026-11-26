@@ -87,5 +87,6 @@
    "above": 1.07
   }
  ],
- "hold_legs": true
+ "hold_legs": true,
+ "carry_top": "up"
 }

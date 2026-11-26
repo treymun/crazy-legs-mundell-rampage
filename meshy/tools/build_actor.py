@@ -1851,7 +1851,10 @@ def solve(name, dz=0.0, held0=None):
                 # (its top as it hangs - the highest point, a neck or a
                 # handle - not the end nearest the elbow: a forearm held
                 # forward put the jug's side against the palm)
-                top = max(pts, key=lambda g: g.z) if pts else it["lo"]
+                if CFG.get("carry_top", "hand") == "up":
+                    top = max(pts, key=lambda g: g.z) if pts else it["lo"]
+                else:
+                    top = min(pts, key=lambda g: g.dot(a_w)) if pts else it["lo"]
                 # (its top a little into the fist, past the palm's middle)
                 hold = D["hand_" + side] @ J["hand_" + side] + a_w * (HANDS[side].length * .12 if side in HANDS else .02)
                 Di = Matrix.Translation(hold - top)
@@ -2783,6 +2786,10 @@ def skin_even(px):
     near0 = (numpy.abs(((h - s0h + 180) % 360) - 180) < float(opt.get("hue_band", 14))) & (
         numpy.abs(sat - s0sat) < float(opt.get("sat_band", .2)))
     ext = ~HEADZONE & ~hm & warm & near0 & ~arm
+    if not opt.get("ext", True):
+        # (sleeved arms: no bare elbows to find; pale boots or an apron of
+        # the skin's hue must not be taken for skin)
+        ext[:] = False
     arm = arm | ext
     ref = arm & SKIN_DONE
     if ref.sum() < 50:

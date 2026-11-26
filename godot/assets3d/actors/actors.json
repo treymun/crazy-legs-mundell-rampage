@@ -1600,6 +1600,7 @@
 		},
 		"gear": {},
 		"height": 1.715,
+		"hold_legs": true,
 		"joints": {
 			"0": "thigh_l",
 			"1": "thigh_r",

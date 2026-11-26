@@ -8,5 +8,36 @@
  "tris": 10000,
  "texture": 512,
  "gear": "old",
- "hold_legs": true
+ "hold_legs": true,
+ "skin_even": {
+  "ext": false
+ },
+ "recolour": [
+  {
+   "name": "cap",
+   "z": [
+    0.915,
+    1.02
+   ],
+   "hue": [
+    340,
+    45
+   ],
+   "sat": [
+    0.15,
+    1
+   ],
+   "val": [
+    0,
+    0.85
+   ],
+   "to": [
+    176,
+    40,
+    30
+   ],
+   "contrast": 0.7,
+   "not_skin": false
+  }
+ ]
 }
