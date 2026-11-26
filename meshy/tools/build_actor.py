@@ -1905,6 +1905,7 @@ else:
 # Halfway there in light (the Meshy look's grime reads darker than its mean),
 # and a little more colour (the cels' plaid and denim are bold).
 GAIN = GAIN ** float(CFG.get("gain_share", .6))
+GAIN *= float(CFG.get("light", 1.0))
 total[:, :3] *= GAIN
 _grey = total[:, :3].mean(axis=1, keepdims=True)
 total[:, :3] = numpy.clip(_grey + (total[:, :3] - _grey) * float(CFG.get("colour", 1.2)), 0, 1)

@@ -10,5 +10,7 @@
  "gear": "old",
  "item_types": {
   "r": "pistol"
- }
+ },
+ "colour": 1.6,
+ "light": 0.9
 }
