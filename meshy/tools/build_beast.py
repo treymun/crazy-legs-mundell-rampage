@@ -207,6 +207,14 @@ T[2] += Ps[:, 2].min() - Qx[:, 2].min()
 print("BEAST fit: turn %d, scale %.4f, chamfer %.4f -> %.4f" % (YAW, S, _c, chamfer((Qs @ Rm.T) * S + T)))
 M = Matrix.Translation(Vector(T.tolist())) @ (Matrix(Rm.tolist()).to_4x4() @ Matrix.Diagonal((S, S, S, 1)))
 hi.data.transform(M)
+if float(CFG.get("scale", 1.0)) != 1.0:
+    # (a box fit counts an upright tail: BLUE came out 7% taller at the
+    # shoulder than a hound stands beside Mundell, actor_check)
+    q_ = numpy.array([v.co[:] for v in hi.data.vertices])
+    piv = Vector(((q_[:, 0].min() + q_[:, 0].max()) / 2, (q_[:, 1].min() + q_[:, 1].max()) / 2, q_[:, 2].min()))
+    k_ = float(CFG["scale"])
+    hi.data.transform(Matrix.Translation(piv) @ Matrix.Diagonal((k_, k_, k_, 1)) @ Matrix.Translation(-piv))
+    print("BEAST scaled %.3f about its feet" % k_)
 
 
 # ------------------------------------------------------------ the legs

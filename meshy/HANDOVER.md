@@ -1,58 +1,97 @@
-# Meshy models track: handover (2026-11-26)
+# Meshy models track: handover (2026-11-26, second session)
 
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
 
 ## State
 
-Branch `meshy-models`, last commit 662843f2 plus this handover (all work
-committed; only `meshy_test/` untracked, not ours). Credits: 557 of 2,500
-spent (balance 2,381): catfish 39, cow 39 this session.
+Branch `meshy-models` (all work committed; only `meshy_test/` untracked,
+not ours). Credits: 713 of 2,500 spent (balance 2,225): this session hog,
+gator, crawler, hound (4 x 39). The four concepts ran in parallel and
+meshy.py's ledger kept one line for the 36; it was split by hand - run paid
+calls ONE AT A TIME (meshy.py's ledger write is not safe in parallel).
 
 Done and in INDEX: 06b big_billy, 07b drunk_coot, 08b/08c bottle_tosser,
 09b barker, 10b/10c chum_tosser, 11b/11c noodler, 02d coot, 03g
-yard_deputy, 05b alien. 12 cow is in INDEX as NOT DONE (open).
+yard_deputy, 05b alien; animals 12b/12c cow (physics video
+12b_cow_death_physics.mp4), 14/14b gator, 15 crawler, 16 hound BLUE.
+13b hog is NOT DONE (open): see below.
+
+The branch's own checks: actor_check and live_body_check pass again
+(fixed this session: `_keep_in_hand` interpolates the held thing's place
+in the hand, so a blend's first draw no longer jumps; live_body_check
+measures the clutch bare-handed - the coot holds pistol AND jug and a
+holding hand never clutches - plus two new checks for that rule).
+check_all quick: see the last line of this file for the latest result.
 
 ## Open, in order
 
-1. **12 cow (beast path, WIP)**: `meshy/tools/build_beast.py` with
-   `meshy/kinds/cow.json` works end to end (build, `install.sh`, make
-   sheet). To do: (a) the dead key ("down", legs up) stretches and twists
-   the legs where weights are softened over the hips - try `"smooth": 1`,
-   or soften only along a leg (not across body/leg), or keep the hip ring
-   rigid; (b) the in-game sheet, probes and death rows (`finish.sh` is
-   people-shaped: `live_frames` rows and the hands sheet assume a person;
-   check what `ingame.sh` and `death_frames.gd` do with a beast) and the
-   PHYSICS VIDEO for one animal (the cow's death ragdoll, BeastDoll); (c)
-   a beast make sheet framing (render_make crops by the people's height);
-   (d) a hurt look (`build_beast.py` writes the plain look for kinds whose
-   old entry has "hurt"; cow has none).
-2. Then hog, gator, hound (BLUE - the dog; careful, a big feature),
-   crawler with the same path (concept from the old three-quarter render +
-   cel by image-to-image, 9; image-to-3d, 30; no rig). Write request bodies
-   like `meshy/requests/cow_concept.json` (make_requests.py is
-   people-shaped). Each old armature here is flat (no parents), rigid parts
-   (one bone a vertex), rest = standing key: the "carried back to rest"
-   step is there for any that differ.
-3. Bosses (baron, boss, foreman, jerry, maw, maw_bare, revenue_man, rudy,
-   swamp_king; skip derby_champ): the beast path plus their gear - the old
-   weapon parts must be kept as they were (cut off the old mesh like
-   build_actor's gear, baked by emission and pasted with a gear mask). Not
-   written yet (`build_beast.py` docstring says so). Physics video for one.
-4. Remaining humanoids: boilerback, chain_hand, chalk_spitter, flagman,
-   gas_man, millhand, mundell, nitro_huffer, pit_mechanic, revenooer,
-   shield_deputy, still_buster, tin_guard, tire_roller, valve_rat, drone
-   (check what it is); skip lantern, probe, saucer, derby_champ; skeeter
-   last. Look for gloved characters (`gloves`), hats/noses/cap colours that
-   Meshy got wrong (`recolour`, `nose`). Overhand throwers now get the
-   whole-body throw (`throw_body`) automatically; carriers want
-   `hold_legs`.
-5. Small open bits from INDEX: noodler's red forearm cross-hatch (Meshy
-   paint) and flat-peach hands; `skin_even` on noodler turned forearms a
-   grey-tan that did not match his pink upper arms (reverted - its arm zone
-   stops at the elbow).
+1. **13b hog (open)**: physics_check "hog blast from 0.0: a rigid link
+   stretched 73% (9-10)": a front leg's knee-foot link stays stretched
+   ~10 cm for 0.25 s while the blasted hog flies (0.42-0.68 s). Knee ball
+   size is not it. Suspect a joint limit fighting the link on the new rest
+   shape, or the leg root found high on the shoulder. Try: rebuild hog with
+   the new realign formula (this session changed it after the hog's last
+   build), "realign": false, or "realign": "mesh" (as BLUE).
+2. **Bosses** (baron, boss, foreman, jerry, maw, maw_bare, revenue_man,
+   rudy, swamp_king; skip derby_champ) with their OLD weapon parts kept,
+   and one boss physics video. Not written: build_beast.py needs the gear
+   path (cut the old gear parts off the old mesh like build_actor's gear,
+   keep them rigid on their bones, bake by emission and paste with a gear
+   mask - gear_paste.py). Bosses are "scripted falls" in physics_check
+   (no ragdoll) except where fit.json says otherwise; check
+   physics_beasts' boss hand-over tests. Write concept requests like
+   `SP/meshy-work/scripts2/beast_requests.py` (people-shaped bosses may
+   suit build_actor.py instead - decide per boss: a humanoid boss with the
+   people's rig gets hands, grips and the live body).
+3. **Remaining humanoids** (build_actor path, unchanged): boilerback,
+   chain_hand, chalk_spitter, flagman, gas_man, millhand, mundell,
+   nitro_huffer, pit_mechanic, revenooer, shield_deputy, still_buster,
+   tin_guard, tire_roller, valve_rat, drone (check what it is); skip
+   lantern, probe, saucer, derby_champ; skeeter last.
+4. Small open bits: noodler's red forearm cross-hatch and flat-peach
+   hands; gator's dark crease at the back of the skull when the jaw lifts
+   high; BLUE's lifted front paw folds flat at the wrist up close.
 
-## This session's pipeline additions
+## The beast path now (build_beast.py; meshy/tools/beast.sh <kind> <NN>)
+
+`beast.sh` builds, installs, renders the beast make sheet
+(`beast_sheet.py`: four sides at the standing key, every key side-on and
+three-quarter, old above new, turned by fit.json's "front") and reverts
+import churn. Then: `ingame.sh <kind> <cells>` + `ingame_sheet.py` (animals
+by day on Hickston's open street; hog and hound are not play's hands, so
+the tour cannot stand them up: use the death rows for the hog and
+`tools/hound_frames.gd` for BLUE), `SP/meshy-work/deathcmp.sh <kind> <NN>
+<rows>` (old/new death rows stacked), `ROW_VIDEO=1 death_frames.gd ...
+audit rows=...` (every other tick as video_<row>_NNN.png; move into
+<dir>/<row>/ and run make_video.py), physics_check (BEASTS rows).
+Kind config (meshy/kinds/<kind>.json), on top of the old ones:
+- "weights": "heat" - Blender bone heat over stand-in bones along each old
+  part (the default "nearest" old face fails wherever Meshy's shape
+  reaches past the old blocks: tails, barrels).
+- "groups" [[bones]] - weighted as one (first = takes the weights); from
+  the old BeastRig segments (`SP/meshy-work/gds/beast_segs.gd` ->
+  beast_segs.json). Parts the LIVE keys move apart are split off again
+  (jaws, tail pieces) unless "split": false.
+- "legs" [[root..foot]] + "torso": realign_legs moves each old leg (bones
+  and keys) to the Meshy leg; written to actors.json "beast_legs" and
+  BeastRig uses those bones instead of searching for blocks. "realign":
+  false (leave), or "mesh" (move the Meshy legs onto the old ones - for a
+  kind whose gait speeds are tuned to the old feet, BLUE). "square"
+  (default true) sets the feet square in pairs from the hock down.
+  Leg heat weights are capped at the old legs' tops ("leg_band").
+- "jaw" {upper, lower, mouth, throat, throat_low, pitch}: the closed Meshy
+  mouth cut along the lips, the lower jaw rigid on its bone, the inside a
+  painted bag (teeth, palate, tongue, throat).
+- "tint" [r,g,b], "gain", "greys" {rgb, sat}: colour; undersides always
+  take the Meshy albedo at the sides' light ("belly_light").
+Engine/tool changes this session: BeastRig named legs, skinless bones not
+taken for a knee, FOOT_OUT .2; physics_ragdolls reads skinned vertices'
+strongest bone and skips unskinned held meshes, lying-height bound by the
+torso's width for beasts; physics_beasts names the stretched link and
+allows 3.5 cm more in a hit; death_rows ROW_VIDEO; tour_for animals.
+
+## The previous session's pipeline additions
 
 - `held_model` {glb, length (m at 1.73 height), tris, tails [shares of its
   length], band, grip (share from the front), plumb, follow}: a held thing
@@ -82,15 +121,18 @@ yard_deputy, 05b alien. 12 cow is in INDEX as NOT DONE (open).
   `zoom_video.py` (close-up clip of live_frames video rows: the 11c flop
   video).
 
-## Checks this session
+## Checks
 
-check_all quick: actor_check ("blend: the first draw of a new pose jumped",
-billy) and live_body_check ("a hand goes to the chest wound", inf) FAIL on
-this branch already at 682f929f without this session's engine changes
-(checked by stashing them); tune_check and physics_check failed once in
-the parallel run and pass alone. Nobody has run the full lint suite since.
+Fixed this session: actor_check (blend jump) and live_body_check (clutch)
+pass. physics_check fails only on the hog blast (open item 1). hound_check,
+hound_walk_check and hound_pace check pass with the new BLUE. Lint and
+gdformat clean on src/tools/addons (run from godot/ so its config applies).
+Scratch diagnostics in SP/meshy-work: gds/beast_pts.gd (rig balls),
+gds/beast_legs.gd, gds/beast_segs.gd, scripts2/label_render.py (the built
+mesh coloured by strongest bone at a key: the way to see bad weights),
+scripts2/jaw_find.py, scripts2/torso_turn.py, deathcmp.sh, unchurn.sh.
 
-## New kind-config options (build_actor.py) this session
+## Kind-config options for people (build_actor.py)
 
 - `skin_even`: true or {ext, arms, light, floor, smooth, face_even, tone}:
   bare arms/hands/face to the old cel's skin tone, blotches gone. Use
@@ -111,7 +153,7 @@ the parallel run and pass alone. Nobody has run the full lint suite since.
   tilt}, `gear_one`, `gear_skip`, `gear_drop` [{part, above}],
   `gear_snap`, `grip_skip` [side], `gloves` [r,g,b], `relaxed_curl`.
 
-## Shared fixes this session (every rebuild gets them)
+## Shared fixes for people (every rebuild gets them)
 
 Hands unwrapped on their own + tiny hand UV islands moved onto the skin
 (dark finger-root slivers gone); forearm cut rim evened (wrist panels and
@@ -134,3 +176,10 @@ it worse, left off).
 - After every install, revert `.glb.import` churn before committing.
 - The make sheet's default keys skip `wind`; pass keys
   (`make_sheet.sh <kind> <out> <title> w1,wind,aim,fire,pain,die_2,down`).
+
+Last check_all quick (after BLUE 16): actor_check failed on BLUE's size
+(fixed in 16b, actor_check OK alone), voice_check failed in the parallel
+run only ("tough guy ... is an enemy kind"; passes alone - flaky, as
+tune/physics were last session), and wreck_motion_check hung once (a
+headless child sat 11 minutes; killed it by its command line; not seen
+before - watch for it). physics_check: the hog blast (open item 1).

@@ -57,5 +57,9 @@ rig_reference.gd follows; live_frames.gd and death_frames.gd take `kind=`.
 - Animals and bosses keep their OLD armature and animation:
   `blender -b -P meshy/tools/build_beast.py -- meshy/kinds/<kind>.json`
   fits the unrigged Meshy mesh onto the old mesh, transfers the old weights
-  by nearest face, bakes the look, and exports with the old skeleton; then
-  `tools/install.sh` as for people. Bosses' old gear is not handled yet.
+  by nearest face (or by bone heat, "weights": "heat"), bakes the look, and
+  exports with the old skeleton; `tools/beast.sh <kind> <NN>` builds,
+  installs and draws the beast make sheet (`tools/beast_sheet.py`). Legs can
+  be moved to the Meshy legs (bones and keys) or the Meshy legs onto the old
+  ones, a jaw cut open, colours turned; meshy/HANDOVER.md lists every option.
+  Bosses' old gear is not handled yet.
