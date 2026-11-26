@@ -819,6 +819,50 @@
    "time": "2026-11-26 13:37:21",
    "after": 1819,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "yard_deputy_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21993-c8d6-761c-bfae-7f1aa6713456",
+   "before": 1819,
+   "cost": 9,
+   "body": "yard_deputy_concept.json",
+   "time": "2026-11-26 14:37:26",
+   "after": 1810,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "yard_deputy_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21994-7a2e-76f1-b785-77f1d477cc77",
+   "before": 1810,
+   "cost": 9,
+   "body": "yard_deputy_concept.json",
+   "time": "2026-11-26 14:38:11",
+   "after": 1801,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "yard_deputy_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21995-3f61-74d6-bc20-d84ecc15a333",
+   "before": 1801,
+   "cost": 30,
+   "body": "yard_deputy_model.json",
+   "time": "2026-11-26 14:39:05",
+   "after": 1771,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "yard_deputy_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21996-48a2-741e-8e75-d846c33a6385",
+   "before": 1771,
+   "cost": 5,
+   "body": "yard_deputy_rig.json",
+   "time": "2026-11-26 14:40:13",
+   "after": 1766,
+   "status": "SUCCEEDED"
   }
  ]
 }

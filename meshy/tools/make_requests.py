@@ -16,7 +16,9 @@ os.makedirs(ref_dir, exist_ok=True)
 # References: the current model's front at its standing key, and its cel.
 front = Image.open(os.path.join(SP, "meshy-work", "ref", kind + "_front.png")).convert("RGB")
 front.save(os.path.join(ref_dir, kind + "_front.png"))
-refs = ["@file:" + os.path.join(ref_dir, kind + "_front.png")]
+# ("refs": "cel" - the cel alone: the owner's rule of 2026-11-26, a natural
+# body in the theme rather than a copy of the old model's proportions)
+refs = [] if P.get("refs") == "cel" else ["@file:" + os.path.join(ref_dir, kind + "_front.png")]
 cel = os.path.join("assets", "art", P.get("cel", kind + "_0") + ".png")
 if os.path.exists(cel):
     im = Image.open(cel).convert("RGBA")
@@ -43,10 +45,17 @@ concept = {
         "holding nothing: no weapon, no gun, no tool, no props in the hands. Both feet planted shoulder-width apart. "
         "Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole figure in frame "
         "with space around it, sharp focus, one single subject, no text, no logo, no frame."
-    ) % (P["who"], he, P["design"], "her" if P.get("she") else "him", P["face"]) + P.get("extra_note", ""),
+    ) % (P["who"], he, P["design"], "her" if P.get("she") else "him", P["face"]) + P.get("extra_note", "") + (
+        " Keep only the role, the outfit idea, the colours and the props of the reference; give the character a natural,"
+        " well-proportioned, believable body and an appealing, clear, readable face (no blocky toy proportions, no"
+        " giant ball belly, no stubby limbs). An original character, not any real person's likeness."
+        if P.get("refs") == "cel" else ""),
     "reference_image_urls": refs,
     "aspect_ratio": "3:4",
 }
+if P.get("refs") == "cel":
+    concept["prompt"] = concept["prompt"].replace(
+        "(the 3D figure and the small game sprite are the same character)", "(a small low-resolution game sprite)")
 model = {
     "ai_model": "latest",
     "image_url": "@file:" + os.path.join(SP, "meshy-work", "meshy_out", kind + "_concept", "image_0.png"),

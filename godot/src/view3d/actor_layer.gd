@@ -145,6 +145,10 @@ func parked() -> int:
 ## The model kind an enemy is drawn with ("" when none).
 func kind_of(e: Enemy) -> String:
 	if models.has(e.kind):
+		# Maw out of her housecoat (her last third and her fall) is a model of
+		# her own, the Meshy build's (meshy/README.md); her cels only renamed.
+		if ShipAliens.skin(e) != "" and models.has(e.kind + "_bare"):
+			return e.kind + "_bare"
 		return e.kind
 	var stem := Variants.stem(e.kind)
 	return stem if models.has(stem) else ""

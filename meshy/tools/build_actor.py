@@ -3937,7 +3937,7 @@ entry = {
     "canvas": old_entry.get("canvas", [1.75, 1.86]),
     "faces": float(len(lo.data.loop_triangles)),
     "frames": FRAMES,
-    "gear": {b: g for b, (g, _on) in SHED.items()} if CFG.get("shed") else old_entry.get("gear", {}),
+    "gear": {b: g for b, (g, _on) in SHED.items()} if "shed" in CFG else old_entry.get("gear", {}),
     "height": OLD_H,
     "labels": labels,
     "lit": old_entry.get("lit", True),

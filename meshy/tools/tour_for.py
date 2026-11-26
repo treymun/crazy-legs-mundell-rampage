@@ -19,6 +19,11 @@ ANIMALS = {"cow", "hog", "gator", "crawler", "hound"}
 animal = kind in ANIMALS
 if animal:
     DAY = dict(DAY_FAR)
+# Giants (Maw, 4.4 m; the King's boat) by day on the open street too, the
+# view tipped up to take in the head.
+if kind in {"maw", "maw_bare", "swamp_king"}:
+    DAY = dict(DAY_FAR, pitch=0.22)
+    NIGHT = dict(NIGHT, pitch=0.22)
 POSES = (("idle", {"state": "idle", "turn": 0.35}),
          ("walk", {"state": "walk", "gait": 0.3, "turn": 0.9}),
          ("far", {"state": "idle", "turn": 0.2, "ahead": near * 2.6}),
@@ -37,6 +42,9 @@ shots = []
 for tod, base in (("day", DAY), ("night", NIGHT)):
     for tag, spec in POSES:
         a = {"kind": kind, "ahead": near, "side": 0.0}
+        if kind == "maw_bare":
+            # (no enemy of its own: Maw under a third of her health)
+            a.update({"kind": "maw", "hp": .3})
         a.update(spec)
         s = dict(DAY_FAR if (tod == "day" and tag == "far") else base)
         s["tag"] = "%s_%s_%s" % (kind, tod, tag)

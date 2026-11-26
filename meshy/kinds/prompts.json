@@ -7,10 +7,11 @@
   "height": 1.79
  },
  "yard_deputy": {
-  "who": "pot-bellied small-town sheriff's deputy, a middle-aged southern lawman",
-  "design": "black round bowler-crowned hat, a thick black walrus moustache, tan khaki uniform shirt with a row of brown buttons down the belly and a small gold star badge on the chest, a big round beer belly, a brown leather gun belt, dark charcoal-grey trousers, black boots",
-  "face": "puffy ruddy cheeks, small mean squinting eyes, a smug scowl under the moustache, sweaty sunburnt skin",
-  "texture": "sheriff's deputy, black hat, black moustache, tan khaki shirt with brown buttons and gold star badge, brown belt, charcoal grey trousers, black boots, empty hands, no weapon",
+  "refs": "cel",
+  "who": "small-town rural sheriff's deputy, a middle-aged southern lawman",
+  "design": "WEARING a black felt lawman's cowboy hat with a rounded crown and a curled brim on his head, a thick neat black moustache, a tan khaki uniform shirt with two buttoned chest pockets, shoulder epaulettes and brown buttons, the sleeves rolled to the elbow, a small gold star badge on his left chest, a brown leather duty belt with an empty holster and cartridge loops, dark charcoal-grey uniform trousers, black boots, a solid stocky build with a modest gut",
+  "face": "a stylized game-character face, slightly caricatured but natural: weathered sun-tanned skin, narrowed suspicious eyes under the hat brim, bushy dark eyebrows, a smug half-smirk under the moustache",
+  "texture": "rural sheriff's deputy, black hat, black moustache, tan khaki uniform shirt with pockets and brown buttons, gold star badge, brown duty belt, charcoal grey trousers, black boots, tanned skin, empty hands, no weapon",
   "height": 1.8
  },
  "clone": {
