@@ -1309,20 +1309,35 @@ def solve(name, dz=0.0, held0=None):
         side = it["main"]
         if Di is None:
             if held0 is None and ITEM_TYPE.get(side) == "pistol" and side in HANDF:
-                # A pistol in the fist: its barrel along the hand (the forearm's
-                # line), over the knuckles, the grip in the palm.
-                lo_e, hi_e = it["lo"], it["hi"]
-                grip = lo_e + (hi_e - lo_e) * it["holds"][side]
-                muzzle = lo_e if (lo_e - grip).length > (hi_e - grip).length else hi_e
-                G0 = (muzzle - grip).normalized()
-                wu = Vector((0, 0, 1))
-                U0 = (wu - G0 * wu.dot(G0)).normalized()
+                # A pistol in the fist as one is held: its grip (the part that
+                # stands off the barrel's line) across the palm under the
+                # fingers, the barrel along the forearm over the hand, the
+                # gun's top toward the thumb.
+                pts = numpy.array([g[:] for g in ITEM_PTS.get(it["bone"], [])])
+                ctr = pts.mean(axis=0)
+                G0 = Vector(numpy.linalg.svd(pts - ctr)[2][0])
+                rel = pts - ctr
+                along = rel @ numpy.array(G0[:])
+                perp = rel - numpy.outer(along, numpy.array(G0[:]))
+                pd = numpy.linalg.norm(perp, axis=1)
+                far = pd > numpy.percentile(pd, 80)
+                grip = Vector(pts[far].mean(axis=0))
+                down0 = Vector(perp[far].mean(axis=0)).normalized()
+                # the muzzle: the barrel's end away from the grip
+                g_al = (grip - Vector(ctr)).dot(G0)
+                if g_al > 0:
+                    G0 = -G0
+                U0 = -(down0 - G0 * down0.dot(G0)).normalized()
                 wrist0, a0, n0 = HANDF[side]
+                t0 = a0.cross(n0).normalized()
+                th = HANDS[side].chains.get("th") if side in HANDS else None
+                if th is not None and (th[1] - wrist0).dot(t0) < 0:
+                    t0 = -t0
                 Rh = D["hand_" + side].to_3x3()
                 G1 = (Rh @ a0).normalized()
-                U1 = -(Rh @ n0).normalized()
+                U1 = (Rh @ t0).normalized()
                 Rg = Matrix((G1, U1, G1.cross(U1))).transposed() @ Matrix((G0, U0, G0.cross(U0))).transposed().inverted()
-                palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (it["rad"] * .6)
+                palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (HANDS[side].thick * .55 if side in HANDS else .015)
                 Di = Matrix.Translation(palm) @ Rg.to_4x4() @ Matrix.Translation(-grip)
             elif held0 is None and side in HANDF and ITEM_TYPE.get(side, "carry") == "carry":
                 # Carried hanging (a jug, a bottle, a lantern): by its top (the
@@ -1404,6 +1419,13 @@ def solve(name, dz=0.0, held0=None):
             gp = [inv @ (Di @ Vector(g)) for g in ITEM_PTS_DENSE.get(it["bone"], [])]
             if gp:
                 curls, rep = hands.wrap_curls(hnd, gp)
+                # A finger the solve left open (short of the surface, or one
+                # that began inside it) closes into the fist's grip instead
+                # of lying flat: a hand on a thing is never a starfish.
+                for c_, (g_, i_) in rep.items():
+                    if c_ in curls and (g_ > .008 or i_):
+                        fist = hands.spread(c_, 2.2 if c_ != "th" else 1.2)
+                        curls[c_] = [max(x_, y_) for x_, y_ in zip(curls[c_], fist)]
                 gaps = [g for c_, (g, _i) in rep.items() if c_ != "pk"]
                 inside = [c_ for c_, (_g, i_) in rep.items() if i_]
                 touching = sum(1 for g in gaps if g < .004)
@@ -1756,7 +1778,7 @@ if HANDS:
             if nn.name != "bake_target":
                 nt.nodes.remove(nn)
         o = nt.nodes.new("ShaderNodeOutputMaterial")
-        if m is mat_hand and "handuv" in lo.data.uv_layers:
+        if m is mat_hand and "handuv" in lo.data.uv_layers and CFG.get("hands_paint", "flat") == "texture":
             # The sculpted hand's own painted skin (its UVs), lit.
             bs = nt.nodes.new("ShaderNodeBsdfDiffuse")
             tx = nt.nodes.new("ShaderNodeTexImage")
@@ -1776,6 +1798,13 @@ if HANDS:
             mixc.inputs[7].default_value = (float(_k[0]), float(_k[1]), float(_k[2]), 1)
             nt.links.new(tx.outputs[0], mixc.inputs[6])
             nt.links.new(mixc.outputs[2], bs.inputs[0])
+            nt.links.new(bs.outputs[0], o.inputs[0])
+        elif m is mat_hand and "shade" not in lo.data.color_attributes:
+            # One clean skin tone, lit by the stage (its shading and the
+            # creases' shadow from the bake itself); matched to the forearm
+            # after (hand_match).
+            bs = nt.nodes.new("ShaderNodeBsdfDiffuse")
+            bs.inputs[0].default_value = (float(SKIN[0]), float(SKIN[1]), float(SKIN[2]), 1)
             nt.links.new(bs.outputs[0], o.inputs[0])
         elif m is mat_hand:
             bs = nt.nodes.new("ShaderNodeBsdfDiffuse")
