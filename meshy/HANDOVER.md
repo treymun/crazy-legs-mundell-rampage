@@ -20,6 +20,39 @@ the pale hand tone dithering grey), 10d chum_tosser (44 cr; gloves in flat
 paint mode - "hands_paint": "texture" made them flat; "recolour" boxes at
 the wrists paint Meshy's cut glove ring into a gauntlet cuff, cap recolour
 to red). Credits after 10d: 1,260 of 2,500 (balance 1,678).
+10e chum_tosser: shaded gloves ("glove_shade": true + glove_light/
+glove_contrast/glove_grime_k; boss and rudy keep the old glove path).
+19d jerry (53 cr), then 19e (0 cr) after the coordinator held 19d back
+(flat painted face). 19e: "head_noshadow": true (the head's texels from a
+second bake per turn with the Meshy mesh casting no shadow: Meshy's facial
+shading kept, the helmet/bar shadows gone), "texture": 1024 (bosses may:
+maw and swamp_king do), "skin_even" tone [146,94,76] for hands/forearms,
+helmet shed refitted (dome cut z 1.80, shell + stripe copied by colour,
+mask cut front/sides), scalp recolours.
+JERRY STILL OPEN (coordinator's 19d note, do first next session):
+ (a) EYES: Meshy's model has squinting eyes (my prompt said "squint"), so
+     no whites/pupils show. Fix with credits: a fresh concept (same prompt
+     minus the squint: "wide-open eyes with clear whites and dark pupils")
+     + model + rig (~53), or a Meshy retexture of jerry_model. A new model
+     needs the shed boxes refitted (scripts4/headclass.py gives the helmet/
+     skin/grey bounds; headshots.sh with all six helmet_*_gear bones).
+ (b) BARE HEAD: still bad - the shell copies SHARE texels with the body
+     under them (a recolour of brim yellow turned the WORN helmet brown),
+     and shag shrink exposes Meshy's inner scalp (skin) plus shards at the
+     ears/back; the hat cap floats as a disc. Needs a real fix in shed.py:
+     give copied pieces their own UV island/texels (then the body under
+     can be painted hair freely), or build a cropped-hair skull cap from
+     the head's inner surface. No red/yellow slivers allowed.
+ (c) the face's grey patch over his left eye (the wink eye).
+Face options added this session (build_actor): face_albedo (+_shade,
+_sat, _hue; flattens the face - do not use for faces with detail),
+face_greys, bake_ray, head_noshadow.
+clone 04f: concept (9) + model (30) + rig (5) DONE and logged (balance
+1,581; track 1,357 of 2,500); old outputs in meshy_out/clone_*_04e; prompt in
+meshy-work/add_prompt_clone.py. NOT BUILT yet: next step
+kind_config.py clone 'hands_paint="texture"' (old config had no extras;
+a long gun, authored two-handed) then iter.sh clone 04f.
+Then baron 22c, swamp_king, the 16 humanoids (see the coordinator order).
 
 ## Fifth session
 

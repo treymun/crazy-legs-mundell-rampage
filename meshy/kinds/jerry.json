@@ -6,7 +6,7 @@
  "old_tex": "../meshy-work/old/actor3d_jerry.png",
  "out": "../meshy-work/raw/jerry",
  "tris": 12000,
- "texture": 512,
+ "texture": 1024,
  "gear": "old",
  "phases": true,
  "hold_legs": true,
@@ -58,15 +58,12 @@
   5,
   30
  ],
- "face_albedo": 1.0,
- "face_greys": 0.65,
- "face_albedo_shade": 0.7,
- "face_albedo_sat": 0.04,
+ "face_greys": 0.4,
  "shed": {
   "helmet": {
    "z": 1.8,
    "on": "head",
-   "cap": 0.5,
+   "cap": 0.6,
    "cap_colour": [
     66,
     50,
@@ -74,7 +71,7 @@
    ],
    "ring_pct": 94,
    "cap_base": 0.012,
-   "cap_grow": 0.95,
+   "cap_grow": 0.72,
    "within": 0.3,
    "radial": [
     0,
@@ -88,7 +85,7 @@
     0,
     0.03
    ],
-   "cap_shag": 0.007,
+   "cap_shag": 0.003,
    "cap_ymin": -0.2
   },
   "helmet_mask": {
@@ -190,11 +187,11 @@
     ]
    },
    "hue": [
-    30,
+    24,
     70
    ],
    "sat": [
-    0.35,
+    0.45,
     1
    ],
    "val": [
@@ -214,9 +211,9 @@
     1.7
    ],
    "shag": {
-    "shrink": 0.012,
-    "amp": 0.012,
-    "clamp": 0.2
+    "shrink": 0.028,
+    "amp": 0.003,
+    "clamp": 0.14
    },
    "grow_dark": [
     3,
@@ -228,8 +225,8 @@
    "on": "head",
    "box": {
     "x": [
-     -0.07,
-     0.07
+     -0.09,
+     0.09
     ],
     "y": [
      -0.27,
@@ -241,8 +238,8 @@
     ]
    },
    "hue": [
-    330,
-    18
+    325,
+    15
    ],
    "sat": [
     0.35,
@@ -265,9 +262,9 @@
     1.7
    ],
    "shag": {
-    "shrink": 0.012,
-    "amp": 0.012,
-    "clamp": 0.2
+    "shrink": 0.028,
+    "amp": 0.003,
+    "clamp": 0.14
    }
   }
  },
@@ -287,12 +284,96 @@
     0.16
    ],
    "to": [
-    66,
-    50,
-    40
+    52,
+    40,
+    32
    ],
    "contrast": 0.3,
    "not_skin": false
+  },
+  {
+   "name": "scalp",
+   "z": [
+    0.9318901795142556,
+    1.06
+   ],
+   "hue": [
+    8,
+    32
+   ],
+   "sat": [
+    0.12,
+    0.85
+   ],
+   "to": [
+    52,
+    40,
+    32
+   ],
+   "contrast": 0.5,
+   "not_skin": false
+  },
+  {
+   "name": "scalp_back",
+   "z": [
+    0.8447729672650476,
+    1.06
+   ],
+   "y": [
+    -0.02,
+    0.3
+   ],
+   "hue": [
+    8,
+    32
+   ],
+   "sat": [
+    0.12,
+    0.85
+   ],
+   "to": [
+    52,
+    40,
+    32
+   ],
+   "contrast": 0.5,
+   "not_skin": false
+  },
+  {
+   "name": "scalp_front",
+   "z": [
+    0.9176346356916579,
+    1.06
+   ],
+   "y": [
+    -0.35,
+    -0.02
+   ],
+   "hue": [
+    8,
+    32
+   ],
+   "sat": [
+    0.12,
+    0.85
+   ],
+   "to": [
+    52,
+    40,
+    32
+   ],
+   "contrast": 0.5,
+   "not_skin": false
   }
- ]
+ ],
+ "head_noshadow": true,
+ "skin_even": {
+  "ext": false,
+  "face_even": 0,
+  "tone": [
+   146,
+   94,
+   76
+  ]
+ }
 }

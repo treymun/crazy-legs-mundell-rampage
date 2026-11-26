@@ -973,6 +973,39 @@
    "time": "2026-11-26 15:55:36",
    "after": 1625,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "clone_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21a01-1cb4-75b8-9e1d-e5bd8573b335",
+   "before": 1625,
+   "cost": 9,
+   "body": "clone_concept.json",
+   "time": "2026-11-26 16:36:51",
+   "after": 1616,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "clone_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21a01-e706-7288-a820-8d30a71c65a0",
+   "before": 1616,
+   "cost": 30,
+   "body": "clone_model.json",
+   "time": "2026-11-26 16:37:45",
+   "after": 1586,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "clone_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21a03-0cc5-706f-aa37-cc394406ec67",
+   "before": 1586,
+   "cost": 5,
+   "body": "clone_rig.json",
+   "time": "2026-11-26 16:39:01",
+   "after": 1581,
+   "status": "SUCCEEDED"
   }
  ]
 }

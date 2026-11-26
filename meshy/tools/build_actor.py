@@ -2903,6 +2903,7 @@ weight = None
 # mask's bars standing a few cm off the face were baked onto the face as
 # grey stripes with the default reach)
 BAKE_RAY = [float(v) for v in CFG.get("bake_ray", [.012, .05])]
+NOSHADOW = None
 nx = NORMALS[:, 0] * 2 - 1
 ny = NORMALS[:, 1] * 2 - 1
 kept = [hi.matrix_world.copy(), lo.matrix_world.copy()]
@@ -2923,6 +2924,21 @@ for k, angle in enumerate(TURNS):
     toward = -(sn * nx + c * ny)
     hit = px[:, :3].sum(axis=1) > .003
     w = (numpy.clip(toward, 0, 1) ** 2 + 1e-4) * hit
+    if CFG.get("head_noshadow"):
+        # (the same turn baked with the Meshy mesh casting no shadow on
+        # itself: kept for the head - a helmet's brim and face-mask bars
+        # threw hard shadows over the face; Meshy's own painted shading
+        # and the light's turn over the face stay)
+        hi.visible_shadow = False
+        bake_op(type="COMBINED", pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE"},
+                margin=TEXTURE // 128, use_clear=True, use_selected_to_active=True,
+                cage_extrusion=OLD_H * BAKE_RAY[0], max_ray_distance=OLD_H * BAKE_RAY[1])
+        hi.visible_shadow = True
+        pxn = pixels(image)
+        if NOSHADOW is None:
+            NOSHADOW = pxn[:, :3] * w[:, None]
+        else:
+            NOSHADOW += pxn[:, :3] * w[:, None]
     if total is None:
         total = px.copy()
         total[:, :3] *= w[:, None]
@@ -2945,6 +2961,10 @@ if CFG.get("face_albedo"):
     ALBEDO = pixels(image)[:, :3].copy()
 found = weight > 0
 total[found, :3] /= weight[found, None]
+if NOSHADOW is not None:
+    NOSHADOW[found] /= weight[found, None]
+    total[HEADZONE & found, :3] = NOSHADOW[HEADZONE & found]
+    print("MESHY head baked without self-shadow: %d texels" % int((HEADZONE & found).sum()))
 inside = NORMALS[:, :3].sum(axis=1) > .05
 print("MESHY BAKE: %d of %d texels on the body unreached" % (int((inside & ~found).sum()), int(inside.sum())))
 # Fill unreached texels from neighbours.
@@ -3295,7 +3315,7 @@ def face_lift(px):
     if "HANDMASK" in globals():
         skin_all = skin_all & ~HANDMASK
     k = min(float(CFG.get("face_lift_most", 1.8)), max(1.0, want / max(have, 1e-4)))
-    print("MESHY face light %.3f, other skin %.3f" % (have, want))
+    print("MESHY face light %.3f, other skin %.3f; face colour %s" % (have, want, numpy.round(numpy.median(px[face, :3], axis=0) * 255).astype(int)))
     if k > 1.02:
         px = px.copy()
         # (every skin texel, face, hands and arms alike; the hat and cloth stay)

@@ -15,10 +15,11 @@
   "height": 1.8
  },
  "clone": {
-  "who": "backwoods farmer, a lanky hillbilly in a straw hat",
-  "design": "wide-brim straw hat with a dark band, a green and dark-green checked flannel shirt, faded blue denim bib overalls, scuffed brown work boots, big rough hands",
-  "face": "weathered tanned face, small dark eyes, a big nose, a blank simple stare, stubble",
-  "texture": "hillbilly farmer, straw hat, green checked flannel shirt, blue denim bib overalls, brown boots, empty hands, no weapon",
+  "refs": "cel",
+  "who": "backwoods hillbilly farmer, a lean rangy country man (one of a run of identical farmhand clones from a backyard lab)",
+  "design": "WEARING a wide-brimmed frayed straw farmer's hat with a dark band on his head, a green and dark-green checked flannel shirt with the sleeves rolled to the forearms, faded blue denim bib overalls with brass buckles, scuffed brown leather work boots, a lean wiry natural build with real shoulders and arms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a long weathered sun-tanned face lit evenly, small sharp eyes, a big crooked nose, a gap-toothed lopsided grin, sandy stubble, sandy hair under the hat brim, the face fully in light under the brim",
+  "texture": "hillbilly farmer, straw hat with dark band, green checked flannel shirt, blue denim bib overalls, brown boots, tanned skin, clear face, empty hands, no weapon",
   "height": 1.8
  },
  "alien": {
