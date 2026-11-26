@@ -138,6 +138,7 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
     gidx = {g.name: g.index for g in lo.vertex_groups}
     out = {}
     pieces = {}
+    claimed = set()  # faces an earlier piece took (several rules, one piece)
     for name, rule in shed.items():
         bone = name + "_gear"
         on = rule.get("on", "head" if name == "hat" else "body")
@@ -150,6 +151,13 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 c = f.calc_center_median()
                 if not (bx["x"][0] <= c.x <= bx["x"][1] and bx["y"][0] <= c.y <= bx["y"][1]
                         and bx["z"][0] <= c.z <= bx["z"][1]):
+                    continue
+                if f in claimed or f.index < 0 or (cols is not None and f.index >= len(cols)):
+                    continue
+                if rule.get("within") and math.hypot(c.x - rule["radial"][0], c.y - rule["radial"][1]) > float(rule["within"]):
+                    continue
+                if rule.get("head_only") and not all(
+                        v[dl] and max(v[dl].items(), key=lambda kv: kv[1])[0] == gidx.get(on, -1) for v in f.verts):
                     continue
                 if cols is not None and not _in_hsv(cols[f.index], rule):
                     continue
@@ -168,7 +176,7 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                     for f in take:
                         for v in f.verts:
                             for f2 in v.link_faces:
-                                if f2.index in got:
+                                if f2.index in got or f2 in claimed or f2.index >= len(cols):
                                     continue
                                 c = f2.calc_center_median()
                                 if not (bx["x"][0] <= c.x <= bx["x"][1] and bx["y"][0] <= c.y <= bx["y"][1]
@@ -179,18 +187,48 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                                     ring.append(f2)
                     take += ring
                 log("MESHY shed %s: %d faces with the dark rim grown on (%d)" % (name, len(take), len(got)))
+            if rule.get("cut"):
+                # "cut": the faces themselves go with the piece (a face mask's
+                # bars stand off the face: a copy would leave them on it),
+                # split from the rest along their edge.
+                ts = set(take)
+                edges = [e for e in bm.edges
+                         if any(f in ts for f in e.link_faces) and any(f not in ts for f in e.link_faces)]
+                bmesh.ops.split_edges(bm, edges=edges)
+                hv = {v for f in take for v in f.verts}
+                for v in hv:
+                    for k in list(v[dl].keys()):
+                        del v[dl][k]
+                    v[dl][gidx[bone]] = 1.0
+                pieces[bone] = list(hv)
+                claimed.update(take)
+                out[bone] = (rule.get("gear", name), on)
+                log("MESHY shed %s: %d faces cut off the body (%d edges split)" % (name, len(take), len(edges)))
+                continue
             lift = float(rule.get("lift", .006))
             dup = bmesh.ops.duplicate(bm, geom=take)
             new_f = [e for e in dup["geom"] if isinstance(e, bmesh.types.BMFace)]
             new_v = [e for e in dup["geom"] if isinstance(e, bmesh.types.BMVert)]
-            for v in new_v:
-                v.co += v.normal * lift
+            # ("radial" [x, y, z]: lift away from that point and face the
+            # copy outward - Meshy's normals point in here and there, and a
+            # copy lifted inward hides under the painted-over original)
+            rc = rule.get("radial")
+            if rc is not None:
+                rc = Vector(rc)
+                for f in new_f:
+                    if f.normal.dot(f.calc_center_median() - rc) < 0:
+                        f.normal_flip()
+                for v in new_v:
+                    v.co += (v.co - rc).normalized() * lift
+            else:
+                for v in new_v:
+                    v.co += v.normal * lift
             # its back, a little under it (two-sided as it flies)
             back = bmesh.ops.duplicate(bm, geom=new_f)
             back_f = [e for e in back["geom"] if isinstance(e, bmesh.types.BMFace)]
             back_v = [e for e in back["geom"] if isinstance(e, bmesh.types.BMVert)]
             for v in back_v:
-                v.co -= v.normal * (lift * .5)
+                v.co -= ((v.co - rc).normalized() if rc is not None else v.normal) * (lift * .5)
             bmesh.ops.reverse_faces(bm, faces=back_f)
             for v in new_v + back_v:
                 for k in list(v[dl].keys()):
@@ -203,9 +241,10 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                                           and bx["z"][0] <= c.z <= bx["z"][1]):
                         f[paint] = PAINT_ZONE
             for f in take:
-                f[paint] = PAINT_SKIN if rule.get("under") == "skin" else PAINT_INPAINT
+                f[paint] = {"skin": PAINT_SKIN, "cap": PAINT_CAP}.get(rule.get("under"), PAINT_INPAINT)
             for f in new_f + back_f:
                 f[paint] = 0
+            claimed.update(take + new_f + back_f)
             pieces[bone] = new_v + back_v
             log("MESHY shed %s: %d faces copied %.3f m out (two-sided), the body under it painted over"
                 % (name, len(take), lift))
@@ -222,8 +261,16 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
             for f in bm.faces:
                 c = f.calc_center_median()
                 if c.z > z0 and not keep(c):
+                    # ("head_only": only faces on the head's own bone - a
+                    # sack on the back can reach over the cut)
+                    if rule.get("head_only") and not all(head[v.index] for v in f.verts):
+                        continue
+                    # ("within" m of the head's ring centre across)
+                    if rule.get("within") and math.hypot(c.x - cen.x, c.y - cen.y) > float(rule["within"]):
+                        continue
                     hat_f.append(f)
             hat_set = set(hat_f)
+            claimed.update(hat_f)
             edges = [e for e in bm.edges
                      if any(f in hat_set for f in e.link_faces) and any(f not in hat_set for f in e.link_faces)]
             bmesh.ops.split_edges(bm, edges=edges)
@@ -237,8 +284,19 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                         for v in e.verts:
                             if v in hv:
                                 v.co.z = max(v.co.z, z0) if v.co.z > z0 - .03 else v.co.z
-                            elif abs(v.co.z - z0) < .05:
+                                # ("rim_drop": the piece's rim brought down over
+                                # a shell below it, no seam to see through)
+                                v.co.z -= float(rule.get("rim_drop", 0.0))
+                            elif v.co.z - z0 > -.05:
                                 v.co.z = min(v.co.z, z0 - .004)
+            # ("radial" + "lift": the cut-off piece pushed out from that
+            # point, to meet a shell copied out below it - a helmet)
+            if rule.get("radial") is not None and rule.get("lift"):
+                rc = Vector(rule["radial"])
+                for v in hv:
+                    d_ = v.co - rc
+                    d_.z = 0
+                    v.co += d_.normalized() * float(rule["lift"])
             for v in hv:
                 for k in list(v[dl].keys()):
                     del v[dl][k]

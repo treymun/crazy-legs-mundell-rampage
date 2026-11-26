@@ -555,6 +555,61 @@
    "time": "2026-11-26 09:43:49",
    "after": 2137,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "jerry_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a218c5-6884-712c-bff3-6f0cbc784b91",
+   "before": 2137,
+   "cost": 9,
+   "body": "jerry_concept.json",
+   "time": "2026-11-26 10:52:02",
+   "after": 2128,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "jerry_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a218c6-187f-7596-aee7-d5518fe3dbc3",
+   "before": 2128,
+   "cost": 9,
+   "body": "jerry_concept.json",
+   "time": "2026-11-26 10:52:47",
+   "after": 2119,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "jerry_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a218c7-4952-748b-a92a-1c1be7690191",
+   "before": 2119,
+   "cost": 9,
+   "body": "jerry_concept.json",
+   "time": "2026-11-26 10:54:05",
+   "after": 2110,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "jerry_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a218c8-0f71-779b-9cc7-ed8b9d3f5e88",
+   "before": 2110,
+   "cost": 30,
+   "body": "jerry_model.json",
+   "time": "2026-11-26 10:54:59",
+   "after": 2080,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "jerry_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a218c9-f61b-7199-af56-4c16c7ec7036",
+   "before": 2080,
+   "cost": 5,
+   "body": "jerry_rig.json",
+   "time": "2026-11-26 10:57:04",
+   "after": 2075,
+   "status": "SUCCEEDED"
   }
  ]
 }

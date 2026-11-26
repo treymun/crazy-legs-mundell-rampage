@@ -1,0 +1,229 @@
+{
+ "kind": "jerry",
+ "rigged": "../meshy-work/meshy_out/jerry_rig/rigged.glb",
+ "poses": "../meshy-work/dump/jerry_poses.json",
+ "old_glb": "../meshy-work/old/jerry.glb",
+ "old_tex": "../meshy-work/old/actor3d_jerry.png",
+ "out": "../meshy-work/raw/jerry",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "phases": true,
+ "hold_legs": true,
+ "skin_zones": [
+  "head",
+  "hand_l",
+  "hand_r"
+ ],
+ "hands_paint": "texture",
+ "gear_skip": [
+  "b199",
+  "b288"
+ ],
+ "gear_one": true,
+ "football": {},
+ "item_types": {
+  "r": "throw"
+ },
+ "akimbo": [
+  "l"
+ ],
+ "akimbo_skip": [
+  "wind",
+  "aim",
+  "fire",
+  "recover",
+  "pain"
+ ],
+ "to_body": [
+  {
+   "x": [
+    -0.35,
+    0.65
+   ],
+   "y": [
+    0.12,
+    0.9
+   ],
+   "z": [
+    0.8,
+    2.0
+   ],
+   "near": 0.08
+  }
+ ],
+ "belly": {
+  "z": 0.55,
+  "k": 0.5,
+  "rx": 0.22,
+  "ry": 0.3,
+  "rz": 0.2
+ },
+ "hold_near": 1.08,
+ "shed": {
+  "helmet": {
+   "z": 1.75,
+   "on": "head",
+   "cap": 0.5,
+   "cap_colour": [
+    66,
+    50,
+    40
+   ],
+   "ring_pct": 85,
+   "cap_base": 0.006,
+   "cap_grow": 0.85,
+   "within": 0.27,
+   "radial": [
+    0,
+    -0.07,
+    1.68
+   ],
+   "lift": 0.015,
+   "rim_drop": 0.012
+  },
+  "helmet_mask": {
+   "gear": "helmet",
+   "on": "head",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.17,
+     0.17
+    ],
+    "y": [
+     -0.36,
+     -0.14
+    ],
+    "z": [
+     1.48,
+     1.78
+    ]
+   },
+   "sat": [
+    0,
+    0.3
+   ],
+   "val": [
+    0.3,
+    1
+   ]
+  },
+  "helmet_shell": {
+   "gear": "helmet",
+   "on": "head",
+   "box": {
+    "x": [
+     -0.25,
+     0.25
+    ],
+    "y": [
+     -0.14,
+     0.3
+    ],
+    "z": [
+     1.58,
+     1.8
+    ]
+   },
+   "lift": 0.015,
+   "under": "cap",
+   "cap_colour": [
+    66,
+    50,
+    40
+   ],
+   "radial": [
+    0,
+    -0.07,
+    1.68
+   ],
+   "within": 0.25
+  },
+  "helmet_low": {
+   "gear": "helmet",
+   "on": "head",
+   "box": {
+    "x": [
+     -0.25,
+     0.25
+    ],
+    "y": [
+     -0.2,
+     0.3
+    ],
+    "z": [
+     1.46,
+     1.58
+    ]
+   },
+   "hue": [
+    32,
+    75
+   ],
+   "sat": [
+    0.35,
+    1
+   ],
+   "lift": 0.015,
+   "under": "cap",
+   "cap_colour": [
+    66,
+    50,
+    40
+   ],
+   "radial": [
+    0,
+    -0.07,
+    1.68
+   ],
+   "within": 0.25,
+   "val": [
+    0.25,
+    1
+   ]
+  },
+  "helmet_brim": {
+   "gear": "helmet",
+   "on": "head",
+   "box": {
+    "x": [
+     -0.2,
+     0.2
+    ],
+    "y": [
+     -0.32,
+     -0.13
+    ],
+    "z": [
+     1.68,
+     1.8
+    ]
+   },
+   "hue": [
+    25,
+    75
+   ],
+   "sat": [
+    0.3,
+    1
+   ],
+   "val": [
+    0.2,
+    1
+   ],
+   "lift": 0.008,
+   "radial": [
+    0,
+    -0.07,
+    1.68
+   ],
+   "under": "cap",
+   "cap_colour": [
+    66,
+    50,
+    40
+   ]
+  }
+ }
+}

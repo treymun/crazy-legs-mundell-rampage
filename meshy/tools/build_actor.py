@@ -520,6 +520,18 @@ if none.any():
 for b in BONES:
     W[b] /= total
 print("MESHY weights: %d vertices lost a far bone, %d rebound to the nearest" % (dropped, int(none.sum())))
+# Things worn on the back (a sack, a pack) ride the trunk only (kind config
+# "to_body": [{x, y, z, near}] boxes; vertices within `near` m of an arm's
+# own bones keep theirs): Meshy's rig gave a sack's bottom to the arm.
+for _bx in CFG.get("to_body", []):
+    _in = numpy.ones(len(co), dtype=bool)
+    for _ax, _k2 in (("x", 0), ("y", 1), ("z", 2)):
+        _in &= (co[:, _k2] >= _bx[_ax][0]) & (co[:, _k2] <= _bx[_ax][1])
+    _armd = numpy.min(numpy.stack([DIST[bn] for bn in BONES if bn.startswith(("upperarm", "forearm", "hand"))]), axis=0)
+    _in &= _armd > float(_bx.get("near", .07))
+    for b in BONES:
+        W[b][_in] = 1.0 if b == "body" else 0.0
+    print("MESHY to_body: %d vertices ride the trunk only" % int(_in.sum()))
 for g in list(lo.vertex_groups):
     lo.vertex_groups.remove(g)
 groups = {b: lo.vertex_groups.new(name=b) for b in BONES}
@@ -992,6 +1004,78 @@ if CFG.get("gear", "old") == "old" and LOST:
             _gco = numpy.array([v.co[:] for v in gm.vertices])
             print("MESHY megaphone: the flat disc (%s) rebuilt as a horn %.2f m long, bell %.3f m" % (
                 DUMP["bones"][_xb], L, r_bell))
+    # A football (kind config "football" {length, width, colour}): the old
+    # held parts (a crude cone) rebuilt as a real pigskin at their place and
+    # along their long axis - a prolate leather ball, two white stripes near
+    # its ends, white laces along its top - in plain colours lit from above.
+    if CFG.get("football") is not None and LOST:
+        fcfg = CFG["football"] if isinstance(CFG["football"], dict) else {}
+        _c = Vector(_gco.mean(0))
+        _sv = numpy.linalg.svd(_gco - _gco.mean(0), full_matrices=False)
+        a_ = Vector(_sv[2][0]).normalized()
+        L = float(fcfg.get("length", .29)) * OLD_H / 1.8
+        R = float(fcfg.get("width", .17)) * OLD_H / 1.8 * .5
+        _xb = LOST[0]
+        bmm = bmesh.new()
+        u_ = (Vector((0, 0, 1)) - a_ * a_.dot(Vector((0, 0, 1))))
+        if u_.length < .1:
+            u_ = Vector((0, 1, 0)) - a_ * a_.dot(Vector((0, 1, 0)))
+        u_.normalize()
+        w_ = a_.cross(u_)
+        seg, nr = 14, 12
+        rings = []
+        for i in range(1, nr):
+            t = -1 + 2 * i / nr
+            r = R * math.sqrt(max(0.0, 1 - t * t)) ** .8
+            rings.append([bmm.verts.new(_c + a_ * (t * L * .5) + (u_ * math.cos(2 * math.pi * k / seg)
+                                                               + w_ * math.sin(2 * math.pi * k / seg)) * r)
+                          for k in range(seg)])
+        tip0 = bmm.verts.new(_c - a_ * L * .5)
+        tip1 = bmm.verts.new(_c + a_ * L * .5)
+        part_of = {}
+        for ri, (ra, rb) in enumerate(zip(rings, rings[1:])):
+            for k in range(seg):
+                f_ = bmm.faces.new((ra[k], ra[(k + 1) % seg], rb[(k + 1) % seg], rb[k]))
+                part_of[f_] = "stripe" if ri in (1, nr - 4) else "leather"
+        for k in range(seg):
+            part_of[bmm.faces.new((rings[0][(k + 1) % seg], rings[0][k], tip0))] = "leather"
+            part_of[bmm.faces.new((rings[-1][k], rings[-1][(k + 1) % seg], tip1))] = "leather"
+        # the laces: a short white ridge on top with cross stitches
+        for i in range(-3, 4):
+            q = _c + a_ * (i * L * .045) + u_ * (R * 1.0)
+            box = bmesh.ops.create_cube(bmm, size=1.0)["verts"]
+            for v in box:
+                p_ = v.co.copy()
+                v.co = q + a_ * (p_.x * L * .018) + w_ * (p_.y * R * .55) + u_ * (p_.z * R * .12)
+            for f in {f for v in box for f in v.link_faces}:
+                part_of[f] = "lace"
+        bmm.normal_update()
+        cols = {"leather": fcfg.get("colour", [112, 58, 32]), "stripe": [222, 218, 206], "lace": [230, 226, 214]}
+        lay = bmm.loops.layers.color.new("mcol")
+        Ld = Vector((.3, -.6, .75)).normalized()
+        for f in bmm.faces:
+            sh = .55 + .45 * max(0.0, f.normal.dot(Ld))
+            c = [ch / 255.0 * sh for ch in cols[part_of.get(f, "leather")]]
+            for l_ in f.loops:
+                l_[lay] = (c[0], c[1], c[2], 1.0)
+        pmat = bpy.data.materials.new("gear_plain")
+        pmat.use_nodes = True
+        pnt = pmat.node_tree
+        pnt.nodes.clear()
+        po = pnt.nodes.new("ShaderNodeOutputMaterial")
+        pe = pnt.nodes.new("ShaderNodeEmission")
+        pvc = pnt.nodes.new("ShaderNodeVertexColor")
+        pvc.layer_name = "mcol"
+        pnt.links.new(pvc.outputs[0], pe.inputs[0])
+        pnt.links.new(pe.outputs[0], po.inputs[0])
+        gm.materials.append(pmat)
+        for f in bmm.faces:
+            f.material_index = len(gm.materials) - 1
+        bmm.to_mesh(gm)
+        bmm.free()
+        _gco = numpy.array([v.co[:] for v in gm.vertices])
+        _vb = numpy.full(len(_gco), _xb)
+        print("MESHY football: the old held parts rebuilt as a ball %.2f m long, %.2f wide" % (L, R * 2))
     _link = {i: {i} for i in LOST}
     for _x in LOST:
         for _y in LOST:
