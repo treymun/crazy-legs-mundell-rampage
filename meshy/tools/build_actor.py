@@ -1525,11 +1525,19 @@ if gear_obj is not None:
         pts = _gco[_vg == gi]
         ctr = Vector(pts.mean(axis=0))
         ax = Vector(numpy.linalg.svd(pts - pts.mean(axis=0))[2][0])
+        # (kind config "item_axis" {gear index: [x, y, z]}: the thing's axis
+        # set by hand - a tire is a disc, its long axis any way in its
+        # plane; across the body, the hands take its rim at the sides)
+        _iax = CFG.get("item_axis", {}).get(str(gi))
+        if _iax:
+            ax = Vector(_iax).normalized()
         proj = (pts - numpy.array(ctr[:])) @ numpy.array(ax[:])
         perp = (pts - numpy.array(ctr[:])) - numpy.outer(proj, numpy.array(ax[:]))
         # The rear end (lo) is the thicker one: a stock, a grip, a handle.
         pw = numpy.linalg.norm(perp, axis=1)
-        if pw[proj > 0].mean() > pw[proj < 0].mean():
+        if _iax:
+            pass
+        elif pw[proj > 0].mean() > pw[proj < 0].mean():
             ax = -ax
             proj = -proj
         lo_e, hi_e = ctr + ax * float(proj.min()), ctr + ax * float(proj.max())

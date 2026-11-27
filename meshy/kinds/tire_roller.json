@@ -1,0 +1,384 @@
+{
+ "kind": "tire_roller",
+ "rigged": "../meshy-work-b/meshy_out/tire_roller_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/tire_roller_poses.json",
+ "old_glb": "../meshy-work-b/old/tire_roller.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_tire_roller.png",
+ "out": "../meshy-work-b/raw/tire_roller",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.4,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "two_old": true,
+ "two_both": true,
+ "aim_keys": [],
+ "gear_one": true,
+ "face_uv": {
+  "auto": true,
+  "k": 3.5,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_keep": {
+  "light": 0.88,
+  "eyes": 1.6,
+  "eye_sat": 0.15,
+  "soften": 0.5,
+  "tone": [
+   184,
+   126,
+   100
+  ],
+  "tone_k": 0.7,
+  "tone_zone": "head"
+ },
+ "face_box": {
+  "auto": true,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "grip_parts": {
+  "r": [
+   "b139"
+  ],
+  "l": [
+   "b142"
+  ]
+ },
+ "gear_extra": [
+  "b28",
+  "b29",
+  "b30",
+  "b50",
+  "b51",
+  "b31",
+  "b32",
+  "b48",
+  "b49",
+  "b106",
+  "b107",
+  "b108",
+  "b136",
+  "b33",
+  "b34",
+  "b46",
+  "b47",
+  "b104",
+  "b105",
+  "b133",
+  "b134",
+  "b135",
+  "b55",
+  "b56",
+  "b78",
+  "b57",
+  "b35",
+  "b58",
+  "b36",
+  "b88",
+  "b89",
+  "b59",
+  "b44",
+  "b45",
+  "b102",
+  "b103",
+  "b131",
+  "b132",
+  "b75",
+  "b76",
+  "b77",
+  "b37",
+  "b90",
+  "b116",
+  "b60",
+  "b38",
+  "b91",
+  "b117",
+  "b118",
+  "b61",
+  "b42",
+  "b43",
+  "b130",
+  "b73",
+  "b74",
+  "b39",
+  "b92",
+  "b119",
+  "b62",
+  "b40",
+  "b93",
+  "b120",
+  "b63",
+  "b41",
+  "b72",
+  "b71",
+  "b94",
+  "b121",
+  "b64",
+  "b122",
+  "b65",
+  "b69",
+  "b70",
+  "b66",
+  "b67",
+  "b68",
+  "b26",
+  "b27",
+  "b52",
+  "b53",
+  "b54",
+  "b79",
+  "b80"
+ ],
+ "two_old_in": 0.0,
+ "two_old_shift": [
+  0.05,
+  0,
+  0.06
+ ],
+ "item_axis": {
+  "0": [
+   1,
+   0,
+   0
+  ]
+ },
+ "item_holds": {
+  "0": {
+   "r": 0.03,
+   "l": 0.97
+  }
+ },
+ "skin_even": {
+  "ext": false,
+  "tone": [
+   176,
+   118,
+   92
+  ],
+  "face_even": 0,
+  "smooth": 2
+ },
+ "recolour": [
+  {
+   "name": "undershirt",
+   "z": [
+    0.55,
+    0.79
+   ],
+   "sat": [
+    0,
+    0.38
+   ],
+   "val": [
+    0.15,
+    1
+   ],
+   "to": [
+    150,
+    142,
+    124
+   ],
+   "contrast": 0.5,
+   "smooth": 6,
+   "not_face": true,
+   "x": [
+    -0.2,
+    0.2
+   ]
+  },
+  {
+   "name": "chest_skin",
+   "z": [
+    0.79,
+    0.86
+   ],
+   "x": [
+    -0.16,
+    0.16
+   ],
+   "y": [
+    -9,
+    0
+   ],
+   "sat": [
+    0,
+    0.6
+   ],
+   "val": [
+    0.15,
+    1
+   ],
+   "to": [
+    184,
+    126,
+    100
+   ],
+   "contrast": 0.6,
+   "smooth": 3,
+   "not_skin": false,
+   "not_hands": true,
+   "not_face": true
+  },
+  {
+   "to": [
+    184,
+    126,
+    100
+   ],
+   "not_skin": false,
+   "not_hands": true,
+   "sat": [
+    0,
+    0.6
+   ],
+   "name": "scalp",
+   "z": [
+    0.935,
+    1.1
+   ],
+   "val": [
+    0.1,
+    1
+   ],
+   "not_face": true,
+   "smooth": 3,
+   "contrast": 0.6
+  },
+  {
+   "to": [
+    184,
+    126,
+    100
+   ],
+   "not_skin": false,
+   "not_hands": true,
+   "sat": [
+    0,
+    0.6
+   ],
+   "name": "nape",
+   "z": [
+    0.8,
+    0.935
+   ],
+   "y": [
+    0.02,
+    9
+   ],
+   "val": [
+    0.1,
+    1
+   ],
+   "smooth": 3,
+   "contrast": 0.6
+  },
+  {
+   "name": "by_ears",
+   "z": [
+    0.86,
+    0.935
+   ],
+   "x": [
+    -9,
+    -0.075
+   ],
+   "y": [
+    -0.04,
+    9
+   ],
+   "val": [
+    0.22,
+    1
+   ],
+   "sat": [
+    0,
+    0.6
+   ],
+   "to": [
+    184,
+    126,
+    100
+   ],
+   "contrast": 0.6,
+   "smooth": 3,
+   "not_skin": false,
+   "not_hands": true
+  },
+  {
+   "name": "by_ears_l",
+   "z": [
+    0.86,
+    0.935
+   ],
+   "x": [
+    0.075,
+    9
+   ],
+   "y": [
+    -0.04,
+    9
+   ],
+   "val": [
+    0.22,
+    1
+   ],
+   "sat": [
+    0,
+    0.6
+   ],
+   "to": [
+    184,
+    126,
+    100
+   ],
+   "contrast": 0.6,
+   "smooth": 3,
+   "not_skin": false,
+   "not_hands": true
+  }
+ ],
+ "gear_skip": [
+  "b81",
+  "b82",
+  "b83",
+  "b84",
+  "b109",
+  "b110",
+  "b111",
+  "b85",
+  "b112",
+  "b86",
+  "b113",
+  "b87",
+  "b114",
+  "b115",
+  "b99",
+  "b100",
+  "b101",
+  "b129",
+  "b97",
+  "b98",
+  "b126",
+  "b127",
+  "b128",
+  "b95",
+  "b96",
+  "b124",
+  "b125",
+  "b123"
+ ],
+ "hold_legs": true
+}

@@ -85,8 +85,21 @@ have a clean ramp in the VGA palette) and "not_boxes" (new: the face
 boxes left out), a visor band, brow specks, eye glints (tiny boxes);
 face_keep gain .95 + tone; gloves [62,62,64] glove_shade (gauntlets).
 The 47 config is kept as meshy-work-b/tin_guard_47.json.
-NEXT: tire_roller (concept done, 9 cr: the bald mutton-chop strongman in
-mustard bib overalls; model + rig next), valve_rat, drone
+48 tire_roller (44 cr; the old tire, two_old + two_both, aim_keys [],
+gear_one, two_old_in 0 + two_old_shift [.05, 0, .06] (centred on the new
+deep belly), item_axis (new) {"0": [1,0,0]} (a disc's long axis is any way
+in its plane: across the body) + item_holds r .03 / l .97 (the hands on
+the rim's sides - at .15/.85 the palm went to the bottom of that slice),
+grip_parts r b139 l b142 (old hands hidden behind the tire), gear_skip =
+the arm-labelled gear parts (old fingers on the rim, flesh blobs),
+gear_extra = the rest of the dump's gear groups (orange ring pieces passed
+for skin); hold_legs; skin_even tone + face_keep tone_zone head + scalp/
+nape/by_ears/chest_skin recolours (the bald head came out grey-blotched),
+undershirt smooth recolour boxed to the torso (|x| < .2: else the arms'
+pale skin went cream). Known: the live probe shows the tire 8-10 cm in
+the body in the pain reaction (key 9) though the old pain key hides it
+(scale 0) - the live view seems to show it; not solved.
+NEXT: valve_rat, drone
 (alien grey, see 05b alien.json), skeeter (dumps ok=false: a bug - beast
 path; see the beast-path section). check_all quick batch 2 (44-46)
 run after 46 (scratch profile): ALL CHECKS OK in 190 s; batch 1 (40-43) ALL
@@ -165,6 +178,7 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   "only_face", "not_hands", "albedo_hue"/"albedo_sat" (Meshy unlit colour;
   triggers the albedo bake). MESHY_DEBUG_KEEP now also names the bone for
   the solve's own keep-out lines.
+- 48: build_actor "item_axis" {gear index: [x,y,z]}.
 - 47b: recolour "keep_light" k, "not_boxes" [{x,y,z}]; meshy.py NOMINAL
   v1/retexture 10; meshy/tools/retex_swap.py + retex_comp.py (see 47b).
 - grip_parts: the old millhand's yellow coat passed for skin (b5); name the
