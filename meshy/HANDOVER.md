@@ -128,6 +128,22 @@ Known: the right fist sits under the pipe in the stand/walk (fingers
 closed short of it; the grip window takes in the valve wheel), gear probe
 9.6 cm in one running/pain blend picture, back/side arm views hidden by
 the tanks (front views 63-100%); the graded face steps salmon/grey.
+50 drone DONE (44 cr: concept, model, rig; prompt meshy-work-b/prompts/
+drone.json, "refs": "cel"): an alien grey farmhand - green trucker cap,
+black goggles with cyan lenses, orange plaid shirt, denim bib overalls,
+pale work gloves, the old hay hook. Config (kind_config + edits): tris
+14000, texture 1024, head_noshadow, face_uv/face_box auto, face_keep
+{eyes 0, soften .5} (the Meshy face is sculpted: no sticker look),
+skin_zones hands only, gloves [150,148,140] + glove_shade, item_types r
+"hold" + follow_old [gear0] + follow_wrist 65 (the jab: the prod points
+ahead in aim/fire as the old one did; without follow_old it stood up
+vertical), gear_groups [[b16,b17,b20,b21]] + gear_skip [b29] (a 7 cm
+stray "item" in the left hand), cap recolours (cap z .895+ val .12-.8
+with the cream patch boxed out, cap_patch_rim, cap_back z .882-.9 y > 0:
+Meshy's cap was camo-blotched teal/brown). Known: gear probe up to 10 cm
+(the 0.79 m hook through a leg in one buckshot reaction picture, 7 cm
+head row), arms seen front 24-98% (running row low: the hook arm swings
+behind).
 NEXT: valve_rat (finish, see 49), drone (alien grey, see 05b
 alien.json), skeeter (dumps ok=false: a bug - beast path; see the
 beast-path section and A's swamp_king notes), then as credits allow the

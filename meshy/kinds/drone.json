@@ -1,0 +1,156 @@
+{
+ "kind": "drone",
+ "rigged": "../meshy-work-b/meshy_out/drone_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/drone_poses.json",
+ "old_glb": "../meshy-work-b/old/drone.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_drone.png",
+ "out": "../meshy-work-b/raw/drone",
+ "tris": 14000,
+ "texture": 1024,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "item_types": {
+  "r": "hold"
+ },
+ "face_uv": {
+  "auto": true,
+  "k": 3.0,
+  "brim_k": 1.2,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_box": {
+  "auto": true,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "face_keep": {
+  "eyes": 0,
+  "soften": 0.5
+ },
+ "skin_zones": [
+  "hand_l",
+  "hand_r"
+ ],
+ "gloves": [
+  150,
+  148,
+  140
+ ],
+ "glove_shade": true,
+ "gear_groups": [
+  [
+   "b16",
+   "b17",
+   "b20",
+   "b21"
+  ]
+ ],
+ "follow_old": [
+  "gear0"
+ ],
+ "follow_wrist": 65,
+ "recolour": [
+  {
+   "name": "cap",
+   "z": [
+    0.895,
+    1.1
+   ],
+   "val": [
+    0.12,
+    0.8
+   ],
+   "to": [
+    64,
+    86,
+    50
+   ],
+   "contrast": 0.5,
+   "smooth": 4,
+   "not_skin": false,
+   "not_hands": true,
+   "not_face": true,
+   "not_boxes": [
+    {
+     "x": [
+      -0.075,
+      0.075
+     ],
+     "y": [
+      -9,
+      -0.08
+     ],
+     "z": [
+      0.935,
+      0.978
+     ]
+    }
+   ]
+  },
+  {
+   "name": "cap_patch_rim",
+   "x": [
+    -0.075,
+    0.075
+   ],
+   "y": [
+    -9,
+    -0.08
+   ],
+   "z": [
+    0.935,
+    0.978
+   ],
+   "val": [
+    0.12,
+    0.55
+   ],
+   "to": [
+    64,
+    86,
+    50
+   ],
+   "contrast": 0.5,
+   "smooth": 2,
+   "not_skin": false,
+   "not_hands": true,
+   "not_face": true
+  },
+  {
+   "name": "cap_back",
+   "z": [
+    0.882,
+    0.9
+   ],
+   "y": [
+    0,
+    9
+   ],
+   "val": [
+    0.12,
+    0.6
+   ],
+   "to": [
+    64,
+    86,
+    50
+   ],
+   "contrast": 0.5,
+   "smooth": 2,
+   "not_skin": false,
+   "not_hands": true,
+   "not_face": true
+  }
+ ],
+ "gear_skip": [
+  "b29"
+ ]
+}

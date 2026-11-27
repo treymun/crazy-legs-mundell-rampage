@@ -2407,7 +2407,7 @@
 		]
 	},
 	"drone": {
-		"bones": 46.0,
+		"bones": 45.0,
 		"canvas": [
 			1.6,
 			1.9
@@ -2497,7 +2497,6 @@
 			"fr_th2": "arm_r",
 			"fr_th3": "arm_r",
 			"gear0": "arm_r",
-			"gear1": "arm_l",
 			"hand_l": "arm_l",
 			"hand_r": "arm_r",
 			"head": "head",
@@ -2510,10 +2509,9 @@
 		},
 		"lit": true,
 		"meshy": true,
-		"parts": 46.0,
+		"parts": 45.0,
 		"rides": {
-			"gear0": 5.0,
-			"gear1": 3.0
+			"gear0": 5.0
 		},
 		"segs": {
 			"body": 0.0,
