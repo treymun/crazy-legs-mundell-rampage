@@ -7,7 +7,8 @@
 ## hill's crest and past the raked wall; the 3D mesh (the hill's surface at
 ## every height, the cliff upright, the rakes as quads, no floor under the
 ## terrain); a save on the hillside; broken terrain refused; the same level
-## twice.
+## twice; a glTF gable and a steep roof face imported (raked walls, a slope
+## not walked on) and built as version 2.
 ##
 ##   Godot --headless --path <project> --script res://tools/geometry2_check.gd [-- write=<file>]
 ##
@@ -18,6 +19,9 @@ extends SceneTree
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const House := preload("res://tools/levels/house_kit.gd")
+const Source := preload("res://tools/map/map_source.gd")
+const Compile := preload("res://tools/map/map_compile.gd")
+const Import := preload("res://tools/map/map_import.gd")
 const ID := "zz_shapes2"
 const DT := 1.0 / 60.0
 ## The hill: over cells 4..19 x 4..19, 3.0 at its middle (12, 12).
@@ -102,6 +106,7 @@ func _run() -> void:
 	_mesh(main)
 	_saves(main)
 	_refused(main)
+	_imported(main)
 	LevelData.preview.erase(ID)
 	print("")
 	print("GEOMETRY 2 CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
@@ -423,3 +428,74 @@ func _refused(main) -> void:
 	}
 	LevelGeometry.from_json(v2_steep, 48, 36, art.tile_index, errors)
 	_check(errors.is_empty(), "but taken in version 2 when not walked on (%s)" % [errors])
+
+
+func _imported(main) -> void:
+	print("import")
+	var art: Assets = main.make_game(ID).art
+	var kept := Source.dir
+	var scratch := OS.get_cache_dir().path_join("clmr_geometry2_check")
+	DirAccess.make_dir_recursive_absolute(scratch)
+	Source.dir = scratch
+	var map_id := "gable"
+	Source.write(map_id, Source.blank(map_id, 16, 16))
+	var glb := scratch.path_join("gable.glb")
+	_gable_gltf(glb)
+	var out := Import.run(map_id, glb, {"default_tile": "barn", "prefix": "gable"}, art)
+	_check(
+		int(out["exit"]) == 0, "a gable and a steep roof face import (%s)" % out.get("error", "")
+	)
+	var doc := Source.read(map_id)
+	Source.dir = kept
+	var raked := 0
+	var steep := 0
+	for o: Dictionary in doc.get("objects", []):
+		if String(o["type"]) == "wall" and o.has("z1b"):
+			raked += 1
+		if String(o["type"]) == "ramp" and not bool(o.get("walk", true)):
+			steep += 1
+	_check(raked == 2, "the gable comes in as two raked walls up to its peak (%d)" % raked)
+	_check(steep == 1, "the steep face as a slope not walked on (%d)" % steep)
+	var built := Compile.compile(doc)
+	var level: Dictionary = built.get("level", {})
+	var block: Dictionary = level.get("geometry", {})
+	var peak := 0.0
+	for seg: Dictionary in block.get("segments", []):
+		peak = maxf(peak, float(seg.get("z1b", 0.0)))
+	_check(int(block.get("version", 1)) == 2, "and it builds as geometry version 2")
+	_check(absf(peak - 3.5) < .02, "its raked walls reach the peak at 3.5 (%.2f)" % peak)
+	var errors: Array = []
+	LevelGeometry.from_json(block, 16, 16, art.tile_index, errors)
+	_check(errors.is_empty(), "and reads back without a word (%s)" % [errors])
+
+
+## A glTF of a gable end (a wall 6 wide, 2 to its eaves, 3.5 at its peak) and
+## a roof face rising 3 in 1 (72 degrees: too steep to stand on).
+static func _gable_gltf(path: String) -> void:
+	var root := Node3D.new()
+	root.name = "Gable"
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var g := [
+		Vector3(2, 0, 5), Vector3(8, 0, 5), Vector3(8, 2, 5), Vector3(2, 2, 5), Vector3(5, 3.5, 5)
+	]
+	for idx in [0, 1, 2, 0, 2, 3, 3, 2, 4]:
+		st.add_vertex(g[idx])
+	var wall := MeshInstance3D.new()
+	wall.name = "GableEnd"
+	wall.mesh = st.commit()
+	root.add_child(wall)
+	var s2 := SurfaceTool.new()
+	s2.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var q := [Vector3(10, 0, 4), Vector3(12, 0, 4), Vector3(12, 3, 5), Vector3(10, 3, 5)]
+	for idx in [0, 1, 2, 0, 2, 3]:
+		s2.add_vertex(q[idx])
+	var face := MeshInstance3D.new()
+	face.name = "SteepFace"
+	face.mesh = s2.commit()
+	root.add_child(face)
+	var doc := GLTFDocument.new()
+	var state := GLTFState.new()
+	doc.append_from_scene(root, state)
+	doc.write_to_filesystem(state, path)
+	root.free()
