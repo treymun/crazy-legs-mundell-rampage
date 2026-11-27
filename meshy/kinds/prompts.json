@@ -200,5 +200,13 @@
   "face": "a stylized game-character alien face, slightly caricatured but clearly readable: a smooth olive-grey alien face inside the open helmet, lit evenly, two large glossy black almond-shaped alien eyes each with a clear white highlight, a small flat nose with two slits, a thin stern mouth set in a grim frown, clean smooth grey skin, the whole face fully in light under the helmet",
   "texture": "grey alien guard, gunmetal grey riveted tin armour helmet pauldrons breastplate knee cops, glowing orange visor strip on brow, dark charcoal padded suit, dark belt, dark grey boots, olive grey smooth alien skin, big glossy black eyes with white highlights, bare grey hands, empty hands, no weapon, no shield",
   "height": 1.87
+ },
+ "tire_roller": {
+  "refs": "cel",
+  "who": "1990s speedway tire man, a big burly pit-lane brute who bowls heavy racing tires at people",
+  "design": "WEARING a dirty off-white sleeveless ribbed undershirt, mustard-orange work bib overalls with the straps over the shoulders and a big front bib pocket, round black rubber knee pads strapped over the overall legs, scuffed grey work boots, a big heavy natural strongman build with a broad chest, a round gut and thick muscular bare arms, bald head, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad tanned face lit evenly, a shaved bald head, wide-open eyes with clear whites and dark pupils under heavy dark brows set in a mean scowl, a big flat boxer's nose, thick dark mutton-chop sideburns joined to a bushy dark horseshoe moustache, a clean-shaven chin, clean skin, the face fully in light",
+  "texture": "speedway tire man, off-white sleeveless undershirt, mustard orange bib overalls, black rubber knee pads, grey work boots, tanned clean skin, bald head, dark mutton chop sideburns and horseshoe moustache, clear face with eye whites, bare hands, empty hands, no tire, no props",
+  "height": 1.69
  }
 }

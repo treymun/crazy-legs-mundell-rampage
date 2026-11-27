@@ -69,7 +69,24 @@ by hue (the suit is tagged by a blue-ish [48,47,50] so the eyes rule can
 find the eye texels after it) - neutral greys dither beige/blue in the
 grade: use the old warm greys. Known: jaw edge of the green face is a
 little jagged; gear probe 5 cm legs row picture 11 (wind blend).
-NEXT: tire_roller, valve_rat, drone
+47b tin_guard (10 cr: a Meshy RETEXTURE, v1/retexture on the model task,
+enable_original_uv, "clean riveted gun-metal plate" prompt; coordinator
+held 47: granite armour, sticker face, pale shield hand). The retexture
+made clean plates but a grey robot mask face, so the texture is
+composited: meshy/tools/retex_swap.py (Blender: "polys" = UV polygons of
+the faces whose centre is in build-space boxes; "swap" = the rigged glb
+with its image replaced) + retex_comp.py (the original texture inside the
+polygons, the retexture elsewhere) -> meshy-work-b/meshy_out/
+tin_guard_rig_rt/rigged.glb (kind "rigged"). Then: texture 1024 (at 512
+the plate read as granite blocks), recolour "steel" with "keep_light"
+(new: each texel keeps its own light, only the hue set - the warm dusk
+bake stepped grey steel into beige/blue palette specks; neutral greys
+have a clean ramp in the VGA palette) and "not_boxes" (new: the face
+boxes left out), a visor band, brow specks, eye glints (tiny boxes);
+face_keep gain .95 + tone; gloves [62,62,64] glove_shade (gauntlets).
+The 47 config is kept as meshy-work-b/tin_guard_47.json.
+NEXT: tire_roller (concept done, 9 cr: the bald mutton-chop strongman in
+mustard bib overalls; model + rig next), valve_rat, drone
 (alien grey, see 05b alien.json), skeeter (dumps ok=false: a bug - beast
 path; see the beast-path section). check_all quick batch 2 (44-46)
 run after 46 (scratch profile): ALL CHECKS OK in 190 s; batch 1 (40-43) ALL
@@ -148,6 +165,8 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   "only_face", "not_hands", "albedo_hue"/"albedo_sat" (Meshy unlit colour;
   triggers the albedo bake). MESHY_DEBUG_KEEP now also names the bone for
   the solve's own keep-out lines.
+- 47b: recolour "keep_light" k, "not_boxes" [{x,y,z}]; meshy.py NOMINAL
+  v1/retexture 10; meshy/tools/retex_swap.py + retex_comp.py (see 47b).
 - grip_parts: the old millhand's yellow coat passed for skin (b5); name the
   old hands (b40/b41 right, b45 left) or the saw is held by one hand.
 

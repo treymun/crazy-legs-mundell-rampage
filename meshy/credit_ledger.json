@@ -1010,7 +1010,7 @@
  ],
  "agent B": {
   "budget": 650,
-  "spent": 361,
+  "spent": 380,
   "entries": [
    {
     "label": "millhand_concept",
@@ -1292,6 +1292,30 @@
     "time": "2026-11-26 22:07:16",
     "after": 859,
     "status": "SUCCEEDED"
+   },
+   {
+    "label": "tire_roller_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21b73-0e03-71e5-bdbf-47e37bfe2200",
+    "before": 850,
+    "cost": 9,
+    "body": "tire_roller_concept.json",
+    "time": "2026-11-26 23:20:55",
+    "after": 841,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "tin_guard_retex",
+    "endpoint": "v1/retexture",
+    "task": "01a21b74-407e-70fd-81a8-7da1f49b4938",
+    "before": 841,
+    "cost": 10,
+    "body": "tin_guard_retex.json",
+    "time": "2026-11-26 23:22:17",
+    "after": 822,
+    "status": "SUCCEEDED",
+    "balance_moved": 19,
+    "note": "balance delta 19: concurrent call by the other agent; counted at the price"
    }
   ]
  }

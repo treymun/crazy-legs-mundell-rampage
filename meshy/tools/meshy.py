@@ -33,7 +33,7 @@ LIMIT = 2500  # the owner's hard cap for this track
 AGENT = os.environ.get("MESHY_AGENT", "")
 BUDGET = int(os.environ.get("MESHY_BUDGET", "0") or 0)
 # What each call costs (the balance can move under another agent's call).
-NOMINAL = {"v1/image-to-image": 9, "v1/image-to-3d": 30, "v1/rigging": 5}
+NOMINAL = {"v1/image-to-image": 9, "v1/image-to-3d": 30, "v1/rigging": 5, "v1/retexture": 10}
 
 
 def _head():

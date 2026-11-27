@@ -4270,6 +4270,12 @@ for rule in CFG.get("recolour", []):
     # a cap's band reaching down to the brow)
     if rule.get("not_face"):
         m &= ~FACEZONE
+    # ("not_boxes": [{x, y, z}] - texels inside any of these boxes left out:
+    # the tin guard's face inside his helmet, by its place)
+    for _nb in rule.get("not_boxes", []):
+        m &= ~((pz_ >= _nb.get("z", [0, 2])[0]) & (pz_ <= _nb.get("z", [0, 2])[1])
+               & (px_ >= _nb.get("x", [-9, 9])[0]) & (px_ <= _nb.get("x", [-9, 9])[1])
+               & (py_ >= _nb.get("y", [-9, 9])[0]) & (py_ <= _nb.get("y", [-9, 9])[1]))
     # ("only_face": true - the face's front alone: an alien's skin tone)
     if rule.get("only_face"):
         m &= FACEZONE
@@ -4319,6 +4325,11 @@ for rule in CFG.get("recolour", []):
     lmid = float(numpy.median(lum[m]))
     to = numpy.array(rule["to"], dtype=float) / 255.0
     k = numpy.clip(lum / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
+    if rule.get("keep_light"):
+        # ("keep_light": k - each texel keeps its own light (times k), only
+        # its hue taken from "to": a warm dusk bake on grey steel, which the
+        # palette steps into beige and blue specks)
+        k = lum / max(float(to @ numpy.array([.299, .587, .114])), 1e-4) * float(rule["keep_light"])
     total[m, :3] = numpy.clip(to[None, :] * k[m, None], 0, 1)
     print("MESHY recolour %s: %d texels to %s" % (rule.get("name", "?"), int(m.sum()), rule["to"]))
 if os.environ.get("MESHY_DEBUG"):
