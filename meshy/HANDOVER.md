@@ -1,7 +1,56 @@
-# Meshy models track: handover (2026-11-26, seventh session)
+# Meshy models track: handover (2026-11-26, eighth session)
 
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
+
+## Eighth session (read first, then the seventh)
+
+27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path
+(build_beast.py, kinds/swamp_king.json): the Meshy King fitted onto the old
+King's parts only, the airboat, punt gun, gig and crown kept exactly as the
+old parts (rigid on their bones, old texels pasted - gear_paste.py puts them
+back after the grade, as for people's gear). New build_beast options (all
+opt-in; nothing changes for the animals):
+- "keep_parts": list, or {"except": [bones]} - old parts kept as they are;
+  the fit and the weights use the other parts only. Written: <kind>_gearmask
+  / _gear / _gear_p2 / _gear_p3.png (old texels by an EMIT bake through the
+  old UVs; NOTE: a re-linked old Material Output baked black - a fresh
+  output node is made). "kept_uv" (.6: kept islands drawn smaller before the
+  pack), "hand_uv" (1.5), "uv_margin" (.003), "bake_margin" (3 px; keep it
+  with uv_margin or seams bleed as red dashes).
+- "fit_skip" (bones out of the fit only), "fit_scale": "z" (scale by height
+  alone).
+- "pose_arms" {side: {upper, fore, hand, elbow_shift}}: a RIGGED Meshy glb's
+  A-pose arms bent (its own weights, two bones, the elbow toward the old
+  elbow) onto the old arm parts at the standing key, before the weights.
+  The Meshy groups are cleared afterwards (left on they rode no old bone and
+  dropped vertices to the origin).
+- "grip_hands" {side: {gear [bones], palm [x,y,z], cross deg, along} |
+  {curl}}: Meshy's mitten cut off, a hands.py hand put on (palm toward the
+  held part's axis, crossing it at least "cross" degrees, wrap_curls), rigid
+  on the old hand bone (the wrist blends from the old forearm bone); its
+  look the sculpted hand's painted skin turned to the Meshy hand's colour,
+  baked lit with the body. "hand_share" caps its length.
+- "merge" {bone: [bones]} (old blocks weighted as one), "arm_reach" k (an arm
+  vertex farther than k x the posed Meshy arm's girth from its bone goes to
+  "reach_to": the cape flapped with a raised arm), "reach" {bone: m} (by the
+  old part's axis; not used: the Meshy forearm is off the old block's axis).
+- "attach" [{chain [upper, fore, hand], parent, ride}]: the old block arms
+  turn about their own middles, so a raised arm tore the smooth skin at the
+  shoulder; each key re-made so every part meets the one above at its
+  joint. "ride": bone - in the live keys the hand rides that part exactly as
+  at the standing key and the arm reaches it by two bones (the fist never
+  leaves the punt gun in aim/fire/pain); the falls use the plain attach (the
+  gun flies off).
+- "keep_fit" [{bones, scale, drop|move}]: kept parts re-seated (the crown
+  0.82 and 6 cm lower onto the new head).
+- "phases": a boss's p2/p3 looks written (soot blotches, front blood; kept
+  parts take the old phase looks' texels). "gain" multiplies the matched light.
+- The build prints "BEAST texels a metre" (actor_check's measure; boss >= 90).
+Known on 27: the Meshy legs are a stocky man's, shorter than the old block
+legs (he reads a little squat mid-stride); a raised arm in pain/die still
+pulls a short wing of vest under the armpit; the old gun/boat texels are the
+old low-res ones. Sheets 27_swamp_king_make/ingame/face.png.
 
 ## Seventh session (read first, then the sixth)
 

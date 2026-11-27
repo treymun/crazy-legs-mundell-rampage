@@ -1118,6 +1118,83 @@
    "time": "2026-11-26 19:43:17",
    "after": 1255,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "swamp_king_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21ad1-6bd0-7351-91e2-390b96fb644e",
+   "before": 1211,
+   "cost": 9,
+   "body": "swamp_king_concept.json",
+   "time": "2026-11-26 20:24:22",
+   "after": 1202,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "swamp_king_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21ad2-93d0-71f0-ac67-90c655a0acb1",
+   "before": 1202,
+   "cost": 30,
+   "body": "swamp_king_model.json",
+   "time": "2026-11-26 20:25:41",
+   "after": 1172,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "swamp_king_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21ad3-be14-70cf-a0b6-0505f7e1fd5f",
+   "before": 1172,
+   "cost": 5,
+   "body": "swamp_king_rig.json",
+   "time": "2026-11-26 20:26:59",
+   "after": 1167,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chalk_spitter_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21af5-5b03-7419-8027-312228767e55",
+   "before": 1123,
+   "cost": 9,
+   "body": "chalk_spitter_concept.json",
+   "time": "2026-11-26 21:03:38",
+   "after": 1114,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chalk_spitter_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21af6-eb71-7581-b91b-a6a01ffcf8c4",
+   "before": 1114,
+   "cost": 30,
+   "body": "chalk_spitter_model.json",
+   "time": "2026-11-26 21:05:23",
+   "after": 1084,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chalk_spitter_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21af7-dfd4-719a-8588-b9adb4005585",
+   "before": 1084,
+   "cost": 5,
+   "body": "chalk_spitter_rig.json",
+   "time": "2026-11-26 21:06:26",
+   "after": 1079,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "flagman_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21af8-6f16-705c-a0bf-8b2e8402e0fb",
+   "before": 1079,
+   "cost": 9,
+   "body": "flagman_concept.json",
+   "time": "2026-11-26 21:06:59",
+   "after": 1070,
+   "status": "SUCCEEDED"
   }
  ]
 }

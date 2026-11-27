@@ -152,5 +152,30 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a fleshy ruddy face lit evenly, small mean eyes with whites and dark pupils, a bushy ginger-brown moustache, a sneering half grin, stubble, no sunglasses",
   "texture": "junkyard enforcer, tan flat cap, teal work shirt, brown trousers, black gloves, brown boots, ruddy skin, moustache, clear face, empty hands",
   "height": 1.72
+ },
+ "swamp_king": {
+  "refs": "cel",
+  "who": "Swamp King, a huge pot-bellied bayou crime boss who rules the swamp from his airboat, a big heavyset backwoods man",
+  "design": "WEARING a black mesh trucker cap, big round red airboat ear-muff headphones over both ears, a thick bushy ginger-red brush beard and moustache, a fat brown cigar in the corner of his mouth, a dark olive-green canvas vest hanging open over a dirty off-white undershirt stretched over a big round beer belly, bare sunburnt pink forearms and upper arms, a ragged dark green alligator-hide cape over his shoulders and back with a real alligator's head worn on his left shoulder, dark grey-green work trousers, black rubber boots, a natural heavy build with broad shoulders and thick arms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a sunburnt ruddy round face lit evenly, wide-open eyes with clear whites and dark pupils under bushy ginger brows, a big nose, a cocky lordly sneer around the cigar, no glasses",
+  "texture": "swamp king, black mesh trucker cap, red ear-muff headphones, ginger brush beard, cigar, olive-green open vest, off-white undershirt over a round belly, sunburnt bare arms, dark green alligator-hide cape with a gator head on the left shoulder, grey-green trousers, black rubber boots, clear face, empty hands",
+  "extra_note": " The sprite shows him standing on an airboat wearing a crown: paint ONLY the man himself standing on the floor, with no boat, no crown, no gun, no pole.",
+  "height": 1.95
+ },
+ "chalk_spitter": {
+  "refs": "cel",
+  "who": "chalk spitter, a gaunt chalk-white quarry ghoul who hawks gobs of chalk dust at people, a scrawny hunched backwoods quarry miner turned undead",
+  "design": "chalk-white grey skin caked and flaking with quarry chalk dust all over, a bald lumpy head, a skinny wiry body with a little pot belly, WEARING ragged off-white chalk-stained long-john underwear with a few square stitched-on patches and a button flap on the chest, the sleeves torn off at the elbows, bare chalky forearms and hands, frayed legs tucked into grey cracked work boots, everything the same dusty chalk white and pale grey",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a gaunt chalky face lit evenly, sunken eyes with pale whites and dark pupils under heavy brow ridges, a big gaping round mouth with chalky lips and a few crooked teeth, cheeks puffed like he is about to spit, a creepy hungry leer",
+  "texture": "chalk-white ghoul, flaking chalky grey-white skin, bald, ragged off-white long johns with stitched square patches, grey cracked boots, sunken eyes with whites, gaping mouth, empty hands",
+  "height": 1.6
+ },
+ "flagman": {
+  "refs": "cel",
+  "who": "crazed old railroad flagman who waves a signal flag and hurls lit road flares, a wiry old backwoods railroad worker",
+  "design": "WEARING a red railroad cap with a short brim, a white long-sleeved work shirt, a black work vest buttoned over it, black work trousers held by a belt, dark scuffed work boots, a natural lean wiry old man's build with real shoulders and arms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a weathered old face lit evenly, bright wild eyes with clear whites and dark pupils under bushy white eyebrows, a big bushy white walrus moustache, a big nose, a manic gap-toothed grin, white hair sticking out under the cap, no glasses",
+  "texture": "old railroad flagman, red cap, white hair, bushy white moustache, white shirt, black vest, black trousers, dark boots, clear eyes, empty hands",
+  "height": 1.8
  }
 }
