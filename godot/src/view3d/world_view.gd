@@ -1243,13 +1243,18 @@ func _effects(game: Game) -> void:
 	_shadows.pair(found)
 	_share_shadows()
 	var id := game.level.id
-	var fog: Color = Effects.mood(id, "fog", Color(0, 0, 0))
+	# A map's moods by area (features/area_moods.gd): {} on a level with none.
+	var moods: AreaMoodsFeature = game.features.get("moods")
+	var mood: Dictionary = (
+		moods.now(game.player.x, game.player.y, game.clock) if moods != null else {}
+	)
+	var fog: Color = mood.get("fog", Effects.mood(id, "fog", Color(0, 0, 0)))
 	_share("fog_color", Vector3(fog.r, fog.g, fog.b))
-	var fog_start: float = Effects.mood(id, "fog_start", 1000.0)
-	var fog_full: float = Effects.mood(id, "fog_full", 2000.0)
-	var fog_most: float = Effects.mood(id, "fog_most", 0.0)
+	var fog_start: float = mood.get("fog_start", Effects.mood(id, "fog_start", 1000.0))
+	var fog_full: float = mood.get("fog_full", Effects.mood(id, "fog_full", 2000.0))
+	var fog_most: float = mood.get("fog_most", Effects.mood(id, "fog_most", 0.0))
 	_share("fog_range", Vector3(fog_start, fog_full, fog_most))
-	var tone: Color = Effects.mood(id, "grade", Color(1, 1, 1))
+	var tone: Color = mood.get("grade", Effects.mood(id, "grade", Color(1, 1, 1)))
 	_share("grade", Vector3(tone.r, tone.g, tone.b))
 	var clouds: float = Effects.mood(id, "clouds", 0.0)
 	_share("sky_drift", fposmod(game.clock * clouds, 1.0))
@@ -1257,6 +1262,8 @@ func _effects(game: Game) -> void:
 	var motion: float = [1.0, .4, 0.0][clampi(game.view.world_motion, 0, 2)]
 	_share("motion", motion)
 	var raining: float = weather.rain if weather != null else 0.0
+	var drawn: float = mood.get("rain", 1.0)
+	raining *= drawn
 	_share("rain", raining)
 	for sheet: MeshInstance3D in _rain:
 		sheet.visible = raining > 0.0 and motion > 0.0
@@ -1264,7 +1271,7 @@ func _effects(game: Game) -> void:
 	_share("pool", weather.pool if weather != null else 0.0)
 	if weather != null:
 		_share("flash_dir", weather.flash_dir)
-	var banks: float = Effects.mood(id, "fog_banks", 0.0)
+	var banks: float = mood.get("fog_banks", Effects.mood(id, "fog_banks", 0.0))
 	_share("fog_banks", banks)
 	var water: WaterFeature = game.features.get("water")
 	var shown: Array = water.shown(game.player.x, game.player.y) if water != null else []

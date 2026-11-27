@@ -61,11 +61,17 @@ func _tick(dt: float) -> void:
 	if _motion() == 2 or game.in_hub or not outdoors:
 		return
 	var thin := 2 if _motion() == 1 else 1
+	# A map's mood where he stands may say otherwise (features/area_moods.gd).
+	var moods: AreaMoodsFeature = game.features.get("moods")
 	var crows: bool = Effects.mood(id_, "crows", false)
+	if moods != null:
+		crows = moods.value("crows", crows)
 	if crows and game.clock >= next_flock:
 		next_flock = game.clock + dice.randf_range(14.0, 30.0) * thin
 		_flock(p)
 	var fireflies: bool = Effects.mood(id_, "fireflies", false)
+	if moods != null:
+		fireflies = moods.value("fireflies", fireflies)
 	if fireflies:
 		var lights := 0
 		for m: Mote in motes:

@@ -366,6 +366,10 @@ var devices: Array = []
 var area_sounds := {9: "creek", 4: "barn"}
 ## District -> the far-off cue heard now and then outdoors there.
 var area_cues := {}
+## Moods by area (pass 16, opt-in; features/area_moods.gd): the level's own
+## ([mood.<name>] of effects.cfg, "" none) and district -> its mood.
+var mood := ""
+var area_moods := {}
 ## Bumped when a level is rebuilt: a save of an older layout restarts it.
 var layout := 1
 ## The fair's shooting booth: where its stand is (null: where it always was).
