@@ -13,7 +13,7 @@
 ## comes back up; no sticks, nothing thrown; a swap takes switch_time; FIRE
 ## pulled stops a reload with rounds in the gun, not one from empty nor one
 ## begun with the trigger held.
-## WIRE: KICK and THROW through the net codec (PROTOCOL 6), dropped from a
+## WIRE: KICK and THROW through the net codec (PROTOCOL 6 on), dropped from a
 ## held input and kept by a merged one; a replay with them plays back
 ## exactly, and a version-1 recording (buttons as a byte) still plays.
 ## `numbers` prints the feel numbers only. Prints MOVE CHECK OK.
@@ -394,7 +394,7 @@ func _wire(main) -> void:
 	var back := NetWire.unpack_controls(bytes)
 	check(
 		(
-			NetWire.PROTOCOL == 6
+			NetWire.PROTOCOL >= 6
 			and bytes.size() == NetWire.CONTROL_BYTES
 			and back.kick
 			and back.throw

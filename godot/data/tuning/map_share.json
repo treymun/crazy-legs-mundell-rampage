@@ -1,0 +1,22 @@
+{
+	"_about": "Sharing player maps (docs/online.md \"Sharing maps\", docs/dev/multiplayer.md \"The map shelf\"). codes: the long code (src/user_maps/share_code.gd: prefix + base64url of the zstd'd canonical text + a check of check_letters) and the shelf's short code (short_letters of the map's hash). packet: a MAP packet (src/net/net_maps.gd) and a shelf answer go zstd'd past pack_over bytes. shelf: the lobby server's map shelf (src/net/map_shelf.gd): most_maps on it, most_bytes a map (packed or not), puts_a_day from one address, puts_an_hour from everyone, asks_a_minute from one address (lists and gets too), page rows a page, find_most letters a search, save_every seconds between index writes when only counts changed, look_every seconds between looks for the owner's remove.txt, addresses_most addresses remembered for the limits; wait: seconds a game waits for the shelf's answer. words: what a shared map's name, author and note may not hold (ROT13, so the file does not read as a cuss list; each word of the text is checked with digits read as letters).",
+	"codes": {"long_prefix": "CLMR1:", "check_letters": 4, "short_letters": 8},
+	"packet": {"pack_over": 4096},
+	"shelf": {
+		"most_maps": 2000,
+		"most_bytes": 65536,
+		"puts_a_day": 10,
+		"puts_an_hour": 60,
+		"asks_a_minute": 30,
+		"page": 8,
+		"find_most": 24,
+		"save_every": 60,
+		"look_every": 10,
+		"addresses_most": 4096,
+		"wait": 8
+	},
+	"words": [
+		"shpx", "fuvg", "phag", "avttre", "avttn", "snttbg", "xvxr", "ergneq", "juber", "fyhg",
+		"ovgpu", "gjng", "anmv", "uvgyre", "wvmm", "qvyqb", "cbea", "genaal", "xxx", "encvfg"
+	]
+}

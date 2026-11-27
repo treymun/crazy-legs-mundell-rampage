@@ -25,7 +25,10 @@
 ##   START    host -> clients, reliable: the match begins (level, settings)
 ##   BACK     host -> clients, reliable: the match is over, back to the lobby
 ##   BYE      either way, reliable: leaving (with why: closed, kicked, full...)
-##   MAP      host -> client, reliable: the lobby's player map (net_maps.gd)
+##   MAP      host -> client, reliable: the lobby's player map (net_maps.gd;
+##            zstd'd past a few KB since protocol 7)
+##   SHELF    a knock on a lobby server's map shelf (map_shelf.gd): put a
+##            map, list a page, get one by its code; the answer, then goodbye
 ##   VOICE    either way, unreliable on NetSession.CH_VOICE: a frame of voice
 ##            chat (net_voice.gd); an older side ignores it
 ##
@@ -41,9 +44,10 @@ extends RefCounted
 ## 4: snapshot version 3 (a feature's guarded lists travel as tables).
 ## 5: a SNAP's echoed inputs packed, a big SNAP in SNAP_PARTs (pass 12).
 ## 6: KICK and THROW in a second byte of buttons (CONTROL_BYTES 15), and the
-## walk's slide carried with the player (pass 15). An older side is refused
-## at its HELLO with the version message.
-const PROTOCOL := 6
+## walk's slide carried with the player (pass 15).
+## 7: a MAP packet's map zstd'd past a few KB ("z"), and SHELF (pass 16).
+## An older side is refused at its HELLO with the version message.
+const PROTOCOL := 7
 const HELLO := 1
 const WELCOME := 2
 const INPUTS := 3
@@ -60,11 +64,16 @@ const BOARD := 11
 const SNAP_PART := 12
 ## Voice chat (net_voice.gd).
 const VOICE := 13
+## The lobby server's map shelf (map_shelf.gd, shelf_link.gd; protocol 7).
+const SHELF := 14
 ## A lobby's player map (net_maps.gd).
 const MAP := 20
 ## The party line's own kinds start here (net_relay.gd): a game packet's
 ## first byte stays below it.
 const RELAY_FIRST := 0xF0
+## A message a host reads from a client is never bigger (bytes): a shelf put
+## is a map, 64 KB at most; anything past this is dropped unread.
+const MESSAGE_MOST := 1 << 18
 const NO_BASE := 0xFFFFFFFF
 const CONTROL_BYTES := 15
 ## The second byte of buttons (protocol 6): KICK and THROW, fresh presses.
