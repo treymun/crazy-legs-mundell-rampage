@@ -116,6 +116,7 @@ const CHECKS := [
 	["load_speed_check", "LOAD SPEED OK"],
 	["prebake_check", "PREBAKE CHECK OK"],
 	["user_map_check", "USER MAP CHECK OK"],
+	["map_review_check", "MAP REVIEW CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 ## Rows that measure timing (net_lag's limits on hits that looked like hits,
@@ -179,6 +180,7 @@ const QUICK := [
 	"punch_check",
 	"live_body_check",
 	"active_body_check",
+	"map_review_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows
@@ -250,6 +252,7 @@ const CI_SECONDS := {
 	"pack_check": 30,
 	"tune_check": 15,
 	"user_map_check": 20,
+	"map_review_check": 30,
 	"onboard_check": 60,
 	"marker_check": 60,
 	"danger_check": 12,
