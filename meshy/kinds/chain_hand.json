@@ -1,0 +1,43 @@
+{
+ "kind": "chain_hand",
+ "rigged": "../meshy-work/meshy_out/chain_hand_rig/rigged.glb",
+ "poses": "../meshy-work/dump/chain_hand_poses.json",
+ "old_glb": "../meshy-work/old/chain_hand.glb",
+ "old_tex": "../meshy-work/old/actor3d_chain_hand.png",
+ "out": "../meshy-work/raw/chain_hand",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "face_clean": {
+  "cloth_hue": 30,
+  "hue": 0.35,
+  "detail": 0.5,
+  "sat_k": 1.45
+ },
+ "face_box": {
+  "auto": true,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_uv": {
+  "k": 2.2,
+  "auto": true
+ },
+ "skin_sat": 1.5,
+ "gloves": [
+  52,
+  46,
+  42
+ ],
+ "glove_shade": true,
+ "glove_light": 0.9,
+ "glove_contrast": 1.5,
+ "hand_hue": [
+  5,
+  30
+ ]
+}

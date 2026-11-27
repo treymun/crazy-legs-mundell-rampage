@@ -139,6 +139,11 @@ def clean(px, albedo, headzone, facezone, hand, tex, opt, lit=None, back=None, u
     lum_n = tl * det_e * shade
     lum_n = numpy.where(whites, lum_n * float(opt.get("eye_lift", 1.15)), lum_n)
     new = numpy.clip(chroma_n * lum_n[:, None], 0, 1)
+    # ("sat_k": the rebuilt face's colour stronger - a pale greyish skin
+    # dithers into grey and teal at the palette)
+    if opt.get("sat_k"):
+        g_ = new.mean(axis=1, keepdims=True)
+        new = numpy.clip(g_ + (new - g_) * float(opt["sat_k"]), 0, 1)
     k_b = float(opt.get("blend", 1.0))
     rgb[face] = rgb[face] * (1 - k_b) + new[face] * k_b
     # ("paint_hue" {hue, sat, to}: texels of that colour in the upper face
