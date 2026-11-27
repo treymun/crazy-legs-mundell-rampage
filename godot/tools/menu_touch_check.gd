@@ -362,10 +362,12 @@ func _maps() -> void:
 				spot = Vector2i(x, y)
 	_tap(spot)
 	_check(main.state == "maps", "the title's CUSTOM MAPS opens the list (%s)" % main.state)
-	var row := CustomMapsScreen.LIST.position + Vector2i(40, 2 + CustomMapsScreen.ROW_H + 8)
+	var first := UserMapPlay.ROWS_BEFORE
+	var row := CustomMapsScreen.LIST.position + Vector2i(40, 2 + CustomMapsScreen.ROW_H * first + 8)
 	_tap(row)
-	_check(UserMapPlay.row == 1, "a tap on a map picks it (row %d)" % UserMapPlay.row)
+	_check(UserMapPlay.row == first, "a tap on a map picks it (row %d)" % UserMapPlay.row)
 	var edit := Rect2i()
+	var actions: Array = main.ui.shown()._actions()
 	for i in 9:
 		var r := Rect2i(
 			CustomMapsScreen.PANEL.position.x + 3,
@@ -373,7 +375,7 @@ func _maps() -> void:
 			40,
 			CustomMapsScreen.ACTION_H - 1
 		)
-		if i == UserMapPlay.ACTIONS.find("edit"):
+		if i == actions.find("edit"):
 			edit = r
 	_tap(edit.position + Vector2i(10, 3))
 	_check(
