@@ -5,6 +5,24 @@ version, every decision) first. SP = the session scratchpad.
 
 ## Ninth session (read first, then the eighth)
 
+STATE AT STOP: A's list all done. Ledger 1,771 (track total now ~2,230 with
+B's 459; the coordinator: NO paid Meshy calls without asking first). Done:
+29/29b flagman, 30 gas_man, 26b chain_hand, 20b/20c rudy, 23b maw, 05c
+alien, boss hat-cut rebuild tried (17b kept), gear_fit rerun into
+bosses.cfg. check_all quick (scratch profile) ALL CHECKS OK in 171.9 s.
+OPEN: rudy's bare head is still a hard-edged dome (20c note); the flag does
+not flap (a static panel; the HeldTail cloth path was not tried); maw_bare
+not rebuilt with the new keep-out options (24 is fine as it is).
+GOTCHA (this session): reverting an installed kind with git checkout of
+its glb/png/art_index.json leaves the gitignored art*.bin packs from the
+rebuild - every check then fails "decompress (compression.cpp)". Fix: run
+tools/pack_assets.gd and --import again (gd.sh) after such a revert.
+All new options this session are opt-in (list in each item below):
+build_actor item_axis/item_cloth/item_raise/item_panel/item_show/item_neck,
+keep_out_best/keep_out_steps, keep_reach/keep_vote, gear_uv, finger_fill
+(hands.py), recolour "smooth"; held_model hang_keys/swing_keys/trail/
+wriggle/most; shed cap_x; HeldTail flop_wriggle/flop_most (engine).
+
 29 flagman DONE (0 new cr; concept/model/rig were paid in the eighth).
 kinds/flagman.json. The old flag part's wooden pole (b15) was taken for
 skin by the gear colour test and dropped ("gear_extra": ["b15"]). New
@@ -808,3 +826,5 @@ after every boss of this session (run alone).
 Last check_all quick (fifth session, after 03h and the maw fixes, scratch profile): ALL CHECKS OK (54 checks listed ok, 153 s).
 
 Last check_all quick (eighth session, after 27c and 28, scratch profile): 1 FAILED in 192.6 s - road_check under the parallel load (B runs Godot at the same time); road_check run alone right after: ROAD CHECK OK. The boss checks (27c) and actor/live_body/physics (28) were all OK alone.
+
+Last check_all quick (ninth session, after 05c and the gear_fit retune, scratch profile): ALL CHECKS OK in 171.9 s.
