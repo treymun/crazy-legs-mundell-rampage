@@ -1010,7 +1010,7 @@
  ],
  "agent B": {
   "budget": 650,
-  "spent": 317,
+  "spent": 361,
   "entries": [
    {
     "label": "millhand_concept",
@@ -1256,6 +1256,41 @@
     "body": "still_buster_rig.json",
     "time": "2026-11-26 21:24:48",
     "after": 991,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "tin_guard_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21b2d-8ec8-767a-9ae5-9565385003e6",
+    "before": 908,
+    "cost": 9,
+    "body": "tin_guard_concept.json",
+    "time": "2026-11-26 22:05:01",
+    "after": 894,
+    "status": "SUCCEEDED",
+    "balance_moved": 14,
+    "note": "balance delta 14: concurrent call by the other agent; counted at the price"
+   },
+   {
+    "label": "tin_guard_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21b2e-0978-7441-b612-281db325a67a",
+    "before": 894,
+    "cost": 30,
+    "body": "tin_guard_model.json",
+    "time": "2026-11-26 22:05:36",
+    "after": 864,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "tin_guard_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21b2f-91bd-70a2-9bc6-a2d7214839c5",
+    "before": 864,
+    "cost": 5,
+    "body": "tin_guard_rig.json",
+    "time": "2026-11-26 22:07:16",
+    "after": 859,
     "status": "SUCCEEDED"
    }
   ]

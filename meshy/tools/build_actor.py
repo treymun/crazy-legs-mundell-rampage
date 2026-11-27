@@ -1138,6 +1138,13 @@ if CFG.get("gear", "old") == "old" and LOST:
         _all = set(LOST)
         for _k in LOST:
             _link[_k] = _all
+    # (kind config "gear_groups": [[old bones], ...] - each list one thing:
+    # the tin guard's coil gun of 50 rings and his shield with its bands;
+    # the lists decide alone, touching parts of two lists stay apart)
+    for _gg in CFG.get("gear_groups", []):
+        _s = {DUMP["bones"].index(_b) for _b in _gg if _b in DUMP["bones"]} & set(LOST)
+        for _k in _s:
+            _link[_k] = _s
     _items = []
     for _i in LOST:
         if not any(_i in it for it in _items):
@@ -2164,8 +2171,11 @@ def solve(name, dz=0.0, held0=None):
             inward = -Rt if side == "r" else Rt
             reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
                      + (J["wrist_" + side] - J["forearm_" + side]).length)
-            eye = (D["head"] @ J["head"]).z - .06
-            a1 = (Fw * 1.0 + inward * .12).normalized()
+            # (kind config "pistol_aim_drop" m under the eye line and
+            # "pistol_aim_in" (share inward, .12): a long one-handed gun
+            # whose rear end ran back into the face at the eye line)
+            eye = (D["head"] @ J["head"]).z - .06 - float(CFG.get("pistol_aim_drop", 0.0))
+            a1 = (Fw * 1.0 + inward * float(CFG.get("pistol_aim_in", .12))).normalized()
             if bare == "fire":
                 a1 = (a1 + Up * .22).normalized()
             if bare == "wind":
@@ -2178,9 +2188,57 @@ def solve(name, dz=0.0, held0=None):
             wrist_t = sh_f + (a1 * .93 * reach)
             wrist_t.z = eye - (J["hand_" + side] - wrist0).length * .2
             if bare == "wind":
-                wrist_t = sh_f + Fw * reach * .45 + inward * .05 + Up * reach * .3
+                # (kind config "pistol_wind_out": share of the reach the fist
+                # is held out ahead in the wind-up - a long gun's rear end
+                # went into the chest drawn in at .45)
+                wrist_t = sh_f + Fw * reach * float(CFG.get("pistol_wind_out", .45)) + inward * .05 + Up * reach * .3
             R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
                                         sh_f, wrist_t, R_t @ Vector((0, .2, -1.0)), Vector((0, -1, 0)))
+            D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+            D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+            D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
+            joints["miss"][side] = (wr_f - wrist_t).length
+        elif (ITEM_TYPE.get(side) == "pistol" and CFG.get("pistol_low", {}).get(side)
+              and name.replace("hurt_", "") not in AIMS
+              and not name.replace("hurt_", "").startswith("die") and "down" not in name
+              and any(it["main"] == side and not it["two"] for it in ITEMS)):
+            # (kind config "pistol_low" {side: [barrel deg below level, arm
+            # deg ahead of plumb, arm out to the side (share)]}: a long one-handed gun carried at the low
+            # ready - the arm hanging a little ahead, the barrel ahead and
+            # down past the knee - instead of along a forearm raised to the
+            # chest, where it stood up past the face; the old arm's swing kept)
+            pl_ = CFG["pistol_low"][side]
+            # (the body's frame flattened: a walk key's turned torso swung
+            # the arm across to the other thigh)
+            Tn = TWIST["fwd"]
+            Fw = -Vector(Tn.col[2])
+            Fw = Vector((Fw.x, Fw.y, 0)).normalized()
+            Up = Vector((0, 0, 1))
+            Rt = Fw.cross(Up) if Vector(Tn.col[0]).dot(Fw.cross(Up)) > 0 else Up.cross(Fw)
+            inward = -Rt if side == "r" else Rt
+            reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
+                     + (J["wrist_" + side] - J["forearm_" + side]).length)
+            b_ = math.radians(float(pl_[0]))
+            a_ = math.radians(float(pl_[1]))
+            # the old arm's swing ahead/behind over its standing key
+            P0_ = old_points("0")
+            sw_ = ((P[ha] - P[sh]) - (P0_[ha] - P0_[sh])).dot(Fw)
+            a_ += max(-.25, min(.25, sw_ / max(reach, .1)))
+            arm_d = (Fw * math.sin(a_) - Up * math.cos(a_) - inward * float(pl_[2] if len(pl_) > 2 else .15)).normalized()
+            wrist_t = sh_f + arm_d * reach * .94
+            a1 = (Fw * math.cos(b_) - Up * math.sin(b_) - inward * .1).normalized()
+            if name.replace("hurt_", "") == "pain":
+                # (pain: the gun arm flung out and up to the side, the
+                # muzzle up, clear of the head)
+                arm_d = (-inward * .85 + Up * .2 + Fw * .25).normalized()
+                wrist_t = sh_f + arm_d * reach * .9
+                a1 = (Up * .75 - inward * .45 + Fw * .2).normalized()
+            n1 = (inward - a1 * inward.dot(a1)).normalized()
+            wrist0, a0, n0 = HANDF[side]
+            R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
+            R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                        sh_f, wrist_t, R_t @ Vector((0, .3, -1.0)),
+                                        Vector((0, -1, 0)))
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
             D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
             D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
@@ -2296,6 +2354,17 @@ def solve(name, dz=0.0, held0=None):
                 if seen:
                     target = sum((q[0] for q in seen), Vector()) / len(seen)
                     end_r = J["hand_" + side]
+                    # (kind config "carry_drop" {side: [down, forward] m}: the
+                    # hand lower in the carry and walk keys - a long pistol
+                    # held at the chest stood up along the forearm past the
+                    # face; low, it points ahead and down at the low ready)
+                    cd_ = CFG.get("carry_drop", {}).get(side)
+                    bare_c = name.replace("hurt_", "")
+                    if cd_ and bare_c not in AIMS and bare_c != "pain" and not bare_c.startswith("die") \
+                            and "down" not in bare_c:
+                        fw_c = -Vector((R_t @ T0).col[2])
+                        fw_c = Vector((fw_c.x, fw_c.y, 0)).normalized()
+                        target = target + Vector((0, 0, -float(cd_[0]))) + fw_c * float(cd_[1])
             R_u, R_l, el_f, tip_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], end_r,
                                          sh_f, target, pole, Vector((0, -1, 0)))
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
@@ -2570,6 +2639,16 @@ def solve(name, dz=0.0, held0=None):
                         # (a followed thing - a shield - only moves out, its
                         # turn kept, the hand with it)
                         Dh_new = Dh
+                        if CFG.get("follow_wrist") and CFG.get("follow_wrist_keep"):
+                            # (kind config "follow_wrist_keep": the wrist
+                            # limit kept after the arm reached after the moved
+                            # thing - the shield's wrist bent 96 degrees)
+                            q_w = Dh.to_quaternion()
+                            q_s = R_l.to_quaternion()
+                            a_w = q_s.rotation_difference(q_w).angle
+                            l_w = math.radians(float(CFG["follow_wrist"]))
+                            if a_w > l_w:
+                                Dh_new = place(q_s.slerp(q_w, l_w / a_w).to_matrix(), J["wrist_" + side], wr_f)
                     Di = Dh_new @ D["hand_" + side].inverted() @ Di
                     D["hand_" + side] = Dh_new
                     if hang_ is not None:
@@ -2577,7 +2656,9 @@ def solve(name, dz=0.0, held0=None):
                         Di = plumb(Di, hang_[0], hang_[1])
                 d = depth_in(surface, it["bone"], Di)[0]
                 if first > .004:
-                    print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d))
+                    print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d)
+                          + (" (worst on %s at %.2f of its length, z %.2f)" % KEEP_WHY[it["bone"]]
+                             if os.environ.get("MESHY_DEBUG_KEEP") and it["bone"] in KEEP_WHY else ""))
                 PEN[name + ":" + it["bone"]] = d
         D["@" + it["bone"]] = Di
         D[it["bone"]] = D["hand_" + side]
@@ -3198,7 +3279,8 @@ bpy.context.view_layer.update()
 # (kind config "face_albedo": Meshy's own unlit colour, for a face shadowed
 # by a helmet and its face mask in the lit bake - see face_lift)
 ALBEDO = None
-if CFG.get("face_albedo") or CFG.get("face_clean") or (isinstance(CFG.get("face_keep"), dict) and CFG["face_keep"].get("eyes")):
+if CFG.get("face_albedo") or CFG.get("face_clean") or (isinstance(CFG.get("face_keep"), dict) and CFG["face_keep"].get("eyes")) or any(
+        "albedo_hue" in _r for _r in CFG.get("recolour", [])):
     scene.cycles.samples = 8
     select([hi, lo], lo)
     bake_op(type="DIFFUSE", pass_filter={"COLOR"}, margin=TEXTURE // 128, use_clear=True,
@@ -4188,10 +4270,32 @@ for rule in CFG.get("recolour", []):
     # a cap's band reaching down to the brow)
     if rule.get("not_face"):
         m &= ~FACEZONE
+    # ("only_face": true - the face's front alone: an alien's skin tone)
+    if rule.get("only_face"):
+        m &= FACEZONE
+    # ("albedo_hue" [lo, hi] / "albedo_sat" [lo, hi]: by Meshy's own unlit
+    # colour - the lit bake made the tin guard's olive face and his grey
+    # helmet one beige)
+    if "albedo_hue" in rule and ALBEDO is not None:
+        _amx, _amn = ALBEDO.max(axis=1), ALBEDO.min(axis=1)
+        _ad = numpy.maximum(_amx - _amn, 1e-6)
+        _ar, _ag, _ab = ALBEDO[:, 0], ALBEDO[:, 1], ALBEDO[:, 2]
+        _ah = numpy.where(_amx == _ar, (60 * ((_ag - _ab) / _ad)) % 360,
+                          numpy.where(_amx == _ag, 60 * ((_ab - _ar) / _ad) + 120, 60 * ((_ar - _ag) / _ad) + 240))
+        _as = numpy.where(_amx > 1e-4, (_amx - _amn) / numpy.maximum(_amx, 1e-4), 0)
+        h0, h1 = rule["albedo_hue"]
+        m &= ((_ah >= h0) & (_ah <= h1)) if h0 <= h1 else ((_ah >= h0) | (_ah <= h1))
+        m &= (_as >= rule.get("albedo_sat", [0, 1])[0]) & (_as <= rule.get("albedo_sat", [0, 1])[1])
+        if os.environ.get("MESHY_DEBUG"):
+            numpy.save(os.path.join(OUT, "dbg_albedo.npy"), ALBEDO)
     if rule.get("not_skin", True):
         m &= ~SKIN_DONE
         if "HANDMASK" in globals():
             m &= ~HANDMASK
+    elif rule.get("not_hands") and "HANDMASK" in globals():
+        # ("not_hands": with "not_skin": false - the face pass's skin taken
+        # (a helmet the face lift read as skin), the hands still left out)
+        m &= ~HANDMASK
     if m.sum() < 10:
         print("MESHY recolour %s: nothing" % rule.get("name", "?"))
         continue

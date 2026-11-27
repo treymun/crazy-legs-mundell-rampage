@@ -52,7 +52,24 @@ and the hands are the old cartoon ones.
 Two-handed tries for the axe (two_old + two_both + "two_old_shift" (new,
 kept in the tool)) left the left hand 15-40 cm short of the haft: the old
 model held it one-handed.
-NEXT: tin_guard (no credits spent), then tire_roller, valve_rat, drone
+47 tin_guard (44 cr; alien grey in riveted tin armour, open-face helmet;
+the old coil gun r "pistol" one-handed + the old red shield l "hold"
+follow_old [gear1] hold_out .12; grip_parts r b62 (old right hand), l b85
+(shield boss: the old dump's LEFT ARM tracks the shield, the real old left
+arm b63/b64/b66 is labelled body); gear_extra b56 b82 (orange muzzle cap
+and the shield board passed for skin); gear_groups (new) gun b7-b57 /
+shield b82-b87; item_holds {"0": {"r": .59}, "1": {"l": .81}};
+pistol_low (new) r [20, 25, .35] + pistol_aim_drop .12, pistol_aim_in
+-.05, pistol_wind_out .8 (a 0.76 m gun with a stock behind the grip:
+along a raised forearm it stood past the face, at the eye line its rear
+went into the face); follow_wrist 60 + follow_wrist_keep (new). Colour:
+skin_zones hands only (the face pass took the helmet for skin), recolour
+armour/suit by val with not_skin false + not_hands (new), then face boxes
+by hue (the suit is tagged by a blue-ish [48,47,50] so the eyes rule can
+find the eye texels after it) - neutral greys dither beige/blue in the
+grade: use the old warm greys. Known: jaw edge of the green face is a
+little jagged; gear probe 5 cm legs row picture 11 (wind blend).
+NEXT: tire_roller, valve_rat, drone
 (alien grey, see 05b alien.json), skeeter (dumps ok=false: a bug - beast
 path; see the beast-path section). check_all quick batch 2 (44-46)
 run after 46 (scratch profile): ALL CHECKS OK in 190 s; batch 1 (40-43) ALL
@@ -123,6 +140,14 @@ Tool changes by B (all opt-in; defaults unchanged for A):
 - build_actor recolour rule "not_face": true leaves FACEZONE out.
 - build_actor "bottle_flip": a bottle/throw item whose thick end is its
   top (dynamite spark).
+- build_actor (47): "gear_groups" [[old bones]] (each list one held thing,
+  the lists alone decide); "pistol_low" {side: [barrel deg down, arm deg
+  ahead, out share]} (carry/walk/pain keys of a long one-handed gun, the
+  frame flattened; pain flings it up and out); "pistol_aim_drop",
+  "pistol_aim_in", "pistol_wind_out"; "follow_wrist_keep"; recolour
+  "only_face", "not_hands", "albedo_hue"/"albedo_sat" (Meshy unlit colour;
+  triggers the albedo bake). MESHY_DEBUG_KEEP now also names the bone for
+  the solve's own keep-out lines.
 - grip_parts: the old millhand's yellow coat passed for skin (b5); name the
   old hands (b40/b41 right, b45 left) or the saw is held by one hand.
 

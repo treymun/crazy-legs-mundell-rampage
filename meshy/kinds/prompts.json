@@ -192,5 +192,13 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy face with a square jaw lit evenly, wide-open eyes with clear whites and dark pupils under heavy dark brows set in a determined glare, a big nose, a thick black handlebar moustache, a clean-shaven chin, short dark hair under the cap, clean skin, the face fully in light under the cap's peak",
   "texture": "raid officer, navy peaked cap with gold badge, navy uniform jacket with brass buttons and gold badge, navy trousers, brown belt, black boots, ruddy clean skin, black handlebar moustache, clear face with eye whites, bare hands, empty hands, no weapon",
   "height": 1.72
+ },
+ "tin_guard": {
+  "refs": "cel",
+  "who": "tall grey space alien guard in a home-made suit of riveted tin-can armour, a comedic 1950s B-movie alien trooper who guards the mothership",
+  "design": "WEARING a round dented gunmetal-grey tin helmet with the face left open and a thin glowing orange visor strip across the brow, big round riveted gunmetal-grey tin shoulder pauldrons, a riveted dented tin breastplate, dark charcoal-grey padded suit underneath on the arms and legs, round tin knee cops, a dark belt, heavy dark grey tin boots, tall and lean but strong natural build with long arms and long legs, bare grey three-fingered alien hands with a thumb",
+  "face": "a stylized game-character alien face, slightly caricatured but clearly readable: a smooth olive-grey alien face inside the open helmet, lit evenly, two large glossy black almond-shaped alien eyes each with a clear white highlight, a small flat nose with two slits, a thin stern mouth set in a grim frown, clean smooth grey skin, the whole face fully in light under the helmet",
+  "texture": "grey alien guard, gunmetal grey riveted tin armour helmet pauldrons breastplate knee cops, glowing orange visor strip on brow, dark charcoal padded suit, dark belt, dark grey boots, olive grey smooth alien skin, big glossy black eyes with white highlights, bare grey hands, empty hands, no weapon, no shield",
+  "height": 1.87
  }
 }
