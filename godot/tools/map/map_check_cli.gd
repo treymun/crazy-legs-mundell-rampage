@@ -228,7 +228,11 @@ static func check(cli) -> int:
 				)
 			)
 	cli.say("routes: %d walked" % (res["routes"] as Array).size())
-	if not quick:
+	# (A versus map, with no objective and no exit, has nothing for the
+	# campaign bot to finish: its starts and sites are reviewed instead.)
+	if not quick and review.arena:
+		cli.say("bot: skipped (a versus map: no objective to play to)")
+	elif not quick:
 		var bot := await bot_run(cli, map_id, level, kit, 1, int(cli.opts.get("seed", 1)))
 		res["bot"] = bot
 		findings.append_array(bot_findings(bot))

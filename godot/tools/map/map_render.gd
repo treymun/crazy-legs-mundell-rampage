@@ -249,6 +249,13 @@ static func _fill(s: int, c: Color) -> Image:
 	return img
 
 
+static func _in_any(rects: Array, x: float, y: float) -> bool:
+	for r: Array in rects:
+		if x >= float(r[0]) and x <= float(r[2]) and y >= float(r[1]) and y <= float(r[3]):
+			return true
+	return false
+
+
 static func _floor_z(field: FlowField, cell: int) -> float:
 	if field == null or field.graph == null:
 		return 0.0
@@ -433,12 +440,17 @@ static func _objects(
 	if overlays.has("unreachable") and field != null:
 		var g := field.graph
 		var count := lv.width * lv.height if g == null else g.count
+		# A kit building's roofs, ledges and the cells under its posts are not
+		# meant to be stood on (the kit check walks its floors): not marked (pass 16).
+		var kit: Array = (built.get("kit_pieces", {}) as Dictionary).values()
 		for n in count:
 			if field.open[n] == 0 or field.steps[n] < FlowField.FAR:
 				continue
 			var c := n if g == null else g.cell[n]
 			var nz := 0.0 if g == null else g.z[n]
 			if not is_nan(z) and absf(nz - z) > .3:
+				continue
+			if _in_any(kit, c % lv.width + .5, c / lv.width + .5):
 				continue
 			img.fill_rect(
 				Rect2i(c % lv.width * s + 1, c / lv.width * s + 1, s - 2, s - 2),

@@ -248,6 +248,8 @@ static func _district_middle(lv: LevelData, a: int) -> Vector2:
 		if lv.area[c] != a or lv.solid[c] >= 0:
 			continue
 		var p := Vector2(c % lv.width + .5, c / lv.width + .5)
+		if lv.blocked(p.x, p.y, .3, lv.floor_under(p.x, p.y, .05)):
+			continue  # (a kit building's walls stand in open cells)
 		var d := p.distance_to(mid)
 		if d < best_d:
 			best_d = d
