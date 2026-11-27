@@ -3,7 +3,30 @@
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
 
-## Eighth session (read first, then the seventh)
+## Ninth session (read first, then the eighth)
+
+29 flagman DONE (0 new cr; concept/model/rig were paid in the eighth).
+kinds/flagman.json. The old flag part's wooden pole (b15) was taken for
+skin by the gear colour test and dropped ("gear_extra": ["b15"]). New
+build_actor options (opt-in, for the merge with B):
+- "item_axis" {gear index: [old parts]}: the held thing's axis, ends and
+  girth from those parts alone (the flag's cloth pulled the axis off the
+  pole, the fist closed on air). With item_types "bottle" the pole goes
+  across the palm, the end with the rest of the thing (the cloth) up out
+  by the thumb, the cloth turned out past the back of the hand
+  ("item_cloth" -1 turns it the other way); "bottle_grip" .72 = grip near
+  the pole's foot.
+- "item_raise" {key: {at, pole, hand}}: that key's arm for the item_axis
+  thing re-made - the fist beside/above the head, the pole standing up out
+  of it (each a mix [out, up, forward]; at in arm lengths from the
+  shoulder). flagman: wind and aim (the old arm put the fist over the
+  crown and the pole lay across his head).
+- "MESHY wrists" now names the worst key.
+Cap: two recolour boxes (front z .942 so the forehead under the brim stays
+skin, back z .922); face_clean sat_k 1.45 + skin_sat 1.5 (the face was grey
+with orange dither without them).
+
+## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path
 (build_beast.py, kinds/swamp_king.json): the Meshy King fitted onto the old

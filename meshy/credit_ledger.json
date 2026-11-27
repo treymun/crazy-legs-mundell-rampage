@@ -1250,6 +1250,40 @@
    "time": "2026-11-26 21:32:00",
    "after": 947,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "gas_man_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21b2a-ab9d-73d9-8832-d276db4e5be3",
+   "before": 947,
+   "cost": 9,
+   "body": "gas_man_concept.json",
+   "time": "2026-11-26 22:01:52",
+   "after": 938,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "gas_man_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21b2c-8c74-72e4-aec0-a8013dc74b1e",
+   "before": 938,
+   "cost": 30,
+   "body": "gas_man_model.json",
+   "time": "2026-11-26 22:03:58",
+   "after": 908,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "gas_man_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21b2d-93fa-769b-a0c7-0ed9567eb130",
+   "before": 899,
+   "cost": 5,
+   "body": "gas_man_rig.json",
+   "time": "2026-11-26 22:05:05",
+   "after": 894,
+   "status": "SUCCEEDED",
+   "note": "balance 908 after gas_man_model, 899 before this call: 9 cr were B's concurrent call (not ours)"
   }
  ]
 }

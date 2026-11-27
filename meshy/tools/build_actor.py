@@ -1516,6 +1516,16 @@ if gear_obj is not None:
     _new_front = float(((co[_band] - _shm) @ numpy.array(_fwd_n[:])).max()) if _band.any() else _old_front
     for gi, (gname, cluster) in enumerate(GEAR):
         pts = _gco[_vg == gi]
+        # (kind config "item_axis" {gear index: [old parts]}: the thing's
+        # axis, ends and girth from those parts alone - a flag held by its
+        # pole, the cloth off to one side pulled the axis off the pole and
+        # the fist closed on air)
+        _ia = CFG.get("item_axis", {}).get(str(gi))
+        if _ia:
+            _sel_ia = (_vg == gi) & numpy.isin(_vb, [DUMP["bones"].index(b) for b in _ia if b in DUMP["bones"]])
+            if _sel_ia.sum() > 8:
+                pts = _gco[_sel_ia]
+                print("MESHY item gear%d axis from %s (%d vertices)" % (gi, _ia, int(_sel_ia.sum())))
         ctr = Vector(pts.mean(axis=0))
         ax = Vector(numpy.linalg.svd(pts - pts.mean(axis=0))[2][0])
         proj = (pts - numpy.array(ctr[:])) @ numpy.array(ax[:])
@@ -1544,6 +1554,7 @@ if gear_obj is not None:
         if _ih:
             holds = {k: float(v) for k, v in _ih.items()}
         it = {"bone": gname, "big": cluster[0], "lo": lo_e, "hi": hi_e, "rad": min(rad, .05), "holds": holds,
+              "axis_pts": pts if _ia else None,
               "two": len(holds) == 2,
               # (the hand on the rear end is the gun hand)
               "main": min(holds, key=lambda sd: holds[sd]) if len(holds) == 2 else ("r" if "r" in holds else "l"),
@@ -1835,6 +1846,7 @@ ARM_K = float(CFG.get("arm_stretch", 1.07))
 # What each hand holds when it is one-handed: "pistol" (aimed at the eye
 # line) or anything else (carried).
 ITEM_TYPE = CFG.get("item_types", {})
+ITEM_RAISE = CFG.get("item_raise", {})
 
 
 UPRIGHT = math.radians(float(CFG.get("upright_deg", 5)))
@@ -2098,6 +2110,50 @@ def solve(name, dz=0.0, held0=None):
             D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
             joints["miss"][side] = (wr_f - wrist_t).length
             AKIMBO_KEYS.add(name + ":" + side)
+        elif (side in HANDF and bare_name in ITEM_RAISE and any(
+                x.get("axis_pts") is not None and x["main"] == side and moves[x["bone"]][1] for x in ITEMS)):
+            # (kind config "item_raise" {key: {at, pole, hand}}: a pole held
+            # up - the flagman's flag in the wind-up and aim - the fist by
+            # the head with the pole standing up out of it, not the old
+            # arm's fist over the crown with the pole across the head.
+            # Each a mix [out, up, forward] of the body's directions: "at"
+            # the grip from the shoulder in arm lengths, "pole" the pole's
+            # way up, "hand" the knuckles' way.)
+            Tn = TWIST["fwd"]
+            Fw, Up = -Vector(Tn.col[2]), Vector(Tn.col[1])
+            other = "r" if side == "l" else "l"
+            outward = sh_f - at(J["upperarm_" + other])
+            outward = (outward - Up * outward.dot(Up)).normalized()
+            it_r = next(x for x in ITEMS if x.get("axis_pts") is not None and x["main"] == side)
+            cfg_r = dict({"at": [.2, .55, .3], "pole": [.35, 1.0, .15], "hand": [-.55, .35, .55]},
+                         **ITEM_RAISE[bare_name])
+
+            def _mix(v):
+                return outward * v[0] + Up * v[1] + Fw * v[2]
+            reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
+                     + (J["wrist_" + side] - J["forearm_" + side]).length)
+            grip_t = sh_f + _mix(cfg_r["at"]) * reach
+            a1 = _mix(cfg_r["hand"]).normalized()
+            u1 = _mix(cfg_r["pole"])
+            u1 = (u1 - a1 * u1.dot(a1)).normalized()
+            wrist0, a0, n0 = HANDF[side]
+            t0 = a0.cross(n0).normalized()
+            s_ = 1.0
+            th = HANDS[side].chains.get("th") if side in HANDS else None
+            if th is not None and (th[1] - wrist0).dot(t0) < 0:
+                s_ = -1.0
+            n1 = (u1.cross(a1) * s_).normalized()
+            R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
+            g_rest = (J["hand_" + side] + a0 * (HANDS[side].length * .12 if side in HANDS else .02)
+                      + n0 * (it_r["rad"] + (HANDS[side].thick * .5 if side in HANDS else .012)))
+            wrist_t = grip_t - R_hand @ (g_rest - J["wrist_" + side])
+            pole_t = (outward * .8 - Up * .5 - Fw * .1).normalized()
+            R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                        sh_f, wrist_t, pole_t, Vector((0, -1, 0)))
+            D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+            D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+            D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
+            joints["miss"][side] = (wr_f - wrist_t).length
         elif side in main_hand:
             Dh = main_hand[side]
             wrist_t = Dh @ J["wrist_" + side]
@@ -2374,6 +2430,10 @@ def solve(name, dz=0.0, held0=None):
                 # thumb), the body below the little finger, so the fingers
                 # close round the neck.
                 pts = numpy.array([g[:] for g in ITEM_PTS.get(it["bone"], [])])
+                all_ctr = pts.mean(axis=0)
+                if it.get("axis_pts") is not None:
+                    # (kind config "item_axis": the pole alone across the palm)
+                    pts = numpy.array(it["axis_pts"])
                 ctr = pts.mean(axis=0)
                 G0 = Vector(numpy.linalg.svd(pts - ctr)[2][0])
                 al = (pts - ctr) @ numpy.array(G0[:])
@@ -2381,7 +2441,13 @@ def solve(name, dz=0.0, held0=None):
                 span = float(al.max() - al.min())
                 r_lo = float(perp[al < al.min() + span * .25].mean())
                 r_hi = float(perp[al > al.max() - span * .25].mean())
-                if r_hi > r_lo:
+                if it.get("axis_pts") is not None:
+                    # (the end with the rest of the thing - a flag's cloth -
+                    # is the "neck": up out of the fist by the thumb)
+                    if float((all_ctr - ctr) @ numpy.array(G0[:])) < 0:
+                        G0 = -G0
+                        al = -al
+                elif r_hi > r_lo:
                     G0 = -G0
                     al = -al
                 # (G0 now from the body toward the neck; the grip a fifth
@@ -2421,6 +2487,18 @@ def solve(name, dz=0.0, held0=None):
                 A1 = (Rh @ a0).normalized()
                 # the bottle's other axis as near the hand's own as it goes
                 X0 = (X0 - G0 * X0.dot(G0)).normalized()
+                if it.get("axis_pts") is not None:
+                    # (the rest of the thing - a flag's cloth - turned out
+                    # past the back of the hand, away from the palm and the
+                    # body: "item_cloth" -1 the other way)
+                    cl_ = Vector(all_ctr) - Vector(ctr)
+                    cl_ = cl_ - G0 * cl_.dot(G0)
+                    if cl_.length > 1e-4:
+                        cl_.normalize()
+                        T3_ = U1.cross(A1)
+                        N_ = (Rh @ n0).normalized()
+                        S3_ = cl_ * (-1.0 if T3_.dot(N_) > 0 else 1.0) * float(CFG.get("item_cloth", 1))
+                        X0 = S3_.cross(G0).normalized()
                 Rg = Matrix((U1, A1, U1.cross(A1))).transposed() @ Matrix((G0, X0, G0.cross(X0))).transposed().inverted()
                 if HELD_MODEL and it is ITEMS[0]:
                     # (hung as a heavy thing is, along the hand past the
@@ -2702,7 +2780,8 @@ for t in KEYS:
         if b in BONES:
             pb.scale = (1, 1, 1)
         pb.keyframe_insert("scale", frame=t)
-print("MESHY wrists: worst bend %d degrees" % round(max(WRIST.values()) if WRIST else 0))
+print("MESHY wrists: worst bend %d degrees (%s)" % (round(max(WRIST.values()) if WRIST else 0),
+                                                 max(WRIST, key=WRIST.get) if WRIST else "-"))
 if CONTACT:
     _wf = min(CONTACT, key=lambda k: CONTACT[k][0])
     _wg = max(CONTACT, key=lambda k: CONTACT[k][1])

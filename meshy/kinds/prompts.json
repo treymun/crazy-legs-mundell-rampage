@@ -177,5 +177,13 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a weathered old face lit evenly, bright wild eyes with clear whites and dark pupils under bushy white eyebrows, a big bushy white walrus moustache, a big nose, a manic gap-toothed grin, white hair sticking out under the cap, no glasses",
   "texture": "old railroad flagman, red cap, white hair, bushy white moustache, white shirt, black vest, black trousers, dark boots, clear eyes, empty hands",
   "height": 1.8
+ },
+ "gas_man": {
+  "refs": "cel",
+  "who": "riot trooper of a crooked county sheriff who lobs tear-gas canisters, a stocky backwoods deputy in surplus riot gear",
+  "design": "WEARING an old black rubber gas mask with two round glass eye lenses and a round filter canister on the snout, the straps over a bald dark-grey hood, an olive drab surplus field jacket with the sleeves to the wrists, an olive load-bearing vest with a row of little tear-gas canister pouches across the belly, olive drab trousers, black combat boots, olive canvas gloves with real fingers, a natural sturdy build with real shoulders and arms",
+  "face": "the face hidden by the gas mask: clear readable eyes visible behind the round glass lenses, with whites and dark pupils, a menacing squint-free stare",
+  "texture": "gas-masked riot trooper, black rubber gas mask with round glass eye lenses and filter, eyes visible behind lenses, olive drab field jacket, olive vest with canister pouches, olive trousers, black boots, olive gloves, empty hands",
+  "height": 1.75
  }
 }

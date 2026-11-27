@@ -1,0 +1,124 @@
+{
+ "kind": "flagman",
+ "rigged": "../meshy-work/meshy_out/flagman_rig/rigged.glb",
+ "poses": "../meshy-work/dump/flagman_poses.json",
+ "old_glb": "../meshy-work/old/flagman.glb",
+ "old_tex": "../meshy-work/old/actor3d_flagman.png",
+ "out": "../meshy-work/raw/flagman",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "face_clean": {
+  "sat_k": 1.45
+ },
+ "face_box": {
+  "auto": true
+ },
+ "face_uv": {
+  "k": 2.2,
+  "auto": true
+ },
+ "item_types": {
+  "r": "bottle"
+ },
+ "gear_extra": [
+  "b15"
+ ],
+ "recolour": [
+  {
+   "hue": [
+    330,
+    40
+   ],
+   "sat": [
+    0.15,
+    1
+   ],
+   "val": [
+    0,
+    0.95
+   ],
+   "to": [
+    178,
+    36,
+    30
+   ],
+   "contrast": 0.7,
+   "not_skin": false,
+   "name": "cap_front",
+   "z": [
+    0.942,
+    1.03
+   ],
+   "y": [
+    -9,
+    -0.04
+   ]
+  },
+  {
+   "hue": [
+    330,
+    40
+   ],
+   "sat": [
+    0.15,
+    1
+   ],
+   "val": [
+    0,
+    0.95
+   ],
+   "to": [
+    178,
+    36,
+    30
+   ],
+   "contrast": 0.7,
+   "not_skin": false,
+   "name": "cap_back",
+   "z": [
+    0.922,
+    1.03
+   ],
+   "y": [
+    -0.04,
+    9
+   ]
+  }
+ ],
+ "item_axis": {
+  "0": [
+   "b15"
+  ]
+ },
+ "bottle_grip": 0.72,
+ "item_raise": {
+  "wind": {
+   "at": [
+    0.15,
+    0.72,
+    -0.02
+   ],
+   "pole": [
+    0.25,
+    1,
+    -0.45
+   ],
+   "hand": [
+    -0.4,
+    0.55,
+    0.5
+   ]
+  },
+  "aim": {
+   "hand": [
+    -0.45,
+    0.6,
+    0.5
+   ]
+  }
+ },
+ "skin_sat": 1.5
+}
