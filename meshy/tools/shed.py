@@ -651,7 +651,11 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, sk
         if cfr and "colour" in cfr:
             m = idm == PAINT_FRINGE
             c = numpy.array(cfr["colour"], dtype=float) / 255.0
-            k = 1.0 + (numpy.random.default_rng(9).random(m.sum()) - .5) * float(cfr.get("noise", .3))
+            rng = numpy.random.default_rng(9)
+            k = 1.0 + (rng.random(m.sum()) - .5) * float(cfr.get("noise", .3))
+            # (hair, not a flat fill: a share of darker strand texels, the
+            # light varied in streaks along the rows)
+            k = k * numpy.where(rng.random(m.sum()) < float(cfr.get("strands", 0.0)), .68, 1.0)
             rgb[m] = numpy.clip(c[None, :] * k[:, None], 0, 1)
             log("MESHY shed: %d texels the hair fringe %s" % (int(m.sum()), cfr["colour"]))
         if rule.get("cap_skin") and (skin is not None or isinstance(rule["cap_skin"], list)):
@@ -664,9 +668,13 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, sk
             rgb[m] = numpy.clip(sk_[None, :3] * k[:, None], 0, 1)
             if cfr and "colour" in cfr:
                 m2 = idm == PAINT_FRINGE_SOFT
-                c2 = (sk_[:3] + numpy.array(cfr["colour"], dtype=float) / 255.0) / 2
-                k2 = 1.0 + (numpy.random.default_rng(6).random(m2.sum()) - .5) * .3
-                rgb[m2] = numpy.clip(c2[None, :] * k2[:, None], 0, 1)
+                # (the soft edge ragged: each texel hair or scalp at random,
+                # "ragged" the share of hair)
+                r2 = numpy.random.default_rng(6).random(m2.sum())
+                hair_c = numpy.array(cfr["colour"], dtype=float) / 255.0
+                pick = (r2 < float(cfr.get("ragged", .5)))[:, None]
+                c2 = numpy.where(pick, hair_c[None, :] * (.8 + .3 * r2[:, None]), sk_[None, :3])
+                rgb[m2] = numpy.clip(c2, 0, 1)
             log("MESHY shed: %d texels the bald pate %s" % (int(m.sum()), numpy.round(sk_ * 255).astype(int)))
         for pid, key in ((PAINT_CAP, "cap_colour"), (PAINT_STALK, "stalk_colour")):
             if key in rule:

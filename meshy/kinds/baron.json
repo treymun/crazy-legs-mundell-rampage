@@ -90,7 +90,7 @@
    ],
    "ring_pct": 60,
    "cap_base": 0.015,
-   "cap_grow": 0.95,
+   "cap_grow": 0.9,
    "cap_shag": 0.002,
    "cap_noise": 0.25,
    "even_rim": false,
@@ -101,12 +101,15 @@
    ],
    "cap_fringe": {
     "colour": [
-     224,
-     220,
-     212
+     206,
+     200,
+     192
     ],
     "height": 0.5,
-    "front_deg": 62
+    "front_deg": 75,
+    "noise": 0.4,
+    "strands": 0.25,
+    "ragged": 0.45
    },
    "sliver_in": 1.0,
    "band_in": [
