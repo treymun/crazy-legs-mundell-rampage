@@ -9,10 +9,21 @@ List, in order: millhand, mundell, nitro_huffer, pit_mechanic, revenooer,
 shield_deputy, still_buster, tin_guard, tire_roller, valve_rat, drone (alien
 grey, see 05b), skeeter. Budget 650 credits (ledger section "agent B",
 running total in its "spent").
-DONE: 40 millhand (44 cr).
-NEXT: mundell (player: in-game sheet too; the 04g long-gun options
-cheek_weld / aim_holds / upright_aim_deg; extra care on face, hands, every
-gun pose).
+DONE: 40 millhand (44 cr), 41 mundell (44 cr).
+NEXT: nitro_huffer (concept A + model + rig bought: meshy-work-b/meshy_out;
+kind json written, Blender-built once: dynamite = gear_extra b33,b35..b50,
+gear_skip b31 (old chest mask), gear_one, item_types r throw), then
+pit_mechanic (model + rig bought; kind json written; lug wrench gear0/1).
+Mundell notes: the player kind is no enemy - the enemy tour, live_frames
+probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
+in-game sheet is tools/mode_frames.gd only=mundell (new: gd.sh, old:
+gd_old.sh) composed old|new; after a mundell model change also run
+tools/art/build_player_down.gd then pack_assets (player_down_*.png).
+Long gun: cheek_weld with "cheek_at" [.045,.07,.065] (a bearded jaw: the
+default point sat on the beard), "aim_drops" down to -.12 (butt raised to
+the cheek), "head_keys" aim/fire/wind [10, 35, 0] (the old head looked up
+off the barrel after the weld), "tris" 13000 (a decimated cap triangle hung
+green over the brow at 10000).
 
 Setup (all agent B's own; never A's places):
 - `. SP/meshy-work-b/env.sh` sets MESHY_WT=SP/p18-meshy, MESHY_WORK=

@@ -164,6 +164,7 @@ def wait(endpoint, tid, label, out):
                 # the other agent's calls moved the shared balance meanwhile
                 e["balance_moved"] = e["cost"]
                 e["cost"] = nom if st == "SUCCEEDED" else 0
+                e["note"] = "balance delta %d: concurrent call by the other agent; counted at the price" % e["balance_moved"]
             print("cost", e["cost"], "balance", bal, "track spent", spent_now(bal))
     if AGENT:
         sec["spent"] = sum(e.get("cost") or 0 for e in sec["entries"])

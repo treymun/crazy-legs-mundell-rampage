@@ -1,0 +1,81 @@
+{
+ "kind": "mundell",
+ "rigged": "../meshy-work-b/meshy_out/mundell_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/mundell_poses.json",
+ "old_glb": "../meshy-work-b/old/mundell.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_mundell.png",
+ "out": "../meshy-work-b/raw/mundell",
+ "tris": 13000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.5,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "upright_aim_deg": 4,
+ "aim_holds": {
+  "r": 0.32,
+  "l": 0.58
+ },
+ "face_uv": {
+  "k": 3.5,
+  "brim_k": 1.0,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "cheek_weld": true,
+ "wind_clear": true,
+ "gear_extra": [
+  "b25",
+  "b27"
+ ],
+ "gear_skip": [
+  "b47"
+ ],
+ "face_keep": {
+  "light": 1.1,
+  "eyes": 1.6
+ },
+ "face_box": {
+  "r": 0.27,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "aim_drops": [
+  -0.12,
+  -0.09,
+  -0.06,
+  -0.03,
+  0.0
+ ],
+ "cheek_at": [
+  0.045,
+  0.07,
+  0.065
+ ],
+ "head_keys": {
+  "aim": [
+   10,
+   35,
+   0
+  ],
+  "fire": [
+   10,
+   35,
+   0
+  ],
+  "wind": [
+   10,
+   35,
+   0
+  ]
+ }
+}

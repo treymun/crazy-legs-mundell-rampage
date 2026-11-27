@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:/Users/treym/AppData/Local/Temp/claude/1dc8348830e70b38/f2338a2e-3874-4eaf-9e39-f1352f903b29/scratchpad/meshy-work-b\\meshy_out\\pit_mechanic_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "pit-crew mechanic, red ball cap, dark navy coveralls, white name patch, red rag, black boots, ruddy clean skin, dark walrus moustache, clear face with eye whites, bare hands, empty hands, no weapon"
+}

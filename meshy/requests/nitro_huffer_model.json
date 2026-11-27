@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:/Users/treym/AppData/Local/Temp/claude/1dc8348830e70b38/f2338a2e-3874-4eaf-9e39-f1352f903b29/scratchpad/meshy-work-b\\meshy_out\\nitro_huffer_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "skinny hillbilly, brass goggles on forehead, off-white sleeveless undershirt, red trousers, black boots, blue gas cylinder on back with black hose and small black mask at chest, tanned skin, clear face with eye whites, bare hands, empty hands, no weapon"
+}

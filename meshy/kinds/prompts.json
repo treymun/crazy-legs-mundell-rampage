@@ -143,5 +143,30 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy weathered face lit evenly, wide-open eyes with clear whites and dark pupils under heavy black eyebrows knitted in a mean scowl, a big nose, a thick bushy black beard and moustache, the face fully in light under the hat brim",
   "texture": "sawmill worker, mustard-yellow hard hat, mustard-yellow rain slicker coat, blue jeans, black rubber boots, ruddy skin, bushy black beard, clear face with eye whites, bare hands, empty hands, no weapon",
   "height": 1.74
+ },
+ "mundell": {
+  "refs": "cel",
+  "cel": "full_body_player",
+  "who": "rough backwoods redneck hero, a tough middle-aged country man (the player character of the game)",
+  "design": "WEARING a green trucker cap with a white front patch on his head, a red and dark-red plaid flannel shirt with the sleeves rolled to the forearms, faded blue denim bib overalls with brass buckles, a patched left knee and a row of red shotgun shells in the bib pocket, scuffed brown leather work boots, a lean strong natural build with real shoulders and forearms, bare weathered hands",
+  "face": "a stylized game-character face, slightly caricatured but natural, handsome in a rugged way and clearly readable: a weathered sun-tanned face lit evenly, wide-open eyes with clear whites and blue irises under thick grey brows, a strong straight nose, a short grey beard and moustache, a wry determined half-smile, the face fully in light under the cap's bill",
+  "texture": "redneck hero, green trucker cap with white patch, red plaid flannel shirt with rolled sleeves, blue denim bib overalls, red shotgun shells in bib pocket, brown boots, tanned skin, short grey beard, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.77
+ },
+ "nitro_huffer": {
+  "refs": "cel",
+  "who": "scrawny wiry hillbilly nitrous huffer, a twitchy junkyard speed freak who throws dynamite",
+  "design": "WEARING old brass-rimmed driving goggles pushed up on his forehead, a stained off-white sleeveless ribbed undershirt, faded red work trousers, scuffed black boots, a dented blue steel gas cylinder strapped upright in the middle of his back with two shoulder straps, a short black rubber hose running from its valve tight over his left shoulder down to a small black breathing mask hanging flat on his chest (the hose lies close against the body, no loose loops), a thin wiry natural build with lean ropy arms, clean bare hands and arms with smooth even skin (the dirt only on the clothes)",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a narrow lean face with healthy even tanned skin lit evenly, wild wide-open eyes with clear whites and dark pupils, raised eyebrows, a manic buck-toothed grin, messy sandy hair sticking out under the goggles, light stubble, no sores, no dirt on the face",
+  "texture": "skinny hillbilly, brass goggles on forehead, off-white sleeveless undershirt, red trousers, black boots, blue gas cylinder on back with black hose and small black mask at chest, tanned skin, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.7
+ },
+ "pit_mechanic": {
+  "refs": "cel",
+  "who": "speedway pit-crew mechanic, a burly stock-car garage grease monkey who throws lug wrenches",
+  "design": "WEARING a red baseball cap on his head, dark navy-blue mechanic's coveralls zipped up the front with the sleeves down to the wrists, a white oval name patch on the left chest, a red rag hanging from the back pocket, black work boots, a sturdy heavyset natural build with broad shoulders, strong arms and a modest gut, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a round ruddy weathered face lit evenly, wide-open eyes with clear whites and dark pupils under bushy dark brows, a big nose, a thick dark-brown walrus moustache, a gruff scowl, short dark hair under the cap, clean skin, the face fully in light under the cap's bill",
+  "texture": "pit-crew mechanic, red ball cap, dark navy coveralls, white name patch, red rag, black boots, ruddy clean skin, dark walrus moustache, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.68
  }
 }

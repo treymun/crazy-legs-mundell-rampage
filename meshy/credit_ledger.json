@@ -1010,7 +1010,7 @@
  ],
  "agent B": {
   "budget": 650,
-  "spent": 44,
+  "spent": 185,
   "entries": [
    {
     "label": "millhand_concept",
@@ -1043,6 +1043,120 @@
     "body": "millhand_rig.json",
     "time": "2026-11-26 17:42:19",
     "after": 1537,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "mundell_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21a6d-bd24-7778-b002-8687c2d7e53c",
+    "before": 1498,
+    "cost": 9,
+    "body": "mundell_concept.json",
+    "time": "2026-11-26 18:35:30",
+    "after": 1484,
+    "status": "SUCCEEDED",
+    "balance_moved": 14,
+    "note": "balance delta 14: concurrent call by A; counted at the price"
+   },
+   {
+    "label": "mundell_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21a6e-69b0-766b-8753-e315ad9d9b21",
+    "before": 1484,
+    "cost": 30,
+    "body": "mundell_model.json",
+    "time": "2026-11-26 18:36:17",
+    "after": 1454,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "mundell_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21a6f-d9d9-742e-be8a-9ea372478dc8",
+    "before": 1454,
+    "cost": 5,
+    "body": "mundell_rig.json",
+    "time": "2026-11-26 18:37:52",
+    "after": 1449,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "nitro_huffer_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21a89-9350-744d-acfe-66686a58cbfe",
+    "before": 1401,
+    "cost": 9,
+    "body": "nitro_huffer_concept.json",
+    "time": "2026-11-26 19:05:54",
+    "after": 1392,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "nitro_huffer_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21a8a-56b8-7776-b1c2-f56b52147a28",
+    "before": 1392,
+    "cost": 9,
+    "body": "nitro_huffer_concept.json",
+    "time": "2026-11-26 19:06:44",
+    "after": 1378,
+    "status": "SUCCEEDED",
+    "balance_moved": 14,
+    "note": "balance delta 14: concurrent call by the other agent; counted at the price"
+   },
+   {
+    "label": "nitro_huffer_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21a8b-1c45-7359-8514-8f94614cb68d",
+    "before": 1378,
+    "cost": 30,
+    "body": "nitro_huffer_model.json",
+    "time": "2026-11-26 19:07:37",
+    "after": 1348,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "nitro_huffer_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21a8c-60e1-7710-960c-d3b01ed88c40",
+    "before": 1348,
+    "cost": 5,
+    "body": "nitro_huffer_rig.json",
+    "time": "2026-11-26 19:09:01",
+    "after": 1343,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "pit_mechanic_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21a90-fe42-70e2-9c8c-5a7184e3537e",
+    "before": 1343,
+    "cost": 9,
+    "body": "pit_mechanic_concept.json",
+    "time": "2026-11-26 19:14:00",
+    "after": 1334,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "pit_mechanic_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21a91-a805-738f-a735-f2b48b0ca021",
+    "before": 1334,
+    "cost": 30,
+    "body": "pit_mechanic_model.json",
+    "time": "2026-11-26 19:14:47",
+    "after": 1304,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "pit_mechanic_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21a93-0edc-74a4-b395-bb9888f313a2",
+    "before": 1304,
+    "cost": 5,
+    "body": "pit_mechanic_rig.json",
+    "time": "2026-11-26 19:16:19",
+    "after": 1299,
     "status": "SUCCEEDED"
    }
   ]

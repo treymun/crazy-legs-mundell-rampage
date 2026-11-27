@@ -3847,6 +3847,23 @@ def face_keep(px):
     b = float(opt.get("blend", 1.0))
     px = px.copy()
     px[m, :3] = px[m, :3] * (1 - b) + numpy.clip(NOSHADOW[m] * k, 0, 1) * b
+    # ("unhue": [lo, hi] degrees - face texels of that hue (a cap's green
+    # where a decimated triangle spans the bill's underside and the brow)
+    # take the face skin's median colour at their own light)
+    if opt.get("unhue"):
+        a = px[:, :3]
+        mx, mn = a.max(axis=1), a.min(axis=1)
+        dd = numpy.maximum(mx - mn, 1e-6)
+        hh = numpy.where(mx == a[:, 0], (60 * ((a[:, 1] - a[:, 2]) / dd)) % 360,
+                         numpy.where(mx == a[:, 1], 60 * ((a[:, 2] - a[:, 0]) / dd) + 120, 60 * ((a[:, 0] - a[:, 1]) / dd) + 240))
+        sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+        lo_, hi_ = opt["unhue"]
+        bad = FACEZONE & m & (hh >= lo_) & (hh <= hi_) & (sat > .12)
+        fs = m & skinlike(a) & ~bad
+        if bad.any() and fs.sum() > 50:
+            med = numpy.median(a[fs], axis=0)
+            px[bad, :3] = numpy.clip(med[None, :] * ((a[bad] @ lw) / max(float(med @ lw), 1e-4))[:, None] * 1.15, 0, 1)
+            print("MESHY face keep: %d texels of hue %s to the skin" % (int(bad.sum()), opt["unhue"]))
     # ("eyes": k - the eye whites and teeth, found in Meshy's unlit colour
     # (pale and nearly grey there; the dusk bake's warm light makes them
     # peach, and the game's grade then dithers them into the skin), set to
