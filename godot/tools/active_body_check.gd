@@ -380,7 +380,10 @@ func _shove(main: Node, at_share: float, strength: float) -> Dictionary:
 	var start := Vector2(e.x, e.y)
 	var measure := func(b: ActiveBody, _t: float) -> void:
 		var f := LiveBody._torso_frame(b.pos)
-		out["lean"] = maxf(out["lean"], acos(clampf(f.y.z, -1.0, 1.0)))
+		# (How far he tips from his own stance - the pose he holds - not from
+		# upright: a body standing hunched over would read a blow tipping him
+		# back up as less.)
+		out["lean"] = maxf(out["lean"], f.y.angle_to(LiveBody._torso_frame(b.target).y))
 		var moved := Vector3(e.x - start.x, e.y - start.y, 0.0)
 		out["head"] = maxf(out["head"], b.pos[R.HEAD].distance_to(head0 + moved))
 		var hips := (b.pos[R.HIP_L] + b.pos[R.HIP_R]) * .5

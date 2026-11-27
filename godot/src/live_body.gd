@@ -137,7 +137,7 @@ const HOLD_TONE := 6.0
 
 ## The hips-to-shoulders length (model units) the hits were tuned on (pass
 ## 15, the coot before the Meshy models): a longer torso takes a hit's reach
-## and push in proportion, so the same blow turns it as far (_torso_k).
+## in proportion, so the same blow turns it as far (_torso_k).
 const TORSO_REF := .329
 
 var target := PackedVector3Array()
@@ -332,10 +332,10 @@ func hit(j: Vector2, hz: float, lat: float, zone: String, seed: int) -> void:
 	# The impulse at the point (its torque turns the body), a touch down a
 	# leg hit and up a head hit.
 	var lift := .25 if zone == "head" else -.2 if zone == "legs" else 0.0
-	# (Reach and push in proportion to the torso: the same turn on any body.)
-	strike(
-		at, (way + Vector3(0.0, 0.0, lift)).normalized(), strength * STRIKE_K * _torso_k, _torso_k
-	)
+	# (Its reach in proportion to the torso: on a longer body the blow spreads
+	# over as much of him and turns him as far; the push itself stays, so a
+	# tap is still a tap.)
+	strike(at, (way + Vector3(0.0, 0.0, lift)).normalized(), strength * STRIKE_K, _torso_k)
 	# The hips' run across the floor is play's (carried with play's body):
 	# what the impulse gave them is mostly taken back; the rest of him keeps
 	# it, so a blow above the hips turns the body about them (the shoulders
