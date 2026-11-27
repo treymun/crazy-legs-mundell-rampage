@@ -128,7 +128,11 @@ alien.json), skeeter (dumps ok=false: a bug - beast path; see the
 beast-path section and A's swamp_king notes), then as credits allow the
 millhand Meshy chainsaw (<= 20 cr: held_model, orange/red body, grey bar
 and chain) and a still_buster chop fix (axe down-forward in "fire").
-Credits: agent B 459 of 650 after 49's rig. check_all quick batch 2 (44-46)
+Credits: agent B 459 of 650 after 49's rig.
+check_all quick (second B session, after 47b/48b, old valve_rat in the
+game, scratch profile): 1 FAILED in 171 s - hud_layout_check (a SCRIPT
+ERROR in Enemy._init under check_all's parallel load); hud_layout_check
+alone right after: HUD LAYOUT OK. Everything else ok. check_all quick batch 2 (44-46)
 run after 46 (scratch profile): ALL CHECKS OK in 190 s; batch 1 (40-43) ALL
 OK except net_errors_check under load,
 OK alone.
