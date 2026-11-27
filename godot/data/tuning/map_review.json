@@ -1,0 +1,218 @@
+{
+  "_about": "The design review of a map (src/map_review/, tools/map.gd -- check). Every number the review measures against, and every line it says. A line's {words} are filled in from the finding. level: MUST FIX (the map is broken), SHOULD (it plays worse than it could), NICE (an idea). what: the plain line (what is wrong and where), fix: how to fix it, say: the same in the game's own voice.",
+  "numbers": {
+    "use_reach": 1.6,
+    "fight_link": 6.0,
+    "fight_floor": 1.5,
+    "fight_near": 10.0,
+    "hit_share": 0.5,
+    "drop_share": 0.5,
+    "ammo_reach": 3.5,
+    "cover_reach": 2.0,
+    "cover_look": 20.0,
+    "open_most": 14,
+    "spawn_seen_near": 10.0,
+    "alley_long": 30,
+    "alley_every": 3,
+    "dead_end_deep": 14,
+    "quiet_hand": 10.0,
+    "quiet_loot": 3.5,
+    "quiet_look": 5.0,
+    "quiet_most": 24,
+    "first_fight_late": 60,
+    "stash_off": 8,
+    "empty_reach": 4,
+    "empty_share": 0.45,
+    "dark_light": 0.12,
+    "pieces_should": 1200,
+    "pieces_most": 2400,
+    "wall_rows_should": 20000,
+    "wall_rows_most": 40000,
+    "nav_ms_should": 300,
+    "nav_ms_most": 1500,
+    "tick_ms_should": 2.0,
+    "bot_deaths_should": 2,
+    "bot_calm_should": 75.0,
+    "bot_fight_least": 0.15,
+    "bot_lost_should": 1,
+    "bot_seconds": 420.0,
+    "bot_tries": 4,
+    "tour_most": 14,
+    "tour_back": 4.0
+  },
+  "kit": {"revolver": 30, "shotgun": 16, "rinds": 2},
+  "lines": {
+    "validate_error": {
+      "level": "MUST FIX",
+      "what": "{message}",
+      "fix": "{hint}",
+      "say": "THE COUNTY CLERK WON'T SIGN THIS ONE OFF YET."
+    },
+    "validate_warning": {
+      "level": "SHOULD",
+      "what": "{message}",
+      "fix": "{hint}",
+      "say": "IT'LL STAND UP, BUT IT'S LEANIN'."
+    },
+    "route_failed": {
+      "level": "MUST FIX",
+      "what": "A player walking from {from} to {to} could not get there: stopped {short} cells short at {end}{stuck}.",
+      "fix": "Look at the plan picture near {end}: a step too high (over .245), a doorway too narrow or low, stairs whose foot is blocked, or a gap with no deck. map render {map} overlay=nav,unreachable shows where the walk ends.",
+      "say": "I WALKED TILL MY BOOTS GAVE OUT AND NEVER GOT TO {TO}."
+    },
+    "unreached": {
+      "level": "MUST FIX",
+      "what": "Nobody can get to {what} {name} at {at}: there is no way there from the start, even with every door open.",
+      "fix": "Join its floor to the rest: stairs, a ramp or a ladder up to z {z}, or a doorway into the room it is in; or move it to where the start can walk (map render {map} overlay=nav,unreachable).",
+      "say": "NOBODY CAN GET TO THE {NAME}: NO STAIRS, NO LADDER, NO NOTHIN'."
+    },
+    "out_of_order": {
+      "level": "MUST FIX",
+      "what": "{what} {name} at {at} can only be reached through {through}, which stays shut until it is done: the map cannot be finished.",
+      "fix": "Put {name} where it can be reached before {through} opens, or let something earlier open {through} (a station's opens, or another key).",
+      "say": "THE KEY'S LOCKED IN THE ROOM IT OPENS. THAT'S A COUNTY CLASSIC."
+    },
+    "ammo_short": {
+      "level": "SHOULD",
+      "what": "The {hands} hands at {at} take about {need} {rounds} to put down, and the way there gives about {have}.",
+      "fix": "Lay {rounds} (or food) along the way before them, within a few cells of the path, or thin the bunch out.",
+      "say": "THE {HANDS} BOYS UP AHEAD NEED ABOUT {NEED} {ROUNDS} AND THE WAY THERE GIVES {HAVE}."
+    },
+    "no_cover": {
+      "level": "SHOULD",
+      "what": "The walk into the fight at {at} is open for {steps} steps in the hands' sight: nothing to duck behind (no wall, crate, truck or post within {reach} cells).",
+      "fix": "Put cover along the last stretch before {at}: a cover object (crates, a low wall), a parked truck or a fence end every 6 to 8 cells.",
+      "say": "WIDE OPEN FOR {STEPS} STEPS. NOTHIN' TO HIDE BEHIND BUT YOUR OWN SHADOW."
+    },
+    "spawn_seen": {
+      "level": "SHOULD",
+      "what": "A hand ({name}) at {at} can see the start from {far} cells away: the player is shot before they can move.",
+      "fix": "Move {name} out of the start's sight, or stand a wall, a building or a hedge between them.",
+      "say": "A {KIND} CAN SEE THE START. YOU'LL GET SHOT BEFORE YOU FINISH YAWNIN'."
+    },
+    "alley": {
+      "level": "NICE",
+      "what": "There is a long open look of {far} cells from {at} toward {to}: a shooting alley.",
+      "fix": "If it is not meant as a sniper's lane, break it with a building, a truck or a hedge part way along.",
+      "say": "YOU CAN SEE CLEAR TO THE NEXT COUNTY FROM HERE."
+    },
+    "dead_end": {
+      "level": "SHOULD",
+      "what": "The way past {at} is a dead end {deep} steps deep with nothing in it.",
+      "fix": "Put something worth the walk at its end (rounds, food, a stash or a sign), or open it through to somewhere else so it is a loop.",
+      "say": "THAT'S A DEAD END WITH NOTHIN' IN IT. NOT EVEN A POSSUM."
+    },
+    "no_secrets": {
+      "level": "NICE",
+      "what": "The map has no secrets: no secret door and no stash off the way.",
+      "fix": "Hide a stash: a door with secret true into a small room with rounds or food, or a pickup tucked {off} or more steps off the way.",
+      "say": "NO SECRETS. HIDE A STASH SOMEWHERE A FELLA WOULDN'T LOOK."
+    },
+    "quiet_stretch": {
+      "level": "SHOULD",
+      "what": "The walk from {from} to {to} (going to {leg}) is {steps} steps with nothing on it: no hand within {hand} cells, no pickup within {loot}, no sign or station within {look}.",
+      "fix": "Break it up with a hand or two, a pickup, a sign or a set piece part way along (about {mid}).",
+      "say": "THE WALK FROM HERE TO THERE IS {STEPS} STEPS OF NOTHIN'. BRING A SANDWICH."
+    },
+    "first_fight_late": {
+      "level": "NICE",
+      "what": "The first hand is {steps} steps along the way from the start.",
+      "fix": "Put a hand or two nearer the start so the player gets a shot off early.",
+      "say": "FELLA COULD DIE OF OLD AGE BEFORE THE FIRST FIGHT."
+    },
+    "flat": {
+      "level": "NICE",
+      "what": "Everything is on the ground: nothing to climb.",
+      "fix": "Add height: a loft (balcony and stairs), a dock (block and ramp) or a ladder up onto a roof, ideally where a fight happens.",
+      "say": "FLAT AS A FLITTER. GIVE A FELLA SOMETHIN' TO CLIMB."
+    },
+    "no_districts": {
+      "level": "NICE",
+      "what": "{count} places have no name: the player sees nothing when they walk in.",
+      "fix": "Give the map districts with names (districts: [{\"id\", \"name\"}]) and set district on the objects in each.",
+      "say": "NOBODY KNOWS WHAT TO CALL THIS PLACE. NOT EVEN THE MAILMAN."
+    },
+    "empty_ground": {
+      "level": "NICE",
+      "what": "{share} of the open ground has nothing near it (within {reach} cells): bare yard.",
+      "fix": "Dress the emptiest yards by hand: a few things that belong together against a wall (a truck and its tyres, a woodpile), a sign, a pickup. Never scatter things just to fill.",
+      "say": "A LOT OF NOTHIN' OUT THERE. EVEN THE WEEDS ARE BORED."
+    },
+    "dark_room": {
+      "level": "NICE",
+      "what": "The roofed place {name} around {at} is very dark (light {light}).",
+      "fix": "Hang a lamp in it (a light object over its cells, amount .15 to .25).",
+      "say": "DARKER'N THE INSIDE OF A COW IN THERE."
+    },
+    "cost_should": {
+      "level": "SHOULD",
+      "what": "{what} is {value}, over the {budget} a map should stay under.",
+      "fix": "Use fewer pieces: one long wall instead of many short ones, solid cells for buildings nobody climbs, fewer cut openings.",
+      "say": "THAT'S A LOT OF LUMBER FOR ONE MAP."
+    },
+    "cost_most": {
+      "level": "MUST FIX",
+      "what": "{what} is {value}, over the most a map may have ({budget}).",
+      "fix": "Cut it down: merge walls, use solid cells for buildings nobody climbs, split the map in two.",
+      "say": "TOO MUCH BUILDIN': {VALUE}, {BUDGET} MOST."
+    },
+    "arena_loot": {
+      "level": "SHOULD",
+      "what": "As a deathmatch arena the map has {heals} things to heal with and {rounds} rounds lying out.",
+      "fix": "Lay at least two of each (rinds or beer, and shells or bullets) down each lane, both sides alike.",
+      "say": "A FELLA CAN'T FIGHT ON AN EMPTY STOMACH AND AN EMPTY GUN."
+    },
+    "no_way": {
+      "level": "NICE",
+      "what": "The map has no objective and no exit: it was checked as a versus arena.",
+      "fix": "For a one-player map add a station (an objective) and an exit with shutdown naming it.",
+      "say": "NO JOB TO DO AND NO ROAD OUT. MUST BE A FIGHTIN' PIT."
+    },
+    "bot_stuck": {
+      "level": "SHOULD",
+      "what": "The bot ({skill}) did not finish the map in {seconds} s of play ({outcome}); it ended at {at}.",
+      "fix": "Look at the bot's end place in the plan: a fight too hard to get past, a door it cannot open, or the objective pin leading it nowhere.",
+      "say": "THE BOY NEVER MADE IT HOME. SOMEBODY CALL HIS MAMA."
+    },
+    "bot_deaths": {
+      "level": "SHOULD",
+      "what": "The bot ({skill}) died {deaths} times at NORMAL before it finished.",
+      "fix": "Ease the worst fight: fewer hands at once, cover on the way in, food and rounds before it.",
+      "say": "DIED {DEATHS} TIMES. THAT AIN'T A MAP, THAT'S A FUNERAL."
+    },
+    "bot_calm": {
+      "level": "SHOULD",
+      "what": "The bot went {seconds} s without a fight (from about {from} s in).",
+      "fix": "Put hands along that part of the way, or shorten it.",
+      "say": "{SECONDS} SECONDS OF NOTHIN'. THE BOT TOOK A NAP."
+    },
+    "bot_fight_share": {
+      "level": "NICE",
+      "what": "The bot spent only {share} of its time fighting.",
+      "fix": "More hands, nearer the way, or a shorter walk between fights.",
+      "say": "MORE WALKIN' THAN A MAIL ROUTE."
+    },
+    "bot_lost": {
+      "level": "SHOULD",
+      "what": "The bot was lost {count} times ({seconds} s with the objective no nearer).",
+      "fix": "Make the way read: a sign or an arrow at the turn, a light over the door, or fewer ways that look alike.",
+      "say": "THE BOY GOT TURNED AROUND {COUNT} TIMES. PUT UP A SIGN."
+    },
+    "pictures_skipped": {
+      "level": "NICE",
+      "what": "The 3D pictures were skipped: {why}.",
+      "fix": "Run map check on a machine with a display (the plans from above are still in the folder).",
+      "say": "THE CAMERA'S IN THE SHOP."
+    }
+  },
+  "verdicts": {
+    "PASS": "PASS: nothing to fix. The NICE items are ideas.",
+    "WORK": "WORK: it plays, but fix the SHOULD items.",
+    "FAIL": "FAIL: fix the MUST FIX items first."
+  },
+  "says": {
+    "PASS": "THAT'LL DO. THAT'LL DO JUST FINE.",
+    "WORK": "IT'S GOOD BONES. NEEDS A COAT OF PAINT.",
+    "FAIL": "WELL, IT'S A START."
+  }
+}

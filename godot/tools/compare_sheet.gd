@@ -83,3 +83,70 @@ static func _scaled(path: String) -> Image:
 	var high := int(image.get_height() * float(WIDE) / image.get_width())
 	image.resize(WIDE, high, Image.INTERPOLATE_NEAREST)
 	return image
+
+
+## A contact sheet (map check, pass 16): every picture in `entries` ([path,
+## label]) scaled to `wide` pixels, `cols` to a row, each with its label
+## lettered under it in the game's pixel font, saved to `out`. Pictures that
+## cannot be read are left out; returns how many went on.
+static func contact(entries: Array, out: String, cols := 3, wide := 420) -> int:
+	var tiles: Array = []
+	for entry: Array in entries:
+		if not FileAccess.file_exists(String(entry[0])):
+			continue
+		var image := Image.load_from_file(String(entry[0]))
+		if image == null or image.is_empty():
+			continue
+		image.convert(Image.FORMAT_RGB8)
+		var high := int(image.get_height() * float(wide) / image.get_width())
+		image.resize(wide, high, Image.INTERPOLATE_BILINEAR)
+		tiles.append([image, String(entry[1]).to_upper()])
+	if tiles.is_empty():
+		return 0
+	var label := 12
+	var rows := ceili(tiles.size() / float(cols))
+	var row_high: Array[int] = []
+	for r in rows:
+		var most := 0
+		for c in cols:
+			var k := r * cols + c
+			if k < tiles.size():
+				most = maxi(most, (tiles[k][0] as Image).get_height())
+		row_high.append(most + label + GAP)
+	var total := 0
+	for h in row_high:
+		total += h
+	var sheet := Image.create_empty(cols * (wide + GAP), total, false, Image.FORMAT_RGB8)
+	sheet.fill(Color8(28, 26, 24))
+	var y := 0
+	for r in rows:
+		for c in cols:
+			var k := r * cols + c
+			if k >= tiles.size():
+				continue
+			var image: Image = tiles[k][0]
+			var x := c * (wide + GAP)
+			sheet.blit_rect(image, Rect2i(Vector2i.ZERO, image.get_size()), Vector2i(x, y))
+			_letters(sheet, String(tiles[k][1]), x + 2, y + image.get_height() + 3)
+		y += row_high[r]
+	sheet.save_png(out)
+	return tiles.size()
+
+
+static func _letters(img: Image, text: String, x: int, y: int) -> void:
+	var at := x
+	for ch in text:
+		var g: Array = PixelType.glyph(ch, false)
+		var rows: Array = g[0]
+		var gw: int = g[1]
+		for ry in rows.size():
+			for rx in gw:
+				var px := at + rx
+				var py := y + ry
+				if (
+					int(rows[ry]) & (1 << (gw - 1 - rx))
+					and px < img.get_width()
+					and py < img.get_height()
+				):
+					img.set_pixel(px, py, Color(1, .95, .8))
+		at += gw + 1

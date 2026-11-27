@@ -29,7 +29,8 @@ the game's profile through the real flow refuse to run (a line saying so,
 exit 2, nothing written) unless user:// is under that folder or under the
 system's TEMP: `road_check`, `bot_campaign`, `check_fixes`,
 `touch_screens_check`, `replay_check`, `leak_check`, `bench_frames`, and
-`map.gd`'s pictures without `out=`. Run one by hand with APPDATA and
+`map.gd`'s render without `out=` (its check, flow, pictures and shot start
+themselves again in a scratch profile under TEMP instead). Run one by hand with APPDATA and
 LOCALAPPDATA pointed under TEMP (or set `CLMR_SCRATCH_PROFILE` to the folder
 APPDATA names). Before pass 15 these wrote into a player's profile when run
 on their own (the campaign entry and unlocks, `hickston-quick.json`,
@@ -125,6 +126,7 @@ check's output. `lint` also runs `scripts/audio_qa.py --check`, gdformat --check
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
 | `level_edit_check` | LEVEL EDIT OK | yes | level editing keeps the walls right |
 | `user_map_check` | USER MAP CHECK OK | yes | player maps: the examples, hostile files refused, the MAP SHED's calls, a map played alone, in a 5v5 round, County Run and deathmatch, its saves, sent to a lobby's joiner ([levels.md](levels.md#player-maps)) |
+| `map_review_check` | MAP REVIEW CHECK OK | yes | map check and the design review (pass 16, T2, [levels.md](levels.md#map-check-pass-16)): six test maps built in memory, each with one fault planted (a lever nobody reaches, six hands with no rounds before them, an open lot with no cover, a hand that sees the start, a dead end with nothing in it, a 31-step quiet walk), each flagged with its code and the same map without it not; hickston, sawmill and grainyard as built have no MUST FIX; every line filled in, the verdicts, the auto tour of the demo map, the report, `map.gd`'s command table, paths from the repo root, the contact sheet, and the bot clearing the demo map the same twice |
 | `quest_reach` | QUEST REACH OK | | every quest prop, gate and item can be used from where it is seen, and never through a wall (slow; `tour=<json>` for pictures of each prop) |
 | `bot_campaign` | CAMPAIGN WALKTHROUGH OK | | the bot plays the campaign through (slow), each chapter on by THE CROSSROADS |
 | `net_showdown_check` | NET SHOWDOWN OK | | online 5v5, host plus three clients, lobby to lobby (`lag= loss= seconds=`) |

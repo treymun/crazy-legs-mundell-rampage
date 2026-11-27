@@ -4,15 +4,27 @@
 ##
 ## Commands (each prints what it did, then one line "MAP-RESULT {json}" an
 ## agent can parse; json alone prints only that line):
+##   check <id> [quick] [out=<dir>] [pictures=0] [seed=1] [skill=1]
+##                                           THE ONE COMMAND: validate, build in
+##                                           memory, the design review, the routes,
+##                                           a bot run, plans and 3D pictures, all
+##                                           in out/report.md (default
+##                                           godot/maps/.check/<id>/); quick: no
+##                                           bot run, no pictures. Verdict PASS,
+##                                           WORK (SHOULD items) or FAIL (exit 1)
+##   flow <id> [seed=1] [skill=0,1,2] [diff=1] [runs=1]   the bot run alone
+##   pictures <id> [out=<dir>] [views=<json>]   the 3D view from the auto tour
+##                                           (or views) and a contact sheet
 ##   new <id> [size=WxH] [base=<plan id>]   a new source, maps/<id>.map.json
 ##   inspect <id>                            what it holds: objects, floors, nav
 ##   validate <id>                           errors and warnings (exit 1 on errors)
 ##   build <id> [dry] [force]                validate, then write data/<id>.json
 ##   render <id> [out=<dir>] [overlay=nav,collision,spawns,objects,unreachable]
 ##          [floor=<z>] [scale=<px>]          plans from above, one a floor
-##   shot <id> out=<dir> [at=x,y[,z]] [angle=<deg>] [pitch=<deg>] [views=<json>]
-##          [level=<level json>]             the game's own view from places (level=:
-##                                           an older build as it is, for a before)
+##   shot <id> [out=<dir>] [at=x,y[,z]] [angle=<deg>] [pitch=<deg>] [views=<json>]
+##          [level=<level json>]             the game's 3D view from places (level=:
+##                                           an older build as it is, for a before);
+##                                           paths are from the repo root
 ##   playtest <id> [scenario=<json>] [seconds=<s>] [perf]   bots walk routes
 ##   move <id> <object> by=dx,dy[,dz] | to=x,y
 ##   resize <id> <object> rect=x0,y0,x1,y1 | opening=<id> width=<w> | top=<z>
@@ -33,9 +45,10 @@
 ##
 ## Every edit takes dry (show the change, write nothing); every edit and build
 ## backs the old file up under maps/.history/<id>/. Exit codes: 0 done, 1 the
-## map has errors (or a playtest failed), 2 bad arguments, 3 a file could not
-## be read or written, 4 refused (data/<id>.json was changed by hand since the
-## last build: force keeps a copy and builds over it).
+## map has errors (or a playtest failed, or check says FAIL), 2 bad arguments,
+## 3 a file could not be read or written, 4 refused (data/<id>.json was
+## changed by hand since the last build: force keeps a copy and builds over it).
+## A flag may be written with dashes too (--quick).
 extends SceneTree
 
 const ScratchProfile := preload("res://tools/scratch_profile.gd")
@@ -47,6 +60,38 @@ const Edit := preload("res://tools/map/map_edit.gd")
 const Playtest := preload("res://tools/map/map_playtest.gd")
 const Catalog := preload("res://tools/map/map_catalog.gd")
 const Import := preload("res://tools/map/map_import.gd")
+
+## The commands: name -> the method here that runs it (it takes the command's
+## name), or a handler script (res://...) with `static func run(cli, command)
+## -> int` that may await and calls cli.load_assets() before it needs the
+## art. A new command is a row here and its handler.
+const COMMANDS := {
+	"new": "_new",
+	"inspect": "_inspect",
+	"validate": "_validate",
+	"build": "_build",
+	"render": "_render",
+	"playtest": "_playtest",
+	"move": "_edit",
+	"resize": "_edit",
+	"set": "_edit",
+	"material": "_edit",
+	"add": "_edit",
+	"remove": "_edit",
+	"rename": "_edit",
+	"undo": "_edit",
+	"top": "_edit",
+	"history": "_history",
+	"catalog": "_catalog",
+	"schema": "_schema",
+	"import": "_import",
+	"check": "res://tools/map/map_check_cli.gd",
+	"flow": "res://tools/map/map_check_cli.gd",
+	"pictures": "res://tools/map/map_check_cli.gd",
+	"shot": "res://tools/map/map_check_cli.gd",
+}
+## Arguments that are flags (no value).
+const FLAGS := ["dry", "force", "json", "perf", "enemies", "skip_unsupported", "quiet", "quick"]
 
 var args: Array = []
 var opts := {}
@@ -67,10 +112,12 @@ func say(text: String) -> void:
 func _main() -> void:
 	for a in OS.get_cmdline_user_args():
 		var s := String(a)
+		if s.begins_with("--") and s.length() > 2 and not s.begins_with("--help"):
+			s = s.substr(2)
 		var eq := s.find("=")
 		if eq > 0 and not s.begins_with("{") and not s.begins_with("["):
 			opts[s.substr(0, eq)] = s.substr(eq + 1)
-		elif s in ["dry", "force", "json", "perf", "enemies", "skip_unsupported", "quiet"]:
+		elif s in FLAGS:
 			opts[s] = true
 		else:
 			args.append(s)
@@ -79,44 +126,33 @@ func _main() -> void:
 		print(_usage())
 		await _finish(0 if not args.is_empty() else 2)
 		return
-	assets = Assets.new()
 	var command := String(args[0])
 	result = {"command": command, "ok": false}
 	var code := 2
-	match command:
-		"new":
-			code = _new()
-		"inspect":
-			code = _inspect()
-		"validate":
-			code = _validate()
-		"build":
-			code = _build()
-		"render":
-			code = _render()
-		"shot":
-			code = await _shot()
-		"playtest":
-			code = await _playtest()
-		"move", "resize", "set", "material", "add", "remove", "rename", "undo", "top":
-			code = _edit(command)
-		"history":
-			code = _history()
-		"catalog":
-			code = Catalog.write(
-				String(opts.get("out", "res://../docs/map_catalog")), assets, result
-			)
-		"schema":
-			code = Catalog.write_schema(
-				String(opts.get("out", "res://../docs/map_schema.json")), result
-			)
-		"import":
-			code = _import()
-		_:
-			result["error"] = "unknown command %s (map.gd -- help)" % command
-	result["ok"] = code == 0
-	result["exit"] = code
+	if not COMMANDS.has(command):
+		result["error"] = "unknown command %s (map.gd -- help)" % command
+	else:
+		var handler := String(COMMANDS[command])
+		if handler.begins_with("res://"):
+			var script: Script = load(handler)
+			if script == null or not script.can_instantiate():
+				result["error"] = "%s does not load (a script error)" % handler
+			else:
+				code = await script.run(self, command)
+		else:
+			load_assets()
+			code = await call(handler, command)
+	if not result.is_empty():  # (empty: a handler ran the command in another process)
+		result["ok"] = code == 0
+		result["exit"] = code
 	await _finish(code)
+
+
+## The art and tile tables (a few seconds): a handler script calls this
+## once it is going to run here.
+func load_assets() -> void:
+	if assets == null:
+		assets = Assets.new()
 
 
 func _finish(code: int) -> void:
@@ -200,7 +236,7 @@ func _report(issues: Array) -> int:
 # ------------------------------------------------------------- commands
 
 
-func _new() -> int:
+func _new(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
@@ -234,7 +270,7 @@ func _new() -> int:
 	return 0
 
 
-func _inspect() -> int:
+func _inspect(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
@@ -307,7 +343,7 @@ func _inspect() -> int:
 	return 0
 
 
-func _validate() -> int:
+func _validate(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
@@ -320,7 +356,7 @@ func _validate() -> int:
 	return 1 if errors > 0 else 0
 
 
-func _build() -> int:
+func _build(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
@@ -358,7 +394,7 @@ func _build() -> int:
 	return 0
 
 
-func _render() -> int:
+func _render(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
@@ -393,64 +429,15 @@ func _render() -> int:
 	return 0
 
 
-func _shot() -> int:
-	var map_id := _need_id()
-	if map_id == "":
-		return 2
-	var built := {}
-	if opts.has("level"):
-		# A level file as it is (an older build, for a before picture).
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(String(opts["level"])))
-		if not (parsed is Dictionary):
-			result["error"] = "level=%s is not a level file" % opts["level"]
-			return 3
-		var sp: Array = parsed["spawn"]
-		built = {"level": parsed, "spawn": sp}
-	else:
-		var loaded := _load(map_id)
-		built = loaded[1]
-		if built.is_empty():
-			_report(loaded[2])
-			return 1
-	var views: Array = []
-	if opts.has("views"):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(String(opts["views"])))
-		if not (parsed is Array):
-			result["error"] = "views must be a JSON list of {tag, at, angle, pitch}"
-			return 2
-		views = parsed
-	else:
-		var spawn: Array = built["spawn"]
-		var at := (
-			String(
-				opts.get(
-					"at", "%s,%s,%s" % [spawn[0], spawn[1], spawn[3] if spawn.size() > 3 else 0.0]
-				)
-			)
-			. split(",")
-		)
-		(
-			views
-			. append(
-				{
-					"tag": String(opts.get("tag", "view")),
-					"at": [float(at[0]), float(at[1]), float(at[2]) if at.size() > 2 else 0.0],
-					"angle": float(opts.get("angle", rad_to_deg(spawn[2]))),
-					"pitch": float(opts.get("pitch", 0.0)),
-				}
-			)
-		)
-	var dir := ProjectSettings.globalize_path(
-		String(opts.get("out", "user://maps/%s/shots" % map_id))
-	)
-	var paths: Array = await Playtest.shots(self, map_id, built["level"], views, dir)
-	result["pictures"] = paths
-	for p in paths:
-		say("wrote " + String(p))
-	return 0
+func _catalog(_command: String) -> int:
+	return Catalog.write(String(opts.get("out", "res://../docs/map_catalog")), assets, result)
 
 
-func _playtest() -> int:
+func _schema(_command: String) -> int:
+	return Catalog.write_schema(String(opts.get("out", "res://../docs/map_schema.json")), result)
+
+
+func _playtest(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
@@ -488,7 +475,7 @@ func _edit(command: String) -> int:
 	return int(out.get("exit", 0))
 
 
-func _history() -> int:
+func _history(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
@@ -498,7 +485,7 @@ func _history() -> int:
 	return 0
 
 
-func _import() -> int:
+func _import(_command: String) -> int:
 	var map_id := _need_id()
 	if map_id == "" or args.size() < 3:
 		result["error"] = "import <id> <file.glb>"

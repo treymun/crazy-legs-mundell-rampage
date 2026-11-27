@@ -218,6 +218,8 @@ godot --headless --path godot --script res://tools/levels/build_level.gd -- coun
 godot --headless --path godot --script res://tools/level_edit.gd -- fair enemy billy 30.5 25.5
 godot --headless --path godot --script res://tools/level_edit.gd -- hickston trigger '<json>'   # src/triggers.gd
 godot --headless --path godot --script res://tools/map.gd -- <command> [args]   # map sources (MAP_AUTHORING.md)
+godot --headless --path godot --script res://tools/map.gd -- check <id> [quick]   # the one command: review, routes, bot run, pictures -> godot/maps/.check/<id>/report.md
+godot --headless --path godot --script res://tools/map.gd -- flow <id> [seed=1] [skill=0,1,2] [runs=3]   # the bot run alone
 ```
 
 ## Modes and online
