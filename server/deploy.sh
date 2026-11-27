@@ -2,6 +2,10 @@
 # From the owner's PC (Git Bash), in the repo: builds the Linux server and
 # installs or updates it on the server. The address is never in the repo:
 #   server/deploy.sh root@<server address> [--no-build]
+# The map shelf the server keeps (/opt/clmr/maps) is left as it is: only the
+# program, lobbies.json, the service and setup.sh are sent (setup.sh keeps a
+# copy of the shelf in /root before it updates; server/map_shelf.sh lists it,
+# takes a map off and backs it up).
 set -euo pipefail
 host=${1:?usage: server/deploy.sh root@<server address> [--no-build]}
 here=$(cd "$(dirname "$0")" && pwd)

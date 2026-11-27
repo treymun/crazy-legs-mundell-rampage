@@ -10,6 +10,12 @@ set -euo pipefail
 src=/tmp/clmr
 id clmr >/dev/null 2>&1 || useradd --system --home-dir /opt/clmr --shell /usr/sbin/nologin clmr
 mkdir -p /opt/clmr
+# THE MAP SHELF (lobbies.json "shelf"): players' maps live in /opt/clmr/maps.
+# An update never empties it; one copy of it as it stood is kept in /root
+# first, in case an update goes wrong (server/map_shelf.sh backup copies it
+# to the PC).
+if [ -d /opt/clmr/maps ]; then tar czf /root/clmr-maps-before-update.tgz -C /opt/clmr maps; fi
+install -d -m 750 /opt/clmr/maps
 install -m 755 "$src/clmr_server.x86_64" /opt/clmr/clmr_server.x86_64.new
 mv -f /opt/clmr/clmr_server.x86_64.new /opt/clmr/clmr_server.x86_64
 install -m 644 "$src/lobbies.json" /opt/clmr/lobbies.json
