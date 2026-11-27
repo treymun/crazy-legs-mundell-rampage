@@ -190,12 +190,39 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 if rule.get("head_only") and not all(
                         v[dl] and max(v[dl].items(), key=lambda kv: kv[1])[0] == gidx.get(on, -1) for v in f.verts):
                     continue
-                if cols is not None and not _in_hsv(cols[f.index], rule):
+                # ("except" [{hue, sat, val}]: every face in the box but those
+                # colours - a helmet's whole shell, shaded, lit and lining,
+                # all but the face's skin; the hue window is not used then)
+                if cols is not None and rule.get("except") is not None:
+                    if any(_in_hsv(cols[f.index], w_) for w_ in rule["except"]):
+                        continue
+                elif cols is not None and not _in_hsv(cols[f.index], rule):
                     continue
                 take.append(f)
             if not take:
                 log("MESHY shed %s: nothing in its box" % name)
                 continue
+            # ("fill": rings - faces in the box left out but with most of
+            # their neighbours taken join: no islands of the shell left on
+            # the bare head)
+            for _ in range(int(rule.get("fill", 0))):
+                got = set(take)
+                ring = []
+                for f in got:
+                    for e in f.edges:
+                        for f2 in e.link_faces:
+                            if f2 in got or f2 in claimed or f2 in ring:
+                                continue
+                            c = f2.calc_center_median()
+                            if not (bx["x"][0] <= c.x <= bx["x"][1] and bx["y"][0] <= c.y <= bx["y"][1]
+                                    and bx["z"][0] <= c.z <= bx["z"][1]):
+                                continue
+                            nb = [f3 for e3 in f2.edges for f3 in e3.link_faces if f3 is not f2]
+                            if nb and sum(1 for f3 in nb if f3 in got) >= len(nb) * .6:
+                                ring.append(f2)
+                take += ring
+                if not ring:
+                    break
             # "grow_dark" [rings, val]: dark faces in the box touching the
             # piece join it (a spectacle frame's rim round the lenses, left
             # painted round the eyes otherwise).

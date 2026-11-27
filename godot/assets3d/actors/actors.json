@@ -3474,7 +3474,7 @@
 			2.1,
 			1.98
 		],
-		"faces": 16155.0,
+		"faces": 17807.0,
 		"frames": {
 			"0": 0.0,
 			"aim": 6.0,
@@ -3495,7 +3495,7 @@
 			"wind": 7.0
 		},
 		"gear": {
-			"helmet_gear": "helmet",
+			"helmet_brim_gear": "helmet",
 			"helmet_mask_gear": "helmet",
 			"helmet_mask_l_gear": "helmet",
 			"helmet_mask_r_gear": "helmet",
@@ -3559,7 +3559,7 @@
 			"hand_l": "arm_l",
 			"hand_r": "arm_r",
 			"head": "head",
-			"helmet_gear": "head",
+			"helmet_brim_gear": "head",
 			"helmet_mask_gear": "head",
 			"helmet_mask_l_gear": "head",
 			"helmet_mask_r_gear": "head",
@@ -3617,7 +3617,7 @@
 			"hand_l": 3.0,
 			"hand_r": 5.0,
 			"head": 1.0,
-			"helmet_gear": 1.0,
+			"helmet_brim_gear": 1.0,
 			"helmet_mask_gear": 1.0,
 			"helmet_mask_l_gear": 1.0,
 			"helmet_mask_r_gear": 1.0,

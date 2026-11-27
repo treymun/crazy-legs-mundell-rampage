@@ -215,6 +215,16 @@ mesh.data.transform(fit)
 for k in heads:
     heads[k] = fit @ heads[k]
 mesh.name = KIND + "_hi"
+# (kind config "hi_texture": a painted copy of the Meshy model's base colour
+# used instead of its own - jerry's eyes opened up over Meshy's squint)
+if CFG.get("hi_texture"):
+    _ht = bpy.data.images.load(os.path.abspath(CFG["hi_texture"]))
+    for _m in mesh.data.materials:
+        if _m and _m.use_nodes:
+            for _n in _m.node_tree.nodes:
+                if _n.type == "TEX_IMAGE" and _n.image and _n.image.colorspace_settings.name == "sRGB":
+                    _n.image = _ht
+    print("MESHY Meshy texture replaced by %s" % CFG["hi_texture"])
 print("MESHY fitted: scale %.4f, height %.3f" % (s, OLD_H))
 
 # A bulb nose where the cel has one (kind config "nose": "k" how far it
@@ -2975,6 +2985,13 @@ for v in lo.data.vertices:
     _rr = math.hypot(w_.x - heads["Head"].x, w_.y - heads["Head"].y)
     fv = float((hv > .5 and _rr < _fbr and _fbz[0] < w_.z < _fbz[1] and w_.y < _fby)
                or (_rr < .12 * CHEEK_K and _fbz[0] < w_.z < heads["Head"].z))
+    # (.85 below the eyes: eye whites are looked for above only - a face
+    # mask's bars painted pale across a chin are not eyes)
+    if fv and w_.z < heads["Head"].z + float(_fb.get("eye_z", .07)) * CHEEK_K:
+        fv = .85
+        # (.76 under the mouth: no teeth there - pale paint is skin)
+        if w_.z < heads["Head"].z + float(_fb.get("chin_z", -.01)) * CHEEK_K:
+            fv = .76
     if not fv and hv > .5 and _rr < _fbr and _fbz[0] < w_.z < heads["Head"].z + float(_fb.get("back_top", .08)) * CHEEK_K:
         fv = .5  # (behind the ears, under the hair: skin only, not the hair)
     zattr.data[v.index].color = (zv, hv, fv, 1)
@@ -2999,7 +3016,9 @@ bake_op(type="EMIT", margin=TEXTURE // 128, use_clear=True)
 _zp = pixels(zimg)
 ZONE = _zp[:, 0] > .5
 HEADZONE = _zp[:, 1] > .5
-FACEZONE = _zp[:, 2] > .75
+FACEZONE = _zp[:, 2] > .7
+UPPERZONE = _zp[:, 2] > .93
+CHINZONE = FACEZONE & (_zp[:, 2] < .81)
 BACKZONE = (_zp[:, 2] > .25) & ~FACEZONE
 for m in lo.data.materials:
     for n in saved_trees[m.name]:
@@ -3786,7 +3805,8 @@ def face_clean(px):
         return px
     import face_clean as _fc
     out, info = _fc.clean(px, ALBEDO, HEADZONE, FACEZONE | BACKZONE, HANDMASK if "HANDMASK" in globals() else None, TEXTURE,
-                          CFG["face_clean"] if isinstance(CFG["face_clean"], dict) else {}, NOSHADOW, BACKZONE)
+                          CFG["face_clean"] if isinstance(CFG["face_clean"], dict) else {}, NOSHADOW, BACKZONE,
+                          UPPERZONE, CHINZONE)
     print("MESHY face clean: %s" % info)
     return out
 
@@ -3799,7 +3819,8 @@ if os.environ.get("MESHY_DUMP_FACE"):
                            hand=HANDMASK if "HANDMASK" in globals() else numpy.zeros(len(total), bool),
                            skin_done=SKIN_DONE, albedo=ALBEDO if ALBEDO is not None else numpy.zeros((0, 3)),
                            noshadow=NOSHADOW if NOSHADOW is not None else numpy.zeros((0, 3)), tex=TEXTURE,
-                           facezone=FACEZONE, backzone=BACKZONE)
+                           facezone=FACEZONE, backzone=BACKZONE, upperzone=UPPERZONE,
+                           chinzone=CHINZONE)
 total = face_clean(total)
 _fsk = HEADZONE & SKIN_DONE if "SKIN_DONE" in globals() else HEADZONE
 shed.paint(lo, image, total, CFG, pixels, bake_op, select, TEXTURE,
