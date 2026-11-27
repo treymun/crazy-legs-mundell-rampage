@@ -170,6 +170,8 @@ func build_static(base_walls: PackedFloat32Array, only := {}) -> Dictionary:
 			_add_cap(cap, h, true)
 	for row: Array in level.slopes:
 		_add_slope(row)
+	if level.geo != null and not level.geo.rakes.is_empty():
+		add_rakes(level.geo.rakes)
 	return _finish()
 
 
@@ -338,6 +340,81 @@ func add_walls(rows: PackedFloat32Array) -> void:
 		part.vertex(Vector3(ax, top, ay), n, Vector2(u_a, v_top), c0, c1)
 		part.vertex(Vector3(bx, top, by), n, Vector2(u_b, v_top), c0, c1)
 		part.vertex(Vector3(bx, bottom, by), n, Vector2(u_b, v_bottom), c0, c1)
+		part.quad()
+
+
+## Every rake (LevelGeometry.rakes: a face whose top or bottom slopes, a
+## gable's, a raked wall's, a slope's side) as a quad seen from both sides,
+## its texture laid as a wall row's is: by the metre for a repeating
+## material, over its whole height and length for a stretched one. A plank
+## material is drawn whole (the planks shot out of a fence are a grid wall's).
+func add_rakes(rows: PackedFloat32Array) -> void:
+	var stride := LevelGeometry.RAKE_STRIDE
+	var edges: Dictionary = level.geo.slab_edges
+	for o in range(0, rows.size() - stride + 1, stride):
+		var ax := rows[o]
+		var ay := rows[o + 1]
+		var bx := rows[o + 2]
+		var by := rows[o + 3]
+		var tile := int(rows[o + 4])
+		var light := rows[o + 5]
+		var a_bottom := rows[o + 6]
+		var a_top := rows[o + 7]
+		var b_bottom := rows[o + 8]
+		var b_top := rows[o + 9]
+		var area := int(rows[o + 10])
+		if (a_top <= a_bottom and b_top <= b_bottom) or _skip((ax + bx) * .5, (ay + by) * .5):
+			continue
+		var length := Vector2(bx - ax, by - ay).length()
+		if length < .0005:
+			continue
+		var kind := KIND_WALL
+		if tile == _tile_liquor:
+			kind = KIND_FLICKER
+		elif tile == _tile_eat or tile == _tile_window:
+			kind = KIND_GLOW
+		elif tile == _tile_glazing:
+			kind = KIND_GLAZING
+		var plain := kind == KIND_WALL
+		var mode := int(tile_mode[tile]) if plain and tile >= 0 and tile < tile_mode.size() else 0
+		var along := length * 128.0 if mode != 0 else 128.0
+		var base := tile_base[tile] if mode == 2 else tile
+		var u_a := 0.0
+		if (
+			plain
+			and mode == 0
+			and not _edge_stretched.has(tile)
+			and edges.get(Vector4(ax, ay, bx, by), -1) == tile
+		):
+			# A slope's side in a stretched material: by the metre, as a slab
+			# edge's (add_walls).
+			mode = 1
+			var d := Vector2(bx - ax, by - ay) / length
+			u_a = (Vector2(ax, ay).dot(d) + EDGE_ORIGIN) * 128.0
+			along = EDGE_ORIGIN * 256.0
+		var u_b := u_a + length * 128.0 if mode != 0 else along
+		# v: the wall rows' (1.96 - z) * 100 by the metre; stretched, the whole
+		# picture over the face's full height.
+		var high := maxf(a_top, b_top)
+		var low := minf(a_bottom, b_bottom)
+		var span := maxf(high - low, .001)
+		var va_top := (1.96 - a_top) * 100.0 if mode != 0 else (high - a_top) / span * 128.0
+		var va_bottom := (
+			(1.96 - a_bottom) * 100.0 if mode != 0 else (high - a_bottom) / span * 128.0
+		)
+		var vb_top := (1.96 - b_top) * 100.0 if mode != 0 else (high - b_top) / span * 128.0
+		var vb_bottom := (
+			(1.96 - b_bottom) * 100.0 if mode != 0 else (high - b_bottom) / span * 128.0
+		)
+		var n := Vector3(by - ay, 0.0, -(bx - ax)) / length
+		var c0 := _tint(area)
+		c0.a = light
+		var c1 := Color(float(tile), float(base), along, float(mode + kind * 4))
+		var part := _part((ax + bx) * .5, (ay + by) * .5, kind == KIND_GLAZING)
+		part.vertex(Vector3(ax, a_bottom, ay), n, Vector2(u_a, va_bottom), c0, c1)
+		part.vertex(Vector3(ax, a_top, ay), n, Vector2(u_a, va_top), c0, c1)
+		part.vertex(Vector3(bx, b_top, by), n, Vector2(u_b, vb_top), c0, c1)
+		part.vertex(Vector3(bx, b_bottom, by), n, Vector2(u_b, vb_bottom), c0, c1)
 		part.quad()
 
 

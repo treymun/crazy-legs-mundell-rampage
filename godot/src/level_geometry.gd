@@ -24,8 +24,17 @@
 class_name LevelGeometry
 extends RefCounted
 
-## The newest geometry block this build reads.
-const VERSION := 1
+## The newest geometry block this build reads. Version 2 (pass 16) adds
+## terrain, raked walls drawn true and slopes' sides drawn as rakes, steeper
+## slopes that are not walked on; a block is written as 2 only when it uses
+## one of them (version_for), so every older block reads as it did.
+const VERSION := 2
+## The steepest a slab that is not walked on may be in a version 2 block (a
+## roof's or a bank's face too steep to stand on).
+const STEEPEST_FACE := 4.0
+## A rake's row (rakes): ax, ay, bx, by, tile, light, the bottom and top at a,
+## the bottom and top at b, area.
+const RAKE_STRIDE := 11
 ## A body climbs at most this onto a slab without jumping (the grid's step).
 const STEP := .245
 ## A standing body's height for collision and headroom (the eye is .95).
@@ -209,6 +218,8 @@ const LADDER_DIRS := {
 	"n": Vector2(0, -1), "s": Vector2(0, 1), "e": Vector2(1, 0), "w": Vector2(-1, 0)
 }
 
+## The block's version (1 or 2).
+var version := 1
 var slabs: Array[Slab] = []
 var segments: Array[Segment] = []
 var ceilings: Array[Ceiling] = []
@@ -216,6 +227,11 @@ var ladders: Array[Ladder] = []
 ## Every slab edge render_parts() made: Vector4(ax, ay, bx, by) -> its tile (the
 ## 3D view lays a stretched material along a stair's side by the metre).
 var slab_edges := {}
+## The faces whose top (or bottom) is not level, RAKE_STRIDE numbers each:
+## raked walls' faces, and in a version 2 block sloped slabs' sides (in a
+## version 1 block those stay strips in the wall rows, as ever). Drawn as true
+## quads (LevelMesh); render_parts() makes them.
+var rakes := PackedFloat32Array()
 var width := 0
 var height := 0
 ## cell -> Array of the slabs and segments within PAD of it.
@@ -271,6 +287,7 @@ static func from_json(
 			"geometry: version %d is newer than this build reads (%d)" % [version, VERSION]
 		)
 		return null
+	g.version = version
 	for s: Dictionary in data.get("slabs", []):
 		var slab := Slab.new()
 		slab.id = str(s.get("id", "slab%d" % g.slabs.size()))
@@ -298,8 +315,9 @@ static func from_json(
 				)
 			)
 			continue
-		if absf(slab.gx) > STEEPEST or absf(slab.gy) > STEEPEST:
-			errors.append("%s: slope steeper than %s" % [slab.id, STEEPEST])
+		var steepest := STEEPEST if slab.walk or version < 2 else STEEPEST_FACE
+		if absf(slab.gx) > steepest or absf(slab.gy) > steepest:
+			errors.append("%s: slope steeper than %s" % [slab.id, steepest])
 		g.slabs.append(slab)
 	for s: Dictionary in data.get("segments", []):
 		var seg := Segment.new()
@@ -360,6 +378,28 @@ static func from_json(
 		g.ladders.append(lad)
 	g._build_index()
 	return g
+
+
+## The version a geometry block (as a plan or a source writes it) needs: 2
+## when it uses something version 1 does not have (terrain, a raked wall, a
+## face steeper than STEEPEST not walked on), else 1, so an older block is
+## written as it always was.
+static func version_for(block: Dictionary) -> int:
+	var terrain: Array = block.get("terrain", [])
+	if not terrain.is_empty():
+		return 2
+	for seg: Dictionary in block.get("segments", []):
+		var z1: float = seg.get("z1", 2.0)
+		var z1b: float = seg.get("z1b", z1)
+		if z1b != z1:
+			return 2
+	for slab: Dictionary in block.get("slabs", []):
+		var gx: float = slab.get("gx", 0.0)
+		var gy: float = slab.get("gy", 0.0)
+		var walk: bool = slab.get("walk", true)
+		if not walk and maxf(absf(gx), absf(gy)) > STEEPEST:
+			return 2
+	return 1
 
 
 static func _cuts(list: Variant) -> PackedFloat32Array:
@@ -854,6 +894,7 @@ func render_parts(ground: Callable) -> Dictionary:
 	var caps := {}
 	var roof_caps := {}
 	var slopes: Array = []
+	rakes = PackedFloat32Array()
 	for s in slabs:
 		var poly := outline(s.x0, s.y0, s.x1, s.y1, s.cuts)
 		if poly.size() < 3:
@@ -862,6 +903,10 @@ func render_parts(ground: Callable) -> Dictionary:
 			slopes.append(_slope_row(s, s.top, 1.0, s.tile))
 			if s.thick >= 0.0:
 				slopes.append(_slope_row(s, s.top - s.thick, -1.0, s.under))
+			if version >= 2:
+				# Its sides as true quads (rakes), not strips.
+				_slab_rakes(s, poly, ground)
+				continue
 		else:
 			_add_cap(caps, s.top, s, s.tile)
 			if s.thick >= 0.0:
@@ -942,7 +987,49 @@ func render_parts(ground: Callable) -> Dictionary:
 		at_key.append(row)
 	for lad in ladders:
 		walls.append_array(ladder_rows(lad))
-	return {"walls": walls, "caps": caps, "roof_caps": roof_caps, "slopes": slopes}
+	return {"walls": walls, "caps": caps, "roof_caps": roof_caps, "slopes": slopes, "rakes": rakes}
+
+
+## A sloped slab's sides as rakes: a thick one's each a band from its sloped
+## underside to its top; a solid one's cut where the side crosses a cell line
+## (the ground under it may step there), each from that cell's ground up.
+func _slab_rakes(s: Slab, poly: PackedVector2Array, ground: Callable) -> void:
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		if a.distance_to(b) < .001:
+			continue
+		var cuts: Array[float] = [0.0, 1.0]
+		if s.thick < 0.0:
+			for axis in 2:
+				var from := a[axis]
+				var to := b[axis]
+				if absf(to - from) < 1e-6:
+					continue
+				for line in range(floori(minf(from, to)) + 1, ceili(maxf(from, to))):
+					cuts.append((line - from) / (to - from))
+			cuts.sort()
+		for k in cuts.size() - 1:
+			if cuts[k + 1] - cuts[k] < 1e-6:
+				continue
+			var p := a.lerp(b, cuts[k])
+			var q := a.lerp(b, cuts[k + 1])
+			var tp := s.top_at(p.x, p.y)
+			var tq := s.top_at(q.x, q.y)
+			var bp := tp - s.thick
+			var bq := tq - s.thick
+			if s.thick < 0.0:
+				var mid := (p + q) * .5
+				bp = ground.call(mid.x, mid.y)
+				bq = bp
+				tp = maxf(tp, bp)
+				tq = maxf(tq, bq)
+				if maxf(tp, tq) - bp < .005:
+					continue
+			rakes.append_array(
+				PackedFloat32Array([p.x, p.y, q.x, q.y, s.edge, s.light, bp, tp, bq, tq, s.area])
+			)
+			slab_edges[Vector4(p.x, p.y, q.x, q.y)] = s.edge
 
 
 ## A ladder's pieces as wall rows: two square rails from its floor to a
@@ -985,29 +1072,19 @@ static func ladder_rows(lad: Ladder) -> PackedFloat32Array:
 	return out
 
 
-## A segment's face from p (top ta) to q (top tb) as wall rows: one row for a
-## level top, else strips RAKE_STRIP high at most, each topped at its higher
-## end (the step hides in the roof a gable carries; the wall row format has
-## one top a row, and everything reading level walls keeps it).
+## A segment's face from p (top ta) to q (top tb): a wall row for a level
+## top, else a rake (a true quad, its top sloping from ta to tb).
 func _face_rows(
 	walls: PackedFloat32Array, g: Segment, p: Vector2, q: Vector2, ta: float, tb: float
 ) -> void:
-	var strips := 1
-	if ta != tb:
-		strips = clampi(int(ceilf(absf(tb - ta) / RAKE_STRIP)), 1, 96)
-	for k in strips:
-		var u := float(k) / strips
-		var v := float(k + 1) / strips
-		var a := p.lerp(q, u)
-		var b := p.lerp(q, v)
-		var top := maxf(lerpf(ta, tb, u), lerpf(ta, tb, v))
+	if ta == tb:
 		walls.append_array(
-			PackedFloat32Array([a.x, a.y, b.x, b.y, g.tile, g.light, g.z0, top, g.area])
+			PackedFloat32Array([p.x, p.y, q.x, q.y, g.tile, g.light, g.z0, ta, g.area])
 		)
-
-
-## A raked wall's strips rise at most this each.
-const RAKE_STRIP := .05
+		return
+	rakes.append_array(
+		PackedFloat32Array([p.x, p.y, q.x, q.y, g.tile, g.light, g.z0, ta, g.z0, tb, g.area])
+	)
 
 
 func _add_cap(into: Dictionary, z: float, s: Slab, tile: int) -> void:
@@ -1024,6 +1101,14 @@ func _slope_row(s: Slab, z0: float, side: float, tile: int) -> Array:
 	var row := [z0, s.gx, s.gy, side, s.x0, s.y0, s.x1, s.y1, tile, s.light, s.area]
 	row.append_array(Array(s.cuts))
 	return row
+
+
+## A station's lights coming on in `area` (game_world.set_station_lights does
+## the wall rows): its rakes `by` brighter.
+func brighten(area: int, by: float) -> void:
+	for o in range(0, rakes.size(), RAKE_STRIDE):
+		if int(rakes[o + 10]) == area:
+			rakes[o + 5] += by
 
 
 # --------------------------------------------------------- bodies

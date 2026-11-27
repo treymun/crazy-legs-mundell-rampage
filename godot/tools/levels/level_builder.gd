@@ -1240,7 +1240,7 @@ func finish(spawn: Array) -> Dictionary:
 		pieces += (geometry[kind] as Array).size()
 	if pieces > 0:
 		out["format"] = LevelData.FORMAT
-		var block := {"version": LevelGeometry.VERSION}
+		var block := {"version": LevelGeometry.version_for(geometry)}
 		block.merge(geometry)
 		out["geometry"] = block
 	LevelEdit.refresh_heights(out)
