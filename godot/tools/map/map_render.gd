@@ -205,7 +205,11 @@ static func _land(img: Image, lv: LevelData, s: int) -> void:
 				band[y * w + x] = -9999 if is_nan(z) else floori(z / CONTOUR)
 				if is_nan(z) or absf(z) < .05:
 					continue
-				var tint := Color(1, 1, .8, clampf(z * .12, 0, .45)) if z > 0.0 else Color(0, .1, .3, clampf(-z * .5, 0, .5))
+				var tint := (
+					Color(1, 1, .8, clampf(z * .12, 0, .45))
+					if z > 0.0
+					else Color(0, .1, .3, clampf(-z * .5, 0, .5))
+				)
 				img.blend_rect(_fill(s, tint), Rect2i(0, 0, s, s), Vector2i(x * s, y * s))
 		for y in h:
 			for x in w:
@@ -214,15 +218,24 @@ static func _land(img: Image, lv: LevelData, s: int) -> void:
 					continue
 				if x + 1 < w and band[y * w + x + 1] != -9999 and band[y * w + x + 1] != a:
 					var lit := maxi(a, band[y * w + x + 1]) % 2 == 0
-					img.fill_rect(Rect2i((x + 1) * s, y * s, 1, s), Color(1, 1, 1, .8 if lit else .4))
+					img.fill_rect(
+						Rect2i((x + 1) * s, y * s, 1, s), Color(1, 1, 1, .8 if lit else .4)
+					)
 				if y + 1 < h and band[(y + 1) * w + x] != -9999 and band[(y + 1) * w + x] != a:
 					var lit := maxi(a, band[(y + 1) * w + x]) % 2 == 0
-					img.fill_rect(Rect2i(x * s, (y + 1) * s, s, 1), Color(1, 1, 1, .8 if lit else .4))
+					img.fill_rect(
+						Rect2i(x * s, (y + 1) * s, s, 1), Color(1, 1, 1, .8 if lit else .4)
+					)
 	for bd: LevelData.Billboard in lv.billboards:
 		var name := bd.image
 		if not name.begins_with("foliage_"):
 			continue
-		var big := name.contains("tree") or name.contains("pine") or name.contains("cypress") or name.contains("snag")
+		var big := (
+			name.contains("tree")
+			or name.contains("pine")
+			or name.contains("cypress")
+			or name.contains("snag")
+		)
 		var r := maxi(s / 4, 2) if big else 1
 		var col := Color(.05, .22, .06) if big else Color(.35, .55, .2)
 		var px := int(bd.x * s)
@@ -343,14 +356,23 @@ static func _versus(img: Image, lv: LevelData, s: int) -> void:
 	var sites: Dictionary = tac.get("sites", {}) if tac.get("sites") is Dictionary else {}
 	for name in sites:
 		var b: Array = sites[name]
-		var r := Rect2i(int(b[0]) * s, int(b[1]) * s, (int(b[2]) - int(b[0]) + 1) * s, (int(b[3]) - int(b[1]) + 1) * s)
+		var r := Rect2i(
+			int(b[0]) * s,
+			int(b[1]) * s,
+			(int(b[2]) - int(b[0]) + 1) * s,
+			(int(b[3]) - int(b[1]) + 1) * s
+		)
 		var col := Color(1, .55, .1)
 		img.fill_rect(Rect2i(r.position.x, r.position.y, r.size.x, 2), col)
 		img.fill_rect(Rect2i(r.position.x, r.end.y - 2, r.size.x, 2), col)
 		img.fill_rect(Rect2i(r.position.x, r.position.y, 2, r.size.y), col)
 		img.fill_rect(Rect2i(r.end.x - 2, r.position.y, 2, r.size.y), col)
 		_text(img, str(name), r.position.x + 4, r.end.y - 12, col)
-	for pair: Array in [["attack_spawns", Color(1, .3, .25)], ["defend_spawns", Color(.35, .55, 1)], ["deathmatch", Color(1, 1, 1)]]:
+	for pair: Array in [
+		["attack_spawns", Color(1, .3, .25)],
+		["defend_spawns", Color(.35, .55, 1)],
+		["deathmatch", Color(1, 1, 1)]
+	]:
 		for row in tac.get(pair[0], []):
 			var p := Vector2(float(row[0]), float(row[1])) * s
 			var a := float(row[2]) if (row as Array).size() > 2 else 0.0

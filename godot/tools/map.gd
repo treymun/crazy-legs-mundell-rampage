@@ -33,6 +33,9 @@
 ##   add <id> '<object json>' [after=<object>]
 ##   remove <id> <object>
 ##   rename <id> <object> <new id>
+##   turn <id> <object> [by=1]             a kit piece, prefab or set piece turned
+##                                           quarter turns clockwise
+##   mirror <id> <object>                    a kit piece or prefab flipped left to right
 ##   top <id> key=<json>                     the source's own keys: spawn, districts,
 ##                                           meta (merged), border, size, playtest, base
 ##   undo <id>                               put back the source before the last edit
@@ -81,6 +84,8 @@ const COMMANDS := {
 	"rename": "_edit",
 	"undo": "_edit",
 	"top": "_edit",
+	"turn": "_edit",
+	"mirror": "_edit",
 	"history": "_history",
 	"catalog": "_catalog",
 	"schema": "_schema",

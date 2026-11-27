@@ -23,7 +23,9 @@ static func check(out: Array, doc: Dictionary, built: Dictionary, lv: LevelData)
 ## What each named mode needs (docs/dev/modes.md).
 static func _modes(out: Array, doc: Dictionary, level: Dictionary, tac: Dictionary) -> void:
 	var modes: Array = doc.get("modes", []) if doc.get("modes") is Array else []
-	var objective := not (level.get("stations", []) as Array).is_empty() or level.get("extraction") is Dictionary
+	var objective := (
+		not (level.get("stations", []) as Array).is_empty() or level.get("extraction") is Dictionary
+	)
 	for m in modes:
 		var mode := str(m)
 		var lack := ""
@@ -70,7 +72,9 @@ static func _places(out: Array, doc: Dictionary, lv: LevelData) -> void:
 			spots.append(Vector2(float(o["at"][0]), float(o["at"][1])))
 		elif type == "bomb_site" and o.get("rect") is Array:
 			var r: Array = o["rect"]
-			spots.append(Vector2((float(r[0]) + float(r[2])) * .5, (float(r[1]) + float(r[3])) * .5))
+			spots.append(
+				Vector2((float(r[0]) + float(r[2])) * .5, (float(r[1]) + float(r[3])) * .5)
+			)
 		if type == "team_spawn":
 			var key := "attack_spawns" if str(o.get("team", "")) == "attack" else "defend_spawns"
 			for s: Array in lv.tactical.get(key, []):
@@ -82,13 +86,28 @@ static func _places(out: Array, doc: Dictionary, lv: LevelData) -> void:
 						"versus_inside",
 						str(o.get("id", "")),
 						o.get("at"),
-						"team_spawn %s found room for only %d of its %d places" % [o.get("id"), (lv.tactical.get(key, []) as Array).size(), int(o.get("count", 5))],
+						(
+							"team_spawn %s found room for only %d of its %d places"
+							% [
+								o.get("id"),
+								(lv.tactical.get(key, []) as Array).size(),
+								int(o.get("count", 5))
+							]
+						),
 						"move it onto open ground with room round it (4 cells)"
 					)
 				)
 		for p: Vector2 in spots:
 			if p.x < 0 or p.y < 0 or p.x >= lv.width or p.y >= lv.height:
-				out.append(Validate.issue("error", "outside", str(o.get("id", "")), [p.x, p.y, 0], "%s is off the map" % type))
+				out.append(
+					Validate.issue(
+						"error",
+						"outside",
+						str(o.get("id", "")),
+						[p.x, p.y, 0],
+						"%s is off the map" % type
+					)
+				)
 				continue
 			var c := lv.cell(p.x, p.y)
 			var wet := lv.surface_sound(int(lv.floor_tile[c])) == "water"
@@ -99,7 +118,10 @@ static func _places(out: Array, doc: Dictionary, lv: LevelData) -> void:
 						"versus_inside",
 						str(o.get("id", "")),
 						[p.x, p.y, 0.0],
-						"%s %s at (%.1f, %.1f) stands in %s" % [type, o.get("id"), p.x, p.y, "water" if wet else "something solid"],
+						(
+							"%s %s at (%.1f, %.1f) stands in %s"
+							% [type, o.get("id"), p.x, p.y, "water" if wet else "something solid"]
+						),
 						"move it onto open, dry ground"
 					)
 				)
@@ -122,13 +144,26 @@ static func _on_terrain(out: Array, doc: Dictionary, built: Dictionary, lv: Leve
 				if not is_nan(z):
 					rise = maxf(rise, z)
 		if rise > .15:
-			out.append(
-				Validate.issue(
-					"warning",
-					"kit_on_terrain",
-					str(o["id"]),
-					[(float(fp[0]) + float(fp[2])) * .5, (float(fp[1]) + float(fp[3])) * .5, rise],
-					"%s stands where the ground rises %.2f: its floor is on the flat, under the hill" % [o["id"], rise],
-					"keep terrain brushes off building footprints (or flatten there with brush flat, height 0)"
+			(
+				out
+				. append(
+					(
+						Validate
+						. issue(
+							"warning",
+							"kit_on_terrain",
+							str(o["id"]),
+							[
+								(float(fp[0]) + float(fp[2])) * .5,
+								(float(fp[1]) + float(fp[3])) * .5,
+								rise
+							],
+							(
+								"%s stands where the ground rises %.2f: its floor is on the flat, under the hill"
+								% [o["id"], rise]
+							),
+							"keep terrain brushes off building footprints (or flatten there with brush flat, height 0)"
+						)
+					)
 				)
 			)

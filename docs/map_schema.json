@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/treymun/crazy-legs-mundell-rampage/docs/map_schema.json",
-  "title": "Crazy Legs Mundell Rampage map source (clmr-map version 1)",
+  "title": "Crazy Legs Mundell Rampage map source (clmr-map version 2)",
   "description": "godot/maps/<id>.map.json. 1 map unit = 1 cell; x east, y south, z up; eye .95, door 1.85, step .245, body .2 round, 1.12 tall. From tools/map.gd -- schema.",
   "type": "object",
   "required": [
@@ -17,7 +17,7 @@
     "version": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 1
+      "maximum": 2
     },
     "id": {
       "type": "string",
@@ -72,9 +72,81 @@
             "items": {
               "type": "number"
             }
+          },
+          "mood": {
+            "enum": [
+              "farm_dusk",
+              "barn_dark",
+              "church_still",
+              "holler_fog",
+              "bayou_night",
+              "store_fluorescent",
+              "mothership_glow"
+            ]
+          },
+          "rect": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4,
+            "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
           }
         }
       }
+    },
+    "mood": {
+      "enum": [
+        "farm_dusk",
+        "barn_dark",
+        "church_still",
+        "holler_fog",
+        "bayou_night",
+        "store_fluorescent",
+        "mothership_glow"
+      ],
+      "description": "version 2: the whole map's mood (fog, grade, sounds); districts may have their own"
+    },
+    "modes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "solo",
+          "coop",
+          "deathmatch",
+          "team_deathmatch",
+          "bomb",
+          "hostage",
+          "county"
+        ]
+      },
+      "description": "version 2: the modes the map is made for; map check reviews each"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "version 2: the looks dice (the map id's hash when left out)"
+    },
+    "prefabs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "description": "version 2: groups of objects placed by prefab objects (also maps/prefabs/<name>.json)"
     },
     "spawn": {
       "type": "object",
@@ -512,7 +584,11 @@
                 "type": "string"
               },
               "style": {
-                "type": "string"
+                "enum": [
+                  "hinge",
+                  "slide",
+                  "barn"
+                ]
               },
               "secret": {
                 "type": "boolean"
@@ -522,6 +598,25 @@
               },
               "opened": {
                 "type": "boolean"
+              },
+              "z": {
+                "type": "number"
+              },
+              "span": {
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "bar": {
+                "enum": [
+                  "",
+                  "n",
+                  "e",
+                  "s",
+                  "w"
+                ]
               }
             },
             "patternProperties": {
@@ -939,6 +1034,9 @@
                     },
                     "head": {
                       "type": "number"
+                    },
+                    "pane": {
+                      "type": "boolean"
                     }
                   }
                 }
@@ -948,6 +1046,29 @@
               },
               "district": {
                 "type": "string"
+              },
+              "curve": {
+                "type": "object",
+                "properties": {
+                  "centre": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "maxItems": 3
+                  },
+                  "radius": {
+                    "type": "number"
+                  },
+                  "from": {
+                    "type": "number"
+                  },
+                  "to": {
+                    "type": "number"
+                  }
+                },
+                "description": "the wall bent round centre: from and to in degrees (0 east, 90 south)"
               }
             },
             "patternProperties": {
@@ -1305,6 +1426,9 @@
                     },
                     "head": {
                       "type": "number"
+                    },
+                    "pane": {
+                      "type": "boolean"
                     }
                   }
                 }
@@ -1714,7 +1838,10 @@
                 "type": "number"
               },
               "team": {
-                "type": "string"
+                "enum": [
+                  "attack",
+                  "defend"
+                ]
               }
             },
             "patternProperties": {
@@ -1789,6 +1916,4170 @@
               "^_": {}
             },
             "additionalProperties": false
+          },
+          {
+            "title": "kit",
+            "description": "Any kit piece by name (piece): needed for stairs, ramp, fence, bridge and wall, whose names are v1 types. Takes the piece's own keys.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "piece",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "kit"
+              },
+              "piece": {
+                "enum": [
+                  "arch",
+                  "barn",
+                  "bridge",
+                  "catwalk",
+                  "chimney",
+                  "church",
+                  "curved_wall",
+                  "dock",
+                  "farmhouse",
+                  "fence",
+                  "gas_station",
+                  "grain_bin",
+                  "house",
+                  "ladder",
+                  "outhouse",
+                  "pole_barn",
+                  "porch",
+                  "ramp",
+                  "roof",
+                  "shack",
+                  "silo",
+                  "stairs",
+                  "store",
+                  "tower",
+                  "trailer",
+                  "wall",
+                  "water_tower"
+                ]
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": true,
+            "examples": [
+              {
+                "id": "example_kit",
+                "type": "kit",
+                "piece": "fence",
+                "at": [
+                  4,
+                  20
+                ],
+                "w": 12,
+                "kind": "picket",
+                "gate": 6
+              }
+            ]
+          },
+          {
+            "title": "terrain",
+            "description": "Ground shaped over rect: brush hill (a round rise `height` high), ditch (a trench along the long side), plateau (flat top, `falloff` cells of slope), ramp (up toward n/e/s/w), flat (set to height), smooth, noise (seeded bumps up to height), heights ((w+1)*(h+1) corner heights). Brushes add up; steeper than 1 in 1 is a cliff.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "terrain"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "brush": {
+                "enum": [
+                  "hill",
+                  "ditch",
+                  "plateau",
+                  "ramp",
+                  "flat",
+                  "smooth",
+                  "noise",
+                  "heights"
+                ]
+              },
+              "height": {
+                "type": "number"
+              },
+              "falloff": {
+                "type": "number"
+              },
+              "toward": {
+                "enum": [
+                  "n",
+                  "e",
+                  "s",
+                  "w"
+                ]
+              },
+              "seed": {
+                "type": "number"
+              },
+              "scale": {
+                "type": "number"
+              },
+              "passes": {
+                "type": "number"
+              },
+              "heights": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "floor": {
+                "type": "string"
+              },
+              "cliff": {
+                "type": "string"
+              },
+              "light": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_terrain",
+                "type": "terrain",
+                "rect": [
+                  30,
+                  4,
+                  42,
+                  14
+                ],
+                "brush": "hill",
+                "height": 2.0
+              }
+            ]
+          },
+          {
+            "title": "road",
+            "description": "A road along points, `width` cells wide: surface blacktop, gravel, dirt, concrete or oil; `shoulder` cells of gravel each side (blacktop 1, others 0); `ditch` a shallow ditch beyond them. Plants keep off it; a creek crossing it gets a bridge.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "points"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "road"
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "minItems": 2
+              },
+              "width": {
+                "type": "number"
+              },
+              "surface": {
+                "enum": [
+                  "blacktop",
+                  "gravel",
+                  "dirt",
+                  "concrete",
+                  "oil"
+                ]
+              },
+              "shoulder": {
+                "type": "number"
+              },
+              "ditch": {
+                "type": "boolean"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_road",
+                "type": "road",
+                "points": [
+                  [
+                    1,
+                    24
+                  ],
+                  [
+                    62,
+                    24
+                  ]
+                ],
+                "surface": "blacktop"
+              }
+            ]
+          },
+          {
+            "title": "creek",
+            "description": "A creek along points, `width` wide, its bed carved `depth` down, a shore round it.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "points"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "creek"
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "minItems": 2
+              },
+              "width": {
+                "type": "number"
+              },
+              "depth": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "shore": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_creek",
+                "type": "creek",
+                "points": [
+                  [
+                    1,
+                    30
+                  ],
+                  [
+                    20,
+                    31
+                  ],
+                  [
+                    62,
+                    29
+                  ]
+                ],
+                "width": 1.8
+              }
+            ]
+          },
+          {
+            "title": "pond",
+            "description": "A pond: `at` + `radius`, a `rect` or a `polygon`. Flat water, a shore, deep water (nobody wades it) in its middle unless `deep` is false.",
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "pond"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "radius": {
+                "type": "number"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "polygon": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "minItems": 3
+              },
+              "depth": {
+                "type": "number"
+              },
+              "deep": {
+                "type": "boolean"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "shore": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_pond",
+                "type": "pond",
+                "at": [
+                  12,
+                  36
+                ],
+                "radius": 3.5
+              }
+            ]
+          },
+          {
+            "title": "trough",
+            "description": "A stock trough with water in it: furniture .45 high, `length` .8 to 4 along x or y.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "trough"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "along": {
+                "enum": [
+                  "x",
+                  "y"
+                ]
+              },
+              "length": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_trough",
+                "type": "trough",
+                "at": [
+                  20.5,
+                  12.5
+                ],
+                "along": "x",
+                "length": 2.0
+              }
+            ]
+          },
+          {
+            "title": "foliage",
+            "description": "Plants scattered on natural ground in rect or polygon (the whole map when neither): grass, weeds, scrub, tree, pine, cypress, snag, corn (rows), reeds (by water). Never on a road, a route, by a door or a spawn.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "kind"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "foliage"
+              },
+              "kind": {
+                "enum": [
+                  "grass",
+                  "weeds",
+                  "scrub",
+                  "tree",
+                  "pine",
+                  "cypress",
+                  "snag",
+                  "corn",
+                  "reeds"
+                ]
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "polygon": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "minItems": 3
+              },
+              "density": {
+                "type": "number"
+              },
+              "seed": {
+                "type": "number"
+              },
+              "rows": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_foliage",
+                "type": "foliage",
+                "kind": "pine",
+                "rect": [
+                  1,
+                  30,
+                  15,
+                  47
+                ],
+                "density": 0.8
+              }
+            ]
+          },
+          {
+            "title": "dress",
+            "description": "`count` hand-made vignettes of a theme set against walls in rect: farm, junk, church, fair, yard_sale, shine, garage, swamp, house, store.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "theme"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "dress"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "theme": {
+                "enum": [
+                  "farm",
+                  "junk",
+                  "church",
+                  "fair",
+                  "yard_sale",
+                  "shine",
+                  "garage",
+                  "swamp",
+                  "house",
+                  "store"
+                ]
+              },
+              "count": {
+                "type": "number"
+              },
+              "seed": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_dress",
+                "type": "dress",
+                "rect": [
+                  2,
+                  2,
+                  22,
+                  20
+                ],
+                "theme": "farm",
+                "count": 2
+              }
+            ]
+          },
+          {
+            "title": "vignette",
+            "description": "One vignette by name (dressing.json: porch_sittin, junk_pile, wood_pile...) with its back to the wall on side `wall` (n, e, s, w) of cell `at`.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "name",
+              "at",
+              "wall"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "vignette"
+              },
+              "name": {
+                "enum": [
+                  "porch_sittin",
+                  "junk_pile",
+                  "wash_day",
+                  "wood_pile",
+                  "stock_corner",
+                  "chicken_yard",
+                  "church_yard",
+                  "church_social",
+                  "fair_corner",
+                  "yard_sale",
+                  "shine_nook",
+                  "tinker_corner",
+                  "bait_shack",
+                  "back_room",
+                  "store_back"
+                ]
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "wall": {
+                "enum": [
+                  "n",
+                  "e",
+                  "s",
+                  "w"
+                ]
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_vignette",
+                "type": "vignette",
+                "name": "wood_pile",
+                "at": [
+                  10,
+                  15
+                ],
+                "wall": "n"
+              }
+            ]
+          },
+          {
+            "title": "set_piece",
+            "description": "A chapter-style big break: kind barn (comes down when its posts are shot), tower (falls and floods), fuel (a fuel line that burns). `falls`: ways it may go.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "kind",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "set_piece"
+              },
+              "kind": {
+                "enum": [
+                  "barn",
+                  "tower",
+                  "fuel"
+                ]
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "falls": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    0,
+                    1,
+                    2,
+                    3
+                  ]
+                }
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_set_piece",
+                "type": "set_piece",
+                "kind": "tower",
+                "at": [
+                  57.5,
+                  13.5
+                ],
+                "falls": [
+                  1,
+                  3
+                ]
+              }
+            ]
+          },
+          {
+            "title": "switch",
+            "description": "A lever (an objective station): used, it opens the doors named in `opens` (door ids, a kit building's doors too: <id>_door_s); those doors have no handle of their own. `requires`: switches to throw first.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "switch"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "label": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "opens": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "requires": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "prop": {
+                "type": "string"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_switch",
+                "type": "switch",
+                "at": [
+                  33.5,
+                  8.5
+                ],
+                "label": "OPEN THE BARN",
+                "opens": [
+                  "barn_door"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "key",
+            "description": "A key (brass or steel) lying at `at`; the doors named in `doors` need it.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at",
+              "doors"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "key"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "doors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "color": {
+                "enum": [
+                  "brass",
+                  "steel"
+                ]
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_key",
+                "type": "key",
+                "at": [
+                  8.5,
+                  30.5
+                ],
+                "color": "brass",
+                "doors": [
+                  "shed_door"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "kill_gate",
+            "description": "When every hand standing in rect is down, the doors in `opens` open (they have no handle till then).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "opens"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "kill_gate"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "opens": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_kill_gate",
+                "type": "kill_gate",
+                "rect": [
+                  40,
+                  4,
+                  52,
+                  16
+                ],
+                "opens": [
+                  "back_gate"
+                ],
+                "message": "THE BACK GATE'S OPEN."
+              }
+            ]
+          },
+          {
+            "title": "wake_zone",
+            "description": "The hands in rect sleep until a player walks into `trigger` (a rect; rect itself when left out), then they all come at once.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "wake_zone"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "trigger": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_wake_zone",
+                "type": "wake_zone",
+                "rect": [
+                  40,
+                  4,
+                  52,
+                  16
+                ],
+                "trigger": [
+                  36,
+                  4,
+                  40,
+                  16
+                ]
+              }
+            ]
+          },
+          {
+            "title": "message",
+            "description": "Words on the screen when a player walks into rect.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "text"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "message"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "text": {
+                "type": "string"
+              },
+              "seconds": {
+                "type": "number"
+              },
+              "once": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_message",
+                "type": "message",
+                "rect": [
+                  20,
+                  20,
+                  24,
+                  24
+                ],
+                "text": "SMELLS LIKE HOGS."
+              }
+            ]
+          },
+          {
+            "title": "trigger",
+            "description": "A level trigger as src/triggers.gd has it (when: area, key, station, kills, after, down; do: message, sound, open, close, lock, wake, alert, light, shake, pickup). open, close and lock may name a door id; area is a rect.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "when",
+              "do"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "trigger"
+              },
+              "when": {
+                "type": "object"
+              },
+              "do": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "once": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_trigger",
+                "type": "trigger",
+                "when": {
+                  "station": "pump"
+                },
+                "do": [
+                  {
+                    "light": {
+                      "at": [
+                        30,
+                        10
+                      ],
+                      "radius": 6
+                    }
+                  },
+                  {
+                    "sound": "lever_clunk"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "title": "prefab",
+            "description": "A group of objects defined once (the source's prefabs, or maps/prefabs/<name>.json) placed with its north-west corner at `at`, turned quarter turns clockwise and mirrored. Its objects' ids become <id>_<their id>.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "name",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "prefab"
+              },
+              "name": {
+                "type": "string"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_prefab",
+                "type": "prefab",
+                "name": "hog_pen",
+                "at": [
+                  24,
+                  30
+                ],
+                "turn": 1
+              }
+            ]
+          },
+          {
+            "title": "via",
+            "description": "A nav point by hand: where a way passes that the cells' middles miss.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "via"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_via",
+                "type": "via",
+                "at": [
+                  20.25,
+                  8.0
+                ]
+              }
+            ]
+          },
+          {
+            "title": "dm_spawn",
+            "description": "A deathmatch and team deathmatch start (give 6 or more, spread out). `angle` in degrees; left out, it faces the map's middle.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "dm_spawn"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "angle": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_dm_spawn",
+                "type": "dm_spawn",
+                "at": [
+                  6.5,
+                  6.5
+                ]
+              }
+            ]
+          },
+          {
+            "title": "team_spawn",
+            "description": "A 5v5 side's start: team attack (the outlaws, who plant or rescue) or defend. `count` places (5) are spread round `at`, facing the other side's start.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "team",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "team_spawn"
+              },
+              "team": {
+                "enum": [
+                  "attack",
+                  "defend"
+                ]
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "count": {
+                "type": "number"
+              },
+              "angle": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_team_spawn",
+                "type": "team_spawn",
+                "team": "attack",
+                "at": [
+                  5.5,
+                  24.5
+                ]
+              }
+            ]
+          },
+          {
+            "title": "bomb_site",
+            "description": "Search and destroy: bomb site A or B over rect.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "site",
+              "rect"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "bomb_site"
+              },
+              "site": {
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_bomb_site",
+                "type": "bomb_site",
+                "site": "A",
+                "rect": [
+                  46,
+                  4,
+                  54,
+                  12
+                ]
+              }
+            ]
+          },
+          {
+            "title": "hostage",
+            "description": "Hostage rescue: a hostage held at `at` (near the defenders).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "hostage"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_hostage",
+                "type": "hostage",
+                "at": [
+                  52.5,
+                  6.5
+                ]
+              }
+            ]
+          },
+          {
+            "title": "rescue_zone",
+            "description": "Hostage rescue: where the attackers carry a hostage to (round their start).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "rescue_zone"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_rescue_zone",
+                "type": "rescue_zone",
+                "rect": [
+                  2,
+                  20,
+                  10,
+                  30
+                ]
+              }
+            ]
+          },
+          {
+            "title": "bot_route",
+            "description": "A way the 5v5 bots walk to site A or B (points). Left out, they go straight.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "site",
+              "points"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "bot_route"
+              },
+              "site": {
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "minItems": 2
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_bot_route",
+                "type": "bot_route",
+                "site": "A",
+                "points": [
+                  [
+                    8.5,
+                    20.5
+                  ],
+                  [
+                    30.5,
+                    10.5
+                  ],
+                  [
+                    50.5,
+                    8.5
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "title": "bot_hold",
+            "description": "Where a defending bot holds (site A, B or mid), facing `angle` degrees.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "site",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "bot_hold"
+              },
+              "site": {
+                "enum": [
+                  "A",
+                  "B",
+                  "mid"
+                ]
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "angle": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_bot_hold",
+                "type": "bot_hold",
+                "site": "A",
+                "at": [
+                  52.5,
+                  10.5
+                ],
+                "angle": 180
+              }
+            ]
+          },
+          {
+            "title": "arch",
+            "description": "A thick wall with a way through its middle under a stepped arch.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "arch"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 12.0,
+                "default": 4.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 1.0,
+                "default": 1.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 2.4,
+                "maximum": 8.0,
+                "default": 3.2
+              },
+              "width": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 4.0,
+                "default": 1.6
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_arch",
+                "type": "arch",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "barn",
+            "description": "A tall red barn: big sliding doors front and back, a hayloft up a ladder, bales, gambrel roof.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "barn"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 8.0,
+                "maximum": 16.0,
+                "default": 10.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 10.0,
+                "maximum": 24.0,
+                "default": 14.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "loft": {
+                "type": "boolean",
+                "default": true
+              },
+              "bales": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 16.0,
+                "default": 6.0
+              },
+              "side_door": {
+                "type": "boolean",
+                "default": true
+              },
+              "roof": {
+                "enum": [
+                  "gambrel",
+                  "gable"
+                ],
+                "default": "gambrel"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_barn",
+                "type": "barn",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "catwalk",
+            "description": "A mesh deck on legs along the local x axis, rails, a ladder.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "catwalk"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 32.0,
+                "default": 6.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 2.0,
+                "default": 1.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 12.0,
+                "default": 3.0
+              },
+              "ladder": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_catwalk",
+                "type": "catwalk",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "chimney",
+            "description": "A brick stack.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "chimney"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 2.0,
+                "default": 1.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 2.0,
+                "default": 1.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 14.0,
+                "default": 6.0
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_chimney",
+                "type": "chimney",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "church",
+            "description": "A whitewashed church: pews, coloured glass, a bell tower with a belfry.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "church"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 6.0,
+                "maximum": 10.0,
+                "default": 7.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 11.0,
+                "maximum": 20.0,
+                "default": 14.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "pews": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 8.0,
+                "default": 5.0
+              },
+              "bell": {
+                "type": "boolean",
+                "default": true
+              },
+              "steeple": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 6.0,
+                "default": 4.0
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_church",
+                "type": "church",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "curved_wall",
+            "description": "A wall round the footprint's middle (an arc), a doorway in its middle.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "curved_wall"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 32.0,
+                "default": 6.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 32.0,
+                "default": 6.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 0.5,
+                "maximum": 9.6,
+                "default": 2.4
+              },
+              "from": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 360.0,
+                "default": 180.0
+              },
+              "to": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 360.0,
+                "default": 360.0
+              },
+              "door": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_curved_wall",
+                "type": "curved_wall",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "dock",
+            "description": "A loading dock (waist-high cover), steps up its west end.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "dock"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 3.0,
+                "maximum": 16.0,
+                "default": 6.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 4.0,
+                "default": 2.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 0.4,
+                "maximum": 1.4,
+                "default": 0.9
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_dock",
+                "type": "dock",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "farmhouse",
+            "description": "A two-storey clapboard farmhouse: porch, gable roof, chimney, balcony, ladder to the roof.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "farmhouse"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 7.0,
+                "maximum": 14.0,
+                "default": 9.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 8.0,
+                "maximum": 14.0,
+                "default": 9.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "storeys": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 3.0,
+                "default": 2.0
+              },
+              "roof": {
+                "enum": [
+                  "gable",
+                  "hip"
+                ],
+                "default": "gable"
+              },
+              "pitch": {
+                "type": "number",
+                "minimum": 0.3,
+                "maximum": 1.0,
+                "default": 0.6
+              },
+              "porch": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 3.0,
+                "default": 2.0
+              },
+              "windows": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 4.0,
+                "default": 2.0
+              },
+              "chimney": {
+                "type": "boolean",
+                "default": true
+              },
+              "ladder": {
+                "type": "boolean",
+                "default": true
+              },
+              "rooms": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 2.0,
+                "default": 2.0
+              },
+              "balcony": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_farmhouse",
+                "type": "farmhouse",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "gas_station",
+            "description": "A cinder box and a canopy over pump islands, a flat roof to walk on.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "gas_station"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 10.0,
+                "maximum": 16.0,
+                "default": 12.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 9.0,
+                "maximum": 14.0,
+                "default": 11.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "pumps": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 3.0,
+                "default": 2.0
+              },
+              "ladder": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_gas_station",
+                "type": "gas_station",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "grain_bin",
+            "description": "A round corrugated bin whose cone roof you can climb onto.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "grain_bin"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 4.0,
+                "maximum": 8.0,
+                "default": 5.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 4.0,
+                "maximum": 8.0,
+                "default": 5.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 5.0,
+                "default": 3.0
+              },
+              "pitch": {
+                "type": "number",
+                "minimum": 0.3,
+                "maximum": 1.0,
+                "default": 0.55
+              },
+              "ladder": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_grain_bin",
+                "type": "grain_bin",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "house",
+            "description": "A plain house: storeys of walls with windows, inside stairs, any roof.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "house"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 5.0,
+                "maximum": 16.0,
+                "default": 8.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 5.0,
+                "maximum": 14.0,
+                "default": 6.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "storeys": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 3.0,
+                "default": 2.0
+              },
+              "roof": {
+                "enum": [
+                  "gable",
+                  "hip",
+                  "gambrel",
+                  "shed",
+                  "flat"
+                ],
+                "default": "gable"
+              },
+              "pitch": {
+                "type": "number",
+                "minimum": 0.2,
+                "maximum": 1.0,
+                "default": 0.6
+              },
+              "windows": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 4.0,
+                "default": 2.0
+              },
+              "doors": {
+                "enum": [
+                  "s",
+                  "sn",
+                  "sne",
+                  "snew"
+                ],
+                "default": "sn"
+              },
+              "rooms": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 2.0,
+                "default": 1.0
+              },
+              "ladder": {
+                "type": "boolean",
+                "default": false
+              },
+              "plinth": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_house",
+                "type": "house",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "ladder",
+            "description": "A ladder leaning on the face along its cell's local north edge.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "ladder"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 1.0,
+                "default": 1.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 1.0,
+                "maximum": 1.0,
+                "default": 1.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "z0": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 20.0,
+                "default": 0.0
+              },
+              "rise": {
+                "type": "number",
+                "minimum": 0.5,
+                "maximum": 12.0,
+                "default": 2.4
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_ladder",
+                "type": "ladder",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "outhouse",
+            "description": "A plank outhouse with a narrow door.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "outhouse"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 3.0,
+                "default": 2.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 3.0,
+                "default": 2.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_outhouse",
+                "type": "outhouse",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "pole_barn",
+            "description": "A tin roof on posts, open on three sides, bales inside.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "pole_barn"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 6.0,
+                "maximum": 14.0,
+                "default": 8.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 6.0,
+                "maximum": 20.0,
+                "default": 10.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "pitch": {
+                "type": "number",
+                "minimum": 0.2,
+                "maximum": 0.6,
+                "default": 0.35
+              },
+              "back_wall": {
+                "type": "boolean",
+                "default": true
+              },
+              "bales": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 12.0,
+                "default": 4.0
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_pole_barn",
+                "type": "pole_barn",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "porch",
+            "description": "A deck with posts, rails and a shed roof; put its north side against a wall.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "porch"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 3.0,
+                "maximum": 14.0,
+                "default": 6.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 4.0,
+                "default": 2.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 5.0,
+                "default": 2.4
+              },
+              "rails": {
+                "type": "boolean",
+                "default": true
+              },
+              "roof": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_porch",
+                "type": "porch",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "roof",
+            "description": "A roof alone over the footprint: gable, hip, shed, gambrel, quonset, cone, flat.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "roof"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 32.0,
+                "default": 6.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 32.0,
+                "default": 6.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "gable",
+                  "hip",
+                  "shed",
+                  "gambrel",
+                  "quonset",
+                  "cone",
+                  "flat"
+                ],
+                "default": "gable"
+              },
+              "eave": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 20.0,
+                "default": 2.4
+              },
+              "pitch": {
+                "type": "number",
+                "minimum": 0.1,
+                "maximum": 1.0,
+                "default": 0.6
+              },
+              "ends": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_roof",
+                "type": "roof",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "shack",
+            "description": "One room of planks under a lean-to roof, a door front and back.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "shack"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 3.0,
+                "maximum": 8.0,
+                "default": 5.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 3.0,
+                "maximum": 6.0,
+                "default": 4.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "pitch": {
+                "type": "number",
+                "minimum": 0.15,
+                "maximum": 0.6,
+                "default": 0.3
+              },
+              "back_door": {
+                "type": "boolean",
+                "default": true
+              },
+              "stovepipe": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_shack",
+                "type": "shack",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "silo",
+            "description": "A round stave silo, a cone roof, a cage ladder up to a railed platform.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "silo"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 5.0,
+                "maximum": 9.0,
+                "default": 6.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 3.0,
+                "maximum": 7.0,
+                "default": 4.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 6.0,
+                "maximum": 14.0,
+                "default": 10.0
+              },
+              "pitch": {
+                "type": "number",
+                "minimum": 0.6,
+                "maximum": 2.0,
+                "default": 1.2
+              },
+              "platform": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_silo",
+                "type": "silo",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "store",
+            "description": "A general store: boardwalk, awning, false front, counter and shelves, roof ladder.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "store"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 6.0,
+                "maximum": 12.0,
+                "default": 8.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 8.0,
+                "maximum": 16.0,
+                "default": 10.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "hung": {
+                "type": "boolean",
+                "default": true
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "false_front": {
+                "type": "boolean",
+                "default": true
+              },
+              "awning": {
+                "type": "boolean",
+                "default": true
+              },
+              "counter": {
+                "type": "boolean",
+                "default": true
+              },
+              "shelves": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 4.0,
+                "default": 2.0
+              },
+              "ladder": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_store",
+                "type": "store",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "tower",
+            "description": "A hunting stand: four legs, a deck behind knee walls, a tin roof.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "tower"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 5.0,
+                "default": 3.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 2.0,
+                "maximum": 5.0,
+                "default": 3.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 2.4,
+                "maximum": 9.6,
+                "default": 4.8
+              },
+              "roof": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_tower",
+                "type": "tower",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "trailer",
+            "description": "A single-wide trailer on cinder blocks, steps up to its doors, an awning.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "trailer"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 7.0,
+                "maximum": 12.0,
+                "default": 9.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 4.0,
+                "maximum": 5.0,
+                "default": 5.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "glass": {
+                "type": "boolean",
+                "default": true
+              },
+              "back_door": {
+                "type": "boolean",
+                "default": true
+              },
+              "awning": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_trailer",
+                "type": "trailer",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
+          },
+          {
+            "title": "water_tower",
+            "description": "Four legs, a railed balcony round a tank, a ladder (a set piece: it can fall).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "water_tower"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "the footprint's north-west corner, whole cells"
+              },
+              "w": {
+                "type": "number",
+                "minimum": 5.0,
+                "maximum": 8.0,
+                "default": 6.0
+              },
+              "d": {
+                "type": "number",
+                "minimum": 5.0,
+                "maximum": 8.0,
+                "default": 6.0
+              },
+              "face": {
+                "enum": [
+                  "s",
+                  "w",
+                  "n",
+                  "e"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "mirror": {
+                "type": "boolean"
+              },
+              "style": {
+                "enum": [
+                  "",
+                  "barn_red",
+                  "brick",
+                  "cinder",
+                  "grey",
+                  "plank",
+                  "staves",
+                  "tin",
+                  "trailer",
+                  "whitewash"
+                ],
+                "default": ""
+              },
+              "variant": {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "district": {
+                "type": "string"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 4.0,
+                "maximum": 9.0,
+                "default": 6.0
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "id": "example_water_tower",
+                "type": "water_tower",
+                "at": [
+                  10,
+                  8
+                ]
+              }
+            ]
           }
         ]
       }

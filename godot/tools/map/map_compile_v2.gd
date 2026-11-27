@@ -22,7 +22,9 @@ const DITCH := .35
 const TEAM_GAP := 1.4
 
 
-static func _issue(severity: String, code: String, object_id: String, message: String, hint := "") -> Dictionary:
+static func _issue(
+	severity: String, code: String, object_id: String, message: String, hint := ""
+) -> Dictionary:
 	var d := {"severity": severity, "code": code, "object": object_id, "message": message}
 	if hint != "":
 		d["hint"] = hint
@@ -167,9 +169,10 @@ static func _kit_hint(line: String, piece: String) -> String:
 	var keys := PackedStringArray(V2.KIT_COMMON)
 	for key: String in entry.get("options", {}):
 		keys.append(key)
-	return "%s takes: %s (sizes: w %s, d %s)" % [
-		piece, ", ".join(keys), str(entry.get("w", [])), str(entry.get("d", []))
-	]
+	return (
+		"%s takes: %s (sizes: w %s, d %s)"
+		% [piece, ", ".join(keys), str(entry.get("w", [])), str(entry.get("d", []))]
+	)
 
 
 # ----------------------------------------------------------------- terrain
@@ -209,7 +212,16 @@ static func brush(
 			for y in range(y0 + 1, y1):
 				for x in range(x0 + 1, x1):
 					var i := y * stride + x
-					field[i] = (copy[i] * 4.0 + copy[i - 1] + copy[i + 1] + copy[i - stride] + copy[i + stride]) / 8.0
+					field[i] = (
+						(
+							copy[i] * 4.0
+							+ copy[i - 1]
+							+ copy[i + 1]
+							+ copy[i - stride]
+							+ copy[i + stride]
+						)
+						/ 8.0
+					)
 		return
 	var heights: Array = v.get("heights", [])
 	var seed := int(v.get("seed", 1))
@@ -327,7 +339,12 @@ static func _road(b, v: Dictionary, ctx: Dictionary) -> void:
 				b.area[c] = area
 	if ditch and x_hi > x_lo:
 		ctx["patches"].append(
-			{"id": str(v["id"]) + "_ditch", "rect": [x_lo, y_lo, x_hi, y_hi], "cliff": "", "light": -1.0}
+			{
+				"id": str(v["id"]) + "_ditch",
+				"rect": [x_lo, y_lo, x_hi, y_hi],
+				"cliff": "",
+				"light": -1.0
+			}
 		)
 	if blocked > 0:
 		ctx["issues"].append(
@@ -335,7 +352,10 @@ static func _road(b, v: Dictionary, ctx: Dictionary) -> void:
 				"warning",
 				"road_blocked",
 				str(v["id"]),
-				"road %s runs into %d solid cell(s) (a wall, hedge or building) and stops there" % [v["id"], blocked],
+				(
+					"road %s runs into %d solid cell(s) (a wall, hedge or building) and stops there"
+					% [v["id"], blocked]
+				),
 				"bend the road round it, or put a door or gap where it should pass"
 			)
 		)
@@ -385,7 +405,10 @@ static func finish(b, doc: Dictionary, ctx: Dictionary, spawn: Array) -> void:
 				"error",
 				"cost",
 				"",
-				"too much building for one map: %d pieces from the kit, %d most" % [ctx["cost"], most],
+				(
+					"too much building for one map: %d pieces from the kit, %d most"
+					% [ctx["cost"], most]
+				),
 				"fewer or smaller buildings (each piece's cost is in docs/map_notes/t5.md)"
 			)
 		)
@@ -451,7 +474,10 @@ static func _door_list(b, ctx: Dictionary, o: Dictionary, key: String) -> Array:
 					"error",
 					"logic_target",
 					str(o["id"]),
-					"%s %s names door %s, and there is no door with that id" % [o["type"], o["id"], name],
+					(
+						"%s %s names door %s, and there is no door with that id"
+						% [o["type"], o["id"], name]
+					),
 					"the doors here: %s" % ", ".join(known)
 				)
 			)
@@ -513,16 +539,27 @@ static func _logic(b, ctx: Dictionary) -> void:
 				for need in o.get("requires", []):
 					if not stations.has(str(need)) and not _station_ids(b).has(str(need)):
 						ctx["issues"].append(
-							_issue("error", "logic_target", id, "%s requires %s: no such switch" % [id, need])
+							_issue(
+								"error",
+								"logic_target",
+								id,
+								"%s requires %s: no such switch" % [id, need]
+							)
 						)
 				if _loops(stations, id, id, {}):
-					ctx["issues"].append(
-						_issue(
-							"error",
-							"logic_loop",
-							id,
-							"switch %s needs itself thrown first (requires goes round in a ring)" % id,
-							"break the ring: one of them must need nothing"
+					(
+						ctx["issues"]
+						. append(
+							_issue(
+								"error",
+								"logic_loop",
+								id,
+								(
+									"switch %s needs itself thrown first (requires goes round in a ring)"
+									% id
+								),
+								"break the ring: one of them must need nothing"
+							)
 						)
 					)
 				var at: Array = o["at"]
@@ -556,7 +593,10 @@ static func _logic(b, ctx: Dictionary) -> void:
 							"error",
 							"logic_target",
 							id,
-							"kill gate %s watches %s and no hand stands in it" % [id, str(o["rect"])],
+							(
+								"kill gate %s watches %s and no hand stands in it"
+								% [id, str(o["rect"])]
+							),
 							"put hands (enemy objects) inside its rect, or move the rect onto them"
 						)
 					)
@@ -572,10 +612,18 @@ static func _logic(b, ctx: Dictionary) -> void:
 				var hands := _hands_in(b, o["rect"])
 				if hands.is_empty():
 					ctx["issues"].append(
-						_issue("warning", "logic_target", id, "wake zone %s holds no hands" % id, "put hands inside its rect")
+						_issue(
+							"warning",
+							"logic_target",
+							id,
+							"wake zone %s holds no hands" % id,
+							"put hands inside its rect"
+						)
 					)
 					continue
-				var area: Array = o["trigger"] if not (o["trigger"] as Array).is_empty() else o["rect"]
+				var area: Array = (
+					o["trigger"] if not (o["trigger"] as Array).is_empty() else o["rect"]
+				)
 				var act: Array = [{"wake": hands}]
 				if str(o["message"]) != "":
 					act.append({"message": str(o["message"]), "for": 3.0})
@@ -593,13 +641,20 @@ static func _logic(b, ctx: Dictionary) -> void:
 				var act: Array = []
 				var doors := _doors(b)
 				for a in o["do"]:
-					var step: Dictionary = (a as Dictionary).duplicate(true) if a is Dictionary else {}
+					var step: Dictionary = (
+						(a as Dictionary).duplicate(true) if a is Dictionary else {}
+					)
 					for verb: String in ["open", "close", "lock"]:
 						if step.get(verb) is String:
 							var named := str(step[verb])
 							if not doors.has(named):
 								ctx["issues"].append(
-									_issue("error", "logic_target", id, "%s: no door %s to %s" % [id, named, verb])
+									_issue(
+										"error",
+										"logic_target",
+										id,
+										"%s: no door %s to %s" % [id, named, verb]
+									)
 								)
 					act.append(step)
 				b.triggers.append({"id": id, "when": o["when"], "once": bool(o["once"]), "do": act})
@@ -693,17 +748,24 @@ static func _versus(b, doc: Dictionary, ctx: Dictionary) -> void:
 		tac["sites"] = sites
 		tac["hostages"] = hostages
 		if not tac.has("rescue"):
-			tac["rescue"] = [int(attack.x) - 3, int(attack.y) - 3, int(attack.x) + 3, int(attack.y) + 3]
+			tac["rescue"] = [
+				int(attack.x) - 3, int(attack.y) - 3, int(attack.x) + 3, int(attack.y) + 3
+			]
 		for site: String in sites:
 			var box: Array = sites[site]
-			var centre := Vector2((float(box[0]) + float(box[2]) + 1.0) * .5, (float(box[1]) + float(box[3]) + 1.0) * .5)
+			var centre := Vector2(
+				(float(box[0]) + float(box[2]) + 1.0) * .5,
+				(float(box[1]) + float(box[3]) + 1.0) * .5
+			)
 			if not routes.has(site):
 				routes[site] = [[[centre.x, centre.y]]]
 			if not holds.has(site):
 				holds[site] = [[centre.x, centre.y, snappedf((attack - centre).angle(), .0001)]]
 		if not holds.has("mid"):
 			var m := (attack + defend) * .5
-			holds["mid"] = [[snappedf(m.x, .01), snappedf(m.y, .01), snappedf((attack - defend).angle(), .0001)]]
+			holds["mid"] = [
+				[snappedf(m.x, .01), snappedf(m.y, .01), snappedf((attack - defend).angle(), .0001)]
+			]
 		tac["routes"] = routes
 		tac["holds"] = holds
 	elif not hostages.is_empty():
@@ -770,4 +832,6 @@ static func looks(level: Dictionary, doc: Dictionary, ctx: Dictionary) -> void:
 	for p: Array in report.get("problems", []):
 		var line := str(p[1])
 		var oid := line.get_slice(":", 0) if line.contains(":") else ""
-		ctx["issues"].append(_issue("warning", str(p[0]), oid if not oid.contains(" ") else "", line))
+		ctx["issues"].append(
+			_issue("warning", str(p[0]), oid if not oid.contains(" ") else "", line)
+		)

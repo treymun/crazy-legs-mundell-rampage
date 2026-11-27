@@ -121,8 +121,7 @@ const TYPES := {
 	{
 		"grid": true,
 		"req": ["points"],
-		"opt":
-		{"width": 3, "surface": "blacktop", "shoulder": -1, "ditch": false, "district": ""},
+		"opt": {"width": 3, "surface": "blacktop", "shoulder": -1, "ditch": false, "district": ""},
 		"doc":
 		(
 			"A road along points, `width` cells wide: surface blacktop, gravel, dirt, concrete or"
@@ -166,7 +165,8 @@ const TYPES := {
 		"grid": false,
 		"req": ["at"],
 		"opt": {"along": "x", "length": 2.0},
-		"doc": "A stock trough with water in it: furniture .45 high, `length` .8 to 4 along x or y.",
+		"doc":
+		"A stock trough with water in it: furniture .45 high, `length` .8 to 4 along x or y.",
 		"ex": {"at": [20.5, 12.5], "along": "x", "length": 2.0},
 	},
 	"foliage":
@@ -503,7 +503,10 @@ static func _expand_one(o: Variant, doc: Dictionary, into: Array, out: Array, ch
 				"error",
 				"prefab_loop",
 				oid,
-				"prefab %s places itself (%s)" % [name, " > ".join(PackedStringArray(chain + [name]))],
+				(
+					"prefab %s places itself (%s)"
+					% [name, " > ".join(PackedStringArray(chain + [name]))]
+				),
 				"a prefab may place other prefabs, never itself"
 			)
 		)
@@ -633,7 +636,9 @@ static func put(p: Vector2, place: Dictionary) -> Vector2:
 			q = Vector2(w - q.x, d - q.y)
 		3:
 			q = Vector2(q.y, w - q.x)
-	return Vector2(snappedf(q.x + float(place["x"]), .0001), snappedf(q.y + float(place["y"]), .0001))
+	return Vector2(
+		snappedf(q.x + float(place["x"]), .0001), snappedf(q.y + float(place["y"]), .0001)
+	)
 
 
 ## A side (n, e, s, w) turned and mirrored as the prefab is.
@@ -828,7 +833,13 @@ static func check_object(
 		"terrain":
 			var brush := str(o.get("brush", "hill"))
 			if not (brush in BRUSHES):
-				_bad(out, "terrain_brush", where, "brush %s is not %s" % [brush, _one_of(BRUSHES)], "")
+				_bad(
+					out,
+					"terrain_brush",
+					where,
+					"no brush named %s" % brush,
+					"brush is " + _one_of(BRUSHES)
+				)
 			if brush == "heights" and o.get("rect") is Array and _rect_ok(o["rect"]):
 				var r: Array = o["rect"]
 				var want := (int(r[2]) - int(r[0]) + 1) * (int(r[3]) - int(r[1]) + 1)
@@ -883,7 +894,9 @@ static func check_object(
 		"vignette":
 			var known: Dictionary = dressing.get("vignettes", {})
 			if not known.has(str(o.get("name", ""))):
-				_bad(out, "vignette", where, "no vignette %s" % o.get("name"), _one_of(known.keys()))
+				_bad(
+					out, "vignette", where, "no vignette %s" % o.get("name"), _one_of(known.keys())
+				)
 			if not (str(o.get("wall", "")) in ["n", "e", "s", "w"]):
 				_bad(out, "vignette", where, "wall is n, e, s or w", "")
 		"set_piece":
@@ -894,7 +907,11 @@ static func check_object(
 				_bad(out, "key", where, "color is brass or steel", "")
 			if not (o.get("doors") is Array) or (o["doors"] as Array).is_empty():
 				_bad(
-					out, "logic_target", where, "a key opens nothing: doors is empty", "name its doors"
+					out,
+					"logic_target",
+					where,
+					"a key opens nothing: doors is empty",
+					"name its doors"
 				)
 		"kill_gate":
 			var opens: Variant = o.get("opens", [])

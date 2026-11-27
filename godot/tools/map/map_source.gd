@@ -1,5 +1,6 @@
 ## A map's authoritative source: godot/maps/<id>.map.json ("clmr-map" version
-## 1 or 2; version 2, pass 16, adds the high-level types of map_source_v2.gd). Either a whole map (size, districts, objects) or objects laid over a
+## 1 or 2; version 2, pass 16, adds the high-level types of map_source_v2.gd).
+## Either a whole map (size, districts, objects) or objects laid over a
 ## level's plan (base: {"plan": "<id>"}: tools/levels/<id>_plan.gd runs first,
 ## then these). Every object has a stable id and a type from TYPES; the
 ## compiler (map_compile.gd) turns them into builder and geometry calls.
@@ -753,6 +754,8 @@ static func _check_values(
 			)
 	var tiles: Dictionary = names.get("tiles", {})
 	for key: String in TILE_KEYS:
+		if type == "vignette" and key == "wall":
+			continue  # (a vignette's wall is the side it backs onto)
 		if (
 			o.has(key)
 			and String(o[key]) != ""

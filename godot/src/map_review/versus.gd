@@ -177,7 +177,9 @@ static func _balance(
 		var y0: float = box[1]
 		var x1: float = box[2]
 		var y1: float = box[3]
-		var centre := _near_open(r, Vector2((x0 + x1 + 1.0) * .5, (y0 + y1 + 1.0) * .5), Vector2(x0 + .5, y0 + .5))
+		var centre := _near_open(
+			r, Vector2((x0 + x1 + 1.0) * .5, (y0 + y1 + 1.0) * .5), Vector2(x0 + .5, y0 + .5)
+		)
 		var sa := _steps(r, fa, centre)
 		var sd := _steps(r, fd, centre)
 		var site := str(name)
