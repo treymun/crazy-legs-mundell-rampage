@@ -214,7 +214,18 @@ func _planted() -> void:
 		check(got.has(code), "the %s map is flagged %s (got %s)" % [code, code, got.keys()])
 		if got.has(code):
 			var f: Dictionary = got[code]
-			print("  %s %s: %s" % [f["level"], code, f["what"]])
+			print(
+				(
+					"  %s %s at %s%s: %s"
+					% [
+						f["level"],
+						f["check"],
+						L.place(f["at"]),
+						"" if f["object"] == "" else " [%s]" % f["object"],
+						f["what"]
+					]
+				)
+			)
 			check((f["at"] as Array).size() >= 2, "%s says where" % code)
 	var lever := codes(review_of(faults["unreached"][0], {}))
 	if lever.has("unreached"):

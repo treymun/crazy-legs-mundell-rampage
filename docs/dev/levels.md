@@ -593,3 +593,42 @@ deathmatch, CAMPAIGN CO-OP on the map (a retry, no party save, the win back
 to the lobby with nothing opened), MODE stepping past what a map can't
 host, the always-open servers refusing player maps, the map changed in the
 lobby, and hostile MAP packets refused. `menu_touch_check` taps through CUSTOM MAPS and the shed.
+
+## Map check (pass 16)
+
+`map.gd -- check <id>` is the one command an author (a person or an AI)
+runs to see what a map is like (T2 REVIEW). One headless process does
+validate, the build in memory, the design review, the routes (the
+playtest), a bot run and the plans from above; then one window process
+(`tools/map/map_pictures.gd`, given the level as a file and played through
+`LevelData.preview`, the scratch APPDATA passed down) takes the 3D view of an
+auto tour, and `compare_sheet.gd contact()` puts every plan and picture on
+one sheet. Everything lands in `godot/maps/.check/<id>/` (not committed):
+`report.md` (plain words), `report.json`, the plans, the pictures and
+`sheet.png`. The verdict: FAIL (a MUST FIX: exit 1), WORK (SHOULD items) or
+PASS. `quick` skips the bot run and the pictures (about 8 s, 6 of them
+Godot starting); the whole check of the demo map is about 17 s. An id with no
+source but a built level (`hickston`) is checked as built.
+
+- **The review** is `src/map_review/` (typed, so the MAP SHED's CHECK can
+  call it): `review.gd` (`MapReview.review(lv, opts)`: reach in the order the
+  map opens it, the way through as `route_map.gd` orders it, sightlines,
+  dead ends via `pockets.gd`, secrets, pacing as `pacing_check` counts it,
+  height, looks, cost), `fights.gd` (hands bunched into fights along the
+  way: rounds carried in against their health, cover on the walk in),
+  `tour.gd` (the auto tour), `report.gd` (report.md) and `review_lines.gd`
+  (the numbers and every line, from `data/tuning/map_review.json`). A
+  finding is `{level, check, code, at, object, what, fix, say}`.
+- **The bot run** (`tools/map/map_bot.gd`, `map flow` alone) is the balance
+  bot at NORMAL from the start kit (`map_review.json` "kit", a source's
+  `meta.kit` over it), recorded by `flow_probe.gd`. Its pilot gives up on a
+  hand it has not hurt in 5 s of shooting (the campaign bot emptied every
+  gun into the demo map's loft from below) and walks on; the campaign runs
+  are untouched.
+- **`map.gd`** is a command table (`COMMANDS`: a method, or a handler script
+  with `static func run(cli, command)`); check, flow, pictures and shot are
+  `tools/map/map_check_cli.gd`. `map shot` takes the 3D view (it drew the
+  removed software view: black) and reads every path from the repo root.
+  Outside a scratch profile those four start themselves again with one
+  under TEMP (`clmr-map-tools`), so the player's profile is never touched.
+- `tools/map_review_check.gd` holds it (planted faults, chapters quiet).

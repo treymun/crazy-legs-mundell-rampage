@@ -63,7 +63,8 @@ const Import := preload("res://tools/map/map_import.gd")
 
 ## The commands: name -> the method here that runs it (it takes the command's
 ## name), or a handler script (res://...) with `static func run(cli, command)
-## -> int` that may await. A new command is a row here and its handler.
+## -> int` that may await and calls cli.load_assets() before it needs the
+## art. A new command is a row here and its handler.
 const COMMANDS := {
 	"new": "_new",
 	"inspect": "_inspect",
@@ -131,7 +132,6 @@ func _main() -> void:
 	if not COMMANDS.has(command):
 		result["error"] = "unknown command %s (map.gd -- help)" % command
 	else:
-		assets = Assets.new()
 		var handler := String(COMMANDS[command])
 		if handler.begins_with("res://"):
 			var script: Script = load(handler)
@@ -140,10 +140,19 @@ func _main() -> void:
 			else:
 				code = await script.run(self, command)
 		else:
+			load_assets()
 			code = await call(handler, command)
-	result["ok"] = code == 0
-	result["exit"] = code
+	if not result.is_empty():  # (empty: a handler ran the command in another process)
+		result["ok"] = code == 0
+		result["exit"] = code
 	await _finish(code)
+
+
+## The art and tile tables (a few seconds): a handler script calls this
+## once it is going to run here.
+func load_assets() -> void:
+	if assets == null:
+		assets = Assets.new()
 
 
 func _finish(code: int) -> void:

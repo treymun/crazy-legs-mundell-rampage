@@ -36,6 +36,7 @@ const PROFILE_VARS := ["APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME", "XDG_CACHE_HO
 static func run(cli, command: String) -> int:
 	if not ScratchProfile.scratch():
 		return _again(cli)
+	cli.load_assets()
 	match command:
 		"check":
 			return await check(cli)

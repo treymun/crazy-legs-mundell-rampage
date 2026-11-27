@@ -24,7 +24,7 @@ static func markdown(res: Dictionary) -> String:
 	t.append("")
 	t.append(
 		(
-			"%d MUST FIX, %d SHOULD, %d NICE. Checked in %s s%s."
+			"%d MUST FIX, %d SHOULD, %d NICE. The check took %s s after Godot started%s."
 			% [
 				counts["MUST FIX"],
 				counts["SHOULD"],

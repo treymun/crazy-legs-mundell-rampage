@@ -63,7 +63,7 @@ static func views(r: MapReview) -> Array[Dictionary]:
 			r,
 			"%s_high_%d" % [id, high],
 			spot,
-			Vector2(lv.width * .5, lv.height * .5),
+			_open_way(r, Vector2(spot.x, spot.y)),
 			"from one of the highest places to stand",
 			-12.0
 		)
