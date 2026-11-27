@@ -75,6 +75,19 @@ decision here comes from measurement and from the code.
 - **Rooms.** `set_room` plays the ambience bed (`amb_<level ambience>`, or
   room / yard / an area's), `set_space` the world bus's reverb (`SPACES`);
   indoors a gun also plays its `room_` tail (`report`, `sound_at`).
+- **Loops and one-shots.** Every effect (`play()`) takes one of
+  `EFFECT_VOICES` (14) free voices; Mundell's lines are effects too. The
+  loops (a room's ambience, the beds, the fuse, the ripsaw's motor, the
+  jukebox) play `Assets.looped(cue)`, a looping copy of the cue, so the
+  stream `Assets.cue` hands the effects never loops. Until 3.13.1 the loops
+  set looping on that shared stream: once the player had lit a fuse, run
+  the ripsaw or passed a burn barrel, every later tosser's fuse, mower engine
+  note, Foreman's saw or fire crackle looped for good on its effect voice,
+  across levels, until none was free (about the third chapter): Mundell went
+  quiet and so did the player's steps, pickups and reloads. `pause_world`
+  (a level's start and end, the menus) also stops any one-shot voice still
+  playing a looping stream. `tools/audio_flow_check.gd` plays four chapters
+  in turn on the real Sound to hold it.
 - **Levels.** Every voice's level goes through `Sound.set_level` (read back
   with `level_of`): it reaches the mixer only when it moves `LEVEL_STEP` or
   to silence, and with no window (the checks, the lobby server) never for a

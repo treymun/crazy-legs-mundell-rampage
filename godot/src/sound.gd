@@ -1019,10 +1019,9 @@ func set_room(room_name: Variant) -> void:
 	var room_cue: String = target
 	if not assets.has_cue(room_cue):
 		return
-	var stream := assets.cue(room_cue)
+	var stream := assets.looped(room_cue)
 	if stream == null:
 		return
-	Assets.set_loop(stream, true)
 	var v := _ambience[room_slot]
 	v.cue = target
 	v.player.stream = stream
@@ -1055,10 +1054,9 @@ func _process(delta: float) -> void:
 
 func set_radio(playing: bool, volume := 0.0, pan := 0.0) -> void:
 	playing = playing and station.mode != RadioStation.OFF
-	var stream := assets.cue("jukebox")
+	var stream := assets.looped("jukebox")
 	if playing and stream != null:
 		if not _radio.player.playing:
-			Assets.set_loop(stream, true)
 			_radio.cue = "jukebox"
 			_radio.player.stream = stream
 			_radio.player.play()
@@ -1097,10 +1095,9 @@ func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2
 func set_fuse(burning: bool) -> void:
 	if burning:
 		if not _fuse.player.playing:
-			var stream := assets.cue("fuse_hiss")
+			var stream := assets.looped("fuse_hiss")
 			if stream == null:
 				return
-			Assets.set_loop(stream, true)
 			_fuse.cue = "fuse_hiss"
 			_fuse.player.stream = stream
 			_fuse.player.play()
@@ -1120,10 +1117,9 @@ func set_bed(slot: int, cue: String, volume: float, pan := 0.0, cutoff := OPEN_C
 		v.cue = ""
 		return
 	if v.cue != cue or not v.player.playing:
-		var stream := assets.cue(cue)
+		var stream := assets.looped(cue)
 		if stream == null:
 			return
-		Assets.set_loop(stream, true)
 		v.cue = cue
 		v.player.stream = stream
 		v.player.play()
@@ -1138,10 +1134,9 @@ func set_bed(slot: int, cue: String, volume: float, pan := 0.0, cutoff := OPEN_C
 func set_tool(active: bool) -> void:
 	if active:
 		if not _tool.player.playing:
-			var stream := assets.cue("saw_motor")
+			var stream := assets.looped("saw_motor")
 			if stream == null:
 				return
-			Assets.set_loop(stream, true)
 			_tool.cue = "saw_motor"
 			_tool.player.stream = stream
 			_tool.player.play()
@@ -1212,6 +1207,19 @@ func pause_world() -> void:
 			v.player.stop()
 	if _priority.player.playing:
 		_priority.player.stop()
+	# A one-shot voice never loops (Assets.looped keeps the loops apart); one
+	# that does would hold its voice for good, so the next level starts with
+	# every voice there is.
+	for v: Voice in _one_shots():
+		if v.player.playing and Assets.loops(v.player.stream):
+			v.player.stop()
+
+
+## The voices play() and play_voice() start takes on (each plays once).
+func _one_shots() -> Array:
+	var out: Array = _effects.duplicate()
+	out.append_array([_priority, _warning, _warning_alt, _voice])
+	return out
 
 
 func set_score(cue: String) -> void:
