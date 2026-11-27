@@ -103,6 +103,10 @@ static func apply(map_id: String, command: String, rest: Array, opts: Dictionary
 			err = _rename(doc, rest)
 		"top":
 			err = _top(doc, opts)
+		"turn":
+			err = _turn(doc, rest, opts)
+		"mirror":
+			err = _mirror(doc, rest)
 	if err != "":
 		return {"exit": 2, "error": err}
 	var changes := diff(before, doc)
@@ -192,6 +196,36 @@ static func _move(doc: Dictionary, rest: Array, opts: Dictionary) -> String:
 	return ""
 
 
+## A kit piece, prefab or set piece turned by=quarter turns clockwise (1):
+## its "turn" changes (a "face" it had becomes a turn), its corner stays.
+static func _turn(doc: Dictionary, rest: Array, opts: Dictionary) -> String:
+	var o := _object(doc, rest)
+	if o.is_empty():
+		return "no object %s" % (rest[0] if not rest.is_empty() else "named")
+	var opt: Dictionary = Source.TYPES[String(o["type"])]["opt"]
+	if not opt.has("turn"):
+		return "%s is a %s: only kit pieces, prefabs and set pieces turn" % [o["id"], o["type"]]
+	var by := int(opts.get("by", 1))
+	var now := int(o.get("turn", 0))
+	if o.has("face") and not o.has("turn"):
+		now = int({"s": 0, "w": 1, "n": 2, "e": 3}.get(String(o["face"]), 0))
+	o.erase("face")
+	o["turn"] = posmod(now + by, 4)
+	return ""
+
+
+## A kit piece or prefab flipped left to right ("mirror" toggled).
+static func _mirror(doc: Dictionary, rest: Array) -> String:
+	var o := _object(doc, rest)
+	if o.is_empty():
+		return "no object %s" % (rest[0] if not rest.is_empty() else "named")
+	var opt: Dictionary = Source.TYPES[String(o["type"])]["opt"]
+	if not opt.has("mirror"):
+		return "%s is a %s: only kit pieces and prefabs mirror" % [o["id"], o["type"]]
+	o["mirror"] = not bool(o.get("mirror", false))
+	return ""
+
+
 static func _anchor(o: Dictionary) -> Vector2:
 	if o.has("rect"):
 		return Vector2(float(o["rect"][0]), float(o["rect"][1]))
@@ -213,11 +247,17 @@ static func _shift(o: Dictionary, by: Vector3) -> void:
 			p[0] = float(p[0]) + by.x
 			p[1] = float(p[1]) + by.y
 			o[key] = p
-	if o.has("points"):
-		var pts: Array = []
-		for p in o["points"]:
-			pts.append([float(p[0]) + by.x, float(p[1]) + by.y])
-		o["points"] = pts
+	for key: String in ["points", "polygon"]:
+		if o.get(key) is Array:
+			var pts: Array = []
+			for p in o[key]:
+				pts.append([float(p[0]) + by.x, float(p[1]) + by.y])
+			o[key] = pts
+	if o.get("trigger") is Array and (o["trigger"] as Array).size() == 4:
+		var t: Array = o["trigger"]
+		o["trigger"] = [
+			float(t[0]) + by.x, float(t[1]) + by.y, float(t[2]) + by.x, float(t[3]) + by.y
+		]
 	if o.has("cuts"):
 		# Each line moves with it: c grows by n . (dx, dy).
 		var cuts: Array = []
@@ -279,8 +319,10 @@ static func _top(doc: Dictionary, opts: Dictionary) -> String:
 	for key in opts:
 		if key in ["dry", "json", "quiet", "force"]:
 			continue
-		if not (key in ["spawn", "districts", "meta", "border", "size", "playtest", "base"]):
-			return "top sets spawn, districts, meta, border, size, playtest or base (not %s)" % key
+		var keys := ["spawn", "districts", "meta", "border", "size", "playtest", "base"]
+		keys.append_array(["mood", "modes", "prefabs", "seed"])  # (version 2)
+		if not (key in keys):
+			return "top sets %s (not %s)" % [", ".join(PackedStringArray(keys)), key]
 		var value = _value(String(opts[key]))
 		if key == "meta" and value is Dictionary and doc.get("meta") is Dictionary:
 			# Merged: one key of meta changes, the rest stay.

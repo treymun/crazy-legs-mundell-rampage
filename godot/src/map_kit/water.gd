@@ -153,7 +153,9 @@ static func _carve(
 		return {"cells": 0, "problems": problems}
 	var w := grid.w
 	var h := grid.h
-	# The deep: a pond's cells deep_from or more from any dry cell.
+	# The deep: a pond's cells with no dry cell within deep_from, by the
+	# straight distance between cell middles (pass 16, T7: a round pond gets a
+	# round deep, not the cross a square neighbourhood left).
 	var deep := {}
 	var deep_from := int(MapLooksGrid.f(info.get("deep_from", 2)))
 	var wants_deep: bool = spec.get("deep", true)
@@ -165,6 +167,8 @@ static func _carve(
 			var all_wet := true
 			for dy in range(-deep_from, deep_from + 1):
 				for dx in range(-deep_from, deep_from + 1):
+					if dx * dx + dy * dy > deep_from * deep_from:
+						continue
 					var n := (y + dy) * w + x + dx
 					if not grid.inside(x + dx, y + dy) or not wet.has(n):
 						all_wet = false

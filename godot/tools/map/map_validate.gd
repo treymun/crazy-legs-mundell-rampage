@@ -32,6 +32,8 @@ static func issue(
 ## Every problem with a compiled map (map_compile.compile()'s result).
 static func check(doc: Dictionary, built: Dictionary, assets: Assets) -> Array:
 	var out: Array = []
+	if built.get("doc") is Dictionary:
+		doc = built["doc"]  # (its prefabs placed)
 	var level: Dictionary = built["level"]
 	if level.is_empty():
 		return out
@@ -67,6 +69,8 @@ static func check(doc: Dictionary, built: Dictionary, assets: Assets) -> Array:
 	if lv.geo != null:
 		_doorways(out, doc, lv)
 		_reach(out, doc, built, lv, owner)
+	if built.has("kit_pieces"):
+		preload("res://tools/map/map_validate_v2.gd").check(out, doc, built, lv)
 	return out
 
 
@@ -422,7 +426,12 @@ static func _reach(
 				if not deck_nodes.has(oid):
 					deck_nodes[oid] = []
 				deck_nodes[oid].append(n)
+	# A kit piece says itself which of its floors are reached (tools/kit_check.gd
+	# walks them); its roofs and ledges nobody climbs are not called out here.
+	var kit_pieces: Dictionary = built.get("kit_pieces", {})
 	for oid in deck_nodes:
+		if kit_pieces.has(oid):
+			continue
 		var reached := false
 		var standing := false
 		for n: int in deck_nodes[oid]:

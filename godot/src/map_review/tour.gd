@@ -68,9 +68,22 @@ static func views(r: MapReview) -> Array[Dictionary]:
 			-12.0
 		)
 	if lv.geo != null:
+		# The biggest decks first, at most tour_decks of them, none narrower than a
+		# cell (a kit house's sills and ledges are slabs too, pass 16).
+		var decks: Array[LevelGeometry.Slab] = []
 		for s: LevelGeometry.Slab in lv.geo.slabs:
 			if s.thick < 0.0 or not s.walk or s.top < 1.0:
 				continue
+			if minf(s.x1 - s.x0, s.y1 - s.y0) < 1.0:
+				continue
+			decks.append(s)
+		decks.sort_custom(
+			func(a: LevelGeometry.Slab, b: LevelGeometry.Slab) -> bool:
+				var aa := (a.x1 - a.x0) * (a.y1 - a.y0)
+				var ab := (b.x1 - b.x0) * (b.y1 - b.y0)
+				return aa > ab or (aa == ab and a.id < b.id)
+		)
+		for s: LevelGeometry.Slab in decks.slice(0, L.whole("tour_decks")):
 			var mid := Vector3((s.x0 + s.x1) * .5, (s.y0 + s.y1) * .5, s.top)
 			var long := Vector2(1, 0) if s.x1 - s.x0 >= s.y1 - s.y0 else Vector2(0, 1)
 			var from := Vector3(mid.x - long.x, mid.y - long.y, s.top)
@@ -235,6 +248,8 @@ static func _district_middle(lv: LevelData, a: int) -> Vector2:
 		if lv.area[c] != a or lv.solid[c] >= 0:
 			continue
 		var p := Vector2(c % lv.width + .5, c / lv.width + .5)
+		if lv.blocked(p.x, p.y, .3, lv.floor_under(p.x, p.y, .05)):
+			continue  # (a kit building's walls stand in open cells)
 		var d := p.distance_to(mid)
 		if d < best_d:
 			best_d = d

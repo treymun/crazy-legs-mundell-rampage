@@ -57,14 +57,49 @@ static func render(
 
 
 ## The heights people stand at: the ground (0 or the lowest), then each deck.
+## A map of many heights (over MANY_FLOORS: kit buildings' storeys, lofts and
+## roofs) gets one picture a storey instead (pass 16): heights within
+## STOREY_GAP of the next are one storey, named by its most-walked height,
+## and a storey of fewer than STOREY_LEAST places is left out.
+const MANY_FLOORS := 6
+const STOREY_GAP := .6
+const STOREY_LEAST := 4
+
+
 static func floors_of(_lv: LevelData, field: FlowField) -> Array:
 	var heights := {0.0: true}
+	var counts := {}
 	if field != null and field.graph != null:
 		for n in range(field.graph.cells, field.graph.count):
-			heights[snappedf(field.graph.z[n], .05)] = true
+			var z := snappedf(field.graph.z[n], .05)
+			heights[z] = true
+			counts[z] = int(counts.get(z, 0)) + 1
 	var list := heights.keys()
 	list.sort()
-	return list
+	if list.size() <= MANY_FLOORS:
+		return list
+	var out: Array = [0.0]
+	var group: Array = []
+	for z: float in list.slice(1):
+		if not group.is_empty() and z - float(group[group.size() - 1]) > STOREY_GAP:
+			_storey(out, group, counts)
+			group = []
+		group.append(z)
+	_storey(out, group, counts)
+	return out
+
+
+static func _storey(out: Array, group: Array, counts: Dictionary) -> void:
+	var best := NAN
+	var most := 0
+	var total := 0
+	for z: float in group:
+		total += int(counts.get(z, 0))
+		if int(counts.get(z, 0)) > most:
+			most = int(counts[z])
+			best = z
+	if total >= STOREY_LEAST and not is_nan(best) and best > .3:
+		out.append(best)
 
 
 static func _picture(
@@ -109,6 +144,8 @@ static func _picture(
 		_text(img, str(x), x * s + 2, 2, Color(1, 1, 1, .45))
 	for y in range(8, h, 8):
 		_text(img, str(y), 2, y * s + 2, Color(1, 1, 1, .45))
+	if whole or z < .3:
+		_land(img, lv, s)
 	# Fixtures.
 	for f: PackedFloat32Array in lv.collision_volumes:
 		if not whole and (f[7] > z + 1.2 or f[4] < z):
@@ -147,6 +184,76 @@ static func _picture(
 		Color(.8, .75, .65)
 	)
 	return img
+
+
+## The land (pass 16): terrain shaded by its height with a contour line every
+## CONTOUR (white, every 1.0 brighter), and the plants as dots (trees big,
+## dark green; grass, weeds and corn small). Nothing on a map with neither.
+const CONTOUR := .5
+
+
+static func _land(img: Image, lv: LevelData, s: int) -> void:
+	var w := lv.width
+	var h := lv.height
+	if lv.geo != null and lv.geo.terrain != null:
+		var t := lv.geo.terrain
+		var band := PackedInt32Array()
+		band.resize(w * h)
+		for y in h:
+			for x in w:
+				var z := t.height_at(x + .5, y + .5)
+				band[y * w + x] = -9999 if is_nan(z) else floori(z / CONTOUR)
+				if is_nan(z) or absf(z) < .05:
+					continue
+				var tint := (
+					Color(1, 1, .8, clampf(z * .12, 0, .45))
+					if z > 0.0
+					else Color(0, .1, .3, clampf(-z * .5, 0, .5))
+				)
+				img.blend_rect(_fill(s, tint), Rect2i(0, 0, s, s), Vector2i(x * s, y * s))
+		for y in h:
+			for x in w:
+				var a := band[y * w + x]
+				if a == -9999:
+					continue
+				if x + 1 < w and band[y * w + x + 1] != -9999 and band[y * w + x + 1] != a:
+					var lit := maxi(a, band[y * w + x + 1]) % 2 == 0
+					img.fill_rect(
+						Rect2i((x + 1) * s, y * s, 1, s), Color(1, 1, 1, .8 if lit else .4)
+					)
+				if y + 1 < h and band[(y + 1) * w + x] != -9999 and band[(y + 1) * w + x] != a:
+					var lit := maxi(a, band[(y + 1) * w + x]) % 2 == 0
+					img.fill_rect(
+						Rect2i(x * s, (y + 1) * s, s, 1), Color(1, 1, 1, .8 if lit else .4)
+					)
+	for bd: LevelData.Billboard in lv.billboards:
+		var name := bd.image
+		if not name.begins_with("foliage_"):
+			continue
+		var big := (
+			name.contains("tree")
+			or name.contains("pine")
+			or name.contains("cypress")
+			or name.contains("snag")
+		)
+		var r := maxi(s / 4, 2) if big else 1
+		var col := Color(.05, .22, .06) if big else Color(.35, .55, .2)
+		var px := int(bd.x * s)
+		var py := int(bd.y * s)
+		img.fill_rect(Rect2i(px - r, py - r, r * 2, r * 2), col)
+
+
+static func _fill(s: int, c: Color) -> Image:
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(c)
+	return img
+
+
+static func _in_any(rects: Array, x: float, y: float) -> bool:
+	for r: Array in rects:
+		if x >= float(r[0]) and x <= float(r[2]) and y >= float(r[1]) and y <= float(r[3]):
+			return true
+	return false
 
 
 static func _floor_z(field: FlowField, cell: int) -> float:
@@ -248,6 +355,44 @@ static func _nav(img: Image, lv: LevelData, field: FlowField, z: float, s: int) 
 				_line(img, p, q, Color(.2, .9, 1, .9) if link else Color(.2, 1, .3, .25), 1)
 
 
+## The versus plan (pass 16): bomb sites outlined orange (their letter), the
+## attackers' starts red, the defenders' blue, the hostages white, the
+## deathmatch starts as white rings, each with its facing.
+static func _versus(img: Image, lv: LevelData, s: int) -> void:
+	var tac := lv.tactical
+	var sites: Dictionary = tac.get("sites", {}) if tac.get("sites") is Dictionary else {}
+	for name in sites:
+		var b: Array = sites[name]
+		var r := Rect2i(
+			int(b[0]) * s,
+			int(b[1]) * s,
+			(int(b[2]) - int(b[0]) + 1) * s,
+			(int(b[3]) - int(b[1]) + 1) * s
+		)
+		var col := Color(1, .55, .1)
+		img.fill_rect(Rect2i(r.position.x, r.position.y, r.size.x, 2), col)
+		img.fill_rect(Rect2i(r.position.x, r.end.y - 2, r.size.x, 2), col)
+		img.fill_rect(Rect2i(r.position.x, r.position.y, 2, r.size.y), col)
+		img.fill_rect(Rect2i(r.end.x - 2, r.position.y, 2, r.size.y), col)
+		_text(img, str(name), r.position.x + 4, r.end.y - 12, col)
+	for pair: Array in [
+		["attack_spawns", Color(1, .3, .25)],
+		["defend_spawns", Color(.35, .55, 1)],
+		["deathmatch", Color(1, 1, 1)]
+	]:
+		for row in tac.get(pair[0], []):
+			var p := Vector2(float(row[0]), float(row[1])) * s
+			var a := float(row[2]) if (row as Array).size() > 2 else 0.0
+			if pair[0] == "deathmatch":
+				_disc(img, p, s * .32, Color(1, 1, 1))
+				_disc(img, p, s * .2, Color(.1, .1, .1))
+			else:
+				_disc(img, p, s * .25, pair[1])
+			_line(img, p, p + Vector2(cos(a), sin(a)) * s * .6, pair[1], 2)
+	for h in tac.get("hostages", []):
+		_disc(img, Vector2(float(h[0]), float(h[1])) * s, s * .22, Color(.95, .95, .85))
+
+
 static func _objects(
 	img: Image,
 	doc: Dictionary,
@@ -264,6 +409,8 @@ static func _objects(
 		var p := Vector2(spawn[0], spawn[1]) * s
 		_disc(img, p, s * .35, Color(.2, 1, .3))
 		_line(img, p, p + Vector2(cos(spawn[2]), sin(spawn[2])) * s * .8, Color(.2, 1, .3), 2)
+	if (overlays.has("spawns") or overlays.is_empty()) and (is_nan(z) or z < .3):
+		_versus(img, lv, s)
 	for o in doc.get("objects", []):
 		if not (o is Dictionary) or not o.has("at"):
 			continue
@@ -293,12 +440,17 @@ static func _objects(
 	if overlays.has("unreachable") and field != null:
 		var g := field.graph
 		var count := lv.width * lv.height if g == null else g.count
+		# A kit building's roofs, ledges and the cells under its posts are not
+		# meant to be stood on (the kit check walks its floors): not marked (pass 16).
+		var kit: Array = (built.get("kit_pieces", {}) as Dictionary).values()
 		for n in count:
 			if field.open[n] == 0 or field.steps[n] < FlowField.FAR:
 				continue
 			var c := n if g == null else g.cell[n]
 			var nz := 0.0 if g == null else g.z[n]
 			if not is_nan(z) and absf(nz - z) > .3:
+				continue
+			if _in_any(kit, c % lv.width + .5, c / lv.width + .5):
 				continue
 			img.fill_rect(
 				Rect2i(c % lv.width * s + 1, c / lv.width * s + 1, s - 2, s - 2),

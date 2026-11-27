@@ -99,7 +99,8 @@ func _game(id: String) -> Game:
 	return g
 
 
-## Every level in data/ names no mood, and a chapter's game has its moods idle.
+## Every chapter in data/ names no mood (a map built from a map source may),
+## and a chapter's game has its moods idle.
 func _chapters() -> void:
 	print("\nTHE CHAPTERS")
 	var named := []
@@ -108,6 +109,8 @@ func _chapters() -> void:
 		if not file.ends_with(".json") or file == "index.json":
 			continue
 		var text := FileAccess.get_file_as_string("res://data/" + file)
+		if text.contains('"source":"maps/'):
+			continue  # (a map built from a source may name its moods: pass 16, T7)
 		if text.contains('"area_moods"') or text.contains('"mood"'):
 			named.append(file)
 	check(named.is_empty(), "no level in data/ names a mood %s" % [named])

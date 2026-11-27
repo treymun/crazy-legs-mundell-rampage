@@ -38,7 +38,16 @@
     "bot_seconds": 420.0,
     "bot_tries": 4,
     "tour_most": 14,
-    "tour_back": 4.0
+    "tour_back": 4.0,
+    "tour_decks": 3,
+    "dm_spawns_least": 6,
+    "spawn_open_near": 8,
+    "spawn_watch_near": 24,
+    "teams_apart_least": 30,
+    "team_seen_near": 40,
+    "site_ratio_least": 1.1,
+    "site_ratio_most": 2.6,
+    "sites_uneven_most": 1.8
   },
   "kit": {"revolver": 30, "shotgun": 16, "rinds": 2},
   "lines": {
@@ -203,6 +212,72 @@
       "what": "The 3D pictures were skipped: {why}.",
       "fix": "Run map check on a machine with a display (the plans from above are still in the folder).",
       "say": "THE CAMERA'S IN THE SHOP."
+    },
+    "dm_auto": {
+      "level": "NICE",
+      "what": "The map says it plays deathmatch but gives no deathmatch starts: the game picks them itself from the open ground.",
+      "fix": "Place 6 or more dm_spawn objects, spread out, each out of sight of the others, to choose them yourself.",
+      "say": "FOLKS'LL JUST POP UP WHEREVER. LIKE COUSINS AT A CUT-UP."
+    },
+    "dm_spawns_few": {
+      "level": "SHOULD",
+      "what": "Only {count} deathmatch starts: with a full match two players start on the same spot.",
+      "fix": "Give at least {least} dm_spawn objects, spread round the whole map.",
+      "say": "TOO MANY BOOTS, NOT ENOUGH DOORSTEPS."
+    },
+    "spawn_cut": {
+      "level": "MUST FIX",
+      "what": "{name} at {at} cannot be walked to from the other starts, even with every door open.",
+      "fix": "Join that ground to the rest (a doorway, stairs, a ramp), or move it where the others can walk.",
+      "say": "YOU CAN'T GET THERE FROM HERE, AND THAT'S A FACT."
+    },
+    "spawn_open": {
+      "level": "SHOULD",
+      "what": "Deathmatch starts {a} and {b} are {far} cells apart and in plain sight of each other: whoever comes back there is shot as they stand up.",
+      "fix": "Move one round a corner, behind a building, or farther off.",
+      "say": "BORN AND BURIED IN THE SAME BREATH."
+    },
+    "spawn_watched": {
+      "level": "SHOULD",
+      "what": "Deathmatch start {n} at {at} is seen from {watched} of the other {of} starts: a camper there sees half the map come back to life.",
+      "fix": "Put cover round it (a wall, a truck, a shed) or move it into a corner the others cannot see.",
+      "say": "THAT SPOT'S GOT MORE EYES ON IT THAN THE PREACHER'S DAUGHTER."
+    },
+    "teams_close": {
+      "level": "SHOULD",
+      "what": "The two sides' starts are only {steps} steps apart (at least {least}): the round is a brawl at the door.",
+      "fix": "Move the team_spawn objects to opposite ends of the map.",
+      "say": "Y'ALL ARE CLOSE ENOUGH TO SHARE A FRYING PAN."
+    },
+    "team_spawn_seen": {
+      "level": "MUST FIX",
+      "what": "The defenders' start {d} can be seen from the attackers' start {a}, {far} cells off: the round starts with a shot across the map.",
+      "fix": "Break the look between the two starts with a building, a hedge row or a bend in the road.",
+      "say": "THEY CAN SEE YOUR PORCH LIGHT FROM THEIR PORCH."
+    },
+    "site_rush": {
+      "level": "SHOULD",
+      "what": "The attackers reach site {site} in {attack} steps and the defenders in {defend}: the defenders are not there first (ratio {ratio}).",
+      "fix": "Move site {site} nearer the defenders, or lengthen the attackers' way to it (a fence to go round, a longer lane).",
+      "say": "THE OUTLAWS BEAT THE LAW TO THE BARN. AGAIN."
+    },
+    "site_far": {
+      "level": "SHOULD",
+      "what": "The attackers walk {attack} steps to site {site} and the defenders {defend} (ratio {ratio}): the defenders sit on it long before anyone comes.",
+      "fix": "Bring site {site} toward the middle, or open a shorter way to it for the attackers.",
+      "say": "BY THE TIME THEY GET THERE THE DEPUTIES HAVE GROWED A BEARD."
+    },
+    "sites_uneven": {
+      "level": "SHOULD",
+      "what": "The attackers walk {a} steps to site A and {b} to site B (ratio {ratio}): one site is a gift.",
+      "fix": "Put the two sites about as far from the attackers' start (move the near one back, or the far one in).",
+      "say": "ONE BARN'S NEXT DOOR AND THE OTHER'S IN THE NEXT COUNTY."
+    },
+    "hostage_cut": {
+      "level": "MUST FIX",
+      "what": "Nobody can walk from the attackers' start to {what} at {at}.",
+      "fix": "Join its ground to the rest, or move it.",
+      "say": "CAN'T RESCUE A FELLA YOU CAN'T REACH."
     }
   },
   "verdicts": {

@@ -5,6 +5,8 @@
   {
    "id": "yard",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "rect",
@@ -31,6 +33,8 @@
   {
    "id": "room",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "rect",
@@ -60,6 +64,8 @@
   {
    "id": "building",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "rect"
@@ -89,6 +95,8 @@
   {
    "id": "solid",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "rect",
@@ -114,6 +122,8 @@
   {
    "id": "fence",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "rect"
@@ -137,6 +147,8 @@
   {
    "id": "paint",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "rect",
@@ -159,6 +171,8 @@
   {
    "id": "raise",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "rect",
@@ -181,6 +195,8 @@
   {
    "id": "light",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "at"
@@ -202,6 +218,8 @@
   {
    "id": "door",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "cell"
@@ -213,7 +231,10 @@
     "style": "hinge",
     "secret": false,
     "tile": "door",
-    "opened": false
+    "opened": false,
+    "z": 0.0,
+    "span": 1,
+    "bar": ""
    },
    "doc": "A door in a wall cell (a grid door: 1 cell wide, 1.85 high).",
    "example": {
@@ -228,6 +249,8 @@
   {
    "id": "gap",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "cell",
@@ -248,6 +271,8 @@
   {
    "id": "pane",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "cell"
@@ -266,6 +291,8 @@
   {
    "id": "deck",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -296,6 +323,8 @@
   {
    "id": "block",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -325,6 +354,8 @@
   {
    "id": "ramp",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -338,9 +369,10 @@
     "thick": -1.0,
     "under": "ceiling",
     "light": 0.85,
-    "district": ""
+    "district": "",
+    "walk": true
    },
-   "doc": "A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`).",
+   "doc": "A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`). `walk` false: a face too steep to stand on (up to 4 in 1).",
    "example": {
     "id": "example_ramp",
     "type": "ramp",
@@ -358,6 +390,8 @@
   {
    "id": "stairs",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -391,6 +425,8 @@
   {
    "id": "wall",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "a",
@@ -399,13 +435,15 @@
    "optional": {
     "z0": 0.0,
     "z1": 2.2,
+    "z1b": -1.0,
     "thick": 0.12,
     "tile": "plaster",
     "openings": [],
     "light": 0.85,
-    "district": ""
+    "district": "",
+    "curve": {}
    },
-   "doc": "A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows.",
+   "doc": "A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows. `z1b` (0 or more): its top at b, sloping from `z1` at a (a gable; no openings).",
    "example": {
     "id": "example_wall",
     "type": "wall",
@@ -436,6 +474,8 @@
   {
    "id": "rail",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "a",
@@ -464,6 +504,8 @@
   {
    "id": "cover",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "a",
@@ -493,6 +535,8 @@
   {
    "id": "balcony",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -525,6 +569,8 @@
   {
    "id": "bridge",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -554,6 +600,8 @@
   {
    "id": "ceiling",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -581,6 +629,8 @@
   {
    "id": "room_poly",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "points",
@@ -622,6 +672,8 @@
   {
    "id": "corridor",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": true,
    "required": [
     "points",
@@ -654,6 +706,8 @@
   {
    "id": "fixture",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "rect",
@@ -680,6 +734,8 @@
   {
    "id": "prop",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "name",
@@ -703,6 +759,8 @@
   {
    "id": "sign",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "image",
@@ -728,6 +786,8 @@
   {
    "id": "enemy",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "kind",
@@ -751,6 +811,8 @@
   {
    "id": "pickup",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "name",
@@ -773,6 +835,8 @@
   {
    "id": "station",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "at",
@@ -799,6 +863,8 @@
   {
    "id": "exit",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "at",
@@ -822,6 +888,8 @@
   {
    "id": "spawn_point",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "at"
@@ -844,6 +912,8 @@
   {
    "id": "label",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "text",
@@ -864,6 +934,8 @@
   {
    "id": "allow_overlap",
    "kind": "component",
+   "version": 1,
+   "kit_piece": false,
    "changes_cells": false,
    "required": [
     "objects",
@@ -879,6 +951,1428 @@
      "a_wall"
     ],
     "reason": "the wall stands on the deck's edge on purpose"
+   }
+  },
+  {
+   "id": "kit",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": true,
+   "required": [
+    "piece",
+    "at"
+   ],
+   "optional": {
+    "district": ""
+   },
+   "doc": "Any kit piece by name (piece): needed for stairs, ramp, fence, bridge and wall, whose names are v1 types. Takes the piece's own keys.",
+   "example": {
+    "id": "example_kit",
+    "type": "kit",
+    "piece": "fence",
+    "at": [
+     4,
+     20
+    ],
+    "w": 12,
+    "kind": "picket",
+    "gate": 6
+   }
+  },
+  {
+   "id": "terrain",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": true,
+   "required": [
+    "rect"
+   ],
+   "optional": {
+    "brush": "hill",
+    "height": 2.0,
+    "falloff": 3,
+    "toward": "n",
+    "seed": 1,
+    "scale": 4.0,
+    "passes": 2,
+    "heights": [],
+    "floor": "",
+    "cliff": "",
+    "light": -1.0
+   },
+   "doc": "Ground shaped over rect: brush hill (a round rise `height` high), ditch (a trench along the long side), plateau (flat top, `falloff` cells of slope), ramp (up toward n/e/s/w), flat (set to height), smooth, noise (seeded bumps up to height), heights ((w+1)*(h+1) corner heights). Brushes add up; steeper than 1 in 1 is a cliff.",
+   "example": {
+    "id": "example_terrain",
+    "type": "terrain",
+    "rect": [
+     30,
+     4,
+     42,
+     14
+    ],
+    "brush": "hill",
+    "height": 2.0
+   }
+  },
+  {
+   "id": "road",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": true,
+   "required": [
+    "points"
+   ],
+   "optional": {
+    "width": 3,
+    "surface": "blacktop",
+    "shoulder": -1,
+    "ditch": false,
+    "district": ""
+   },
+   "doc": "A road along points, `width` cells wide: surface blacktop, gravel, dirt, concrete or oil; `shoulder` cells of gravel each side (blacktop 1, others 0); `ditch` a shallow ditch beyond them. Plants keep off it; a creek crossing it gets a bridge.",
+   "example": {
+    "id": "example_road",
+    "type": "road",
+    "points": [
+     [
+      1,
+      24
+     ],
+     [
+      62,
+      24
+     ]
+    ],
+    "surface": "blacktop"
+   }
+  },
+  {
+   "id": "creek",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": true,
+   "required": [
+    "points"
+   ],
+   "optional": {
+    "width": 1.8,
+    "depth": 0.35,
+    "tile": "creek",
+    "shore": "bayou_bank"
+   },
+   "doc": "A creek along points, `width` wide, its bed carved `depth` down, a shore round it.",
+   "example": {
+    "id": "example_creek",
+    "type": "creek",
+    "points": [
+     [
+      1,
+      30
+     ],
+     [
+      20,
+      31
+     ],
+     [
+      62,
+      29
+     ]
+    ],
+    "width": 1.8
+   }
+  },
+  {
+   "id": "pond",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": true,
+   "required": [],
+   "optional": {
+    "at": [],
+    "radius": 3.0,
+    "rect": [],
+    "polygon": [],
+    "depth": 0.35,
+    "deep": true,
+    "tile": "creek",
+    "shore": "bayou_bank"
+   },
+   "doc": "A pond: `at` + `radius`, a `rect` or a `polygon`. Flat water, a shore, deep water (nobody wades it) in its middle unless `deep` is false.",
+   "example": {
+    "id": "example_pond",
+    "type": "pond",
+    "at": [
+     12,
+     36
+    ],
+    "radius": 3.5
+   }
+  },
+  {
+   "id": "trough",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "along": "x",
+    "length": 2.0
+   },
+   "doc": "A stock trough with water in it: furniture .45 high, `length` .8 to 4 along x or y.",
+   "example": {
+    "id": "example_trough",
+    "type": "trough",
+    "at": [
+     20.5,
+     12.5
+    ],
+    "along": "x",
+    "length": 2.0
+   }
+  },
+  {
+   "id": "foliage",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "kind"
+   ],
+   "optional": {
+    "rect": [],
+    "polygon": [],
+    "density": 1.0,
+    "seed": 1,
+    "rows": false
+   },
+   "doc": "Plants scattered on natural ground in rect or polygon (the whole map when neither): grass, weeds, scrub, tree, pine, cypress, snag, corn (rows), reeds (by water). Never on a road, a route, by a door or a spawn.",
+   "example": {
+    "id": "example_foliage",
+    "type": "foliage",
+    "kind": "pine",
+    "rect": [
+     1,
+     30,
+     15,
+     47
+    ],
+    "density": 0.8
+   }
+  },
+  {
+   "id": "dress",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "theme"
+   ],
+   "optional": {
+    "count": 2,
+    "seed": 1
+   },
+   "doc": "`count` hand-made vignettes of a theme set against walls in rect: farm, junk, church, fair, yard_sale, shine, garage, swamp, house, store.",
+   "example": {
+    "id": "example_dress",
+    "type": "dress",
+    "rect": [
+     2,
+     2,
+     22,
+     20
+    ],
+    "theme": "farm",
+    "count": 2
+   }
+  },
+  {
+   "id": "vignette",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "name",
+    "at",
+    "wall"
+   ],
+   "optional": {},
+   "doc": "One vignette by name (dressing.json: porch_sittin, junk_pile, wood_pile...) with its back to the wall on side `wall` (n, e, s, w) of cell `at`.",
+   "example": {
+    "id": "example_vignette",
+    "type": "vignette",
+    "name": "wood_pile",
+    "at": [
+     10,
+     15
+    ],
+    "wall": "n"
+   }
+  },
+  {
+   "id": "set_piece",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "kind",
+    "at"
+   ],
+   "optional": {
+    "turn": 0,
+    "falls": [
+     0,
+     1,
+     2,
+     3
+    ]
+   },
+   "doc": "A chapter-style big break: kind barn (comes down when its posts are shot), tower (falls and floods), fuel (a fuel line that burns). `falls`: ways it may go.",
+   "example": {
+    "id": "example_set_piece",
+    "type": "set_piece",
+    "kind": "tower",
+    "at": [
+     57.5,
+     13.5
+    ],
+    "falls": [
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "id": "switch",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "label": "THROW THE SWITCH",
+    "message": "",
+    "opens": [],
+    "requires": [],
+    "prop": "quest_switch",
+    "z": 0.0
+   },
+   "doc": "A lever (an objective station): used, it opens the doors named in `opens` (door ids, a kit building's doors too: <id>_door_s); those doors have no handle of their own. `requires`: switches to throw first.",
+   "example": {
+    "id": "example_switch",
+    "type": "switch",
+    "at": [
+     33.5,
+     8.5
+    ],
+    "label": "OPEN THE BARN",
+    "opens": [
+     "barn_door"
+    ]
+   }
+  },
+  {
+   "id": "key",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "at",
+    "doors"
+   ],
+   "optional": {
+    "color": "brass",
+    "z": 0.0
+   },
+   "doc": "A key (brass or steel) lying at `at`; the doors named in `doors` need it.",
+   "example": {
+    "id": "example_key",
+    "type": "key",
+    "at": [
+     8.5,
+     30.5
+    ],
+    "color": "brass",
+    "doors": [
+     "shed_door"
+    ]
+   }
+  },
+  {
+   "id": "kill_gate",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "opens"
+   ],
+   "optional": {
+    "message": ""
+   },
+   "doc": "When every hand standing in rect is down, the doors in `opens` open (they have no handle till then).",
+   "example": {
+    "id": "example_kill_gate",
+    "type": "kill_gate",
+    "rect": [
+     40,
+     4,
+     52,
+     16
+    ],
+    "opens": [
+     "back_gate"
+    ],
+    "message": "THE BACK GATE'S OPEN."
+   }
+  },
+  {
+   "id": "wake_zone",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "rect"
+   ],
+   "optional": {
+    "trigger": [],
+    "message": ""
+   },
+   "doc": "The hands in rect sleep until a player walks into `trigger` (a rect; rect itself when left out), then they all come at once.",
+   "example": {
+    "id": "example_wake_zone",
+    "type": "wake_zone",
+    "rect": [
+     40,
+     4,
+     52,
+     16
+    ],
+    "trigger": [
+     36,
+     4,
+     40,
+     16
+    ]
+   }
+  },
+  {
+   "id": "message",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "text"
+   ],
+   "optional": {
+    "seconds": 3.0,
+    "once": true
+   },
+   "doc": "Words on the screen when a player walks into rect.",
+   "example": {
+    "id": "example_message",
+    "type": "message",
+    "rect": [
+     20,
+     20,
+     24,
+     24
+    ],
+    "text": "SMELLS LIKE HOGS."
+   }
+  },
+  {
+   "id": "trigger",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "when",
+    "do"
+   ],
+   "optional": {
+    "once": true
+   },
+   "doc": "A level trigger as src/triggers.gd has it (when: area, key, station, kills, after, down; do: message, sound, open, close, lock, wake, alert, light, shake, pickup). open, close and lock may name a door id; area is a rect.",
+   "example": {
+    "id": "example_trigger",
+    "type": "trigger",
+    "when": {
+     "station": "pump"
+    },
+    "do": [
+     {
+      "light": {
+       "at": [
+        30,
+        10
+       ],
+       "radius": 6
+      }
+     },
+     {
+      "sound": "lever_clunk"
+     }
+    ]
+   }
+  },
+  {
+   "id": "prefab",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": true,
+   "required": [
+    "name",
+    "at"
+   ],
+   "optional": {
+    "turn": 0,
+    "mirror": false
+   },
+   "doc": "A group of objects defined once (the source's prefabs, or maps/prefabs/<name>.json) placed with its north-west corner at `at`, turned quarter turns clockwise and mirrored. Its objects' ids become <id>_<their id>.",
+   "example": {
+    "id": "example_prefab",
+    "type": "prefab",
+    "name": "hog_pen",
+    "at": [
+     24,
+     30
+    ],
+    "turn": 1
+   }
+  },
+  {
+   "id": "via",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "z": 0.0
+   },
+   "doc": "A nav point by hand: where a way passes that the cells' middles miss.",
+   "example": {
+    "id": "example_via",
+    "type": "via",
+    "at": [
+     20.25,
+     8.0
+    ]
+   }
+  },
+  {
+   "id": "dm_spawn",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "angle": -1.0
+   },
+   "doc": "A deathmatch and team deathmatch start (give 6 or more, spread out). `angle` in degrees; left out, it faces the map's middle.",
+   "example": {
+    "id": "example_dm_spawn",
+    "type": "dm_spawn",
+    "at": [
+     6.5,
+     6.5
+    ]
+   }
+  },
+  {
+   "id": "team_spawn",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "team",
+    "at"
+   ],
+   "optional": {
+    "count": 5,
+    "angle": -1.0
+   },
+   "doc": "A 5v5 side's start: team attack (the outlaws, who plant or rescue) or defend. `count` places (5) are spread round `at`, facing the other side's start.",
+   "example": {
+    "id": "example_team_spawn",
+    "type": "team_spawn",
+    "team": "attack",
+    "at": [
+     5.5,
+     24.5
+    ]
+   }
+  },
+  {
+   "id": "bomb_site",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "site",
+    "rect"
+   ],
+   "optional": {},
+   "doc": "Search and destroy: bomb site A or B over rect.",
+   "example": {
+    "id": "example_bomb_site",
+    "type": "bomb_site",
+    "site": "A",
+    "rect": [
+     46,
+     4,
+     54,
+     12
+    ]
+   }
+  },
+  {
+   "id": "hostage",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "at"
+   ],
+   "optional": {},
+   "doc": "Hostage rescue: a hostage held at `at` (near the defenders).",
+   "example": {
+    "id": "example_hostage",
+    "type": "hostage",
+    "at": [
+     52.5,
+     6.5
+    ]
+   }
+  },
+  {
+   "id": "rescue_zone",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "rect"
+   ],
+   "optional": {},
+   "doc": "Hostage rescue: where the attackers carry a hostage to (round their start).",
+   "example": {
+    "id": "example_rescue_zone",
+    "type": "rescue_zone",
+    "rect": [
+     2,
+     20,
+     10,
+     30
+    ]
+   }
+  },
+  {
+   "id": "bot_route",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "site",
+    "points"
+   ],
+   "optional": {},
+   "doc": "A way the 5v5 bots walk to site A or B (points). Left out, they go straight.",
+   "example": {
+    "id": "example_bot_route",
+    "type": "bot_route",
+    "site": "A",
+    "points": [
+     [
+      8.5,
+      20.5
+     ],
+     [
+      30.5,
+      10.5
+     ],
+     [
+      50.5,
+      8.5
+     ]
+    ]
+   }
+  },
+  {
+   "id": "bot_hold",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": false,
+   "changes_cells": false,
+   "required": [
+    "site",
+    "at"
+   ],
+   "optional": {
+    "angle": 0.0
+   },
+   "doc": "Where a defending bot holds (site A, B or mid), facing `angle` degrees.",
+   "example": {
+    "id": "example_bot_hold",
+    "type": "bot_hold",
+    "site": "A",
+    "at": [
+     52.5,
+     10.5
+    ],
+    "angle": 180
+   }
+  },
+  {
+   "id": "arch",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 4.0,
+    "d": 1.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "brick",
+    "variant": 0,
+    "district": "",
+    "height": 3.2,
+    "width": 1.6
+   },
+   "doc": "A thick wall with a way through its middle under a stepped arch.",
+   "example": {
+    "id": "example_arch",
+    "type": "arch",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "barn",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 10.0,
+    "d": 14.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "barn_red",
+    "variant": 0,
+    "district": "",
+    "hung": true,
+    "glass": true,
+    "loft": true,
+    "bales": 6.0,
+    "side_door": true,
+    "roof": "gambrel"
+   },
+   "doc": "A tall red barn: big sliding doors front and back, a hayloft up a ladder, bales, gambrel roof.",
+   "example": {
+    "id": "example_barn",
+    "type": "barn",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "catwalk",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 6.0,
+    "d": 1.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "tin",
+    "variant": 0,
+    "district": "",
+    "height": 3.0,
+    "ladder": true
+   },
+   "doc": "A mesh deck on legs along the local x axis, rails, a ladder.",
+   "example": {
+    "id": "example_catwalk",
+    "type": "catwalk",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "chimney",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 1.0,
+    "d": 1.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "brick",
+    "variant": 0,
+    "district": "",
+    "height": 6.0
+   },
+   "doc": "A brick stack.",
+   "example": {
+    "id": "example_chimney",
+    "type": "chimney",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "church",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 7.0,
+    "d": 14.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "whitewash",
+    "variant": 0,
+    "district": "",
+    "hung": true,
+    "glass": true,
+    "pews": 5.0,
+    "bell": true,
+    "steeple": 4.0
+   },
+   "doc": "A whitewashed church: pews, coloured glass, a bell tower with a belfry.",
+   "example": {
+    "id": "example_church",
+    "type": "church",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "curved_wall",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 6.0,
+    "d": 6.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "brick",
+    "variant": 0,
+    "district": "",
+    "height": 2.4,
+    "from": 180.0,
+    "to": 360.0,
+    "door": true
+   },
+   "doc": "A wall round the footprint's middle (an arc), a doorway in its middle.",
+   "example": {
+    "id": "example_curved_wall",
+    "type": "curved_wall",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "dock",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 6.0,
+    "d": 2.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "cinder",
+    "variant": 0,
+    "district": "",
+    "height": 0.9
+   },
+   "doc": "A loading dock (waist-high cover), steps up its west end.",
+   "example": {
+    "id": "example_dock",
+    "type": "dock",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "farmhouse",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 9.0,
+    "d": 9.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "whitewash",
+    "variant": 0,
+    "district": "",
+    "hung": true,
+    "glass": true,
+    "storeys": 2.0,
+    "roof": "gable",
+    "pitch": 0.6,
+    "porch": 2.0,
+    "windows": 2.0,
+    "chimney": true,
+    "ladder": true,
+    "rooms": 2.0,
+    "balcony": true
+   },
+   "doc": "A two-storey clapboard farmhouse: porch, gable roof, chimney, balcony, ladder to the roof.",
+   "example": {
+    "id": "example_farmhouse",
+    "type": "farmhouse",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "gas_station",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 12.0,
+    "d": 11.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "cinder",
+    "variant": 0,
+    "district": "",
+    "hung": true,
+    "glass": true,
+    "pumps": 2.0,
+    "ladder": true
+   },
+   "doc": "A cinder box and a canopy over pump islands, a flat roof to walk on.",
+   "example": {
+    "id": "example_gas_station",
+    "type": "gas_station",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "grain_bin",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 5.0,
+    "d": 5.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "tin",
+    "variant": 0,
+    "district": "",
+    "height": 3.0,
+    "pitch": 0.55,
+    "ladder": true
+   },
+   "doc": "A round corrugated bin whose cone roof you can climb onto.",
+   "example": {
+    "id": "example_grain_bin",
+    "type": "grain_bin",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "house",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 8.0,
+    "d": 6.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "barn_red",
+    "variant": 0,
+    "district": "",
+    "hung": true,
+    "glass": true,
+    "storeys": 2.0,
+    "roof": "gable",
+    "pitch": 0.6,
+    "windows": 2.0,
+    "doors": "sn",
+    "rooms": 1.0,
+    "ladder": false,
+    "plinth": false
+   },
+   "doc": "A plain house: storeys of walls with windows, inside stairs, any roof.",
+   "example": {
+    "id": "example_house",
+    "type": "house",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "ladder",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 1.0,
+    "d": 1.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "plank",
+    "variant": 0,
+    "district": "",
+    "z0": 0.0,
+    "rise": 2.4
+   },
+   "doc": "A ladder leaning on the face along its cell's local north edge.",
+   "example": {
+    "id": "example_ladder",
+    "type": "ladder",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "outhouse",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 2.0,
+    "d": 2.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "plank",
+    "variant": 0,
+    "district": "",
+    "hung": true
+   },
+   "doc": "A plank outhouse with a narrow door.",
+   "example": {
+    "id": "example_outhouse",
+    "type": "outhouse",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "pole_barn",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 8.0,
+    "d": 10.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "tin",
+    "variant": 0,
+    "district": "",
+    "pitch": 0.35,
+    "back_wall": true,
+    "bales": 4.0
+   },
+   "doc": "A tin roof on posts, open on three sides, bales inside.",
+   "example": {
+    "id": "example_pole_barn",
+    "type": "pole_barn",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "porch",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 6.0,
+    "d": 2.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "whitewash",
+    "variant": 0,
+    "district": "",
+    "height": 2.4,
+    "rails": true,
+    "roof": true
+   },
+   "doc": "A deck with posts, rails and a shed roof; put its north side against a wall.",
+   "example": {
+    "id": "example_porch",
+    "type": "porch",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "roof",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 6.0,
+    "d": 6.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "barn_red",
+    "variant": 0,
+    "district": "",
+    "kind": "gable",
+    "eave": 2.4,
+    "pitch": 0.6,
+    "ends": true
+   },
+   "doc": "A roof alone over the footprint: gable, hip, shed, gambrel, quonset, cone, flat.",
+   "example": {
+    "id": "example_roof",
+    "type": "roof",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "shack",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 5.0,
+    "d": 4.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "plank",
+    "variant": 0,
+    "district": "",
+    "hung": true,
+    "glass": true,
+    "pitch": 0.3,
+    "back_door": true,
+    "stovepipe": true
+   },
+   "doc": "One room of planks under a lean-to roof, a door front and back.",
+   "example": {
+    "id": "example_shack",
+    "type": "shack",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "silo",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 6.0,
+    "d": 4.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "staves",
+    "variant": 0,
+    "district": "",
+    "height": 10.0,
+    "pitch": 1.2,
+    "platform": true
+   },
+   "doc": "A round stave silo, a cone roof, a cage ladder up to a railed platform.",
+   "example": {
+    "id": "example_silo",
+    "type": "silo",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "store",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 8.0,
+    "d": 10.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "grey",
+    "variant": 0,
+    "district": "",
+    "hung": true,
+    "glass": true,
+    "false_front": true,
+    "awning": true,
+    "counter": true,
+    "shelves": 2.0,
+    "ladder": true
+   },
+   "doc": "A general store: boardwalk, awning, false front, counter and shelves, roof ladder.",
+   "example": {
+    "id": "example_store",
+    "type": "store",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "tower",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 3.0,
+    "d": 3.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "plank",
+    "variant": 0,
+    "district": "",
+    "height": 4.8,
+    "roof": true
+   },
+   "doc": "A hunting stand: four legs, a deck behind knee walls, a tin roof.",
+   "example": {
+    "id": "example_tower",
+    "type": "tower",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "trailer",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 9.0,
+    "d": 5.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "trailer",
+    "variant": 0,
+    "district": "",
+    "glass": true,
+    "back_door": true,
+    "awning": true
+   },
+   "doc": "A single-wide trailer on cinder blocks, steps up to its doors, an awning.",
+   "example": {
+    "id": "example_trailer",
+    "type": "trailer",
+    "at": [
+     10,
+     8
+    ]
+   }
+  },
+  {
+   "id": "water_tower",
+   "kind": "component",
+   "version": 2,
+   "kit_piece": true,
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "w": 6.0,
+    "d": 6.0,
+    "face": "s",
+    "turn": 0,
+    "mirror": false,
+    "style": "tin",
+    "variant": 0,
+    "district": "",
+    "height": 6.0
+   },
+   "doc": "Four legs, a railed balcony round a tank, a ladder (a set piece: it can fall).",
+   "example": {
+    "id": "example_water_tower",
+    "type": "water_tower",
+    "at": [
+     10,
+     8
+    ]
    }
   }
  ],
@@ -3226,6 +4720,415 @@
    ],
    "use": "floor, wall, edge, under, ceiling: any tile",
    "thumb": "thumbs/tile_stockyard_hit.png"
+  },
+  {
+   "id": "cover_boards",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "cover_boards"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cover_boards.png"
+  },
+  {
+   "id": "cover_boards_hit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "cover_boards_hit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cover_boards_hit.png"
+  },
+  {
+   "id": "wood_hit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "wood_hit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_wood_hit.png"
+  },
+  {
+   "id": "barn_hit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "barn_hit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_barn_hit.png"
+  },
+  {
+   "id": "bayou_shack_hit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_shack_hit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_shack_hit.png"
+  },
+  {
+   "id": "ridge_pines",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "ridge_pines"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ridge_pines.png"
+  },
+  {
+   "id": "ridge_rock",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "ridge_rock"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ridge_rock.png"
+  },
+  {
+   "id": "cave_floor",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "cave_floor"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cave_floor.png"
+  },
+  {
+   "id": "route_moonshine",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_moonshine"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_moonshine.png"
+  },
+  {
+   "id": "barn_bst",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "barn_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_barn_bst.png"
+  },
+  {
+   "id": "tin_bst",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "tin_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tin_bst.png"
+  },
+  {
+   "id": "brick_bst",
+   "kind": "tile",
+   "strikes_as": "brick",
+   "footstep": "gravel",
+   "variants": [
+    "brick_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_brick_bst.png"
+  },
+  {
+   "id": "plaster_bst",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "plaster_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_plaster_bst.png"
+  },
+  {
+   "id": "cinder_bst",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "cinder_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cinder_bst.png"
+  },
+  {
+   "id": "office_wall_bst",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "office_wall_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_office_wall_bst.png"
+  },
+  {
+   "id": "fair_booth_bst",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fair_booth_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_booth_bst.png"
+  },
+  {
+   "id": "fair_iron_bst",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "fair_iron_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_iron_bst.png"
+  },
+  {
+   "id": "mill_tin_bst",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "mill_tin_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_tin_bst.png"
+  },
+  {
+   "id": "quarry_iron_bst",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_iron_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_iron_bst.png"
+  },
+  {
+   "id": "quarry_shed_bst",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_shed_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_shed_bst.png"
+  },
+  {
+   "id": "bayou_tin_bst",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_tin_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_tin_bst.png"
+  },
+  {
+   "id": "bayou_shack_bst",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_shack_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_shack_bst.png"
+  },
+  {
+   "id": "bayou_cannery_bst",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_cannery_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_cannery_bst.png"
+  },
+  {
+   "id": "diner_steel_bst",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "diner_steel_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_diner_steel_bst.png"
+  },
+  {
+   "id": "trailer_bst",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "trailer_bst"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_trailer_bst.png"
+  },
+  {
+   "id": "door_barred",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "door_barred"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_door_barred.png"
+  },
+  {
+   "id": "kit_shingle",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_shingle"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_shingle.png"
+  },
+  {
+   "id": "kit_clapboard",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_clapboard"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_clapboard.png"
+  },
+  {
+   "id": "kit_clapboard_grey",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_clapboard_grey"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_clapboard_grey.png"
+  },
+  {
+   "id": "kit_trim",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_trim"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_trim.png"
+  },
+  {
+   "id": "kit_stone",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_stone"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_stone.png"
+  },
+  {
+   "id": "kit_church_glass",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_church_glass",
+    "kit_church_glass_lit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_church_glass.png"
+  },
+  {
+   "id": "kit_church_glass_lit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_church_glass",
+    "kit_church_glass_lit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_church_glass_lit.png"
+  },
+  {
+   "id": "kit_staves",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_staves"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_staves.png"
+  },
+  {
+   "id": "kit_canopy",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_canopy"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_canopy.png"
+  },
+  {
+   "id": "kit_porch",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_porch"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_porch.png"
+  },
+  {
+   "id": "kit_hay",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "kit_hay"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_kit_hay.png"
   }
  ],
  "props": [
@@ -3385,8 +5288,8 @@
   {
    "id": "barrel_broken",
    "kind": "prop",
-   "width": 1.62,
-   "height": 0.67,
+   "width": 1.13,
+   "height": 0.39,
    "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
    "example": {
     "id": "my_barrel_broken",
@@ -3449,6 +5352,23 @@
     ]
    },
    "thumb": "thumbs/prop_belt_conveyor.png"
+  },
+  {
+   "id": "big_still",
+   "kind": "prop",
+   "width": 2.95,
+   "height": 2.38,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_big_still",
+    "type": "prop",
+    "name": "big_still",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_big_still.png"
   },
   {
    "id": "boil_pot",
@@ -3517,6 +5437,23 @@
     ]
    },
    "thumb": "thumbs/prop_boulder_b.png"
+  },
+  {
+   "id": "bug_zapper",
+   "kind": "prop",
+   "width": 0.87,
+   "height": 2.0,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_bug_zapper",
+    "type": "prop",
+    "name": "bug_zapper",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_bug_zapper.png"
   },
   {
    "id": "bunk",
@@ -3653,6 +5590,23 @@
     ]
    },
    "thumb": "thumbs/prop_carousel_horse.png"
+  },
+  {
+   "id": "cattle_guard",
+   "kind": "prop",
+   "width": 2.42,
+   "height": 0.87,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cattle_guard",
+    "type": "prop",
+    "name": "cattle_guard",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cattle_guard.png"
   },
   {
    "id": "chicken_coop",
@@ -3811,7 +5765,7 @@
    "id": "crate_broken",
    "kind": "prop",
    "width": 1.72,
-   "height": 0.76,
+   "height": 0.73,
    "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
    "example": {
     "id": "my_crate_broken",
@@ -3840,6 +5794,23 @@
     ]
    },
    "thumb": "thumbs/prop_crawfish_traps.png"
+  },
+  {
+   "id": "cruiser",
+   "kind": "prop",
+   "width": 2.94,
+   "height": 1.85,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cruiser",
+    "type": "prop",
+    "name": "cruiser",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cruiser.png"
   },
   {
    "id": "crushed_stack",
@@ -4044,6 +6015,23 @@
     ]
    },
    "thumb": "thumbs/prop_dump_truck.png"
+  },
+  {
+   "id": "electric_fence",
+   "kind": "prop",
+   "width": 1.97,
+   "height": 1.43,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_electric_fence",
+    "type": "prop",
+    "name": "electric_fence",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_electric_fence.png"
   },
   {
    "id": "engine_hoist",
@@ -4471,6 +6459,23 @@
    "thumb": "thumbs/prop_hubcap_board.png"
   },
   {
+   "id": "hung_lantern",
+   "kind": "prop",
+   "width": 0.2,
+   "height": 0.57,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_hung_lantern",
+    "type": "prop",
+    "name": "hung_lantern",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_hung_lantern.png"
+  },
+  {
    "id": "hung_pickup",
    "kind": "prop",
    "width": 2.43,
@@ -4542,7 +6547,7 @@
    "id": "jug_stack_broken",
    "kind": "prop",
    "width": 1.11,
-   "height": 0.64,
+   "height": 0.58,
    "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
    "example": {
     "id": "my_jug_stack_broken",
@@ -4571,6 +6576,23 @@
     ]
    },
    "thumb": "thumbs/prop_jukebox_rig.png"
+  },
+  {
+   "id": "junk_bench",
+   "kind": "prop",
+   "width": 1.86,
+   "height": 2.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_junk_bench",
+    "type": "prop",
+    "name": "junk_bench",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_junk_bench.png"
   },
   {
    "id": "lantern_post",
@@ -4763,7 +6785,7 @@
    "id": "mash_barrel_broken",
    "kind": "prop",
    "width": 2.0,
-   "height": 1.02,
+   "height": 0.79,
    "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
    "example": {
     "id": "my_mash_barrel_broken",
@@ -5202,6 +7224,40 @@
    "thumb": "thumbs/prop_quest_bell_on.png"
   },
   {
+   "id": "quest_bell_rope_off",
+   "kind": "prop",
+   "width": 0.47,
+   "height": 1.67,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_bell_rope_off",
+    "type": "prop",
+    "name": "quest_bell_rope_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_bell_rope_off.png"
+  },
+  {
+   "id": "quest_bell_rope_on",
+   "kind": "prop",
+   "width": 0.47,
+   "height": 1.67,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_bell_rope_on",
+    "type": "prop",
+    "name": "quest_bell_rope_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_bell_rope_on.png"
+  },
+  {
    "id": "quest_bolt_off",
    "kind": "prop",
    "width": 0.84,
@@ -5268,6 +7324,40 @@
     ]
    },
    "thumb": "thumbs/prop_quest_brake_on.png"
+  },
+  {
+   "id": "quest_cave_knocker_off",
+   "kind": "prop",
+   "width": 0.85,
+   "height": 1.76,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_cave_knocker_off",
+    "type": "prop",
+    "name": "quest_cave_knocker_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_cave_knocker_off.png"
+  },
+  {
+   "id": "quest_cave_knocker_on",
+   "kind": "prop",
+   "width": 0.85,
+   "height": 1.76,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_cave_knocker_on",
+    "type": "prop",
+    "name": "quest_cave_knocker_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_cave_knocker_on.png"
   },
   {
    "id": "quest_condenser_off",
@@ -5404,6 +7494,40 @@
     ]
    },
    "thumb": "thumbs/prop_quest_exit_flag_on.png"
+  },
+  {
+   "id": "quest_exit_jar_off",
+   "kind": "prop",
+   "width": 0.68,
+   "height": 1.5,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_jar_off",
+    "type": "prop",
+    "name": "quest_exit_jar_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_jar_off.png"
+  },
+  {
+   "id": "quest_exit_jar_on",
+   "kind": "prop",
+   "width": 0.68,
+   "height": 1.5,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_jar_on",
+    "type": "prop",
+    "name": "quest_exit_jar_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_jar_on.png"
   },
   {
    "id": "quest_exit_off",
@@ -5712,6 +7836,40 @@
    "thumb": "thumbs/prop_quest_patchbay_on.png"
   },
   {
+   "id": "quest_radio_set_off",
+   "kind": "prop",
+   "width": 1.17,
+   "height": 1.02,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_radio_set_off",
+    "type": "prop",
+    "name": "quest_radio_set_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_radio_set_off.png"
+  },
+  {
+   "id": "quest_radio_set_on",
+   "kind": "prop",
+   "width": 1.17,
+   "height": 1.02,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_radio_set_on",
+    "type": "prop",
+    "name": "quest_radio_set_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_radio_set_on.png"
+  },
+  {
    "id": "quest_relay_off",
    "kind": "prop",
    "width": 0.77,
@@ -5744,6 +7902,40 @@
     ]
    },
    "thumb": "thumbs/prop_quest_relay_on.png"
+  },
+  {
+   "id": "quest_shine_load_off",
+   "kind": "prop",
+   "width": 0.65,
+   "height": 1.11,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_shine_load_off",
+    "type": "prop",
+    "name": "quest_shine_load_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_shine_load_off.png"
+  },
+  {
+   "id": "quest_shine_load_on",
+   "kind": "prop",
+   "width": 0.65,
+   "height": 1.11,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_shine_load_on",
+    "type": "prop",
+    "name": "quest_shine_load_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_shine_load_on.png"
   },
   {
    "id": "quest_ship_drain_off",
@@ -6188,6 +8380,23 @@
    "thumb": "thumbs/prop_race_car_7.png"
   },
   {
+   "id": "radio_mast",
+   "kind": "prop",
+   "width": 2.51,
+   "height": 7.93,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_radio_mast",
+    "type": "prop",
+    "name": "radio_mast",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_radio_mast.png"
+  },
+  {
    "id": "range_ammo_crate",
    "kind": "prop",
    "width": 1.02,
@@ -6361,7 +8570,7 @@
    "id": "range_hay_bale_broken",
    "kind": "prop",
    "width": 1.5,
-   "height": 0.64,
+   "height": 0.48,
    "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
    "example": {
     "id": "my_range_hay_bale_broken",
@@ -6443,6 +8652,363 @@
    "thumb": "thumbs/prop_range_pin_down.png"
   },
   {
+   "id": "range_pin_t1_0",
+   "kind": "prop",
+   "width": 0.13,
+   "height": 0.32,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t1_0",
+    "type": "prop",
+    "name": "range_pin_t1_0",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t1_0.png"
+  },
+  {
+   "id": "range_pin_t1_1",
+   "kind": "prop",
+   "width": 0.15,
+   "height": 0.32,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t1_1",
+    "type": "prop",
+    "name": "range_pin_t1_1",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t1_1.png"
+  },
+  {
+   "id": "range_pin_t1_2",
+   "kind": "prop",
+   "width": 0.18,
+   "height": 0.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t1_2",
+    "type": "prop",
+    "name": "range_pin_t1_2",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t1_2.png"
+  },
+  {
+   "id": "range_pin_t1_3",
+   "kind": "prop",
+   "width": 0.19,
+   "height": 0.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t1_3",
+    "type": "prop",
+    "name": "range_pin_t1_3",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t1_3.png"
+  },
+  {
+   "id": "range_pin_t1_4",
+   "kind": "prop",
+   "width": 0.18,
+   "height": 0.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t1_4",
+    "type": "prop",
+    "name": "range_pin_t1_4",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t1_4.png"
+  },
+  {
+   "id": "range_pin_t1_5",
+   "kind": "prop",
+   "width": 0.15,
+   "height": 0.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t1_5",
+    "type": "prop",
+    "name": "range_pin_t1_5",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t1_5.png"
+  },
+  {
+   "id": "range_pin_t1_6",
+   "kind": "prop",
+   "width": 0.13,
+   "height": 0.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t1_6",
+    "type": "prop",
+    "name": "range_pin_t1_6",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t1_6.png"
+  },
+  {
+   "id": "range_pin_t2_0",
+   "kind": "prop",
+   "width": 0.13,
+   "height": 0.23,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t2_0",
+    "type": "prop",
+    "name": "range_pin_t2_0",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t2_0.png"
+  },
+  {
+   "id": "range_pin_t2_1",
+   "kind": "prop",
+   "width": 0.19,
+   "height": 0.24,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t2_1",
+    "type": "prop",
+    "name": "range_pin_t2_1",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t2_1.png"
+  },
+  {
+   "id": "range_pin_t2_2",
+   "kind": "prop",
+   "width": 0.27,
+   "height": 0.25,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t2_2",
+    "type": "prop",
+    "name": "range_pin_t2_2",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t2_2.png"
+  },
+  {
+   "id": "range_pin_t2_3",
+   "kind": "prop",
+   "width": 0.29,
+   "height": 0.26,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t2_3",
+    "type": "prop",
+    "name": "range_pin_t2_3",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t2_3.png"
+  },
+  {
+   "id": "range_pin_t2_4",
+   "kind": "prop",
+   "width": 0.27,
+   "height": 0.28,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t2_4",
+    "type": "prop",
+    "name": "range_pin_t2_4",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t2_4.png"
+  },
+  {
+   "id": "range_pin_t2_5",
+   "kind": "prop",
+   "width": 0.2,
+   "height": 0.28,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t2_5",
+    "type": "prop",
+    "name": "range_pin_t2_5",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t2_5.png"
+  },
+  {
+   "id": "range_pin_t2_6",
+   "kind": "prop",
+   "width": 0.13,
+   "height": 0.29,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t2_6",
+    "type": "prop",
+    "name": "range_pin_t2_6",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t2_6.png"
+  },
+  {
+   "id": "range_pin_t3_0",
+   "kind": "prop",
+   "width": 0.13,
+   "height": 0.13,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t3_0",
+    "type": "prop",
+    "name": "range_pin_t3_0",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t3_0.png"
+  },
+  {
+   "id": "range_pin_t3_1",
+   "kind": "prop",
+   "width": 0.23,
+   "height": 0.13,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t3_1",
+    "type": "prop",
+    "name": "range_pin_t3_1",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t3_1.png"
+  },
+  {
+   "id": "range_pin_t3_2",
+   "kind": "prop",
+   "width": 0.32,
+   "height": 0.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t3_2",
+    "type": "prop",
+    "name": "range_pin_t3_2",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t3_2.png"
+  },
+  {
+   "id": "range_pin_t3_3",
+   "kind": "prop",
+   "width": 0.36,
+   "height": 0.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t3_3",
+    "type": "prop",
+    "name": "range_pin_t3_3",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t3_3.png"
+  },
+  {
+   "id": "range_pin_t3_4",
+   "kind": "prop",
+   "width": 0.32,
+   "height": 0.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t3_4",
+    "type": "prop",
+    "name": "range_pin_t3_4",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t3_4.png"
+  },
+  {
+   "id": "range_pin_t3_5",
+   "kind": "prop",
+   "width": 0.23,
+   "height": 0.13,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t3_5",
+    "type": "prop",
+    "name": "range_pin_t3_5",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t3_5.png"
+  },
+  {
+   "id": "range_pin_t3_6",
+   "kind": "prop",
+   "width": 0.13,
+   "height": 0.13,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_t3_6",
+    "type": "prop",
+    "name": "range_pin_t3_6",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_t3_6.png"
+  },
+  {
    "id": "range_sandbags",
    "kind": "prop",
    "width": 1.58,
@@ -6492,6 +9058,40 @@
     ]
    },
    "thumb": "thumbs/prop_range_target.png"
+  },
+  {
+   "id": "revenue_tent",
+   "kind": "prop",
+   "width": 2.68,
+   "height": 1.82,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_revenue_tent",
+    "type": "prop",
+    "name": "revenue_tent",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_revenue_tent.png"
+  },
+  {
+   "id": "road_flare",
+   "kind": "prop",
+   "width": 0.54,
+   "height": 0.44,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_road_flare",
+    "type": "prop",
+    "name": "road_flare",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_road_flare.png"
   },
   {
    "id": "rock_chute",
@@ -6594,6 +9194,40 @@
     ]
    },
    "thumb": "thumbs/prop_sawdust_pile.png"
+  },
+  {
+   "id": "sawhorse",
+   "kind": "prop",
+   "width": 1.16,
+   "height": 1.21,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_sawhorse",
+    "type": "prop",
+    "name": "sawhorse",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_sawhorse.png"
+  },
+  {
+   "id": "sawhorse_broken",
+   "kind": "prop",
+   "width": 1.31,
+   "height": 1.09,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_sawhorse_broken",
+    "type": "prop",
+    "name": "sawhorse_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_sawhorse_broken.png"
   },
   {
    "id": "scarecrow",
@@ -7157,6 +9791,23 @@
    "thumb": "thumbs/prop_washer.png"
   },
   {
+   "id": "well",
+   "kind": "prop",
+   "width": 1.91,
+   "height": 2.48,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_well",
+    "type": "prop",
+    "name": "well",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_well.png"
+  },
+  {
    "id": "wheelbarrow",
    "kind": "prop",
    "width": 1.14,
@@ -7172,6 +9823,23 @@
     ]
    },
    "thumb": "thumbs/prop_wheelbarrow.png"
+  },
+  {
+   "id": "wood_chipper",
+   "kind": "prop",
+   "width": 2.38,
+   "height": 2.09,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_wood_chipper",
+    "type": "prop",
+    "name": "wood_chipper",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_wood_chipper.png"
   },
   {
    "id": "wreck_pickup",
@@ -7674,7 +10342,7 @@
    "id": "boss",
    "kind": "enemy",
    "brain": "boss",
-   "health": 1300,
+   "health": 1050,
    "boss": true,
    "swims": false,
    "example": {
@@ -7692,7 +10360,7 @@
    "id": "jerry",
    "kind": "enemy",
    "brain": "jerry",
-   "health": 1150,
+   "health": 950,
    "boss": true,
    "swims": false,
    "example": {
@@ -7908,7 +10576,7 @@
    "id": "foreman",
    "kind": "enemy",
    "brain": "foreman",
-   "health": 1000,
+   "health": 1200,
    "boss": true,
    "swims": false,
    "example": {
@@ -7926,7 +10594,7 @@
    "id": "baron",
    "kind": "enemy",
    "brain": "baron",
-   "health": 1300,
+   "health": 1550,
    "boss": true,
    "swims": false,
    "example": {
@@ -7962,7 +10630,7 @@
    "id": "tin_guard",
    "kind": "enemy",
    "brain": "alien",
-   "health": 185,
+   "health": 130,
    "boss": false,
    "swims": false,
    "example": {
@@ -8067,10 +10735,46 @@
    "thumb": "thumbs/enemy_bessie.png"
   },
   {
+   "id": "cow",
+   "kind": "enemy",
+   "brain": "cow",
+   "health": 90,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_cow",
+    "type": "enemy",
+    "kind": "cow",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_cow.png"
+  },
+  {
+   "id": "mule",
+   "kind": "enemy",
+   "brain": "mule",
+   "health": 70,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_mule",
+    "type": "enemy",
+    "kind": "mule",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_mule.png"
+  },
+  {
    "id": "noodler",
    "kind": "enemy",
    "brain": "millhand",
-   "health": 118,
+   "health": 100,
    "boss": false,
    "swims": false,
    "example": {
@@ -8160,7 +10864,7 @@
    "id": "tire_roller",
    "kind": "enemy",
    "brain": "valve_rat",
-   "health": 118,
+   "health": 100,
    "boss": false,
    "swims": false,
    "example": {
@@ -8214,7 +10918,7 @@
    "id": "derby_champ",
    "kind": "enemy",
    "brain": "derby_champ",
-   "health": 1250,
+   "health": 1500,
    "boss": true,
    "swims": false,
    "example": {
@@ -8229,10 +10933,82 @@
    "thumb": "thumbs/enemy_derby_champ.png"
   },
   {
+   "id": "revenooer",
+   "kind": "enemy",
+   "brain": "coot",
+   "health": 64,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_revenooer",
+    "type": "enemy",
+    "kind": "revenooer",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_revenooer.png"
+  },
+  {
+   "id": "still_buster",
+   "kind": "enemy",
+   "brain": "still_buster",
+   "health": 96,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_still_buster",
+    "type": "enemy",
+    "kind": "still_buster",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_still_buster.png"
+  },
+  {
+   "id": "gas_man",
+   "kind": "enemy",
+   "brain": "bottle_tosser",
+   "health": 58,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_gas_man",
+    "type": "enemy",
+    "kind": "gas_man",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_gas_man.png"
+  },
+  {
+   "id": "revenue_man",
+   "kind": "enemy",
+   "brain": "revenue_man",
+   "health": 1400,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_revenue_man",
+    "type": "enemy",
+    "kind": "revenue_man",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_revenue_man.png"
+  },
+  {
    "id": "big_billy",
    "kind": "enemy",
    "brain": "billy",
-   "health": 150,
+   "health": 120,
    "boss": false,
    "swims": false,
    "example": {
@@ -8286,7 +11062,7 @@
    "id": "tough_earl",
    "kind": "enemy",
    "brain": "billy",
-   "health": 270,
+   "health": 230,
    "boss": false,
    "swims": false,
    "example": {
@@ -8304,7 +11080,7 @@
    "id": "tough_clem",
    "kind": "enemy",
    "brain": "barker",
-   "health": 230,
+   "health": 200,
    "boss": false,
    "swims": false,
    "example": {
@@ -8322,7 +11098,7 @@
    "id": "tough_tom",
    "kind": "enemy",
    "brain": "millhand",
-   "health": 280,
+   "health": 240,
    "boss": false,
    "swims": false,
    "example": {
@@ -8340,7 +11116,7 @@
    "id": "tough_bubba",
    "kind": "enemy",
    "brain": "boilerback",
-   "health": 290,
+   "health": 245,
    "boss": false,
    "swims": false,
    "example": {
@@ -8358,7 +11134,7 @@
    "id": "tough_chuck",
    "kind": "enemy",
    "brain": "bottle_tosser",
-   "health": 190,
+   "health": 165,
    "boss": false,
    "swims": false,
    "example": {
@@ -8376,7 +11152,7 @@
    "id": "tough_pete",
    "kind": "enemy",
    "brain": "bottle_tosser",
-   "health": 200,
+   "health": 170,
    "boss": false,
    "swims": false,
    "example": {
@@ -8394,7 +11170,7 @@
    "id": "tough_zorgo",
    "kind": "enemy",
    "brain": "alien",
-   "health": 300,
+   "health": 255,
    "boss": false,
    "swims": false,
    "example": {
@@ -8407,6 +11183,24 @@
     ]
    },
    "thumb": "thumbs/enemy_tough_zorgo.png"
+  },
+  {
+   "id": "tough_hoss",
+   "kind": "enemy",
+   "brain": "coot",
+   "health": 205,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_hoss",
+    "type": "enemy",
+    "kind": "tough_hoss",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_hoss.png"
   }
  ],
  "pickups": [
@@ -8509,6 +11303,20 @@
    "thumb": "thumbs/pickup_bullets.png"
   },
   {
+   "id": "county45",
+   "kind": "pickup",
+   "example": {
+    "id": "some_county45",
+    "type": "pickup",
+    "name": "county45",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_county45.png"
+  },
+  {
    "id": "cow_ammo",
    "kind": "pickup",
    "example": {
@@ -8593,6 +11401,76 @@
    "thumb": "thumbs/pickup_dynamite.png"
   },
   {
+   "id": "firecracker_can",
+   "kind": "pickup",
+   "example": {
+    "id": "some_firecracker_can",
+    "type": "pickup",
+    "name": "firecracker_can",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_firecracker_can.png"
+  },
+  {
+   "id": "flash_jar",
+   "kind": "pickup",
+   "example": {
+    "id": "some_flash_jar",
+    "type": "pickup",
+    "name": "flash_jar",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_flash_jar.png"
+  },
+  {
+   "id": "grease_gun",
+   "kind": "pickup",
+   "example": {
+    "id": "some_grease_gun",
+    "type": "pickup",
+    "name": "grease_gun",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_grease_gun.png"
+  },
+  {
+   "id": "hogleg",
+   "kind": "pickup",
+   "example": {
+    "id": "some_hogleg",
+    "type": "pickup",
+    "name": "hogleg",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_hogleg.png"
+  },
+  {
+   "id": "hunter",
+   "kind": "pickup",
+   "example": {
+    "id": "some_hunter",
+    "type": "pickup",
+    "name": "hunter",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_hunter.png"
+  },
+  {
    "id": "keg_ammo",
    "kind": "pickup",
    "example": {
@@ -8635,6 +11513,20 @@
    "thumb": "thumbs/pickup_key_steel.png"
   },
   {
+   "id": "marksman",
+   "kind": "pickup",
+   "example": {
+    "id": "some_marksman",
+    "type": "pickup",
+    "name": "marksman",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_marksman.png"
+  },
+  {
    "id": "milk_ammo",
    "kind": "pickup",
    "example": {
@@ -8663,6 +11555,20 @@
    "thumb": "thumbs/pickup_moonshine.png"
   },
   {
+   "id": "mower",
+   "kind": "pickup",
+   "example": {
+    "id": "some_mower",
+    "type": "pickup",
+    "name": "mower",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_mower.png"
+  },
+  {
    "id": "pa_patch",
    "kind": "pickup",
    "example": {
@@ -8675,6 +11581,20 @@
     ]
    },
    "thumb": "thumbs/pickup_pa_patch.png"
+  },
+  {
+   "id": "patrol_bar",
+   "kind": "pickup",
+   "example": {
+    "id": "some_patrol_bar",
+    "type": "pickup",
+    "name": "patrol_bar",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_patrol_bar.png"
   },
   {
    "id": "powder_keg",
@@ -8775,6 +11695,20 @@
    "thumb": "thumbs/pickup_rinds.png"
   },
   {
+   "id": "riot_pump",
+   "kind": "pickup",
+   "example": {
+    "id": "some_riot_pump",
+    "type": "pickup",
+    "name": "riot_pump",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_riot_pump.png"
+  },
+  {
    "id": "ripsaw",
    "kind": "pickup",
    "example": {
@@ -8845,6 +11779,48 @@
    "thumb": "thumbs/pickup_saw_ammo.png"
   },
   {
+   "id": "scrap_bolts",
+   "kind": "pickup",
+   "example": {
+    "id": "some_scrap_bolts",
+    "type": "pickup",
+    "name": "scrap_bolts",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_scrap_bolts.png"
+  },
+  {
+   "id": "scrap_hubcap",
+   "kind": "pickup",
+   "example": {
+    "id": "some_scrap_hubcap",
+    "type": "pickup",
+    "name": "scrap_hubcap",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_scrap_hubcap.png"
+  },
+  {
+   "id": "scrap_wire",
+   "kind": "pickup",
+   "example": {
+    "id": "some_scrap_wire",
+    "type": "pickup",
+    "name": "scrap_wire",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_scrap_wire.png"
+  },
+  {
    "id": "shells",
    "kind": "pickup",
    "example": {
@@ -8857,6 +11833,20 @@
     ]
    },
    "thumb": "thumbs/pickup_shells.png"
+  },
+  {
+   "id": "shine_cocktail",
+   "kind": "pickup",
+   "example": {
+    "id": "some_shine_cocktail",
+    "type": "pickup",
+    "name": "shine_cocktail",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_shine_cocktail.png"
   },
   {
    "id": "shotgun",
@@ -8887,6 +11877,34 @@
    "thumb": "thumbs/pickup_slingblade.png"
   },
   {
+   "id": "smudge_pot",
+   "kind": "pickup",
+   "example": {
+    "id": "some_smudge_pot",
+    "type": "pickup",
+    "name": "smudge_pot",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_smudge_pot.png"
+  },
+  {
+   "id": "star357",
+   "kind": "pickup",
+   "example": {
+    "id": "some_star357",
+    "type": "pickup",
+    "name": "star357",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_star357.png"
+  },
+  {
    "id": "teat_gun",
    "kind": "pickup",
    "example": {
@@ -8913,6 +11931,20 @@
     ]
    },
    "thumb": "thumbs/pickup_tnt.png"
+  },
+  {
+   "id": "tommy",
+   "kind": "pickup",
+   "example": {
+    "id": "some_tommy",
+    "type": "pickup",
+    "name": "tommy",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_tommy.png"
   },
   {
    "id": "whiskey",

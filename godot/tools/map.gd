@@ -33,7 +33,10 @@
 ##   add <id> '<object json>' [after=<object>]
 ##   remove <id> <object>
 ##   rename <id> <object> <new id>
-##   top <id> key=<json>                     the source's own keys: spawn, districts,
+##   turn <id> <object> [by=1]             a kit piece, prefab or set piece turned
+##                                           quarter turns clockwise
+##   mirror <id> <object>                    a kit piece or prefab flipped left to right
+##   top <id> key=<json>                     the source's own keys: spawn, districts, mood, modes,
 ##                                           meta (merged), border, size, playtest, base
 ##   undo <id>                               put back the source before the last edit
 ##   history <id>                            the edits kept for undo
@@ -81,6 +84,8 @@ const COMMANDS := {
 	"rename": "_edit",
 	"undo": "_edit",
 	"top": "_edit",
+	"turn": "_edit",
+	"mirror": "_edit",
 	"history": "_history",
 	"catalog": "_catalog",
 	"schema": "_schema",
@@ -192,7 +197,7 @@ func _names() -> Dictionary:
 
 
 ## The source read and checked, compiled and validated: [doc, built, issues]
-## (doc empty when it could not be read).
+## (doc empty when it could not be read; a version 2 source's prefabs placed).
 func _load(map_id: String) -> Array:
 	var errors: Array = []
 	var doc := Source.read(map_id, errors)
@@ -200,6 +205,11 @@ func _load(map_id: String) -> Array:
 		result["error"] = errors[0]["message"] if not errors.is_empty() else "no source"
 		return [{}, {}, errors]
 	var issues: Array = Source.check(doc, _names())
+	var placed: Array = []
+	doc = Source.expand(doc, placed)
+	if not placed.is_empty() or doc.has("prefabs"):
+		issues = Source.check(doc, _names())
+		issues.append_array(placed)
 	var has_error := false
 	for i: Dictionary in issues:
 		if i["severity"] == "error":

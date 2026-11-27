@@ -6,6 +6,7 @@
 extends RefCounted
 
 const Source := preload("res://tools/map/map_source.gd")
+const V2 := preload("res://tools/map/map_source_v2.gd")
 const THUMB := 48
 
 
@@ -205,6 +206,8 @@ static func write(dir: String, assets: Assets, result: Dictionary) -> int:
 				{
 					"id": type,
 					"kind": "component",
+					"version": int(spec.get("v", 1)),
+					"kit_piece": bool(spec.get("kit", false)),
 					"changes_cells": spec["grid"],
 					"required": spec["req"],
 					"optional": spec["opt"],
@@ -256,6 +259,10 @@ static func _variants(assets: Assets, base: String) -> Array:
 static func example(type: String) -> Dictionary:
 	var e := {"id": "example_" + type, "type": type}
 	var spec: Dictionary = Source.TYPES[type]
+	if spec.has("ex"):
+		# Version 2 types carry the example an AI should copy.
+		e.merge((spec["ex"] as Dictionary).duplicate(true))
+		return e
 	var fill := {
 		"rect": [4, 4, 8, 7],
 		"floor": "dirt",
@@ -314,17 +321,52 @@ static func _markdown(c: Dictionary) -> String:
 	)
 	lines.append("## Components (object types)")
 	lines.append("")
-	lines.append("| type | cells | required | what it is |")
-	lines.append("| --- | --- | --- | --- |")
+	lines.append("| type | version | cells | required | what it is | example |")
+	lines.append("| --- | --- | --- | --- | --- | --- |")
 	for comp: Dictionary in c["components"]:
+		(
+			lines
+			. append(
+				(
+					"| `%s` | %s | %s | %s | %s | `%s` |"
+					% [
+						comp["id"],
+						"2 (kit)" if comp.get("kit_piece", false) else str(comp.get("version", 1)),
+						"yes" if comp["changes_cells"] else "no",
+						", ".join(PackedStringArray(comp["required"])),
+						comp["doc"],
+						Source.compact(comp["example"]),
+					]
+				)
+			)
+		)
+	lines.append("")
+	lines.append("## Kit pieces' own keys")
+	lines.append("")
+	lines.append(
+		(
+			"Each kit piece also takes at, w, d, face, turn, mirror, style, variant and district."
+			+ " A number's rule is [default, least, most]; a word's is [default, choices...]."
+		)
+	)
+	lines.append("")
+	lines.append("| piece | w | d | style | options |")
+	lines.append("| --- | --- | --- | --- | --- |")
+	for piece: String in KitPiece.names():
+		var entry := KitPiece.catalog(piece)
+		var opts := PackedStringArray()
+		var given: Dictionary = entry.get("options", {})
+		for key: String in given:
+			opts.append("%s %s" % [key, JSON.stringify(given[key])])
 		lines.append(
 			(
-				"| `%s` | %s | %s | %s |"
+				"| `%s` | %s | %s | %s | %s |"
 				% [
-					comp["id"],
-					"yes" if comp["changes_cells"] else "no",
-					", ".join(PackedStringArray(comp["required"])),
-					comp["doc"]
+					piece,
+					JSON.stringify(entry.get("w")),
+					JSON.stringify(entry.get("d")),
+					entry.get("style", ""),
+					", ".join(opts)
 				]
 			)
 		)
@@ -419,7 +461,46 @@ static func write_schema(path: String, result: Dictionary) -> int:
 		"requires": {"type": "array", "items": {"type": "string"}},
 		"opens": {"type": "array", "items": {"type": "array", "items": {"type": "integer"}}},
 		"gaps": {"type": "array", "items": {"type": "array"}},
+		"polygon": {"type": "array", "items": point, "minItems": 3},
+		"trigger": rect,
+		"heights": {"type": "array", "items": number},
+		"falls": {"type": "array", "items": {"enum": [0, 1, 2, 3]}},
+		"when": {"type": "object"},
+		"do": {"type": "array", "items": {"type": "object"}},
+		"curve":
+		{
+			"type": "object",
+			"properties": {"centre": point, "radius": number, "from": number, "to": number},
+			"description": "the wall bent round centre: from and to in degrees (0 east, 90 south)"
+		},
+		"brush": {"enum": V2.BRUSHES},
+		"surface": {"enum": V2.SURFACES.keys()},
+		"team": {"enum": V2.TEAMS},
+		"color": {"enum": V2.KEYS},
+		"span": {"enum": [1, 2, 3]},
+		"bar": {"enum": ["", "n", "e", "s", "w"]},
+		"along": {"enum": ["x", "y"]},
+		"face": {"enum": ["s", "w", "n", "e"]},
+		"turn": {"enum": [0, 1, 2, 3]},
 	}
+	(known["openings"]["items"]["properties"] as Dictionary)["pane"] = {"type": "boolean"}
+	var dressing: Dictionary = MapLooksGrid.tuning()
+	var named := {
+		"foliage": {"kind": {"enum": (dressing.get("foliage", {}) as Dictionary).keys()}},
+		"dress": {"theme": {"enum": dressing.get("themes", [])}},
+		"vignette":
+		{
+			"name": {"enum": (dressing.get("vignettes", {}) as Dictionary).keys()},
+			"wall": {"enum": ["n", "e", "s", "w"]}
+		},
+		"set_piece": {"kind": {"enum": ["barn", "tower", "fuel"]}},
+		"bomb_site": {"site": {"enum": ["A", "B"]}},
+		"bot_route": {"site": {"enum": ["A", "B"]}},
+		"bot_hold": {"site": {"enum": ["A", "B", "mid"]}},
+		"kit": {"piece": {"enum": KitPiece.names()}},
+		"door": {"style": {"enum": ["hinge", "slide", "barn"]}},
+	}
+	var names_list := {"type": "array", "items": {"type": "string"}}
 	var variants: Array = []
 	for type: String in Source.TYPES:
 		var spec: Dictionary = Source.TYPES[type]
@@ -432,19 +513,27 @@ static func write_schema(path: String, result: Dictionary) -> int:
 			props["from"] = {"enum": ["n", "e", "s", "w"]}
 		for key in spec["opt"]:
 			props[key] = known.get(key, _type_of(spec["opt"][key]))
+		if int(spec.get("v", 1)) >= 2:
+			for key: String in ["opens", "requires", "doors"]:
+				if props.has(key):
+					props[key] = names_list
+		if bool(spec.get("kit", false)):
+			_kit_props(props, type)
+		(props as Dictionary).merge(named.get(type, {}), true)
 		var req: Array = ["id", "type"]
 		req.append_array(spec["req"])
-		variants.append(
-			{
-				"title": type,
-				"description": spec["doc"],
-				"type": "object",
-				"required": req,
-				"properties": props,
-				"patternProperties": {"^_": {}},
-				"additionalProperties": false
-			}
-		)
+		var variant := {
+			"title": type,
+			"description": spec["doc"],
+			"type": "object",
+			"required": req,
+			"properties": props,
+			"patternProperties": {"^_": {}},
+			"additionalProperties": type == "kit",
+		}
+		if spec.has("ex"):
+			variant["examples"] = [example(type)]
+		variants.append(variant)
 	var schema := {
 		"$schema": "https://json-schema.org/draft/2020-12/schema",
 		"$id": "https://github.com/treymun/crazy-legs-mundell-rampage/docs/map_schema.json",
@@ -498,9 +587,43 @@ static func write_schema(path: String, result: Dictionary) -> int:
 					{
 						"id": {"type": "string"},
 						"name": {"type": "string"},
-						"tint": {"type": "array", "items": number}
+						"tint": {"type": "array", "items": number},
+						"mood": {"enum": Effects.MOODS.keys()},
+						"rect": rect
 					}
 				}
+			},
+			"mood":
+			{
+				"enum": Effects.MOODS.keys(),
+				"description":
+				"version 2: the whole map's mood (fog, grade, sounds); districts may have their own"
+			},
+			"modes":
+			{
+				"type": "array",
+				"items": {"enum": V2.MODES},
+				"description": "version 2: the modes the map is made for; map check reviews each"
+			},
+			"seed":
+			{
+				"type": "integer",
+				"description": "version 2: the looks dice (the map id's hash when left out)"
+			},
+			"prefabs":
+			{
+				"type": "object",
+				"additionalProperties":
+				{
+					"type": "object",
+					"properties":
+					{
+						"size": {"type": "array", "items": number},
+						"objects": {"type": "array", "items": {"type": "object"}}
+					}
+				},
+				"description":
+				"version 2: groups of objects placed by prefab objects (also maps/prefabs/<name>.json)"
 			},
 			"spawn":
 			{
@@ -543,6 +666,37 @@ static func write_schema(path: String, result: Dictionary) -> int:
 	result["path"] = file
 	print("wrote " + file)
 	return 0
+
+
+## A kit piece's keys with their rules: numbers with their least and most,
+## words with their choices.
+static func _kit_props(props: Dictionary, piece: String) -> void:
+	var entry := KitPiece.catalog(piece)
+	var rules: Dictionary = (entry.get("options", {}) as Dictionary).duplicate()
+	rules["w"] = entry.get("w", [1, 1, 1])
+	rules["d"] = entry.get("d", [1, 1, 1])
+	rules["style"] = [""] + KitPiece.style_names()
+	for key: String in rules:
+		var rule = rules[key]
+		if rule is bool:
+			props[key] = {"type": "boolean", "default": rule}
+		elif rule is Array and not (rule as Array).is_empty() and rule[0] is String:
+			props[key] = {
+				"enum": (rule as Array).slice(1) if key != "style" else rule, "default": rule[0]
+			}
+		elif rule is Array and (rule as Array).size() == 3:
+			props[key] = {
+				"type": "number", "minimum": rule[1], "maximum": rule[2], "default": rule[0]
+			}
+	props["at"] = {
+		"type": "array",
+		"items": {"type": "integer"},
+		"minItems": 2,
+		"maxItems": 2,
+		"description": "the footprint's north-west corner, whole cells"
+	}
+	props["variant"] = {"enum": [0, 1, 2, 3]}
+	props["mirror"] = {"type": "boolean"}
 
 
 static func _default_of(key: String, _spec: Dictionary):

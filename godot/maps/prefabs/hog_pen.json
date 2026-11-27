@@ -1,0 +1,13 @@
+{
+  "schema": "clmr-prefab",
+  "about": "A hog pen: board fence (head-high cover) round a mud lot, a gate gap on the south, a trough inside. 7 x 5 cells; its north-west corner is the prefab's at.",
+  "size": [7, 5],
+  "objects": [
+    {"id": "mud", "type": "paint", "rect": [1, 1, 6, 4], "floor": "derby_mud"},
+    {"id": "fence_n", "type": "kit", "piece": "fence", "at": [0, 0], "w": 7, "kind": "stock"},
+    {"id": "fence_s", "type": "kit", "piece": "fence", "at": [0, 4], "w": 7, "kind": "stock", "gate": 3},
+    {"id": "fence_w", "type": "kit", "piece": "fence", "at": [0, 1], "w": 3, "turn": 1, "kind": "stock"},
+    {"id": "fence_e", "type": "kit", "piece": "fence", "at": [6, 1], "w": 3, "turn": 1, "kind": "stock"},
+    {"id": "trough", "type": "trough", "at": [3.5, 1.6], "along": "x", "length": 2}
+  ]
+}

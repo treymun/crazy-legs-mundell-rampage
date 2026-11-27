@@ -69,6 +69,7 @@ static func run(main, check: Callable) -> void:
 	_build_guard(demo, check)
 	_import(assets, check)
 	_editor(main, demo, check)
+	preload("res://tools/map_check_v2.gd").run(main, check)
 	Source.dir = kept_dir
 	Source.data_dir = kept_data
 	_playtest(main, demo, check)
