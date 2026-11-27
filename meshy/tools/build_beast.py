@@ -31,7 +31,7 @@ import sys
 import bmesh
 import bpy
 import numpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 from mathutils.kdtree import KDTree
 
 CFG = json.load(open(sys.argv[sys.argv.index("--") + 1], encoding="utf-8"))
@@ -454,6 +454,16 @@ def attach_chains():
         D[f] = {pb.name: (AW @ pb.matrix) @ rest[pb.name].inverted() for pb in pbs}
     for at in CFG["attach"]:
         ch = at["chain"]
+        # "ease" {key: share}: that key's arm turns eased that share back
+        # toward the standing key's (the pain key's raised arm swept across
+        # the face)
+        for kname, share in at.get("ease", {}).items():
+            if kname not in FRAMES:
+                continue
+            f_ = int(round(FRAMES[kname]))
+            for b_ in ch:
+                q_ = D[f_][b_].to_quaternion()
+                D[f_][b_] = Quaternion().slerp(q_, 1.0 - float(share)).to_matrix().to_4x4()
         lines = [part_line(b_) for b_ in ch]
         ua, ub = lines[0][0], lines[0][1]
         sh = ua if ua.z > ub.z else ub
@@ -575,6 +585,17 @@ def pose_and_hands():
     import hands  # noqa: E402
 
     me = hi.data
+    # (the glb's vertices split at its UV seams welded first: their weights
+    # differ a little, so the posed arm opened cracks along the seams, which
+    # the lit bake drew as dark stitch lines)
+    _bw = bmesh.new()
+    _bw.from_mesh(me)
+    _nv = len(_bw.verts)
+    bmesh.ops.remove_doubles(_bw, verts=_bw.verts, dist=1e-5)
+    print("BEAST Meshy seams welded: %d vertices" % (_nv - len(_bw.verts)))
+    _bw.to_mesh(me)
+    _bw.free()
+    me.update()
     co = numpy.array([v.co[:] for v in me.vertices])
     gidx = {g.name: g.index for g in hi.vertex_groups}
     Wg = numpy.zeros((len(co), len(gidx)))
@@ -768,8 +789,18 @@ def pose_and_hands():
 pose_and_hands()
 if M_HEADS:
     # (a rigged Meshy glb's own weights are done with: left on, they would
-    # outweigh the old parts' and ride no old bone)
-    hi.vertex_groups.clear()
+    # outweigh the old parts' and ride no old bone - but for "arm_weights":
+    # "meshy" the arms' are kept as mw_<old bone> groups)
+    _keep_mw = {}
+    if CFG.get("arm_weights") == "meshy":
+        for _sd, _c in CFG.get("pose_arms", {}).items():
+            _S = "Left" if _sd == "l" else "Right"
+            _keep_mw.update({_S + "Arm": _c["upper"], _S + "ForeArm": _c["fore"], _S + "Hand": _c["hand"]})
+    for _g in list(hi.vertex_groups):
+        if _g.name in _keep_mw:
+            _g.name = "mw_" + _keep_mw[_g.name]
+        else:
+            hi.vertex_groups.remove(_g)
 
 # ------------------------------------------------------------ the game mesh
 lo = hi.copy()
@@ -791,6 +822,18 @@ for _ in range(5):
     bpy.ops.object.modifier_apply(modifier="dec")
 lo.data.calc_loop_triangles()
 print("BEAST mesh: %d triangles" % len(lo.data.loop_triangles))
+if CFG.get("smooth_normals"):
+    # (the Meshy glb's custom split normals, carried through the decimation,
+    # were hard at many edges: the bake's rays parted there - stitch-like
+    # dark seams along the arms - and the game drew facets)
+    for _ob in (lo, hi):
+        select([_ob])
+        try:
+            bpy.ops.mesh.customdata_custom_splitnormals_clear()
+        except RuntimeError:
+            pass
+        for _p in _ob.data.polygons:
+            _p.use_smooth = True
 for _side, _ho in HAND_OBJS.items():
     # (a copy into the bake source: the hand lit with the body)
     _hc = _ho.copy()
@@ -836,6 +879,12 @@ for v in lo.data.vertices:
         W[v.index, g.group] = g.weight
 # Each vertex its nearest old part's bone outright (the transfer blends
 # across faces of two parts), then softened over a few rings.
+# (the Meshy rig's arm weights, "arm_weights", taken out before the old
+# parts' nearest bone is chosen)
+MW = {g.name[3:]: W[:, g.index].copy() for g in lo.vertex_groups if g.name.startswith("mw_")}
+for _g in lo.vertex_groups:
+    if _g.name.startswith("mw_"):
+        W[:, _g.index] = 0
 W = (W == W.max(axis=1, keepdims=True)) * (W.max(axis=1, keepdims=True) > 0)
 W = W / numpy.maximum(W.sum(axis=1, keepdims=True), 1e-9)
 # "reach" {bone: m}: a vertex of that bone farther than m from the old
@@ -853,6 +902,20 @@ for _rb, _rr in CFG.get("reach", {}).items():
     W[_m] = 0
     W[_m, _to] = 1
     print("BEAST reach %s: %d vertices beyond %.2f m given to the torso" % (_rb, int(_m.sum()), float(_rr)))
+# "arm_weights": "meshy": the arms skinned by the Meshy rig's own smooth
+# arm weights (mapped onto the old arm parts) where it has them, the old
+# parts' nearest weights elsewhere: the old blocks gave a hard, torn
+# shoulder and elbow.
+if MW:
+    _ms = numpy.zeros(len(W))
+    _add = numpy.zeros_like(W)
+    for _b, _col in MW.items():
+        _add[:, lo.vertex_groups[_b].index] += _col
+        _ms += _col
+    _ms = numpy.clip(_ms, 0, 1)
+    W = W * (1 - _ms)[:, None] + _add
+    W = W / numpy.maximum(W.sum(axis=1, keepdims=True), 1e-9)
+    print("BEAST arm weights from the Meshy rig: %d vertices" % int((_ms > .05).sum()))
 # "arm_reach" k: an arm vertex farther than k times the posed Meshy arm's
 # own girth from its bone goes to "reach_to" (a cape lying beside the arm).
 if CFG.get("arm_reach") and ARM_SEGS:
@@ -1387,24 +1450,54 @@ cut_mouth()
 select([lo])
 bpy.ops.object.mode_set(mode="EDIT")
 bpy.ops.mesh.select_all(action="SELECT")
-bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.0)
-if "kept" in lo.data.attributes:
-    # (the kept parts' islands drawn smaller - a big airboat took most of the
-    # atlas from the King - and the hands' bigger, before the packing:
-    # "kept_uv" k, "hand_uv" k)
+if CFG.get("meshy_uv") and "kept" in lo.data.attributes:
+    # "meshy_uv": the Meshy body keeps Meshy's own UV islands (a smart
+    # unwrap of the decimated body cut it into confetti: jagged seams, flat
+    # smeared arms); the kept parts and the hands are unwrapped; then every
+    # island is scaled to its surface ("kept_uv"/"hand_uv" times) and all
+    # are packed together.
+    _bm = bmesh.from_edit_mesh(lo.data)
+    _kl = _bm.faces.layers.float.get("kept")
+    for _f in _bm.faces:
+        _f.select = _f[_kl] > .5
+    bmesh.update_edit_mesh(lo.data)
+    scene.tool_settings.use_uv_select_sync = True
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.0)
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.average_islands_scale()
     bpy.ops.object.mode_set(mode="OBJECT")
     _ka = lo.data.attributes["kept"].data
     _uvd = lo.data.uv_layers.active.data
     for _p in lo.data.polygons:
         _f = _ka[_p.index].value
-        _k = float(CFG.get("kept_uv", .35)) if _f > .5 and _f < 1.5 else (float(CFG.get("hand_uv", 1.5)) if _f > 1.5 else 1.0)
-        if _k != 1.0:
+        if _f > .5:
+            _k = float(CFG.get("kept_uv", .6)) if _f < 1.5 else float(CFG.get("hand_uv", 1.5))
             for _li in _p.loop_indices:
                 _uvd[_li].uv = _uvd[_li].uv * _k
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
-bpy.ops.uv.pack_islands(rotate=True, margin_method="FRACTION", margin=float(CFG.get("uv_margin", .004)),
-                        shape_method="CONCAVE")
+    bpy.ops.uv.pack_islands(rotate=True, margin_method="FRACTION", margin=float(CFG.get("uv_margin", .004)),
+                            shape_method="CONCAVE")
+    scene.tool_settings.use_uv_select_sync = False
+else:
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.0)
+    if "kept" in lo.data.attributes:
+        # (the kept parts' islands drawn smaller - a big airboat took most of
+        # the atlas from the King - and the hands' bigger, before the
+        # packing: "kept_uv" k, "hand_uv" k)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        _ka = lo.data.attributes["kept"].data
+        _uvd = lo.data.uv_layers.active.data
+        for _p in lo.data.polygons:
+            _f = _ka[_p.index].value
+            _k = float(CFG.get("kept_uv", .35)) if _f > .5 and _f < 1.5 else (float(CFG.get("hand_uv", 1.5)) if _f > 1.5 else 1.0)
+            if _k != 1.0:
+                for _li in _p.loop_indices:
+                    _uvd[_li].uv = _uvd[_li].uv * _k
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.pack_islands(rotate=True, margin_method="FRACTION", margin=float(CFG.get("uv_margin", .004)),
+                            shape_method="CONCAVE")
 bpy.ops.object.mode_set(mode="OBJECT")
 # (actor_check's measure: texels a metre over the whole body)
 _uva = _wa = 0.0
@@ -1416,6 +1509,18 @@ for _p in lo.data.polygons:
         _uva += abs((_b - _a).cross(_c - _a)) / 2
     _wa += _p.area
 print("BEAST texels a metre: %.0f (uv use %.0f%%)" % (math.sqrt(_uva / max(_wa, 1e-9)) * TEX, _uva * 100))
+if "kept" in lo.data.attributes:
+    _ka = lo.data.attributes["kept"].data
+    for _fl, _nm in ((0, "Meshy body"), (1, "kept parts"), (2, "hands")):
+        _u = _w = 0.0
+        for _p in lo.data.polygons:
+            if abs(_ka[_p.index].value - _fl) < .5:
+                _ls = list(_p.loop_indices)
+                for _k in range(1, len(_ls) - 1):
+                    _a, _b, _c = (_uvd[_ls[0]].uv, _uvd[_ls[_k]].uv, _uvd[_ls[_k + 1]].uv)
+                    _u += abs((_b - _a).cross(_c - _a)) / 2
+                _w += _p.area
+        print("BEAST texels a metre on the %s: %.0f" % (_nm, math.sqrt(_u / max(_w, 1e-9)) * TEX))
 lo.parent = arm
 mod = lo.modifiers.new("rig", "ARMATURE")
 mod.object = arm
@@ -1456,6 +1561,15 @@ nx = NORMALS[:, 0] * 2 - 1
 ny = NORMALS[:, 1] * 2 - 1
 total = None
 weight = None
+# "terminator" [geometry, shading, normal]: Cycles' shadow terminator offsets
+# on the bake source (its smooth normals over big triangles drew jagged
+# stitch-like shadow lines along the triangle edges of the sunburnt arms).
+if CFG.get("terminator"):
+    _t = CFG["terminator"]
+    hi.shadow_terminator_geometry_offset = float(_t[0])
+    hi.shadow_terminator_shading_offset = float(_t[1])
+    if len(_t) > 2:
+        hi.shadow_terminator_normal_offset = float(_t[2])
 kept = [hi.matrix_world.copy(), arm.matrix_world.copy()]
 for k, angle in enumerate(TURNS):
     spin = Matrix.Rotation(math.radians(angle), 4, "Z")
@@ -1466,9 +1580,18 @@ for k, angle in enumerate(TURNS):
     select([hi, lo], lo)
     bpy.ops.object.bake(type="COMBINED", pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE"},
                         margin=MARGIN, use_clear=True, use_selected_to_active=True,
-                        cage_extrusion=OLD_H * .012, max_ray_distance=OLD_H * .05)
+                        cage_extrusion=OLD_H * float(CFG.get("cage", .012)), max_ray_distance=OLD_H * float(CFG.get("ray", .05)))
     px = pixels(img)
     c, sn = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+    if os.environ.get("BEAST_DEBUG_ALBEDO") and k == 0:
+        for _nm, _arr in (("turn0", px[:, :3]), ("normals", NORMALS[:, :3])):
+            _di = bpy.data.images.new("dbg_" + _nm, TEX, TEX, alpha=False)
+            _dp = numpy.ones((TEX * TEX, 4), dtype=numpy.float32)
+            _dp[:, :3] = _arr
+            _di.pixels.foreach_set(_dp.ravel())
+            _di.filepath_raw = os.path.join(OUT, KIND + "_dbg_%s.png" % _nm)
+            _di.file_format = "PNG"
+            _di.save()
     w = (numpy.clip(-(sn * nx + c * ny), 0, 1) ** 2 + 1e-4) * (px[:, :3].sum(axis=1) > .003)
     if total is None:
         total = px.copy()
@@ -1487,9 +1610,28 @@ inside = NORMALS[:, :3].sum(axis=1) > .05
 # own colour (the Meshy albedo) at the light the sides have, a little shaded.
 select([hi, lo], lo)
 bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"}, margin=MARGIN, use_clear=True,
-                    use_selected_to_active=True, cage_extrusion=OLD_H * .012, max_ray_distance=OLD_H * .05)
+                    use_selected_to_active=True, cage_extrusion=OLD_H * float(CFG.get("cage", .012)), max_ray_distance=OLD_H * float(CFG.get("ray", .05)))
 ALBEDO = pixels(img)[:, :3].copy()
+if os.environ.get("BEAST_DEBUG_ALBEDO"):
+    _di = bpy.data.images.new("dbg_albedo", TEX, TEX, alpha=False)
+    _dp = numpy.ones((TEX * TEX, 4), dtype=numpy.float32)
+    _dp[:, :3] = ALBEDO
+    _di.pixels.foreach_set(_dp.ravel())
+    _di.filepath_raw = os.path.join(OUT, KIND + "_dbg_albedo.png")
+    _di.file_format = "PNG"
+    _di.save()
 nz = NORMALS[:, 2] * 2 - 1
+if CFG.get("light") == "hemi":
+    # "light": "hemi" - the body lit from its own albedo and normals (a warm
+    # sky above, a dim ground below) instead of the stage's shadows on the
+    # Meshy mesh: those drew dark stitch lines along its triangles over the
+    # posed arms. Form kept, every side evenly lit as the four turns meant.
+    _sky, _gnd = numpy.array(CFG.get("sky", [1.0, .93, .82])), numpy.array(CFG.get("ground", [.42, .4, .44]))
+    _t = numpy.clip(nz * .5 + .5, 0, 1)[:, None] ** float(CFG.get("hemi_k", 1.3))
+    _ok = inside & (ALBEDO.sum(axis=1) > .003)
+    total[_ok, :3] = (ALBEDO * (_gnd + (_sky - _gnd) * _t))[_ok]
+    found = found | _ok
+    print("BEAST hemi light: %d texels" % int(_ok.sum()))
 lum3 = numpy.array([.299, .587, .114])
 side_ok = found & inside & (nz > -.2) & (ALBEDO @ lum3 > .03)
 ratio = float(numpy.median((total[side_ok, :3] @ lum3) / (ALBEDO[side_ok] @ lum3))) if side_ok.any() else 1.0

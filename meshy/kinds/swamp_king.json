@@ -4,7 +4,7 @@
  "old_glb": "../meshy-work/old/swamp_king.glb",
  "old_tex": "../meshy-work/old/actor3d_swamp_king.png",
  "out": "../meshy-work/raw/swamp_king",
- "tris": 14000,
+ "tris": 20000,
  "texture": 1024,
  "keep_parts": {
   "except": [
@@ -224,7 +224,7 @@
   1.0
  ],
  "hand_share": 0.1,
- "kept_uv": 0.6,
+ "kept_uv": 0.35,
  "keep_fit": [
   {
    "bones": [
@@ -256,7 +256,16 @@
     "b130",
     "b131"
    ],
-   "parent": "b71"
+   "parent": "b71",
+   "ease": {
+    "pain": 0.5,
+    "recover": 0.3,
+    "die_0": 0.3,
+    "die_1": 0.4,
+    "die_2": 0.4,
+    "die_3": 0.4,
+    "die_4": 0.4
+   }
   },
   {
    "chain": [
@@ -268,8 +277,18 @@
    "ride": "b99"
   }
  ],
- "arm_reach": 1.3,
- "uv_margin": 0.003,
- "bake_margin": 3,
- "gain": 0.9
+ "arm_reach": 1.7,
+ "uv_margin": 0.0025,
+ "bake_margin": 2,
+ "gain": 0.78,
+ "meshy_uv": 0.76,
+ "arm_weights": "meshy",
+ "smooth_normals": true,
+ "light": "hemi",
+ "sky": [
+  1.0,
+  0.88,
+  0.74
+ ],
+ "smooth": 4
 }

@@ -47,6 +47,31 @@ opt-in; nothing changes for the animals):
 - "phases": a boss's p2/p3 looks written (soot blotches, front blood; kept
   parts take the old phase looks' texels). "gain" multiplies the matched light.
 - The build prints "BEAST texels a metre" (actor_check's measure; boss >= 90).
+27b swamp_king (coordinator: arms were flat pale tubes with stitch-like
+seams and torn shards; a raised arm swept across his face in pain). Fixed
+with more opt-in build_beast options:
+- "light": "hemi" (+ "sky", "ground", "hemi_k"): the body lit from Meshy's
+  albedo and its own normals (warm sky, dim ground) instead of the stage's
+  COMBINED bake. THE STITCH LINES CAME FROM THE COMBINED BAKE'S LIGHTING on
+  the Meshy mesh (the albedo bake of the same rays was clean; shadow
+  terminator offsets "terminator", cage/ray distances "cage"/"ray", welding
+  and clearing normals did not remove them). BEAST_DEBUG_ALBEDO=1 writes
+  <kind>_dbg_albedo/_turn0/_normals.png to compare.
+- "meshy_uv": the Meshy body keeps Meshy's own UV islands (survive the
+  decimation), kept parts/hands smart-unwrapped, every island scaled to its
+  surface (average_islands_scale, then kept_uv/hand_uv), all packed. The
+  smart unwrap of the decimated body made confetti (30% of the atlas, jagged
+  seams). Body 184 texels a metre, overall 104.
+- "arm_weights": "meshy": the rigged glb's own arm weights (renamed mw_<old
+  bone>) mapped onto the old arm parts, the old nearest weights elsewhere.
+- "smooth_normals": custom split normals cleared, faces smooth (lo and hi);
+  Meshy seams welded before posing (always, in pose_and_hands).
+- attach "ease" {key: share}: that key's arm turns eased back toward the
+  standing key (pain .5, falls .3-.4: the arm no longer crosses his face).
+- "smooth" 4 rings, "arm_reach" 1.7, "tris" 20000 (thin vest over arm).
+Known on 27b: in the pain close-up a few small pink slivers show at the vest
+hem under the raised arm; a small dark fleck on the right forearm by the gun.
+Sheets 27b_swamp_king_make/ingame/face.png.
 Known on 27: the Meshy legs are a stocky man's, shorter than the old block
 legs (he reads a little squat mid-stride); a raised arm in pain/die still
 pulls a short wing of vest under the armpit; the old gun/boat texels are the
