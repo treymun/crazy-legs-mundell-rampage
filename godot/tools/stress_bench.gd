@@ -19,6 +19,10 @@
 ##            local player one of them (tactical_frames.gd)
 ##   county   County Run on county_hickston, its clock jumped to 12 minutes:
 ##            the storm closing in and the horde at its cap (county_frames.gd)
+##   town     a town of 36 two- and three-storey houses of geometry (pass 16:
+##            744 slabs, 2,125 segments, raked gables; house_spike_check's),
+##            its 40 hands awake and coming, the player at a crossroads
+##            looking down a street
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/stress_bench.gd -- [only=strike,fire] [frames=240]
@@ -52,7 +56,9 @@ extends SceneTree
 
 const STEP := 1.0 / 60.0
 const SIM := 1.0 / 120.0
-const SCENARIOS := ["idle", "strike", "wreck48", "fire", "chain6", "arena", "fivev5", "county"]
+const SCENARIOS := [
+	"idle", "strike", "wreck48", "fire", "chain6", "arena", "fivev5", "county", "town"
+]
 ## check: each scene's tick budget, in yardsticks (_hold_tick).
 const TICK_YARDS := {
 	"idle": 1.6,
@@ -62,9 +68,12 @@ const TICK_YARDS := {
 	"chain6": 3.0,
 	"arena": 2.2,
 	"fivev5": 6.0,
-	"county": 7.0
+	"county": 7.0,
+	"town": 3.0
 }
 const Fire := preload("res://src/features/fire.gd")
+const Spike := preload("res://tools/house_spike_check.gd")
+const TOWN := "zz_stress_town"
 const CountyBot := preload("res://tools/county_bot.gd")
 
 var main
@@ -103,7 +112,7 @@ func _run() -> void:
 		elif a == "check":
 			checking = true
 			if only.is_empty():
-				only = ["wreck48", "arena", "county"]
+				only = ["wreck48", "arena", "county", "town"]
 	if checking and not " ".join(OS.get_cmdline_user_args()).contains("frames="):
 		frames = 40
 	CountyRecords.folder_override = OS.get_cache_dir().path_join("clmr-stress-bench")
@@ -815,6 +824,43 @@ func _fivev5() -> String:
 				% [up, gg.players.size(), st.phase, pulls[0]]
 			)
 	)
+	return ""
+
+
+func _town() -> String:
+	LevelData.preview[TOWN] = Spike.town_level(TOWN, 36)
+	var g: Game = main.make_game(TOWN)
+	main.game = g
+	main.state = "play"
+	g.configure(SessionStore.defaults())
+	g.barks.enabled = false
+	g.cheats.god = true
+	# At the crossroads of the second street down and the first across,
+	# looking east along the street, every hand awake and coming.
+	_stand(g, Vector2(16.5, 30.5), 60.0, 30.5, 1.2)
+	for e: Enemy in g.enemies:
+		e.dormant = false
+		e.alerted = true
+	await _settle(g, 30, _plain)
+	await _time(
+		"town",
+		g,
+		_plain,
+		func(gg: Game) -> String:
+			var awake := 0
+			for e: Enemy in gg.enemies:
+				awake += 1 if e.alive and not e.dormant else 0
+			return (
+				"slabs %d segments %d rakes %d  hands awake %d"
+				% [
+					gg.world.geo.slabs.size(),
+					gg.world.geo.segments.size(),
+					gg.world.geo.rakes.size() / LevelGeometry.RAKE_STRIDE,
+					awake
+				]
+			)
+	)
+	LevelData.preview.erase(TOWN)
 	return ""
 
 

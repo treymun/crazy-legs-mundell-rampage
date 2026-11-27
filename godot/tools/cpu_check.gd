@@ -19,6 +19,9 @@
 ##   bot game's tick (best of three batches) inside TICK_BUDGET and no
 ##   feature's tick past FEATURE_BUDGET, in yardsticks (CI-scale: they catch
 ##   a big slowdown, not noise). `report` prints the numbers.
+## - A fight in a town of geometry (pass 16): house_spike_check's 36 houses,
+##   its 40 hands awake and after the bot (god mode), the tick inside
+##   TOWN_BUDGET yardsticks.
 extends SceneTree
 
 const Pilot := preload("res://tools/bot_pilot.gd")
@@ -29,6 +32,8 @@ const TEXT_BUDGET := 40.0
 ## busy CI runner or check_all's other rows do not fail them.
 const TICK_BUDGET := 2.0
 const FEATURE_BUDGET := .3
+const TOWN_BUDGET := 1.5
+const Spike := preload("res://tools/house_spike_check.gd")
 const WORDS := [
 	"E  OPEN DOOR",
 	"FIRE  THROW     ALT  SET DOWN",
@@ -85,6 +90,7 @@ func _run() -> void:
 	print("\nTHE TICK")
 	_lod(main)
 	_tick(main)
+	_town(main)
 	print("")
 	print("CPU CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
 	main.queue_free()
@@ -421,6 +427,43 @@ func _tick(main) -> void:
 		(
 			"no feature's tick past %.1f yardsticks (%s %.2f)"
 			% [FEATURE_BUDGET, worst, worst_us / 1000.0 / yard]
+		)
+	)
+
+
+## The bot in a fight in a town of geometry (format 2's heaviest map): the
+## tick, best of two batches.
+func _town(main) -> void:
+	var id := "zz_cpu_town"
+	LevelData.preview[id] = Spike.town_level(id, 36)
+	var best := INF
+	for batch in 2:
+		var g: Game = main.make_game(id)
+		g.configure({"difficulty": 1})
+		g.cheats.god = true
+		for e: Enemy in g.enemies:
+			e.dormant = false
+			e.alerted = true
+		var pilot := Pilot.new()
+		pilot.as_controls = true
+		for t in 120:
+			g.tick(STEP, pilot.steer(g))
+			pilot.moved(g)
+		var t0 := Time.get_ticks_usec()
+		for t in 480:
+			g.tick(STEP, pilot.steer(g))
+			pilot.moved(g)
+		best = minf(best, (Time.get_ticks_usec() - t0) / 1000.0 / 480.0)
+		main.release_games()
+	LevelData.preview.erase(id)
+	var yard := _yardstick()
+	if report:
+		print("    town tick %.3f ms; yardstick %.3f ms" % [best, yard])
+	_check(
+		best < TOWN_BUDGET * yard,
+		(
+			"a fight in a town of geometry: the tick %.2f yardsticks (< %.1f)"
+			% [best / yard, TOWN_BUDGET]
 		)
 	)
 
