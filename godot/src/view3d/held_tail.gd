@@ -40,6 +40,10 @@ var swing: Array[Vector3] = []
 var spin: Array[Vector3] = []
 var last_at: Array[Vector3] = []
 var last_vel: Array[Vector3] = []
+## The kind's own wriggle share and swing limit (actors.json "flop_wriggle",
+## "flop_most": a chain hangs and swings but never wriggles like a fish).
+var wriggle := WRIGGLE
+var most := MOST
 var _clock := -1.0
 
 
@@ -49,6 +53,10 @@ static func made(view: Node, skeleton: Skeleton3D, info: Dictionary) -> HeldTail
 	if flop.is_empty():
 		return null
 	var tail := HeldTail.new()
+	var wriggle_k: float = info.get("flop_wriggle", 1.0)
+	var most: float = info.get("flop_most", MOST)
+	tail.wriggle = WRIGGLE * wriggle_k
+	tail.most = most
 	# Parents before children.
 	var order: Array[String] = []
 	var left: Array = flop.keys()
@@ -171,7 +179,7 @@ func step(skeleton: Skeleton3D, clock: float, seed: int) -> void:
 		# piece a beat behind the one before it.
 		var burst := clampf(sin(clock * BURST_RATE + phase) * 3.0 - 2.0, 0.0, 1.0)
 		var beat := sin(clock * WRIGGLE_RATE + phase - float(k) * 1.1)
-		var aim := axis.cross(side).normalized() * (WRIGGLE * burst * beat)
+		var aim := axis.cross(side).normalized() * (wriggle * burst * beat)
 		var pull := axis.cross((down - to_skel * acc).normalized()) * (PULL * 9.8)
 		if dt > 0.0:
 			var left := dt
@@ -182,8 +190,8 @@ func step(skeleton: Skeleton3D, clock: float, seed: int) -> void:
 				spin[k] += torque * h
 				swing[k] += spin[k] * h
 				swing[k] -= axis * swing[k].dot(axis)
-				if swing[k].length() > MOST:
-					swing[k] = swing[k].normalized() * MOST
+				if swing[k].length() > most:
+					swing[k] = swing[k].normalized() * most
 					spin[k] *= .5
 		var turn := Basis.IDENTITY
 		if swing[k].length() > 1e-5:

@@ -1284,6 +1284,18 @@
    "after": 894,
    "status": "SUCCEEDED",
    "note": "balance 908 after gas_man_model, 899 before this call: 9 cr were B's concurrent call (not ours)"
+  },
+  {
+   "label": "rudy_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21b72-e4b5-755e-b3f5-ed32446bdcbd",
+   "before": 859,
+   "cost": 9,
+   "body": "rudy_concept.json",
+   "time": "2026-11-26 23:20:45",
+   "after": 841,
+   "status": "SUCCEEDED",
+   "note": "balance fell 18 (859 -> 841) during this call: 9 at list price ours, 9 B's concurrent call"
   }
  ]
 }

@@ -39,6 +39,30 @@ the walk). New opt-in build_actor option: "keep_out_best" (+
 "keep_out_steps", default 8): the keep-out steps' least deep pose kept
 instead of the last (w2 ended 7 cm in the thigh, deeper than it started).
 
+29b flagman (coordinator's review: marble shirt, grey neck, slatted flag;
+0 cr; 29's config kept as SP/meshy-work/flagman_29.json). New opt-in
+build_actor options:
+- "item_panel" [{parts, colour, pole, waves, amp, thick, res}]: old parts
+  (the flag's five green slats) rebuilt as ONE thin cloth panel over their
+  extent, square to the "pole" part, rippled away from it (amp grows from 0
+  at the pole; amp .015 - at .03 the cloth reached 3 cm into the chest in a
+  live arm reaction), vertex-colour lit like the megaphone. Parts left with
+  no vertices make no item now. NOTE: bmesh does not keep the vertex order
+  through a delete - the panel re-finds every old vertex's part by place
+  (KDTree); the older megaphone rebuild assumes the order is kept (latent
+  bug there, only the barker uses it - check his gear if it is rebuilt).
+- recolour rule "smooth": n - the rule's light averaged over its own texels
+  n passes (blotches out, soft folds kept). The shirt is three rules (front
+  between the lapels val >= .24 so the black vest stays; sleeves |x| > .2
+  val >= .08 and not_skin false - the grime patches there were in the skin
+  mask) to [214,208,190]; a "neck" rule (front, |x| < .095) to skin.
+- item_axis flag: the pole's "neck" end is now the end AWAY from the old
+  hand (the cloth's centre decided it before and flipped with the panel).
+B may have its own "smooth" recolour (45b): merge by keeping one.
+Engine (opt-in): HeldTail reads actors.json "flop_wriggle" (share of the
+wriggle) and "flop_most" (swing limit), written from held_model "wriggle"/
+"most" (the chain: no wriggle).
+
 ## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path

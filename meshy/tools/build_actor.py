@@ -45,6 +45,7 @@ import bmesh
 import bpy
 import numpy
 from mathutils import Matrix, Quaternion, Vector
+import mathutils.kdtree  # noqa: E402
 
 CFG = json.load(open(sys.argv[sys.argv.index("--") + 1], encoding="utf-8"))
 for _k in ("rigged", "poses", "old_glb", "old_tex", "out"):
@@ -1034,6 +1035,120 @@ if CFG.get("gear", "old") == "old" and LOST:
             _gco = numpy.array([v.co[:] for v in gm.vertices])
             print("MESHY megaphone: the flat disc (%s) rebuilt as a horn %.2f m long, bell %.3f m" % (
                 DUMP["bones"][_xb], L, r_bell))
+    # A cloth panel (kind config "item_panel" [{parts, colour, pole, waves,
+    # amp, thick, res}]): the old parts (the flagman's flag: stiff green
+    # slats with steps between them) rebuilt as one thin even cloth panel
+    # over their extent, rippled away from the pole (amplitude growing from
+    # nothing at the pole) and shaded by a light from above and in front.
+    for _ip in CFG.get("item_panel", []):
+        _ids = [DUMP["bones"].index(b) for b in _ip["parts"] if b in DUMP["bones"]]
+        _sel = numpy.isin(_vb, _ids)
+        if _sel.sum() < 8:
+            continue
+        pts = _gco[_sel]
+        _c = pts.mean(0)
+        _sv = numpy.linalg.svd(pts - _c, full_matrices=False)[2]
+        _ax = [Vector(_sv[0]), Vector(_sv[1]), Vector(_sv[2]).normalized()]
+        _pr = [(pts - _c) @ numpy.array(a_[:]) for a_ in _ax[:2]]
+        _lo = [float(numpy.percentile(q, 1)) for q in _pr]
+        _hi = [float(numpy.percentile(q, 99)) for q in _pr]
+        # (the ripple runs along the axis across the pole, from the pole out)
+        _run, _pole_at = 0, None
+        if _ip.get("pole") in DUMP["bones"]:
+            _pp = _gco[_vb == DUMP["bones"].index(_ip["pole"])]
+            if len(_pp) > 4:
+                _pa = Vector(numpy.linalg.svd(_pp - _pp.mean(0), full_matrices=False)[2][0])
+                # (the panel square to the pole: its edge along the pole,
+                # the ripple running out across it)
+                _pa = (_pa - _ax[2] * _pa.dot(_ax[2])).normalized()
+                _ax = [_ax[2].cross(_pa).normalized(), _pa, _ax[2]]
+                _pr = [(pts - _c) @ numpy.array(a_[:]) for a_ in _ax[:2]]
+                _lo = [float(numpy.percentile(q, 0)) for q in _pr]
+                _hi = [float(numpy.percentile(q, 100)) for q in _pr]
+                _run = 0
+                _pole_at = float((_pp.mean(0) - _c) @ numpy.array(_ax[_run][:]))
+        if _pole_at is None:
+            _pole_at = _lo[_run]
+        _far = _hi[_run] if abs(_hi[_run] - _pole_at) > abs(_lo[_run] - _pole_at) else _lo[_run]
+        _nu, _nv = int(_ip.get("res", 14)), 4
+        _amp = float(_ip.get("amp", .012)) * OLD_H / 1.7
+        _wv = float(_ip.get("waves", 1.5))
+        _th = float(_ip.get("thick", .005)) * OLD_H / 1.7
+        _xb = _ids[0]
+        bmm = bmesh.new()
+        bmm.from_mesh(gm)
+        bmm.verts.ensure_lookup_table()
+        bmesh.ops.delete(bmm, geom=[bmm.verts[i] for i in numpy.nonzero(_sel)[0]], context="VERTS")
+        nk = len(bmm.verts)
+        _oth = 1 - _run
+        grids = []
+        for side_ in (1, -1):
+            g_ = []
+            for i in range(_nu + 1):
+                t = i / _nu
+                ru = _pole_at + (_far - _pole_at) * t
+                wob = _amp * t * math.sin(2 * math.pi * _wv * t)
+                row = []
+                for j in range(_nv + 1):
+                    ov = _lo[_oth] + (_hi[_oth] - _lo[_oth]) * j / _nv
+                    p_ = Vector(_c) + _ax[_run] * ru + _ax[_oth] * ov + _ax[2] * (wob + side_ * _th * .5)
+                    row.append(bmm.verts.new(p_))
+                g_.append(row)
+            grids.append(g_)
+        new_f = []
+        for gi_, g_ in enumerate(grids):
+            for i in range(_nu):
+                for j in range(_nv):
+                    q = (g_[i][j], g_[i + 1][j], g_[i + 1][j + 1], g_[i][j + 1])
+                    new_f.append(bmm.faces.new(q if gi_ == 0 else q[::-1]))
+        bmm.normal_update()
+        _col = _ip.get("colour", [60, 130, 50])
+        lay = bmm.loops.layers.color.get("mcol") or bmm.loops.layers.color.new("mcol")
+        Ld = Vector((.3, -.6, .75)).normalized()
+        for f in new_f:
+            sh = .62 + .38 * abs(f.normal.dot(Ld))
+            for l_ in f.loops:
+                l_[lay] = (_col[0] / 255.0 * sh, _col[1] / 255.0 * sh, _col[2] / 255.0 * sh, 1.0)
+        nnew = len(bmm.verts) - nk
+        bmm.verts.index_update()
+        pmat = bpy.data.materials.new("gear_panel")
+        pmat.use_nodes = True
+        pnt = pmat.node_tree
+        pnt.nodes.clear()
+        po = pnt.nodes.new("ShaderNodeOutputMaterial")
+        pe = pnt.nodes.new("ShaderNodeEmission")
+        pvc = pnt.nodes.new("ShaderNodeVertexColor")
+        pvc.layer_name = "mcol"
+        pnt.links.new(pvc.outputs[0], pe.inputs[0])
+        pnt.links.new(pe.outputs[0], po.inputs[0])
+        gm.materials.append(pmat)
+        for f in new_f:
+            f.material_index = len(gm.materials) - 1
+        bmm.to_mesh(gm)
+        bmm.free()
+        # (bmesh does not keep the vertices' order through the delete: each
+        # vertex's part found again by its place; the new ones are the panel)
+        _keep_co = _gco[~_sel]
+        _keep_vb = _vb[~_sel]
+        _gco = numpy.array([v.co[:] for v in gm.vertices])
+        _kd = mathutils.kdtree.KDTree(len(_keep_co))
+        for _k, _p in enumerate(_keep_co):
+            _kd.insert(Vector(_p), _k)
+        _kd.balance()
+        _vb_new = numpy.full(len(_gco), _xb)
+        for _k, _p in enumerate(_gco):
+            _q, _qi, _qd = _kd.find(Vector(_p))
+            if _qd < 1e-6:
+                _vb_new[_k] = _keep_vb[_qi]
+        _vb = _vb_new
+        print("MESHY item panel: %s rebuilt as one cloth panel %.2f x %.2f m" % (
+            _ip["parts"], abs(_far - _pole_at), _hi[_oth] - _lo[_oth]))
+        if os.environ.get("MESHY_DEBUG_PANEL"):
+            print("PANEL c", numpy.round(_c, 3), "axes", [numpy.round(x[:], 2) for x in _ax], "lo", _lo, "hi", _hi,
+                  "run", _run, "pole_at", _pole_at, "far", _far)
+            for _x in LOST:
+                if (_vb == _x).any():
+                    print("PANEL part", DUMP["bones"][_x], numpy.round(_gco[_vb == _x].mean(0), 3))
     # A football (kind config "football" {length, width, colour}): the old
     # held parts (a crude cone) rebuilt as a real pigskin at their place and
     # along their long axis - a prolate leather ball, two white stripes near
@@ -1142,6 +1257,9 @@ if CFG.get("gear", "old") == "old" and LOST:
     for _i in LOST:
         if not any(_i in it for it in _items):
             _items.append(sorted(_link[_i]))
+    # (parts left with no vertices - rebuilt into another part's panel -
+    # make no thing of their own)
+    _items = [it for it in _items if any((_vb == i).any() for i in it)]
     vert_gear = []
     for _b in _vb:
         vert_gear.append(next(k for k, it in enumerate(_items) if _b in it))
@@ -2442,9 +2560,10 @@ def solve(name, dz=0.0, held0=None):
                 r_lo = float(perp[al < al.min() + span * .25].mean())
                 r_hi = float(perp[al > al.max() - span * .25].mean())
                 if it.get("axis_pts") is not None:
-                    # (the end with the rest of the thing - a flag's cloth -
-                    # is the "neck": up out of the fist by the thumb)
-                    if float((all_ctr - ctr) @ numpy.array(G0[:])) < 0:
+                    # (the end away from the old hand - a flag's top - is the
+                    # "neck": up out of the fist by the thumb)
+                    _away = (it["hi"] - it["lo"]) * (1.0 if it["holds"].get(side, .5) < .5 else -1.0)
+                    if G0.dot(_away) < 0:
                         G0 = -G0
                         al = -al
                 elif r_hi > r_lo:
@@ -4093,6 +4212,18 @@ for rule in CFG.get("recolour", []):
         print("MESHY recolour %s: nothing" % rule.get("name", "?"))
         continue
     lum = rgbv @ numpy.array([.299, .587, .114])
+    if rule.get("smooth"):
+        # (the rule's light averaged over its own texels - "smooth" passes -
+        # so soft folds stay and the blotches go: a marbled white shirt)
+        L_ = numpy.where(m, lum, 0).reshape(TEXTURE, TEXTURE).astype(numpy.float32)
+        M_ = m.reshape(TEXTURE, TEXTURE).astype(numpy.float32)
+        for _ in range(int(rule["smooth"])):
+            aL, aM = L_.copy(), M_.copy()
+            for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)):
+                aL += numpy.roll(numpy.roll(L_, dy, 0), dx, 1)
+                aM += numpy.roll(numpy.roll(M_, dy, 0), dx, 1)
+            L_ = numpy.where(M_ > 0, aL / numpy.maximum(aM, 1e-6), 0) * M_
+        lum = numpy.where(m, L_.reshape(-1), lum)
     lmid = float(numpy.median(lum[m]))
     to = numpy.array(rule["to"], dtype=float) / 255.0
     k = numpy.clip(lum / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
@@ -4401,6 +4532,10 @@ entry = {
     "joints": JOINTS,
     "rides": RIDES,
     **({"flop": FLOP} if FLOP else {}),
+    # (held_model "wriggle"/"most": the game's tail spring - a chain never
+    # wriggles; opt-in, the catfish keeps the defaults)
+    **({"flop_wriggle": float(CFG["held_model"]["wriggle"])} if FLOP and "wriggle" in CFG.get("held_model", {}) else {}),
+    **({"flop_most": float(CFG["held_model"]["most"])} if FLOP and "most" in CFG.get("held_model", {}) else {}),
     **({"hold_near": float(CFG["hold_near"])} if "hold_near" in CFG else {}),
     **({"hold_legs": True} if CFG.get("hold_legs") else {}),
     "segs": dict({"body": 0, "head": 1, "upperarm_l": 2, "forearm_l": 3, "hand_l": 3, "upperarm_r": 4,
