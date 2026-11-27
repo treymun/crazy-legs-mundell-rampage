@@ -164,8 +164,8 @@
  },
  "chalk_spitter": {
   "refs": "cel",
-  "who": "chalk spitter, a gaunt chalk-white quarry ghoul who hawks gobs of chalk dust at people, a scrawny hunched backwoods quarry miner turned undead",
-  "design": "chalk-white grey skin caked and flaking with quarry chalk dust all over, a bald lumpy head, a skinny wiry body with a little pot belly, WEARING ragged off-white chalk-stained long-john underwear with a few square stitched-on patches and a button flap on the chest, the sleeves torn off at the elbows, bare chalky forearms and hands, frayed legs tucked into grey cracked work boots, everything the same dusty chalk white and pale grey",
+  "who": "chalk spitter, a gaunt chalk-white quarry ghoul who hawks gobs of chalk dust at people, a scrawny backwoods quarry miner turned undead",
+  "design": "chalk-white grey skin caked and flaking with quarry chalk dust all over, a bald lumpy head, a skinny wiry body with a little pot belly, WEARING ragged off-white chalk-stained long-john underwear with a few square stitched-on patches and a button flap on the chest, the sleeves torn off at the elbows, bare chalky forearms and hands, frayed legs tucked into grey cracked work boots, everything the same dusty chalk white and pale grey, standing tall and UPRIGHT with a straight back, shoulders back, head held up and chin level, looking straight ahead (not hunched, not stooped, not leaning forward)",
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a gaunt chalky face lit evenly, sunken eyes with pale whites and dark pupils under heavy brow ridges, a big gaping round mouth with chalky lips and a few crooked teeth, cheeks puffed like he is about to spit, a creepy hungry leer",
   "texture": "chalk-white ghoul, flaking chalky grey-white skin, bald, ragged off-white long johns with stitched square patches, grey cracked boots, sunken eyes with whites, gaping mouth, empty hands",
   "height": 1.6

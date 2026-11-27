@@ -1,0 +1,38 @@
+{
+ "kind": "chalk_spitter",
+ "rigged": "../meshy-work/meshy_out/chalk_spitter_rig/rigged.glb",
+ "poses": "../meshy-work/dump/chalk_spitter_poses.json",
+ "old_glb": "../meshy-work/old/chalk_spitter.glb",
+ "old_tex": "../meshy-work/old/actor3d_chalk_spitter.png",
+ "out": "../meshy-work/raw/chalk_spitter",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "face_box": {
+  "auto": true
+ },
+ "face_uv": {
+  "k": 2.2,
+  "auto": true
+ },
+ "skin_rgb": [
+  200,
+  196,
+  190
+ ],
+ "skin_texels": {
+  "hue": [
+   0,
+   360
+  ],
+  "sat": [
+   0,
+   0.1
+  ],
+  "val": [
+   0.45,
+   1
+  ]
+ }
+}

@@ -69,6 +69,29 @@ with more opt-in build_beast options:
 - attach "ease" {key: share}: that key's arm turns eased back toward the
   standing key (pain .5, falls .3-.4: the arm no longer crosses his face).
 - "smooth" 4 rings, "arm_reach" 1.7, "tris" 20000 (thin vest over arm).
+27c (coordinator's time-boxed left-arm pass): left elbow opened
+("elbow_shift" [.1, .08, -.04]) and the pain/fall arm eased more (pain .7,
+falls .4-.5). Not clean in the box: under the raised left arm the arm skin
+still pokes out below the vest hem as a ragged pink fringe (the thin vest
+shell over the body; the posed upper arm pushes through it) and the folded
+left forearm reads as a broad flat salmon plane up close. Ideas not tried:
+hide/shrink body skin under the vest (a cloth-over-skin push like keep_out),
+or a Meshy re-rig/re-pose with the left arm already bent at the belly.
+Previous config kept as SP/meshy-work/swamp_king_27b.json.
+
+28 chalk_spitter DONE (88 cr: the first model came hunched - head far
+forward, the spine bent in the Meshy rest - so a second concept asked for
+"standing tall and UPRIGHT"; old outputs in SP/meshy-work/meshy_out/
+old_chalk). build_actor with "skin_rgb" [200,196,190] + "skin_texels"
+{sat [0,.1], val [.45,1]} (chalk-grey skin: the hands matched to the yellow
+cloth or came out brown/lime otherwise). Eyes are pale/blank (Meshy's).
+
+NEXT (A): flagman - concept + model + rig DONE (44 cr, ledger), NOT built:
+kind_config.py flagman 'hands_paint="texture"' face_box/face_uv auto,
+head_noshadow (red cap), the flag in his RIGHT hand (hold: follows the old
+keys), flare in the left; then gas_man (prompt script ready:
+SP/meshy-work/add_prompt_gas_man.py; a throw brain - item_types throw), then
+26b chain_hand. A's ledger: 1,674 of 2,007.
 Known on 27b: in the pain close-up a few small pink slivers show at the vest
 hem under the raised arm; a small dark fleck on the right forearm by the gun.
 Sheets 27b_swamp_king_make/ingame/face.png.

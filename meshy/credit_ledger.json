@@ -1195,6 +1195,61 @@
    "time": "2026-11-26 21:06:59",
    "after": 1070,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "flagman_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21afb-9f2f-74f4-beff-cdd44bc4a3c0",
+   "before": 1070,
+   "cost": 30,
+   "body": "flagman_model.json",
+   "time": "2026-11-26 21:10:31",
+   "after": 1040,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "flagman_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21afc-adfd-724e-83b0-105f6f8657eb",
+   "before": 1040,
+   "cost": 5,
+   "body": "flagman_rig.json",
+   "time": "2026-11-26 21:11:41",
+   "after": 1035,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chalk_spitter_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21b0d-4c3c-7087-9450-691222675508",
+   "before": 991,
+   "cost": 9,
+   "body": "chalk_spitter_concept.json",
+   "time": "2026-11-26 21:29:47",
+   "after": 982,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chalk_spitter_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21b0e-39b0-7117-b438-101cd17e8a8b",
+   "before": 982,
+   "cost": 30,
+   "body": "chalk_spitter_model.json",
+   "time": "2026-11-26 21:30:49",
+   "after": 952,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chalk_spitter_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21b0f-3cd2-70cc-944c-6acad569348e",
+   "before": 952,
+   "cost": 5,
+   "body": "chalk_spitter_rig.json",
+   "time": "2026-11-26 21:32:00",
+   "after": 947,
+   "status": "SUCCEEDED"
   }
  ]
 }
