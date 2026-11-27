@@ -212,6 +212,8 @@ func rtt(to: int) -> float:
 
 ## Peer `to`'s address as this side sees it ("" not known).
 func address_of(to: int) -> String:
+	if also != null and to >= ALSO_IDS:
+		return also.address_of(to - ALSO_IDS)  # a browser on the lobby's WebSocket
 	if peer is ENetMultiplayerPeer:
 		var other := (peer as ENetMultiplayerPeer).get_peer(to)
 		return other.get_remote_address() if other != null else ""

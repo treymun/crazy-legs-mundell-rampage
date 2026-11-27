@@ -16,8 +16,10 @@
 ## reached through the server by a short code (net_relay.gd). "most_matches"
 ## caps the matches on at once, "snap_every" the ticks between snapshots (2:
 ## 30 a second; server/lobbies.json runs its one lobby at 1, 60 a second),
-## "status_every" the seconds between status lines; "old" and
-## "test_link" are for measuring (tools/net_pace.gd). Prints a line for
+## "status_every" the seconds between status lines; "shelf" ({"dir": a
+## folder}) keeps THE MAP SHELF there (map_shelf.gd: player maps put up,
+## listed and got by code, the folder kept across restarts and updates);
+## "old" and "test_link" are for measuring (tools/net_pace.gd). Prints a line for
 ## everyone who comes and goes, each match, each party line room, and every
 ## status_every seconds how busy it is (each room's tick cost and how evenly
 ## its snapshots went out).
@@ -87,6 +89,8 @@ var sim := {}
 var most_matches := MOST_MATCHES
 ## THE PARTY LINE on the lobbies' ports (null: the config has no "relay").
 var relay: NetRelay = null
+## THE MAP SHELF, asked on every lobby's port (null: the config has no "shelf").
+var shelf: MapShelf = null
 var _status_in := 10.0
 var _status_at := 0.0
 var status_every := STATUS_EVERY
@@ -130,6 +134,15 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 		var relay_dict: Dictionary = relay_config
 		relay = NetRelay.new(relay_dict)
 		line_peers = relay.limits["peers"]
+	var shelf_config: Variant = config.get("shelf")
+	if shelf_config is Dictionary:
+		var shelf_dict: Dictionary = shelf_config
+		var folder := str(shelf_dict.get("dir", ""))
+		if folder != "":
+			shelf = MapShelf.new(folder)
+			if not DirAccess.dir_exists_absolute(folder):
+				_log("THE MAP SHELF CAN'T USE %s: NO SHELF" % folder)
+				shelf = null
 	for entry: Variant in config.get("lobbies", []):
 		if not entry is Dictionary:
 			continue
@@ -164,6 +177,7 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 			test_link = true
 		net.make_match = _make
 		net.may_start = _may_start
+		net.shelf = shelf
 		net.sim_options = sim
 		var room := Room.new()
 		room.net = net
@@ -225,7 +239,10 @@ func _ready() -> void:
 			% [
 				ProjectSettings.get_setting("application/config/version", "?"),
 				rooms.size(),
-				", THE PARTY LINE ON THEIR PORTS" if relay != null else ""
+				(
+					(", THE PARTY LINE ON THEIR PORTS" if relay != null else "")
+					+ (", THE MAP SHELF IN %s" % shelf.dir if shelf != null else "")
+				)
 			]
 		)
 	)
@@ -284,6 +301,10 @@ func frame(now: float, delta: float) -> void:
 		for line: String in relay.take_news():
 			_log("PARTY LINE: " + line)
 		busy = busy or relay.busy()
+	if shelf != null:
+		shelf.housekeep(Time.get_unix_time_from_system())
+		for line: String in shelf.take_news():
+			_log(line)
 	if not paced:
 		Engine.max_fps = MATCH_FPS if busy else IDLE_FPS
 		_note_sends(Time.get_ticks_usec() / 1000.0)
@@ -567,6 +588,8 @@ static func _at(sorted: PackedFloat32Array, q: float) -> float:
 
 ## Closes every lobby, telling everyone why (the service is stopping).
 func close_all(why := "THE SERVER IS RESTARTING") -> void:
+	if shelf != null:
+		shelf.save(Time.get_unix_time_from_system())
 	if relay != null:
 		relay.close_all(why)
 	for room in rooms:

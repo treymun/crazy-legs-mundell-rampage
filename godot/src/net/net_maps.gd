@@ -4,18 +4,22 @@
 ## the order, so a joiner always has the map before its START).
 ##
 ##   MAP  host -> client, reliable: {"hash": sha256 of the map's canonical
-##        text, "data": that text's bytes, as they are}
+##        text, "data": that text's bytes, "z": their size unpacked when
+##        they go zstd'd}
 ##
-## Not packed: a map is a few KB at most (limits.bytes) and unpacking a
-## stranger's bytes is one more way in. A client takes it only if it fits:
-## the bytes at most limits.bytes, their hash the one said, the text a map
-## UserMap.check passes and already in its canonical form. Then the map is put where the game loads
-## levels (its versus copy, the one the lobby plays) and kept under
-## user://maps/shared. Anything else and the client leaves the lobby with the
-## reason. The lobby's settings say which map ("map" is its level id,
-## "custom_map" its hash, name and author). Nothing here touches the party
-## line: a MAP packet's first byte is under NetWire.RELAY_FIRST like any game
-## packet, and it is far under the line's packet cap.
+## Packed past map_share.json's "pack_over" (4 KB; protocol 7): a v1 map is
+## a few KB, a bigger one is mostly repeats. A client takes it only if it
+## fits: the bytes at most limits.bytes both before and after unpacking (the
+## size said is checked before anything is unpacked, so no zip bomb), their
+## hash the one said, the text a map UserMap.check passes and already in its
+## canonical form (ShareCode.unpack_bytes, unpack). Then the map is put where
+## the game loads levels (its versus copy, the one the lobby plays) and kept
+## under user://maps/shared. Anything else and the client leaves the lobby
+## with the reason. The lobby's settings say which map ("map" is its level
+## id, "custom_map" its hash, name and author). Nothing here touches the
+## party line: a MAP packet's first byte is under NetWire.RELAY_FIRST like
+## any game packet, and it is far under the line's packet cap. The map shelf
+## (map_shelf.gd) sends and takes maps the same way.
 class_name NetMaps
 extends RefCounted
 
@@ -78,20 +82,21 @@ static func send_to(net: NetPlay, id: int) -> void:
 
 static func packet(map: Dictionary) -> Dictionary:
 	var text := UserMap.to_text(map)
-	return {"hash": UserMap.hash_text(text), "data": text.to_utf8_buffer()}
+	var out := ShareCode.pack(text)
+	out["hash"] = UserMap.hash_text(text)
+	return out
 
 
-## A MAP packet's map, or why not ({"map": ...} or {"error": ...}).
-static func unpack(info: Dictionary) -> Dictionary:
-	var data: Variant = info.get("data")
+## A MAP packet's map, or why not ({"map": ...} or {"error": ...}); `most`
+## bytes at most (0: the game's own limits.bytes).
+static func unpack(info: Dictionary, most := 0) -> Dictionary:
 	var hash: Variant = info.get("hash")
-	if not data is PackedByteArray or not hash is String:
+	if not hash is String:
 		return {"error": "THE MAP CAME MANGLED."}
-	var raw: PackedByteArray = data
-	if raw.is_empty():
-		return {"error": "THE MAP CAME EMPTY."}
-	if raw.size() > UserMap.limit("bytes"):
-		return {"error": "THE MAP CAME TOO BIG TO BE ONE."}
+	var got := ShareCode.unpack_bytes(info, most if most > 0 else UserMap.limit("bytes"))
+	if got.has("error"):
+		return got
+	var raw: PackedByteArray = got["bytes"]
 	var text := raw.get_string_from_utf8()
 	if UserMap.hash_text(text) != str(hash):
 		return {"error": "THE MAP DIDN'T MATCH ITS HASH."}

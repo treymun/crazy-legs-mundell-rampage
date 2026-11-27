@@ -488,8 +488,10 @@ Play is deterministic, so a run is its start and each tick's controls:
 only), with test latency, jitter and loss on what it sends (on the clock
 handed to `poll`; a lost unreliable packet is dropped, a lost reliable one
 comes a resend later and holds up its channel, `resend_lost`). `NetWire` is
-every packet's layout (protocol 6, snapshot version 3: an older client is
-refused at HELLO with THE SERVER (HOST) RUNS ANOTHER VERSION; controls in 15
+every packet's layout (protocol 7, snapshot version 3: an older client is
+refused at HELLO with THE SERVER (HOST) RUNS ANOTHER VERSION (3.15.0), and
+since protocol 7 an older one is told UPDATE YOUR GAME TO JOIN; a message
+from a client past `MESSAGE_MOST`, 256 KB, is dropped unread; controls in 15
 bytes, buys, reloads, the host's rewind and (since protocol 6, pass 15) a
 second byte of buttons, KICK and THROW, among them; inputs sent redundantly with the tick the client shows;
 snapshots with their base, tick, input ack and the inputs played since the
@@ -876,7 +878,8 @@ the how-to. The 5v5 rules themselves are in
   (`main.gd _net_frame`) and acts on `take_changes()` (a match began, back to
   the lobby, a bot or a person took a slot).
 - HELLO carries name, password and version (refused: wrong password, another
-  version, full, a match on without LATE JOIN).
+  version, full, a match on without LATE JOIN; an older protocol is told to
+  update its game).
 - The host's settings are `NetPlay.LOBBY_ROWS` and `MATCH_ROWS` (rows and
   defaults in `data/tuning/lobby.cfg`); the match ones reach the mode through
   `Modes.HOST_SETTINGS` (freeze, buy and round seconds, start cash, friendly
@@ -1621,14 +1624,18 @@ Voice chat (below) rides the same loop and the same lobby.
   SAVE (`NetCoop.save` says so), and the host's ENTER on the win takes
   everyone back to the lobby (`NetCoop.next`): never the Crossroads or a
   chapter, nothing opened on the host's profile.
-- **MAP** (`NetWire.MAP`, 20), host to client, reliable: `{"hash", "data"}`,
-  the map's canonical text as it is (a few KB at most, not packed: unpacking
-  a stranger's bytes is one more way in). The host sends it to everyone when
-  it picks a map and to each joiner straight after WELCOME (`_hello`), so on
-  the reliable channel it always comes before a START, a late joiner's too.
-- A client takes it only if it fits (`unpack`): at most `limits.bytes`, the
-  hash the one said, a map `UserMap.check` passes, already canonical. Then it
-  is registered (`LevelData.preview`) and kept under `user://maps/shared`;
+- **MAP** (`NetWire.MAP`, 20), host to client, reliable: `{"hash", "data",
+  "z"}`, the map's canonical text, zstd'd past `map_share.json`'s
+  `pack_over` (4 KB) with `z` its size unpacked (protocol 7; the examples go
+  as about 1 KB instead of 4.3; `ShareCode.pack`). The host sends it to
+  everyone when it picks a map and to each joiner straight after WELCOME
+  (`_hello`), so on the reliable channel it always comes before a START, a
+  late joiner's too.
+- A client takes it only if it fits (`unpack`, `ShareCode.unpack_bytes`): at
+  most `limits.bytes` packed and unpacked (the size said is checked before
+  anything is unpacked, and the size made against it after: no zip bomb),
+  the hash the one said, a map `UserMap.check` passes, already canonical.
+  Then it is registered (`LevelData.preview`) and kept under `user://maps/shared`;
   otherwise the client leaves with `THE HOST'S MAP WAS NO GOOD: <why>`.
   `net_match_game` makes no game of a player map that never came (THE MAP
   WOULD NOT LOAD), so nobody plays a different map.
@@ -1639,9 +1646,73 @@ Voice chat (below) rides the same loop and the same lobby.
   `RELAY_FIRST` and it is far under the line's 256 KB cap (the largest map's
   is about 5 KB).
 - Always-open lobbies take no player maps (an admin's MAP is checked
-  against lobby.cfg's row by `allowed_value`). Not done: a shared list of
-  maps on the lobby server.
+  against lobby.cfg's row by `allowed_value`); the lobby server's shelf of
+  them is [below](#the-map-shelf-pass-16).
 - `tools/user_map_check.gd` holds it (ENet in one process).
+
+### The map shelf (pass 16)
+
+`src/net/map_shelf.gd` (`MapShelf`, the server's), `src/net/shelf_link.gd`
+(`ShelfLink`, one knock), `src/user_maps/share_code.gd` (`ShareCode`),
+`src/ui/screens/map_shelf_panel.gd` (CUSTOM MAPS' side); the numbers in
+`data/tuning/map_share.json`; players' how-to in `docs/online.md` "Sharing
+maps".
+
+- **Codes.** A long code is the whole map: `CLMR1:` + base64url of 3 bytes
+  of size and the zstd'd canonical text + 4 letters of check (about 1,400
+  letters for the 4.3 KB examples). A short code is the first 40 bits of the
+  map's hash in 8 of Crockford's base-32 letters, shown `7KQ2-M9XD` (O, I
+  and L typed are read as 0, 1 and 1; no U); only the shelf turns one back
+  into a map. Both are read back only through `UserMap.parse_text` and the
+  canonical form, as a file or a lobby's MAP is.
+- **The knock.** `NetWire.SHELF` (14, protocol 7) on a lobby's own port,
+  like INFO and BOARD: connect, one ask, the answer, hang up (`MapShelf.knock`
+  from `NetPlay._host_message`; the peer is let go after 5 s). The game asks
+  the server the party line is on (servers.json's first `"relay"`); the
+  browser asks over its wss. A tool never reaches the real one unless it sets
+  `ShelfLink.server`. Asks: `put` (a MAP packet's `hash`, `data`, `z`) ->
+  `code`, `new`; `list` (`sort` new or took, `find`, `page`) -> eight rows a
+  page `[code, name, author, note, w, h, hosts, took, day]`; `get` (`code`)
+  -> a MAP packet's fields. A refusal is `{"error": one plain line}`; an ask
+  of another protocol is told to update (or that the shelf is older).
+- **On the server.** `server/lobbies.json` `"shelf": {"dir": "/opt/clmr/maps"}`
+  turns it on in `LobbyServer`; every lobby's NetPlay gets it (`net.shelf`).
+  It keeps `<dir>/<hash>.json` (the canonical text, named by the server's own
+  hash of it), `<dir>/index.json` (written at once on a put, the counts every
+  `save_every` seconds and when the server closes) and `<dir>/list.txt` for
+  the owner; `<dir>/remove.txt` (written by `server/map_shelf.sh`) is read
+  every `look_every` seconds: its maps are deleted and their hashes banned.
+  An index that does not read is made again from the maps' files, each
+  checked as a put is; a listing that does not hold up is left out.
+  `setup.sh` makes the folder and never empties it (it keeps one copy as it
+  stood in `/root` before an update).
+- **Safe with strangers.** A put is held to `NetMaps.unpack` (sizes before
+  and after unpacking, the hash, the parse, the canonical form), must host
+  something (`UserMap.hosts`) and pass `ShareCode.words_ok` (a short ROT13
+  list, each word with digits read as letters; the game asks first). Caps:
+  2,000 maps, 64 KB a map, 10 puts a day from an address, 60 puts an hour
+  from everyone, 30 asks a minute from an address (a refused put counts);
+  addresses are kept only as a 12-letter hash, 4,096 of them at most.
+  Nothing in a map is ever run: the server parses JSON and writes the text
+  it made itself. A client message past 256 KB is dropped unread (every
+  host, `NetPlay.poll`).
+- **Costs.** A list is a sort of the index (kept between asks; the most
+  taken order is redone at most every `save_every` seconds) and a slice; a
+  get reads one file of a few KB; a put parses one map and writes two files.
+  A full shelf is about 130 MB on disk at most.
+- **CUSTOM MAPS.** Three rows above the maps: + NEW MAP, THE MAP SHELF
+  (browsed in place of the list: TAKE IT HOME keeps a map under
+  `maps/shared` and picks it on the list, where PLAY and HOST ONLINE are;
+  MOST TAKEN / NEWEST FIRST, FIND BY NAME, NEXT PAGE, PGUP PGDN, R asks
+  again) and ENTER A CODE (TYPE A CODE, PASTE A CODE; CTRL+V pastes one
+  anywhere on the list). A map's SHARE IT copies its long code; pressed
+  again it puts the map on the shelf and copies the short code, which then
+  shows on SHARE IT's row. `UserMapPlay.ROWS_BEFORE` is the list's three
+  rows; a map's actions scroll past eight (`CustomMapsScreen.ACTIONS_SHOWN`).
+- The always-open lobby taking shelf maps is not done (its MAP is still
+  lobby.cfg's row).
+- `tools/map_share_check.gd` holds it (codes, packets, the shelf in process
+  and on a lobby server over ENet and WebSocket, the screen).
 
 ### The multiplayer menus
 

@@ -3,6 +3,7 @@
 	"most_matches": 1,
 	"snap_every": 1,
 	"relay": {"rooms": 24, "players": 15, "room_bytes": 1000000, "idle_minutes": 30},
+	"shelf": {"dir": "/opt/clmr/maps"},
 	"tls_cert": "/etc/clmr/tls/fullchain.pem",
 	"tls_key": "/etc/clmr/tls/privkey.pem",
 	"lobbies": [

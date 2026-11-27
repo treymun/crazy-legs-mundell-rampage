@@ -18,6 +18,9 @@ const ACTION_NAMES := {
 	"edit": "EDIT IN THE SHED",
 	"remove": "THROW IT OUT",
 }
+## The CUSTOM MAPS list's rows before the maps: + NEW MAP, THE MAP SHELF,
+## ENTER A CODE (custom_maps_screen.gd).
+const ROWS_BEFORE := 3
 ## A map save's own format (the game part is SessionStore's, at its VERSION,
 ## brought up by SaveUpgrade like any save).
 const SAVE_VERSION := 1
@@ -39,7 +42,7 @@ static var armed := false
 
 static func refresh() -> void:
 	entries = UserMaps.list()
-	row = clampi(row, 0, maxi(0, entries.size() - 1))
+	row = clampi(row, 0, entries.size() + ROWS_BEFORE - 1)
 
 
 static func picked() -> Dictionary:

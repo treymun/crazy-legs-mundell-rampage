@@ -448,6 +448,11 @@ func _shipped() -> void:
 		"60 snapshots a second (snap_every 1)"
 	)
 	_check(int(config.get("most_matches", 2)) == 1, "one match at a time (most_matches 1)")
+	var shelf: Dictionary = config.get("shelf", {})
+	_check(
+		str(shelf.get("dir", "")) == "/opt/clmr/maps",
+		"the map shelf is kept in /opt/clmr/maps (setup.sh keeps it): %s" % shelf.get("dir", "none")
+	)
 	_check(
 		str(lobby.get("mode", "")) == Modes.BOMB and int(lobby.get("team_size", 0)) == 5,
 		"it opens on the 5v5 (MODE switches to hostage and tag team in the lobby)"
@@ -458,6 +463,8 @@ func _shipped() -> void:
 	local["bind"] = "127.0.0.1"
 	local.erase("tls_cert")
 	local.erase("tls_key")
+	# (The shelf in this run's own cache, never a folder made at /opt.)
+	local["shelf"] = {"dir": OS.get_cache_dir().path_join("net-server-check-shelf")}
 	var opened: LobbyServer = null
 	for k in 20:
 		var room: Dictionary = local["lobbies"][0]
@@ -469,8 +476,13 @@ func _shipped() -> void:
 		opened.free()
 		opened = null
 	_check(
-		opened != null and opened.relay != null and NetPlay.snap_every == 1,
-		"it opens: one lobby, ENet and WebSocket, the party line, snapshots every tick"
+		(
+			opened != null
+			and opened.relay != null
+			and opened.shelf != null
+			and NetPlay.snap_every == 1
+		),
+		"it opens: one lobby, ENet and WebSocket, the party line, the shelf, snapshots every tick"
 	)
 	if opened != null:
 		for room in opened.rooms:

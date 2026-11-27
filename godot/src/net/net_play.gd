@@ -140,6 +140,8 @@ var _now := 0.0
 var host_os := ""
 ## Voice chat: its routing (the host) and what we hear (net_voice.gd).
 var voice := NetVoice.new()
+## An always-open lobby's server's map shelf (map_shelf.gd; null: none).
+var shelf: MapShelf = null
 var _opened_at := 0.0
 var _hello_at := 0.0
 var _waiting_hello := {}
@@ -403,7 +405,8 @@ func poll(now_ms: float) -> void:
 			voice.take(self, talker, bytes, now_ms)
 		elif role == Role.HOST:
 			var from: int = packet[0]
-			_host_message(from, kind, NetWire.info_of(bytes))
+			if bytes.size() <= NetWire.MESSAGE_MOST:  # (past it: dropped unread)
+				_host_message(from, kind, NetWire.info_of(bytes))
 		else:
 			_client_message(kind, NetWire.info_of(bytes))
 		if session == null:
@@ -513,6 +516,8 @@ func _host_message(from: int, kind: int, info: Dictionary) -> void:
 			_info(from)
 		NetWire.BOARD:
 			_board(from, info)
+		NetWire.SHELF:
+			MapShelf.knock(self, from, info)
 		NetWire.ASK:
 			var p := player_of(from)
 			if p.is_empty():
@@ -637,7 +642,9 @@ func _hello(from: int, info: Dictionary) -> void:
 	var max_players: int = settings["max_players"]
 	var late_join: bool = settings["late_join"]
 	if protocol != NetWire.PROTOCOL:
-		refused = "%s RUNS ANOTHER VERSION (%s)" % [who, version]
+		# An older game is told to update (protocol 7 on: an older one says no more).
+		var hint := ". UPDATE YOUR GAME TO JOIN." if protocol < NetWire.PROTOCOL else ""
+		refused = "%s RUNS ANOTHER VERSION (%s)%s" % [who, version, hint]
 	elif str(info.get("version", "")) != version:
 		refused = "%s RUNS %s, YOU RUN %s" % [who, version, str(info.get("version", "?"))]
 	elif (
@@ -740,9 +747,9 @@ func _drop(id: int, _why: String) -> void:
 	_gone(id)
 
 
-## A refused client is let go once its refusal has had time to get there.
-func _drop_later(id: int) -> void:
-	(Engine.get_main_loop() as SceneTree).create_timer(1.0).timeout.connect(
+## A refused client (or a knock) is let go once its answer had `wait` s to get there.
+func _drop_later(id: int, wait := 1.0) -> void:
+	(Engine.get_main_loop() as SceneTree).create_timer(wait).timeout.connect(
 		func() -> void:
 			if session != null and player_of(id).is_empty():
 				session.drop(id)
