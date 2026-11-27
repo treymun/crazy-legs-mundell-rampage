@@ -1010,7 +1010,7 @@
  ],
  "agent B": {
   "budget": 650,
-  "spent": 185,
+  "spent": 229,
   "entries": [
    {
     "label": "millhand_concept",
@@ -1157,6 +1157,39 @@
     "body": "pit_mechanic_rig.json",
     "time": "2026-11-26 19:16:19",
     "after": 1299,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "revenooer_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21ab9-9392-7568-bbeb-5eeac2760bcb",
+    "before": 1255,
+    "cost": 9,
+    "body": "revenooer_concept.json",
+    "time": "2026-11-26 19:58:20",
+    "after": 1246,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "revenooer_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21aba-7976-7500-958b-a3e62ea302f4",
+    "before": 1246,
+    "cost": 30,
+    "body": "revenooer_model.json",
+    "time": "2026-11-26 19:59:22",
+    "after": 1216,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "revenooer_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21abc-63e7-7639-959f-575f0749ef24",
+    "before": 1216,
+    "cost": 5,
+    "body": "revenooer_rig.json",
+    "time": "2026-11-26 20:01:27",
+    "after": 1211,
     "status": "SUCCEEDED"
    }
   ]

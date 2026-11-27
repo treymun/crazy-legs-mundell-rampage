@@ -4047,6 +4047,10 @@ for rule in CFG.get("recolour", []):
         rr = float(rule.get("r", .035)) * OLD_H / 1.7
         m &= numpy.sqrt((px_ - NOSE.x) ** 2 + (py_ - NOSE.y) ** 2 + ((pz_ * OLD_H) - NOSE.z) ** 2) < rr
     m &= (mx >= rule.get("val", [0, 1])[0]) & (mx <= rule.get("val", [0, 1])[1])
+    # ("not_face": true - the face's front (FACEZONE, "face_box") left out:
+    # a cap's band reaching down to the brow)
+    if rule.get("not_face"):
+        m &= ~FACEZONE
     if rule.get("not_skin", True):
         m &= ~SKIN_DONE
         if "HANDMASK" in globals():

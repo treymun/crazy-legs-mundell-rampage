@@ -168,5 +168,13 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a round ruddy weathered face lit evenly, wide-open eyes with clear whites and dark pupils under bushy dark brows, a big nose, a thick dark-brown walrus moustache, a gruff scowl, short dark hair under the cap, clean skin, the face fully in light under the cap's bill",
   "texture": "pit-crew mechanic, red ball cap, dark navy coveralls, white name patch, red rag, black boots, ruddy clean skin, dark walrus moustache, clear face with eye whites, bare hands, empty hands, no weapon",
   "height": 1.68
+ },
+ "revenooer": {
+  "refs": "cel",
+  "who": "1990s federal revenue agent (a 'revenooer'), a lean hard-nosed government man who busts moonshine stills",
+  "design": "WEARING a black narrow-brimmed fedora on his head, small round wire spectacles with clear lenses, a black two-piece suit with the jacket buttoned, a white shirt and a thin black tie, a small silver badge clipped on his belt, black leather shoes, a lean fit natural build with real shoulders and arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a long lean clean-shaven face with a square jaw lit evenly, wide-open eyes with clear whites and dark pupils behind the clear round spectacles, thin stern eyebrows, a sharp nose, a tight-lipped smug smirk, short slicked dark hair under the hat, clean skin, the face fully in light under the hat brim",
+  "texture": "federal agent, black fedora, round wire spectacles with clear lenses, black suit, white shirt, thin black tie, silver belt badge, black shoes, clean pale skin, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.72
  }
 }

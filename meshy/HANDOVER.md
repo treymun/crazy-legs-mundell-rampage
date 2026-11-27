@@ -15,7 +15,12 @@ gear_one, item_types r throw, "bottle_flip" (new) + bottle_grip .72 so the
 spark stands up out of the fist; skin_even tone with face_even 0 (else the
 sandy hair went skin-peach); face_keep light .78 (the evened arms raised
 the face's target)).
-NEXT: pit_mechanic (model + rig bought; kind json written; lug wrench gear0/1).
+43 pit_mechanic (44 cr; lug wrench: grip_parts r b27 l b31, gear_one,
+item_types r "hold" (throw/bottle mode could not take a cross: wrist 63
+degrees, 3 cm in the body); cap recolour with "not_face" (new: the cap's
+band reached the brow) split into crown z .93+ and a band z .90-.93 by
+saturation so the dark hair stays).
+NEXT: revenooer (concept + model + rig bought), then shield_deputy.
 Mundell notes: the player kind is no enemy - the enemy tour, live_frames
 probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
 in-game sheet is tools/mode_frames.gd only=mundell (new: gd.sh, old:
@@ -72,6 +77,7 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   it: "face_lift_most" 1.15 for a full beard).
 - face_uv for a hard hat: "brim_k" 1.4 (.7 shrank the whole hat and the
   face's other islands: blockier), "z" [-.16, .2], "r" .2, k 3-4.5.
+- build_actor recolour rule "not_face": true leaves FACEZONE out.
 - build_actor "bottle_flip": a bottle/throw item whose thick end is its
   top (dynamite spark).
 - grip_parts: the old millhand's yellow coat passed for skin (b5); name the

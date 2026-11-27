@@ -26,7 +26,10 @@
  },
  "face_keep": {
   "light": 1.1,
-  "eyes": 1.6
+  "eyes": 1.6,
+  "eye_sat": 0.12,
+  "eye_lum": 0.6,
+  "soften": 0.5
  },
  "face_box": {
   "r": 0.27,
@@ -46,5 +49,61 @@
    "b31"
   ]
  },
- "gear_one": true
+ "gear_one": true,
+ "recolour": [
+  {
+   "hue": [
+    340,
+    45
+   ],
+   "sat": [
+    0.15,
+    1
+   ],
+   "val": [
+    0,
+    0.95
+   ],
+   "to": [
+    176,
+    40,
+    30
+   ],
+   "contrast": 0.7,
+   "not_skin": false,
+   "not_face": true,
+   "name": "cap",
+   "z": [
+    0.93,
+    1.03
+   ]
+  },
+  {
+   "hue": [
+    340,
+    45
+   ],
+   "sat": [
+    0.38,
+    1
+   ],
+   "val": [
+    0.28,
+    0.95
+   ],
+   "to": [
+    176,
+    40,
+    30
+   ],
+   "contrast": 0.7,
+   "not_skin": false,
+   "not_face": true,
+   "name": "cap_band",
+   "z": [
+    0.9,
+    0.93
+   ]
+  }
+ ]
 }
