@@ -383,3 +383,108 @@ static func ladder(
 	}
 	b.geometry["ladders"].append(lad)
 	return lad
+
+
+# ------------------------------------------------- version 2 (pass 16)
+
+
+## A raked wall (geometry version 2) from a (its top za there) to bb (zb), its
+## foot at z0: a gable's end, a wall under a stair or a lean-to roof, an
+## arch's haunch. o: thick, tile, light, area, sight, shots, as wall()'s
+## pieces. Drawn as a true quad, collides, stops looks and shots along its
+## sloping top.
+static func raked(
+	b, id: String, a: Vector2, bb: Vector2, z0: float, za: float, zb: float, o := {}
+) -> Dictionary:
+	var s := _piece(b, id, a, bb, z0, za, o)
+	s["z1b"] = _r(zb)
+	return s
+
+
+## Terrain (geometry version 2): a patch of corner heights over the cells x0 ..
+## x0 + w - 1, y0 .. y0 + h - 1. `heights`: a Callable (x, y) -> the height at
+## that corner (map units), or (w + 1) * (h + 1) heights row by row from the
+## north-west. o: tile (the patch's floor, painted into its cells too),
+## cliff (the tile up its cliffs), light, palette + rows (src/level_terrain.gd).
+## Heights are written in whole centimetres; each of its cells' ground
+## becomes the patch's lowest corner, so everything reading a cell's ground
+## stays under the surface (and the grid draws no steps under it). Call
+## lift_onto_terrain(b) once everything is placed.
+static func terrain(
+	b, id: String, x0: int, y0: int, w: int, h: int, heights: Variant, o := {}
+) -> Dictionary:
+	var cm := PackedInt32Array()
+	for y in h + 1:
+		for x in w + 1:
+			var v := 0.0
+			if heights is Callable:
+				v = float((heights as Callable).call(float(x0 + x), float(y0 + y)))
+			else:
+				v = float(heights[y * (w + 1) + x])
+			cm.append(int(roundf(v * 100.0)))
+	var patch := {"id": id, "x": x0, "y": y0, "w": w, "h": h, "heights": Array(cm)}
+	for key: String in ["tile", "cliff", "light", "palette", "rows"]:
+		if o.has(key):
+			patch[key] = o[key]
+	if not b.geometry.has("terrain"):
+		b.geometry["terrain"] = []
+	b.geometry["terrain"].append(patch)
+	var low := cm[0]
+	for v in cm:
+		low = mini(low, v)
+	for y in h:
+		for x in w:
+			var c: int = b.at(x0 + x, y0 + y)
+			b.ground[c] = low / 100.0
+			if o.has("tile"):
+				b.floor_tile[c] = b.t(String(o["tile"]))
+	return patch
+
+
+## A round hill of terrain over `rect` [x0, y0, x1, y1] (whole cells): `top`
+## high at its middle, easing down (a cosine) to o.base (0) at its edges.
+static func hill(b, id: String, rect: Array, top: float, o := {}) -> Dictionary:
+	var x0 := int(rect[0])
+	var y0 := int(rect[1])
+	var x1 := int(rect[2])
+	var y1 := int(rect[3])
+	var base := float(o.get("base", 0.0))
+	var mid := Vector2((x0 + x1) * .5, (y0 + y1) * .5)
+	var reach := Vector2((x1 - x0) * .5, (y1 - y0) * .5)
+	var shape := func(x: float, y: float) -> float:
+		var d := Vector2((x - mid.x) / reach.x, (y - mid.y) / reach.y).length()
+		return base + (top - base) * (.5 + .5 * cos(PI * minf(d, 1.0)))
+	return terrain(b, id, x0, y0, x1 - x0, y1 - y0, shape, o)
+
+
+## Everything a plan laid on the ground lifted onto the terrain where it
+## stands: pickups and hands get the surface's height as their floor, boards
+## and props their height over their cell's ground. Call it after the plan
+## has placed everything (a level without terrain is left as it was).
+static func lift_onto_terrain(b) -> void:
+	var list: Array = b.geometry.get("terrain", [])
+	if list.is_empty():
+		return
+	var t := LevelTerrain.from_json(list, b.w, b.h, b.tile, [])
+	if t == null:
+		return
+	for e: Dictionary in b.enemies:
+		var z := t.height_at(float(e["x"]), float(e["y"]))
+		if not is_nan(z) and z > float(e.get("z", 0.0)):
+			e["z"] = _r(z)
+	for p: Array in b.pickups:
+		var z := t.height_at(float(p[1]), float(p[2]))
+		if is_nan(z):
+			continue
+		if p.size() > 3:
+			p[3] = maxf(float(p[3]), _r(z))
+		else:
+			p.append(_r(z))
+	for bd: Dictionary in b.billboards:
+		var x := float(bd["x"])
+		var y := float(bd["y"])
+		var z := t.height_at(x, y)
+		if is_nan(z):
+			continue
+		var c: int = b.at(int(x), int(y))
+		bd["z"] = _r(float(bd["z"]) + z - float(b.ground[c]))

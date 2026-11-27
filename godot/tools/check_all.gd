@@ -116,6 +116,7 @@ const CHECKS := [
 	["load_speed_check", "LOAD SPEED OK"],
 	["prebake_check", "PREBAKE CHECK OK"],
 	["user_map_check", "USER MAP CHECK OK"],
+	["geometry2_check", "GEOMETRY 2 CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 ## Rows that measure timing (net_lag's limits on hits that looked like hits,
@@ -250,6 +251,7 @@ const CI_SECONDS := {
 	"pack_check": 30,
 	"tune_check": 15,
 	"user_map_check": 20,
+	"geometry2_check": 15,
 	"onboard_check": 60,
 	"marker_check": 60,
 	"danger_check": 12,

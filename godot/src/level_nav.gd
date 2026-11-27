@@ -51,6 +51,14 @@ static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGra
 	g.cells = n_cells
 	var cell := PackedInt32Array(range(n_cells))
 	var z := lv.ground.slice(0, n_cells)
+	if geo.terrain != null:
+		# On terrain a cell's own node stands on the surface at its middle.
+		var t := geo.terrain
+		for c in n_cells:
+			if t.patch_at[c] != 0:
+				z[c] = t.height_at(c % w + .5, c / w + .5)
+	# Each cell's floor before the slabs (its ground, or the terrain's).
+	var base := z.duplicate()
 	var over := g.over
 	var extra_cell := PackedInt32Array()
 	var extra_z := PackedFloat32Array()
@@ -65,7 +73,7 @@ static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGra
 				if not s.inside(mx, my) or lv.solid[c] >= 0:
 					continue
 				var top := s.top_at(mx, my)
-				if s.thick < 0.0 or top - lv.ground[c] <= LevelGeometry.STEP:
+				if s.thick < 0.0 or top - base[c] <= LevelGeometry.STEP:
 					# Solid down to the ground (or nearly the floor): the cell's floor.
 					z[c] = maxf(z[c], top)
 					continue
@@ -620,7 +628,7 @@ static func walks(
 			floor_z = was
 		else:
 			# LevelGeometry.floor_at(x, y, feet, ground[c], true) over them.
-			floor_z = ground[c]
+			floor_z = geo.ground_at(x, y, ground[c])
 			for s: LevelGeometry.Slab in parts[side]:
 				if s.inside(x, y):
 					var t := s.top_at(x, y)
@@ -628,7 +636,13 @@ static func walks(
 						floor_z = t
 			if keep:
 				floors[feet] = floor_z
-		if floor_z > feet + LevelGeometry.STEP + .002 and floor_z > ground[c] + .001:
+		# (The grid's own steps are free; the terrain's surface is no grid step.)
+		if (
+			floor_z > feet + LevelGeometry.STEP + .002
+			and (
+				floor_z > ground[c] + .001 or (geo.terrain != null and geo.terrain.patch_at[c] != 0)
+			)
+		):
 			return false
 		feet = floor_z
 		var stands_here: Variant = stood.get(feet) if keep else null
@@ -778,5 +792,12 @@ static func _near_walk(geo: LevelGeometry, a: int, b: int) -> Array:
 		out.append(floors)
 		out.append(in_way)
 		out.append(overhead)
+	if geo.terrain != null:
+		# On or by terrain the walk's floor is the surface: never the grid's.
+		for c: int in [a, b]:
+			for yy in range(maxi(0, c / width - 1), mini(geo.height, c / width + 2)):
+				for xx in range(maxi(0, c % width - 1), mini(width, c % width + 2)):
+					if geo.terrain.patch_at[yy * width + xx] != 0:
+						lowest = -INF
 	out.append(lowest)
 	return out

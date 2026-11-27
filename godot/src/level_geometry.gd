@@ -224,6 +224,8 @@ var slabs: Array[Slab] = []
 var segments: Array[Segment] = []
 var ceilings: Array[Ceiling] = []
 var ladders: Array[Ladder] = []
+## The ground's patches of corner heights (version 2), or null.
+var terrain: LevelTerrain = null
 ## Every slab edge render_parts() made: Vector4(ax, ay, bx, by) -> its tile (the
 ## 3D view lays a stretched material along a stair's side by the metre).
 var slab_edges := {}
@@ -376,6 +378,11 @@ static func from_json(
 			errors.append("%s: ladder climbs nothing" % lad.id)
 			continue
 		g.ladders.append(lad)
+	if data.has("terrain"):
+		if version < 2:
+			errors.append("geometry: terrain needs version 2")
+		else:
+			g.terrain = LevelTerrain.from_json(data["terrain"], w, h, tile_index, errors)
 	g._build_index()
 	return g
 
@@ -503,7 +510,43 @@ func _build_index() -> void:
 		_sight_boxes[c] = boxes
 	for c in ceilings:
 		_put(_over, c.x0, c.y0, c.x1, c.y1, c, true)
+	if terrain != null:
+		_index_terrain()
 	_build_sight_bands()
+
+
+## The terrain's cells and the ring round them are asked about everything
+## (a cliff's face reaches a body in the next cell); each terrain cell is in
+## the sight index as a box from far down to its highest corner, and for a
+## flat look (whose floor is the surface itself) one with a cliff in or by
+## it as a box filling every height.
+func _index_terrain() -> void:
+	var t := terrain
+	for cy in height:
+		for cx in width:
+			var c := cy * width + cx
+			var near := false
+			var cliffs := false
+			for yy in range(maxi(0, cy - 1), mini(height, cy + 2)):
+				for xx in range(maxi(0, cx - 1), mini(width, cx + 2)):
+					near = near or t.patch_at[yy * width + xx] != 0
+					cliffs = cliffs or t.steep[yy * width + xx] != 0
+			if not near:
+				continue
+			cells[c] = 1
+			if t.patch_at[c] == 0 and not cliffs:
+				continue
+			sight_cells[c] = 1
+			var boxes: PackedFloat64Array = _sight_boxes.get(c, PackedFloat64Array())
+			if t.patch_at[c] != 0:
+				boxes.append_array(
+					PackedFloat64Array([cx, cy, cx + 1, cy + 1, -1e12, t.high[c], 2.0])
+				)
+			if cliffs:
+				boxes.append_array(
+					PackedFloat64Array([cx - 1, cy - 1, cx + 2, cy + 2, -1e12, 1e12, 3.0])
+				)
+			_sight_boxes[c] = boxes
 
 
 ## A band's margin past what it spans (rounding never lets a test slip by).
@@ -528,6 +571,8 @@ func _build_sight_bands() -> void:
 				var g: Segment = item
 				if g.sight:
 					spans.append(Vector2(g.z0, g.top_max()))
+		if terrain != null and terrain.patch_at[c] != 0:
+			spans.append(Vector2(-1e12, terrain.high[c]))
 		spans.sort()
 		var low := 0.0
 		var high := 0.0
@@ -568,11 +613,17 @@ func sight_clear(c: int, z0: float, z1: float) -> bool:
 ## piece; over the sight index, so the same answers as blocks().
 func sight_blocks(c: int, x: float, y: float, ground: float) -> bool:
 	var items: Array = _sight.get(c, NOTHING)
-	return blocks_in(items, x, y, .023, ground + STEP, ground + BODY)
+	if terrain == null:
+		return blocks_in(items, x, y, .023, ground + STEP, ground + BODY)
+	# On terrain the floor is the surface there.
+	var g := ground_at(x, y, ground)
+	return blocks_in(items, x, y, .023, g + STEP, g + BODY) or terrain.blocks(x, y, .023, g + STEP)
 
 
 ## solid_point(x, y, z, .023, false) for a sight line's step in cell c.
 func sight_point(c: int, x: float, y: float, z: float) -> bool:
+	if terrain != null and terrain.patch_at[c] != 0 and z <= terrain.height_at(x, y):
+		return true
 	for item: Variant in _sight.get(c, NOTHING):
 		if item is Slab:
 			var s: Slab = item
@@ -608,17 +659,27 @@ func sight_first(
 	ground: float
 ) -> float:
 	var first := INF
-	var step_lo := ground + STEP
-	var body_hi := ground + BODY
+	# A flat look's floor is the cell's ground, or on terrain anywhere from
+	# its lowest corner to its highest.
+	var g_lo := ground
+	var g_hi := ground
+	if terrain != null and terrain.patch_at[c] != 0:
+		g_lo = terrain.low[c]
+		g_hi = terrain.high[c]
+	var step_lo := g_lo + STEP
+	var body_hi := g_hi + BODY
 	var reach := .023 + 1e-4
 	var boxes: PackedFloat64Array = _sight_boxes.get(c, PackedFloat64Array())
 	for o in range(0, boxes.size(), SIGHT_BOX):
 		var low := boxes[o + 4]
 		var high := boxes[o + 5]
+		var kind := boxes[o + 6]
 		if flat:
-			if high <= step_lo or low >= body_hi:
+			# (A flat look never meets the surface it is on (kind 2), only a
+			# cliff by it (3).)
+			if kind == 2.0 or (kind != 3.0 and (high <= step_lo or low >= body_hi)):
 				continue
-		elif boxes[o + 6] == 0.0:
+		elif kind == 0.0 or kind == 3.0:
 			continue
 		var lo := t0
 		var hi := minf(t1, first)
@@ -717,7 +778,9 @@ func clear_at(x: float, y: float) -> bool:
 
 ## The highest floor under feet at z at (x, y): the cell's ground (`ground`,
 ## or none when `open` is false) or a walkable slab's top at most STEP above
-## the feet. -1e9 when there is none.
+## the feet. -1e9 when there is none. On terrain the surface there is the
+## ground (as a cell's is, whatever the feet); with `open` false a floor
+## like a slab's top.
 func floor_at(x: float, y: float, z: float, ground: float, open: bool) -> float:
 	var best := ground if open else -1e9
 	for item: Variant in near_items(x, y):
@@ -728,7 +791,20 @@ func floor_at(x: float, y: float, z: float, ground: float, open: bool) -> float:
 			var t := s.top_at(x, y)
 			if t <= z + STEP + .001 and t > best:
 				best = t
+	if terrain != null:
+		var t := terrain.height_at(x, y)
+		if not is_nan(t) and t > best and (open or t <= z + STEP + .001):
+			best = t
 	return best
+
+
+## The ground at (x, y): the terrain's surface there, else `ground` (the
+## cell's).
+func ground_at(x: float, y: float, ground: float) -> float:
+	if terrain == null:
+		return ground
+	var t := terrain.height_at(x, y)
+	return ground if is_nan(t) else t
 
 
 ## The floor holding up a body of radius r with its feet at `feet`: the floor
@@ -776,6 +852,8 @@ static func ceiling_in(items: Array, x: float, y: float, z: float) -> float:
 ## Whether a body of radius r at (x, y) spanning lo..hi meets a slab or a
 ## segment.
 func blocks(x: float, y: float, r: float, lo: float, hi: float) -> bool:
+	if terrain != null and terrain.blocks(x, y, r, lo):
+		return true
 	return blocks_in(near_items(x, y), x, y, r, lo, hi)
 
 
@@ -806,6 +884,10 @@ static func blocks_in(items: Array, x: float, y: float, r: float, lo: float, hi:
 ## Whether the point (x, y, z) is inside something that stops sight (`shots`
 ## false) or shots (`shots` true), grown by r across.
 func solid_point(x: float, y: float, z: float, r: float, shots: bool) -> bool:
+	if terrain != null:
+		var t := terrain.height_at(x, y)
+		if not is_nan(t) and z <= t:
+			return true
 	for item: Variant in near_items(x, y):
 		if item is Slab:
 			var s: Slab = item
@@ -1145,6 +1227,8 @@ func static_blocked_in(
 		if lv.solid[c] >= 0 and not lv.door_cells.has(c):
 			return true
 	if _fixture_in(lv, x, y, r, feet, tall):
+		return true
+	if terrain != null and terrain.blocks(x, y, r, feet + STEP):
 		return true
 	return blocks_in(items, x, y, r, feet + STEP, feet + tall)
 

@@ -64,6 +64,14 @@ var over_list := PackedInt32Array()
 ## The graph's deck nodes over each cell (NavGraph.over) as runs.
 var deck_first := PackedInt32Array()
 var deck_list := PackedInt32Array()
+## The terrain (LevelTerrain's arrays), when there is one: each cell's
+## patch (0 none), its four corners, its cliffs, its highest corner; 1 for a
+## cell on or by it (its walks are never the grid's).
+var t_at := PackedInt32Array()
+var t_corners := PackedFloat64Array()
+var t_steep := PackedByteArray()
+var t_high := PackedFloat64Array()
+var t_ring := PackedByteArray()
 ## walks_both()'s points, what was asked at each (kept to save making it).
 var _asked := PackedFloat64Array()
 
@@ -158,7 +166,65 @@ static func make(geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph) -
 			for m: int in decks:
 				f.deck_list.append(m)
 	f.deck_first[n] = f.deck_list.size()
+	if geo.terrain != null:
+		var t := geo.terrain
+		f.t_at = t.patch_at.duplicate()
+		f.t_corners = t.corners.duplicate()
+		f.t_steep = t.steep.duplicate()
+		f.t_high = t.high.duplicate()
+		f.t_ring.resize(n)
+		f.t_ring.fill(0)
+		for c in n:
+			if t.patch_at[c] == 0:
+				continue
+			for yy in range(maxi(0, c / f.w - 1), mini(f.h, c / f.w + 2)):
+				for xx in range(maxi(0, c % f.w - 1), mini(f.w, c % f.w + 2)):
+					f.t_ring[yy * f.w + xx] = 1
 	return f
+
+
+## The terrain's surface at (x, y) (LevelTerrain.height_at); NAN off it.
+func _t_height(x: float, y: float) -> float:
+	if t_at.is_empty() or x < 0.0 or y < 0.0 or x >= w or y >= h:
+		return NAN
+	var cx := int(x)
+	var cy := int(y)
+	var c := cy * w + cx
+	if t_at[c] == 0:
+		return NAN
+	var u := x - cx
+	var v := y - cy
+	var k := c * 4
+	var nw := t_corners[k]
+	if u >= v:
+		return nw + (t_corners[k + 1] - nw) * u + (t_corners[k + 3] - t_corners[k + 1]) * v
+	return nw + (t_corners[k + 3] - t_corners[k + 2]) * u + (t_corners[k + 2] - nw) * v
+
+
+## LevelTerrain.blocks: the surface under the middle past lo, or a cliff
+## within reach that is.
+func _t_blocks(x: float, y: float, r: float, lo: float) -> bool:
+	if t_at.is_empty():
+		return false
+	var t := _t_height(x, y)
+	if not is_nan(t) and t > lo:
+		return true
+	if r <= 0.0:
+		return false
+	for k in 8:
+		var px: float = x + LevelTerrain.PROBE_X[k] * r
+		var py: float = y + LevelTerrain.PROBE_Y[k] * r
+		if px < 0.0 or py < 0.0 or px >= w or py >= h:
+			continue
+		var c := int(py) * w + int(px)
+		var flags := t_steep[c]
+		if t_at[c] == 0 or flags == 0:
+			continue
+		if flags & (1 if px - int(px) >= py - int(py) else 2) == 0:
+			continue
+		if _t_height(px, py) > lo:
+			return true
+	return false
 
 
 ## A copy of its own for a worker thread (every array copied).
@@ -356,6 +422,8 @@ func static_blocked(x: float, y: float, r: float, feet: float) -> bool:
 			return true
 	if _fixture(x, y, r, feet):
 		return true
+	if _t_blocks(x, y, r, feet + STEP):
+		return true
 	if x < 0.0 or y < 0.0 or x >= w or y >= h:
 		return false
 	var c := int(y) * w + int(x)
@@ -516,6 +584,9 @@ func near_walk(a: int, b: int) -> Array:
 		out.append(floors)
 		out.append(in_way)
 		out.append(overhead)
+	if not t_ring.is_empty() and (t_ring[a] != 0 or t_ring[b] != 0):
+		# On or by terrain the walk's floor is the surface: never the grid's.
+		lowest = -INF
 	out.append(lowest)
 	return out
 
@@ -537,6 +608,12 @@ func walks_both(n: int, m: int, near: Dictionary) -> bool:
 	var parts: Array = lists
 	var lowest: float = parts[6]
 	var floor_ab := maxf(ground[a], ground[b])
+	if not t_at.is_empty():
+		# (The terrain's floors as high as its cells' highest corners.)
+		if t_at[a] != 0:
+			floor_ab = maxf(floor_ab, t_high[a])
+		if t_at[b] != 0:
+			floor_ab = maxf(floor_ab, t_high[b])
 	var grid_n := maxf(z[n], floor_ab) < lowest
 	var grid_m := maxf(z[m], floor_ab) < lowest
 	# Each way, the highest its feet can climb to (its cells' grounds, then each
@@ -620,6 +697,7 @@ func _walk(
 	var bx := b % ww + .5
 	var by := b / ww + .5
 	var low_cell := mini(a, b)
+	var terrain := not t_at.is_empty()
 	var feet := from_z
 	var r := R
 	for k in range(1, NAV_STEPS + 1):
@@ -635,6 +713,8 @@ func _walk(
 		else:
 			# LevelGeometry.floor_at over the floors near the walk.
 			floor_z = grounds[c]
+			if terrain and t_at[c] != 0:
+				floor_z = _t_height(x, y)
 			var floors: PackedInt32Array = parts[side]
 			for i in floors:
 				var o := i * 4
@@ -658,7 +738,11 @@ func _walk(
 					floor_z = t
 			asked[at] = feet
 			asked[at + 1] = floor_z
-		if floor_z > feet + STEP + .002 and floor_z > grounds[c] + .001:
+		# (The grid's own steps are free; the terrain's surface is no grid step.)
+		if (
+			floor_z > feet + STEP + .002
+			and (floor_z > grounds[c] + .001 or (terrain and t_at[c] != 0))
+		):
 			return false
 		feet = floor_z
 		var stood: bool
@@ -666,7 +750,9 @@ func _walk(
 			stood = asked[at + 3] != 0.0
 		else:
 			# static_blocked's corners lie in a or b, both open (walks_both).
-			stood = not _fixture(x, y, r, feet)
+			stood = (
+				not _fixture(x, y, r, feet) and not (terrain and _t_blocks(x, y, r, feet + STEP))
+			)
 			if stood:
 				# LevelGeometry.blocks_in over the pieces near the walk.
 				var lo := feet + STEP
