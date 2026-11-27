@@ -3,6 +3,64 @@
 Read `meshy/README.md` (method) and `SP/meshy-previews/INDEX.md` (every
 version, every decision) first. SP = the session scratchpad.
 
+## Agent B (branch meshy-models-b, worktree SP/p18-meshy, work SP/meshy-work-b)
+
+List, in order: millhand, mundell, nitro_huffer, pit_mechanic, revenooer,
+shield_deputy, still_buster, tin_guard, tire_roller, valve_rat, drone (alien
+grey, see 05b), skeeter. Budget 650 credits (ledger section "agent B",
+running total in its "spent").
+DONE: 40 millhand (44 cr).
+NEXT: mundell (player: in-game sheet too; the 04g long-gun options
+cheek_weld / aim_holds / upright_aim_deg; extra care on face, hands, every
+gun pose).
+
+Setup (all agent B's own; never A's places):
+- `. SP/meshy-work-b/env.sh` sets MESHY_WT=SP/p18-meshy, MESHY_WORK=
+  SP/meshy-work-b, MESHY_AGENT=B, MESHY_BUDGET=650 and a scratch APPDATA/
+  LOCALAPPDATA under meshy-work-b/appdata. Then the usual tools work:
+  `sh meshy/tools/meshy_kind.sh <k> concept|model`, `kind_config.py`
+  (writes ../meshy-work-b/... paths), `sh meshy/tools/build.sh <k> <NN>`,
+  `SKIP_BUILD=1 SKIP_INGAME=1 sh meshy/tools/finish.sh <k> <NN>` (probe and
+  death rows), then in meshy-work-b `sh sheets.sh <k> <NN> <face cz>` and
+  `sh checks.sh actor_check,live_body_check,physics_check`.
+- meshy-work-b has its own gd.sh / gd_old.sh (gd_old runs the untouched
+  tree SP/p16-meshy-old, own profile), iter.sh, headshots.sh, sheets.sh,
+  checks.sh, aimview.sh, facetry.sh, unchurn.sh, keys_zoom/keys_views/strip;
+  prompts in meshy-work-b/prompts/ (<kind>.json; add_prompt.py <kind>
+  <json> puts it in prompts.json). Dumps of all 12 old kinds are in
+  meshy-work-b/dump (skeeter dumps ok=false: a bug, beast path).
+  meshy-work-b/old holds the old glbs/textures and the untouched tree's
+  actors.json (build_actor reads it next to old_glb).
+- A's 04g commit (face_clean / face_uv / cheek_weld) is cherry-picked here.
+
+Tool changes by B (all opt-in; defaults unchanged for A):
+- tools/*.sh: MESHY_WT / MESHY_WORK env (default p16-meshy / meshy-work);
+  finish.sh SKIP_INGAME=1 (no in-game sheet: minor enemies).
+- meshy.py: MESHY_AGENT/MESHY_BUDGET keep a ledger section "agent <X>"
+  (entries, budget, running "spent"); if the shared balance moved by more
+  than a call's price (the other agent's call landed meanwhile) the entry
+  records the nominal price (9/30/5) and "balance_moved".
+- kind_config.py / make_requests.py: MESHY_WORK env.
+- build_actor.py "two_old": a two-handed tool (chainsaw) moves as the old
+  one did in every key, brought in by the chest ("two_old_in" x the forward
+  fix); use with "aim_keys": [] (nothing shouldered). "two_both": the other
+  hand stays on it in every living key but pain.
+- build_actor.py "face_keep": true or {light, blend, zone, eyes, eye_sat,
+  eye_lum}: after every skin pass, the face's front (FACEZONE; widen it with
+  "face_box" {"r": .27} for a big head - the Meshy Head bone sits at the
+  back of the skull, so at r .17 the eyes fell outside it) is taken back
+  from the head's no-shadow bake at the finished skin's light. "eyes": k
+  sets the eye whites/teeth (pale grey in Meshy's albedo; the dusk bake
+  makes them peach and the grade dithers them into the skin) to grey at k x
+  the face skin's light; it triggers the albedo bake. millhand:
+  {"light": 1.15, "eyes": 1.6}. Use it where face_clean smears the eyes or
+  blotches a bearded face (face_lift reads a beard as dark skin and lifts
+  it: "face_lift_most" 1.15 for a full beard).
+- face_uv for a hard hat: "brim_k" 1.4 (.7 shrank the whole hat and the
+  face's other islands: blockier), "z" [-.16, .2], "r" .2, k 3-4.5.
+- grip_parts: the old millhand's yellow coat passed for skin (b5); name the
+  old hands (b40/b41 right, b45 left) or the saw is held by one hand.
+
 ## Seventh session (read first, then the sixth)
 
 SPLIT (coordinator, 2026-11-26): agent A (this branch, meshy-models) keeps

@@ -135,5 +135,13 @@
    "meshy-work/meshy_out/maw_concept/image_0.png"
   ],
   "extra_note": " The third reference image is this same character painted before in her housecoat: keep her head shape, face, bug eyes, lips, antennae, arms, hands, legs and slippers exactly as there, but WITHOUT the housecoat, the curlers, the hairnet and the glasses: her bald grey dome bare, and the riveted tin hoop girdle with glowing green cells and the dark brown bloomers described."
+ },
+ "millhand": {
+  "refs": "cel",
+  "who": "burly sawmill hand, a big stocky lumber-mill worker",
+  "design": "WEARING a mustard-yellow hard hat on his head, a long mustard-yellow oilskin rain slicker coat to mid-thigh, buttoned, with big patch pockets and the sleeves to the wrists, faded blue denim jeans, heavy black rubber work boots, a broad barrel chest and thick strong arms on a natural sturdy build, bare weathered hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy weathered face lit evenly, wide-open eyes with clear whites and dark pupils under heavy black eyebrows knitted in a mean scowl, a big nose, a thick bushy black beard and moustache, the face fully in light under the hat brim",
+  "texture": "sawmill worker, mustard-yellow hard hat, mustard-yellow rain slicker coat, blue jeans, black rubber boots, ruddy skin, bushy black beard, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.74
  }
 }

@@ -1603,6 +1603,13 @@ def item_delta(it, name, P, D, R_t, hipc):
     old_d = Matrix.Translation(p1) @ (r1 @ r0.inverted()).to_4x4() @ Matrix.Translation(-p0)
     if s1.x < .2:
         return old_d, False
+    # (kind config "two_old": a two-handed tool - a chainsaw - moves as the
+    # old one did in every key, brought in by the new chest's front
+    # ("two_old_in" times the forward fix); both hands are then put on it.
+    # Use with "aim_keys": [] so nothing is shouldered.)
+    if it["two"] and CFG.get("two_old"):
+        F_ = -Vector(TWIST.get("fwd", R_t @ T0).col[2])
+        return Matrix.Translation(F_ * it["fwd"] * float(CFG.get("two_old_in", 1.0))) @ old_d, True
     if not it["two"]:
         return None, True
     bare = name.replace("hurt_", "")
@@ -2000,7 +2007,11 @@ def solve(name, dz=0.0, held0=None):
         if Di is not None and shown and it["two"]:
             for side in it["holds"]:
                 bare = name.replace("hurt_", "")
-                if side != it["main"] and bare not in AIMS:
+                # ("two_both": a tool both hands keep hold of in every
+                # living key but the pain drop - a chainsaw)
+                if CFG.get("two_both") and bare != "pain":
+                    pass
+                elif side != it["main"] and bare not in AIMS:
                     # The other hand only while the old one is on it (as it
                     # stands for a walk or a carry).
                     ref = "0" if bare in WALK or bare in CARRY else name
@@ -3077,7 +3088,7 @@ bpy.context.view_layer.update()
 # (kind config "face_albedo": Meshy's own unlit colour, for a face shadowed
 # by a helmet and its face mask in the lit bake - see face_lift)
 ALBEDO = None
-if CFG.get("face_albedo") or CFG.get("face_clean"):
+if CFG.get("face_albedo") or CFG.get("face_clean") or (isinstance(CFG.get("face_keep"), dict) and CFG["face_keep"].get("eyes")):
     scene.cycles.samples = 8
     select([hi, lo], lo)
     bake_op(type="DIFFUSE", pass_filter={"COLOR"}, margin=TEXTURE // 128, use_clear=True,
@@ -3801,6 +3812,63 @@ if os.environ.get("MESHY_DUMP_FACE"):
                            noshadow=NOSHADOW if NOSHADOW is not None else numpy.zeros((0, 3)), tex=TEXTURE,
                            facezone=FACEZONE, backzone=BACKZONE)
 total = face_clean(total)
+
+
+def face_keep(px):
+    """Kind config "face_keep": true or {light, blend, zone, eyes, eye_sat,
+    eye_lum}: the face's front (FACEZONE, as "face_box" sets it; "zone":
+    "head" for the whole head zone) taken straight from the head's no-shadow
+    bake, only brought to the finished skin's light (its luminance, its own
+    hue kept). The skin passes and face_clean's albedo rebuild smear small
+    painted eyes (a few texels across at 512) into a grey patch; the
+    no-shadow bake keeps their shape."""
+    fk = CFG.get("face_keep")
+    if not fk or NOSHADOW is None:
+        return px
+    opt = fk if isinstance(fk, dict) else {}
+    lw = numpy.array([.299, .587, .114])
+
+    def skinlike(a):
+        mx, mn = a.max(axis=1), a.min(axis=1)
+        sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+        return (a[:, 0] > a[:, 1]) & (a[:, 1] > a[:, 2]) & (sat > .15) & (sat < .7) & (mx > .15)
+
+    zone = HEADZONE if opt.get("zone") == "head" else FACEZONE
+    m = zone & (NOSHADOW.sum(axis=1) > 1e-4)
+    if "HANDMASK" in globals():
+        m &= ~HANDMASK
+    src = m & skinlike(NOSHADOW)
+    ref = ZONE & ~HEADZONE & skinlike(px[:, :3])
+    if src.sum() < 50 or ref.sum() < 50:
+        print("MESHY face keep: too few skin texels")
+        return px
+    k = float(numpy.median(px[ref, :3] @ lw)) / max(float(numpy.median(NOSHADOW[src] @ lw)), 1e-4)
+    k = min(2.0, max(.5, k)) * float(opt.get("light", 1.0))
+    b = float(opt.get("blend", 1.0))
+    px = px.copy()
+    px[m, :3] = px[m, :3] * (1 - b) + numpy.clip(NOSHADOW[m] * k, 0, 1) * b
+    # ("eyes": k - the eye whites and teeth, found in Meshy's unlit colour
+    # (pale and nearly grey there; the dusk bake's warm light makes them
+    # peach, and the game's grade then dithers them into the skin), set to
+    # that grey at k times the face skin's light: whites that read white)
+    ne = 0
+    if opt.get("eyes") and ALBEDO is not None:
+        al = ALBEDO
+        amx, amn = al.max(axis=1), al.min(axis=1)
+        asat = numpy.where(amx > 1e-4, (amx - amn) / numpy.maximum(amx, 1e-4), 0)
+        alum = al @ lw
+        a = px[:, :3]
+        sk = float(numpy.median((a @ lw)[m & skinlike(a)])) if (m & skinlike(a)).sum() > 50 else .4
+        ew = FACEZONE & m & (asat < float(opt.get("eye_sat", .2))) & (alum > float(opt.get("eye_lum", .5)))
+        if ew.any():
+            g = numpy.clip(alum[ew] / max(float(numpy.median(alum[ew])), 1e-4), .7, 1.15)[:, None]
+            px[ew, :3] = numpy.clip(al[ew] / numpy.maximum(alum[ew][:, None], 1e-4) * g * sk * float(opt["eyes"]), 0, 1)
+        ne = int(ew.sum())
+    print("MESHY face keep: %d texels from the no-shadow bake (light x%.2f), %d eye-white texels" % (int(m.sum()), k, ne))
+    return px
+
+
+total = face_keep(total)
 _fsk = HEADZONE & SKIN_DONE if "SKIN_DONE" in globals() else HEADZONE
 shed.paint(lo, image, total, CFG, pixels, bake_op, select, TEXTURE,
            skin=numpy.median(total[_fsk, :3], axis=0) if _fsk.sum() > 50 else None)
