@@ -137,6 +137,23 @@ third theirs - stray slivers deleted, the holes' rims eased and filled; the
 wrist opening is left open). Close-up: SP/meshy-previews/
 05c_alien_hands_close.png. Maw (5 fingers) never needed it.
 
+Hat-cut rebuilds: only boss 17b was built before the shed sliver/corner
+fixes (revenue_man 18d, jerry 19f, foreman 21, baron 22f, rudy 20c are
+later). Rebuilt with the current shed (no config change): no better - the
+small spikes round the bare head are the gas mask's own top edge, not
+sliver spikes - and it added two thin antenna-stalk lines above the cap.
+Reverted: 17b kept (scratch compare SP/meshy-work/q/boss_cmp.png).
+gear_fit rerun (tools/gear_fit.gd, scratch profile): bosses.cfg [boss_gear]
+"at"/"half"/"wide" rewritten from the current models for boss, jerry,
+rudy, foreman, baron, swamp_king (crown; the shield is unchanged),
+revenue_man and maw (derby_champ untouched: it matched). Hit windows
+moved where the piece left its window: baron monocle z [.72,.86] (now at
+.79), maw glasses [.6,.72] and curlers [.72,.95] (her new face put the
+glasses at .70 inside the curlers' window and the curlers took the shot:
+arena_wreck failed). boss_check, arena_wreck_check, boss_end_check,
+boss_rematch_check OK. MERGE NOTE: these values belong to A's models; B's
+mundell has no boss_gear.
+
 ## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path
