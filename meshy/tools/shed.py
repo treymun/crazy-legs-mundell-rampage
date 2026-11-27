@@ -461,6 +461,12 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 cg = float(rule.get("cap_grow", .97))
                 cs = rule.get("cap_shift", [0.0, 0.0])
                 cap_c = cen + Vector((float(cs[0]), float(cs[1]), 0.0))
+                # ("cap_x": the cap centred across at this x - sideburn hair in
+                # the ring's band pulled rudy's off to one side, its lower
+                # edge a dark slab over one temple)
+                if rule.get("cap_x") is not None:
+                    cap_c.x = float(rule["cap_x"])
+                log("MESHY shed %s: cap centre %s" % (name, [round(v_, 3) for v_ in cap_c]))
                 cap_f = _dome(bm, cap_c, rx * cg, ry * cg, hz, base=float(rule.get("cap_base", .03)))
                 # ("cap_ymin": its front kept behind a helmet's brow)
                 if rule.get("cap_ymin") is not None:

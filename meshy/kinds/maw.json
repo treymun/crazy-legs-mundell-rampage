@@ -233,5 +233,24 @@
    0,
    15
   ]
- }
+ },
+ "gear_scale": [
+  {
+   "parts": [
+    "b113",
+    "b114",
+    "b115",
+    "b116",
+    "b117",
+    "b118"
+   ],
+   "k": 1.7,
+   "side": "r"
+  }
+ ],
+ "keep_reach": 0.4,
+ "keep_vote": 3,
+ "keep_out_best": true,
+ "keep_out_steps": 16,
+ "gear_uv": 0.7
 }

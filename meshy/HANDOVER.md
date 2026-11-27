@@ -105,6 +105,30 @@ New opt-in, not yet used on a kind: "keep_reach" (m) / "keep_vote" (k) in
 depth_in (for the maw giant), "finger_fill" (hands.build_meshy closes the
 cut fingers' holes; for the alien).
 
+20c rudy (the coordinator's time-boxed bare-head pass; 0 cr; 20b's config
+kept as SP/meshy-work/rudy_20b.json). Landed: the dark block at his right
+temple (worn and bare) - it was the hair cap's dome edge, the cap centred
+off to one side by the sideburn hair in the ring band: NEW shed hat option
+"cap_x" (the cap's centre across set; rudy 0.0), cap_base .05, cap_grow 1,
+cap_ymin -.13; plus a "temple_block" recolour (dark texels at the right
+temple to skin). NOT landed: the bare head is still a hard-edged dome
+(a bowl with a ledge over the brow and shards at the back) - real slicked
+hair needs a cap that follows the skull (e.g. the head's own scalp
+vertices pushed out a few mm and painted hair, instead of a _dome). The
+live probe's rudy number wanders 4-8 cm between runs with no geometry
+change (blended walk keys, not live).
+23b maw (0 cr; 23's config as SP/meshy-work/maw_23.json): the dryer at
+1.7x like maw_bare 24 ("gear_scale"). The giant's keep-out fixed with NEW
+opt-in depth_in options "keep_reach" .4 (points farther than .14 m from the
+nearest body surface point were skipped: the wide skirt's points are far
+apart, so the dryer 10-15 cm in went unseen) and "keep_vote" 3 (with the far
+reach, inside only if the 3 nearest surface points agree - a point beside a
+fold read deep inside), with keep_out_best + keep_out_steps 16. Walk keys now
+6-12 cm in -> 0. NEW "gear_uv" k (gear islands, slots 1/3, drawn k times as
+big before the pack): .7 - the bigger dryer took her body to 89 texels a
+metre (actor_check floor 90). maw_bare not rebuilt (24 already at 1.7; it
+would take the same options if rebuilt).
+
 ## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path

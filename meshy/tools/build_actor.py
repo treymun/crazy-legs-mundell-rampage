@@ -3154,6 +3154,20 @@ for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
         loop[uv].uv = mid + (loop[uv].uv - mid) * k_isl
 if _fuv:
     print("MESHY face islands favoured: %d faces" % _nf)
+# (kind config "gear_uv" k: the held gear's islands (slots 1 and 3) drawn k
+# times as big before the pack - maw's dryer grown 1.7x took texels from
+# her body: 89 a metre against the boss floor of 90)
+if CFG.get("gear_uv"):
+    _gk = float(CFG["gear_uv"])
+    _ng = 0
+    for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
+        if all(f.material_index in (1, 3) for f in island):
+            loops = [loop for f in island for loop in f.loops]
+            mid = sum((loop[uv].uv for loop in loops), Vector((0.0, 0.0))) / len(loops)
+            for loop in loops:
+                loop[uv].uv = mid + (loop[uv].uv - mid) * _gk
+            _ng += len(island)
+    print("MESHY gear islands x%.2f: %d faces" % (_gk, _ng))
 bmesh.update_edit_mesh(lo.data)
 bpy.ops.mesh.select_all(action="SELECT")
 bpy.ops.uv.select_all(action="SELECT")

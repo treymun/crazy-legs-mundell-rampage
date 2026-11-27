@@ -106,9 +106,11 @@
    "ring_pct": 60,
    "cap_base": 0.05,
    "cap_grow": 1.0,
-   "cap_shag": 0.006,
+   "cap_shag": 0.01,
    "cap_noise": 0.3,
-   "band": 0.015
+   "band": 0.015,
+   "cap_x": 0.0,
+   "cap_ymin": -0.13
   },
   "tophat_brim": {
    "gear": "tophat",
@@ -198,5 +200,34 @@
  "bottle_grip": 0.1,
  "glove_shade": true,
  "glove_light": 0.9,
- "glove_contrast": 1.5
+ "glove_contrast": 1.5,
+ "recolour": [
+  {
+   "name": "temple_block",
+   "x": [
+    0.055,
+    0.135
+   ],
+   "y": [
+    -0.17,
+    -0.095
+   ],
+   "z": [
+    0.795,
+    0.83
+   ],
+   "val": [
+    0,
+    0.24
+   ],
+   "to": [
+    190,
+    122,
+    98
+   ],
+   "contrast": 0.35,
+   "smooth": 3,
+   "not_skin": false
+  }
+ ]
 }
