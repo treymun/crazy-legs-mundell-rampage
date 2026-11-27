@@ -1,0 +1,127 @@
+{
+ "kind": "valve_rat",
+ "rigged": "../meshy-work-b/meshy_out/valve_rat_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/valve_rat_poses.json",
+ "old_glb": "../meshy-work-b/old/valve_rat.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_valve_rat.png",
+ "out": "../meshy-work-b/raw/valve_rat",
+ "tris": 14000,
+ "texture": 1024,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.4,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "gear_groups": [
+  [
+   "b27",
+   "b32",
+   "b33",
+   "b34",
+   "b35",
+   "b41",
+   "b31",
+   "b36",
+   "b37",
+   "b38",
+   "b39",
+   "b40",
+   "b50",
+   "b30"
+  ]
+ ],
+ "grip_parts": {
+  "r": [
+   "b45"
+  ]
+ },
+ "face_uv": {
+  "auto": true,
+  "k": 2.6,
+  "brim_k": 1.0,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_keep": {
+  "light": 1.0,
+  "eyes": 1.6,
+  "eye_sat": 0.15,
+  "soften": 0.5,
+  "tone": [
+   178,
+   120,
+   96
+  ],
+  "tone_k": 0.75,
+  "tone_zone": "head"
+ },
+ "face_box": {
+  "auto": true,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "gear_extra": [
+  "b30",
+  "b36"
+ ],
+ "item_holds": {
+  "0": {
+   "r": 0.22,
+   "l": 0.62
+  }
+ },
+ "cheek_weld": true,
+ "upright_aim_deg": 5,
+ "upright_deg": 8,
+ "head_keys": {
+  "0": [
+   -22,
+   0,
+   0
+  ],
+  "w0": [
+   -22,
+   0,
+   0
+  ],
+  "w1": [
+   -22,
+   0,
+   0
+  ],
+  "w2": [
+   -22,
+   0,
+   0
+  ],
+  "w3": [
+   -22,
+   0,
+   0
+  ],
+  "w4": [
+   -22,
+   0,
+   0
+  ],
+  "recover": [
+   -22,
+   0,
+   0
+  ],
+  "fidget": [
+   -22,
+   0,
+   0
+  ]
+ }
+}

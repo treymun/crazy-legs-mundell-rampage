@@ -105,9 +105,30 @@ val .26+ contrast .35 smooth 6 (separate scalp/nape/ear rules each had
 their own median: the steps), "face_hi" only_face val .72+ pulled to a
 warm tan (Meshy's sweat highlights clipped to white specks), face_keep
 eyes 0, chest_skin contrast .4 smooth 5.
-NEXT: valve_rat, drone
-(alien grey, see 05b alien.json), skeeter (dumps ok=false: a bug - beast
-path; see the beast-path section). check_all quick batch 2 (44-46)
+49 valve_rat: IN PROGRESS, NOT INSTALLED (44 cr spent: concept, model,
+rig in meshy-work-b/meshy_out/valve_rat_*; the game still has the OLD
+valve_rat - the WIP build was reverted). Concept is good (short wiry old
+man, flat cap, eye patch, brown canvas jacket, grey stubble, gap-tooth
+grin) BUT the prompt left out the old model's brass TANK PACK on his back
+(it feeds the pipe gun) - needs a new concept (+44) or a "slung"-style
+built tank. Kind config meshy/kinds/valve_rat.json (copy
+meshy-work-b/valve_rat_wip.json): the old pipe gun b27..b50 + b30 muzzle
+ring as one gear_group (gear_extra b30 b36: passed for skin), grip_parts
+r b45 (old right hand at the pipe's rear), item_holds r .22 l .62,
+cheek_weld (shouldered two-handed: aim/fire look right), upright_deg 8,
+upright_aim_deg 5. Open: (1) the Meshy body is hunched and the head
+looks at the floor in the stand/walk; head_keys [-22,0,0] lifts it but
+stretches the jaw (vertical texture smears on the chin/cheeks) and folds
+the cap's sides into "horns" - try a smaller lift (-10) spread over neck
++ head, or a fresh concept standing straighter; (2) the hair cards read
+as spikes; (3) face at texture 1024 + face_uv k 2.6 still blotchy grey
+stubble on the cheeks. No INDEX line yet.
+NEXT: valve_rat (finish, see 49), drone (alien grey, see 05b
+alien.json), skeeter (dumps ok=false: a bug - beast path; see the
+beast-path section and A's swamp_king notes), then as credits allow the
+millhand Meshy chainsaw (<= 20 cr: held_model, orange/red body, grey bar
+and chain) and a still_buster chop fix (axe down-forward in "fire").
+Credits: agent B 459 of 650 after 49's rig. check_all quick batch 2 (44-46)
 run after 46 (scratch profile): ALL CHECKS OK in 190 s; batch 1 (40-43) ALL
 OK except net_errors_check under load,
 OK alone.

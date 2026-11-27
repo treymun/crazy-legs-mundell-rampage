@@ -1010,7 +1010,7 @@
  ],
  "agent B": {
   "budget": 650,
-  "spent": 424,
+  "spent": 459,
   "entries": [
    {
     "label": "millhand_concept",
@@ -1348,6 +1348,28 @@
     "body": "valve_rat_concept.json",
     "time": "2026-11-27 00:34:07",
     "after": 743,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "valve_rat_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21bc1-08e9-73e1-a701-bc8d4d92f793",
+    "before": 743,
+    "cost": 30,
+    "body": "valve_rat_model.json",
+    "time": "2026-11-27 00:46:10",
+    "after": 713,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "valve_rat_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21bc2-72b4-7749-a568-c28c81120459",
+    "before": 713,
+    "cost": 5,
+    "body": "valve_rat_rig.json",
+    "time": "2026-11-27 00:47:42",
+    "after": 708,
     "status": "SUCCEEDED"
    }
   ]
