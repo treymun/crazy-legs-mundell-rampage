@@ -24,8 +24,17 @@
 class_name LevelGeometry
 extends RefCounted
 
-## The newest geometry block this build reads.
-const VERSION := 1
+## The newest geometry block this build reads. Version 2 (pass 16) adds
+## terrain, raked walls drawn true and slopes' sides drawn as rakes, steeper
+## slopes that are not walked on; a block is written as 2 only when it uses
+## one of them (version_for), so every older block reads as it did.
+const VERSION := 2
+## The steepest a slab that is not walked on may be in a version 2 block (a
+## roof's or a bank's face too steep to stand on).
+const STEEPEST_FACE := 4.0
+## A rake's row (rakes): ax, ay, bx, by, tile, light, the bottom and top at a,
+## the bottom and top at b, area.
+const RAKE_STRIDE := 11
 ## A body climbs at most this onto a slab without jumping (the grid's step).
 const STEP := .245
 ## A standing body's height for collision and headroom (the eye is .95).
@@ -38,6 +47,9 @@ const STEEPEST := 1.0
 const THINNEST := .08
 ## Index cells reach this far past a piece (a body's radius and then some).
 const PAD := .75
+## The sight index's reach past a piece (a sight line's step tests .023 round
+## it, LevelSight).
+const SIGHT_PAD := .03
 ## How a nav edge is walked: sub-steps from cell middle to cell middle.
 const NAV_STEPS := 8
 ## The nav graph's body radius (FlowField.BODY).
@@ -206,19 +218,40 @@ const LADDER_DIRS := {
 	"n": Vector2(0, -1), "s": Vector2(0, 1), "e": Vector2(1, 0), "w": Vector2(-1, 0)
 }
 
+## The block's version (1 or 2).
+var version := 1
 var slabs: Array[Slab] = []
 var segments: Array[Segment] = []
 var ceilings: Array[Ceiling] = []
 var ladders: Array[Ladder] = []
+## The ground's patches of corner heights (version 2), or null.
+var terrain: LevelTerrain = null
 ## Every slab edge render_parts() made: Vector4(ax, ay, bx, by) -> its tile (the
 ## 3D view lays a stretched material along a stair's side by the metre).
 var slab_edges := {}
+## The faces whose top (or bottom) is not level, RAKE_STRIDE numbers each:
+## raked walls' faces, and in a version 2 block sloped slabs' sides (in a
+## version 1 block those stay strips in the wall rows, as ever). Drawn as true
+## quads (LevelMesh); render_parts() makes them.
+var rakes := PackedFloat32Array()
 var width := 0
 var height := 0
 ## cell -> Array of the slabs and segments within PAD of it.
 var _index := {}
 ## cell -> Array of the slabs and ceilings over its footprint (for headroom).
 var _over := {}
+## cell -> Array of the slabs and segments within SIGHT_PAD of it: all a sight
+## line's step in it can meet (LevelSight's tests reach .023), so its tests
+## and its bands ask these and never the rest of the cell's PAD list.
+var _sight := {}
+## 1 for a cell the sight index lists anything under.
+var sight_cells := PackedByteArray()
+## cell -> its sight index's pieces as boxes for sight_first(), SIGHT_BOX
+## numbers each: x0, y0, x1, y1 (a segment's grown by its half), the lowest
+## and highest they fill, 1 when they stop a look (a slab, a segment that
+## stops sight), 0 a rail's.
+var _sight_boxes := {}
+const SIGHT_BOX := 7
 ## 1 for a cell the index lists anything under.
 var cells := PackedByteArray()
 ## The heights that may stop a sight line in each cell: for cell c the
@@ -256,6 +289,7 @@ static func from_json(
 			"geometry: version %d is newer than this build reads (%d)" % [version, VERSION]
 		)
 		return null
+	g.version = version
 	for s: Dictionary in data.get("slabs", []):
 		var slab := Slab.new()
 		slab.id = str(s.get("id", "slab%d" % g.slabs.size()))
@@ -283,8 +317,9 @@ static func from_json(
 				)
 			)
 			continue
-		if absf(slab.gx) > STEEPEST or absf(slab.gy) > STEEPEST:
-			errors.append("%s: slope steeper than %s" % [slab.id, STEEPEST])
+		var steepest := STEEPEST if slab.walk or version < 2 else STEEPEST_FACE
+		if absf(slab.gx) > steepest or absf(slab.gy) > steepest:
+			errors.append("%s: slope steeper than %s" % [slab.id, steepest])
 		g.slabs.append(slab)
 	for s: Dictionary in data.get("segments", []):
 		var seg := Segment.new()
@@ -343,8 +378,35 @@ static func from_json(
 			errors.append("%s: ladder climbs nothing" % lad.id)
 			continue
 		g.ladders.append(lad)
+	if data.has("terrain"):
+		if version < 2:
+			errors.append("geometry: terrain needs version 2")
+		else:
+			g.terrain = LevelTerrain.from_json(data["terrain"], w, h, tile_index, errors)
 	g._build_index()
 	return g
+
+
+## The version a geometry block (as a plan or a source writes it) needs: 2
+## when it uses something version 1 does not have (terrain, a raked wall, a
+## face steeper than STEEPEST not walked on), else 1, so an older block is
+## written as it always was.
+static func version_for(block: Dictionary) -> int:
+	var terrain: Array = block.get("terrain", [])
+	if not terrain.is_empty():
+		return 2
+	for seg: Dictionary in block.get("segments", []):
+		var z1: float = seg.get("z1", 2.0)
+		var z1b: float = seg.get("z1b", z1)
+		if z1b != z1:
+			return 2
+	for slab: Dictionary in block.get("slabs", []):
+		var gx: float = slab.get("gx", 0.0)
+		var gy: float = slab.get("gy", 0.0)
+		var walk: bool = slab.get("walk", true)
+		if not walk and maxf(absf(gx), absf(gy)) > STEEPEST:
+			return 2
+	return 1
 
 
 static func _cuts(list: Variant) -> PackedFloat32Array:
@@ -377,11 +439,14 @@ static func _tile(tile_index: Dictionary, name: Variant, errors: Array, owner: S
 func _build_index() -> void:
 	_index = {}
 	_over = {}
+	_sight = {}
 	cells = PackedByteArray()
 	cells.resize(width * height)
 	cells.fill(0)
+	var sp := SIGHT_PAD
 	for slab in slabs:
 		_put(_index, slab.x0 - PAD, slab.y0 - PAD, slab.x1 + PAD, slab.y1 + PAD, slab, true)
+		_put(_sight, slab.x0 - sp, slab.y0 - sp, slab.x1 + sp, slab.y1 + sp, slab, false)
 		if slab.thick >= 0.0:
 			_put(_over, slab.x0, slab.y0, slab.x1, slab.y1, slab, false)
 	for seg in segments:
@@ -394,9 +459,92 @@ func _build_index() -> void:
 			seg,
 			true
 		)
+		var reach := sp + seg.half
+		_put(
+			_sight,
+			minf(seg.ax, seg.bx) - reach,
+			minf(seg.ay, seg.by) - reach,
+			maxf(seg.ax, seg.bx) + reach,
+			maxf(seg.ay, seg.by) + reach,
+			seg,
+			false
+		)
+	sight_cells = PackedByteArray()
+	sight_cells.resize(width * height)
+	sight_cells.fill(0)
+	_sight_boxes = {}
+	# Each piece's box once, then each cell's list of them.
+	var box_of := {}
+	for sl in slabs:
+		box_of[sl] = PackedFloat64Array(
+			[
+				sl.x0,
+				sl.y0,
+				sl.x1,
+				sl.y1,
+				-1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick,
+				sl.top_max(),
+				1.0
+			]
+		)
+	for g in segments:
+		box_of[g] = PackedFloat64Array(
+			[
+				minf(g.ax, g.bx) - g.half,
+				minf(g.ay, g.by) - g.half,
+				maxf(g.ax, g.bx) + g.half,
+				maxf(g.ay, g.by) + g.half,
+				g.z0,
+				g.top_max(),
+				1.0 if g.sight else 0.0
+			]
+		)
+	for c: int in _sight:
+		sight_cells[c] = 1
+		var boxes := PackedFloat64Array()
+		for item: Variant in _sight[c]:
+			var box: PackedFloat64Array = box_of[item]
+			boxes.append_array(box)
+		_sight_boxes[c] = boxes
 	for c in ceilings:
 		_put(_over, c.x0, c.y0, c.x1, c.y1, c, true)
+	if terrain != null:
+		_index_terrain()
 	_build_sight_bands()
+
+
+## The terrain's cells and the ring round them are asked about everything
+## (a cliff's face reaches a body in the next cell); each terrain cell is in
+## the sight index as a box from far down to its highest corner, and for a
+## flat look (whose floor is the surface itself) one with a cliff in or by
+## it as a box filling every height.
+func _index_terrain() -> void:
+	var t := terrain
+	for cy in height:
+		for cx in width:
+			var c := cy * width + cx
+			var near := false
+			var cliffs := false
+			for yy in range(maxi(0, cy - 1), mini(height, cy + 2)):
+				for xx in range(maxi(0, cx - 1), mini(width, cx + 2)):
+					near = near or t.patch_at[yy * width + xx] != 0
+					cliffs = cliffs or t.steep[yy * width + xx] != 0
+			if not near:
+				continue
+			cells[c] = 1
+			if t.patch_at[c] == 0 and not cliffs:
+				continue
+			sight_cells[c] = 1
+			var boxes: PackedFloat64Array = _sight_boxes.get(c, PackedFloat64Array())
+			if t.patch_at[c] != 0:
+				boxes.append_array(
+					PackedFloat64Array([cx, cy, cx + 1, cy + 1, -1e12, t.high[c], 2.0])
+				)
+			if cliffs:
+				boxes.append_array(
+					PackedFloat64Array([cx - 1, cy - 1, cx + 2, cy + 2, -1e12, 1e12, 3.0])
+				)
+			_sight_boxes[c] = boxes
 
 
 ## A band's margin past what it spans (rounding never lets a test slip by).
@@ -411,16 +559,16 @@ func _build_sight_bands() -> void:
 		sight_band_at[c] = sight_bands.size()
 		if cells[c] == 0:
 			continue
+		# The heights of its sight index's pieces (their boxes: a slab, a
+		# segment that stops sight, the terrain under it).
 		var spans: Array[Vector2] = []
-		for item: Variant in _index.get(c, NOTHING):
-			if item is Slab:
-				var sl: Slab = item
-				var low := -1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick
-				spans.append(Vector2(low, sl.top_max()))
-			elif item is Segment:
-				var g: Segment = item
-				if g.sight:
-					spans.append(Vector2(g.z0, g.top_max()))
+		var found: Variant = _sight_boxes.get(c)
+		if found != null:
+			var boxes: PackedFloat64Array = found
+			for o in range(0, boxes.size(), SIGHT_BOX):
+				var kind := boxes[o + 6]
+				if kind == 1.0 or kind == 2.0:
+					spans.append(Vector2(boxes[o + 4], boxes[o + 5]))
 		spans.sort()
 		var low := 0.0
 		var high := 0.0
@@ -441,8 +589,9 @@ func _build_sight_bands() -> void:
 
 
 ## Whether a sight line's step from height z0 to z1 ending in cell c meets
-## nothing of the geometry: z1 in no band and no band between z0 and z1, so
-## neither solid_point() nor crosses() could stop it there. False: ask them
+## nothing of the geometry (the pieces within SIGHT_PAD of the cell): z1 in
+## no band and no band between z0 and z1, so neither solid_point() nor
+## crosses() could stop it there. False: ask them
 ## (it never says clear where they would not).
 func sight_clear(c: int, z0: float, z1: float) -> bool:
 	for k in range(sight_band_at[c], sight_band_at[c + 1], 2):
@@ -455,16 +604,153 @@ func sight_clear(c: int, z0: float, z1: float) -> bool:
 	return true
 
 
+## A sight line's step at (x, y) in cell c (its own cell, marked): whether a
+## body's flat test there (blocks() at .023, the floor `ground`) meets a
+## piece; over the sight index, so the same answers as blocks().
+func sight_blocks(c: int, x: float, y: float, ground: float) -> bool:
+	var items: Array = _sight.get(c, NOTHING)
+	if terrain == null:
+		return blocks_in(items, x, y, .023, ground + STEP, ground + BODY)
+	# On terrain the floor is the surface there.
+	var g := ground_at(x, y, ground)
+	return blocks_in(items, x, y, .023, g + STEP, g + BODY) or terrain.blocks(x, y, .023, g + STEP)
+
+
+## solid_point(x, y, z, .023, false) for a sight line's step in cell c.
+func sight_point(c: int, x: float, y: float, z: float) -> bool:
+	if terrain != null and terrain.patch_at[c] != 0 and z <= terrain.height_at(x, y):
+		return true
+	for item: Variant in _sight.get(c, NOTHING):
+		if item is Slab:
+			var s: Slab = item
+			if s.near(x, y, .023) and z <= s.top_at(x, y) and z >= s.bottom_at(x, y):
+				return true
+		else:
+			var g: Segment = item
+			if g.sight and z >= g.z0 and z <= g.top_near(x, y, .023):
+				var reach := .023 + g.half
+				if g.dist2(x, y) < reach * reach:
+					return true
+	return false
+
+
+## Where on the stretch of a sight line from (x, y, z) along (dx, dy, dz),
+## from t0 to t1, it might first meet a piece of cell c's sight index (INF:
+## nowhere): each piece's box grown by a step's reach, clipped to the stretch
+## (Liang-Barsky), and its heights over that against the piece's. `flat`: a
+## look without heights, tested at the floor `ground` as sight_blocks() is.
+## Before the answer no step meets one (sight_point, sight_crosses,
+## sight_blocks); after it one only might.
+func sight_first(
+	c: int,
+	x: float,
+	y: float,
+	z: float,
+	dx: float,
+	dy: float,
+	dz: float,
+	t0: float,
+	t1: float,
+	flat: bool,
+	ground: float
+) -> float:
+	var first := INF
+	# A flat look's floor is the cell's ground, or on terrain anywhere from
+	# its lowest corner to its highest.
+	var g_lo := ground
+	var g_hi := ground
+	if terrain != null and terrain.patch_at[c] != 0:
+		g_lo = terrain.low[c]
+		g_hi = terrain.high[c]
+	var step_lo := g_lo + STEP
+	var body_hi := g_hi + BODY
+	var reach := .023 + 1e-4
+	var boxes: PackedFloat64Array = _sight_boxes.get(c, PackedFloat64Array())
+	for o in range(0, boxes.size(), SIGHT_BOX):
+		var low := boxes[o + 4]
+		var high := boxes[o + 5]
+		var kind := boxes[o + 6]
+		if flat:
+			# (A flat look never meets the surface it is on (kind 2), only a
+			# cliff by it (3).)
+			if kind == 2.0 or (kind != 3.0 and (high <= step_lo or low >= body_hi)):
+				continue
+		elif kind == 0.0 or kind == 3.0:
+			continue
+		var lo := t0
+		var hi := minf(t1, first)
+		var gx0 := x - (boxes[o] - reach)
+		var gx1 := (boxes[o + 2] + reach) - x
+		var gy0 := y - (boxes[o + 1] - reach)
+		var gy1 := (boxes[o + 3] + reach) - y
+		if dx == 0.0:
+			if gx0 < 0.0 or gx1 < 0.0:
+				continue
+		elif dx > 0.0:
+			lo = maxf(lo, -gx0 / dx)
+			hi = minf(hi, gx1 / dx)
+		else:
+			lo = maxf(lo, gx1 / dx)
+			hi = minf(hi, -gx0 / dx)
+		if dy == 0.0:
+			if gy0 < 0.0 or gy1 < 0.0:
+				continue
+		elif dy > 0.0:
+			lo = maxf(lo, -gy0 / dy)
+			hi = minf(hi, gy1 / dy)
+		else:
+			lo = maxf(lo, gy1 / dy)
+			hi = minf(hi, -gy0 / dy)
+		if lo > hi:
+			continue
+		if not flat:
+			var za := z + dz * lo
+			var zb := z + dz * hi
+			if maxf(za, zb) < low - 1e-4 or minf(za, zb) > high + 1e-4:
+				continue
+			if dz != 0.0:
+				# The first of the clipped part within the piece's heights.
+				if za < low - 1e-4:
+					lo = maxf(lo, (low - 1e-4 - z) / dz)
+				elif za > high + 1e-4:
+					lo = maxf(lo, (high + 1e-4 - z) / dz)
+		first = minf(first, lo)
+	return first
+
+
+## crosses() for a sight line's step ending at (x1, y1) in cell c.
+func sight_crosses(
+	c: int, x0: float, y0: float, z0: float, x1: float, y1: float, z1: float
+) -> bool:
+	for item: Variant in _sight.get(c, NOTHING):
+		if not (item is Slab):
+			continue
+		var s: Slab = item
+		if not s.inside(x1, y1) or not s.inside(x0, y0):
+			continue
+		var t := s.top_at(x1, y1)
+		if (z0 >= t) != (z1 >= t):
+			return true
+		var b := s.bottom_at(x1, y1)
+		if b > -1e8 and (z0 <= b) != (z1 <= b):
+			return true
+	return false
+
+
 func _put(
 	into: Dictionary, x0: float, y0: float, x1: float, y1: float, item: RefCounted, mark: bool
 ) -> void:
+	# (One lookup a cell, the list made only where there is none: the same
+	# lists in the same order.)
 	for cy in range(maxi(0, floori(y0)), mini(height - 1, floori(y1)) + 1):
 		for cx in range(maxi(0, floori(x0)), mini(width - 1, floori(x1)) + 1):
 			var key := cy * width + cx
-			if not into.has(key):
-				into[key] = []
-			var list: Array = into[key]
-			list.append(item)
+			var found: Variant = into.get(key)
+			if found == null:
+				into[key] = [item]
+			else:
+				var list: Array = found
+				list.append(item)
 			if mark:
 				cells[key] = 1
 
@@ -492,7 +778,9 @@ func clear_at(x: float, y: float) -> bool:
 
 ## The highest floor under feet at z at (x, y): the cell's ground (`ground`,
 ## or none when `open` is false) or a walkable slab's top at most STEP above
-## the feet. -1e9 when there is none.
+## the feet. -1e9 when there is none. On terrain the surface there is the
+## ground (as a cell's is, whatever the feet); with `open` false a floor
+## like a slab's top.
 func floor_at(x: float, y: float, z: float, ground: float, open: bool) -> float:
 	var best := ground if open else -1e9
 	for item: Variant in near_items(x, y):
@@ -503,7 +791,20 @@ func floor_at(x: float, y: float, z: float, ground: float, open: bool) -> float:
 			var t := s.top_at(x, y)
 			if t <= z + STEP + .001 and t > best:
 				best = t
+	if terrain != null:
+		var t := terrain.height_at(x, y)
+		if not is_nan(t) and t > best and (open or t <= z + STEP + .001):
+			best = t
 	return best
+
+
+## The ground at (x, y): the terrain's surface there, else `ground` (the
+## cell's).
+func ground_at(x: float, y: float, ground: float) -> float:
+	if terrain == null:
+		return ground
+	var t := terrain.height_at(x, y)
+	return ground if is_nan(t) else t
 
 
 ## The floor holding up a body of radius r with its feet at `feet`: the floor
@@ -524,10 +825,16 @@ func support(x: float, y: float, r: float, feet: float, ground: float) -> float:
 ## The lowest surface overhead of a point at z (a slab's underside, a
 ## ceiling): INF when nothing of the geometry is over it.
 func ceiling_at(x: float, y: float, z: float) -> float:
-	var best := INF
 	if x < 0.0 or y < 0.0 or x >= width or y >= height or cells[int(y) * width + int(x)] == 0:
-		return best
-	for item: Variant in _over.get(int(y) * width + int(x), NOTHING):
+		return INF
+	var items: Array = _over.get(int(y) * width + int(x), NOTHING)
+	return ceiling_in(items, x, y, z)
+
+
+## ceiling_at() over the overhead pieces `items` (a cell's).
+static func ceiling_in(items: Array, x: float, y: float, z: float) -> float:
+	var best := INF
+	for item: Variant in items:
 		if item is Slab:
 			var s: Slab = item
 			if s.inside(x, y):
@@ -544,7 +851,14 @@ func ceiling_at(x: float, y: float, z: float) -> float:
 ## Whether a body of radius r at (x, y) spanning lo..hi meets a slab or a
 ## segment.
 func blocks(x: float, y: float, r: float, lo: float, hi: float) -> bool:
-	for item: Variant in near_items(x, y):
+	if terrain != null and terrain.blocks(x, y, r, lo):
+		return true
+	return blocks_in(near_items(x, y), x, y, r, lo, hi)
+
+
+## blocks() over the pieces `items` (a cell's list, or a sight cell's).
+static func blocks_in(items: Array, x: float, y: float, r: float, lo: float, hi: float) -> bool:
+	for item: Variant in items:
 		if item is Slab:
 			var s: Slab = item
 			if not s.near(x, y, r):
@@ -568,6 +882,10 @@ func blocks(x: float, y: float, r: float, lo: float, hi: float) -> bool:
 ## Whether the point (x, y, z) is inside something that stops sight (`shots`
 ## false) or shots (`shots` true), grown by r across.
 func solid_point(x: float, y: float, z: float, r: float, shots: bool) -> bool:
+	if terrain != null:
+		var t := terrain.height_at(x, y)
+		if not is_nan(t) and z <= t:
+			return true
 	for item: Variant in near_items(x, y):
 		if item is Slab:
 			var s: Slab = item
@@ -645,187 +963,23 @@ static func outline(
 	return poly
 
 
-## What the renderers draw for it:
+## What the renderers draw for it (GeoParts.render, level_geometry_parts.gd):
 ##   "walls": wall rows (LevelData.WALL_STRIDE each), slab edges and segments
 ##   "caps": height -> [x0, y0, x1, y1, tile, cuts...] flat floors seen from above
 ##   "roof_caps": height -> [...] flat surfaces seen from below
 ##   "slopes": [z0, gx, gy, side, x0, y0, x1, y1, tile, light, area, cuts...]
+##   "rakes": the rakes (also kept in `rakes`)
 ## `ground` gives a cell's floor (an edge or a wedge stops there).
 func render_parts(ground: Callable) -> Dictionary:
-	var walls := PackedFloat32Array()
-	var caps := {}
-	var roof_caps := {}
-	var slopes: Array = []
-	for s in slabs:
-		var poly := outline(s.x0, s.y0, s.x1, s.y1, s.cuts)
-		if poly.size() < 3:
-			continue
-		if s.sloped():
-			slopes.append(_slope_row(s, s.top, 1.0, s.tile))
-			if s.thick >= 0.0:
-				slopes.append(_slope_row(s, s.top - s.thick, -1.0, s.under))
-		else:
-			_add_cap(caps, s.top, s, s.tile)
-			if s.thick >= 0.0:
-				_add_cap(roof_caps, s.top - s.thick, s, s.under)
-		# The sides: each edge of the outline from the underside (or the ground)
-		# up to the top, in strips where the top slopes along it.
-		for i in poly.size():
-			var a := poly[i]
-			var b := poly[(i + 1) % poly.size()]
-			var length := a.distance_to(b)
-			if length < .001:
-				continue
-			var strips := 1
-			if s.sloped():
-				var rise := absf(s.top_at(b.x, b.y) - s.top_at(a.x, a.y))
-				strips = clampi(int(ceilf(rise / .1)), 1, 64)
-			for k in strips:
-				var p := a.lerp(b, float(k) / strips)
-				var q := a.lerp(b, float(k + 1) / strips)
-				var mid := (p + q) * .5
-				var top := s.top_at(mid.x, mid.y)
-				if s.sloped():
-					top = maxf(s.top_at(p.x, p.y), s.top_at(q.x, q.y))
-				var bottom := s.bottom_at(mid.x, mid.y)
-				if s.thick < 0.0:
-					bottom = ground.call(mid.x, mid.y)
-				if top - bottom < .005:
-					continue
-				walls.append_array(
-					PackedFloat32Array([p.x, p.y, q.x, q.y, s.edge, s.light, bottom, top, s.area])
-				)
-				slab_edges[Vector4(p.x, p.y, q.x, q.y)] = s.edge
-	for g in segments:
-		var length := Vector2(g.bx - g.ax, g.by - g.ay).length()
-		if length < .001:
-			continue
-		if g.half * 2.0 < .2:
-			_face_rows(walls, g, Vector2(g.ax, g.ay), Vector2(g.bx, g.by), g.z1, g.z1b)
-			continue
-		# A thick wall: its two faces, its ends and (when low) its top.
-		var d := Vector2(g.bx - g.ax, g.by - g.ay) / length
-		var n := Vector2(-d.y, d.x) * g.half
-		var c: Array[Vector2] = [
-			Vector2(g.ax, g.ay) - n,
-			Vector2(g.bx, g.by) - n,
-			Vector2(g.bx, g.by) + n,
-			Vector2(g.ax, g.ay) + n
-		]
-		# Each face's top at its two ends (a raked wall's faces slope with it).
-		var tops: Array[float] = [g.z1, g.z1b, g.z1b, g.z1b, g.z1b, g.z1, g.z1, g.z1]
-		for i in 4:
-			var p: Vector2 = c[i]
-			var q: Vector2 = c[(i + 1) % 4]
-			_face_rows(walls, g, p, q, tops[i * 2], tops[i * 2 + 1])
-		if g.z1 < 1.5 and not g.raked():
-			var key := snappedf(g.z1, .001)
-			if not caps.has(key):
-				caps[key] = []
-			var x0 := minf(minf(c[0].x, c[1].x), minf(c[2].x, c[3].x))
-			var x1 := maxf(maxf(c[0].x, c[1].x), maxf(c[2].x, c[3].x))
-			var y0 := minf(minf(c[0].y, c[1].y), minf(c[2].y, c[3].y))
-			var y1 := maxf(maxf(c[0].y, c[1].y), maxf(c[2].y, c[3].y))
-			var row := [x0, y0, x1, y1, g.tile]
-			if d.x != 0.0 and d.y != 0.0:
-				# An angled wall's top: its box cut down to the wall's band.
-				for sign: float in [1.0, -1.0]:
-					var nn := Vector2(-d.y, d.x) * sign
-					row.append_array([nn.x, nn.y, nn.dot(Vector2(g.ax, g.ay)) + g.half])
-			var at_key: Array = caps[key]
-			at_key.append(row)
-	for c in ceilings:
-		var row := [c.x0, c.y0, c.x1, c.y1, c.tile]
-		row.append_array(Array(c.cuts))
-		var key := snappedf(c.z, .001)
-		if not roof_caps.has(key):
-			roof_caps[key] = []
-		var at_key: Array = roof_caps[key]
-		at_key.append(row)
-	for lad in ladders:
-		walls.append_array(ladder_rows(lad))
-	return {"walls": walls, "caps": caps, "roof_caps": roof_caps, "slopes": slopes}
+	return GeoParts.render(self, ground)
 
 
-## A ladder's pieces as wall rows: two square rails from its floor to a
-## hand-hold over the top, and a rung every RUNG up to the top.
-static func ladder_rows(lad: Ladder) -> PackedFloat32Array:
-	var out := PackedFloat32Array()
-	var d := Vector2(lad.dx, lad.dy)
-	var side := Vector2(-d.y, d.x)
-	var base := Vector2(lad.x, lad.y) - d * .07
-	var half := .025
-	for s: float in [-1.0, 1.0]:
-		var mid := base + side * (.22 * s)
-		var c: Array[Vector2] = [
-			mid - d * half - side * half,
-			mid + d * half - side * half,
-			mid + d * half + side * half,
-			mid - d * half + side * half
-		]
-		for i in 4:
-			var p: Vector2 = c[i]
-			var q: Vector2 = c[(i + 1) % 4]
-			out.append_array(
-				PackedFloat32Array(
-					[p.x, p.y, q.x, q.y, lad.tile, lad.light, lad.z0, lad.z1 + .8, lad.area]
-				)
-			)
-	var a := base - side * .22
-	var b := base + side * .22
-	var z := lad.z0 + .26
-	while z < lad.z1 + .6:
-		for k: float in [-half, half]:
-			var pa := a + d * k
-			var pb := b + d * k
-			out.append_array(
-				PackedFloat32Array(
-					[pa.x, pa.y, pb.x, pb.y, lad.tile, lad.light * .9, z, z + .045, lad.area]
-				)
-			)
-		z += RUNG
-	return out
-
-
-## A segment's face from p (top ta) to q (top tb) as wall rows: one row for a
-## level top, else strips RAKE_STRIP high at most, each topped at its higher
-## end (the step hides in the roof a gable carries; the wall row format has
-## one top a row, and everything reading level walls keeps it).
-func _face_rows(
-	walls: PackedFloat32Array, g: Segment, p: Vector2, q: Vector2, ta: float, tb: float
-) -> void:
-	var strips := 1
-	if ta != tb:
-		strips = clampi(int(ceilf(absf(tb - ta) / RAKE_STRIP)), 1, 96)
-	for k in strips:
-		var u := float(k) / strips
-		var v := float(k + 1) / strips
-		var a := p.lerp(q, u)
-		var b := p.lerp(q, v)
-		var top := maxf(lerpf(ta, tb, u), lerpf(ta, tb, v))
-		walls.append_array(
-			PackedFloat32Array([a.x, a.y, b.x, b.y, g.tile, g.light, g.z0, top, g.area])
-		)
-
-
-## A raked wall's strips rise at most this each.
-const RAKE_STRIP := .05
-
-
-func _add_cap(into: Dictionary, z: float, s: Slab, tile: int) -> void:
-	var key := snappedf(z, .001)
-	if not into.has(key):
-		into[key] = []
-	var row := [s.x0, s.y0, s.x1, s.y1, tile]
-	row.append_array(Array(s.cuts))
-	var at_key: Array = into[key]
-	at_key.append(row)
-
-
-func _slope_row(s: Slab, z0: float, side: float, tile: int) -> Array:
-	var row := [z0, s.gx, s.gy, side, s.x0, s.y0, s.x1, s.y1, tile, s.light, s.area]
-	row.append_array(Array(s.cuts))
-	return row
+## A station's lights coming on in `area` (game_world.set_station_lights does
+## the wall rows): its rakes `by` brighter.
+func brighten(area: int, by: float) -> void:
+	for o in range(0, rakes.size(), RAKE_STRIDE):
+		if int(rakes[o + 10]) == area:
+			rakes[o + 5] += by
 
 
 # --------------------------------------------------------- bodies

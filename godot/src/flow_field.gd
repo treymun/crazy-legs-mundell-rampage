@@ -123,6 +123,9 @@ func _measure_open(nodes: int) -> void:
 	for door: LevelData.Door in world.doors:
 		changing[door.y * width + door.x] = true
 		door_cells[door.y * width + door.x] = true
+	# The nodes the geometry stands on or near, asked all at once (LevelNav
+	# shares them out over the worker threads: pass 16).
+	var asked := PackedInt32Array()
 	for cy in height:
 		for cx in width:
 			var cell := cy * width + cx
@@ -131,16 +134,19 @@ func _measure_open(nodes: int) -> void:
 			if changing.has(cell):
 				open[cell] = 2
 			elif graph != null and world.geo.cells[cell] != 0:
-				if (
-					LevelNav.stands(world.geo, world, graph, cell)
-					and not world.deep_at(cx + .5, cy + .5)
-				):
-					open[cell] = 1
+				asked.append(cell)
 			elif not world.blocked(cx + .5, cy + .5, BODY) and not world.deep_at(cx + .5, cy + .5):
 				open[cell] = 1
 	if graph != null:
 		for n in range(width * height, graph.count):
-			open[n] = 1 if LevelNav.stands(world.geo, world, graph, n) else 0
+			asked.append(n)
+		var stood := LevelNav.stands_all(world.geo, world, graph, asked)
+		for k in asked.size():
+			var n := asked[k]
+			if n >= width * height:
+				open[n] = stood[k]
+			elif stood[k] == 1 and not world.deep_at(n % width + .5, n / width + .5):
+				open[n] = 1
 
 
 ## Measure the open floor again over a box of the map, from x0, y0 to x1, y1

@@ -203,7 +203,7 @@ static func _apply(b, o: Dictionary, ctx: Dictionary) -> void:
 			opts["kind"] = "block"
 			made.append(Geo.slab(b, id, v["rect"], float(v["top"]), opts)["id"])
 		"ramp":
-			var opts := _geo_opts(v, ctx, ["tile", "edge", "thick", "under", "light"])
+			var opts := _geo_opts(v, ctx, ["tile", "edge", "thick", "under", "light", "walk"])
 			made.append(
 				(
 					Geo
@@ -226,10 +226,24 @@ static func _apply(b, o: Dictionary, ctx: Dictionary) -> void:
 				made.append(s["id"])
 		"wall":
 			var opts := _geo_opts(v, ctx, ["thick", "tile", "openings", "light"])
-			for s: Dictionary in Geo.wall(
-				b, id, _v(v["a"]), _v(v["b"]), float(v["z0"]), float(v["z1"]), opts
-			):
-				made.append(s["id"])
+			if float(v["z1b"]) >= 0.0:
+				# Raked (geometry version 2): its top from z1 at a to z1b at b.
+				var raked := Geo.raked(
+					b,
+					id,
+					_v(v["a"]),
+					_v(v["b"]),
+					float(v["z0"]),
+					float(v["z1"]),
+					float(v["z1b"]),
+					opts
+				)
+				made.append(raked["id"])
+			else:
+				for s: Dictionary in Geo.wall(
+					b, id, _v(v["a"]), _v(v["b"]), float(v["z0"]), float(v["z1"]), opts
+				):
+					made.append(s["id"])
 		"rail":
 			var opts := _geo_opts(v, ctx, ["height", "tile"])
 			made.append(Geo.rail(b, id, _v(v["a"]), _v(v["b"]), float(v["z"]), opts)["id"])

@@ -6,12 +6,43 @@
 class_name LevelNav
 extends RefCounted
 
+## A graph of fewer nodes than this is built on the calling thread alone.
+const SHARED_FROM := 2048
+## Nodes to a share of the work when it is shared out over the worker threads.
+const SHARE := 512
+## The most worker threads a graph is built on (more only wait on each other).
+const THREADS := 6
+
+
+## One share of the building (a run of nodes): what its walks found.
+class Share:
+	var from := 0
+	var to := 0
+	## The orthogonal pairs (n, m) its nodes found, in the order found.
+	var pair_n := PackedInt32Array()
+	var pair_m := PackedInt32Array()
+	## The steps to the cells beside them its cells' pairs found (cell, bit).
+	var mask_at := PackedInt32Array()
+	var mask_bit := PackedByteArray()
+	## Its nodes' diagonals: node from + i's are dedges[dfirst[i] .. dfirst[i + 1]].
+	var dfirst := PackedInt32Array()
+	var dedges := PackedInt32Array()
+	## The flat copy its walks read (NavWalk; a copy of its own on a worker
+	## thread), or null: the queries themselves.
+	var walk: NavWalk = null
+	## Whether each of its nodes stands (stands()), 1 or 0.
+	var stood := PackedByteArray()
+
 
 ## The graph (nav()): the nodes, edges and order it was always built with
 ## (tools/load_reference.gd keeps that build; load_check.gd holds this one to
 ## it) in a fraction of the time: the arrays read through locals, the
 ## orthogonal edges gathered as pairs in the order found and laid out once
 ## (no list per node copied at every append), the diagonals written straight in.
+## Pass 16: each node's walks and diagonals are its own, so a big graph's are
+## shared out over the worker threads in runs of nodes and put back together
+## in node order (the same graph), and each walk asks only the pieces that can
+## matter to it (walks()).
 static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGraph:
 	var g := LevelGeometry.NavGraph.new()
 	var w := geo.width
@@ -20,6 +51,14 @@ static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGra
 	g.cells = n_cells
 	var cell := PackedInt32Array(range(n_cells))
 	var z := lv.ground.slice(0, n_cells)
+	if geo.terrain != null:
+		# On terrain a cell's own node stands on the surface at its middle.
+		var t := geo.terrain
+		for c in n_cells:
+			if t.patch_at[c] != 0:
+				z[c] = t.height_at(c % w + .5, c / w + .5)
+	# Each cell's floor before the slabs (its ground, or the terrain's).
+	var base := z.duplicate()
 	var over := g.over
 	var extra_cell := PackedInt32Array()
 	var extra_z := PackedFloat32Array()
@@ -34,7 +73,7 @@ static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGra
 				if not s.inside(mx, my) or lv.solid[c] >= 0:
 					continue
 				var top := s.top_at(mx, my)
-				if s.thick < 0.0 or top - lv.ground[c] <= LevelGeometry.STEP:
+				if s.thick < 0.0 or top - base[c] <= LevelGeometry.STEP:
 					# Solid down to the ground (or nearly the floor): the cell's floor.
 					z[c] = maxf(z[c], top)
 					continue
@@ -57,54 +96,23 @@ static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGra
 	g.z = z
 	# Orthogonal edges: each pair (n, m), m >= n, in the order found; n's list
 	# gets m and m's gets n, in that order.
+	var shares := _shares(count)
+	var flat := NavWalk.make(geo, lv, g)
+	for share in shares:
+		share.walk = flat if flat == null or shares.size() == 1 else flat.copy()
+	_run(shares, func(share: Share) -> void: _orthogonal(geo, lv, g, share))
 	var pair_n := PackedInt32Array()
 	var pair_m := PackedInt32Array()
-	var geo_cells := geo.cells
-	var dx := PackedInt32Array([1, -1, 0, 0])
-	var dy := PackedInt32Array([0, 0, 1, -1])
 	# Each cell's steps to the cells beside it (E 1, W 2, S 4, N 8), for the
 	# diagonals' quick way (_diagonals).
 	var masks := PackedByteArray()
 	masks.resize(n_cells)
 	masks.fill(0)
-	var bit := PackedByteArray([1, 2, 4, 8])
-	var back_bit := PackedByteArray([2, 1, 8, 4])
-	var walked := {}
-	for n in count:
-		var c := cell[n]
-		var cx := c % w
-		var cy := c / w
-		var own := n < n_cells and geo_cells[c] == 0
-		for d in 4:
-			var nx := cx + dx[d]
-			var ny := cy + dy[d]
-			if nx < 0 or ny < 0 or nx >= w or ny >= h:
-				continue
-			var c2 := ny * w + nx
-			# Far from every piece: the grid's own rule (heights not asked), as
-			# the flow fields always had it.
-			if (
-				c2 >= n
-				and (
-					(own and geo_cells[c2] == 0)
-					or (walks(geo, lv, g, n, c2, walked) and walks(geo, lv, g, c2, n, walked))
-				)
-			):
-				pair_n.append(n)
-				pair_m.append(c2)
-				if n < n_cells:
-					masks[n] |= bit[d]
-					masks[c2] |= back_bit[d]
-			var decks: Variant = over.get(c2)
-			if decks != null:
-				for m: int in decks:
-					if (
-						m >= n
-						and walks(geo, lv, g, n, m, walked)
-						and walks(geo, lv, g, m, n, walked)
-					):
-						pair_n.append(n)
-						pair_m.append(m)
+	for share in shares:
+		pair_n.append_array(share.pair_n)
+		pair_m.append_array(share.pair_m)
+		for k in share.mask_at.size():
+			masks[share.mask_at[k]] |= share.mask_bit[k]
 	var laid := lay_out(count, pair_n, pair_m)
 	var starts: PackedInt32Array = laid[0]
 	var edges: PackedInt32Array = laid[1]
@@ -142,8 +150,123 @@ static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGra
 		starts = joined_starts
 	g.first = starts
 	g.edges = edges
-	diagonals(geo, lv, g, masks)
+	diagonals(geo, lv, g, masks, shares)
+	if flat != null:
+		# Whether each node stands, while the threads are at it: the open floor
+		# FlowField measures next (stands_all), asked of a graph just built.
+		var marks := geo.cells
+		_run(
+			shares,
+			func(share: Share) -> void:
+				share.stood = share.walk.stands_run(share.from, share.to, marks)
+		)
+		for share in shares:
+			g.stood.append_array(share.stood)
 	return g
+
+
+## The runs of nodes the building is shared out in (one, for a small graph or
+## a build without threads).
+static func _shares(count: int) -> Array[Share]:
+	var out: Array[Share] = []
+	var size := count
+	if count >= SHARED_FROM and OS.has_feature("threads"):
+		size = SHARE
+	var from := 0
+	while from < count:
+		var share := Share.new()
+		share.from = from
+		share.to = mini(count, from + size)
+		out.append(share)
+		from = share.to
+	return out
+
+
+## `job` on every share: on the worker threads when there are several (each
+## writes only its own share), else here.
+static func _run(shares: Array[Share], job: Callable) -> void:
+	if shares.size() == 1:
+		job.call(shares[0])
+		return
+	var task := WorkerThreadPool.add_group_task(
+		func(i: int) -> void: job.call(shares[i]), shares.size(), THREADS, true, "nav graph"
+	)
+	WorkerThreadPool.wait_for_group_task_completion(task)
+
+
+## The orthogonal pairs the share's nodes start (build_nav's walk over them).
+static func _orthogonal(
+	geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph, share: Share
+) -> void:
+	var w := geo.width
+	var h := geo.height
+	var n_cells := g.cells
+	var cell := g.cell
+	var over := g.over
+	var geo_cells := geo.cells
+	var dx := PackedInt32Array([1, -1, 0, 0])
+	var dy := PackedInt32Array([0, 0, 1, -1])
+	var bit := PackedByteArray([1, 2, 4, 8])
+	var back_bit := PackedByteArray([2, 1, 8, 4])
+	var walked := {}
+	var near := {}
+	var flat := share.walk
+	var pair_n := share.pair_n
+	var pair_m := share.pair_m
+	var mask_at := share.mask_at
+	var mask_bit := share.mask_bit
+	for n in range(share.from, share.to):
+		var c := cell[n]
+		var cx := c % w
+		var cy := c / w
+		var own := n < n_cells and geo_cells[c] == 0
+		for d in 4:
+			var nx := cx + dx[d]
+			var ny := cy + dy[d]
+			if nx < 0 or ny < 0 or nx >= w or ny >= h:
+				continue
+			var c2 := ny * w + nx
+			# Far from every piece: the grid's own rule (heights not asked), as
+			# the flow fields always had it.
+			if (
+				c2 >= n
+				and (
+					(own and geo_cells[c2] == 0)
+					or (
+						flat.walks_both(n, c2, near)
+						if flat != null
+						else walks(geo, lv, g, n, c2, walked) and walks(geo, lv, g, c2, n, walked)
+					)
+				)
+			):
+				pair_n.append(n)
+				pair_m.append(c2)
+				if n < n_cells:
+					mask_at.append(n)
+					mask_bit.append(bit[d])
+					mask_at.append(c2)
+					mask_bit.append(back_bit[d])
+			if flat != null:
+				for k in range(flat.deck_first[c2], flat.deck_first[c2 + 1]):
+					var m := flat.deck_list[k]
+					if m >= n and flat.walks_both(n, m, near):
+						pair_n.append(n)
+						pair_m.append(m)
+				continue
+			var decks: Variant = over.get(c2)
+			if decks != null:
+				for m: int in decks:
+					if (
+						m >= n
+						and walks(geo, lv, g, n, m, walked)
+						and walks(geo, lv, g, m, n, walked)
+					):
+						pair_n.append(n)
+						pair_m.append(m)
+	share.pair_n = pair_n
+	share.pair_m = pair_m
+	share.mask_at = mask_at
+	share.mask_bit = mask_bit
 
 
 ## CSR arrays [first, edges] of the pairs (n, m): each node's neighbours in
@@ -173,21 +296,19 @@ static func lay_out(count: int, pair_n: PackedInt32Array, pair_m: PackedInt32Arr
 
 ## Diagonals: n to m when each side cell leads from n to m (and no ladder
 ## does it), never past a corner something stands on. `masks`: each cell's
-## steps to the cells beside it (E 1, W 2, S 4, N 8).
+## steps to the cells beside it (E 1, W 2, S 4, N 8). `shares`: the runs of
+## nodes to work them out in (build_nav's; one run when not given).
 static func diagonals(
-	geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph, masks: PackedByteArray
+	geo: LevelGeometry,
+	lv: LevelData,
+	g: LevelGeometry.NavGraph,
+	masks: PackedByteArray,
+	shares: Array[Share] = []
 ) -> void:
 	var count := g.count
 	var n_cells := g.cells
 	var w := geo.width
 	var cell := g.cell
-	var z := g.z
-	var first := g.first
-	var edges := g.edges
-	var links := g.links
-	# The corner asked last and once: (corner, feet) -> whether it is blocked.
-	# The same answers in the same order as asking it all each time.
-	var corners := {}
 	# Each node's cell's column and row, and whether a ladder joins it.
 	var col := PackedInt32Array()
 	var row := PackedInt32Array()
@@ -216,13 +337,55 @@ static func diagonals(
 		for yy in range(maxi(0, c / w - 1), mini(g.cells / w, c / w + 2)):
 			for xx in range(maxi(0, c % w - 1), mini(w, c % w + 2)):
 				special[yy * w + xx] = 1
+	var runs := shares if not shares.is_empty() else _shares(count)
+	if shares.is_empty():
+		var flat := NavWalk.make(geo, lv, g)
+		for share in runs:
+			share.walk = flat if flat == null or runs.size() == 1 else flat.copy()
+	var ways: Array = [col, row, laddered, special, masks]
+	_run(runs, func(share: Share) -> void: _diagonals_of(geo, lv, g, ways, share))
 	var dfirst := PackedInt32Array()
 	dfirst.resize(count + 1)
 	var dedges := PackedInt32Array()
+	for share in runs:
+		var base := dedges.size()
+		for i in share.to - share.from:
+			dfirst[share.from + i] = base + share.dfirst[i]
+		dedges.append_array(share.dedges)
+	dfirst[count] = dedges.size()
+	g.dfirst = dfirst
+	g.dedges = dedges
+
+
+## The share's nodes' diagonals (diagonals() over them). `ways`: [col, row,
+## laddered, special, masks] as diagonals() works them out.
+static func _diagonals_of(
+	geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph, ways: Array, share: Share
+) -> void:
+	var n_cells := g.cells
+	var w := geo.width
+	var count := g.count
+	var cell := g.cell
+	var z := g.z
+	var first := g.first
+	var edges := g.edges
+	var links := g.links
+	var col: PackedInt32Array = ways[0]
+	var row: PackedInt32Array = ways[1]
+	var laddered: PackedByteArray = ways[2]
+	var special: PackedByteArray = ways[3]
+	var masks: PackedByteArray = ways[4]
+	# The corner asked last and once: (corner, feet) -> whether it is blocked.
+	# The same answers in the same order as asking it all each time.
+	var corners := {}
+	var flat := share.walk
+	var dfirst := PackedInt32Array()
+	dfirst.resize(share.to - share.from + 1)
+	var dedges := PackedInt32Array()
 	var reach := LevelGeometry.NAV_BODY * .6
-	for n in count:
+	for n in range(share.from, share.to):
 		var start := dedges.size()
-		dfirst[n] = start
+		dfirst[n - share.from] = start
 		var cx := col[n]
 		var cy := row[n]
 		var n0 := first[n]
@@ -249,7 +412,11 @@ static func diagonals(
 				)
 				var blocked: Variant = corners.get(at)
 				if blocked == null:
-					blocked = geo.static_blocked(lv, at.x, at.y, reach, at.z, LevelGeometry.BODY)
+					blocked = (
+						flat.static_blocked(at.x, at.y, reach, at.z)
+						if flat != null
+						else geo.static_blocked(lv, at.x, at.y, reach, at.z, LevelGeometry.BODY)
+					)
 					corners[at] = blocked
 				if not blocked:
 					dedges.append(m)
@@ -296,14 +463,18 @@ static func diagonals(
 				var at := Vector3((cx + col[m] + 1) * .5, (cy + row[m] + 1) * .5, minf(z[n], z[m]))
 				var blocked: Variant = corners.get(at)
 				if blocked == null:
-					blocked = geo.static_blocked(lv, at.x, at.y, reach, at.z, LevelGeometry.BODY)
+					blocked = (
+						flat.static_blocked(at.x, at.y, reach, at.z)
+						if flat != null
+						else geo.static_blocked(lv, at.x, at.y, reach, at.z, LevelGeometry.BODY)
+					)
 					corners[at] = blocked
 				if blocked:
 					continue
 				dedges.append(m)
-	dfirst[count] = dedges.size()
-	g.dfirst = dfirst
-	g.dedges = dedges
+	dfirst[share.to - share.from] = dedges.size()
+	share.dfirst = dfirst
+	share.dedges = dedges
 
 
 ## Whether node b's orthogonal neighbours include m.
@@ -346,9 +517,55 @@ static func stands(geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph,
 	)
 
 
+## stands() for each of `nodes`, 1 or 0 in their order (FlowField's open
+## floor): the graph's own answers when it was built here (build_nav keeps
+## them), else asked: one by one here when they are few (a baked chapter's),
+## on the worker threads over a flat copy when they are many.
+static func stands_all(
+	geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph, nodes: PackedInt32Array
+) -> PackedByteArray:
+	var out := PackedByteArray()
+	out.resize(nodes.size())
+	if g.stood.size() == g.count:
+		var known := true
+		for k in nodes.size():
+			out[k] = g.stood[nodes[k]]
+			known = known and out[k] != 2
+		if known:
+			return out
+	var shares := _shares(nodes.size())
+	if shares.size() == 1:
+		# A few: asked here, one by one (a flat copy costs more than it saves).
+		for k in nodes.size():
+			out[k] = 1 if stands(geo, lv, g, nodes[k]) else 0
+		return out
+	var flat := NavWalk.make(geo, lv, g)
+	for share in shares:
+		share.walk = flat if flat == null or shares.size() == 1 else flat.copy()
+	_run(
+		shares,
+		func(share: Share) -> void:
+			var mine := PackedByteArray()
+			mine.resize(share.to - share.from)
+			for k in share.to - share.from:
+				var node := nodes[share.from + k]
+				var ok := (
+					share.walk.stands(node) if share.walk != null else stands(geo, lv, g, node)
+				)
+				mine[k] = 1 if ok else 0
+			share.mask_bit = mine
+	)
+	for share in shares:
+		for k in share.to - share.from:
+			out[share.from + k] = share.mask_bit[k]
+	return out
+
+
 ## Whether a body walks from node n's middle to node m's (sub-stepped: the
 ## enemies' rule, the grid's own steps free, slabs at most STEP up, nothing in
-## the way at the body's height, headroom for a crouch).
+## the way at the body's height, headroom for a crouch). NavWalk.walks_both
+## answers it for both ways over a flat copy; this is the queries' own way,
+## for a level NavWalk cannot copy (furniture indexed narrower than the body).
 ## `memo`: what has been asked at a point (on a sixteenth of a cell) at a
 ## height, so a walk back over the same points asks nothing again.
 static func walks(
@@ -394,12 +611,19 @@ static func walks(
 			floor_z = geo.floor_at(x, y, feet, lv.ground[c], true)
 			if keep:
 				floors[feet] = floor_z
-		if floor_z > feet + LevelGeometry.STEP + .002 and floor_z > lv.ground[c] + .001:
+		# (The grid's own steps are free; the terrain's surface is no grid step.)
+		if (
+			floor_z > feet + LevelGeometry.STEP + .002
+			and (
+				floor_z > lv.ground[c] + .001
+				or (geo.terrain != null and geo.terrain.patch_at[c] != 0)
+			)
+		):
 			return false
 		feet = floor_z
-		var stands: Variant = stood.get(feet) if keep else null
-		if stands == null:
-			stands = (
+		var stands_here: Variant = stood.get(feet) if keep else null
+		if stands_here == null:
+			stands_here = (
 				not geo.static_blocked(lv, x, y, LevelGeometry.NAV_BODY, feet, LevelGeometry.BODY)
 				and (
 					minf(geo.ceiling_at(x, y, feet), LevelGeometry._roof(lv, c, feet)) - feet
@@ -407,7 +631,7 @@ static func walks(
 				)
 			)
 			if keep:
-				stood[feet] = stands
-		if not stands:
+				stood[feet] = stands_here
+		if not stands_here:
 			return false
 	return absf(feet - g.z[m]) < .06

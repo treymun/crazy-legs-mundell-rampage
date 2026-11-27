@@ -169,10 +169,14 @@ const TYPES := {
 			"thick": -1.0,
 			"under": "ceiling",
 			"light": .85,
-			"district": ""
+			"district": "",
+			"walk": true
 		},
 		"doc":
-		"A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`).",
+		(
+			"A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`)."
+			+ " `walk` false: a face too steep to stand on (up to 4 in 1)."
+		),
 	},
 	"stairs":
 	{
@@ -190,6 +194,7 @@ const TYPES := {
 		{
 			"z0": 0.0,
 			"z1": 2.2,
+			"z1b": -1.0,
 			"thick": .12,
 			"tile": "plaster",
 			"openings": [],
@@ -197,7 +202,10 @@ const TYPES := {
 			"district": ""
 		},
 		"doc":
-		"A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows.",
+		(
+			"A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows."
+			+ " `z1b` (0 or more): its top at b, sloping from `z1` at a (a gable; no openings)."
+		),
 	},
 	"rail":
 	{
@@ -678,6 +686,20 @@ static func _check_values(
 				out.append(_issue("error", "point", where, "%s must be [x, y]" % key, ""))
 	if o.has("toward") and not (String(o["toward"]) in ["n", "e", "s", "w"]):
 		out.append(_issue("error", "toward", where, "toward must be n, e, s or w", ""))
+	if (
+		type == "wall"
+		and float(o.get("z1b", -1.0)) >= 0.0
+		and not (o.get("openings", []) as Array).is_empty()
+	):
+		out.append(
+			_issue(
+				"error",
+				"raked_openings",
+				where,
+				"a raked wall (z1b) takes no openings",
+				"split it where the openings are"
+			)
+		)
 	if (type == "ramp" or type == "stairs") and o.has("from") and o.has("to"):
 		if float(o["to"]) <= float(o["from"]):
 			out.append(

@@ -733,7 +733,7 @@
           },
           {
             "title": "ramp",
-            "description": "A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`).",
+            "description": "A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`). `walk` false: a face too steep to stand on (up to 4 in 1).",
             "type": "object",
             "required": [
               "id",
@@ -791,6 +791,9 @@
               },
               "district": {
                 "type": "string"
+              },
+              "walk": {
+                "type": "boolean"
               }
             },
             "patternProperties": {
@@ -867,7 +870,7 @@
           },
           {
             "title": "wall",
-            "description": "A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows.",
+            "description": "A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows. `z1b` (0 or more): its top at b, sloping from `z1` at a (a gable; no openings).",
             "type": "object",
             "required": [
               "id",
@@ -903,6 +906,9 @@
                 "type": "number"
               },
               "z1": {
+                "type": "number"
+              },
+              "z1b": {
                 "type": "number"
               },
               "thick": {

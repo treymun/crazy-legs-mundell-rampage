@@ -846,6 +846,8 @@ func set_station_lights(station: LevelData.Station) -> void:
 			var o := i * LevelData.WALL_STRIDE
 			if int(world.walls[o + 8]) == sector:
 				world.walls[o + 5] += .26
+		if world.geo != null:
+			world.geo.brighten(sector, .26)
 
 
 func activate_station(station: LevelData.Station) -> void:

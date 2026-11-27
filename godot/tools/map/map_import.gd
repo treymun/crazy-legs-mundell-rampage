@@ -4,14 +4,19 @@
 ## - faces facing straight up become floors: a deck (a face under it within
 ##   2 units makes it that thick) or a block solid to the ground;
 ## - faces sloping up at most 45 degrees become ramps (their plane fitted);
+## - faces sloping up 45 to 76 degrees (a steep roof, a bank) become ramps
+##   not walked on (geometry version 2, pass 16);
 ## - faces facing straight down that no floor claims become ceilings;
 ## - upright faces become walls: grouped by plane, laid out along it, and
 ##   covered in rectangles, so a hole through a wall (a door, a window) comes
 ##   out as an opening of its size; two faces back to back within .6 make one
-##   wall that thick;
-## - anything else (a slanted wall, a slope over 45 degrees, a face leaning
-##   down) cannot be drawn by the game: it is an error (skip_unsupported makes
-##   it a warning and leaves it out), never flattened silently.
+##   wall that thick. A face whose top slopes (a gable, a wall under a roof's
+##   pitch) comes in as raked walls along its slope (z1b; pass 16), one a
+##   stretch between its corners, when it has no hole and a level foot;
+## - anything else (a wall leaning over, a face steeper than 76 degrees that
+##   is not upright, a face leaning down) cannot be drawn by the game: it is
+##   an error (skip_unsupported makes it a warning and leaves it out), never
+##   flattened silently.
 ##
 ## Units and axes: glTF is metres, Y up, -Z forward. A map's x is the file's
 ## X, its y the file's Z (south), its z the file's Y; then `scale` (map units
@@ -29,6 +34,8 @@ const Edit := preload("res://tools/map/map_edit.gd")
 const FLAT := .985
 const UPRIGHT := .02
 const STEEPEST := .7071
+## A face up at least this (cos 76 degrees) comes in as a slope not walked on.
+const STEEP_FACE := .2419
 const RES := .05
 
 
@@ -101,6 +108,7 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 	var ups: Array = []
 	var downs: Array = []
 	var slopes: Array = []
+	var faces: Array = []
 	var walls: Array = []
 	var odd: Array = []
 	for t: Tri in tris:
@@ -112,6 +120,8 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 			walls.append(t)
 		elif t.n.z >= STEEPEST:
 			slopes.append(t)
+		elif t.n.z >= STEEP_FACE:
+			faces.append(t)
 		else:
 			odd.append(t)
 	var issues: Array = []
@@ -120,7 +130,10 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 		for t: Tri in odd:
 			meshes[t.mesh] = int(meshes.get(t.mesh, 0)) + 1
 		var text := (
-			"%d face(s) the game cannot draw (slanted walls, slopes over 45 degrees, faces leaning down): %s"
+			(
+				"%d face(s) the game cannot draw (walls leaning over, slopes over 76 degrees,"
+				+ " faces leaning down): %s"
+			)
 			% [odd.size(), meshes]
 		)
 		if not opts.has("skip_unsupported"):
@@ -172,6 +185,11 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 				o["type"] = "block"
 			objects.append(o)
 	n = 0
+	for t: Tri in faces:
+		slopes.append(t)
+	var steep := {}
+	for t: Tri in faces:
+		steep[t] = true
 	for group: Array in _groups(
 		slopes,
 		func(t: Tri):
@@ -197,6 +215,9 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 				"_import": prefix,
 				"_slope": [snappedf(gx, .0001), snappedf(gy, .0001)]
 			}
+			if steep.has(t0):
+				# Too steep to stand on (over 45 degrees): a face, not walked on.
+				o["walk"] = false
 			if not (piece["cuts"] as Array).is_empty():
 				o["cuts"] = piece["cuts"]
 			objects.append(o)
@@ -627,6 +648,11 @@ static func _walls(tris: Array, prefix: String) -> Array:
 				u1 = maxf(u1, u)
 				z0 = minf(z0, (v as Vector3).z)
 				z1 = maxf(z1, (v as Vector3).z)
+		var raked := _raked(p, along, base, nrm * offset, thick, prefix, n)
+		if not raked.is_empty():
+			n += raked.size()
+			out.append_array(raked)
+			continue
 		var cols := maxi(1, int(ceil((u1 - u0) / RES)))
 		var rows := maxi(1, int(ceil((z1 - z0) / RES)))
 		var filled := PackedByteArray()
@@ -668,3 +694,125 @@ static func _walls(tris: Array, prefix: String) -> Array:
 				)
 			)
 	return out
+
+
+## A plane's faces as raked walls (pass 16), or [] to cover it in rectangles
+## as ever: cut along it at every corner, each stretch a wall from its foot
+## up to its top at each end, when every stretch is one band with a level
+## foot (no hole through it) and at least one top slopes (so a plain wall
+## comes in as it always did).
+static func _raked(
+	p: Dictionary,
+	along: Vector2,
+	base: Vector2,
+	shift: Vector2,
+	thick: float,
+	prefix: String,
+	n: int
+) -> Array:
+	var flat: Array[PackedVector2Array] = []
+	var breaks: Array[float] = []
+	for t: Tri in p["tris"]:
+		var tri := PackedVector2Array()
+		for v: Vector3 in [t.a, t.b, t.c]:
+			var u := along.dot(Vector2(v.x, v.y))
+			tri.append(Vector2(u, v.z))
+			var key := snappedf(u, .001)
+			if not breaks.has(key):
+				breaks.append(key)
+		flat.append(tri)
+	breaks.sort()
+	var pieces: Array = []
+	var sloped := false
+	for k in breaks.size() - 1:
+		var ua := breaks[k]
+		var ub := breaks[k + 1]
+		if ub - ua < .01:
+			continue
+		var e := minf(.001, (ub - ua) * .01)
+		var at_a := _band(flat, ua + e)
+		var at_b := _band(flat, ub - e)
+		if at_a.size() != 2 or at_b.size() != 2:
+			return []
+		# The band's foot and top along the stretch, out to its two ends.
+		var span := ub - ua - 2.0 * e
+		var foot_a := at_a[0] - (at_b[0] - at_a[0]) / span * e
+		var foot_b := at_b[0] + (at_b[0] - at_a[0]) / span * e
+		var top_a := at_a[1] - (at_b[1] - at_a[1]) / span * e
+		var top_b := at_b[1] + (at_b[1] - at_a[1]) / span * e
+		if absf(foot_a - foot_b) > .01:
+			return []
+		if absf(top_a - top_b) > .01:
+			sloped = true
+		pieces.append([ua, ub, snappedf((foot_a + foot_b) * .5, .001), top_a, top_b])
+	if not sloped or pieces.is_empty():
+		return []
+	# Stretches that carry on one another (the same foot, one straight top)
+	# are one wall.
+	var merged: Array = [pieces[0]]
+	for k in range(1, pieces.size()):
+		var last: Array = merged[merged.size() - 1]
+		var next: Array = pieces[k]
+		var rise_last := (float(last[4]) - float(last[3])) / (float(last[1]) - float(last[0]))
+		var rise_next := (float(next[4]) - float(next[3])) / (float(next[1]) - float(next[0]))
+		if (
+			absf(float(next[0]) - float(last[1])) < .002
+			and absf(float(next[2]) - float(last[2])) < .002
+			and absf(float(next[3]) - float(last[4])) < .01
+			and absf(rise_next - rise_last) < .002
+		):
+			last[1] = next[1]
+			last[4] = next[4]
+		else:
+			merged.append(next)
+	var out: Array = []
+	for piece: Array in merged:
+		var a := base + along * float(piece[0]) + shift
+		var b := base + along * float(piece[1]) + shift
+		var z1 := snappedf(float(piece[3]), .001)
+		var z1b := snappedf(float(piece[4]), .001)
+		var o := {
+			"id": "%s_wall%d" % [prefix, n + out.size() + 1],
+			"type": "wall",
+			"a": [snappedf(a.x, .001), snappedf(a.y, .001)],
+			"b": [snappedf(b.x, .001), snappedf(b.y, .001)],
+			"z0": piece[2],
+			"z1": z1,
+			"thick": snappedf(thick, .001),
+			"tile": p["tile"],
+			"_import": prefix,
+		}
+		if z1b != z1:
+			o["z1b"] = z1b
+		out.append(o)
+	return out
+
+
+## Where the faces (in a plane's u, z) cross the upright line at u: the
+## lowest and highest z as (low, high) when they make one band, else a
+## vector of another size (none, or a gap in it).
+static func _band(flat: Array[PackedVector2Array], u: float) -> PackedFloat64Array:
+	var spans: Array[Vector2] = []
+	for tri in flat:
+		var lo := INF
+		var hi := -INF
+		for i in 3:
+			var p := tri[i]
+			var q := tri[(i + 1) % 3]
+			if (p.x - u) * (q.x - u) > 0.0 or p.x == q.x:
+				continue
+			var z := p.y + (q.y - p.y) * (u - p.x) / (q.x - p.x)
+			lo = minf(lo, z)
+			hi = maxf(hi, z)
+		if lo <= hi:
+			spans.append(Vector2(lo, hi))
+	if spans.is_empty():
+		return PackedFloat64Array()
+	spans.sort()
+	var low := spans[0].x
+	var high := spans[0].y
+	for k in range(1, spans.size()):
+		if spans[k].x > high + .002:
+			return PackedFloat64Array([low, high, spans[k].x])
+		high = maxf(high, spans[k].y)
+	return PackedFloat64Array([low, high])

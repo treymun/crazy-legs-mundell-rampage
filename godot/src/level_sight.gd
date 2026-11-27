@@ -59,6 +59,12 @@ static func visible(
 	var za := LevelData._float(z) if heights else 0.0
 	var zb := LevelData._float(zz) if heights else 0.0
 	var own := plain and glassless and lv.index_radius >= .023
+	# A stretch through a geometry cell may be passed whole (sight_met,
+	# flat_met): with heights over the bands, without them at the cell's floor.
+	var whole := (
+		own and geo != null and furniture_cells.size() == w * hgt and (banded or not heights)
+	)
+	var sight_cells := geo.sight_cells if whole else PackedByteArray()
 	var near_fixtures := lv.near_fixtures
 	var near_doors := lv.near_doors
 	var geo_cells := geo.cells if geo != null else PackedByteArray()
@@ -67,6 +73,8 @@ static func visible(
 	var doors: Array = LevelData.NOTHING
 	var dx := xx - x
 	var dy := yy - y
+	# The geometry's cell last tried whole (a stretch through it at once).
+	var tried := -1
 	var i := 1
 	while i < n:
 		var t := float(i) / float(n)
@@ -130,6 +138,41 @@ static func visible(
 			if index_cells[cell] == 0 and not paned:
 				i += 1
 				continue
+			if whole and cell != tried and furniture_cells[cell] == 0:
+				# A cell of the geometry's, entered: the whole stretch in it at
+				# once when no piece there can meet it (and no wall's corner
+				# beside it), else step by step (pass 16).
+				tried = cell
+				var cx := int(sx)
+				var cy := int(sy)
+				if cx > 0 and cy > 0 and cx < w - 1 and cy < hgt - 1 and geo_cells[cell] != 0:
+					var j := _past_cell(x, y, xx, yy, n, i, cx, cy)
+					var t1 := float(j - 1) / float(n)
+					if _walls_clear(lv, cx, cy, sx, sy, x + (xx - x) * t1, y + (yy - y) * t1):
+						# (A cell the sight index lists nothing under: nowhere.)
+						var first := INF
+						if sight_cells[cell] != 0:
+							first = geo.sight_first(
+								cell,
+								x,
+								y,
+								z0,
+								xx - x,
+								yy - y,
+								z1 - z0,
+								float(i - 1) / float(n),
+								t1,
+								not banded,
+								lv.ground[cell]
+							)
+						if first > t1:
+							i = j
+							continue
+						# The steps before it meet nothing either.
+						var k := ceili(first * n)
+						if k > i:
+							i = k
+							continue
 			if banded and furniture_cells[cell] == 0 and not paned:
 				var step_z := z0 + (z1 - z0) * t
 				var back_z := z0 + (z1 - z0) * (float(i - 1) / float(n))
@@ -144,11 +187,12 @@ static func visible(
 			# blocked(sx, sy, .023, wz) past its corners (just tested: none
 			# in a wall; no pane, no locked gate on this level).
 			if geo != null and geo_cells[cell_at] != 0:
+				# (Over the sight index: the pieces near enough the cell for a
+				# step's .023 to meet, pass 16.)
 				if not heights:
-					var g := lv.ground[cell_at]
-					if geo.blocks(sx, sy, .023, g + LevelGeometry.STEP, g + LevelGeometry.BODY):
+					if geo.sight_blocks(cell_at, sx, sy, lv.ground[cell_at]):
 						return false
-				elif geo.solid_point(sx, sy, za + (zb - za) * t, .023, false):
+				elif geo.sight_point(cell_at, sx, sy, za + (zb - za) * t):
 					return false
 			if index_cells[cell_at] != 0:
 				if cell_at != listed_cell:
@@ -181,7 +225,9 @@ static func visible(
 			# A steep look can step over a deck thinner than one step climbs.
 			var bt := float(i - 1) / float(n)
 			var bz := za + (zb - za) * bt
-			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, za + (zb - za) * t):
+			if geo.sight_crosses(
+				cell_at, x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, za + (zb - za) * t
+			):
 				return false
 		i += 1
 	return true

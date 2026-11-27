@@ -170,6 +170,10 @@ func build_static(base_walls: PackedFloat32Array, only := {}) -> Dictionary:
 			_add_cap(cap, h, true)
 	for row: Array in level.slopes:
 		_add_slope(row)
+	if level.geo != null and not level.geo.rakes.is_empty():
+		add_rakes(level.geo.rakes)
+	if level.geo != null and level.geo.terrain != null:
+		_add_terrain(level.geo.terrain)
 	return _finish()
 
 
@@ -341,11 +345,254 @@ func add_walls(rows: PackedFloat32Array) -> void:
 		part.quad()
 
 
+## Every rake (LevelGeometry.rakes: a face whose top or bottom slopes, a
+## gable's, a raked wall's, a slope's side) as a quad seen from both sides,
+## its texture laid as a wall row's is: by the metre for a repeating
+## material, over its whole height and length for a stretched one. A plank
+## material is drawn whole (the planks shot out of a fence are a grid wall's).
+func add_rakes(rows: PackedFloat32Array) -> void:
+	var stride := LevelGeometry.RAKE_STRIDE
+	var edges: Dictionary = level.geo.slab_edges
+	for o in range(0, rows.size() - stride + 1, stride):
+		var ax := rows[o]
+		var ay := rows[o + 1]
+		var bx := rows[o + 2]
+		var by := rows[o + 3]
+		var tile := int(rows[o + 4])
+		var light := rows[o + 5]
+		var a_bottom := rows[o + 6]
+		var a_top := rows[o + 7]
+		var b_bottom := rows[o + 8]
+		var b_top := rows[o + 9]
+		var area := int(rows[o + 10])
+		if (a_top <= a_bottom and b_top <= b_bottom) or _skip((ax + bx) * .5, (ay + by) * .5):
+			continue
+		var length := Vector2(bx - ax, by - ay).length()
+		if length < .0005:
+			continue
+		var kind := KIND_WALL
+		if tile == _tile_liquor:
+			kind = KIND_FLICKER
+		elif tile == _tile_eat or tile == _tile_window:
+			kind = KIND_GLOW
+		elif tile == _tile_glazing:
+			kind = KIND_GLAZING
+		var plain := kind == KIND_WALL
+		var mode := int(tile_mode[tile]) if plain and tile >= 0 and tile < tile_mode.size() else 0
+		var along := length * 128.0 if mode != 0 else 128.0
+		var base := tile_base[tile] if mode == 2 else tile
+		var u_a := 0.0
+		if (
+			plain
+			and mode == 0
+			and not _edge_stretched.has(tile)
+			and edges.get(Vector4(ax, ay, bx, by), -1) == tile
+		):
+			# A slope's side in a stretched material: by the metre, as a slab
+			# edge's (add_walls).
+			mode = 1
+			var d := Vector2(bx - ax, by - ay) / length
+			u_a = (Vector2(ax, ay).dot(d) + EDGE_ORIGIN) * 128.0
+			along = EDGE_ORIGIN * 256.0
+		var u_b := u_a + length * 128.0 if mode != 0 else along
+		# v: the wall rows' (1.96 - z) * 100 by the metre; stretched, the whole
+		# picture over the face's full height.
+		var high := maxf(a_top, b_top)
+		var low := minf(a_bottom, b_bottom)
+		var span := maxf(high - low, .001)
+		var va_top := (1.96 - a_top) * 100.0 if mode != 0 else (high - a_top) / span * 128.0
+		var va_bottom := (
+			(1.96 - a_bottom) * 100.0 if mode != 0 else (high - a_bottom) / span * 128.0
+		)
+		var vb_top := (1.96 - b_top) * 100.0 if mode != 0 else (high - b_top) / span * 128.0
+		var vb_bottom := (
+			(1.96 - b_bottom) * 100.0 if mode != 0 else (high - b_bottom) / span * 128.0
+		)
+		var n := Vector3(by - ay, 0.0, -(bx - ax)) / length
+		var c0 := _tint(area)
+		c0.a = light
+		var c1 := Color(float(tile), float(base), along, float(mode + kind * 4))
+		var part := _part((ax + bx) * .5, (ay + by) * .5, kind == KIND_GLAZING)
+		part.vertex(Vector3(ax, a_bottom, ay), n, Vector2(u_a, va_bottom), c0, c1)
+		part.vertex(Vector3(ax, a_top, ay), n, Vector2(u_a, va_top), c0, c1)
+		part.vertex(Vector3(bx, b_top, by), n, Vector2(u_b, vb_top), c0, c1)
+		part.vertex(Vector3(bx, b_bottom, by), n, Vector2(u_b, vb_bottom), c0, c1)
+		part.quad()
+
+
+## The sun the terrain's slopes are shaded by (map axes: from the north-west,
+## high), and how much: a flat cell is drawn as bright as a flat floor.
+const SUN := Vector3(-.4, -.48, .78)
+const SLOPE_SHADE := .5
+
+
+## The terrain (LevelTerrain): each cell two triangles split as the surface
+## is, its corners lit from the slope there (each corner's normal from the
+## heights round it, so the light runs smooth over a hill, the 1997 way); a
+## cliff's triangle upright, its picture laid up its face by the metre.
+func _add_terrain(t: LevelTerrain) -> void:
+	var w := level.width
+	var sun := SUN.normalized()
+	for c in w * level.height:
+		if t.patch_at[c] == 0:
+			continue
+		var cx := c % w
+		var cy := c / w
+		if _skip(cx + .5, cy + .5):
+			continue
+		var p := t.patch_of(c)
+		var tile := t.tile_of(c)
+		if tile < 0:
+			tile = level.floor_tile[c]
+		if tile < 0:
+			continue
+		var light := p.light if p.light >= 0.0 else level.light[c]
+		var c0 := _tint(level.area[c])
+		var k := c * 4
+		var at: Array[Vector3] = [
+			Vector3(cx, cy, t.corners[k]),
+			Vector3(cx + 1, cy, t.corners[k + 1]),
+			Vector3(cx, cy + 1, t.corners[k + 2]),
+			Vector3(cx + 1, cy + 1, t.corners[k + 3]),
+		]
+		var normals: Array[Vector3] = []
+		for q in at:
+			normals.append(_terrain_normal(p, int(q.x), int(q.y)))
+		var part := _part(cx + .5, cy + .5, false)
+		# North-east (nw, ne, se), then south-west (nw, se, sw).
+		_terrain_sides(t, p, c, at, light, c0)
+		for tri in 2:
+			var ids := PackedInt32Array([0, 1, 3]) if tri == 0 else PackedInt32Array([0, 3, 2])
+			if t.steep[c] & (1 if tri == 0 else 2) != 0:
+				_cliff_triangle(part, at[ids[0]], at[ids[1]], at[ids[2]], p.cliff, light, c0)
+				continue
+			var c1 := Color(float(tile), float(tile), 128.0, float(KIND_FLOOR * 4))
+			for i in ids:
+				var q := at[i]
+				var n := normals[i]
+				var lit := c0
+				lit.a = light * (1.0 + SLOPE_SHADE * (n.dot(sun) - sun.z))
+				part.vertex(
+					Vector3(q.x, q.z, q.y),
+					Vector3(n.x, n.z, n.y),
+					Vector2(q.x * 128.0, q.y * 128.0),
+					lit,
+					c1
+				)
+			var first := part.verts.size() - 3
+			part.index.append_array(PackedInt32Array([first, first + 1, first + 2]))
+
+
+## Where terrain cell c's edge stands over the floor beside it (the patch's
+## edge over lower ground, or a lower patch), that side drawn down to it as a
+## cliff's face is. `at`: its corners (nw, ne, sw, se) as map points.
+func _terrain_sides(
+	t: LevelTerrain, p: LevelTerrain.Patch, c: int, at: Array[Vector3], light: float, c0: Color
+) -> void:
+	var w := level.width
+	var cx := c % w
+	var cy := c / w
+	# North, east, south, west: the neighbour's step, the edge's two corners
+	# (of nw 0, ne 1, sw 2, se 3), and the same corners as the neighbour's.
+	var steps := PackedInt32Array([0, -1, 1, 0, 0, 1, -1, 0])
+	var ends := PackedInt32Array([0, 1, 1, 3, 3, 2, 2, 0])
+	var theirs := PackedInt32Array([2, 3, 0, 2, 1, 0, 3, 1])
+	for side in 4:
+		var nx := cx + steps[side * 2]
+		var ny := cy + steps[side * 2 + 1]
+		if nx < 0 or ny < 0 or nx >= w or ny >= level.height:
+			continue
+		var n := ny * w + nx
+		if t.patch_at[n] == t.patch_at[c]:
+			continue
+		var a: Vector3 = at[ends[side * 2]]
+		var b: Vector3 = at[ends[side * 2 + 1]]
+		var low_a := level.ground[n]
+		var low_b := low_a
+		if t.patch_at[n] != 0:
+			# Another patch: its own surface along the edge.
+			low_a = t.corners[n * 4 + theirs[side * 2]]
+			low_b = t.corners[n * 4 + theirs[side * 2 + 1]]
+		if a.z <= low_a + .005 and b.z <= low_b + .005:
+			continue
+		var row := PackedFloat32Array(
+			[a.x, a.y, b.x, b.y, p.cliff, light, minf(low_a, a.z), a.z, minf(low_b, b.z), b.z, 0]
+		)
+		var lit := c0
+		lit.a = light
+		_side_quad(row, lit)
+
+
+## One terrain side (a rake's row) drawn upright in its tile by the metre.
+func _side_quad(row: PackedFloat32Array, c0: Color) -> void:
+	var ax := row[0]
+	var ay := row[1]
+	var bx := row[2]
+	var by := row[3]
+	var length := Vector2(bx - ax, by - ay).length()
+	if length < .0005:
+		return
+	var d := Vector2(bx - ax, by - ay) / length
+	var u_a := (Vector2(ax, ay).dot(d) + EDGE_ORIGIN) * 128.0
+	var u_b := u_a + length * 128.0
+	var along := EDGE_ORIGIN * 256.0
+	var n := Vector3(by - ay, 0.0, -(bx - ax)) / length
+	var c1 := Color(row[4], row[4], along, float(1 + KIND_WALL * 4))
+	var part := _part((ax + bx) * .5, (ay + by) * .5, false)
+	part.vertex(Vector3(ax, row[6], ay), n, Vector2(u_a, (1.96 - row[6]) * 100.0), c0, c1)
+	part.vertex(Vector3(ax, row[7], ay), n, Vector2(u_a, (1.96 - row[7]) * 100.0), c0, c1)
+	part.vertex(Vector3(bx, row[9], by), n, Vector2(u_b, (1.96 - row[9]) * 100.0), c0, c1)
+	part.vertex(Vector3(bx, row[8], by), n, Vector2(u_b, (1.96 - row[8]) * 100.0), c0, c1)
+	part.quad()
+
+
+## A terrain corner's normal (map axes): the patch's heights either side.
+static func _terrain_normal(p: LevelTerrain.Patch, x: int, y: int) -> Vector3:
+	var x0 := maxi(p.x0, x - 1)
+	var x1 := mini(p.x0 + p.w, x + 1)
+	var y0 := maxi(p.y0, y - 1)
+	var y1 := mini(p.y0 + p.h, y + 1)
+	var gx := (p.corner(x1, y) - p.corner(x0, y)) / float(x1 - x0)
+	var gy := (p.corner(x, y1) - p.corner(x, y0)) / float(y1 - y0)
+	return Vector3(-gx, -gy, 1.0).normalized()
+
+
+## A cliff's triangle (map points a, b, c): drawn as a wall is, its picture
+## along the face's level line by the metre and up it by height.
+func _cliff_triangle(
+	part: Part, a: Vector3, b: Vector3, c: Vector3, tile: int, light: float, c0: Color
+) -> void:
+	var n := (b - a).cross(c - a).normalized()
+	if n.z < 0.0:
+		n = -n
+	var across := Vector2(-n.y, n.x)
+	if across.length() < 1e-6:
+		across = Vector2(1, 0)
+	across = across.normalized()
+	var lit := c0
+	lit.a = light * (1.0 + SLOPE_SHADE * (n.dot(SUN.normalized()) - SUN.normalized().z))
+	var along := EDGE_ORIGIN * 256.0
+	var c1 := Color(float(tile), float(tile), along, float(1 + KIND_WALL * 4))
+	var flat := (
+		Vector3(n.x, 0.0, n.y).normalized() if Vector2(n.x, n.y).length() > 1e-6 else Vector3.RIGHT
+	)
+	for q: Vector3 in [a, b, c]:
+		var u := (Vector2(q.x, q.y).dot(across) + EDGE_ORIGIN) * 128.0
+		part.vertex(Vector3(q.x, q.z, q.y), flat, Vector2(u, (1.96 - q.z) * 100.0), lit, c1)
+	var first := part.verts.size() - 3
+	part.index.append_array(PackedInt32Array([first, first + 1, first + 2]))
+
+
 ## Every cell's floor at its ground, and its roof where it has one, merged
 ## along each row into runs of one height, tile, light and area.
 func _add_floors() -> void:
 	var w := level.width
 	var h := level.height
+	# The cells the terrain draws (their ground is under its surface).
+	var under := PackedInt32Array()
+	var terrained := level.geo != null and level.geo.terrain != null
+	if terrained:
+		under = level.geo.terrain.patch_at
 	for overhead: bool in [false, true]:
 		for y in h:
 			if _skip_box(0.0, y + .5, w, y + .5):
@@ -359,6 +606,9 @@ func _add_floors() -> void:
 				var height_here := level.roof[c] if overhead else level.ground[c]
 				var tile := level.ceiling_tile[c] if overhead else level.floor_tile[c]
 				if (overhead and height_here <= 0.0) or tile < 0:
+					x += 1
+					continue
+				if terrained and not overhead and under[c] != 0:
 					x += 1
 					continue
 				var light := level.light[c]
@@ -375,6 +625,7 @@ func _add_floors() -> void:
 						or tk != tile
 						or level.light[k] != light
 						or level.area[k] != area
+						or (terrained and not overhead and under[k] != 0)
 					):
 						break
 					end += 1

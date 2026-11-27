@@ -422,6 +422,42 @@ own reads in it). Both are now built at pack time and read back:
   run `pack_assets.gd -- bake` (or the whole pack): until then that level
   builds at load as before, and `tools/prebake_check.gd` fails saying so.
 
+## Geometry version 2 (pass 16, SHAPES)
+
+A level's geometry block (`src/level_geometry.gd`) is written as version 2
+only when it uses something version 1 lacks (`LevelGeometry.version_for`,
+which `level_builder.finish` writes): terrain, a raked wall, a slab not
+walked on steeper than 1. Every older level rebuilds byte for byte. What it
+adds ([docs/map_notes/t1.md](../map_notes/t1.md) has the examples and the
+refusals):
+
+- **Raked walls:** a segment's `z1b`, its top at `b` (gables, lean-to walls).
+  Drawn as one quad (a rake, below), collides and stops looks and shots
+  along its sloping top. `Geo.raked()`; a source wall's `z1b`.
+- **Terrain** (`src/level_terrain.gd`, `LevelTerrain`): patches of corner
+  heights in centimetres over rectangles of cells, two triangles a cell; a
+  face over 1 in 1 is a cliff. The surface is the ground for standing,
+  spawning and walking; a rise of more than a step or a cliff stops a body;
+  a point under it stops sight and shots. Its cells' ground is the patch's
+  lowest corner (`Geo.terrain`), so readers of a cell's ground stay under
+  it; `Geo.lift_onto_terrain` lifts pickups, hands and boards onto it. The
+  nav graph's cell nodes stand on it at their middles, and a walk over it is
+  never the grid's (its high edge is no free step).
+- **Faces not walked on** may slope to 4 in 1 (`STEEPEST_FACE`), and a slab
+  may be cut by 8 lines.
+- **Rakes:** in a version 2 block a sloped slab's sides are rakes (true
+  quads) instead of 0.1 strips; a raked wall's faces always are.
+
+The engine work for heavy maps (the audit's town of 36 houses, 744 slabs and
+2,125 segments): the nav graph (`LevelNav.build_nav`) walks over a flat
+copy of what it reads (`src/nav_walk.gd`), asks only the pieces near each
+walk at the heights it can take, and shares a big graph's nodes out over six
+worker threads (the same graph: `load_check`); sight reads an index of its
+own (`LevelGeometry._sight`, the pieces within a step's reach of each cell)
+and crosses a geometry cell whole when nothing in it can meet the look. The
+numbers are in [checks.md](checks.md#measured-in-pass-16-shapes-2026-11-27).
+`tools/geometry2_check.gd` holds it.
+
 ## Editing a level by hand
 
 `godot/data/<id>.json` is the source for a level not built from a plan. Change

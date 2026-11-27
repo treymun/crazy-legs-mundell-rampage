@@ -660,7 +660,8 @@ func blocked(x: float, y: float, radius := 0.0, z: Variant = null) -> bool:
 			return true
 	if geo != null and geo.cells[int(y) * width + int(x)] != 0:
 		if z == null:
-			var g := ground[int(y) * width + int(x)]
+			# (On terrain the floor is the surface there: geometry version 2.)
+			var g := geo.ground_at(x, y, ground[int(y) * width + int(x)])
 			if geo.blocks(x, y, radius, g + LevelGeometry.STEP, g + LevelGeometry.BODY):
 				return true
 		elif geo.solid_point(x, y, _float(z), radius, false):
