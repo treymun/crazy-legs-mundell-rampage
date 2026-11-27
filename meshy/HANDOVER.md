@@ -156,12 +156,29 @@ specks 5} (the old gear's brass was yellow speckle noise). drone - a
 cap_band recolour (z .885-.912, front/sides, low sat, val .3+: the pale
 strip between brim and goggles) and every cap rule contrast .3 smooth 6
 (the lower crown read lighter, as a see-through layer).
-NEXT: valve_rat (finish, see 49), drone (alien grey, see 05b
-alien.json), skeeter (dumps ok=false: a bug - beast path; see the
-beast-path section and A's swamp_king notes), then as credits allow the
-millhand Meshy chainsaw (<= 20 cr: held_model, orange/red body, grey bar
-and chain) and a still_buster chop fix (axe down-forward in "fire").
-Credits: agent B 459 of 650 after 49's rig.
+51 skeeter DONE (39 cr: concept 9 + model 30, beast path, no rig;
+meshy/assets/skeeter.glb; requests by meshy-work-b/prompts/
+skeeter_requests.py): kinds/skeeter.json - weights heat, legs [[b4,b5],
+[b6,b7],[b8,b9],[b13,b14],[b15,b16],[b17,b18]] realigned to the Meshy legs,
+"square": false, groups body b0 / wings [b1,b2,b3] [b10,b11,b12] /
+proboscis [b20,b19] (b20 first: b19 is scaled to 0 in aim/fire) / each leg
+bone alone. The skeeter pops when killed (no ragdoll); its keys -1/0/1 are
+the wing-beat (enemies.gd frame cycle). Known: 5.6k bake texels unreached
+(dark marks on a wing underside in key 1), wings span a little wider.
+still_buster chop (0 cr) TRIED AND REVERTED: a per-key wrist limit
+("follow_wrist_keys" fire 120) left the axe across the chest, worse: the
+old axe's fire turn is applied about the OLD pivot to the new held place,
+so the arm reaches up to the chest; a real fix needs an authored "fire"
+chop pose (the axe swung from over the shoulder down-forward to hip
+height ahead). The tool change was reverted; the game has 46 again
+(repacked/imported); meshy-work-b/raw/still_buster holds the 46b try
+(rebuild from kinds/still_buster.json before using it); the shared
+previews 46b_still_buster_make/hands.png are that try (no INDEX line).
+millhand chainsaw NOT done (20 cr > the 14 left under B's 600 cap).
+INDEX lines 49, 50, 51 written (third B session).
+Credits: agent B 586 of 600 (track ledger 2,327 after skeeter's model).
+check_all quick (third B session, after 49b/50b/51, scratch profile): ALL
+CHECKS OK (54 listed ok, 157 s).
 check_all quick (second B session, after 47b/48b, old valve_rat in the
 game, scratch profile): 1 FAILED in 171 s - hud_layout_check (a SCRIPT
 ERROR in Enemy._init under check_all's parallel load); hud_layout_check
