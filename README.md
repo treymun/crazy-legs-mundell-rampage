@@ -149,7 +149,7 @@ it is original.
   <img src="site/img/feature_gator.png" width="24%" alt="A gator thrown into the air by dynamite">
 </p>
 <p align="center">
-  <img src="site/img/feature_coop.png" width="24%" alt="A co-op partner on the road into Hickston">
+  <img src="site/img/feature_coop.png" width="24%" alt="Four co-op Mundells on the road into Hickston">
   <img src="site/img/feature_fivev5.png" width="24%" alt="A 5v5 round, the shine bomb just planted">
   <img src="site/img/feature_blue.png" width="24%" alt="Blue the coonhound trotting at the fair gate">
   <img src="site/img/feature_tips.png" width="24%" alt="A new player's first tip at the gas station">
@@ -157,6 +157,10 @@ it is original.
 
 ## Lately
 
+- **3.14** New faces: Mundell, every hand, every boss and the critters rebuilt as new models
+  with real bodies, readable faces and fingers that grip; solid guns shouldered with a cheek on
+  the stock; the active ragdoll retuned to each new build; a chain that swings, a real mosquito;
+  and the sound no longer drops Mundell's lines and your own steps a few chapters in.
 - **3.13** Fun and flow: trail markers (die and you pick up a minute back), fights in waves with
   breathers, drops of what you're short of and quicker tough guys, a RAMPAGE meter, music that
   follows the fight, danger arrows and wind-up flashes, hazard kicks for COUNTY JUSTICE!, one tap

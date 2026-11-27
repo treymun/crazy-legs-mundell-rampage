@@ -397,7 +397,7 @@
   const FIGHTS = [
     { name: 'The Alien Sheriff', where: 'Rodeo grounds, Hickston', img: 'fight_sheriff', soft: 'The power pack on his back.', desperate: 'Calls the saucer down: rings close, bolts drop, the ring burns.', hog: 'A ring of plasma in every direction, with one gap.' },
     { name: 'Jerry Jones', where: 'Hogs Field, Hickston', img: 'fight_jerry', soft: 'His knees. Not the helmet.', desperate: 'A blitz down a marked lane. Make him hit a post.', hog: 'A flaming football that bursts where it lands.' },
-    { name: 'Rudy Racket', where: 'The big top, Possum County Fair', img: 'fight_rudy', soft: 'The drum; the horns while he winds up.', desperate: 'Rings of horn blasts. Find the painted gaps.', hog: 'Balloon bombs that drift after you. Shoot them down.' },
+    { name: 'Rudy Racket', where: 'The big top, Possum County Fair', img: 'fight_rudy', soft: 'His belly; the horns while he winds up.', desperate: 'Rings of horn blasts. Find the painted gaps.', hog: 'Balloon bombs that drift after you. Shoot them down.' },
     { name: 'The Splinter Foreman', where: 'The saw floor, Blackwater Timber', img: 'fight_foreman', soft: 'The saw rig on his back.', desperate: 'A fan of saw blades that bounce off the walls.', hog: 'Kicks a fuel drum at you. Shoot it first.' },
     { name: 'The Copper Baron', where: 'The still house, Stillwater Cut', img: 'fight_baron', soft: 'The boiler on his back.', desperate: 'Copper rain on marked spots, burst pipes, red lights.', hog: 'Every third attack, every outlet in the house goes.' },
     { name: 'The Swamp King', where: 'King\'s Lagoon, Gator Bayou', img: 'fight_king', soft: 'The engine cage, from behind.', desperate: 'Lit dynamite on marked spots; the water burns.', hog: 'A punt-gun broadside at the end of every run.' },
@@ -423,7 +423,7 @@
   // The party line (index.html #partyline): the modes as docs/online.md and
   // docs/dev/modes.md have them.
   const MODES = [
-    { name: 'Campaign co-op', bill: 'Two to four', img: 'feature_coop', alt: 'A co-op partner beside Mundell and Blue on the road into Hickston',
+    { name: 'Campaign co-op', bill: 'Two to four', img: 'feature_coop', alt: 'Four co-op Mundells and Blue on the road into Hickston',
       rows: [['The deal', 'The whole campaign together, from a chapter the host has reached or THE PARTY SAVE.'],
         ['Shared', 'Keys and the PA lead. Everybody keeps his own guns, pockets and hound.'],
         ['Down', 'A partner holds USE over you, or you are back beside them in twenty seconds.']] },
@@ -454,6 +454,8 @@
 
   // The feed store wall (index.html #bill): flyers for the bigger pieces.
   const FLYERS = [
+    { title: 'A whole new cast', img: 'feature_models_crew', alt: 'Two revenue men and a gas-masked trooper, the new models, standing in the moonshine yard at night',
+      text: 'Every soul in Hickston County is built over: Mundell, the hands, the bosses and the critters, with real bodies, faces you can read and fingers wrapped round their guns. Same folks, same guns, same colours as ever; built proper this time, and every one of them staggers, crawls and falls like he weighs something.' },
     { title: 'County Run', img: 'feature_county_xp', alt: 'County Run on the Hickston map: bottle-cap XP lying beside a barn, the run clock, level and slots on the bar',
       text: 'Endless survival on three big maps: Hickston, the quarry and Gator Bayou. Kills drop bottle-cap XP; every level stops the clock for three cards, every tenth for a big milestone, while a storm front closes in. DAILY RUN gives everybody the same dice and keeps a board. Alone, or online with three friends.' },
     { title: 'Behind the wheel', img: 'feature_vehicle', alt: 'The stock car in the HEAT RACE, forty-three miles an hour, the .38 out of the window',

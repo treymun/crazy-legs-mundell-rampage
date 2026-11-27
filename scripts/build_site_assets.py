@@ -113,7 +113,9 @@ FEATURES = ("feature_coop", "feature_deathmatch", "feature_showdown", "feature_c
             # Pass 13: the site brought up to 3.11 (breaking, blasts, wrecks,
             # bodies, the tips, a 5v5 round).
             "feature_break", "feature_barn", "feature_blast", "feature_wreck",
-            "feature_ragdoll", "feature_tips", "feature_fivev5", "feature_gator")
+            "feature_ragdoll", "feature_tips", "feature_fivev5", "feature_gator",
+            # 3.14: the new Meshy cast.
+            "feature_models_crew")
 TRACKS = ("title", "music", "county_line", "porchlight_stomp", "fair_score", "tickets_after_dark",
           "closing_time_shuffle", "mill_score", "green_chain", "apron_run", "quarry_score",
           "copper_and_steam", "last_load", "bayou_score", "cypress_crawl", "crawdad_boil_hop",
