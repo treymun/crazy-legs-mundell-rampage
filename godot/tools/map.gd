@@ -36,7 +36,7 @@
 ##   turn <id> <object> [by=1]             a kit piece, prefab or set piece turned
 ##                                           quarter turns clockwise
 ##   mirror <id> <object>                    a kit piece or prefab flipped left to right
-##   top <id> key=<json>                     the source's own keys: spawn, districts,
+##   top <id> key=<json>                     the source's own keys: spawn, districts, mood, modes,
 ##                                           meta (merged), border, size, playtest, base
 ##   undo <id>                               put back the source before the last edit
 ##   history <id>                            the edits kept for undo

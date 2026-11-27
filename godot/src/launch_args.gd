@@ -132,7 +132,21 @@ static func parse_smoke(m: MainState) -> void:
 		if not (
 			Modes.SHOWDOWN_MAPS.has(str(m.mode_options.get("arena", "")))
 			or Modes.TAGTEAM_MAPS.has(str(m.mode_options.get("arena", "")))
+			or _has_teams(str(m.mode_options.get("arena", "")))
 		):
 			m.mode_options["arena"] = Modes.SHOWDOWN_MAPS[0]
 	m.smoke = m.smoke_frames > 0
 	m.focused = true
+
+
+## Whether a built level (data/<id>.json, a map source's build) has the 5v5
+## starts, so --mode=bomb --arena=<id> plays a new map before it is listed in
+## Modes.SHOWDOWN_MAPS (pass 16, T7: a map maker's test run).
+static func _has_teams(level_id: String) -> bool:
+	if level_id == "" or not level_id.is_valid_ascii_identifier():
+		return false
+	var path := "res://data/%s.json" % level_id
+	return (
+		FileAccess.file_exists(path)
+		and FileAccess.get_file_as_string(path).contains('"attack_spawns"')
+	)

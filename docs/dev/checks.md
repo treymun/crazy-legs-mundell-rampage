@@ -194,7 +194,7 @@ in, a snapshot copy, a save),
 bayou with two for 6 s), `net_loopback` (ENet 6 s with 40 ms, jitter and 5%
 loss; WebSocket 2 s), the CRASH LOG block (`CrashLog.start(main, dir)` in a
 cache folder), `mode_check`, `county_check`, and `geometry_check` and
-`map_check` (map sources, MAP_AUTHORING.md), `leak_check`, and polish pass
+`map_check` (map sources, MAP_AUTHORING.md; with `map_check_v2.gd`, pass 16: every version 2 type and kit piece compiles and validates, planted errors give their codes with hints, a v1 source byte for byte and the feedstore build unchanged, prefabs placed, the versus review, deathmatch on a map's own starts), `leak_check`, and polish pass
 9's `save_numbers` (saves round-tripped through JSON mid-ride, mid-raid and
 mid-blackout: a vehicle's seats and the event's hand lists come back whole
 numbers) and `polish_bugs` (a twister lifting past the map's edge, a save with

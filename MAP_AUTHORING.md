@@ -1,347 +1,457 @@
 # Map authoring
 
-How to make and change maps for Crazy Legs Mundell Rampage from structured
-files and commands, by hand or as an AI agent (Claude, Codex, anything that
-can edit JSON and run a shell). Everything here is implemented and checked by
-`tools/geometry_check.gd` and `tools/map_check.gd` (both run in
-`tools/check_fixes.gd`, so in CI).
+How to make maps for Crazy Legs Mundell Rampage from a text file and one
+command, by hand or as an AI agent (OpenAI Codex, Claude, anything that can
+edit JSON and run a shell). This is the single entry point. The full key by
+key reference of the format is [docs/map_notes/t7.md](docs/map_notes/t7.md);
+the deep notes on each part of the engine are in `docs/map_notes/` (t1
+terrain and raked walls, t2 the review, t4 doors, panes and vias, t5 the
+building kit, t6 looks and water, t7 the format).
 
-Contents: the model, the files, the workflow, commands, the source format,
-components, validation codes, playtests, pictures, the editor, glTF import,
-existing levels, limitations.
+Contents: the quick start, the rules, the format, building blocks (kit,
+land, looks, logic, versus, prefabs, low-level pieces), making a multiplayer
+map that ships, the commands, the codes, the hard rules, the limits.
 
-Players make maps in the game itself too: the title's CUSTOM MAPS and its
-editor, the MAP SHED. Those are their own small format (a grid of letters
-and a list of things from a fixed palette, checked hard because they come
-from strangers in lobbies), compiled into a level when played; they are not
-map sources and these tools do not read them. See
-[docs/dev/levels.md](docs/dev/levels.md#player-maps).
+Players also make maps inside the game (CUSTOM MAPS, the MAP SHED): a small
+grid format of their own, checked hard because strangers share them
+([docs/dev/levels.md](docs/dev/levels.md#player-maps)). These tools do not
+read those.
 
-## The model (what geometry the game has)
-
-The game draws and plays a 2.5D world (as the 1997 engines did), extended in
-level **format 2**:
-
-| piece | what it is | collision | sight and shots | rendering |
-| --- | --- | --- | --- | --- |
-| cells | the grid: solid cells (walls, hedges, rock) and open cells with a ground height and a roof height | full height | full height | walls of the solid cells, floors, ceilings |
-| decks (slabs with a thickness) | a floor walked on **and under**: lofts, landings, catwalks, balconies, bridges | 3D: a body climbs onto one at most .245 above its feet, falls off its edge, passes under it with headroom | the slab stops looks and shots; a shot can land on it | top, underside and edges |
-| blocks, stairs, ramps (slabs solid to the ground) | plinths, docks, stair treads, sloped ramps | 3D | stop looks and shots | top (flat or sloped) and sides |
-| walls (segments) | free walls at any angle, any thickness >= .08, with their own bottom and top; openings cut to size | 3D (a rail stops a body, not a bullet over it) | per wall (`sight`, `shots`) | faces (and a top when low and thick) |
-| ceilings | a surface overhead with no floor on it | headroom | — | seen from below |
-
-A level without geometry (format 1) plays exactly as it always did.
-
-Bots, enemies, the objective pin and the 5v5 bots path on a **nav graph**:
-each cell's own floor is a node, and every deck over a cell is another node
-at its height, so a bot on a loft and one under it are on different nodes;
-stairs and ramps join them. A wall opening only joins the graph where a cell's
-middle line passes through it (validate warns otherwise).
-
-## Units and axes
-
-- 1 map unit = 1 cell. x runs east, y south, z up from the ground.
-- The eye is .95 over a floor; a door 1.85 high; a step at most .245 (higher
-  takes a jump, about .6); a body is .2 round and 1.12 tall (.86 crouched).
-- Every `rect` is `[x0, y0, x1, y1]` in map units with x1, y1 exclusive. Types
-  that change cells ("grid" in the table below) want whole numbers and cover
-  cells x0..x1-1, y0..y1-1.
-- Angles are degrees: 0 east, 90 south.
-- Heights: `top`, `z`, `z0`, `z1`, `from`, `to` are absolute (over the
-  ground's zero), not over the floor below.
-- Real-world models: a real door (2.1 m) is 1.85 units and a real eye (1.6 m)
-  is .95, so the game's world is stylised; `scale=0.6` on import puts a
-  metre-built model near the game's proportions. Check doors with validate.
-
-## The files
-
-| file | what it is | edit it? |
-| --- | --- | --- |
-| `godot/maps/<id>.map.json` | **the map's source**: the one authoritative file for maps made this way | yes (by hand, with `tools/map.gd`, or in the editor's Maps screen) |
-| `godot/data/<id>.json` | the built level the game loads | no: `map.gd -- build` writes it and refuses to write over hand changes |
-| `godot/maps/built.json` | the hash of each level as last built (how a hand change is noticed) | no |
-| `godot/maps/.history/<id>/` | a copy of the source (or level) before every edit and build; `undo` uses it (not committed) | no |
-| `docs/map_schema.json` | JSON Schema of a source | generated: `map.gd -- schema` |
-| `docs/map_catalog/` | catalog of components, tiles, props, enemies, pickups with thumbnails | generated: `map.gd -- catalog` |
-| `docs/map_examples/` | the demo map's build script and viewpoints | example |
-| `godot/tools/levels/<id>_plan.gd` | the older levels' sources, written as code; a map source may build on one (`base`) | yes, for those levels |
-
-## The workflow
-
-Set `GODOT` to the Godot console executable (on this machine
-`C:\Users\treym\OneDrive\Desktop\Tools\Godot_v4.7.2-stable_win64_console.exe`)
-and run from the repo root:
+## Quick start
 
 ```bash
+GODOT="C:/Users/treym/OneDrive/Desktop/Tools/Godot_v4.7.2-stable_win64_console.exe"   # or your Godot 4.7.2 console
 map() { "$GODOT" --headless --path godot --script res://tools/map.gd -- "$@"; }
+
+map new crossing size=48x40        # writes godot/maps/crossing.map.json (version 2)
+# edit godot/maps/crossing.map.json (the format is below)
+map check crossing quick           # ~8 s: validate, build in memory, review, walk the routes, plans
+map check crossing                 # + 3D pictures (and a bot run on a one-player map), 15-30 s
 ```
 
-1. `map new <id> size=32x24` (or `base=<plan>` to build on an existing plan).
-2. Add and change objects: `map add`, `map top`, `map move`, ... or edit the
-   JSON directly. Every edit command takes `dry` and prints what it changed.
-3. `map validate <id>` until there are no errors. Each problem names the
-   object, gives a location `[x, y, z]` and a hint.
-4. `map render <id> overlay=nav,unreachable,collision` and look at the plans
-   (one per floor).
-5. `map shot <id> views=<file>` for the game's own view from places.
-6. `map playtest <id> perf enemies` (bots walk to every objective and floor).
-7. `map build <id>`, then play it: `"$GODOT" --path godot -- --play-at=<id>:x,y,angle,z`.
-8. Commit the source **and** `data/<id>.json` and `maps/built.json`.
+Then read `godot/maps/.check/crossing/report.md` and look at
+`godot/maps/.check/crossing/sheet.png`. Every finding says where (x, y, z),
+what is wrong and how to fix it. Fix every MUST FIX, then the SHOULD items,
+and run it again until the verdict is PASS (nothing but NICE ideas). WORK
+means it plays but could play better; FAIL means it is broken.
 
-Every command prints readable lines, then one line `MAP-RESULT {json}` for a
-program to parse (`json` prints only that line). Exit codes: **0** done, **1**
-the map has errors or a playtest failed, **2** bad arguments, **3** a file
-could not be read or written, **4** refused (the level was changed by hand
-since its last build; `force` keeps a copy and builds over it).
+Copy from the two worked examples, both PASS:
 
-## Commands
+- `godot/maps/feud.map.json` (52 x 40, 57 lines): a crossroads for
+  deathmatch, team deathmatch, search and destroy and hostage rescue.
+  Review and pictures: `docs/map_examples/feud/`.
+- `godot/maps/shiloh.map.json` (64 x 48, 50 lines): a farm for one player
+  and co-op (buildings, road, creek, pond, hill, woods, a kill gate, a
+  switch, a wake zone, a key). Review and pictures: `docs/map_examples/shiloh/`.
 
-```bash
-map help
-map new feedstore size=28x22                 # a blank source with a yard
-map new hickston_extra base=hickston        # objects over an existing plan
-map inspect feedstore                        # objects, floors, nav counts
-map validate feedstore                       # exit 1 on errors
-map build feedstore [dry] [force]            # validate, then write data/feedstore.json
-map render feedstore out=renders overlay=nav,unreachable,collision,spawns,objects [floor=1.7] [scale=16]
-map shot feedstore out=shots at=12.5,6.5,1.7 angle=160 pitch=-15
-map shot feedstore out=shots views=docs/map_examples/feedstore_views.json
-map playtest feedstore [scenario=routes.json] [perf] [enemies] [seconds=20]
+The map tools never touch the player's profile: `map check`, `pictures`
+and `shot` start themselves again under a scratch profile
+(`TEMP/clmr-map-tools`) when none is set. For any other Godot run, set
+`APPDATA` and `LOCALAPPDATA` to a scratch folder first (see the hard rules).
 
-map add feedstore '{"id": "crates2", "type": "cover", "a": [3, 9], "b": [5, 9]}' [after=store]
-map move feedstore partition by=0,1          # or to=x,y; by=dx,dy,dz lifts too
-map resize feedstore office rect=18,2,25,6
-map resize feedstore partition opening=stock_door width=1.4 [at=2.5]
-map set feedstore dock top=1.0 tile='"tin"'  # values are JSON
-map material feedstore plaster brick in=office
-map remove feedstore yard_cans
-map rename feedstore partition stock_wall    # references follow
-map top feedstore spawn='{"at": [3.5, 18.5], "angle": -40}'   # spawn, districts, meta (merged), border, size, playtest
-map undo feedstore
-map history feedstore
+## The rules of the format
 
-map catalog                                  # docs/map_catalog/
-map schema                                   # docs/map_schema.json
-map import feedstore shed.glb materials=mats.json scale=0.6 origin=4,4,0 prefix=shed [skip_unsupported] [dry]
-```
+- 1 map unit = 1 cell. x runs east, y south, z up. The eye is .95 over a
+  floor, a door 1.85 high, a step at most .245 (higher takes a jump of about
+  .6), a body .2 round and 1.12 tall (.86 crouched). A real door (2.1 m) is
+  1.85 units: the world is stylised.
+- **Every rect is `[x0, y0, x1, y1]`, x1 and y1 exclusive** (cells x0..x1-1,
+  y0..y1-1). Types that change cells want whole numbers.
+- **A building's `at` is the north-west corner of its footprint** (whole
+  cells). A thing's `at` (a hand, a pickup, a start) is a place: .5 is a
+  cell's middle.
+- Angles are degrees, 0 east, 90 south, -90 north. `turn` is quarter turns
+  clockwise (0 front south, 1 west, 2 north, 3 east), `face` the same in
+  words (s, w, n, e). Heights (`z`, `top`, `z0`...) are absolute.
+- Ids are `^[a-z][a-z0-9_]*$` and unique. Parts a piece makes are named
+  `<id>_<part>`, so every finding names something you wrote.
+- Objects are laid in order; terrain, logic, the versus plan and the looks
+  are worked out over the whole map at the end.
+- Words on screen are UPPER CASE, short, in the county's voice.
+- Version 1 sources (the low-level pieces only) still read, build and save
+  exactly as before; anything below that is marked v2 makes a source
+  `"version": 2` (the tools write it for you).
 
-## The source format
+## The file
 
 ```json
 {
   "schema": "clmr-map",
-  "version": 1,
-  "id": "tiny",
-  "size": [16, 12],
+  "version": 2,
+  "id": "crossing",
+  "size": [48, 40],
   "border": "hedgerow",
-  "meta": {"title": "TINY", "sky": "sky", "layout": 1},
-  "districts": [{"id": "yard", "name": "THE YARD"}],
-  "spawn": {"at": [2.5, 6.5], "angle": 0, "z": 0},
+  "meta": {"title": "THE CROSSING", "intro": "TWO FAMILIES. ONE ROAD.", "sky": "sky", "layout": 1},
+  "mood": "farm_dusk",
+  "modes": ["deathmatch", "team_deathmatch", "bomb"],
+  "districts": [{"id": "yard", "name": "THE CROSSING"}, {"id": "barn", "name": "THE BARN", "rect": [30, 26, 38, 36], "mood": "barn_dark"}],
+  "prefabs": {},
+  "spawn": {"at": [4.5, 20.5], "angle": 0},
   "objects": [
-    {"id": "ground", "type": "yard", "rect": [1, 1, 15, 11], "floor": "dirt", "district": "yard"},
-    {"id": "shed", "type": "building", "rect": [8, 3, 14, 9], "wall": "barn", "roof": 3.4},
-    {"id": "shed_door", "type": "door", "cell": [8, 6], "vertical": true, "from": "e"},
-    {"id": "loft", "type": "balcony", "rect": [11, 4, 13, 8], "top": 1.7, "open": "w"},
-    {"id": "loft_stairs", "type": "stairs", "rect": [9, 4, 11, 5.2], "from": 0, "to": 1.7, "toward": "e"},
-    {"id": "lever", "type": "station", "at": [12.5, 6.5], "z": 1.7, "label": "PULL IT", "prop": "quest_switch"}
+    {"id": "ground", "type": "yard", "rect": [1, 1, 47, 39], "floor": "grass", "district": "yard"}
   ]
 }
 ```
 
-- Objects are applied in order (a later one changes the cells an earlier one
-  made). Ids are unique, `^[a-z][a-z0-9_]*$`, and never change unless you
-  `rename`: edits, validation and the built level's pieces all use them (a
-  wall `partition` with openings builds pieces `partition_0`, `partition_1`...;
-  stairs `loft_stairs` build treads `loft_stairs_1`...).
-- A key a type does not know is kept as it is and reported as a warning;
-  start a note's key with `_` (`"_why": "..."`) to keep it quietly.
-- `base: {"plan": "<id>"}` runs `tools/levels/<id>_plan.gd` first; then
-  `size` and `districts` come from the plan (a district is named by its name in
-  lower case with underscores), and `meta` keys you give override the plan's
-  (bump `layout` when the map changes).
-- `playtest: {"routes": [{"id", "from", "to", "seconds"}], "enemies": true, "perf": true}`
-  gives the source its own playtest.
+| key | what |
+| --- | --- |
+| `size` | `[w, h]`, 4 to 256 (keep a versus map near 40 x 30 to 64 x 54) |
+| `border` | the tile of the solid ring round the map |
+| `meta` | `title`, `intro`, `sky`, `score`, `ambience`, `layout` (bump when a built map changes), `kit` (the review's start kit) |
+| `mood` (v2) | the map's light and air: `farm_dusk`, `barn_dark`, `church_still`, `holler_fog`, `bayou_night`, `store_fluorescent`, `mothership_glow` |
+| `modes` (v2) | what it is made for: `solo`, `coop`, `deathmatch`, `team_deathmatch`, `bomb`, `hostage`, `county`. `map check` reviews each and says what is missing |
+| `districts` | named places (the HUD and automap say the name). v2: `rect` paints one over cells, `mood` gives it its own mood |
+| `prefabs` (v2) | groups of objects placed by `prefab` objects |
+| `seed` (v2) | the looks dice (house variants, where plants fall); the id's hash when left out |
+| `spawn` | the one-player start `{at, angle, z}` |
+| `base` | `{"plan": "<level id>"}`: lay objects over an existing level's plan |
+| `playtest` | the source's own playtest routes |
 
-The full schema is `docs/map_schema.json`; the catalog
-(`docs/map_catalog/catalog.md`) lists every component with an example, and
-every tile, prop, enemy and pickup by id with a thumbnail.
+The JSON Schema is `docs/map_schema.json` (`map schema`); every type with
+a copyable example, every tile, prop, enemy and pickup with a thumbnail is
+in `docs/map_catalog/catalog.md` (`map catalog`).
 
-## Components
+## Building blocks
+
+### Whole buildings and bits: the kit (v2)
+
+```json
+{"id": "home", "type": "farmhouse", "at": [8, 8]}
+{"id": "barn", "type": "barn", "at": [30, 26], "w": 8, "d": 10, "face": "n", "side_door": false}
+{"id": "station", "type": "gas_station", "at": [30, 2], "w": 10, "d": 9}
+{"id": "rail", "type": "kit", "piece": "fence", "at": [4, 20], "w": 12, "kind": "stock", "gate": 6}
+```
+
+A three-line object is a whole, good-looking building: walls, windows with
+glass, a hung front door, floors, inside stairs, a roof you can walk on
+where it makes sense, furniture to hide behind. Every option has a default.
+
+| piece | default size (range) | what |
+| --- | --- | --- |
+| `house` | 8 x 6 (5-16 x 5-14) | plain house, `storeys` 1-3, any `roof`, inside stairs |
+| `farmhouse` | 9 x 9 (7-14 x 8-14) | two storeys, porch, balcony, chimney, ladder to the roof |
+| `shack` | 5 x 4 | one plank room, lean-to roof |
+| `trailer` | 9 x 5 | single-wide on blocks, steps, awning |
+| `outhouse` | 2 x 2 | a plank box |
+| `barn` | 10 x 14 (8-16 x 10-24) | big sliding doors front and back, hayloft up a ladder, bales |
+| `pole_barn` | 8 x 10 | tin roof on posts, open sides, bales |
+| `silo`, `grain_bin`, `water_tower` | 6 x 4, 5 x 5, 6 x 6 | round; a platform, a climbable cone, a railed tank (`water_tower` can fall) |
+| `store` | 8 x 10 | boardwalk, awning, false front, counter and shelves, roof ladder |
+| `gas_station` | 12 x 11 (10-16 x 9-14) | cinder box, canopy over pumps, flat roof to walk on |
+| `church` | 7 x 14 | pews, coloured glass, a bell tower with a belfry |
+| `porch`, `ladder`, `arch`, `curved_wall`, `chimney`, `dock`, `catwalk`, `tower`, `roof` | | bits: a porch against a wall, a ladder, a wall with an arch, a wall round an arc, a dock (waist-high cover), a catwalk, a hunting stand, a roof alone |
+| `kit` + `piece` | | any piece, and the only way to write `stairs`, `ramp`, `fence` (rail, wire, picket, stock), `bridge` (plank, covered) and `wall` (doors and windows on every storey) |
+
+- Keys every piece takes: `at` (needed), `w`, `d`, `face` or `turn`,
+  `mirror`, `style` (`barn_red`, `whitewash`, `grey`, `plank`, `tin`,
+  `brick`, `cinder`, `trailer`, `staves`), `variant` (0 picks by the seed),
+  `district`. Each piece's own options (`storeys`, `roof`, `porch`,
+  `bales`, `pews`, `hung`, `glass`...) with their ranges: the catalog's "Kit
+  pieces' own keys" table and [t5.md](docs/map_notes/t5.md).
+- A piece facing west or east takes `d` x `w` cells. Buildings may not
+  overlap; bits may touch buildings. Everything stays a cell inside the
+  border.
+- A building's front door (a barn's two big doors) hangs a door leaf, id
+  `<piece id>_<side>_hung<n>` (`barn_s_hung1`); logic may name the piece's
+  id alone (`"opens": ["barn"]`) for all its hung doors. Back, side and
+  upper doorways are open ways; windows have glass a shot breaks.
+- Budget: 1,200 pieces of geometry from the kit a map (a farmhouse is about
+  110, a barn 91, a church 170, a shack 22).
+
+### Land (v2)
+
+```json
+{"id": "hill", "type": "terrain", "rect": [44, 33, 62, 47], "brush": "hill", "height": 2.5}
+{"id": "bank", "type": "terrain", "rect": [10, 2, 20, 8], "brush": "plateau", "height": 1.2}
+{"id": "pike", "type": "road", "points": [[19, 1], [19, 39]], "width": 3}
+{"id": "creek", "type": "creek", "points": [[1, 30], [16, 31.5], [62, 30]], "width": 1.8}
+{"id": "pond", "type": "pond", "at": [9.5, 23.5], "radius": 3}
+```
+
+- **terrain** brushes add up: `hill`, `ditch`, `plateau` (`falloff` cells of
+  slope), `ramp` (`toward`), `flat` (set; 0 levels a spot), `noise`
+  (`seed`, `scale`), `smooth`, `heights` (every corner given). The ground
+  is a smooth surface you walk up and down (up to 1 in 1); steeper is a
+  cliff that blocks. A hill's crest hides what is behind it. Things are
+  lifted onto it. Keep brushes off buildings' footprints. Engine detail:
+  [t1.md](docs/map_notes/t1.md).
+- **road**: `width` (3), `surface` blacktop (gravel shoulders), gravel,
+  dirt, concrete, oil; `ditch`. Plants keep off it; a creek under it gets a
+  bridge.
+- **creek**, **pond** (`at` + `radius`, `rect` or `polygon`): water in a
+  carved bed with a shore; a pond's middle is deep water nobody wades.
+  **trough**: a stock trough. Detail: [t6.md](docs/map_notes/t6.md).
+
+### Looks (v2)
+
+```json
+"mood": "farm_dusk",
+{"id": "woods", "type": "foliage", "kind": "pine", "rect": [1, 33, 26, 47], "density": 0.8, "seed": 2}
+{"id": "corn", "type": "foliage", "kind": "corn", "rect": [18, 18, 27, 27], "rows": true}
+{"id": "junk", "type": "dress", "rect": [34, 2, 62, 28], "theme": "farm", "count": 2}
+{"id": "logs", "type": "vignette", "name": "wood_pile", "at": [10, 15], "wall": "n"}
+{"id": "tank", "type": "set_piece", "kind": "tower", "at": [57.5, 13.5], "falls": [1, 3]}
+```
+
+- Moods by area: the map's `mood`, a district's `mood`; the view eases from
+  one to the next as you cross.
+- **foliage** (grass, weeds, scrub, tree, pine, cypress, snag, corn, reeds)
+  only on natural ground, in the open, clear of roads, the way through,
+  doors, objectives and starts; 360 plants a map at most. Trees' trunks
+  block; the rest are walked through.
+- **dress** / **vignette**: hand-made groups (a porch sittin' corner, a
+  junk pile, a wood pile, a church yard...) set against walls, out of the
+  way. Nothing is ever scattered to fill ground.
+- **set_piece**: the chapters' big breaks (a barn that comes down, a water
+  tower that falls and floods, a fuel line that burns).
+
+### Logic (v2)
+
+```json
+{"id": "woods_gate", "type": "kill_gate", "rect": [2, 34, 26, 46], "opens": ["shed"], "message": "SOMEBODY UNLATCHED THE SHED."}
+{"id": "barn_switch", "type": "switch", "at": [20.5, 39.5], "label": "THROW THE BARN SWITCH", "opens": ["barn"]}
+{"id": "barn_wake", "type": "wake_zone", "rect": [42, 4, 52, 18], "trigger": [33, 19, 52, 25]}
+{"id": "john_key", "type": "key", "at": [13.5, 12.5], "z": 0.2, "doors": ["john"]}
+{"id": "truck", "type": "exit", "at": [47.5, 11.5], "label": "HIT THE ROAD", "shutdown": "barn_switch"}
+```
+
+`switch` (an objective; opens doors, `requires` other switches), `key`
+(brass or steel; its doors need it), `kill_gate` (doors open when every hand
+in a rect is down), `wake_zone` (hands sleep till a player walks in),
+`message` (words when a player walks into a rect), `trigger` (a raw level
+trigger: when area/key/station/kills/after/down, do
+message/sound/open/close/lock/wake/alert/light/shake/pickup). Logic does not
+run in versus modes, and doors there stand open.
+
+### Versus: deathmatch, team deathmatch, the 5v5 rounds (v2)
+
+```json
+"modes": ["deathmatch", "team_deathmatch", "bomb", "hostage"],
+{"id": "hogs", "type": "team_spawn", "team": "attack", "at": [4.5, 20.5]}
+{"id": "gators", "type": "team_spawn", "team": "defend", "at": [47.5, 20.5]}
+{"id": "site_a", "type": "bomb_site", "site": "A", "rect": [31, 7, 39, 11]}
+{"id": "site_b", "type": "bomb_site", "site": "B", "rect": [31, 29, 37, 37]}
+{"id": "held_a", "type": "hostage", "at": [36.5, 9.5]}
+{"id": "dm1", "type": "dm_spawn", "at": [3.5, 3.5]}
+```
+
+| type | what |
+| --- | --- |
+| `dm_spawn` | a deathmatch start (6 or more, spread out, out of each other's sight); faces the map's middle unless `angle` |
+| `team_spawn` | a 5v5 side's start, `team` attack (the outlaws: they plant the shine bomb or carry hostages out) or defend; `count` 5 places spread round `at` |
+| `bomb_site` | search and destroy's site A or B |
+| `hostage` | a hostage, near the defenders |
+| `rescue_zone` | where hostages are carried (round the attackers' start when left out) |
+| `bot_route`, `bot_hold` | where the 5v5 bots walk to a site and where defenders hold (straight to the site's middle, and one hold on each site and one midway, when left out) |
+
+What each mode needs: `bomb` both team starts and a site (two for a 5v5),
+`hostage` both team starts and a hostage, `deathmatch` nothing (it uses your
+`dm_spawn`s, or picks its own), `solo` and `coop` an objective and an exit.
+
+What `map check` measures on a versus map (numbers in
+`godot/data/tuning/map_review.json`):
+
+- every start, site and hostage walked to from the others (`spawn_cut`,
+  `hostage_cut`: MUST FIX);
+- the two sides' starts out of each other's sight (`team_spawn_seen`: MUST
+  FIX within 40 cells, SHOULD beyond) and 30 or more steps apart
+  (`teams_close`);
+- balance: the defenders reach each site first, but the attackers' walk is
+  1.1 to 2.6 times theirs (`site_rush`, `site_far`), and the attackers'
+  walks to A and B within 1.8 times (`sites_uneven`). The game's own 5v5
+  maps measure 1.6 to 2.4; the report's numbers table has every walk;
+- deathmatch starts: 6 or more (`dm_spawns_few`), none two in sight under 8
+  cells (`spawn_open`), none watched by most of the rest (`spawn_watched`);
+- deathmatch loot: two heals and two rounds lying out at least
+  (`arena_loot`).
+
+A versus map gets no campaign bot run. Design tips: break the look between
+the starts with a building or a bend; put the sites nearer the defenders but
+on both sides' way; give every lane cover (`cover`, hay bales, docks,
+`stock` fences, buildings' corners); lay heals and rounds down each lane,
+both sides alike.
+
+### Prefabs (v2)
+
+```json
+"prefabs": {"hay_fort": {"size": [3, 3], "objects": [
+  {"id": "front", "type": "cover", "a": [0, 2.6], "b": [3, 2.6], "height": 1.1, "thick": 0.8, "tile": "kit_hay"}]}},
+{"id": "fort_e", "type": "prefab", "name": "hay_fort", "at": [42, 13], "turn": 1, "mirror": true}
+```
+
+Defined in the source or in `godot/maps/prefabs/<name>.json` (`hog_pen` is
+there). Its objects are written from (0, 0); placed, they turn, mirror and
+move with it, and their ids become `<prefab id>_<id>`.
+
+### The low-level pieces (v1, still everything they were)
 
 | type | cells | what it makes |
 | --- | --- | --- |
-| `yard` | yes | open ground under the sky |
-| `room` | yes | open floor under a roof `roof` high |
-| `building` | yes | a ring of wall cells (windows every `windows`) round a room |
-| `solid`, `fence` | yes | solid cells of a tile, `top` high |
-| `paint`, `raise`, `light` | yes | floor tile, ground height, lamp light over cells |
-| `door`, `gap`, `pane` | yes | a grid door (1 cell, 1.85 high), an open doorway, breakable glass |
-| `room_poly` | yes | a room of any outline (angled walls), each edge a wall with `openings` |
-| `corridor` | yes | a roofed passage along cell centres |
-| `deck` | no | a floor walked on and under (`thick`, `tile`, `under`, `edge`, `cuts`) |
-| `block` | no | a solid floor on the ground (a dock, a plinth); `walk: false` for scenery |
-| `ramp` | no | a slope `from` up `to` toward n/e/s/w (at most 45 degrees) |
-| `stairs` | no | treads `rise` (.2) high at most from `from` up `to` toward n/e/s/w |
-| `wall` | no | a free wall a to b, `z0`..`z1`, `thick`, `openings` [{id, at, width, sill, head}] |
-| `rail` | no | a rail on `z`, `height` high: stops bodies, not looks or shots |
-| `cover` | no | low solid cover `height` high, `thick` thick |
-| `balcony` | no | a deck railed on the `open` sides, `gaps` left in the rails |
-| `bridge` | no | a deck railed along its long sides, walked under |
-| `ceiling` | no | a surface overhead |
-| `fixture` | no | furniture: a box that stops bodies |
-| `prop`, `sign` | no | a modelled prop or a flat picture at `at`, on the floor at `z` |
-| `enemy`, `pickup` | no | a hand or a pickup at `at`, on the floor at `z` |
-| `station`, `exit` | no | an objective (with a quest `prop`), the level's exit |
-| `spawn_point` | no | a named place for playtests (and versus spawns) |
-| `label` | no | a name on the automap |
-| `allow_overlap` | no | marks overlaps as intended (`objects`, `reason`) |
+| `yard`, `room`, `building` | yes | open ground; a roofed floor; a ring of wall cells round a room |
+| `solid`, `fence`, `paint`, `raise`, `light` | yes | solid cells; a fence; a floor tile; ground height; lamp light |
+| `door`, `gap`, `pane` | yes | a grid door (v2: `z` up a storey, `span` 1-3, `style` barn, `bar`); an open doorway; glass |
+| `room_poly`, `corridor` | yes | a room of any outline; a roofed passage |
+| `deck`, `block`, `ramp`, `stairs` | no | floors walked on and under; solid floors; slopes (to 45 degrees walked, 76 not, `walk: false`); stairs |
+| `wall` | no | a free wall a to b with `openings` (doors, windows, v2 `pane`), raked tops (`z1b`), v2 `curve` |
+| `rail`, `cover`, `balcony`, `bridge`, `ceiling`, `fixture` | no | rails; low cover; railed decks; overhead surfaces; furniture |
+| `prop`, `sign`, `enemy`, `pickup`, `station`, `exit`, `spawn_point`, `label`, `allow_overlap` | no | things, hands, loot, objectives, the exit, playtest places, automap names, intended overlaps |
+| `via` (v2) | no | a nav point by hand |
 
-`cuts` are up to two lines `[nx, ny, c]` (inside where `nx*x + ny*y <= c`)
-that cut a rectangle into a triangle, a trapezoid or an angled shape.
+Notes: a deck or slope may have up to 8 cut lines `[nx, ny, c]` (inside
+where nx*x + ny*y <= c). A thin-wall doorway should cross a cell's middle
+line (the nav graph walks middle to middle; v2 maps add a via in every
+doorway, so off-grid doorways work there). Doors (t4): a door's leaf stands
+on its cell's middle line; `span` 2 hinged is a pair, `span` 3 sliding a
+barn door; an upper door needs the wall it stands in on that floor.
 
-## Validation codes
+## Making a multiplayer map that ships in the game
 
-Errors stop a build; warnings do not. Every problem has `object`, `at` (map
-x, y, z) and usually a `hint`.
+1. **Write and check the source.** `godot/maps/<id>.map.json` with `modes`,
+   team starts, sites, hostages and `dm_spawn`s. `map check <id>` must say
+   PASS (no MUST FIX, no SHOULD). Keep the look original and 1997 (the
+   kit, the catalog's tiles and props).
+2. **Build it into a level.** `map build <id>` writes `godot/data/<id>.json`
+   and records its hash in `godot/maps/built.json`. Commit the source, the
+   level and `built.json` together. Never edit `data/<id>.json` by hand: a
+   build refuses to write over hand changes (`force` keeps a copy).
+3. **Try it.** Pack the assets once
+   (`"$GODOT" --headless --path godot --script res://tools/pack_assets.gd`,
+   then `--import`, then `pack_assets.gd -- bake`), then:
+   - `"$GODOT" --path godot -- --mode=deathmatch --arena=<id>`
+   - `"$GODOT" --path godot -- --mode=bomb --arena=<id> --rounds=3` (a built
+     level with team starts plays even before it is listed)
+   - `"$GODOT" --path godot -- --mode=hostage --arena=<id>`
 
-| code | severity | means |
-| --- | --- | --- |
-| `schema`, `version`, `bad_id`, `duplicate_id`, `unknown_type`, `missing`, `rect`, `grid_rect`, `outside`, `point`, `toward`, `rise`, `no_tile`, `no_prop`, `no_enemy`, `no_pickup`, `no_district`, `cuts` | error | the source's own shape |
-| `unknown_key` | warning | a key the type does not know (kept) |
-| `geometry` | error | a piece the game would refuse (no area, too steep) |
-| `overlap` | error | two solids in each other (allow with `allow_overlap`) |
-| `inside` | error | a spawn, hand, pickup or objective stands in something solid |
-| `outside` | error | placed off the map |
-| `blocked_doorway` | error | something solid stands in a grid door |
-| `low_opening` | error | a doorway lower than a body (1.17) or narrower than .5 |
-| `off_grid_opening` | warning | a doorway the nav graph does not pass through |
-| `headroom` | warning | a spawn or hand under a ceiling lower than 1.12 |
-| `stairs_foot`, `stairs_top` | error | stairs or a ramp whose foot is not reached or whose top meets no floor at its height |
-| `unreachable` | error (warning for hands) | cannot be walked to from the spawn, every door opened |
-| `floor_unreachable` | error | a deck nothing leads up to |
-| `spawn_seen` | warning | a hand sees the spawn from closer than 8 |
-| `builder` | error | the plan builder's own checks (things in walls, pictures missing...) |
-| `corridor_leg`, `no_plan` | error | the compiler could not make the object |
+   Always with a scratch `APPDATA` and `LOCALAPPDATA`, and
+   `--audio-driver Dummy` if nobody listens.
+4. **List it** (the small code and tuning edits that put it in the menus):
+   - 5v5 search and destroy and hostage rescue: add the id to
+     `Modes.SHOWDOWN_MAPS` in `godot/src/modes/modes.gd` (PLAY VS BOTS's
+     picker), and two short upper-case lines for it to `MAP_LINES` in
+     `godot/src/modes/tactical_screens.gd` (what it is; its sites). A two a
+     side map with one site goes in `TAGTEAM_MAPS` instead.
+   - Deathmatch and team deathmatch: add the id to `Modes.ARENAS` in the
+     same file (mode_check and pacing_check play every arena).
+   - Online lobbies: in `godot/data/tuning/lobby.cfg`, add the id to the MAP
+     row of `match_rows` (the id in the values list and its upper-case
+     name at the same place in the labels list) and to `mode_maps` under
+     each mode it plays (`bomb`, `hostage`, `deathmatch`,
+     `team_deathmatch`).
+   - Everything in `godot/data/` is packed and its nav graph baked by
+     `pack_assets.gd` and `-- bake`; nothing else to register.
+5. **Run the checks** (each with a scratch profile; `check_all` only with
+   `jobs=`):
+   - `map check <id>` PASS;
+   - `godot --headless --path godot --script res://tools/load_check.gd -- levels=<id>`,
+     `prebake_check.gd` (after the bake), `geometry_check.gd`,
+     `view3d_check.gd`, `looks_map_check.gd`;
+   - `mode_check.gd` and `pacing_check.gd` once it is in `Modes.ARENAS`,
+     `bot_check.gd` for a 5v5 map;
+   - `check_all.gd -- quick jobs=4`, and before handing over
+     `check_all.gd -- lint shard=K/4 jobs=4` for K = 1 to 4.
+6. **Hand it over** on your own branch with the `map check` report and
+   sheet: the owner decides what ships.
 
-## Playtests
+## Commands
 
-`map playtest <id>` builds the source in memory (nothing is written, so an
-edit can be tried before a build) and has a bot walk each route with the
-player's own body and controls (god mode, doors opened): by default from the
-spawn to every station, exit, pickup, spawn point and deck. A route reports
-reached or not, seconds, distance walked, nav steps and every place it stuck.
-`enemies` wakes the hands and stands the player at each route's end on that
-floor to see who gets there; `perf` times the software view from the spawn
-and route ends and the tick while walking. A failed route fails the
-playtest (exit 1). For the existing game modes use their own tools
-(`tools/tactical_check.gd`, `tools/first_minutes.gd`, `tools/multi_bots.gd`).
+Every command prints readable lines, then `MAP-RESULT {json}` (`json`
+prints only that). Exit codes: 0 done, 1 the map has errors (or check says
+FAIL), 2 bad arguments, 3 a file could not be read or written, 4 refused
+(the level was changed by hand since its last build).
 
-## Pictures
+```bash
+map help
+map new <id> [size=WxH] [base=<plan>]       # a new source (version 2)
+map check <id> [quick] [out=<dir>] [pictures=0]   # THE ONE COMMAND
+map validate <id>                           # problems only (exit 1 on errors)
+map build <id> [dry] [force]                # write data/<id>.json
+map render <id> out=<dir> overlay=nav,unreachable,spawns,objects   # plans: one a storey, terrain contours,
+                                            # plants, versus starts and sites
+map pictures <id>                           # the auto tour's 3D pictures alone
+map shot <id> at=x,y,z angle=<deg> pitch=<deg> [views=<json>]     # the 3D view from places
+map flow <id> [seed=1] [skill=0,1,2]        # the campaign bot alone (one-player maps)
+map playtest <id> [perf] [enemies]          # a body walks every route
+map inspect <id>                            # objects, floors, nav counts
 
-- `map render`: `<id>_plan.png` (every piece, labelled with its id) and
-  `<id>_floor<k>_z<height>.png` for the ground and each deck height, with
-  overlays `nav` (nodes, green reached from the spawn, red not; links between
-  floors cyan), `collision` (where a body cannot stand on that floor),
-  `spawns`, `objects` (hands red, pickups yellow, objectives white),
-  `unreachable` (red). The same `out=` and options give the same pictures, so
-  before and after an edit can be compared.
-- `map shot`: the game's software view with its palette (as the tools draw
-  it). The graphics-card view needs a window: build the map, then
-  `"$GODOT" --path godot --audio-driver Dummy --resolution 1280x800 -- --view-tour=<tour.json> --view-out=<dir>`
-  with tour entries `{"level", "tag", "x", "y", "z", "angle" (radians), "pitch"}`.
+map add <id> '<object json>' [after=<object>]
+map move <id> <object> by=dx,dy[,dz] | to=x,y
+map turn <id> <object> [by=1]               # a kit piece, prefab or set piece
+map mirror <id> <object>                    # a kit piece or prefab
+map resize <id> <object> rect=x0,y0,x1,y1 | opening=<id> width=<w>
+map set <id> <object> key=<json> [key=...]
+map material <id> <from tile> <to tile> [in=<object>,...]
+map remove <id> <object>
+map rename <id> <object> <new id>           # references follow
+map top <id> key=<json>                     # spawn, districts, meta, modes, mood...
+map undo <id>                               # every edit is kept in maps/.history/<id>/
+map history <id>
 
-## The editor
+map catalog                                 # docs/map_catalog/
+map schema                                  # docs/map_schema.json
+map import <id> <file.glb> [scale=0.6] [materials=<json>] [prefix=<id>]   # glTF geometry
+```
 
-The Godot editor has a **Maps** screen (`godot/addons/clmr_maps`) beside
-Levels: pick a source, a floor and the nav overlay; click an object to pick it
-(drag to move it), or pick it in the list and change its JSON (Apply); Add
-puts a new object of a type where you last clicked; every change is one undo
-step (Ctrl+Z); Save writes the source exactly as the tools do (opening and
-saving without a change leaves the file byte for byte; unknown keys stay);
-Validate lists problems (click one to go to it); Build writes the level;
-Play from here starts the game at the click on the floor picked.
+Every edit takes `dry` (show the change, write nothing).
 
-The **Levels** screen still edits `data/<id>.json` cell by cell; for a level
-built from a map source it says so, and a hand change there makes the next
-`map build` stop (exit 4) instead of losing it.
+## The report's codes
 
-## glTF import
+Validation (errors stop a build): the source's shape (`schema`, `version`,
+`bad_id`, `duplicate_id`, `unknown_type`, `missing`, `rect`, `grid_rect`,
+`outside`, `point`, `no_tile`, `no_prop`, `no_enemy`, `no_pickup`,
+`no_district`), the geometry (`geometry`, `overlap`, `inside`,
+`blocked_doorway`, `low_opening`, `off_grid_opening` warning, `headroom`
+warning, `stairs_foot`, `stairs_top`, `unreachable`, `floor_unreachable`,
+`spawn_seen` warning), and version 2's (`kit`, `kit_option`, `kit_size`,
+`kit_outside`, `kit_overlap`, `kit_on_terrain`, `cost`, `terrain_brush`,
+`road_blocked`, `logic_target`, `logic_loop`, `prefab_missing`,
+`prefab_loop`, `mode_missing`, `versus_inside`, `mood_unknown`,
+`foliage_kind`, `dress_theme`, `vignette`, and the looks layer's warnings).
+Each has a hint; the full table is in [t7.md](docs/map_notes/t7.md).
 
-`map import <id> <file.glb>` turns geometry into the game's own pieces:
-upward faces into decks or blocks (a downward face under one within 2 units
-gives its thickness), faces sloping up at most 45 degrees into ramps,
-downward faces nothing claims into ceilings, upright faces into walls
-(grouped by plane and covered in rectangles, so holes come out as openings;
-two faces back to back within .6 become one thick wall). Anything else (a
-slanted wall, a slope over 45 degrees, a face leaning down) is an error unless
-`skip_unsupported` (then a warning). Axes: map x = glTF X, map y = glTF Z,
-map z = glTF Y, times `scale`, plus `origin=x,y,z`. Materials: `materials=<json>`
-maps material names to tiles; `default_tile=` takes the rest; unmapped names
-are an error. Objects come in as `<prefix>_floor1`, `<prefix>_wall3`, ...
-marked `"_import": "<prefix>"`; importing the same prefix again replaces
-exactly those. Tops too narrow to stand on (wall tops) are left to the walls.
+The review (MUST FIX / SHOULD / NICE): `unreached`, `out_of_order`,
+`route_failed`, `ammo_short`, `no_cover`, `spawn_seen`, `alley`, `dead_end`,
+`no_secrets`, `quiet_stretch`, `first_fight_late`, `flat`, `no_districts`,
+`empty_ground`, `dark_room`, `cost_should`, `cost_most`, `arena_loot`,
+`no_way`, the bot's (`bot_stuck`, `bot_deaths`, `bot_calm`, `bot_lost`,
+`bot_fight_share`), and the versus checks above. Table and samples:
+[t2.md](docs/map_notes/t2.md).
 
-## Existing levels
+## Hard rules
 
-The campaign, Crossroads, range and versus maps are built from plans
-(`godot/tools/levels/<id>_plan.gd`) with
-`"$GODOT" --headless --path godot --script res://tools/levels/build_level.gd -- <id>`.
-Plans can use the same geometry (`tools/levels/geo_kit.gd`: `Geo.deck`,
-`Geo.stairs`, `Geo.ramp`, `Geo.wall` with openings, `Geo.rail`, `Geo.balcony`,
-`Geo.bridge`, `Geo.ceiling`, `Geo.room_poly`), and a map source with
-`"base": {"plan": "<id>"}` lays objects over a plan, so the tools above work
-on any level: `map new hickston base=hickston`, then add, validate, render,
-playtest and build. When a level's map changes, bump its `layout` (old saves
-then start that chapter over with their kit).
+- **Original work only.** The game is a 1997 redneck shooter in the spirit
+  of Redneck Rampage, but never its art, sounds, maps or layouts. No real
+  people, brands or businesses in names, signs or maps. Use the kit, the
+  catalog's tiles and props, and the game's own words style.
+- **Keep the 1997 look.** No new shaders or high-detail models in a map; a
+  map is built from the kit, tiles, props and foliage that exist.
+- **Stay within the budgets** the review enforces: 1,200 kit pieces a map;
+  1,200 geometry pieces (2,400 at most) and 20,000 wall rows (40,000 at
+  most) a level; the first nav build under 300 ms (1,500 at most); 360
+  plants a map. A heavy map must still run at 60 fps beside County Run's
+  busiest scene.
+- **Never touch the player's profile.** Every Godot run you start (headless
+  or a window) runs with `APPDATA` and `LOCALAPPDATA` pointed at a scratch
+  folder, for example
+  `export APPDATA=$TMP/clmr-scratch LOCALAPPDATA=$TMP/clmr-scratch/Local`.
+  The map tools do this themselves for check, pictures and shot.
+- Online play must stay deterministic: no clock and no unseeded dice in a
+  map (the format has none; keep `seed`s fixed).
+- Chapters (the campaign's levels, built from `godot/tools/levels/*_plan.gd`)
+  are not edited by map work.
 
-The COUNTY RUN survival maps (`county_hickston`, `county_quarry`,
-`county_bayou`) are plans too, each over a chapter's plan
-(`tools/levels/county_<chapter>_plan.gd`, `county_kit.gd`); `COUNTY_RUN.md`
-says how to make one and validate it with a throwaway source
-(`map new zz_x base=county_quarry`, `validate zz_x`).
+## Limits (said plainly)
 
-## Worked example: Mundell Feed & Seed
-
-`docs/map_examples/feedstore_build.sh` makes the demonstration map from
-nothing with the commands above (new, top, add, validate, build), and
-`docs/map_examples/feedstore_edit_demo.sh` does a targeted-edit round on it,
-keeping each step's output in `docs/map_examples/edit_demo/`: a dry run, a
-doorway moved along its wall (`resize ... opening=stock_door at=3.1`), a
-material swapped in one object, validation, plans before and after,
-a playtest, the history, then two undos that leave the source byte for byte
-as it was. `docs/map_examples/feedstore_views.json` holds viewpoints for
-`map shot`.
-
-The first draft of it had two mistakes the tools caught, worth knowing:
-the stairs' foot stood against the store's west wall (only the side of the
-staircase could be reached, where the second tread is already too high:
-`stairs_foot`), and the office doorway was centred on a cell's edge (the nav
-graph passes cell middle to cell middle: `off_grid_opening`). Moving the
-stairs one cell east and the doorway half a cell fixed both.
-
-## Limitations
-
-- Walls are upright and floors flat or a planar slope: no slanted walls,
-  arches, curved surfaces or pitched roofs to walk on (import refuses them).
-- Solid cells are full height; a wall on an upper floor only is a `wall`
-  segment.
-- The cell roof is one height per cell: give a two-storey building's cells
-  its top roof and make the floor between storeys a deck.
-- Grid doors (with hinges, keys, secrets) are one cell wide and on the ground
-  floor; doorways on upper floors and openings of any width are `wall`
-  openings (no door leaf).
-- Rain and the open-sky effects treat a cell under any deck as roofed.
-- A deck's or slope's cut lines: at most two per piece (the graphics-card
-  view draws two).
-- Bots path cell middle to cell middle, so a doorway must cross a cell's
-  middle line to be used by them (validate warns).
-- Pickups, props and signs placed with `z` stand on a deck; things dropped in
-  play (a hand's weapon, gibs) land on the floor under where they fall.
-- The automap draws decks' edges as walls, all floors at once.
-- Enemies climb grid steps of any height (as they always did) but not slabs
-  higher than a step.
-- Sight lines asked without heights (some AI tests: cover, brawls, the bots'
-  "can I see it") keep the old flat test: furniture blocks them whatever its
-  height, a deck overhead does not, a stair or a wall does.
-- Bots and enemies do not cut a corner a post stands on (the nav graph), and
-  the flow field's reach is 44 steps on levels with geometry (26 elsewhere).
+- A solid grid cell is full height; a building to stand on is geometry (the
+  kit does this). The cell roof is one height.
+- Kit buildings stand on flat ground; keep terrain off their footprints.
+- Versus starts stand on the ground floor.
+- Hands climb steps and ladders, not slabs higher than a step, nor cliffs.
+- A look asked without heights (some AI tests) is the flat test.
+- A door is 1.85 high, up to 3 cells wide, on a cell's middle line.
+- Glass stops a look until it is broken.
+- Foliage grows on the ground floor; vignettes on flat ground.
+- `map check` runs no bots in versus modes: play them after a build.
+- The Godot editor's Maps screen (`godot/addons/clmr_maps`) edits sources
+  too (every type in Add, Validate, Build, Play from here); the Levels
+  screen edits built levels cell by cell (a source's level should be
+  changed through its source).

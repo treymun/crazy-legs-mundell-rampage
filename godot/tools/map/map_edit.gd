@@ -319,8 +319,10 @@ static func _top(doc: Dictionary, opts: Dictionary) -> String:
 	for key in opts:
 		if key in ["dry", "json", "quiet", "force"]:
 			continue
-		if not (key in ["spawn", "districts", "meta", "border", "size", "playtest", "base"]):
-			return "top sets spawn, districts, meta, border, size, playtest or base (not %s)" % key
+		var keys := ["spawn", "districts", "meta", "border", "size", "playtest", "base"]
+		keys.append_array(["mood", "modes", "prefabs", "seed"])  # (version 2)
+		if not (key in keys):
+			return "top sets %s (not %s)" % [", ".join(PackedStringArray(keys)), key]
 		var value = _value(String(opts[key]))
 		if key == "meta" and value is Dictionary and doc.get("meta") is Dictionary:
 			# Merged: one key of meta changes, the rest stay.

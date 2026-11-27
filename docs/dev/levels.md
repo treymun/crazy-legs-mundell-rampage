@@ -775,6 +775,50 @@ source but a built level (`hickston`) is checked as built.
   under TEMP (`clmr-map-tools`), so the player's profile is never touched.
 - `tools/map_review_check.gd` holds it (planted faults, chapters quiet).
 
+## Map sources, version 2 (pass 16, SOURCE v2)
+
+A map source (`godot/maps/<id>.map.json`) may be "clmr-map" version 2:
+whole kit buildings and bits as types, terrain brushes, roads, creeks and
+ponds, foliage, vignettes, moods by district, logic (switch, key, kill gate,
+wake zone, message, trigger), versus starts and sites with the modes the map
+is made for, and prefabs. The guide is MAP_AUTHORING.md; every key is in
+docs/map_notes/t7.md.
+
+- **Files.** `tools/map/map_source_v2.gd` (the v2 types, kit pieces as
+  types from `KitPiece.names()`, prefab expansion, value checks),
+  `map_compile_v2.gd` (begin, apply, finish, looks: kit pieces through
+  `KitPiece.build` + `geo_kit.kit_apply`, terrain heights summed per corner
+  and written as `Geo.terrain` patches, logic into stations and triggers,
+  the versus plan into `meta.tactical`, then `MapLooks.apply` on the
+  finished level), `map_validate_v2.gd` (`mode_missing`, `versus_inside`,
+  `kit_on_terrain`). `map_source.gd`'s `TYPES` is v1's table with v2's
+  merged in; `Source.expand()` places prefabs before check and compile.
+- **Identity.** A source is version 2 only once it uses something of it
+  (`V2.needed()`); writers bump it then and never back down. A v1 source
+  reads, writes and builds exactly as before (`map_check_v2.gd` holds the
+  feedstore demo byte for byte, and its build against `data/feedstore.json`).
+  Only a v2 compile turns on `Geo.ways` (nav vias).
+- **Versus.** The level's `tactical` block carries `modes`, `deathmatch`
+  (the dm_spawn places: `DeathmatchMode` starts players there when a level
+  has them), the 5v5 starts (`count` places spread round a team start),
+  sites (inclusive cells, as `TacticalMode.in_box` reads them), hostages,
+  rescue, routes and holds (defaulted to the site's middle). The review's
+  `src/map_review/versus.gd` (MapVersus) checks starts walked to, team
+  starts out of each other's sight, the sides' walks to each site, and
+  deathmatch starts' spacing; `map check` runs no campaign bot on a map
+  with no objective. `--mode=bomb --arena=<id>` plays any built level with
+  team starts (`LaunchArgs._has_teams`).
+- **Plans.** `map_render.gd` draws one plan a storey on a map of many
+  heights, terrain contours, plants, versus starts and sites, and leaves
+  kit buildings' roofs unmarked by the unreachable overlay.
+- **Water.** A pond's deep water is the cells with no dry cell within
+  `deep_from` by the straight distance (round, not the cross a square
+  neighbourhood made).
+- Checks: `tools/map_check_v2.gd` (in `map_check`, so geometry_check and
+  check_fixes): every v2 type and kit piece compiles and validates, planted
+  errors give their codes with hints, v1 kept, prefabs placed, the same
+  level twice, the versus review and deathmatch on the map's own starts.
+
 ### Sharing (pass 16)
 
 A map passes between players as a code or through the lobby server's shelf
