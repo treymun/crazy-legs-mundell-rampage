@@ -94,17 +94,26 @@
    "cap_shag": 0.002,
    "cap_noise": 0.25,
    "even_rim": false,
-   "cap_skin": true,
+   "cap_skin": [
+    184,
+    126,
+    116
+   ],
    "cap_fringe": {
     "colour": [
-     222,
-     218,
-     210
+     224,
+     220,
+     212
     ],
-    "height": 0.7,
-    "front": 0.15
+    "height": 0.5,
+    "front_deg": 62
    },
-   "sliver_in": 1.0
+   "sliver_in": 1.0,
+   "band_in": [
+    0.06,
+    1.25,
+    true
+   ]
   },
   "monocle": {
    "on": "head",

@@ -20,6 +20,38 @@ check_all quick once per ~4 models.
 B: PULL face_clean / face_uv / cheek_weld (build_actor.py + face_clean.py,
 commit of 04g) for your long-gun and hatted characters.
 
+PROGRESS (seventh session, all committed with INDEX lines): 04g clone,
+long-gun sweep (01l billy, 06c big_billy, 18d revenue_man; coot/drunk_coot
+hold short guns one-handed), 19f jerry, 22c/22d/22e baron, 25/25b
+boilerback, 26 chain_hand. A's ledger: 1,498 of the 2,007 budget (record
+each call at its LIST price - concept 9, model 30, rig 5 - and note any
+bigger balance drop: B spends on the same account at the same time).
+NEXT, in order: (1) 26b chain_hand (coordinator): a chain with visible
+links that hangs and swings - a Meshy chain prop (<= 20 cr) or a modelled
+link chain as a held_model with "tails" (the catfish's HeldTail flop:
+meshy/assets/catfish.glb and noodler.json are the example), draping from
+the fist in idle/walk, trailing in the wind-up, whipping on the lash, the
+hit still on the lash key; fist grip and 0 cm clearance kept; and warm his
+grey ears to the skin. Started: meshy/tools/chain_make.py makes a 24-link
+0.86 m iron chain glb with a big grip ring at the front end (held_model
+finds the front as the wide end; `blender -b -P meshy/tools/chain_make.py
+-- <out.glb>`; rendered fine, NOT yet tried in a build). Try "held_model"
+{"glb": <chain>, "length": .86, "tails": [.25, .45, .65, .85], "grip":
+.03} with item_types r "bottle" (the catfish path hangs it plumb in
+carry/walk and swings it on wind/fire); the ears: they fall outside the
+face zone's skin test (grey, low saturation) - widen with face_box or
+paint them. (2) swamp_king (plan in the fifth-session section;
+NOT started, 0 credits). (3) chalk_spitter, flagman, gas_man (refs in
+SP/meshy-work/ref/<kind>_front/side.png; cels assets/art/<kind>_0.png:
+chalk_spitter a chalk-white ghoul 1.38 m who spits chalk, flagman a
+railroad flagman - red cap, white moustache, black vest, white shirt,
+green flag in the left hand and an orange flare in the right, gas_man an
+olive gas-masked trooper throwing tear-gas canisters, brain
+bottle_tosser). Then tell the coordinator, who assigns the leftovers.
+Per minor model: make/hands/face sheets (SP/meshy-work/q/sheets.sh), live
+probe rows, actor/live_body/physics checks; no in-game sheet. Check-all
+quick once per ~4 models (not yet run this session).
+
 New kind options this session (all opt-in, build_actor.py):
 - "face_clean": true or {detail .55, hue .6, floor .62, eye_lift 1.15,
   hair_hue 31, blend 1} - the face's front (and neck, and the skin behind
@@ -72,6 +104,18 @@ New kind options this session (all opt-in, build_actor.py):
   "paint"). The copies of a box rule already get their own UV islands (the
   shed runs before the unwrap); jerry's brown worn helmet came from the
   position-based recolours.
+- More options (later this session): "item_holds" {gear index: {side:
+  share}} (who holds a thing, by hand); "carry_both" (the other hand on a
+  two-handed thing in the stand/walk/carry keys); "cheek_pitch_max" (cap
+  the weld's head pitch: the boilerback's visor faced the camera);
+  face_box/face_uv {"auto": true} (zone centred from the face itself, set
+  back 11 cm - USE IT for every new kind; the Head bone can be 30 cm
+  behind the face); face_clean "sat_k" (pale skin dithered grey-teal: 1.45
+  on chain_hand). shed hat rule: "cap_skin" (true = face skin, or a
+  colour) + "cap_fringe" {colour, height, front_deg} (bald pate with a
+  soft-edged fringe round the sides and back), "sliver_in", "band_in"
+  [depth, k, back_only] (under-brim hair spikes drawn in); "head_keys" set
+  [0,0,0] for 0/walk/fidget/recover when the old head pose stares down.
 - Scratch: MESHY_DEBUG_KEEP=1 prints which body bone a keep-out hit;
   MESHY_DUMP_FACE=<npz> dumps the finished texels + masks + albedo, and
   `python meshy/tools/face_clean.py <npz> <out.png> '<json>'` tries options
