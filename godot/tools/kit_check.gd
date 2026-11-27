@@ -303,6 +303,8 @@ func _refusals() -> void:
 		[{"piece": "mansion", "id": "a"}, "no kit piece named mansion"],
 		[{"piece": "farmhouse"}, "farmhouse: a kit piece needs an id"],
 		[{"piece": "farmhouse", "id": "a b"}, "farmhouse: an id is letters"],
+		[{"piece": "farmhouse", "id": "a".repeat(41)}, "farmhouse: an id is 40 letters at most"],
+		[{"piece": "farmhouse", "id": "a", "w": NAN}, "a: w is 7 to 14"],
 		[{"piece": "farmhouse", "id": "a", "stories": 2}, "a: farmhouse takes no stories"],
 		[{"piece": "farmhouse", "id": "a", "storeys": 9}, "a: storeys is 1 to 3"],
 		[{"piece": "farmhouse", "id": "a", "storeys": 1.5}, "a: storeys is a whole number"],

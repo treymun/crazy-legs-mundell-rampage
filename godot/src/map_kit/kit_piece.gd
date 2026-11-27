@@ -172,6 +172,8 @@ static func resolve(spec: Dictionary) -> Dictionary:
 	if not (id_v is String) or str(id_v) == "":
 		return {"error": "%s: a kit piece needs an id" % kind}
 	var id: String = id_v
+	if id.length() > 40:
+		return {"error": "%s: an id is 40 letters at most" % kind}
 	if not id.is_valid_ascii_identifier():
 		return {"error": "%s: an id is letters, digits and _ (%s)" % [kind, id]}
 	var common: Dictionary = tuning().get("common", {})
