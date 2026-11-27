@@ -476,8 +476,11 @@ shared with two other tracks' runs): county frame median 13.21 / 14.76 ms
 budget was cut to 360 (from 520), 2.19 / 2.26 / 2.31 ms with 244 sprites
 listed (225 of them plants) at the spot that sees the most. `MapLooks.apply`
 on the demo about .75 s headless (foliage .4). The chapters' frame is the
-old path (the moods feature answers {} at once): see LOOKS' report for idle,
-fivev5 and county against the base.
+old path (the moods feature answers {} at once). Against the base (the pass
+16 tip before LOOKS), alternating, two rounds, frame medians in ms: idle
+3.90/2.77 -> 3.86/2.75, fivev5 5.14/3.92 -> 5.11/3.76, county 13.43/11.66 ->
+12.82/10.96; `stress_bench -- check hash` the same on idle, wreck48 and
+county; compare_3d: 118 pictures unchanged.
 
 ### Measured in pass 15, PERF (2026-11-25)
 
