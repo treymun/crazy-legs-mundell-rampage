@@ -4372,6 +4372,21 @@ for rule in CFG.get("recolour", []):
         # palette steps into beige and blue specks)
         k = lum / max(float(to @ numpy.array([.299, .587, .114])), 1e-4) * float(rule["keep_light"])
     total[m, :3] = numpy.clip(to[None, :] * k[m, None], 0, 1)
+    # ("from_albedo": share - Meshy's own unlit colour (its painted hair
+    # strands, a clean hairline) brought in that share, lit by the rule's
+    # (smoothed) light: the dusk bake left short grey hair a flat slab)
+    if rule.get("from_albedo") and ALBEDO is not None:
+        _lw = numpy.array([.299, .587, .114])
+        _al = ALBEDO[m, :3]
+        _all = _al @ _lw
+        _sc = lmid / max(float(numpy.median(_all)), 1e-4)
+        _sh = numpy.clip(lum[m] / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
+        _fa = float(rule["from_albedo"])
+        _tint = to / max(float(to @ _lw), 1e-4)
+        _src = numpy.clip(_al * _sc * _sh[:, None], 0, 1)
+        if rule.get("albedo_tint"):
+            _src = (_src @ _lw)[:, None] * _tint[None, :]
+        total[m, :3] = numpy.clip(total[m, :3] * (1 - _fa) + _src * _fa, 0, 1)
     print("MESHY recolour %s: %d texels to %s" % (rule.get("name", "?"), int(m.sum()), rule["to"]))
 if os.environ.get("MESHY_DEBUG"):
     numpy.save(os.path.join(OUT, "dbg_pos.npy"), numpy.stack([px_, py_, pz_]))

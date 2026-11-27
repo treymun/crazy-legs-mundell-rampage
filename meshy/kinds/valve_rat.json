@@ -106,28 +106,82 @@
  ],
  "recolour": [
   {
+   "albedo_hue": [
+    0,
+    360
+   ],
+   "albedo_sat": [
+    0,
+    0.13
+   ],
+   "val": [
+    0.18,
+    1
+   ],
+   "not_face": false,
+   "not_skin": false,
+   "not_hands": true,
+   "to": [
+    146,
+    140,
+    128
+   ],
+   "smooth": 1,
+   "x": [
+    -0.17,
+    0.17
+   ],
    "name": "hair_back",
+   "y": [
+    -0.02,
+    0.12
+   ],
    "z": [
-    0.8,
+    0.79,
     0.893
    ],
-   "x": [
-    -0.15,
-    0.15
+   "from_albedo": 0.85,
+   "albedo_tint": true,
+   "contrast": 0.8
+  },
+  {
+   "albedo_hue": [
+    0,
+    360
    ],
-   "y": [
-    0.0,
-    0.115
+   "albedo_sat": [
+    0,
+    0.13
    ],
-   "to": [
-    96,
-    93,
-    88
+   "val": [
+    0.18,
+    1
    ],
-   "contrast": 0.6,
-   "smooth": 4,
+   "not_face": false,
    "not_skin": false,
-   "not_hands": true
+   "not_hands": true,
+   "to": [
+    146,
+    140,
+    128
+   ],
+   "smooth": 1,
+   "x": [
+    -0.17,
+    0.17
+   ],
+   "name": "hair_side",
+   "y": [
+    -0.15,
+    -0.02
+   ],
+   "z": [
+    0.845,
+    0.893
+   ],
+   "from_albedo": 0.85,
+   "albedo_tint": true,
+   "contrast": 0.8
   }
  ],
  "upright_deg": 2,
@@ -151,5 +205,22 @@
   "hand_l",
   "hand_r"
  ],
- "face_lift_most": 1.0
+ "face_lift_most": 1.0,
+ "gear_even": {
+  "to": [
+   150,
+   118,
+   70
+  ],
+  "hue": [
+   24,
+   60
+  ],
+  "sat_min": 0.2,
+  "val_min": 0.15,
+  "smooth": 2,
+  "keep_light": 0.85,
+  "pale_reds": 0.42,
+  "specks": 5
+ }
 }

@@ -144,6 +144,18 @@ Meshy's cap was camo-blotched teal/brown). Known: gear probe up to 10 cm
 (the 0.79 m hook through a leg in one buckshot reaction picture, 7 cm
 head row), arms seen front 24-98% (running row low: the hook arm swings
 behind).
+49b/50b (0 cr; the coordinator's early review): valve_rat - the back/side
+hair is now Meshy's own painted short grey hair: recolours hair_back (y
+-.02-.12, z .79-.893) and hair_side (y -.15 to -.02, z .845-.893), both
+"albedo_hue" [0,360] + "albedo_sat" [0,.13] (Meshy's grey hair texels
+only: a clean hairline to the skin and ears), "from_albedo" .85 +
+"albedo_tint" (NEW) to warm grey [146,140,128], contrast .8, smooth 1;
+the brass pipe evened by "gear_even" (NEW, gear_paste.py) {to
+[150,118,70], hue [24,60], keep_light .85, smooth 2, pale_reds .42,
+specks 5} (the old gear's brass was yellow speckle noise). drone - a
+cap_band recolour (z .885-.912, front/sides, low sat, val .3+: the pale
+strip between brim and goggles) and every cap rule contrast .3 smooth 6
+(the lower crown read lighter, as a see-through layer).
 NEXT: valve_rat (finish, see 49), drone (alien grey, see 05b
 alien.json), skeeter (dumps ok=false: a bug - beast path; see the
 beast-path section and A's swamp_king notes), then as credits allow the
@@ -239,6 +251,11 @@ Tool changes by B (all opt-in; defaults unchanged for A):
 - build_beast.py is A's version copied whole (A's 27/27b commits:
   keep_parts, meshy_uv, light hemi, smooth_normals...; all opt-in, the
   animals' defaults unchanged) - the same file on both branches now.
+- 49b: build_actor recolour "from_albedo": share (+ "albedo_tint": the
+  albedo's light tinted by "to") - Meshy's unlit colour lit by the rule's
+  smoothed light (needs "albedo_hue" in the rule to trigger the albedo
+  bake). gear_paste.py "gear_even" in the kind config (keys above): old
+  gear texels of a hue set to one colour at their own smoothed light.
 - 47b: recolour "keep_light" k, "not_boxes" [{x,y,z}]; meshy.py NOMINAL
   v1/retexture 10; meshy/tools/retex_swap.py + retex_comp.py (see 47b).
 - grip_parts: the old millhand's yellow coat passed for skin (b5); name the
