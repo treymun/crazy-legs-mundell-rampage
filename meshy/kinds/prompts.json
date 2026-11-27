@@ -110,10 +110,11 @@
   "height": 1.85
  },
  "baron": {
-  "who": "pompous moonshine tycoon who has turned himself into a walking copper still, a portly old robber baron in steam-powered boiler armour",
-  "design": "a tall black top hat with a short copper pipe and cork sticking out of its crown, a gold monocle on a chain over his right eye, a big round red nose, huge bushy white mutton-chop sideburns joined to a white walrus moustache, his round body encased in a riveted hammered-copper boiler shell like a giant pot belly with two round brass pressure gauges on the chest, a black vent grille with yellow slats on the belly, little teal valve wheels and brass rivet bands round it, big round copper shoulder domes, dark charcoal sleeves with copper bracers bound in brass wire, dark charcoal trousers, grey boots with white spats, bare ruddy hands, and on his back two short copper smokestacks rising behind his shoulders and a coiled copper still worm pipe",
-  "face": "a smug, greedy, red-cheeked grin under the moustache, one eye squinting through the monocle, chin up like he owns the county",
-  "texture": "copper baron, black top hat with copper pipe, gold monocle, red nose, white mutton chops and moustache, hammered copper boiler body with brass gauges and black vent grille, copper shoulder domes, charcoal sleeves and trousers, copper bracers, grey boots with white spats, copper smokestacks and coil on his back, empty hands",
+  "refs": "cel",
+  "who": "pompous old moonshine robber baron, a portly well-fed gentleman wearing a steam-powered copper moonshine still rig strapped over his clothes",
+  "design": "a tall black silk top hat, big bushy white mutton-chop sideburns joined to a white walrus moustache, a real neck and a normal human head, a portly round belly under a dark charcoal waistcoat and frock coat with a white shirt collar and a dark cravat, charcoal trousers, grey boots with white spats; OVER the coat he wears a riveted copper and brass moonshine still harness: a hammered copper boiler tank on his back with two short copper smokestacks rising behind his shoulders, a coiled copper still worm pipe, copper pipes running over his shoulders to a brass chest plate with two round brass pressure gauges and little teal valve wheels, copper shoulder guards and copper bracers on the forearms bound in brass wire, bare ruddy hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a ruddy round jowly old face lit evenly, a big red nose, bright clear eyes with whites and dark pupils, a smug greedy grin under the white moustache, chin up like he owns the county",
+  "texture": "moonshine baron, black top hat, white mutton chops and moustache, red nose, clear eyes, charcoal frock coat and waistcoat, white collar, copper boiler tank and smokestacks on his back, copper pipes, brass chest plate with gauges and teal valve wheels, copper shoulder guards and bracers, grey boots with white spats, empty hands",
   "height": 1.9
  },
  "maw": {
@@ -135,5 +136,13 @@
    "meshy-work/meshy_out/maw_concept/image_0.png"
   ],
   "extra_note": " The third reference image is this same character painted before in her housecoat: keep her head shape, face, bug eyes, lips, antennae, arms, hands, legs and slippers exactly as there, but WITHOUT the housecoat, the curlers, the hairnet and the glasses: her bald grey dome bare, and the riveted tin hoop girdle with glowing green cells and the dark brown bloomers described."
+ },
+ "boilerback": {
+  "refs": "cel",
+  "who": "backwoods boiler-tank brute, a stocky steam-plant worker who sprays scalding steam from a homemade boiler strapped to his back",
+  "design": "WEARING a short dark grey flat cap, round brass-rimmed welding goggles pushed UP onto the front of the cap (his eyes uncovered), a padded grey canvas work suit with quilted shoulders, brass knee pads, scuffed dark grey work boots, a dented grey steel boiler tank strapped on his back with leather straps and a short brass pressure valve on top, a sturdy stocky natural build with real shoulders and arms, bare forearms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy sweaty face lit evenly, a big nose, stubble, a mean determined scowl, clear eyes with whites and dark pupils under heavy brows, standing straight facing the viewer",
+  "texture": "boiler worker, dark grey flat cap, round goggles pushed up on the cap, uncovered eyes, padded grey work suit, brass knee pads, grey boots, grey steel boiler tank on his back with brass valve, ruddy skin, clear face, empty hands",
+  "height": 1.77
  }
 }

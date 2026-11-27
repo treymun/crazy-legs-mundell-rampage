@@ -1006,6 +1006,85 @@
    "time": "2026-11-26 16:39:01",
    "after": 1581,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "baron_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21a6c-0374-7401-94b2-e06c0e936064",
+   "before": 1537,
+   "cost": 9,
+   "body": "baron_concept.json",
+   "time": "2026-11-26 18:33:37",
+   "after": 1528,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "baron_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21a6c-b8ca-7481-b31c-ba188eacb76a",
+   "before": 1528,
+   "cost": 30,
+   "body": "baron_model.json",
+   "time": "2026-11-26 18:34:26",
+   "after": 1489,
+   "status": "SUCCEEDED",
+   "note": "balance fell 39 (1528 -> 1489) during this call: image-to-3d is 30; the other 9 was agent B (p18-meshy) spending at the same time on the shared account"
+  },
+  {
+   "label": "baron_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21a6e-068c-7210-819e-0e39c8e83dbf",
+   "before": 1489,
+   "cost": 5,
+   "body": "baron_rig.json",
+   "time": "2026-11-26 18:35:52",
+   "after": 1484,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "boilerback_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21a87-5706-70ed-90ce-9d37365ac360",
+   "before": 1449,
+   "cost": 9,
+   "body": "boilerback_concept.json",
+   "time": "2026-11-26 19:03:28",
+   "after": 1440,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "boilerback_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21a88-0887-7364-8045-db354ab04012",
+   "before": 1440,
+   "cost": 9,
+   "body": "boilerback_concept.json",
+   "time": "2026-11-26 19:04:13",
+   "after": 1431,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "boilerback_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21a88-a134-758c-9df7-ca94641410d3",
+   "before": 1431,
+   "cost": 30,
+   "body": "boilerback_model.json",
+   "time": "2026-11-26 19:04:55",
+   "after": 1383,
+   "status": "SUCCEEDED",
+   "note": "list price 30; the balance fell 48 (1431 -> 1383) during this call: 18 was agent B spending at the same time"
+  },
+  {
+   "label": "boilerback_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21a8a-66e0-73ca-9c53-81448a5868f3",
+   "before": 1383,
+   "cost": 5,
+   "body": "boilerback_rig.json",
+   "time": "2026-11-26 19:06:51",
+   "after": 1378,
+   "status": "SUCCEEDED"
   }
  ]
 }

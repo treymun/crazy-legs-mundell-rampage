@@ -171,6 +171,40 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
         on = rule.get("on", "head" if name == "hat" else "body")
         g = lo.vertex_groups.get(bone) or lo.vertex_groups.new(name=bone)
         gidx[bone] = g.index
+        if "ring" in rule:
+            # ("ring" {at [x,y,z], r, tube, normal, paint, lens_paint}: a
+            # piece made, not cut - a monocle the Meshy face does not have:
+            # a gold ring of tubes and a lens disc in it, plain colours by
+            # paint id (kind config "paint"))
+            rg = rule["ring"]
+            at = Vector(rg["at"])
+            nrm = Vector(rg.get("normal", [0, -1, 0])).normalized()
+            rot = nrm.to_track_quat("Z", "Y").to_matrix()
+            r = float(rg.get("r", .018))
+            segs = int(rg.get("segs", 12))
+            pts = [at + rot @ Vector((r * math.cos(2 * math.pi * k / segs), r * math.sin(2 * math.pi * k / segs), 0))
+                   for k in range(segs)]
+            ring_f = []
+            for k in range(segs):
+                ring_f += _tube(bm, pts[k], pts[(k + 1) % segs], float(rg.get("tube", .003)), 5)
+            lens_f = []
+            if rg.get("lens", True):
+                lens = bmesh.ops.create_circle(bm, cap_ends=True, segments=segs, radius=r * .92,
+                                               matrix=Matrix.Translation(at) @ rot.to_4x4())
+                lens_f = list({f for v in lens["verts"] for f in v.link_faces})
+            for f in ring_f + lens_f:
+                for v in f.verts:
+                    for kk in list(v[dl].keys()):
+                        del v[dl][kk]
+                    v[dl][gidx[bone]] = 1.0
+            for f in ring_f:
+                f[paint] = int(rg.get("paint", 20))
+            for f in lens_f:
+                f[paint] = int(rg.get("lens_paint", 21))
+            pieces[bone] = list({v for f in ring_f + lens_f for v in f.verts})
+            out[bone] = (rule.get("gear", name), on)
+            log("MESHY shed %s: a ring made, %.3f m across at %s" % (name, r * 2, [round(x, 3) for x in at]))
+            continue
         if "box" in rule:
             bx = rule["box"]
             take = []

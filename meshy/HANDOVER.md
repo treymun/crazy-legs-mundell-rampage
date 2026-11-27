@@ -43,6 +43,35 @@ New kind options this session (all opt-in, build_actor.py):
   (.22), "upright_aim_deg" (14; clone 4), "aim_head_pitch" (only without
   the weld), "wind_clear" (low ready kept off the body; did not change the
   chest probe).
+- face_clean more options: "cloth_hue" (55; albedo hues above it up to
+  320 are cloth - jerry 36 for the yellow helmet), "max_sat" (a red
+  jersey), "white_k"/"ring_k" (eye whites lighter than white_k x the
+  face's middle; the ring round them only where darker than ring_k - the
+  baron's white whiskers made his face grey), "keep_white": k (white
+  whiskers below the eye line keep their own look), "paint_hue" {hue, sat,
+  to, grow} (that colour in the upper face painted `to`: the helmet's edge
+  Meshy painted on jerry's forehead). Zones (face_box): front above
+  "eye_z" (.07) = upper (whites looked for there only), below "chin_z"
+  (-.01) = chin (pale grey paint there - mask bars - is skin), behind the
+  ears up to "back_top" (.08) = skin only. Face box r: .17 suits a normal
+  head; jerry and the baron (big heads, Head bone far back) need r .27-.3
+  (face_uv r too) - check "face islands favoured" and the face zone.
+- "hi_texture": a painted copy of the Meshy base colour used for the bake
+  (jerry: open eyes painted by meshy/tools/eyes_paint.py:
+  `blender -b -P meshy/tools/eyes_paint.py -- <rigged.glb> <out.png>
+  '{"eyes": [[-0.0525, 1.664], [0.0525, 1.664]], "w": 0.021, "h": 0.0085,
+  "iris": 0.0068, "pupil": 0.0032, "look": [0, -0.12]}'` - eye places in
+  the RIGGED glb's own space, found from a front render of it; the png is
+  scratch at SP/meshy-work/paint/jerry_tex_eyes.png - re-run that line if
+  it is gone).
+- shed.py: box rules "except" [{hue,sat,val}] (take every face in the box
+  but those colours; the hue window is not used) and "fill" (rings: left-out
+  faces mostly surrounded join) - jerry's whole shell, no islands; "ring"
+  {at, r, tube, normal, paint, lens_paint, lens} - a piece MADE, not cut
+  (the baron's monocle: a gold ring, paint ids 20/21 coloured by kind
+  "paint"). The copies of a box rule already get their own UV islands (the
+  shed runs before the unwrap); jerry's brown worn helmet came from the
+  position-based recolours.
 - Scratch: MESHY_DEBUG_KEEP=1 prints which body bone a keep-out hit;
   MESHY_DUMP_FACE=<npz> dumps the finished texels + masks + albedo, and
   `python meshy/tools/face_clean.py <npz> <out.png> '<json>'` tries options

@@ -94,13 +94,23 @@ def clean(px, albedo, headzone, facezone, hand, tex, opt, lit=None, back=None, u
         sk &= pl >= numpy.percentile(pl[sk], 40)
     tgt = numpy.median(rgb[sk], axis=0) if sk.sum() > 30 else numpy.median(rgb[face], axis=0)
     tl = max(float(tgt @ LW), 1e-3)
+    # ("keep_white": k - white whiskers (pale grey albedo, lighter than k
+    # times the face's middle) below the eye line keep their own look)
+    if opt.get("keep_white"):
+        med0 = float(numpy.median(al[face]))
+        wh = face & (sat < .18) & (al > med0 * float(opt["keep_white"]))
+        if upper is not None:
+            wh &= ~upper
+        face &= ~wh
     # The eyes: pale grey albedo texels (whites) and a ring round them
     # (irises, lids, lashes) keep their contrast.
     med_al = float(numpy.median(al[face]))
-    whites = face & (sat < .2) & (al > med_al * 1.05)
+    whites = face & (sat < .2) & (al > med_al * float(opt.get("white_k", 1.05)))
     if upper is not None:
         whites &= upper
-    eyes = _dilate(whites, tex, 2) & face
+    # (the ring round them only where darker than the skin: irises, lids,
+    # lashes - not the skin beside white whiskers)
+    eyes = (whites | (_dilate(whites, tex, 2) & (al < med_al * float(opt.get("ring_k", 9.0))))) & face
     # The light: finished light over albedo, median-filtered within the face.
     # (the head's own no-shadow bake when there is one: the finished
     # texels carry the blotches)

@@ -6,7 +6,7 @@
  "old_tex": "../meshy-work/old/actor3d_baron.png",
  "out": "../meshy-work/raw/baron",
  "tris": 12000,
- "texture": 512,
+ "texture": 1024,
  "gear": "old",
  "phases": true,
  "hold_legs": true,
@@ -28,64 +28,41 @@
    "b270"
   ]
  },
- "hand_hue": [
-  0,
-  15
- ],
  "gear_one": false,
  "carry_keys": [
   "fidget"
  ],
  "clearance": 0.03,
- "to_body": [
-  {
-   "x": [
-    0.13,
-    0.45
-   ],
-   "y": [
-    0.06,
-    0.55
-   ],
-   "z": [
-    1.45,
-    2.05
-   ],
-   "near": 0.08
-  },
-  {
-   "x": [
-    -0.45,
-    -0.13
-   ],
-   "y": [
-    0.06,
-    0.55
-   ],
-   "z": [
-    1.45,
-    2.05
-   ],
-   "near": 0.08
-  }
- ],
+ "head_noshadow": true,
+ "face_clean": {
+  "cloth_hue": 40,
+  "max_sat": 0.75,
+  "white_k": 1.2,
+  "ring_k": 0.85,
+  "hue": 0.4,
+  "keep_white": 1.25
+ },
+ "face_uv": {
+  "k": 2.5,
+  "r": 0.3
+ },
  "shed": {
   "tophat": {
-   "z": 1.685,
+   "z": 1.848,
    "on": "head",
-   "within": 0.34,
-   "cap": 0.6,
+   "within": 0.27,
+   "head_only": true,
+   "cap": 0.55,
    "cap_colour": [
-    168,
-    163,
-    156
+    218,
+    214,
+    206
    ],
    "ring_pct": 60,
    "cap_base": 0.015,
    "cap_grow": 0.95,
    "cap_shag": 0.005,
-   "cap_noise": 0.3,
-   "head_only": true,
+   "cap_noise": 0.25,
    "even_rim": false
   },
   "tophat_brim": {
@@ -94,63 +71,77 @@
    "cut": true,
    "box": {
     "x": [
-     -0.32,
-     0.32
+     -0.36,
+     0.36
     ],
     "y": [
-     -0.45,
-     0.1
+     -0.36,
+     0.36
     ],
     "z": [
-     1.63,
-     1.7
+     1.77,
+     1.86
     ]
    },
    "radial": [
     0,
-    -0.06,
-    1.68
+    -0.05,
+    1.85
    ],
    "outside": 0.1,
-   "within": 0.36,
-   "head_only": false
+   "within": 0.34,
+   "val": [
+    0,
+    0.3
+   ]
   },
   "monocle": {
    "on": "head",
-   "box": {
-    "x": [
-     -0.13,
-     0.0
+   "ring": {
+    "at": [
+     -0.064,
+     -0.166,
+     1.758
     ],
-    "y": [
-     -0.4,
-     -0.18
+    "r": 0.02,
+    "tube": 0.003,
+    "normal": [
+     0,
+     -1,
+     0
     ],
-    "z": [
-     1.56,
-     1.69
-    ]
-   },
-   "hue": [
-    30,
-    70
-   ],
-   "sat": [
-    0.25,
-    1
-   ],
-   "val": [
-    0.25,
-    1
-   ],
-   "lift": 0.006,
-   "under": "skin",
-   "rim_px": 5,
-   "rim_hue": [
-    30,
-    65
-   ],
-   "rim_dark": 0.12
+    "paint": 20,
+    "lens_paint": 21,
+    "lens": false
+   }
   }
+ },
+ "face_box": {
+  "r": 0.3
+ },
+ "paint": {
+  "20": [
+   214,
+   172,
+   64
+  ],
+  "21": [
+   196,
+   214,
+   220
+  ]
+ },
+ "skin_sat": 1.7,
+ "skin_even": {
+  "ext": false,
+  "arms": false,
+  "face_even": 0,
+  "tone": [
+   170,
+   104,
+   90
+  ],
+  "smooth": 2,
+  "floor": 0.5
  }
 }
