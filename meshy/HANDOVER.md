@@ -655,3 +655,5 @@ boss_rematch_check, arena_wreck_check, live_body_check, physics_check all OK
 after every boss of this session (run alone).
 
 Last check_all quick (fifth session, after 03h and the maw fixes, scratch profile): ALL CHECKS OK (54 checks listed ok, 153 s).
+
+Last check_all quick (eighth session, after 27c and 28, scratch profile): 1 FAILED in 192.6 s - road_check under the parallel load (B runs Godot at the same time); road_check run alone right after: ROAD CHECK OK. The boss checks (27c) and actor/live_body/physics (28) were all OK alone.
