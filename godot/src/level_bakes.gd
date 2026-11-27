@@ -221,7 +221,7 @@ static func _matches(head: Dictionary, want: Dictionary) -> bool:
 ## neighbour less the node (a cell's are mostly 1 or a row away: a twentieth
 ## of the bytes packed, a few milliseconds to read back).
 static func nav_row(g: LevelGeometry.NavGraph) -> Array:
-	return [
+	var row := [
 		g.count,
 		g.cells,
 		g.cell.slice(g.cells),
@@ -234,6 +234,11 @@ static func nav_row(g: LevelGeometry.NavGraph) -> Array:
 		g.ladder_ends,
 		g.links,
 	]
+	if not g.vias.is_empty():
+		# Pass 16: the via points' edges (a level with "nav_via"); a row
+		# without them is as it always was.
+		row.append(g.vias)
+	return row
 
 
 static func _lengths(first: PackedInt32Array) -> PackedByteArray:
@@ -275,7 +280,7 @@ static func _lists(lengths: PackedByteArray, less: PackedInt32Array) -> Array:
 
 static func nav_from(value: Variant) -> LevelGeometry.NavGraph:
 	var row: Array = value
-	if row.size() != 11:
+	if row.size() != 11 and row.size() != 12:
 		return null
 	var g := LevelGeometry.NavGraph.new()
 	g.count = row[0]
@@ -301,6 +306,8 @@ static func nav_from(value: Variant) -> LevelGeometry.NavGraph:
 	var ends: Array = row[9]
 	g.ladder_ends.assign(ends)
 	g.links = row[10]
+	if row.size() == 12:
+		g.vias = row[11]
 	if g.cell.size() != g.count or g.z.size() != g.count or g.first.size() != g.count + 1:
 		return null
 	return g

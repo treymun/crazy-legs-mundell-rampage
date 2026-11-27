@@ -166,7 +166,9 @@ are shared by reference in Godot 4: encode and decode copy them):
 
 - "game" (SIM_FIELDS);
 - "world" (each door's progress, opened and discovered by its place in the
-  level's list; the panes broken, in breaking order);
+  level's list; the panes broken, in breaking order: a pane in the
+  geometry's walls under its `LevelData.pane_key`, pass 16, so an upper
+  door, a wide door and a geometry pane need nothing new carried);
 - "facts" (`FACT_FEATURES`' own save(), or its `net_facts()` where it has
   one, `GameSnapshot.fact_of`: what breakables and wall breaks broke, which
   changes the level's walls and floor; the arena wreck; the boss arena shut,

@@ -38,7 +38,7 @@ func steer(game: Game) -> Game.Controls:
 		var gap := Vector2(down.x - p.x, down.y - p.y).length()
 		var want := atan2(down.y - p.y, down.x - p.x)
 		if gap > 4.0:
-			var h := down.flow.heading(p.x, p.y)
+			var h := down.flow.heading(p.x, p.y, game.world.stand(p))
 			want = h if not is_nan(h) else want
 		c.turn = clampf(Enemy.angle_delta(want, p.angle), -.12, .12)
 		c.forward = 1.0 if gap > .8 else 0.0
@@ -51,7 +51,7 @@ func steer(game: Game) -> Game.Controls:
 	if foe == null and lead != p and lead.health > 0:
 		var gap := Vector2(lead.x - p.x, lead.y - p.y).length()
 		if gap > FOLLOW:
-			var h := lead.flow.heading(p.x, p.y)
+			var h := lead.flow.heading(p.x, p.y, game.world.stand(p))
 			var want := h if not is_nan(h) else atan2(lead.y - p.y, lead.x - p.x)
 			c.turn = clampf(Enemy.angle_delta(want, p.angle), -.12, .12)
 			c.forward = 1.0
@@ -99,7 +99,8 @@ func _hunt(game: Game) -> Game.Controls:
 		return c
 	var want := atan2(best.y - p.y, best.x - p.x)
 	if not seen:
-		var h := best.flow.heading(p.x, p.y)
+		# (On its own floor: a hunt on a map of storeys walks the stairs.)
+		var h := best.flow.heading(p.x, p.y, game.world.stand(p))
 		want = h if not is_nan(h) else want
 	var turn := Enemy.angle_delta(want, p.angle)
 	c.turn = clampf(turn, -.12, .12)

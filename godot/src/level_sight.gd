@@ -30,7 +30,7 @@ static func visible(
 	# steps (most of them) are tested here without the call.
 	# A level with glass (pass 10) too, but a step in a cell a pane may meet
 	# (pane_cells) asks blocked() as ever.
-	var glassless := lv.pane_tiles.is_empty()
+	var glassless := lv.pane_tiles.is_empty() and lv.geo_panes.is_empty()
 	var plain := (
 		(glassless or pane_cells.size() == w * hgt)
 		and lv.locked_gates.is_empty()
@@ -217,7 +217,7 @@ static func visible(
 					):
 						return false
 				for door: LevelData.Door in doors:
-					if door.blocks(sx, sy, .023):
+					if door.blocks(sx, sy, .023) and door.meets(wz):
 						return false
 		elif lv.blocked(sx, sy, .023, wz):
 			return false

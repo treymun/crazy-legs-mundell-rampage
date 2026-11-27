@@ -264,7 +264,9 @@ func _apply() -> void:
 	var tile := w.tile_id(str(BossData.get_value("boss_lock", "gate_tile")))
 	for door: LevelData.Door in BossFight.lock_doors(game, kind):
 		var at := Vector2i(door.x, door.y)
-		_make_solid(at, door.material if door.material >= 0 else tile)
+		# (Every cell of a door wider than one: pass 16.)
+		for cell: Vector2i in door.cells():
+			_make_solid(cell, door.material if door.material >= 0 else tile)
 		if not _held.has(at):
 			_held[at] = w.controlled_doors.has(at)
 		w.controlled_doors[at] = "boss"
