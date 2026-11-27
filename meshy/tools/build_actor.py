@@ -215,6 +215,16 @@ mesh.data.transform(fit)
 for k in heads:
     heads[k] = fit @ heads[k]
 mesh.name = KIND + "_hi"
+# (kind config "hi_texture": a painted copy of the Meshy model's base colour
+# used instead of its own - jerry's eyes opened up over Meshy's squint)
+if CFG.get("hi_texture"):
+    _ht = bpy.data.images.load(os.path.abspath(CFG["hi_texture"]))
+    for _m in mesh.data.materials:
+        if _m and _m.use_nodes:
+            for _n in _m.node_tree.nodes:
+                if _n.type == "TEX_IMAGE" and _n.image and _n.image.colorspace_settings.name == "sRGB":
+                    _n.image = _ht
+    print("MESHY Meshy texture replaced by %s" % CFG["hi_texture"])
 print("MESHY fitted: scale %.4f, height %.3f" % (s, OLD_H))
 
 # A bulb nose where the cel has one (kind config "nose": "k" how far it
@@ -1527,6 +1537,12 @@ if gear_obj is not None:
         if not holds:
             near = min(("l", "r"), key=lambda sd: (old_hand(sd, "0", P0) - ctr).length)
             holds[near] = .5
+        # (kind config "item_holds" {gear index: {side: share}}: who holds the
+        # thing, set by hand - the boilerback's old left hand rode a little
+        # off his steam lance at the standing key, so it came out one-handed)
+        _ih = CFG.get("item_holds", {}).get(str(gi))
+        if _ih:
+            holds = {k: float(v) for k, v in _ih.items()}
         it = {"bone": gname, "big": cluster[0], "lo": lo_e, "hi": hi_e, "rad": min(rad, .05), "holds": holds,
               "two": len(holds) == 2,
               # (the hand on the rear end is the gun hand)
@@ -1870,8 +1886,10 @@ def cheek_weld(D, it, Di, R_t, at):
     piv = base @ J["neck"]
     cr = cheek_rest(main)
     best = None
-    for pitch in [i * .05 for i in range(0, 11)]:
-        for roll in [i * .05 for i in range(-7, 10)]:
+    # (kind config "cheek_pitch_max": the head pitched down no further - the
+    # boilerback's cap visor came to face the camera chasing a far stock)
+    for pitch in [i * .05 for i in range(0, int(float(CFG.get("cheek_pitch_max", .5)) / .05 + 1.5))]:
+        for roll in [i * .05 for i in range(-int(CFG.get("cheek_roll", .35) / .05 + .5), 10)]:
             Rq = (Matrix.Rotation(pitch, 3, Rt) @ Matrix.Rotation(roll if main == "r" else -roll, 3, -Fw))
             Dh = Matrix.Translation(piv) @ Rq.to_4x4() @ Matrix.Translation(-piv) @ base
             c = Dh @ cr
@@ -2011,7 +2029,10 @@ def solve(name, dz=0.0, held0=None):
                 # living key but the pain drop - a chainsaw)
                 if CFG.get("two_both") and bare != "pain":
                     pass
-                elif side != it["main"] and bare not in AIMS:
+                # (kind config "carry_both": the other hand on it in every
+                # standing, walking or carrying key, the old one off it or not)
+                elif side != it["main"] and bare not in AIMS and not (
+                        CFG.get("carry_both") and (bare in WALK or bare in CARRY or bare == "0")):
                     # The other hand only while the old one is on it (as it
                     # stands for a walk or a carry).
                     ref = "0" if bare in WALK or bare in CARRY else name
@@ -2601,9 +2622,9 @@ def pose_key(name):
         key = name
         if key not in AIM_BEST:
             best = None
-            for tw in (30, 40, 50):
+            for tw in CFG.get("aim_twists", [30, 40, 50]):
                 for drop in CFG.get("aim_drops", [-.06, -.03, 0.0, .02, .04] if CFG.get("cheek_weld") else [0.0, .02, .04]):
-                    for inn in (0.0, .03, .06):
+                    for inn in CFG.get("aim_ins", [0.0, .03, .06]):
                         CFG.update(aim_twist=tw, aim_drop=drop, aim_in=inn)
                         _D, jt, _P = solve(key, 0.0, HELD0)
                         miss = sum(jt["miss"].values())
@@ -2851,7 +2872,29 @@ print("MESHY faces with collapsed UVs given their own: %d (median density %.3f)"
 # bone (m at 1.73) - take k times the texture's scale and a wide hat's brim
 # brim_k: a straw hat's brim took twelve times the face's texels, the eyes
 # came out a few texels across)
+def head_centre(opt):
+    """The skull's middle for the face zones: the Meshy Head bone, or with
+    {"auto": true} the head's front (its foremost vertices between the jaw
+    and the brow) set back 11 cm (at 1.73 m) - the Head bone sits at the
+    back of some skulls and well behind others (the boilerback's face was
+    30 cm from it)."""
+    hc = heads["Head"].copy()
+    if not opt.get("auto"):
+        return hc
+    _hg = lo.vertex_groups["head"].index
+    ys = []
+    for v in lo.data.vertices:
+        if sum(g.weight for g in v.groups if g.group == _hg) > .5:
+            w_ = lo.matrix_world @ v.co
+            if hc.z - .05 * CHEEK_K < w_.z < hc.z + .15 * CHEEK_K and abs(w_.x - hc.x) < .05 * CHEEK_K:
+                ys.append(w_.y)
+    if ys:
+        hc.y = float(numpy.percentile(ys, 3)) + .11 * CHEEK_K
+    return hc
+
+
 _fuv = CFG.get("face_uv")
+_hcu = head_centre(_fuv) if _fuv else None
 _mw = lo.matrix_world
 _nf = 0
 for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
@@ -2860,7 +2903,7 @@ for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
         continue
     k_isl = HEAD_FAVOUR
     if _fuv:
-        _hc = heads["Head"]
+        _hc = _hcu
         _r = float(_fuv.get("r", .17)) * CHEEK_K
         _z0, _z1 = [_hc.z + float(z_) * CHEEK_K for z_ in _fuv.get("z", [-.04, .17])]
         _in = 0
@@ -2977,17 +3020,27 @@ zidx = [lo.vertex_groups[z].index for z in ZONES if z in lo.vertex_groups]
 # the brow, ahead of the ears; kind config "face_box" {r, z, back} as
 # face_uv's, at 1.73 m)
 _fb = CFG.get("face_box", {})
+_fbc = head_centre(_fb)
 _fbr = float(_fb.get("r", .17)) * CHEEK_K
 _fbz = [heads["Head"].z + float(z_) * CHEEK_K for z_ in _fb.get("z", [-.16, .16])]
-_fby = heads["Head"].y + float(_fb.get("back", -.025)) * CHEEK_K
+_fby = _fbc.y + float(_fb.get("back", -.025)) * CHEEK_K
+print("MESHY face box: about %s, r %.3f, z %.3f-%.3f, ahead of y %.3f" % (
+    [round(x, 3) for x in _fbc], _fbr, _fbz[0], _fbz[1], _fby))
 for v in lo.data.vertices:
     zv = sum(g.weight for g in v.groups if g.group in zidx)
     hv = sum(g.weight for g in v.groups if g.group == lo.vertex_groups["head"].index)
     w_ = lo.matrix_world @ v.co
     # (and the neck all round, down to the collar: blotched as the face)
-    _rr = math.hypot(w_.x - heads["Head"].x, w_.y - heads["Head"].y)
+    _rr = math.hypot(w_.x - _fbc.x, w_.y - _fbc.y)
     fv = float((hv > .5 and _rr < _fbr and _fbz[0] < w_.z < _fbz[1] and w_.y < _fby)
                or (_rr < .12 * CHEEK_K and _fbz[0] < w_.z < heads["Head"].z))
+    # (.85 below the eyes: eye whites are looked for above only - a face
+    # mask's bars painted pale across a chin are not eyes)
+    if fv and w_.z < heads["Head"].z + float(_fb.get("eye_z", .07)) * CHEEK_K:
+        fv = .85
+        # (.76 under the mouth: no teeth there - pale paint is skin)
+        if w_.z < heads["Head"].z + float(_fb.get("chin_z", -.01)) * CHEEK_K:
+            fv = .76
     if not fv and hv > .5 and _rr < _fbr and _fbz[0] < w_.z < heads["Head"].z + float(_fb.get("back_top", .08)) * CHEEK_K:
         fv = .5  # (behind the ears, under the hair: skin only, not the hair)
     zattr.data[v.index].color = (zv, hv, fv, 1)
@@ -3012,7 +3065,9 @@ bake_op(type="EMIT", margin=TEXTURE // 128, use_clear=True)
 _zp = pixels(zimg)
 ZONE = _zp[:, 0] > .5
 HEADZONE = _zp[:, 1] > .5
-FACEZONE = _zp[:, 2] > .75
+FACEZONE = _zp[:, 2] > .7
+UPPERZONE = _zp[:, 2] > .93
+CHINZONE = FACEZONE & (_zp[:, 2] < .81)
 BACKZONE = (_zp[:, 2] > .25) & ~FACEZONE
 for m in lo.data.materials:
     for n in saved_trees[m.name]:
@@ -3799,7 +3854,8 @@ def face_clean(px):
         return px
     import face_clean as _fc
     out, info = _fc.clean(px, ALBEDO, HEADZONE, FACEZONE | BACKZONE, HANDMASK if "HANDMASK" in globals() else None, TEXTURE,
-                          CFG["face_clean"] if isinstance(CFG["face_clean"], dict) else {}, NOSHADOW, BACKZONE)
+                          CFG["face_clean"] if isinstance(CFG["face_clean"], dict) else {}, NOSHADOW, BACKZONE,
+                          UPPERZONE, CHINZONE)
     print("MESHY face clean: %s" % info)
     return out
 
@@ -3812,7 +3868,8 @@ if os.environ.get("MESHY_DUMP_FACE"):
                            hand=HANDMASK if "HANDMASK" in globals() else numpy.zeros(len(total), bool),
                            skin_done=SKIN_DONE, albedo=ALBEDO if ALBEDO is not None else numpy.zeros((0, 3)),
                            noshadow=NOSHADOW if NOSHADOW is not None else numpy.zeros((0, 3)), tex=TEXTURE,
-                           facezone=FACEZONE, backzone=BACKZONE)
+                           facezone=FACEZONE, backzone=BACKZONE, upperzone=UPPERZONE,
+                           chinzone=CHINZONE)
 total = face_clean(total)
 
 

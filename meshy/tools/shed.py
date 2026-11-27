@@ -34,6 +34,9 @@ PAINT_INPAINT = 1
 PAINT_CAP = 2
 PAINT_STALK = 3
 PAINT_SKIN = 7
+PAINT_FRINGE = 4  # a bald pate's fringe of hair (hat rule "cap_fringe")
+PAINT_PATE = 5  # the bald pate itself: the face's skin (hat rule "cap_skin")
+PAINT_FRINGE_SOFT = 6  # the fringe's soft edge: half hair, half skin
 PAINT_ZONE = 8  # the rest of a face piece's box (where its rim may be)
 
 
@@ -171,6 +174,40 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
         on = rule.get("on", "head" if name == "hat" else "body")
         g = lo.vertex_groups.get(bone) or lo.vertex_groups.new(name=bone)
         gidx[bone] = g.index
+        if "ring" in rule:
+            # ("ring" {at [x,y,z], r, tube, normal, paint, lens_paint}: a
+            # piece made, not cut - a monocle the Meshy face does not have:
+            # a gold ring of tubes and a lens disc in it, plain colours by
+            # paint id (kind config "paint"))
+            rg = rule["ring"]
+            at = Vector(rg["at"])
+            nrm = Vector(rg.get("normal", [0, -1, 0])).normalized()
+            rot = nrm.to_track_quat("Z", "Y").to_matrix()
+            r = float(rg.get("r", .018))
+            segs = int(rg.get("segs", 12))
+            pts = [at + rot @ Vector((r * math.cos(2 * math.pi * k / segs), r * math.sin(2 * math.pi * k / segs), 0))
+                   for k in range(segs)]
+            ring_f = []
+            for k in range(segs):
+                ring_f += _tube(bm, pts[k], pts[(k + 1) % segs], float(rg.get("tube", .003)), 5)
+            lens_f = []
+            if rg.get("lens", True):
+                lens = bmesh.ops.create_circle(bm, cap_ends=True, segments=segs, radius=r * .92,
+                                               matrix=Matrix.Translation(at) @ rot.to_4x4())
+                lens_f = list({f for v in lens["verts"] for f in v.link_faces})
+            for f in ring_f + lens_f:
+                for v in f.verts:
+                    for kk in list(v[dl].keys()):
+                        del v[dl][kk]
+                    v[dl][gidx[bone]] = 1.0
+            for f in ring_f:
+                f[paint] = int(rg.get("paint", 20))
+            for f in lens_f:
+                f[paint] = int(rg.get("lens_paint", 21))
+            pieces[bone] = list({v for f in ring_f + lens_f for v in f.verts})
+            out[bone] = (rule.get("gear", name), on)
+            log("MESHY shed %s: a ring made, %.3f m across at %s" % (name, r * 2, [round(x, 3) for x in at]))
+            continue
         if "box" in rule:
             bx = rule["box"]
             take = []
@@ -190,12 +227,39 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 if rule.get("head_only") and not all(
                         v[dl] and max(v[dl].items(), key=lambda kv: kv[1])[0] == gidx.get(on, -1) for v in f.verts):
                     continue
-                if cols is not None and not _in_hsv(cols[f.index], rule):
+                # ("except" [{hue, sat, val}]: every face in the box but those
+                # colours - a helmet's whole shell, shaded, lit and lining,
+                # all but the face's skin; the hue window is not used then)
+                if cols is not None and rule.get("except") is not None:
+                    if any(_in_hsv(cols[f.index], w_) for w_ in rule["except"]):
+                        continue
+                elif cols is not None and not _in_hsv(cols[f.index], rule):
                     continue
                 take.append(f)
             if not take:
                 log("MESHY shed %s: nothing in its box" % name)
                 continue
+            # ("fill": rings - faces in the box left out but with most of
+            # their neighbours taken join: no islands of the shell left on
+            # the bare head)
+            for _ in range(int(rule.get("fill", 0))):
+                got = set(take)
+                ring = []
+                for f in got:
+                    for e in f.edges:
+                        for f2 in e.link_faces:
+                            if f2 in got or f2 in claimed or f2 in ring:
+                                continue
+                            c = f2.calc_center_median()
+                            if not (bx["x"][0] <= c.x <= bx["x"][1] and bx["y"][0] <= c.y <= bx["y"][1]
+                                    and bx["z"][0] <= c.z <= bx["z"][1]):
+                                continue
+                            nb = [f3 for e3 in f2.edges for f3 in e3.link_faces if f3 is not f2]
+                            if nb and sum(1 for f3 in nb if f3 in got) >= len(nb) * .6:
+                                ring.append(f2)
+                take += ring
+                if not ring:
+                    break
             # "grow_dark" [rings, val]: dark faces in the box touching the
             # piece join it (a spectacle frame's rim round the lenses, left
             # painted round the eyes otherwise).
@@ -364,6 +428,33 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 if v not in hv and v.link_faces and not any(f in claimed for f in v.link_faces):
                     if v.co.z > z0 and not keep(v.co) and math.hypot(v.co.x - cen.x, v.co.y - cen.y) < float(rule.get("within", 9)):
                         v.co.z = z0 - .004
+                        # ("sliver_in": such tips also drawn in to the head's
+                        # ring - flattened, they stuck out sideways as
+                        # spikes by the ears once the hat was off)
+                        if rule.get("sliver_in"):
+                            d_ = Vector((v.co.x - cen.x, v.co.y - cen.y, 0))
+                            lim = max(rx, ry) * float(rule["sliver_in"])
+                            if d_.length > lim:
+                                v.co.x = cen.x + d_.x / d_.length * lim
+                                v.co.y = cen.y + d_.y / d_.length * lim
+            # ("band_in": [depth, k] - every head vertex just under the cut
+            # (within depth m) standing out past k times the ring drawn in to
+            # it: dark under-brim strands stuck out by the ears as spikes)
+            bi = rule.get("band_in")
+            if bi:
+                lim = max(rx, ry) * float(bi[1])
+                for v in bm.verts:
+                    if v in hv or v.index >= len(head) or not head[v.index]:
+                        continue
+                    # (third value true: only behind the ring's middle - the
+                    # forehead under the cut stays as it is)
+                    if len(bi) > 2 and bi[2] and v.co.y < cen.y:
+                        continue
+                    if z0 - float(bi[0]) <= v.co.z <= z0:
+                        d_ = Vector((v.co.x - cen.x, v.co.y - cen.y, 0))
+                        if d_.length > lim:
+                            v.co.x = cen.x + d_.x / d_.length * lim
+                            v.co.y = cen.y + d_.y / d_.length * lim
             # The bare head: a cap on the ring, stalks to the kept antennae.
             if rule.get("cap"):
                 hz = float(rule["cap"]) * (rx + ry) / 2
@@ -409,8 +500,24 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                         for kk in list(v[dl].keys()):
                             del v[dl][kk]
                         v[dl][gidx[on]] = 1.0
+                # ("cap_skin": the dome a bald pate in the face's skin;
+                # "cap_fringe" {colour, height, front}: its lower band, round
+                # the sides and back but not the brow, a fringe of hair)
+                cfr = rule.get("cap_fringe")
                 for f in cap_f:
-                    f[paint] = PAINT_CAP
+                    f[paint] = PAINT_PATE if rule.get("cap_skin") else PAINT_CAP
+                    if cfr:
+                        # (round both sides and the back - more than
+                        # "front_deg" from straight ahead - below "height"
+                        # of the dome; a soft edge band of half hair)
+                        cc = f.calc_center_median()
+                        hs = (cc.z - (cap_c.z - float(rule.get("cap_base", .03)))) / max(hz, 1e-4)
+                        ang = math.degrees(math.atan2(abs(cc.x - cap_c.x), -(cc.y - cap_c.y)))
+                        h1, a1 = float(cfr.get("height", .45)), float(cfr.get("front_deg", 60))
+                        if hs < h1 and ang > a1:
+                            f[paint] = PAINT_FRINGE
+                        elif hs < h1 + .15 and ang > a1 - 15:
+                            f[paint] = PAINT_FRINGE_SOFT
                 for f in stalk_f:
                     f[paint] = PAINT_STALK
                 log("MESHY shed %s: skull cap %.3f x %.3f m, %.3f high; %d antenna stalks" % (
@@ -540,6 +647,35 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, sk
             int(m.sum()), numpy.round(numpy.asarray(skin)[:3] * 255).astype(int)))
     shed = cfg.get("shed", {})
     for rule in shed.values():
+        cfr = rule.get("cap_fringe")
+        if cfr and "colour" in cfr:
+            m = idm == PAINT_FRINGE
+            c = numpy.array(cfr["colour"], dtype=float) / 255.0
+            rng = numpy.random.default_rng(9)
+            k = 1.0 + (rng.random(m.sum()) - .5) * float(cfr.get("noise", .3))
+            # (hair, not a flat fill: a share of darker strand texels, the
+            # light varied in streaks along the rows)
+            k = k * numpy.where(rng.random(m.sum()) < float(cfr.get("strands", 0.0)), .68, 1.0)
+            rgb[m] = numpy.clip(c[None, :] * k[:, None], 0, 1)
+            log("MESHY shed: %d texels the hair fringe %s" % (int(m.sum()), cfr["colour"]))
+        if rule.get("cap_skin") and (skin is not None or isinstance(rule["cap_skin"], list)):
+            # (a colour list: the pate that colour - the face's median skin
+            # came out copper on the baron)
+            sk_ = (numpy.array(rule["cap_skin"], dtype=float) / 255.0 if isinstance(rule["cap_skin"], list)
+                   else numpy.asarray(skin)[:3])
+            m = idm == PAINT_PATE
+            k = 1.0 + (numpy.random.default_rng(4).random(m.sum()) - .5) * .05
+            rgb[m] = numpy.clip(sk_[None, :3] * k[:, None], 0, 1)
+            if cfr and "colour" in cfr:
+                m2 = idm == PAINT_FRINGE_SOFT
+                # (the soft edge ragged: each texel hair or scalp at random,
+                # "ragged" the share of hair)
+                r2 = numpy.random.default_rng(6).random(m2.sum())
+                hair_c = numpy.array(cfr["colour"], dtype=float) / 255.0
+                pick = (r2 < float(cfr.get("ragged", .5)))[:, None]
+                c2 = numpy.where(pick, hair_c[None, :] * (.8 + .3 * r2[:, None]), sk_[None, :3])
+                rgb[m2] = numpy.clip(c2, 0, 1)
+            log("MESHY shed: %d texels the bald pate %s" % (int(m.sum()), numpy.round(sk_ * 255).astype(int)))
         for pid, key in ((PAINT_CAP, "cap_colour"), (PAINT_STALK, "stalk_colour")):
             if key in rule:
                 m = idm == pid
