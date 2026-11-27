@@ -1,4 +1,4 @@
-# AGENTS.md: making maps for Crazy Legs Mundell Rampage
+# AGENTS.md: working on Crazy Legs Mundell Rampage
 
 For OpenAI Codex and any other coding agent working in this repository.
 
@@ -6,8 +6,13 @@ For OpenAI Codex and any other coding agent working in this repository.
 
 Crazy Legs Mundell Rampage is a 1997-style first-person shooter in the
 spirit of Redneck Rampage (all art, sound and maps original), made in
-Godot 4.7.2. The game is the Godot project in `godot/`. `CLAUDE.md` and
-`docs/dev/` describe the code; you do not need them to make maps.
+Godot 4.7.2. The game is the Godot project in `godot/`.
+
+- **Making maps:** the section below and MAP_AUTHORING.md are all you need.
+- **Any other work on the game:** read `CLAUDE.md` first. It is the full
+  working guide (layout, commands, the rules every change follows); the
+  detail is in `docs/dev/` (its index is at the end of CLAUDE.md). Then see
+  "Working on the rest of the game" at the end of this file.
 
 ## Making maps
 
@@ -78,3 +83,58 @@ git checkout -- godot/assets3d godot/icons    # drop line-ending churn the impor
 5. In your hand-over, give the map's id, its modes, the verdict, the
    report's numbers table (site walks for both sides) and anything you
    could not check (a person playing it, online play between two machines).
+
+## Working on the rest of the game
+
+Everything in "Rules" above holds for all work, plus these (CLAUDE.md has
+the reasons):
+
+- **Never spend paid credits.** Do not run the ElevenLabs voice tools
+  (`scripts/audio_generator.py`), the Meshy model tools (`meshy/`) or any
+  other paid API. If a task needs new voice lines or new 3D models, stop and
+  say so in your hand-over.
+- **The game code is strictly typed GDScript**, layers only call down, and
+  files stay under 1,500 lines (gdlint). Edit tuning (`godot/data/tuning/`),
+  not scripts, where a number is all that changes.
+- **Gameplay randomness comes from `game.rng`**; new Game fields go in the
+  snapshot field lists; saves are versioned (CLAUDE.md "Never forget").
+- **Keep what works working.** The chapters, old saves and player maps must
+  load and play as before unless the task is to change them. Run the
+  campaign checks the area touches (`docs/dev/checks.md` lists them all).
+- **Benchmarks are noisy.** Compare against the base back to back, several
+  rounds, before calling anything slower or faster.
+- Say plainly what you could not check: nobody on the agent side can listen
+  to the audio, play by hand, or try a phone.
+
+Before handing any change over: the checks for the area, then
+`check_all.gd -- quick jobs=4`, then the four lint shards
+(`check_all.gd -- lint shard=K/4 jobs=4`, K = 1..4), all with the scratch
+profile and all ending ALL CHECKS OK. If a change moves the 3D view, take the
+picture tour and run `compare_3d.gd` (CLAUDE.md "Commands"); rewrite a
+reference only when the change is meant, and say which.
+
+### Open jobs (pick one; one branch each)
+
+- **Bigger player maps (half done):** branch `p16-usermap` has player maps
+  with storeys, kit buildings, logic and looks. Still to do: the 10,000-
+  mutation fuzz, the two-process online lobby test, the cost cap, and the
+  save check (`docs/map_notes/t8.md` in that branch). The branch is local to
+  the owner's PC (not pushed), in the main checkout.
+- **The new MAP SHED** (in-game editor): height, ramps and roofs, whole
+  buildings, logic, copy/paste/mirror, a 3D preview and a CHECK button that
+  calls `src/map_review/`. Needs the player-map work above first.
+- **List new multiplayer maps in the menus:** MAP_AUTHORING.md "Making a
+  multiplayer map that ships in the game" (`Modes.SHOWDOWN_MAPS` / `ARENAS`,
+  `TacticalScreens.MAP_LINES`, `lobby.cfg` `match_rows` and `mode_maps`).
+- **Shots aimed up at a loft:** on the feedstore demo the bot emptied every
+  gun at a billy in the hayloft from below and never hurt him, while he hit
+  back. Find whether upward shots stop at a rail or deck edge (it may affect
+  players too) and fix it with a check.
+- **`geometry_check` can print OK when its map check script fails to
+  compile.** Make a failure to load fail the check.
+- **County Run's Hickston** (`godot/data/county_hickston.json`) lacks the
+  pass-15 rodeo shortcut gate the campaign's Hickston has.
+- Small model leftovers (no new models needed): the still buster's chop
+  holds the axe across his chest instead of swinging it down-forward (a
+  hand-made fire pose); the flagman's flag could ripple on the held-tail
+  path the chain hand's chain uses.

@@ -157,6 +157,11 @@ it is original.
 
 ## Lately
 
+- **3.15** Map tools: share maps by code and on the server's MAP SHELF; maps with hills, cliffs,
+  walkable pitched roofs, storeys, upstairs and barn doors and shoot-out windows; whole
+  buildings in one line; moods by area, foliage, yard scenes, ponds and creeks; bots that use
+  stairs and odd doorways; heavy maps up to ten times faster; `map check` for map authors
+  (see [MAP_AUTHORING.md](MAP_AUTHORING.md)). Online needs 3.15 (protocol 7).
 - **3.14** New faces: Mundell, every hand, every boss and the critters rebuilt as new models
   with real bodies, readable faces and fingers that grip; solid guns shouldered with a cheek on
   the stock; the active ragdoll retuned to each new build; a chain that swings, a real mosquito;
