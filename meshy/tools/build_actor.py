@@ -3846,9 +3846,36 @@ def face_keep(px):
         return px
     k = float(numpy.median(px[ref, :3] @ lw)) / max(float(numpy.median(NOSHADOW[src] @ lw)), 1e-4)
     k = min(2.0, max(.5, k)) * float(opt.get("light", 1.0))
+    # ("gain": the no-shadow bake's light times this, not matched to the arms
+    # - sleeved arms leave only the hands to match, and they change)
+    if "gain" in opt:
+        k = float(opt["gain"])
     b = float(opt.get("blend", 1.0))
     px = px.copy()
     px[m, :3] = px[m, :3] * (1 - b) + numpy.clip(NOSHADOW[m] * k, 0, 1) * b
+    # ("tone": [r, g, b], "tone_k": share - a pale Meshy skin goes yellow-grey
+    # under the dusk bake and the grade: the face's skin (not its dark hair,
+    # brows or lashes) drawn that share toward the tone at its own light)
+    if opt.get("tone"):
+        a = px[:, :3]
+        lum_ = a @ lw
+        tone = numpy.array(opt["tone"], dtype=float) / 255.0
+        tl = float(tone @ lw)
+        mid = float(numpy.median(lum_[m])) if m.any() else .4
+        sk_t = FACEZONE & m & (lum_ > mid * float(opt.get("tone_floor", .8)))
+        # ("tone_zone": "head" - also the neck, ears and the skin behind
+        # them: warm-ish texels of the head zone at the face's light)
+        if opt.get("tone_zone") == "head":
+            hz_mx, hz_mn = a.max(axis=1), a.min(axis=1)
+            hz_sat = numpy.where(hz_mx > 1e-4, (hz_mx - hz_mn) / numpy.maximum(hz_mx, 1e-4), 0)
+            hz = HEADZONE & (lum_ > mid * float(opt.get("tone_head_floor", .9))) & (a[:, 0] - a[:, 2] > .04) & (
+                hz_sat > float(opt.get("tone_head_sat", .14)))
+            if "HANDMASK" in globals():
+                hz &= ~HANDMASK
+            sk_t = sk_t | hz
+        tk = float(opt.get("tone_k", .7))
+        px[sk_t, :3] = numpy.clip(a[sk_t] * (1 - tk) + tone[None, :] * (lum_[sk_t] / max(tl, 1e-4))[:, None] * tk, 0, 1)
+        print("MESHY face keep: %d texels toned to %s" % (int(sk_t.sum()), opt["tone"]))
     # ("soften": share - the hi mesh's deep wrinkle creases, lit, bake as
     # hard dark lines that read as cracks: a face skin texel darker than its
     # neighbours' median is brought that share of the way up to it)

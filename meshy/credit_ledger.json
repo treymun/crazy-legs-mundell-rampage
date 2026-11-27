@@ -1010,7 +1010,7 @@
  ],
  "agent B": {
   "budget": 650,
-  "spent": 229,
+  "spent": 273,
   "entries": [
    {
     "label": "millhand_concept",
@@ -1190,6 +1190,39 @@
     "body": "revenooer_rig.json",
     "time": "2026-11-26 20:01:27",
     "after": 1211,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "shield_deputy_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21ad6-1c92-771f-8659-655ff62295cf",
+    "before": 1167,
+    "cost": 9,
+    "body": "shield_deputy_concept.json",
+    "time": "2026-11-26 20:29:30",
+    "after": 1158,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "shield_deputy_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21ad6-bb18-77e4-9ac9-3685c5814db5",
+    "before": 1158,
+    "cost": 30,
+    "body": "shield_deputy_model.json",
+    "time": "2026-11-26 20:30:14",
+    "after": 1128,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "shield_deputy_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21ad8-041b-764b-b9c8-f9d6dcb81eee",
+    "before": 1128,
+    "cost": 5,
+    "body": "shield_deputy_rig.json",
+    "time": "2026-11-26 20:31:38",
+    "after": 1123,
     "status": "SUCCEEDED"
    }
   ]

@@ -176,5 +176,13 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a long lean clean-shaven face with a square jaw lit evenly, wide-open eyes with clear whites and dark pupils behind the clear round spectacles, thin stern eyebrows, a sharp nose, a tight-lipped smug smirk, short slicked dark hair under the hat, clean skin, the face fully in light under the hat brim",
   "texture": "federal agent, black fedora, round wire spectacles with clear lenses, black suit, white shirt, thin black tie, silver belt badge, black shoes, clean pale skin, clear face with eye whites, bare hands, empty hands, no weapon",
   "height": 1.72
+ },
+ "shield_deputy": {
+  "refs": "cel",
+  "who": "small-town county sheriff's deputy, a stocky country lawman (he carries a riot shield and a revolver in the game)",
+  "design": "WEARING a dark brown round-crowned brimmed deputy hat on his head, a tan khaki uniform shirt with the sleeves down to the wrists, a gold star badge on the chest and two buttoned breast pockets, dark brown uniform trousers, a black leather duty belt with an empty holster, black boots, a sturdy strong natural build with real shoulders and arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad sun-tanned face lit evenly, wide-open eyes with clear whites and dark pupils under thick dark brows, a strong nose, a thick dark brown moustache, a stern no-nonsense frown, short dark hair under the hat, clean skin, the face fully in light under the hat brim",
+  "texture": "county deputy, dark brown round brimmed hat, tan khaki uniform shirt with gold star badge, dark brown trousers, black duty belt, black boots, tanned clean skin, dark moustache, clear face with eye whites, bare hands, empty hands, no weapon, no shield",
+  "height": 1.78
  }
 }

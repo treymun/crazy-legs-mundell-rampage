@@ -20,7 +20,14 @@ item_types r "hold" (throw/bottle mode could not take a cross: wrist 63
 degrees, 3 cm in the body); cap recolour with "not_face" (new: the cap's
 band reached the brow) split into crown z .93+ and a band z .90-.93 by
 saturation so the dark hair stays).
-NEXT: revenooer (concept + model + rig bought), then shield_deputy.
+44 revenooer (44 cr; revolver item_types r pistol, grip_parts r b42 l b45;
+the Meshy pale skin went grey-yellow: face_keep "gain" .78 (absolute, new),
+"tone" [186,124,98] "tone_k" .75 "tone_zone" "head" (new: the face, neck
+and ears toned warm at their own light; dark hair/hat left out by a light
+floor, r-b and saturation tests), hands skin_even tone [176,116,92] light
+.88 face_even 0 + hand_smooth 2; recolour fedora z .94+ charcoal, back hair
+x +-.065 y > .03 dark (the tone speckled them orange)).
+NEXT: shield_deputy (concept + model + rig bought), then still_buster.
 Mundell notes: the player kind is no enemy - the enemy tour, live_frames
 probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
 in-game sheet is tools/mode_frames.gd only=mundell (new: gd.sh, old:
@@ -77,6 +84,8 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   it: "face_lift_most" 1.15 for a full beard).
 - face_uv for a hard hat: "brim_k" 1.4 (.7 shrank the whole hat and the
   face's other islands: blockier), "z" [-.16, .2], "r" .2, k 3-4.5.
+- face_keep "gain" (absolute light), "tone"/"tone_k"/"tone_floor"/
+  "tone_zone" "head" (warm a grey Meshy skin), "soften", "unhue".
 - build_actor recolour rule "not_face": true leaves FACEZONE out.
 - build_actor "bottle_flip": a bottle/throw item whose thick end is its
   top (dynamite spark).
