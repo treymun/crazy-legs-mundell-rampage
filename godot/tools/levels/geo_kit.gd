@@ -611,7 +611,8 @@ static func kit(b, specs: Array, seed := 0) -> LevelParts:
 
 ## Copies what the kit made into a plan: opens its cells (keeping the map's
 ## floor, light and district where the kit says nothing), appends its
-## geometry, stands its props up, lights its glows and adds its stations.
+## geometry, hangs its doors, glazes its windows, turns the ways on for its
+## vias, stands its props up, lights its glows and adds its stations.
 static func kit_apply(b, parts: LevelParts) -> void:
 	for c: Dictionary in parts.cells:
 		for y in range(int(c["y0"]), int(c["y1"]) + 1):
@@ -633,6 +634,20 @@ static func kit_apply(b, parts: LevelParts) -> void:
 	for key: String in ["slabs", "segments", "ceilings", "ladders"]:
 		var list: Array = parts.geometry()[key]
 		b.geometry[key].append_array(list.duplicate(true))
+	# T4's ways: the doors hung in the kit's doorways, the glass in its windows,
+	# the vias through its doorways and up its stairs (nav_via).
+	for d: Dictionary in parts.doors:
+		door(
+			b,
+			int(d["x"]),
+			int(d["y"]),
+			bool(d["vertical"]),
+			{"z": d["z"], "span": d["span"], "style": d["style"], "id": d["id"]}
+		)
+	b.geo_panes.append_array(parts.panes.duplicate(true))
+	if not parts.vias.is_empty():
+		ways(b)
+		b.geometry["vias"].append_array(parts.vias.duplicate(true))
 	for p: Dictionary in parts.props:
 		var o := {"z": float(p["z"])} if float(p["z"]) > 0.0 else {}
 		if String(p["signal"]) != "":

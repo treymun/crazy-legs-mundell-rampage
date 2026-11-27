@@ -33,23 +33,30 @@ static func store(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	var doors: Array[Dictionary] = [
 		{"side": "s", "at": .5, "width": 2.0}, {"side": "n", "at": .7}, {"side": "e", "at": .6}
 	]
-	var made := KitBody.box(
-		parts,
-		look,
-		body,
-		{
-			"storeys": 1,
-			"storey": 3.0,
-			"base": base,
-			"doors": doors,
-			"windows": 2,
-			"win_head": 2.0,
-			"win_width": 1.0
-		}
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			body,
+			{
+				"storeys": 1,
+				"storey": 3.0,
+				"base": base,
+				"doors": doors,
+				"windows": 2,
+				"win_head": 2.0,
+				"win_width": 1.0,
+				"panes": o["glass"],
+				"hang": "s" if o["hung"] else "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
+	var outline: Rect2 = made["outline"]
+	var s_line: float = made["s_line"]
 	var pitch := .4
-	var roof := KitRoofs.gable(parts, "roof", body, eave, pitch, look, {"along": "v"})
+	var roof := KitRoofs.gable(parts, "roof", outline, eave, pitch, look, {"along": "v"})
 	var ridge: float = roof["top"]
 	var thick := KitPiece.num("roof_thick")
 	var trim: String = look.get("trim", "kit_trim")
@@ -58,14 +65,16 @@ static func store(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 		var top := ridge + .6
 		parts.segment(
 			"false_front",
-			Vector2(-.1, deep - .1),
-			Vector2(w + .1, deep - .1),
+			Vector2(-.1, s_line),
+			Vector2(w + .1, s_line),
 			eave,
 			top,
 			{"tile": wall_tile, "thick": .22}
 		)
 		parts.block("cornice", Rect2(-.25, deep - .4, w + .5, .45), top, top + .2, trim, trim)
-	KitHouses.porch_on(parts, look, Rect2(0, deep, w, 2.0), base, eave - .2, false, awning)
+	KitHouses.porch_on(
+		parts, look, Rect2(0, deep, w, 2.0), base, eave - .2, false, awning, deep - outline.end.y
+	)
 	parts.glow(Vector2(w * .5, deep + 1.0), 3.0, .3)
 	parts.prop("ice_chest", Vector2(w * .5 + 1.6, deep + .7), base)
 	if counter:
@@ -120,19 +129,24 @@ static func gas_station(o: Dictionary, look: Dictionary, parts: LevelParts) -> v
 	var doors: Array[Dictionary] = [
 		{"side": "s", "at": .5, "width": 2.0}, {"side": "e", "at": .5}, {"side": "n", "at": .3}
 	]
-	var made := KitBody.box(
-		parts,
-		look,
-		box,
-		{
-			"storeys": 1,
-			"storey": 3.0,
-			"doors": doors,
-			"windows": 2,
-			"win_sill": .8,
-			"win_head": 2.2,
-			"win_width": 1.2
-		}
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			box,
+			{
+				"storeys": 1,
+				"storey": 3.0,
+				"doors": doors,
+				"windows": 2,
+				"win_sill": .8,
+				"win_head": 2.2,
+				"win_width": 1.2,
+				"panes": o["glass"],
+				"hang": "s" if o["hung"] else "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
 	var flat := KitRoofs.flat(
@@ -224,6 +238,7 @@ static func church(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 				"win_head": 3.0,
 				"win_width": .9,
 				"glass": "kit_church_glass_lit",
+				"panes": o["glass"],
 				"arch": true,
 			}
 		)
@@ -271,25 +286,18 @@ static func church(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	var inset := KitPiece.num("wall") * .5
 	var bel := {"width": 1.4, "sill": belfry + .5, "head": belfry + 1.9}
 	var s_holes: Array[Dictionary] = [
-		{"at": 1.5, "width": 1.2, "sill": base, "head": base + 2.3}, _at(bel, 1.5)
+		{"at": 1.5, "width": 1.0, "sill": base, "head": base + KitPiece.num("door_head")},
+		_at(bel, 1.5)
 	]
 	var side_holes: Array[Dictionary] = [_at(bel, 1.5)]
+	parts.wall("tower_s", t0 + Vector2(0, 2.5), t0 + Vector2(3, 2.5), base, tower_top, wl, s_holes)
 	parts.wall(
-		"tower_s",
-		t0 + Vector2(0, 3 - inset),
-		t0 + Vector2(3, 3 - inset),
-		base,
-		tower_top,
-		wl,
-		s_holes
-	)
-	parts.wall(
-		"tower_w", t0 + Vector2(inset, 0), t0 + Vector2(inset, 3), base, tower_top, wl, side_holes
+		"tower_w", t0 + Vector2(inset, 0), t0 + Vector2(inset, 2.6), base, tower_top, wl, side_holes
 	)
 	parts.wall(
 		"tower_e",
 		t0 + Vector2(3 - inset, 0),
-		t0 + Vector2(3 - inset, 3),
+		t0 + Vector2(3 - inset, 2.6),
 		base,
 		tower_top,
 		wl,
@@ -298,10 +306,11 @@ static func church(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	parts.wall(
 		"tower_n", t0 + Vector2(0, inset), t0 + Vector2(3, inset), eave, tower_top, wl, side_holes
 	)
-	parts.doorway("tower_door", t0 + Vector2(1.5, 3 - inset), "s", base, 1.2, 2.3)
+	parts.door("tower_hung", t0 + Vector2(1.5, 2.5), true, 1, "hinge", base)
+	parts.doorway("tower_door", t0 + Vector2(1.5, 2.5), "s", base, 1.0, KitPiece.num("door_head"))
 	var deck_look := {"tile": "porch", "under": "joists", "edge": "wood"}
 	parts.slab(
-		"belfry", Rect2(t0.x + .2, t0.y + 1.2, 2.6, 1.6), belfry, KitPiece.num("deck"), deck_look
+		"belfry", Rect2(t0.x + .2, t0.y + 1.2, 2.6, 1.2), belfry, KitPiece.num("deck"), deck_look
 	)
 	parts.ladder("belfry_ladder", Vector2(t0.x + 1.5, t0.y + 1.2), "s", base, belfry)
 	parts.floor_at("belfry", Vector2(t0.x + 1.5, t0.y + 2.0), belfry)

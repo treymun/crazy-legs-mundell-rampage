@@ -17,8 +17,12 @@ const LANDING := 1.2
 ## along it from the west or north, width, head, storey}]), windows (every
 ## so many cells, 0 none), rooms (1 or 2), win_sill, win_head, win_width
 ## (over each floor), glass (a tile for the windows' upper part, "" none),
-## arch (stepped heads), top (the walls' top, default the eave). Returns
-## {eave, floors: [z...]}.
+## arch (stepped heads), top (the walls' top, default the eave), panes
+## (glass in the windows, true), hang (the sides, "s" and/or "n", whose wall
+## stands on the line through its cells' middles so a door hangs in each of
+## its ground doorways: T4's doors; a door's "style" hinge or slide). Returns
+## {eave, floors: [z...], n_line, s_line, in_y0, in_y1, outline (the walls'
+## outer faces: what a roof goes over)}.
 static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary) -> Dictionary:
 	var storeys: int = o.get("storeys", 1)
 	var storey: float = o.get("storey", KitPiece.num("storey"))
@@ -40,12 +44,23 @@ static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary)
 	parts.open(body, floor_tile if base <= 0.0 else "", light)
 	var doors: Array = o.get("doors", [])
 	var decks: bool = o.get("decks", true)
+	var panes: bool = o.get("panes", true)
+	var hang: String = o.get("hang", "")
 	var stairs := storeys > 1 and decks
+	if stairs and y1 - y0 < 7.0:
+		# Too shallow for the stairs to clear a hung front wall by a cell.
+		hang = hang.replace("s", "")
+	var off_n := .5 if hang.contains("n") else inset
+	var off_s := .5 if hang.contains("s") else inset
+	var in_y0 := y0 + off_n + inset
+	var in_y1 := y1 - off_s - inset
+	var top_y := y0 + off_n - inset
+	var bottom_y := y1 - off_s + inset
 	var sides := {
-		"n": [Vector2(x0, y0 + inset), Vector2(x1, y0 + inset)],
-		"e": [Vector2(x1 - inset, y0), Vector2(x1 - inset, y1)],
-		"s": [Vector2(x0, y1 - inset), Vector2(x1, y1 - inset)],
-		"w": [Vector2(x0 + inset, y0), Vector2(x0 + inset, y1)],
+		"n": [Vector2(x0, y0 + off_n), Vector2(x1, y0 + off_n)],
+		"e": [Vector2(x1 - inset, top_y), Vector2(x1 - inset, bottom_y)],
+		"s": [Vector2(x0, y1 - off_s), Vector2(x1, y1 - off_s)],
+		"w": [Vector2(x0 + inset, top_y), Vector2(x0 + inset, bottom_y)],
 	}
 	var wall_look := {"tile": wall_tile, "thick": thick}
 	var first_in := Vector2(INF, INF)
@@ -65,7 +80,14 @@ static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary)
 			var at: float = door.get("at", .5)
 			var level: int = door.get("storey", 0)
 			var z := base + level * storey
-			var mid := _door_middle(at * length, width, length)
+			var may_hang: bool = door.get("hang", true)
+			var hung := level == 0 and hang.contains(side) and may_hang
+			if hung:
+				head = KitPiece.num("door_head")
+			# In the middle of a cell on the map (an e or w wall may start a
+			# hung wall's thickness in).
+			var off := a.y - y0 if side == "e" or side == "w" else 0.0
+			var mid := _door_middle(at * length + off, width, length + off) - off
 			if side == "w" and stairs and level == 0:
 				# Under the landing, clear of the stairs.
 				mid = _door_middle(LANDING * .5 + .1, width, length)
@@ -87,6 +109,11 @@ static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary)
 					KitPiece.num("deck"),
 					{"tile": floor_tile, "under": under}
 				)
+			if hung:
+				var style: String = door.get("style", "hinge")
+				parts.door(
+					"%s_hung%d" % [side, door_spots.size()], middle, true, roundi(width), style, z
+				)
 			var walk: bool = door.get("walk", true)
 			parts.doorway(
 				"%s_door%d" % [side, door_spots.size()], middle, side, z, width, head, walk
@@ -106,7 +133,13 @@ static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary)
 					var head: float = o.get("win_head", KitPiece.num("window_head"))
 					var width: float = o.get("win_width", KitPiece.num("window_width"))
 					holes.append(
-						{"at": at, "width": width, "sill": floor_z + sill, "head": floor_z + head}
+						{
+							"at": at,
+							"width": width,
+							"sill": floor_z + sill,
+							"head": floor_z + head,
+							"pane": panes and not (stairs and side == "w")
+						}
 					)
 					_window_dressing(
 						parts,
@@ -136,20 +169,19 @@ static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary)
 		var z := base + s * storey
 		floors.append(z)
 		parts.slab(
-			"floor%d" % s,
-			Rect2(well, y0 + thick, x1 - thick - well, y1 - y0 - thick * 2),
-			z,
-			deck,
-			deck_look
+			"floor%d" % s, Rect2(well, in_y0, x1 - thick - well, in_y1 - in_y0), z, deck, deck_look
 		)
 		parts.slab(
 			"landing%d" % s,
-			Rect2(x0 + thick, y0 + thick, WELL - thick, LANDING - thick),
+			Rect2(x0 + thick, in_y0, WELL - thick, y0 + LANDING - in_y0),
 			z,
 			deck,
 			deck_look
 		)
-		var run := Rect2(x0 + thick, y0 + LANDING, WELL - thick, y1 - thick - .8 - y0 - LANDING)
+		# The stairs' foot a cell clear of the front wall (a wall on its cells'
+		# middle line leaves the row under it to the door alone).
+		var foot := y1 - 1.0 if off_s < .5 else y1 - 2.0
+		var run := Rect2(x0 + thick, y0 + LANDING, WELL - thick, foot - y0 - LANDING)
 		parts.stairs("stairs%d" % s, run, z - storey, z, "n", deck_look, deck if s > 1 else -1.0)
 		parts.floor_at("floor%d" % s, Vector2(floorf(room_x) + .5, floorf(cy) + .5), z)
 	if rooms > 1 and x1 - x0 >= 6:
@@ -160,7 +192,7 @@ static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary)
 				up = top
 			var hole: Array[Dictionary] = [
 				{
-					"at": floorf((y1 - y0) * .5) + .5 - thick,
+					"at": y0 + floorf((y1 - y0) * .5) + .5 - in_y0,
 					"width": 1.0,
 					"sill": z,
 					"head": z + KitPiece.num("door_head")
@@ -168,14 +200,23 @@ static func box(parts: LevelParts, look: Dictionary, body: Rect2, o: Dictionary)
 			]
 			parts.wall(
 				"part%d" % s,
-				Vector2(mid_x, y0 + thick),
-				Vector2(mid_x, y1 - thick),
+				Vector2(mid_x, in_y0),
+				Vector2(mid_x, in_y1),
 				z,
 				up,
 				{"tile": wall_tile, "thick": .12},
 				hole
 			)
-	return {"eave": eave, "floors": floors, "top": top}
+	return {
+		"eave": eave,
+		"floors": floors,
+		"top": top,
+		"n_line": y0 + off_n,
+		"s_line": y1 - off_s,
+		"in_y0": in_y0,
+		"in_y1": in_y1,
+		"outline": Rect2(x0, top_y, x1 - x0, bottom_y - top_y),
+	}
 
 
 ## A doorway's middle along a wall of `length`, in the middle of a cell for an

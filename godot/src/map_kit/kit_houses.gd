@@ -47,20 +47,27 @@ static func house(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	var body := Rect2(0, 0, w, d)
 	if plinth:
 		_plinth(parts, look, body, base)
-	var made := KitBody.box(
-		parts,
-		look,
-		body,
-		{
-			"storeys": storeys,
-			"base": base,
-			"doors": doors_for(letters),
-			"windows": o["windows"],
-			"rooms": o["rooms"]
-		}
+	var hung: bool = o["hung"]
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			body,
+			{
+				"storeys": storeys,
+				"base": base,
+				"doors": doors_for(letters),
+				"windows": o["windows"],
+				"rooms": o["rooms"],
+				"panes": o["glass"],
+				"hang": "s" if hung and letters.contains("s") else "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
-	_roof(parts, look, body, eave, kind, pitch, ladder)
+	var outline: Rect2 = made["outline"]
+	_roof(parts, look, outline, eave, kind, pitch, ladder)
 
 
 ## A farmhouse: the body behind a front porch o.porch deep, its roof the
@@ -83,22 +90,29 @@ static func farmhouse(o: Dictionary, look: Dictionary, parts: LevelParts) -> voi
 	var doors := doors_for("sne")
 	if balcony and storeys > 1 and porch > 0:
 		doors.append({"side": "s", "at": .5, "storey": 1})
-	var made := KitBody.box(
-		parts,
-		look,
-		body,
-		{
-			"storeys": storeys,
-			"base": base,
-			"doors": doors,
-			"windows": o["windows"],
-			"rooms": o["rooms"]
-		}
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			body,
+			{
+				"storeys": storeys,
+				"base": base,
+				"doors": doors,
+				"windows": o["windows"],
+				"rooms": o["rooms"],
+				"panes": o["glass"],
+				"hang": "s" if o["hung"] else "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
+	var outline: Rect2 = made["outline"]
+	var back := (d - porch) - outline.end.y
 	if porch > 0:
 		var meet := base + storey if storeys > 1 else eave - .35
-		porch_on(parts, look, Rect2(0, d - porch, w, porch), base, meet, true, true)
+		porch_on(parts, look, Rect2(0, d - porch, w, porch), base, meet, true, true, back)
 		parts.glow(Vector2(w * .5, d - porch * .5), 3.2, .35)
 	if chimney:
 		var top := eave + (minf(w, d - porch) * .5) * pitch + .9
@@ -106,7 +120,7 @@ static func farmhouse(o: Dictionary, look: Dictionary, parts: LevelParts) -> voi
 		parts.block(
 			"chimney", Rect2(at_x, (d - porch) * .25 - .45, .9, .9), 0.0, top, "brick", "cinder"
 		)
-	_roof(parts, look, body, eave, kind, pitch, ladder)
+	_roof(parts, look, outline, eave, kind, pitch, ladder)
 
 
 ## The roof over a body, and o.ladder up its west (or north) end onto it.
@@ -174,7 +188,8 @@ static func porch_on(
 	base: float,
 	meet: float,
 	rails: bool,
-	roofed: bool
+	roofed: bool,
+	back := 0.0
 ) -> void:
 	var floor_tile: String = look.get("floor", "kit_porch")
 	var found: String = look.get("found", "kit_stone")
@@ -194,7 +209,7 @@ static func porch_on(
 		var skin := KitRoofs._skin(look)
 		parts.slab(
 			"porch_roof",
-			Rect2(x0 - .1, y0, x1 - x0 + .2, y1 - y0 + .2),
+			Rect2(x0 - .1, y0 - back, x1 - x0 + .2, y1 - y0 + .2 + back),
 			meet,
 			thick,
 			skin,
@@ -204,7 +219,7 @@ static func porch_on(
 		for k in posts:
 			var px := lerpf(x0 + .15, x1 - .15, float(k) / (posts - 1))
 			var py := y1 - .15
-			var under := meet - (py - y0) * fall - thick
+			var under := meet - (py - y0 + back) * fall - thick
 			parts.post("porch_post%d" % k, Vector2(px, py), base, under, trim)
 		parts.note("porch_roof", {"meet": meet, "fall": fall})
 	if rails:
@@ -253,14 +268,25 @@ static func shack(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	var back: bool = o["back_door"]
 	var pipe: bool = o["stovepipe"]
 	var body := Rect2(0, 0, w, d)
-	var made := KitBody.box(
-		parts,
-		look,
-		body,
-		{"storeys": 1, "storey": 2.2, "doors": doors_for("sn" if back else "s"), "windows": 2}
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			body,
+			{
+				"storeys": 1,
+				"storey": 2.2,
+				"doors": doors_for("sn" if back else "s"),
+				"windows": 2,
+				"panes": o["glass"],
+				"hang": "s" if o["hung"] else "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
-	var roof := KitRoofs.shed(parts, "roof", body, eave, pitch, look, {"overhang": .25})
+	var outline: Rect2 = made["outline"]
+	var roof := KitRoofs.shed(parts, "roof", outline, eave, pitch, look, {"overhang": .25})
 	var top: float = roof["top"]
 	parts.roof_at(body.get_center(), top, false, "shed")
 	if pipe:
@@ -282,11 +308,23 @@ static func trailer(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	var doors: Array[Dictionary] = [{"side": "s", "at": .3}]
 	if back:
 		doors.append({"side": "n", "at": .75})
-	var made := KitBody.box(
-		parts,
-		look,
-		body,
-		{"storeys": 1, "storey": 2.1, "base": base, "doors": doors, "windows": 2, "rooms": 2}
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			body,
+			{
+				"storeys": 1,
+				"storey": 2.1,
+				"base": base,
+				"doors": doors,
+				"windows": 2,
+				"rooms": 2,
+				"panes": o["glass"],
+				"hang": "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
 	var step_look := {"tile": "porch", "under": "porch", "edge": "wood"}
@@ -317,13 +355,23 @@ static func outhouse(o: Dictionary, look: Dictionary, parts: LevelParts) -> void
 	var w: float = o["w"]
 	var d: float = o["d"]
 	var body := Rect2(0, 0, w, d)
-	var made := KitBody.box(
-		parts,
-		look,
-		body,
-		{"storeys": 1, "storey": 2.1, "doors": [{"side": "s", "at": .5, "width": .8}], "windows": 0}
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			body,
+			{
+				"storeys": 1,
+				"storey": 2.1,
+				"doors": [{"side": "s", "at": .5}],
+				"windows": 0,
+				"hang": "s" if o["hung"] else "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
-	var roof := KitRoofs.shed(parts, "roof", body, eave, .3, look, {"overhang": .15})
+	var outline: Rect2 = made["outline"]
+	var roof := KitRoofs.shed(parts, "roof", outline, eave, .3, look, {"overhang": .15})
 	var top: float = roof["top"]
 	parts.roof_at(body.get_center(), top, false, "shed")

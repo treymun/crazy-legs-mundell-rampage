@@ -525,6 +525,9 @@ options, the refusals and the limits are in
   as they were. The audit's `house_kit.gd` and `house_spike_check.gd` are
   gone: the plain `house` piece is their house, and `kit_check.gd
   town_level` their town (stress_bench town, cpu_check).
+- T4's ways: front doors hang in the doorways (`LevelParts.door`, the wall
+  then on its cells' middle line), windows are glazed (`panes`), and every
+  doorway and stair end is a via (`vias`, `nav_via`); `kit_apply` writes them.
 - `tools/kit_check.gd` holds it ([checks.md](checks.md)).
 
 ## Editing a level by hand

@@ -31,6 +31,14 @@ var props: Array[Dictionary] = []
 var glows: Array[Dictionary] = []
 ## {id, x, y, label, message, cue}.
 var stations: Array[Dictionary] = []
+## Doors hung in the geometry (T4): {x, y, vertical, span, style, z, id},
+## the level file's door keys (the cell its leaf crosses, the cells it spans).
+var doors: Array[Dictionary] = []
+## Glass in openings (T4 panes): {a, b, z0, z1}, the level's geo_panes.
+var panes: Array[Dictionary] = []
+## Via points (T4 nav_via): [x, y, z] in every doorway and at both ends of
+## every stair, so hands and bots walk through ways the cells' middles miss.
+var vias: Array[Array] = []
 ## One a piece: {id, piece, footprint [x0, y0, x1, y1], doors, floors, roof,
 ## walk_in, reach, cost, set_piece}.
 var pieces: Array[Dictionary] = []
@@ -324,6 +332,18 @@ func stairs(
 				tread = Rect2(x0, y1 - c, x1 - x0, c - a)
 		var top := z0 + (z1 - z0) * (k + 1) / n
 		slab("%s_%d" % [part, k + 1], tread, top, thick, look, Vector2.ZERO, [], true, "stair")
+	var mid := local.get_center()
+	var ends := {
+		"e": [Vector2(x0, mid.y), Vector2(x1, mid.y)],
+		"w": [Vector2(x1, mid.y), Vector2(x0, mid.y)],
+		"s": [Vector2(mid.x, y0), Vector2(mid.x, y1)],
+		"n": [Vector2(mid.x, y1), Vector2(mid.x, y0)],
+	}
+	var pair: Array = ends.get(toward, ends["n"])
+	var foot: Vector2 = pair[0]
+	var head: Vector2 = pair[1]
+	via(foot, z0)
+	via(head, z1)
 	return n
 
 
@@ -414,6 +434,20 @@ func wall(
 		holes.append(
 			Vector4(maxf(0.0, mid - width * .5), minf(length, mid + width * .5), sill, head)
 		)
+		var pane: bool = hole.get("pane", false)
+		if pane:
+			var p0 := frame.p(a + way * (mid - width * .5))
+			var p1 := frame.p(a + way * (mid + width * .5))
+			panes.append(
+				{
+					"a": [_r(p0.x), _r(p0.y)],
+					"b": [_r(p1.x), _r(p1.y)],
+					"z0": _r(sill),
+					"z1": _r(head)
+				}
+			)
+		elif sill <= z0 + .245:
+			via(a + way * mid, maxf(z0, sill))
 	holes.sort_custom(func(p: Vector4, q: Vector4) -> bool: return p.x < q.x)
 	var before := _made
 	var k := 0
@@ -447,6 +481,34 @@ func wall(
 			segment("%s_%d" % [part, k], a + way * u, a + way * w, low, z1, look)
 			k += 1
 	return _made - before
+
+
+## A via point at local `at` on the floor z (T4: the nav graph bends
+## through it).
+func via(at: Vector2, z: float) -> void:
+	var q := frame.p(at)
+	vias.append([_r(q.x), _r(q.y), _r(z)])
+
+
+## A door hung in the geometry (T4) in an opening whose middle is local
+## `mid` on a wall along local x (along_x) or y, `span` cells wide (the
+## opening that wide, the wall's line through the cells' middles): hinge
+## (span 2 a pair) or slide (a barn door), standing on the floor z.
+func door(part: String, mid: Vector2, along_x: bool, span: int, style: String, z: float) -> void:
+	var q := frame.p(mid)
+	var world_x := along_x == (frame.turn % 2 == 0)
+	var x := roundi(q.x - span * .5) if world_x else floori(q.x)
+	var y := floori(q.y) if world_x else roundi(q.y - span * .5)
+	var d := {
+		"x": x,
+		"y": y,
+		"vertical": not world_x,
+		"span": span,
+		"style": style,
+		"z": _r(z),
+		"id": _id(part)
+	}
+	doors.append(d)
 
 
 ## A ladder leaning on a face whose line is at local (x, y), climbed facing
@@ -529,6 +591,9 @@ func station(
 ## leaves nothing behind).
 func mark() -> Array[int]:
 	return [
+		doors.size(),
+		panes.size(),
+		vias.size(),
 		cells.size(),
 		slabs.size(),
 		segments.size(),
@@ -542,15 +607,18 @@ func mark() -> Array[int]:
 
 
 func rollback(at: Array[int]) -> void:
-	cells.resize(at[0])
-	slabs.resize(at[1])
-	segments.resize(at[2])
-	ceilings.resize(at[3])
-	ladders.resize(at[4])
-	props.resize(at[5])
-	glows.resize(at[6])
-	stations.resize(at[7])
-	pieces.resize(at[8])
+	doors.resize(at[0])
+	panes.resize(at[1])
+	vias.resize(at[2])
+	cells.resize(at[3])
+	slabs.resize(at[4])
+	segments.resize(at[5])
+	ceilings.resize(at[6])
+	ladders.resize(at[7])
+	props.resize(at[8])
+	glows.resize(at[9])
+	stations.resize(at[10])
+	pieces.resize(at[11])
 
 
 # ---------------------------------------------------------------- the result
@@ -568,6 +636,9 @@ func to_dict() -> Dictionary:
 		"props": props,
 		"glows": glows,
 		"stations": stations,
+		"doors": doors,
+		"panes": panes,
+		"vias": vias,
 		"pieces": pieces,
 	}
 

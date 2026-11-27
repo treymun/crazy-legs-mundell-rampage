@@ -60,27 +60,41 @@ static func barn(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	var storey := 2.6
 	var body := Rect2(0, 0, w, d)
 	var doors: Array[Dictionary] = [
-		{"side": "s", "at": .5, "width": 3.0, "head": storey - .2},
-		{"side": "n", "at": .5, "width": 3.0, "head": storey - .2},
+		{"side": "s", "at": .5, "width": 3.0, "head": storey - .2, "style": "slide"},
+		{"side": "n", "at": .5, "width": 3.0, "head": storey - .2, "style": "slide"},
 	]
 	if side_door:
-		doors.append({"side": "e", "at": .3})
+		doors.append({"side": "e", "at": .75})
 	if loft:
 		doors.append({"side": "s", "at": .5, "width": 1.4, "head": 1.5, "storey": 1, "walk": false})
-	var made := KitBody.box(
-		parts,
-		look,
-		body,
-		{"storeys": 2, "storey": storey, "decks": false, "doors": doors, "windows": 3}
+	var made := (
+		KitBody
+		. box(
+			parts,
+			look,
+			body,
+			{
+				"storeys": 2,
+				"storey": storey,
+				"decks": false,
+				"doors": doors,
+				"windows": 3,
+				"panes": o["glass"],
+				"hang": "sn" if o["hung"] else "",
+			}
+		)
 	)
 	var eave: float = made["eave"]
 	var thick := KitPiece.num("wall")
+	var in_y0: float = made["in_y0"]
+	var in_y1: float = made["in_y1"]
+	var outline: Rect2 = made["outline"]
 	if loft:
 		var front := d * .45
 		var deck_look := {"tile": "porch", "under": "joists", "edge": "wood"}
 		parts.slab(
 			"loft",
-			Rect2(thick, front, w - thick * 2, d - thick - front),
+			Rect2(thick, front, w - thick * 2, in_y1 - front),
 			storey,
 			KitPiece.num("deck"),
 			deck_look
@@ -99,19 +113,23 @@ static func barn(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 		bales(
 			parts,
 			"loft_bale",
-			Rect2(thick, front + 1.0, w - thick * 2, d - front - 2.2),
+			Rect2(thick, front + 1.0, w - thick * 2, in_y1 - front - 2.0),
 			storey,
 			count >> 1
 		)
 	parts.floor_at("floor", Vector2(w * .5, d * .3), 0.0)
 	bales(
-		parts, "bale", Rect2(thick, thick, w - thick * 2, d * .45 - .6), 0.0, count - (count >> 1)
+		parts,
+		"bale",
+		Rect2(thick, in_y0, w - thick * 2, d * .45 - .4 - in_y0),
+		0.0,
+		count - (count >> 1)
 	)
 	var roof: Dictionary
 	if kind == "gable":
-		roof = KitRoofs.gable(parts, "roof", body, eave, .8, look, {"along": "v"})
+		roof = KitRoofs.gable(parts, "roof", outline, eave, .8, look, {"along": "v"})
 	else:
-		roof = KitRoofs.gambrel(parts, "roof", body, eave, look, {"along": "v"})
+		roof = KitRoofs.gambrel(parts, "roof", outline, eave, look, {"along": "v"})
 	var at: Vector2 = roof["at"]
 	var top: float = roof["top"]
 	parts.roof_at(at, top, false, kind)

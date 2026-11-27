@@ -165,8 +165,20 @@ func _gallery_run(main, size: String, turn: int, mirror: bool) -> void:
 		if int(p["cost"]) > most:
 			dear.append("%s %d" % [p["id"], p["cost"]])
 	_check(dear.is_empty(), "every piece within %d pieces of geometry %s" % [most, dear])
+	_check(
+		g_doors(lv) == parts.doors.size() and lv.get("geo_panes", []).size() == parts.panes.size(),
+		(
+			"%d doors hung, %d panes, %d vias written"
+			% [parts.doors.size(), parts.panes.size(), parts.vias.size()]
+		)
+	)
 	LevelData.preview[ID] = lv
 	var g := _game(main, ID)
+	_check(
+		g.world.doors.size() == parts.doors.size(),
+		"and every door loads (%d)" % g.world.doors.size()
+	)
+	_open_doors(g)
 	var f := FlowField.new(g.world)
 	f.reach = 100000
 	f.update(2.5, 2.5, 0.0, 0.0)
@@ -199,6 +211,18 @@ func _gallery_run(main, size: String, turn: int, mirror: bool) -> void:
 	if (turn == 0 and not mirror) or (turn == 1 and mirror):
 		_body_walks(g, parts, tag)
 	LevelData.preview.erase(ID)
+
+
+static func g_doors(lv: Dictionary) -> int:
+	return (lv.get("doors", []) as Array).size()
+
+
+## The walk-in tests go through open doors (T4's doors open on USE; ways_check
+## holds them).
+static func _open_doors(g: Game) -> void:
+	for door: LevelData.Door in g.world.doors:
+		door.opened = true
+		door.progress = 1.0
 
 
 ## Every piece's geometry within its footprint grown by its overhang (1.0).
@@ -372,7 +396,9 @@ static func house_level() -> Dictionary:
 					"y": 6,
 					"ladder": true,
 					"doors": "s",
-					"rooms": 1
+					"rooms": 1,
+					"glass": false,
+					"hung": false
 				},
 				{"piece": "farmhouse", "id": "home", "x": 26, "y": 14},
 			]
@@ -391,6 +417,7 @@ func _house(main) -> void:
 	print("the plain house and the farmhouse in detail")
 	LevelData.preview[HOUSE] = house_level()
 	var g := _game(main, HOUSE)
+	_open_doors(g)
 	var w: LevelData = g.world
 	_check(is_equal_approx(w.floor_under(15.5, 9.5, .5), 0.0), "inside, the ground floor is 0")
 	_check(is_equal_approx(w.floor_under(15.5, 9.5, 3.0), 2.4), "and the upper floor 2.4")
@@ -448,7 +475,7 @@ func _house(main) -> void:
 		g.tick(DT, Game.Controls.new())
 	_check(absf(w.stand(p)) < .01, "off the eave down to the yard (z %.2f)" % w.stand(p))
 	# The farmhouse: up its stairs and out of the balcony door onto the porch roof.
-	_place(g, 26.75, 20.5, .2)
+	_place(g, 26.75, 19.4, .2)
 	_walk(g, Vector2(26.75, 14.8), 7.0)
 	var up := w.stand(p)
 	_check(absf(up - 2.6) < .05, "up the farmhouse's stairs (%.2f)" % up)
@@ -506,6 +533,8 @@ static func town_level(id: String, houses: int) -> Dictionary:
 						"storeys": 2 if (row + col) % 3 else 3,
 						"doors": "s",
 						"rooms": 1,
+						"hung": false,
+						"glass": false,
 						"area": yard,
 					}
 				)

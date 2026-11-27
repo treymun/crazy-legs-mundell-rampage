@@ -138,7 +138,7 @@ static func gable(
 	)
 	var ends: bool = o.get("ends", true)
 	if ends:
-		var inset := KitPiece.num("wall") * .5
+		var inset: float = o.get("end_inset", KitPiece.num("wall") * .5)
 		var wl := {"tile": look.get("wall", "barn"), "thick": KitPiece.num("wall")}
 		for side in 2:
 			var u := u0 + inset if side == 0 else u1 - inset
@@ -258,7 +258,7 @@ static func shed(
 	)
 	var ends: bool = o.get("ends", true)
 	if ends:
-		var inset := KitPiece.num("wall") * .5
+		var inset: float = o.get("end_inset", KitPiece.num("wall") * .5)
 		var wl := {"tile": look.get("wall", "barn"), "thick": KitPiece.num("wall")}
 		parts.segment(
 			part + "_end_w",
@@ -358,7 +358,7 @@ static func gambrel(
 	)
 	var ends: bool = o.get("ends", true)
 	if ends:
-		var inset := KitPiece.num("wall") * .5
+		var inset: float = o.get("end_inset", KitPiece.num("wall") * .5)
 		var wl := {"tile": look.get("wall", "barn"), "thick": KitPiece.num("wall")}
 		for side in 2:
 			var u := u0 + inset if side == 0 else u1 - inset

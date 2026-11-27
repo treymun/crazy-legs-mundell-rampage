@@ -56,7 +56,7 @@ static func level() -> Dictionary:
 	Geo.raked(b, "rake", Vector2(30, 22), Vector2(36, 22), 0.0, .5, 3.0, {"thick": .2})
 	# A house with a gable roof (its ridge east-west at y 28).
 	var house := {"piece": "house", "id": "house", "x": 6, "y": 25, "w": 8, "d": 6, "storeys": 1}
-	house.merge({"doors": "s", "rooms": 1, "area": yard})
+	house.merge({"doors": "s", "rooms": 1, "area": yard, "hung": false, "glass": false})
 	Geo.kit(b, [house])
 	# An octagonal deck: a box cut by eight lines (four corners, four sides).
 	var cuts := [

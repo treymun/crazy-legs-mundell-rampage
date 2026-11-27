@@ -110,6 +110,7 @@ static func arc(
 			true,
 			walk_out
 		)
+		parts.via(c + way * radius, z0)
 	return made
 
 
@@ -299,6 +300,7 @@ static func fence(o: Dictionary, look: Dictionary, parts: LevelParts) -> void:
 	if gate > 0.0:
 		var at := Vector2(clampf(gate, 0.0, w), .5)
 		parts.doorway("gate", at, "s", 0.0, 1.6, 2.0)
+		parts.via(at, 0.0)
 
 
 ## A bridge spanning the local y axis (d long, w wide), its deck `height` up:
