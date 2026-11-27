@@ -644,7 +644,7 @@
               },
               "cuts": {
                 "type": "array",
-                "maxItems": 2,
+                "maxItems": 8,
                 "items": {
                   "type": "array",
                   "items": {
@@ -705,7 +705,7 @@
               },
               "cuts": {
                 "type": "array",
-                "maxItems": 2,
+                "maxItems": 8,
                 "items": {
                   "type": "array",
                   "items": {
@@ -1209,7 +1209,7 @@
               },
               "cuts": {
                 "type": "array",
-                "maxItems": 2,
+                "maxItems": 8,
                 "items": {
                   "type": "array",
                   "items": {

@@ -142,6 +142,11 @@ static func wall(b, id: String, a: Vector2, bb: Vector2, z0: float, z1: float, o
 		var head := float(hole.get("head", DOOR_HEAD if sill <= 0.0 else sill + 1.0))
 		holes.append([maxf(0.0, mid - half), minf(length, mid + half), sill, head])
 	holes.sort_custom(func(p, q): return p[0] < q[0])
+	for i in range(1, holes.size()):
+		if holes[i][0] < holes[i - 1][1] - .001:
+			# SPIKE (pass 16): openings over one another (a window over a door,
+			# a storey's windows over the one below): cut by columns.
+			return _stacked(b, id, a, dir, length, z0, z1, holes, o)
 	var pieces: Array = []
 	var from := 0.0
 	var k := 0
@@ -165,6 +170,43 @@ static func wall(b, id: String, a: Vector2, bb: Vector2, z0: float, z1: float, o
 	if length > from + .001:
 		var name := id if holes.is_empty() else "%s_%d" % [id, k]
 		pieces.append(_piece(b, name, a + dir * from, bb, z0, z1, o))
+	return pieces
+
+
+## A wall whose openings overlap along it: the length cut at every opening's
+## ends into columns, each column solid from z0 to z1 but for the openings
+## over it (pieces bottom to top).
+static func _stacked(
+	b, id: String, a: Vector2, dir: Vector2, length: float, z0: float, z1: float, holes: Array, o
+) -> Array:
+	var cuts: Array = [0.0, length]
+	for hole: Array in holes:
+		cuts.append(hole[0])
+		cuts.append(hole[1])
+	cuts.sort()
+	var pieces: Array = []
+	var k := 0
+	for i in range(cuts.size() - 1):
+		var u: float = cuts[i]
+		var v: float = cuts[i + 1]
+		if v - u < .001:
+			continue
+		var gaps: Array = []
+		for hole: Array in holes:
+			if hole[0] <= u + .001 and hole[1] >= v - .001:
+				gaps.append([hole[2], hole[3]])
+		gaps.sort_custom(func(p, q): return p[0] < q[0])
+		var low := z0
+		for gap: Array in gaps:
+			if gap[0] > low + .001:
+				pieces.append(
+					_piece(b, "%s_%d" % [id, k], a + dir * u, a + dir * v, low, gap[0], o)
+				)
+				k += 1
+			low = maxf(low, gap[1])
+		if z1 > low + .001:
+			pieces.append(_piece(b, "%s_%d" % [id, k], a + dir * u, a + dir * v, low, z1, o))
+			k += 1
 	return pieces
 
 
