@@ -1640,7 +1640,8 @@ if gear_obj is not None:
         # the fist closed on air)
         _ia = CFG.get("item_axis", {}).get(str(gi))
         if _ia:
-            _sel_ia = (_vg == gi) & numpy.isin(_vb, [DUMP["bones"].index(b) for b in _ia if b in DUMP["bones"]])
+            _sel_ia = (_vg == gi) & (True if _ia == "all" else
+                                     numpy.isin(_vb, [DUMP["bones"].index(b) for b in _ia if b in DUMP["bones"]]))
             if _sel_ia.sum() > 8:
                 pts = _gco[_sel_ia]
                 print("MESHY item gear%d axis from %s (%d vertices)" % (gi, _ia, int(_sel_ia.sum())))
@@ -2585,6 +2586,11 @@ def solve(name, dz=0.0, held0=None):
                     # (the end away from the old hand - a flag's top - is the
                     # "neck": up out of the fist by the thumb)
                     _away = (it["hi"] - it["lo"]) * (1.0 if it["holds"].get(side, .5) < .5 else -1.0)
+                    # (kind config "item_neck" {gear index: "near"}: the end
+                    # by the old hand up out of the fist instead - a cane by
+                    # its knob, the shaft down past the little finger)
+                    if CFG.get("item_neck", {}).get(it["bone"].replace("gear", "")) == "near":
+                        _away = -_away
                     if G0.dot(_away) < 0:
                         G0 = -G0
                         al = -al

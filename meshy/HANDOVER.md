@@ -85,6 +85,26 @@ painted the teal collar salmon instead.)
 Known: live probe arm row 3.1 cm (the hanging chain against his thigh as
 he hunches in one picture; hold_legs made it 4.4 - not used).
 
+20b rudy DONE (53 cr: two concepts - the first had squat legs and the drum
+slung at the hip where the horn hand swings, the second "long legs of
+normal length", no drum - plus model and rig; 20's config kept as
+SP/meshy-work/rudy_20.json, old Meshy outputs meshy_out/rudy_*_20, first
+20b concept meshy_out/rudy_concept_20b1). Refitted shed: tophat z 1.712,
+band .015, ring_pct 60 (at z 1.74 the ring caught the crown's base and the
+bare head wore a bowler's brim; at 1.70 the brim box cut through the eyes
+- shards); tophat_brim box z [1.672, 1.725], x +-.36, y [-.42,.34],
+radial [0,-.025,1.7], outside .16, within .34; tris 15000 (smaller
+triangles at the brow). face_clean, face_box/face_uv auto (k 2.6),
+head_noshadow, texture 1024. Gloves shaded (glove_shade, light .9,
+contrast 1.5). The cane by its knob: item_types l "bottle", item_axis
+{"1": "all"} (NEW value "all": every part of that thing), NEW "item_neck"
+{"1": "near"} (the end by the old hand up out of the fist), bottle_grip .1.
+Headshots: hide tophat_gear,tophat_brim_gear,horns_gear (the brim is its
+own bone).
+New opt-in, not yet used on a kind: "keep_reach" (m) / "keep_vote" (k) in
+depth_in (for the maw giant), "finger_fill" (hands.build_meshy closes the
+cut fingers' holes; for the alien).
+
 ## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path

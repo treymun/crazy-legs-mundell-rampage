@@ -5,8 +5,8 @@
  "old_glb": "../meshy-work/old/rudy.glb",
  "old_tex": "../meshy-work/old/actor3d_rudy.png",
  "out": "../meshy-work/raw/rudy",
- "tris": 12000,
- "texture": 512,
+ "tris": 15000,
+ "texture": 1024,
  "gear": "old",
  "phases": true,
  "hold_legs": true,
@@ -21,7 +21,7 @@
  ],
  "item_types": {
   "r": "raise",
-  "l": "hold"
+  "l": "bottle"
  },
  "gear_skip": [
   "b78"
@@ -94,7 +94,7 @@
  ],
  "shed": {
   "tophat": {
-   "z": 1.7,
+   "z": 1.712,
    "on": "head",
    "within": 0.25,
    "cap": 0.7,
@@ -103,11 +103,12 @@
     32,
     28
    ],
-   "ring_pct": 72,
+   "ring_pct": 60,
    "cap_base": 0.05,
    "cap_grow": 1.0,
    "cap_shag": 0.006,
-   "cap_noise": 0.3
+   "cap_noise": 0.3,
+   "band": 0.015
   },
   "tophat_brim": {
    "gear": "tophat",
@@ -115,25 +116,25 @@
    "cut": true,
    "box": {
     "x": [
-     -0.32,
-     0.32
+     -0.36,
+     0.36
     ],
     "y": [
-     -0.4,
-     0.3
+     -0.42,
+     0.34
     ],
     "z": [
-     1.63,
-     1.72
+     1.672,
+     1.725
     ]
    },
    "radial": [
     0,
-    -0.04,
+    -0.025,
     1.7
    ],
-   "outside": 0.125,
-   "within": 0.27
+   "outside": 0.16,
+   "within": 0.34
   },
   "horns": {
    "on": "body",
@@ -178,5 +179,24 @@
     ]
    }
   }
- }
+ },
+ "head_noshadow": true,
+ "face_clean": true,
+ "face_box": {
+  "auto": true
+ },
+ "face_uv": {
+  "k": 2.6,
+  "auto": true
+ },
+ "item_axis": {
+  "1": "all"
+ },
+ "item_neck": {
+  "1": "near"
+ },
+ "bottle_grip": 0.1,
+ "glove_shade": true,
+ "glove_light": 0.9,
+ "glove_contrast": 1.5
 }
