@@ -129,6 +129,14 @@ big before the pack): .7 - the bigger dryer took her body to 89 texels a
 metre (actor_check floor 90). maw_bare not rebuilt (24 already at 1.7; it
 would take the same options if rebuilt).
 
+05c alien (0 cr; 05b's config as SP/meshy-work/alien_05b.json): the
+three-finger hands DID show open holes / spiky stumps where the cut ring and
+little fingers were (under the hand, close up). Fixed with "finger_fill":
+true (hands.build_meshy: the cut fingers' roots taken too - any vertex a
+third theirs - stray slivers deleted, the holes' rims eased and filled; the
+wrist opening is left open). Close-up: SP/meshy-previews/
+05c_alien_hands_close.png. Maw (5 fingers) never needed it.
+
 ## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path
