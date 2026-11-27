@@ -47,24 +47,6 @@
   "r": 0.3
  },
  "shed": {
-  "tophat": {
-   "z": 1.848,
-   "on": "head",
-   "within": 0.27,
-   "head_only": true,
-   "cap": 0.55,
-   "cap_colour": [
-    218,
-    214,
-    206
-   ],
-   "ring_pct": 60,
-   "cap_base": 0.015,
-   "cap_grow": 0.95,
-   "cap_shag": 0.005,
-   "cap_noise": 0.25,
-   "even_rim": false
-  },
   "tophat_brim": {
    "gear": "tophat",
    "on": "head",
@@ -79,7 +61,7 @@
      0.36
     ],
     "z": [
-     1.77,
+     1.75,
      1.86
     ]
    },
@@ -92,18 +74,47 @@
    "within": 0.34,
    "val": [
     0,
-    0.3
+    0.38
    ]
+  },
+  "tophat": {
+   "z": 1.836,
+   "on": "head",
+   "within": 0.27,
+   "head_only": true,
+   "cap": 0.55,
+   "cap_colour": [
+    218,
+    214,
+    206
+   ],
+   "ring_pct": 60,
+   "cap_base": 0.015,
+   "cap_grow": 0.95,
+   "cap_shag": 0.002,
+   "cap_noise": 0.25,
+   "even_rim": false,
+   "cap_skin": true,
+   "cap_fringe": {
+    "colour": [
+     222,
+     218,
+     210
+    ],
+    "height": 0.7,
+    "front": 0.15
+   },
+   "sliver_in": 1.0
   },
   "monocle": {
    "on": "head",
    "ring": {
     "at": [
-     -0.064,
-     -0.166,
-     1.758
+     -0.043,
+     -0.17,
+     1.778
     ],
-    "r": 0.02,
+    "r": 0.021,
     "tube": 0.003,
     "normal": [
      0,

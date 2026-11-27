@@ -144,5 +144,13 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy sweaty face lit evenly, a big nose, stubble, a mean determined scowl, clear eyes with whites and dark pupils under heavy brows, standing straight facing the viewer",
   "texture": "boiler worker, dark grey flat cap, round goggles pushed up on the cap, uncovered eyes, padded grey work suit, brass knee pads, grey boots, grey steel boiler tank on his back with brass valve, ruddy skin, clear face, empty hands",
   "height": 1.77
+ },
+ "chain_hand": {
+  "refs": "cel",
+  "who": "beer-bellied junkyard enforcer who whips a heavy tow chain, a big-gutted backwoods mechanic",
+  "design": "WEARING a tan flat cap, a teal-green button-up work shirt with a chest pocket and the sleeves rolled to the elbows, stretched over a round beer belly, brown work trousers with a dark belt, black leather work gloves, dark brown work boots, a natural heavy build with real shoulders and thick forearms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a fleshy ruddy face lit evenly, small mean eyes with whites and dark pupils, a bushy ginger-brown moustache, a sneering half grin, stubble, no sunglasses",
+  "texture": "junkyard enforcer, tan flat cap, teal work shirt, brown trousers, black gloves, brown boots, ruddy skin, moustache, clear face, empty hands",
+  "height": 1.72
  }
 }

@@ -34,6 +34,8 @@ PAINT_INPAINT = 1
 PAINT_CAP = 2
 PAINT_STALK = 3
 PAINT_SKIN = 7
+PAINT_FRINGE = 4  # a bald pate's fringe of hair (hat rule "cap_fringe")
+PAINT_PATE = 5  # the bald pate itself: the face's skin (hat rule "cap_skin")
 PAINT_ZONE = 8  # the rest of a face piece's box (where its rim may be)
 
 
@@ -425,6 +427,15 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                 if v not in hv and v.link_faces and not any(f in claimed for f in v.link_faces):
                     if v.co.z > z0 and not keep(v.co) and math.hypot(v.co.x - cen.x, v.co.y - cen.y) < float(rule.get("within", 9)):
                         v.co.z = z0 - .004
+                        # ("sliver_in": such tips also drawn in to the head's
+                        # ring - flattened, they stuck out sideways as
+                        # spikes by the ears once the hat was off)
+                        if rule.get("sliver_in"):
+                            d_ = Vector((v.co.x - cen.x, v.co.y - cen.y, 0))
+                            lim = max(rx, ry) * float(rule["sliver_in"])
+                            if d_.length > lim:
+                                v.co.x = cen.x + d_.x / d_.length * lim
+                                v.co.y = cen.y + d_.y / d_.length * lim
             # The bare head: a cap on the ring, stalks to the kept antennae.
             if rule.get("cap"):
                 hz = float(rule["cap"]) * (rx + ry) / 2
@@ -470,8 +481,17 @@ def setup(lo, hi, rig, cfg, ALL_D, keys, select, log=print):
                         for kk in list(v[dl].keys()):
                             del v[dl][kk]
                         v[dl][gidx[on]] = 1.0
+                # ("cap_skin": the dome a bald pate in the face's skin;
+                # "cap_fringe" {colour, height, front}: its lower band, round
+                # the sides and back but not the brow, a fringe of hair)
+                cfr = rule.get("cap_fringe")
                 for f in cap_f:
-                    f[paint] = PAINT_CAP
+                    f[paint] = PAINT_PATE if rule.get("cap_skin") else PAINT_CAP
+                    if cfr:
+                        cc = f.calc_center_median()
+                        if (cc.z < cap_c.z + hz * float(cfr.get("height", .45))
+                                and cc.y > cap_c.y - ry * cg * float(cfr.get("front", .3))):
+                            f[paint] = PAINT_FRINGE
                 for f in stalk_f:
                     f[paint] = PAINT_STALK
                 log("MESHY shed %s: skull cap %.3f x %.3f m, %.3f high; %d antenna stalks" % (
@@ -601,6 +621,18 @@ def paint(lo, image, total, cfg, pixels, bake_op, select, texture, log=print, sk
             int(m.sum()), numpy.round(numpy.asarray(skin)[:3] * 255).astype(int)))
     shed = cfg.get("shed", {})
     for rule in shed.values():
+        cfr = rule.get("cap_fringe")
+        if cfr and "colour" in cfr:
+            m = idm == PAINT_FRINGE
+            c = numpy.array(cfr["colour"], dtype=float) / 255.0
+            k = 1.0 + (numpy.random.default_rng(9).random(m.sum()) - .5) * float(cfr.get("noise", .3))
+            rgb[m] = numpy.clip(c[None, :] * k[:, None], 0, 1)
+            log("MESHY shed: %d texels the hair fringe %s" % (int(m.sum()), cfr["colour"]))
+        if rule.get("cap_skin") and skin is not None:
+            m = idm == PAINT_PATE
+            k = 1.0 + (numpy.random.default_rng(4).random(m.sum()) - .5) * .05
+            rgb[m] = numpy.clip(numpy.asarray(skin)[None, :3] * k[:, None], 0, 1)
+            log("MESHY shed: %d texels the bald pate the face's skin" % int(m.sum()))
         for pid, key in ((PAINT_CAP, "cap_colour"), (PAINT_STALK, "stalk_colour")):
             if key in rule:
                 m = idm == pid

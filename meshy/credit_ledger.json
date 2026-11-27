@@ -1085,6 +1085,39 @@
    "time": "2026-11-26 19:06:51",
    "after": 1378,
    "status": "SUCCEEDED"
+  },
+  {
+   "label": "chain_hand_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21aa9-cbcf-74be-b8e9-6f956531cfd2",
+   "before": 1299,
+   "cost": 9,
+   "body": "chain_hand_concept.json",
+   "time": "2026-11-26 19:41:06",
+   "after": 1290,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chain_hand_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21aaa-917f-71c8-8ada-db098905de32",
+   "before": 1290,
+   "cost": 30,
+   "body": "chain_hand_model.json",
+   "time": "2026-11-26 19:42:02",
+   "after": 1260,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "chain_hand_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21aab-c0e6-735c-8d44-af2356cd08d1",
+   "before": 1260,
+   "cost": 5,
+   "body": "chain_hand_rig.json",
+   "time": "2026-11-26 19:43:17",
+   "after": 1255,
+   "status": "SUCCEEDED"
   }
  ]
 }

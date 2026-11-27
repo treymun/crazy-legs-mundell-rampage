@@ -1879,7 +1879,9 @@ def cheek_weld(D, it, Di, R_t, at):
     piv = base @ J["neck"]
     cr = cheek_rest(main)
     best = None
-    for pitch in [i * .05 for i in range(0, 11)]:
+    # (kind config "cheek_pitch_max": the head pitched down no further - the
+    # boilerback's cap visor came to face the camera chasing a far stock)
+    for pitch in [i * .05 for i in range(0, int(float(CFG.get("cheek_pitch_max", .5)) / .05 + 1.5))]:
         for roll in [i * .05 for i in range(-int(CFG.get("cheek_roll", .35) / .05 + .5), 10)]:
             Rq = (Matrix.Rotation(pitch, 3, Rt) @ Matrix.Rotation(roll if main == "r" else -roll, 3, -Fw))
             Dh = Matrix.Translation(piv) @ Rq.to_4x4() @ Matrix.Translation(-piv) @ base
@@ -2016,7 +2018,10 @@ def solve(name, dz=0.0, held0=None):
         if Di is not None and shown and it["two"]:
             for side in it["holds"]:
                 bare = name.replace("hurt_", "")
-                if side != it["main"] and bare not in AIMS:
+                # (kind config "carry_both": the other hand on it in every
+                # standing, walking or carrying key, the old one off it or not)
+                if side != it["main"] and bare not in AIMS and not (
+                        CFG.get("carry_both") and (bare in WALK or bare in CARRY or bare == "0")):
                     # The other hand only while the old one is on it (as it
                     # stands for a walk or a carry).
                     ref = "0" if bare in WALK or bare in CARRY else name

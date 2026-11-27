@@ -75,5 +75,7 @@
    0,
    0
   ]
- }
+ },
+ "cheek_pitch_max": 0.1,
+ "carry_both": true
 }
