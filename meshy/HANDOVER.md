@@ -22,8 +22,11 @@ commit of 04g) for your long-gun and hatted characters.
 
 PROGRESS (seventh session, all committed with INDEX lines): 04g clone,
 long-gun sweep (01l billy, 06c big_billy, 18d revenue_man; coot/drunk_coot
-hold short guns one-handed), 19f jerry, 22c/22d/22e baron, 25/25b
-boilerback, 26 chain_hand. A's ledger: 1,498 of the 2,007 budget (record
+hold short guns one-handed), 19f jerry, 22c/22d/22e/22f baron (22f: fringe
+shaded as hair, temple patches gone; its top edge still a crisp band - the
+coordinator said keep 22e if the time-boxed pass did not land; let them
+pick), 25/25b boilerback, 26 chain_hand. check_all quick after this batch
+(scratch profile): ALL CHECKS OK in 184.8 s. A's ledger: 1,498 of the 2,007 budget (record
 each call at its LIST price - concept 9, model 30, rig 5 - and note any
 bigger balance drop: B spends on the same account at the same time).
 NEXT, in order: (1) 26b chain_hand (coordinator): a chain with visible
@@ -50,7 +53,9 @@ olive gas-masked trooper throwing tear-gas canisters, brain
 bottle_tosser). Then tell the coordinator, who assigns the leftovers.
 Per minor model: make/hands/face sheets (SP/meshy-work/q/sheets.sh), live
 probe rows, actor/live_body/physics checks; no in-game sheet. Check-all
-quick once per ~4 models (not yet run this session).
+quick once per ~4 models (last: after 26 chain_hand, ALL OK).
+Order from the coordinator's last note: swamp_king, then chalk_spitter,
+flagman, gas_man, and the 26b chain fix.
 
 New kind options this session (all opt-in, build_actor.py):
 - "face_clean": true or {detail .55, hue .6, floor .62, eye_lift 1.15,
