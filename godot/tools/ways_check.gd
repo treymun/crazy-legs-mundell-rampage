@@ -77,7 +77,7 @@ static func level(barn_open := false) -> Dictionary:
 	Geo.wall(b, "b_w", Vector2(20.5, 4.5), Vector2(20.5, 12.5), 0.0, 3.0, barn)
 	Geo.wall(b, "b_e", Vector2(30.5, 4.5), Vector2(30.5, 12.5), 0.0, 3.0, barn)
 	var north := barn.duplicate()
-	north["openings"] = [{"at": 7.0, "width": 2.0}]
+	north["openings"] = [{"at": 7.5, "width": 2.0}]
 	Geo.wall(b, "b_n", Vector2(20.5, 4.5), Vector2(30.5, 4.5), 0.0, 3.0, north)
 	var back := barn.duplicate()
 	back["openings"] = [{"at": 5.0, "width": 3.0}]
