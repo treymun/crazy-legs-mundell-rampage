@@ -678,7 +678,7 @@ for b in list(W):
 for side, (wrist, a0, n0, t0, length, width, thick, wrist_r) in _measure.items():
     if CFG.get("hands", "meshy") == "meshy" and os.path.exists(os.path.join(hands.MASTER, "hand_master.blend")):
         hnd = hands.build_meshy(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side,
-                                CFG.get("fingers"))
+                                CFG.get("fingers"), bool(CFG.get("finger_fill", False)))
     else:
         hnd = hands.build(side, wrist, a0, n0, t0, length, width, thick, wrist_r, "hand_" + side)
     HANDS[side] = hnd
@@ -1746,7 +1746,10 @@ def item_delta(it, name, P, D, R_t, hipc):
     p0, r0, _s0 = old_bone("0", it["big"])
     p1, r1, s1 = old_bone(name, it["big"])
     old_d = Matrix.Translation(p1) @ (r1 @ r0.inverted()).to_4x4() @ Matrix.Translation(-p0)
-    if s1.x < .2:
+    # (kind config "item_show" [keys]: shown in those keys although the old
+    # model hid it - the chain hand's chain trails behind him in the
+    # wind-up and hangs from his fists in the aim)
+    if s1.x < .2 and name.replace("hurt_", "") not in CFG.get("item_show", []):
         return old_d, False
     if not it["two"]:
         return None, True
@@ -1895,6 +1898,14 @@ def body_surface(D):
     return tree, pts, nrm
 
 
+# (kind config "keep_reach" m: how far from the body's surface a point of a
+# held thing may lie and still be tested - a giant's wide skirt has its
+# surface points far apart, and a dryer 15 cm into it went unseen at .14;
+# "keep_vote" k: see depth_in)
+KEEP_REACH = float(CFG.get("keep_reach", .14))
+KEEP_VOTE = int(CFG.get("keep_vote", 1))
+
+
 def depth_in(surface, gname, M, skip=0.0):
     """How deep the held thing (its old shape moved by M) goes into the
     body's surface, and the way out (the mean outward normal there); `skip`:
@@ -1912,10 +1923,21 @@ def depth_in(surface, gname, M, skip=0.0):
                 clear = .003  # (the butt against the shoulder: touching, not in)
         q = M @ Vector(g)
         _co, i, dist = tree.find(q)
-        if i is None or dist > .14:
+        if i is None or dist > KEEP_REACH:
             continue
         # (A clearance kept, so the living body's reel has room.)
         d = (q - Vector(pts[i])).dot(Vector(nrm[i])) - clear
+        if KEEP_VOTE > 1 and d < 0:
+            # (kind config "keep_vote" k: in only if the k nearest surface
+            # points all say so - with a far reach a point beside a
+            # concave fold read as deep inside; the least depth taken)
+            for _co2, i2, _d2 in tree.find_n(q, KEEP_VOTE):
+                d2 = (q - Vector(pts[i2])).dot(Vector(nrm[i2])) - clear
+                if d2 >= 0:
+                    d = 0.0
+                    break
+                if d2 > d:
+                    d, i = d2, i2
         if d < 0:
             if -d > worst and it is not None:
                 ab = it["hi"] - it["lo"]
@@ -2663,19 +2685,28 @@ def solve(name, dz=0.0, held0=None):
                 Di = D["hand_" + side] @ held0["hand_" + side].inverted() @ held0["@" + it["bone"]]
             hang_ = None
             bare_ = name.replace("hurt_", "")
-            if (HELD_MODEL and it is ITEMS[0] and "grip_pt" in HELD_MODEL and bare_ not in AIMS
+            if (HELD_MODEL and it is ITEMS[0] and "grip_pt" in HELD_MODEL and (bare_ in CFG["held_model"].get(
+                    "hang_keys", []) or (bare_ not in AIMS
                     and bare_ not in ("pain", "fire", "aim", "wind") and not bare_.startswith("die")
-                    and "down" not in bare_):
+                    and "down" not in bare_))):
+                # (held_model "hang_keys": keys hung plumb besides the
+                # carries - the chain from the raised fists in aim, in pain)
                 # (carried, it swings back toward plumb from the jaw as the
                 # arm swings: turned about the grip in the fist)
                 hang_ = (float(CFG["held_model"].get("plumb", .75)) if held0 is not None else 1.0, None)
-            elif HELD_MODEL and it is ITEMS[0] and "grip_pt" in HELD_MODEL and bare_ in ("wind", "fire"):
+            elif HELD_MODEL and it is ITEMS[0] and "grip_pt" in HELD_MODEL and (
+                    CFG["held_model"].get("swing_keys", {}).get(bare_, bare_) in ("wind", "fire")):
                 # The slap: the wind-up swings the fish back behind the hip
                 # (its tail trailing low), the blow drives it through forward,
-                # the tail leading and a little down.
+                # the tail leading and a little down. (held_model
+                # "swing_keys" {key: "wind"|"fire"}: other keys swung so - the
+                # chain trailing behind the raised fists in aim; "trail"
+                # [fwd, up] the wind-up's snout way, default [.5, .87].)
                 Fw_ = -Vector(TWIST["fwd"].col[2])
                 Up_ = Vector(TWIST["fwd"].col[1])
-                hang_ = (1.0, (Fw_ * .5 + Up_ * .87) if bare_ == "wind" else (-Fw_ + Up_ * .35))
+                tr_ = CFG["held_model"].get("trail", [.5, .87])
+                sw_ = CFG["held_model"].get("swing_keys", {}).get(bare_, bare_)
+                hang_ = (1.0, (Fw_ * tr_[0] + Up_ * tr_[1]) if sw_ == "wind" else (-Fw_ + Up_ * .35))
             if hang_ is not None:
                 Di = plumb(Di, hang_[0], hang_[1])
             if surface is not None and shown:

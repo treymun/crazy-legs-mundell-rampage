@@ -63,6 +63,28 @@ Engine (opt-in): HeldTail reads actors.json "flop_wriggle" (share of the
 wriggle) and "flop_most" (swing limit), written from held_model "wriggle"/
 "most" (the chain: no wriggle).
 
+26b chain_hand DONE (0 cr; 26's config kept as SP/meshy-work/
+chain_hand_26.json). The chain: meshy/assets/chain.glb from
+meshy/tools/chain_make.py (24 links, 0.86 m; FIXED: the grip ring now lies
+flat - upright it read thin, held_model took the far end as the front and
+the fist held the chain's tail end). kinds/chain_hand.json "held_model"
+{glb chain.glb, length .86, tails [.25,.45,.65,.85], band .004, grip .03,
+wriggle 0, most 1.0, hang_keys [pain], swing_keys {aim: wind}, trail
+[.9,.45]}, item_types r "bottle". New opt-in options:
+- "item_show" [keys]: the held thing shown in keys where the old model hid
+  it (the old chain vanished in wind/aim).
+- held_model "hang_keys" (hung plumb besides the carries), "swing_keys"
+  {key: wind|fire} (swung like the wind-up / the blow), "trail" [fwd, up]
+  (the wind-up's front way; at the default [.5,.87] the chain ran down
+  inside the raised forearm), "wriggle"/"most" -> actors.json flop_wriggle/
+  flop_most (HeldTail, engine, opt-in).
+Ears: two recolour boxes (z .87-.94, |x| .075-.2, y -.035..05, sat .15-.5)
+to [176,110,86] contrast 1 - the ears were skin in the build but dark and
+dull, and the game palette turned them grey. (A first try at sat < .22
+painted the teal collar salmon instead.)
+Known: live probe arm row 3.1 cm (the hanging chain against his thigh as
+he hunches in one picture; hold_legs made it 4.4 - not used).
+
 ## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path

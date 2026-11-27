@@ -1251,12 +1251,20 @@
 		]
 	},
 	"chain_hand": {
-		"bones": 45.0,
+		"bones": 49.0,
 		"canvas": [
 			1.6,
 			1.96
 		],
 		"faces": 12487.0,
+		"flop": {
+			"gear0_t1": "gear0",
+			"gear0_t2": "gear0_t1",
+			"gear0_t3": "gear0_t2",
+			"gear0_t4": "gear0_t3"
+		},
+		"flop_most": 1.0,
+		"flop_wriggle": 0.0,
 		"frames": {
 			"0": 0.0,
 			"aim": 6.0,
@@ -1341,6 +1349,10 @@
 			"fr_th2": "arm_r",
 			"fr_th3": "arm_r",
 			"gear0": "arm_r",
+			"gear0_t1": "arm_r",
+			"gear0_t2": "arm_r",
+			"gear0_t3": "arm_r",
+			"gear0_t4": "arm_r",
 			"hand_l": "arm_l",
 			"hand_r": "arm_r",
 			"head": "head",
@@ -1353,9 +1365,13 @@
 		},
 		"lit": true,
 		"meshy": true,
-		"parts": 45.0,
+		"parts": 49.0,
 		"rides": {
-			"gear0": 5.0
+			"gear0": 5.0,
+			"gear0_t1": 5.0,
+			"gear0_t2": 5.0,
+			"gear0_t3": 5.0,
+			"gear0_t4": 5.0
 		},
 		"segs": {
 			"body": 0.0,

@@ -318,7 +318,7 @@ THUMB_OPPOSE = .5
 MASTER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
 
-def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name, fingers=None):
+def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name, fingers=None, fill=False):
     """The sculpted master hand (meshy/assets, made once from Meshy's hand by
     hand_master.py) put on this body: in the hand's frame (a, n, t), its
     length this hand's, its width and depth eased toward this hand's; the
@@ -379,7 +379,32 @@ def build_meshy(side, wrist, a, n, t, length, width, thick, wrist_r, name, finge
         dl = bm.verts.layers.deform.active
         doomed = [v for v in bm.verts if dl is not None and v[dl] and
                   max(v[dl].items(), key=lambda kv: kv[1])[0] in gone]
+        if fill:
+            # (kind config "finger_fill": the cut fingers' roots taken too -
+            # any vertex a third theirs - and the holes left closed and eased,
+            # so no open stumps or spikes show where they were: the alien)
+            doomed = [v for v in bm.verts if dl is not None and v[dl] and
+                      sum(w for g, w in v[dl].items() if g in gone) > .33]
         bmesh.ops.delete(bm, geom=doomed, context="VERTS")
+        if fill:
+            for _ in range(3):
+                loose = [v for v in bm.verts if not v.link_faces]
+                if loose:
+                    bmesh.ops.delete(bm, geom=loose, context="VERTS")
+                # faces hanging by one edge (the stumps' slivers)
+                thin = [f for f in bm.faces if sum(1 for e in f.edges if e.is_boundary) >= 2]
+                if not thin:
+                    break
+                bmesh.ops.delete(bm, geom=thin, context="FACES")
+            edge_b = [e for e in bm.edges if e.is_boundary
+                      and min((v.co - wrist).dot(a) for v in e.verts) > length * .3]
+            ring = list({v for e in edge_b for v in e.verts})
+            bmesh.ops.smooth_vert(bm, verts=ring, factor=.5, use_axis_x=True, use_axis_y=True, use_axis_z=True)
+            made = bmesh.ops.holes_fill(bm, edges=edge_b, sides=0)["faces"]
+            # (the wrist's own opening stays open: it is welded to the arm)
+            bmesh.ops.triangulate(bm, faces=made)
+            bm.normal_update()
+            print("HANDS %s: %d cut-finger holes closed" % (side, len(made)))
         bm.to_mesh(obj.data)
         bm.free()
     # Its groups named for this side's bones.

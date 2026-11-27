@@ -1286,7 +1286,7 @@
    "note": "balance 908 after gas_man_model, 899 before this call: 9 cr were B's concurrent call (not ours)"
   },
   {
-   "label": "rudy_concept",
+   "label": "rudy_concept_20b1",
    "endpoint": "v1/image-to-image",
    "task": "01a21b72-e4b5-755e-b3f5-ed32446bdcbd",
    "before": 859,
@@ -1295,7 +1295,41 @@
    "time": "2026-11-26 23:20:45",
    "after": 841,
    "status": "SUCCEEDED",
-   "note": "balance fell 18 (859 -> 841) during this call: 9 at list price ours, 9 B's concurrent call"
+   "note": "balance fell 18 (859 -> 841) during this call: 9 at list price ours, 9 B's concurrent call; first 20b concept (squat legs, drum at the hip), not used"
+  },
+  {
+   "label": "rudy_concept",
+   "endpoint": "v1/image-to-image",
+   "task": "01a21b74-4af1-7415-8902-a42e34567a42",
+   "before": 841,
+   "cost": 9,
+   "body": "rudy_concept.json",
+   "time": "2026-11-26 23:22:17",
+   "after": 822,
+   "status": "SUCCEEDED",
+   "note": "balance fell 19 (841 -> 822) during this call: 9 ours (task consumed_credits 9), 10 B's concurrent calls"
+  },
+  {
+   "label": "rudy_model",
+   "endpoint": "v1/image-to-3d",
+   "task": "01a21b75-5759-7253-88c3-a1a56e4ac055",
+   "before": 822,
+   "cost": 30,
+   "body": "rudy_model.json",
+   "time": "2026-11-26 23:23:31",
+   "after": 792,
+   "status": "SUCCEEDED"
+  },
+  {
+   "label": "rudy_rig",
+   "endpoint": "v1/rigging",
+   "task": "01a21b76-86ca-73fd-b3cd-3e4ad76dac79",
+   "before": 792,
+   "cost": 5,
+   "body": "rudy_rig.json",
+   "time": "2026-11-26 23:24:46",
+   "after": 787,
+   "status": "SUCCEEDED"
   }
  ]
 }

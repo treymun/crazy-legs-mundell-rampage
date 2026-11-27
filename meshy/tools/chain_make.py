@@ -2,8 +2,9 @@
 build_actor's "held_model" (it finds the FRONT - the gripped end - as the end
 that is wide across, so a bigger grip ring is put there).
   blender -b -P chain_make.py -- <out.glb> [links] [pitch m]
-Untested starting point: check the held_model frame code (build_actor.py
-"Its own frame") before relying on it."""
+The grip ring lies flat (wide across, in XY): held_model takes the end
+that is wide across horizontally as the front; upright, the ring read as
+thin and the chain was gripped by its far end (26b's first build)."""
 import math
 import sys
 
@@ -25,7 +26,7 @@ for i in range(N):
     bpy.ops.mesh.primitive_torus_add(major_radius=(.034 if big else .02), minor_radius=(.007 if big else .0055),
                                      major_segments=10, minor_segments=5,
                                      location=(i * P + (.02 if big else 0), 0, 0),
-                                     rotation=(math.pi / 2 if i % 2 else 0, 0, 0))
+                                     rotation=(math.pi / 2 if (i % 2 and not big) else 0, 0, 0))
     o = bpy.context.active_object
     o.scale.x = 1.0 if big else 1.35  # long links
     o.data.materials.append(mat)
