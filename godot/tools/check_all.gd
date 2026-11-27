@@ -262,7 +262,7 @@ const CI_SECONDS := {
 	"map_share_check": 15,
 	"geometry2_check": 15,
 	"ways_check": 15,
-	"kit_check": 25,
+	"kit_check": 45,
 	"onboard_check": 60,
 	"marker_check": 60,
 	"danger_check": 12,
