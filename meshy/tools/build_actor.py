@@ -2371,7 +2371,9 @@ def solve(name, dz=0.0, held0=None):
                 span = float(al.max() - al.min())
                 r_lo = float(perp[al < al.min() + span * .25].mean())
                 r_hi = float(perp[al > al.max() - span * .25].mean())
-                if r_hi > r_lo:
+                # (kind config "bottle_flip": the thick end is the top - a
+                # dynamite stick's spark - so it stands up out of the fist)
+                if (r_hi > r_lo) != bool(CFG.get("bottle_flip")):
                     G0 = -G0
                     al = -al
                 # (G0 now from the body toward the neck; the grip a fifth

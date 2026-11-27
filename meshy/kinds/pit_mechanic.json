@@ -36,7 +36,15 @@
   ]
  },
  "item_types": {
-  "r": "throw"
+  "r": "hold"
  },
- "throw_out": 0.24
+ "grip_parts": {
+  "r": [
+   "b27"
+  ],
+  "l": [
+   "b31"
+  ]
+ },
+ "gear_one": true
 }

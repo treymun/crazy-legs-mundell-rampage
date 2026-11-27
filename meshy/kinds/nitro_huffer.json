@@ -10,7 +10,7 @@
  "gear": "old",
  "hands_paint": "texture",
  "head_noshadow": true,
- "skin_sat": 1.5,
+ "skin_sat": 1.1,
  "hand_hue": [
   5,
   30
@@ -25,8 +25,11 @@
   ]
  },
  "face_keep": {
-  "light": 1.1,
-  "eyes": 1.6
+  "light": 0.78,
+  "eyes": 1.6,
+  "eye_sat": 0.2,
+  "eye_lum": 0.5,
+  "soften": 0.5
  },
  "face_box": {
   "r": 0.27,
@@ -61,5 +64,16 @@
  "item_types": {
   "r": "throw"
  },
- "throw_out": 0.24
+ "throw_out": 0.24,
+ "skin_even": {
+  "tone": [
+   160,
+   104,
+   80
+  ],
+  "ext": false,
+  "face_even": 0.0
+ },
+ "bottle_flip": true,
+ "bottle_grip": 0.72
 }

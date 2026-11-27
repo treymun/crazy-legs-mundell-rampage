@@ -9,11 +9,13 @@ List, in order: millhand, mundell, nitro_huffer, pit_mechanic, revenooer,
 shield_deputy, still_buster, tin_guard, tire_roller, valve_rat, drone (alien
 grey, see 05b), skeeter. Budget 650 credits (ledger section "agent B",
 running total in its "spent").
-DONE: 40 millhand (44 cr), 41 mundell (44 cr).
-NEXT: nitro_huffer (concept A + model + rig bought: meshy-work-b/meshy_out;
-kind json written, Blender-built once: dynamite = gear_extra b33,b35..b50,
-gear_skip b31 (old chest mask), gear_one, item_types r throw), then
-pit_mechanic (model + rig bought; kind json written; lug wrench gear0/1).
+DONE: 40 millhand (44 cr), 41 mundell (44 cr), 42 nitro_huffer (53 cr: two
+concepts, the first used; dynamite = gear_extra b33,b35..b50, gear_skip b31,
+gear_one, item_types r throw, "bottle_flip" (new) + bottle_grip .72 so the
+spark stands up out of the fist; skin_even tone with face_even 0 (else the
+sandy hair went skin-peach); face_keep light .78 (the evened arms raised
+the face's target)).
+NEXT: pit_mechanic (model + rig bought; kind json written; lug wrench gear0/1).
 Mundell notes: the player kind is no enemy - the enemy tour, live_frames
 probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
 in-game sheet is tools/mode_frames.gd only=mundell (new: gd.sh, old:
@@ -70,6 +72,8 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   it: "face_lift_most" 1.15 for a full beard).
 - face_uv for a hard hat: "brim_k" 1.4 (.7 shrank the whole hat and the
   face's other islands: blockier), "z" [-.16, .2], "r" .2, k 3-4.5.
+- build_actor "bottle_flip": a bottle/throw item whose thick end is its
+  top (dynamite spark).
 - grip_parts: the old millhand's yellow coat passed for skin (b5); name the
   old hands (b40/b41 right, b45 left) or the saw is held by one hand.
 
