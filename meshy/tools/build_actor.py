@@ -1537,6 +1537,12 @@ if gear_obj is not None:
         if not holds:
             near = min(("l", "r"), key=lambda sd: (old_hand(sd, "0", P0) - ctr).length)
             holds[near] = .5
+        # (kind config "item_holds" {gear index: {side: share}}: who holds the
+        # thing, set by hand - the boilerback's old left hand rode a little
+        # off his steam lance at the standing key, so it came out one-handed)
+        _ih = CFG.get("item_holds", {}).get(str(gi))
+        if _ih:
+            holds = {k: float(v) for k, v in _ih.items()}
         it = {"bone": gname, "big": cluster[0], "lo": lo_e, "hi": hi_e, "rad": min(rad, .05), "holds": holds,
               "two": len(holds) == 2,
               # (the hand on the rear end is the gun hand)
@@ -2848,7 +2854,29 @@ print("MESHY faces with collapsed UVs given their own: %d (median density %.3f)"
 # bone (m at 1.73) - take k times the texture's scale and a wide hat's brim
 # brim_k: a straw hat's brim took twelve times the face's texels, the eyes
 # came out a few texels across)
+def head_centre(opt):
+    """The skull's middle for the face zones: the Meshy Head bone, or with
+    {"auto": true} the head's front (its foremost vertices between the jaw
+    and the brow) set back 11 cm (at 1.73 m) - the Head bone sits at the
+    back of some skulls and well behind others (the boilerback's face was
+    30 cm from it)."""
+    hc = heads["Head"].copy()
+    if not opt.get("auto"):
+        return hc
+    _hg = lo.vertex_groups["head"].index
+    ys = []
+    for v in lo.data.vertices:
+        if sum(g.weight for g in v.groups if g.group == _hg) > .5:
+            w_ = lo.matrix_world @ v.co
+            if hc.z - .05 * CHEEK_K < w_.z < hc.z + .15 * CHEEK_K and abs(w_.x - hc.x) < .05 * CHEEK_K:
+                ys.append(w_.y)
+    if ys:
+        hc.y = float(numpy.percentile(ys, 3)) + .11 * CHEEK_K
+    return hc
+
+
 _fuv = CFG.get("face_uv")
+_hcu = head_centre(_fuv) if _fuv else None
 _mw = lo.matrix_world
 _nf = 0
 for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
@@ -2857,7 +2885,7 @@ for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
         continue
     k_isl = HEAD_FAVOUR
     if _fuv:
-        _hc = heads["Head"]
+        _hc = _hcu
         _r = float(_fuv.get("r", .17)) * CHEEK_K
         _z0, _z1 = [_hc.z + float(z_) * CHEEK_K for z_ in _fuv.get("z", [-.04, .17])]
         _in = 0
@@ -2974,15 +3002,18 @@ zidx = [lo.vertex_groups[z].index for z in ZONES if z in lo.vertex_groups]
 # the brow, ahead of the ears; kind config "face_box" {r, z, back} as
 # face_uv's, at 1.73 m)
 _fb = CFG.get("face_box", {})
+_fbc = head_centre(_fb)
 _fbr = float(_fb.get("r", .17)) * CHEEK_K
 _fbz = [heads["Head"].z + float(z_) * CHEEK_K for z_ in _fb.get("z", [-.16, .16])]
-_fby = heads["Head"].y + float(_fb.get("back", -.025)) * CHEEK_K
+_fby = _fbc.y + float(_fb.get("back", -.025)) * CHEEK_K
+print("MESHY face box: about %s, r %.3f, z %.3f-%.3f, ahead of y %.3f" % (
+    [round(x, 3) for x in _fbc], _fbr, _fbz[0], _fbz[1], _fby))
 for v in lo.data.vertices:
     zv = sum(g.weight for g in v.groups if g.group in zidx)
     hv = sum(g.weight for g in v.groups if g.group == lo.vertex_groups["head"].index)
     w_ = lo.matrix_world @ v.co
     # (and the neck all round, down to the collar: blotched as the face)
-    _rr = math.hypot(w_.x - heads["Head"].x, w_.y - heads["Head"].y)
+    _rr = math.hypot(w_.x - _fbc.x, w_.y - _fbc.y)
     fv = float((hv > .5 and _rr < _fbr and _fbz[0] < w_.z < _fbz[1] and w_.y < _fby)
                or (_rr < .12 * CHEEK_K and _fbz[0] < w_.z < heads["Head"].z))
     # (.85 below the eyes: eye whites are looked for above only - a face
