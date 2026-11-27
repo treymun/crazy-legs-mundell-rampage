@@ -172,19 +172,35 @@ func goldenrod() -> Paint.Sheet:
 		_blade(im, foot, foot.lerp(tip, .5), tip, U * 2.6, _rgb(Vector3(66, 86, 34)))
 	for k in 6:
 		var foot := Vector2(w * (.3 + k * .08) + dice.randf_range(-U * 2, U * 2), h - 1.0)
-		var top := Vector2(foot.x + dice.randf_range(-w * .16, w * .16), h * dice.randf_range(.12, .3))
-		Paint.line(im, PackedVector2Array([foot, foot.lerp(top, .5) + Vector2(U * 2, 0), top]), _rgb(Vector3(88, 92, 44)), U * 1.6)
+		var top := Vector2(
+			foot.x + dice.randf_range(-w * .16, w * .16), h * dice.randf_range(.12, .3)
+		)
+		Paint.line(
+			im,
+			PackedVector2Array([foot, foot.lerp(top, .5) + Vector2(U * 2, 0), top]),
+			_rgb(Vector3(88, 92, 44)),
+			U * 1.6
+		)
 		for j in 5:
 			var at := foot.lerp(top, .25 + j * .13)
 			var leaf_tip := at + Vector2((-1.0 if j % 2 else 1.0) * w * .12, -h * .03)
-			_blade(im, at, at.lerp(leaf_tip, .5) + Vector2(0, -U * 2), leaf_tip, U * 2.2, _rgb(Vector3(80, 104, 40)))
+			_blade(
+				im,
+				at,
+				at.lerp(leaf_tip, .5) + Vector2(0, -U * 2),
+				leaf_tip,
+				U * 2.2,
+				_rgb(Vector3(80, 104, 40))
+			)
 		# The plume: a spray of tiny yellow heads arching off the top.
 		var arch := 1.0 if dice.randf() > .5 else -1.0
 		for spray in 3:
 			var spread := (spray - 1) * .5
 			for j in 14:
 				var t := float(j) / 14.0
-				var p := top + Vector2((arch * .6 + spread) * t * w * .14, -t * h * .1 + t * t * h * .07)
+				var p := (
+					top + Vector2((arch * .6 + spread) * t * w * .14, -t * h * .1 + t * t * h * .07)
+				)
 				var r := U * dice.randf_range(1.0, 1.8)
 				var c := Vector3(196, 156, 40).lerp(Vector3(232, 206, 84), dice.randf())
 				var jx := dice.randf_range(-U * 1.5, U * 1.5)
@@ -203,23 +219,57 @@ func thistle() -> Paint.Sheet:
 		var foot := Vector2(w * .5, h - 1.0)
 		var angle := lerpf(-2.9, -.25, float(k) / 9.0)
 		var tip := foot + Vector2(cos(angle), sin(angle) * .7) * w * dice.randf_range(.32, .48)
-		_blade(im, foot, foot.lerp(tip, .5) + Vector2(0, -U * 5), tip, U * 9.0, _rgb(Vector3(58, 84, 52).lerp(Vector3(92, 118, 72), dice.randf())))
+		_blade(
+			im,
+			foot,
+			foot.lerp(tip, .5) + Vector2(0, -U * 5),
+			tip,
+			U * 9.0,
+			_rgb(Vector3(58, 84, 52).lerp(Vector3(92, 118, 72), dice.randf()))
+		)
 		for j in 4:
 			var at := foot.lerp(tip, .25 + j * .2)
-			Paint.line2(im, at.x, at.y, at.x + dice.randf_range(-U * 3, U * 3), at.y - U * 3, _rgb(Vector3(196, 196, 160)), U * .8)
+			Paint.line2(
+				im,
+				at.x,
+				at.y,
+				at.x + dice.randf_range(-U * 3, U * 3),
+				at.y - U * 3,
+				_rgb(Vector3(196, 196, 160)),
+				U * .8
+			)
 	for k in 4:
 		var foot := Vector2(w * (.38 + k * .08), h - U * 6)
-		var top := Vector2(foot.x + dice.randf_range(-w * .16, w * .16), h * dice.randf_range(.18, .36))
+		var top := Vector2(
+			foot.x + dice.randf_range(-w * .16, w * .16), h * dice.randf_range(.18, .36)
+		)
 		Paint.line(im, PackedVector2Array([foot, top]), _rgb(Vector3(82, 100, 60)), U * 2.2)
 		for j in 3:
 			var at := foot.lerp(top, .3 + j * .2)
 			var side := -1.0 if j % 2 else 1.0
-			_blade(im, at, at + Vector2(side * U * 5, -U * 4), at + Vector2(side * U * 10, -U * 2), U * 4.0, _rgb(Vector3(76, 100, 62)))
-		Paint.ellipse(im, top.x - U * 6, top.y, top.x + U * 6, top.y + U * 9, _rgb(Vector3(86, 104, 62)))
+			_blade(
+				im,
+				at,
+				at + Vector2(side * U * 5, -U * 4),
+				at + Vector2(side * U * 10, -U * 2),
+				U * 4.0,
+				_rgb(Vector3(76, 100, 62))
+			)
+		Paint.ellipse(
+			im, top.x - U * 6, top.y, top.x + U * 6, top.y + U * 9, _rgb(Vector3(86, 104, 62))
+		)
 		for j in 22:
 			var a := lerpf(-2.7, -.45, float(j) / 21.0)
 			var tip := top + Vector2(cos(a), sin(a)) * U * dice.randf_range(6.0, 9.5)
-			Paint.line2(im, top.x, top.y + U * 2, tip.x, tip.y, _rgb(Vector3(150, 66, 144).lerp(Vector3(206, 120, 192), dice.randf())), U * 1.6)
+			Paint.line2(
+				im,
+				top.x,
+				top.y + U * 2,
+				tip.x,
+				tip.y,
+				_rgb(Vector3(150, 66, 144).lerp(Vector3(206, 120, 192), dice.randf())),
+				U * 1.6
+			)
 	return im
 
 
@@ -249,12 +299,26 @@ func bush(variant: int) -> Paint.Sheet:
 		for j in 4:
 			var lx := cx + dice.randf_range(-r * .7, r * .7)
 			var ly := cy - r * dice.randf_range(.2, .7)
-			Paint.ellipse(im, lx - U, ly - U * .7, lx + U, ly + U * .7, _rgb(c.lerp(Vector3(190, 196, 110), .35)))
+			Paint.ellipse(
+				im,
+				lx - U,
+				ly - U * .7,
+				lx + U,
+				ly + U * .7,
+				_rgb(c.lerp(Vector3(190, 196, 110), .35))
+			)
 	if variant == 1:
 		for k in 22:
 			var bx := w * dice.randf_range(.2, .8)
 			var by := h * dice.randf_range(.3, .8)
-			Paint.ellipse(im, bx - U * 1.2, by - U * 1.2, bx + U * 1.2, by + U * 1.2, _rgb(Vector3(170, 36, 30)))
+			Paint.ellipse(
+				im,
+				bx - U * 1.2,
+				by - U * 1.2,
+				bx + U * 1.2,
+				by + U * 1.2,
+				_rgb(Vector3(170, 36, 30))
+			)
 	return im
 
 
@@ -272,13 +336,22 @@ func pine(variant: int) -> Paint.Sheet:
 	var crown := Vector2(w * .5 + lean, h * .02)
 	Paint.polygon(
 		im,
-		PackedVector2Array([
-			foot + Vector2(-U * 4, 0), foot + Vector2(U * 4, 0),
-			crown + Vector2(U * 1.2, 0), crown + Vector2(-U * 1.2, 0)
-		]),
+		PackedVector2Array(
+			[
+				foot + Vector2(-U * 4, 0),
+				foot + Vector2(U * 4, 0),
+				crown + Vector2(U * 1.2, 0),
+				crown + Vector2(-U * 1.2, 0)
+			]
+		),
 		_rgb(Vector3(88, 60, 40))
 	)
-	Paint.line(im, PackedVector2Array([foot + Vector2(U * 2, 0), crown]), _rgb(Vector3(120, 86, 56)), U * 1.2)
+	Paint.line(
+		im,
+		PackedVector2Array([foot + Vector2(U * 2, 0), crown]),
+		_rgb(Vector3(120, 86, 56)),
+		U * 1.2
+	)
 	var tiers := 8 if variant == 0 else 7
 	var bottom := h * (.62 if variant == 0 else .55)
 	for k in tiers:
@@ -293,7 +366,9 @@ func pine(variant: int) -> Paint.Sheet:
 			var u := float(j) / n
 			var x := mid.x - half + u * half * 2.0
 			var sag := drop * (.55 + .45 * sin(u * PI)) + dice.randf_range(-U * 3, U * 3)
-			pts.append(Vector2(x + dice.randf_range(-U * 2, U * 2), y + sag * (.4 if j % 2 else 1.0)))
+			pts.append(
+				Vector2(x + dice.randf_range(-U * 2, U * 2), y + sag * (.4 if j % 2 else 1.0))
+			)
 		var base := Vector3(30, 52, 36).lerp(Vector3(46, 74, 46), t)
 		Paint.polygon(im, pts, _rgb(base))
 		# The light along the bough's top and its sunny side.
@@ -301,7 +376,9 @@ func pine(variant: int) -> Paint.Sheet:
 			var u := dice.randf()
 			var x := mid.x - half * .8 + u * half * 1.6
 			var yy := y - drop * .6 * (1.0 - absf(u - .5) * 1.6) + dice.randf_range(0, drop * .8)
-			var c := base.lerp(Vector3(96, 124, 70), clampf(u * .9 + dice.randf_range(-.2, .2), 0.0, 1.0))
+			var c := base.lerp(
+				Vector3(96, 124, 70), clampf(u * .9 + dice.randf_range(-.2, .2), 0.0, 1.0)
+			)
 			Paint.ellipse(im, x - U * 1.4, yy - U, x + U * 1.4, yy + U, _rgb(c))
 	return im
 
@@ -321,20 +398,46 @@ func corn(variant: int) -> Paint.Sheet:
 		var top := Vector2(foot.x + dice.randf_range(-U * 4, U * 4), h * dice.randf_range(.1, .2))
 		var stalk := Vector3(120, 140, 60).lerp(Vector3(170, 150, 90), dry)
 		Paint.line(im, PackedVector2Array([foot, top]), _rgb(stalk * .8), U * 2.6)
-		Paint.line(im, PackedVector2Array([foot + Vector2(U, 0), top + Vector2(U, 0)]), _rgb(stalk), U * 1.0)
+		Paint.line(
+			im,
+			PackedVector2Array([foot + Vector2(U, 0), top + Vector2(U, 0)]),
+			_rgb(stalk),
+			U * 1.0
+		)
 		for j in 6:
 			var at := foot.lerp(top, .12 + j * .14)
 			var side := -1.0 if (j + k) % 2 else 1.0
-			var tip := at + Vector2(side * w * dice.randf_range(.28, .4), h * dice.randf_range(.02, .12))
+			var tip := (
+				at + Vector2(side * w * dice.randf_range(.28, .4), h * dice.randf_range(.02, .12))
+			)
 			var bend := at + Vector2(side * w * .14, -h * .08)
-			var leaf := Vector3(70, 108, 40).lerp(Vector3(176, 158, 92), clampf(dry + dice.randf_range(-.1, .2), 0.0, 1.0))
+			var leaf := Vector3(70, 108, 40).lerp(
+				Vector3(176, 158, 92), clampf(dry + dice.randf_range(-.1, .2), 0.0, 1.0)
+			)
 			_blade(im, at, bend, tip, U * 4.0, _rgb(leaf))
 		# The tassel.
 		for j in 7:
-			var tip := top + Vector2(dice.randf_range(-U * 6, U * 6), -dice.randf_range(U * 3, U * 9))
+			var tip := (
+				top + Vector2(dice.randf_range(-U * 6, U * 6), -dice.randf_range(U * 3, U * 9))
+			)
 			Paint.line2(im, top.x, top.y, tip.x, tip.y, _rgb(Vector3(206, 178, 104)), U * 1.0)
 		if k == 1:
 			var ear := foot.lerp(top, .5)
-			Paint.ellipse(im, ear.x + U, ear.y - U * 6, ear.x + U * 6, ear.y + U * 6, _rgb(Vector3(150, 160, 80).lerp(Vector3(190, 170, 110), dry)))
-			Paint.line2(im, ear.x + U * 4, ear.y - U * 6, ear.x + U * 6, ear.y - U * 10, _rgb(Vector3(150, 96, 60)), U * 1.2)
+			Paint.ellipse(
+				im,
+				ear.x + U,
+				ear.y - U * 6,
+				ear.x + U * 6,
+				ear.y + U * 6,
+				_rgb(Vector3(150, 160, 80).lerp(Vector3(190, 170, 110), dry))
+			)
+			Paint.line2(
+				im,
+				ear.x + U * 4,
+				ear.y - U * 6,
+				ear.x + U * 6,
+				ear.y - U * 10,
+				_rgb(Vector3(150, 96, 60)),
+				U * 1.2
+			)
 	return im

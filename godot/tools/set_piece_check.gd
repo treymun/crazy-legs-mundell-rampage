@@ -17,6 +17,12 @@
 ## legs snap, its tank tears, its hoops land in bands and its deck splinters.
 ##
 ##   godot --headless --path godot --script res://tools/set_piece_check.gd [-- <level>]
+##   godot --headless --path godot --script res://tools/set_piece_check.gd -- level=<level.json>
+##
+## A level not in the chapters' list (a map's, pass 16: src/map_kit/
+## set_piece_hooks.gd), by its id or by its built file with level=, has its own
+## set pieces checked: each one stands, and with them down every way they
+## may fall the start still reaches every station, key and the exit.
 ##
 ## Prints SET PIECE CHECK OK.
 extends SceneTree
@@ -51,7 +57,15 @@ func _run() -> void:
 	var only := ""
 	for a: String in OS.get_cmdline_user_args():
 		only = a
-	_check_all(only)
+		if a.begins_with("level="):
+			var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(a.substr(6)))
+			var built: Dictionary = parsed if parsed is Dictionary else {}
+			only = str(built.get("id", ""))
+			LevelData.preview[only] = built
+	if only != "" and not WANT.has(only):
+		_map(only)
+	else:
+		_check_all(only)
 	print("")
 	print("SET PIECE CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
 	main.queue_free()
@@ -133,6 +147,20 @@ func _check_all(only: String) -> void:
 	for level_id: String in WANT:
 		if only == "" or only == level_id:
 			_no_soft_lock(level_id)
+
+
+## A map's own set pieces (any level not in WANT): each stands, and nothing
+## is ever shut off by them coming down.
+func _map(level_id: String) -> void:
+	print("SET PIECES of %s" % level_id)
+	var g := _game(level_id)
+	var listed: Array = g.level.set_pieces
+	var sp := _sets(g)
+	check(
+		not listed.is_empty() and sp.pieces.size() == listed.size(),
+		"%s: its %d set piece(s) stand" % [level_id, listed.size()]
+	)
+	_no_soft_lock(level_id)
 
 
 ## Each kind the plan put there stands, its parts in the way only where they

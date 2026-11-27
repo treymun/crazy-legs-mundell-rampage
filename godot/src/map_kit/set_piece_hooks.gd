@@ -4,9 +4,11 @@
 ## spec joins the level's "set_pieces" list and the game builds and plays it
 ## as it does the chapters' (sizes and numbers in data/tuning/set_pieces.cfg).
 ##
-##   {"type": "set_piece", "kind": "barn", "id": "hay_shed", "at": [30.5, 12.6], "turn": 2, "falls": [0, 1]}
+##   {"type": "set_piece", "kind": "barn", "id": "hay_shed", "at": [30.5, 12.6],
+##    "turn": 2, "falls": [0, 1]}
 ##   {"type": "set_piece", "kind": "tower", "id": "tank", "at": [44.5, 20.5], "falls": [0, 3]}
-##   {"type": "set_piece", "kind": "fuel", "id": "line", "points": [[10, 30], [18, 30]], "pumps": [[10.6, 29.4]]}
+##   {"type": "set_piece", "kind": "fuel", "id": "line", "points": [[10, 30], [18, 30]],
+##    "pumps": [[10.6, 29.4]]}
 ##
 ## `falls` are the ways it may go over (0 east, 1 south, 2 west, 3 north):
 ## away from walls and the way. Its footprint must be open floor clear of the
@@ -52,13 +54,17 @@ static func add(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 			var pair: Array = item if item is Array else [0, 0]
 			var p := Vector2(MapLooksGrid.f(pair[0]), MapLooksGrid.f(pair[1]))
 			if not _open(grid, p):
-				problems.append(["set_piece_spot", "%s: the line runs through a wall at %s" % [id, p]])
+				problems.append(
+					["set_piece_spot", "%s: the line runs through a wall at %s" % [id, p]]
+				)
 				return {"problems": problems}
 			clean.append([snappedf(p.x, .01), snappedf(p.y, .01)])
 		var pump_list: Array = []
 		for item: Variant in pumps:
 			var pair: Array = item if item is Array else [0, 0]
-			pump_list.append([snappedf(MapLooksGrid.f(pair[0]), .01), snappedf(MapLooksGrid.f(pair[1]), .01)])
+			pump_list.append(
+				[snappedf(MapLooksGrid.f(pair[0]), .01), snappedf(MapLooksGrid.f(pair[1]), .01)]
+			)
 		out["x"] = clean[0][0]
 		out["y"] = clean[0][1]
 		out["points"] = clean
@@ -76,12 +82,18 @@ static func add(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 				var c := y * grid.w + x
 				if not grid.inside(x, y) or not grid.is_open(c) or grid.roof[c] > 0.0:
 					problems.append(
-						["set_piece_spot", "%s: its footprint is not all open ground under the sky" % id]
+						[
+							"set_piece_spot",
+							"%s: its footprint is not all open ground under the sky" % id
+						]
 					)
 					return {"problems": problems}
 				if grid.kept(x + .5, y + .5, -.5):
 					problems.append(
-						["set_piece_spot", "%s: its footprint covers the start, a door or an objective" % id]
+						[
+							"set_piece_spot",
+							"%s: its footprint covers the start, a door or an objective" % id
+						]
 					)
 					return {"problems": problems}
 		var reach: float = REACH[kind]
@@ -90,7 +102,10 @@ static func add(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 				problems.append(
 					[
 						"set_piece_fall",
-						"%s: falling %s it lands on a wall; leave that way out of falls" % [id, ["east", "south", "west", "north"][way]]
+						(
+							"%s: falling %s it lands on a wall; leave that way out of falls"
+							% [id, ["east", "south", "west", "north"][way]]
+						)
 					]
 				)
 		out["x"] = snappedf(p.x, .01)

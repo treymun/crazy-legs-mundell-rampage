@@ -19,11 +19,11 @@
 		"vignettes": 4.0
 	},
 	"budget": {
-		"most": 520,
+		"most": 360,
 		"block": 6,
-		"most_block": 22,
+		"most_block": 16,
 		"count_reach": 24.0,
-		"most_seen": 200
+		"most_seen": 170
 	},
 	"foliage": {
 		"grass": {"pictures": ["foliage_grass_0", "foliage_grass_1", "foliage_grass_2"], "height": [0.26, 0.42], "spacing": 0.9, "block": 0.0, "wall": 0.15},

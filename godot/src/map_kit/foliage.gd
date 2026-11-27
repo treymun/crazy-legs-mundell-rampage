@@ -63,7 +63,9 @@ static func scatter(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 	var kind := str(spec.get("kind", ""))
 	var kinds: Dictionary = MapLooksGrid.tuning().get("foliage", {})
 	if not kinds.has(kind):
-		problems.append(["foliage_kind", "no foliage kind %s (%s)" % [kind, ", ".join(kinds.keys())]])
+		problems.append(
+			["foliage_kind", "no foliage kind %s (%s)" % [kind, ", ".join(kinds.keys())]]
+		)
 		return {"placed": 0, "problems": problems}
 	var info: Dictionary = kinds[kind]
 	var rect := _area(grid, spec)
@@ -80,8 +82,8 @@ static func scatter(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 	)
 	var polygon := _polygon(spec)
 	var budget := count(grid)
-	var most := int(MapLooksGrid.num("budget", "most", 520.0))
-	var most_block := int(MapLooksGrid.num("budget", "most_block", 22.0))
+	var most := int(MapLooksGrid.num("budget", "most", 360.0))
+	var most_block := int(MapLooksGrid.num("budget", "most_block", 16.0))
 	var block := maxi(1, int(MapLooksGrid.num("budget", "block", 6.0)))
 	var fits := func(p: Vector2) -> bool:
 		if not rect.has_point(p):
@@ -166,7 +168,13 @@ static func scatter(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 		problems.append(
 			[
 				"foliage_none",
-				"%s: no room for it in the area (natural ground in the open, clear of the way, doors, roads and things)" % kind
+				(
+					(
+						"%s: no room for it in the area (natural ground in the open,"
+						+ " clear of the way, doors, roads and things)"
+					)
+					% kind
+				)
 			]
 		)
 	return {"placed": placed.size(), "problems": problems}

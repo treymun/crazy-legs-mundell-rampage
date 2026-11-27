@@ -30,7 +30,9 @@ static func bare(id := ID) -> Dictionary:
 	b.paint(33, 17, 47, 18, "gravel")
 	b.paint(16, 17, 29, 17, "dirt")
 	# The farmhouse: plaster, a door to the south, a dirt yard before it.
-	b.building(6, 6, 15, 13, fields, {"wall": "plaster", "windows": 3, "roof": 2.4, "floor": "wood"})
+	b.building(
+		6, 6, 15, 13, fields, {"wall": "plaster", "windows": 3, "roof": 2.4, "floor": "wood"}
+	)
 	b.paint(6, 14, 16, 16, "dirt")
 	b.door(10, 13, false, {"from": "n"})
 	# The barn: red boards, its big doors to the south on the lane.
@@ -38,7 +40,9 @@ static func bare(id := ID) -> Dictionary:
 	b.door(45, 15, false, {"from": "n", "style": "slide"})
 	b.door(46, 15, false, {"from": "n", "style": "slide"})
 	# The church: whitewash, its door to the north on the yard.
-	b.building(42, 31, 52, 40, fields, {"wall": "plaster", "windows": 2, "roof": 3.0, "floor": "wood"})
+	b.building(
+		42, 31, 52, 40, fields, {"wall": "plaster", "windows": 2, "roof": 3.0, "floor": "wood"}
+	)
 	b.door(47, 31, false, {"from": "s"})
 	b.paint(40, 28, 54, 30, "dirt")
 	# A corn field: tilled dirt.
@@ -46,9 +50,13 @@ static func bare(id := ID) -> Dictionary:
 	# Folks and loot, a lever by the barn and the truck out by the house.
 	b.station("barn_lever", 49.5, 18.5, "THE BARN LIGHTS", "THE BARN LIGHTS ARE ON.")
 	b.meta["extraction"] = {"x": 8.5, "y": 18.5, "label": "HIT THE ROAD", "shutdown": "barn_lever"}
-	for e: Array in [[36.5, 10.5], [44.5, 22.5], [24.5, 33.5], [55.5, 26.5], [9.5, 36.5], [46.5, 36.5]]:
+	for e: Array in [
+		[36.5, 10.5], [44.5, 22.5], [24.5, 33.5], [55.5, 26.5], [9.5, 36.5], [46.5, 36.5]
+	]:
 		b.enemy("billy", e[0], e[1])
-	for p: Array in [["shells", 33.5, 40.5], ["rinds", 36.5, 28.5], ["beer", 12.5, 20.5], ["shells", 54.5, 18.5]]:
+	for p: Array in [
+		["shells", 33.5, 40.5], ["rinds", 36.5, 28.5], ["beer", 12.5, 20.5], ["shells", 54.5, 18.5]
+	]:
 		b.pickup(p[0], p[1], p[2])
 	return b.finish([31.5, 45.0, -PI / 2.0])
 
@@ -67,7 +75,12 @@ static func looks(dense := false) -> Dictionary:
 		],
 		"water":
 		[
-			{"type": "creek", "id": "creek", "points": [[1, 23], [14, 24.5], [26, 22.5], [40, 25], [62, 24]], "width": 1.8},
+			{
+				"type": "creek",
+				"id": "creek",
+				"points": [[1, 23], [14, 24.5], [26, 22.5], [40, 25], [62, 24]],
+				"width": 1.8
+			},
 			{"type": "pond", "id": "pond", "at": [22.5, 37.5], "radius": 3.7},
 			{"type": "trough", "at": [37.0, 12.5], "along": "y", "length": 2},
 		],
@@ -83,12 +96,12 @@ static func looks(dense := false) -> Dictionary:
 			{"kind": "tree", "area": [1, 29, WOODS_EDGE - 1, H - 2], "density": 1.0, "seed": 1},
 			{"kind": "pine", "area": [1, 29, WOODS_EDGE - 1, H - 2], "density": 1.0, "seed": 2},
 			{"kind": "corn", "area": [18, 20, 27, 28], "density": 1.0, "seed": 3, "rows": true},
-			{"kind": "reeds", "area": [1, 19, 62, 42], "density": .3, "seed": 4},
+			{"kind": "reeds", "area": [1, 19, 62, 42], "density": .2, "seed": 4},
 			{"kind": "cypress", "area": [17, 32, 28, 43], "density": .5, "seed": 5},
 			{"kind": "snag", "area": [1, 29, WOODS_EDGE - 1, H - 2], "density": .4, "seed": 9},
-			{"kind": "scrub", "area": [1, 1, 62, 46], "density": .15 * thick, "seed": 6},
-			{"kind": "weeds", "area": [1, 1, 62, 46], "density": .15 * thick, "seed": 7},
-			{"kind": "grass", "area": [1, 1, 62, 46], "density": .13 * thick, "seed": 8},
+			{"kind": "scrub", "area": [1, 1, 62, 46], "density": .12 * thick, "seed": 6},
+			{"kind": "weeds", "area": [1, 1, 62, 46], "density": .1 * thick, "seed": 7},
+			{"kind": "grass", "area": [1, 1, 62, 46], "density": .07 * thick, "seed": 8},
 		],
 	}
 

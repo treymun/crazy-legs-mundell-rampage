@@ -23,6 +23,9 @@
 ##            744 slabs, 2,125 segments, raked gables; house_spike_check's),
 ##            its 40 hands awake and coming, the player at a crossroads
 ##            looking down a street
+##   looks    pass 16 LOOKS' demo farm (tools/looks_demo.gd), dense: its
+##            foliage at the map's budget, water, vignettes and moods, the
+##            hands awake, the player where the most plants are in view
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/stress_bench.gd -- [only=strike,fire] [frames=240]
@@ -57,7 +60,7 @@ extends SceneTree
 const STEP := 1.0 / 60.0
 const SIM := 1.0 / 120.0
 const SCENARIOS := [
-	"idle", "strike", "wreck48", "fire", "chain6", "arena", "fivev5", "county", "town"
+	"idle", "strike", "wreck48", "fire", "chain6", "arena", "fivev5", "county", "town", "looks"
 ]
 ## check: each scene's tick budget, in yardsticks (_hold_tick).
 const TICK_YARDS := {
@@ -69,11 +72,13 @@ const TICK_YARDS := {
 	"arena": 2.2,
 	"fivev5": 6.0,
 	"county": 7.0,
-	"town": 3.0
+	"town": 3.0,
+	"looks": 2.0
 }
 const Fire := preload("res://src/features/fire.gd")
 const Spike := preload("res://tools/house_spike_check.gd")
 const TOWN := "zz_stress_town"
+const LooksDemo := preload("res://tools/looks_demo.gd")
 const CountyBot := preload("res://tools/county_bot.gd")
 
 var main
@@ -861,6 +866,61 @@ func _town() -> String:
 			)
 	)
 	LevelData.preview.erase(TOWN)
+	return ""
+
+
+func _looks() -> String:
+	var id := LooksDemo.ID
+	var lv := LooksDemo.level(id, true)
+	LevelData.preview[id] = lv
+	var g: Game = main.make_game(id)
+	main.game = g
+	main.state = "play"
+	g.configure(SessionStore.defaults())
+	g.barks.enabled = false
+	g.cheats.god = true
+	# Where the most plants are in view: every fourth cell, eight ways.
+	var plants: Array = []
+	var known := MapFoliage.pictures()
+	for b: Dictionary in lv["billboards"]:
+		if known.has(b["image"]):
+			plants.append(Vector2(float(b["x"]), float(b["y"])))
+	var best := [0, Vector2(31.5, 45.0), 0.0]
+	for y in range(2, LooksDemo.H - 2, 4):
+		for x in range(2, LooksDemo.W - 2, 4):
+			var at := Vector2(x + .5, y + .5)
+			if g.world.blocked(at.x, at.y, .3):
+				continue
+			for k in 8:
+				var look := Vector2.from_angle(k * TAU / 8.0)
+				var n := 0
+				for q: Vector2 in plants:
+					var d := q - at
+					if d.length() < 24.0 and d.normalized().dot(look) > .64:
+						n += 1
+				if n > int(best[0]):
+					best = [n, at, k * TAU / 8.0]
+	var spot: Vector2 = best[1]
+	var heading: float = best[2]
+	_stand(g, spot, spot.x + cos(heading) * 10.0, spot.y + sin(heading) * 10.0, 1.0)
+	for e: Enemy in g.enemies:
+		e.dormant = false
+		e.alerted = true
+	await _settle(g, 30, _plain)
+	await _time(
+		"looks",
+		g,
+		_plain,
+		func(gg: Game) -> String:
+			var listed := 0
+			for sprite: View.Sprite in gg.view_frame.get("sprites", []):
+				listed += 1 if known.has(sprite.image) else 0
+			return (
+				"plants %d (in view at the start %d, sprites listed %d)  at %s"
+				% [plants.size(), best[0], listed, spot]
+			)
+	)
+	LevelData.preview.erase(id)
 	return ""
 
 

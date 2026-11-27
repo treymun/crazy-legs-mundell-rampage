@@ -108,7 +108,13 @@ static func place(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 		problems.append(
 			[
 				"dress_none",
-				"%s: no wall in the area with room for a vignette (out of the way, clear of doors, the way and things)" % theme
+				(
+					(
+						"%s: no wall in the area with room for a vignette (out of the way,"
+						+ " clear of doors, the way and things)"
+					)
+					% theme
+				)
 			]
 		)
 	elif out.size() < want:
@@ -129,9 +135,7 @@ static func spots_for(grid: MapLooksGrid, id: String, area: Rect2i) -> Array:
 		for x in range(area.position.x, area.end.x):
 			for side: String in SIDES:
 				if fits(grid, v, Vector2i(x, y), side) == "":
-					out.append(
-						{"at": [x, y], "wall": side, "mid": _mid(v, Vector2i(x, y), side)}
-					)
+					out.append({"at": [x, y], "wall": side, "mid": _mid(v, Vector2i(x, y), side)})
 	return out
 
 
@@ -182,7 +186,9 @@ static func fits(grid: MapLooksGrid, v: Dictionary, at: Vector2i, wall: String) 
 		var near := false
 		for d: Variant in grid.level.get("doors", []):
 			var door: Dictionary = d
-			var spot := Vector2(MapLooksGrid.f(door.get("x", 0)) + .5, MapLooksGrid.f(door.get("y", 0)) + .5)
+			var spot := Vector2(
+				MapLooksGrid.f(door.get("x", 0)) + .5, MapLooksGrid.f(door.get("y", 0)) + .5
+			)
 			near = near or spot.distance_to(mid) <= DOOR_NEAR
 		if not near:
 			return "no door near it"
@@ -280,7 +286,10 @@ static func _wall_behind(grid: MapLooksGrid, c: Vector2i, wall: String) -> bool:
 	if grid.solid[m] >= 0:
 		for d: Variant in grid.level.get("doors", []):
 			var door: Dictionary = d
-			if int(MapLooksGrid.f(door.get("x", -1))) == n.x and int(MapLooksGrid.f(door.get("y", -1))) == n.y:
+			if (
+				int(MapLooksGrid.f(door.get("x", -1))) == n.x
+				and int(MapLooksGrid.f(door.get("y", -1))) == n.y
+			):
 				return false
 		return true
 	return grid.closed(k, m)

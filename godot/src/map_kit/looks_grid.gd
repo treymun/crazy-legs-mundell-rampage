@@ -497,7 +497,9 @@ func way(from: int, to: int) -> PackedInt32Array:
 			if (walk[m] == 0 and m != to) or closed(c, m):
 				continue
 			var near := wall_steps[m]
-			var step := 1.0 + (HUG_COST * (HUG_REACH - near) / HUG_REACH if near < HUG_REACH else 0.0)
+			var step := (
+				1.0 + (HUG_COST * (HUG_REACH - near) / HUG_REACH if near < HUG_REACH else 0.0)
+			)
 			var total := cost[c] + step
 			if total < cost[m]:
 				cost[m] = total

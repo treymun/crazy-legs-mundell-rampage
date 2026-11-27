@@ -4,7 +4,8 @@
 ## new is the bed under it, carved as terrain (geometry version 2, src/
 ## level_terrain.gd): the water lies [water] bed (.35) under the bank, its
 ## shore slopes down to it in the shore tile, and a pond's middle, deep_from
-## cells or more from dry ground, drops to the deep tile at [water] deep.
+## cells or more from dry ground, drops to the deep tile at [water] deep (the
+## shallows round it sloping down to it).
 ##
 ##   {"type": "pond", "polygon": [[20, 10], [27, 9], [29, 15], [21, 16]], "seed": 0}
 ##   {"type": "pond", "at": [24, 12], "radius": 3.5}
@@ -100,7 +101,9 @@ static func trough(grid: MapLooksGrid, spec: Dictionary) -> Dictionary:
 	for y in range(floori(box.position.y), ceili(box.end.y)):
 		for x in range(floori(box.position.x), ceili(box.end.x)):
 			if not grid.inside(x, y) or not grid.is_open(y * grid.w + x):
-				return {"cells": 0, "problems": [["water_shape", "a trough must stand on open floor"]]}
+				return {
+					"cells": 0, "problems": [["water_shape", "a trough must stand on open floor"]]
+				}
 	grid.add_fixture(box, .45, "tin", "creek")
 	return {"cells": 0, "problems": []}
 
@@ -137,11 +140,16 @@ static func _carve(
 		problems.append(
 			[
 				"water_thing",
-				"%s: %d cell(s) left dry (a thing, door, station, road or furniture in them)" % [str(spec.get("id", "water")), drowned]
+				(
+					"%s: %d cell(s) left dry (a thing, door, station, road or furniture in them)"
+					% [str(spec.get("id", "water")), drowned]
+				)
 			]
 		)
 	if wet.is_empty():
-		problems.append(["water_none", "%s: no open ground to carve" % str(spec.get("id", "water"))])
+		problems.append(
+			["water_none", "%s: no open ground to carve" % str(spec.get("id", "water"))]
+		)
 		return {"cells": 0, "problems": problems}
 	var w := grid.w
 	var h := grid.h
@@ -208,7 +216,7 @@ static func _carve(
 				here = _terrain_corner(grid, gx, gy)
 			var low := INF
 			var any_wet := false
-			var all_deep := true
+			var any_deep := false
 			for d: Vector2i in [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 0)]:
 				var tx := gx + d.x
 				var ty := gy + d.y
@@ -218,12 +226,12 @@ static func _carve(
 				if grid.is_open(t):
 					low = minf(low, grid.ground[t])
 				any_wet = any_wet or wet.has(t)
-				all_deep = all_deep and deep.has(t)
+				any_deep = any_deep or deep.has(t)
 			if is_nan(here):
 				here = low if low != INF else 0.0
 			base[i] = here
 			wet_corner[i] = 1 if any_wet else 0
-			deep_corner[i] = 1 if any_wet and all_deep else 0
+			deep_corner[i] = 1 if any_deep else 0
 			if any_wet:
 				lowest = minf(lowest, here)
 	var heights: Array = []
@@ -252,8 +260,7 @@ static func _carve(
 			var c := (y0 + cy) * w + x0 + cx
 			var i := cy * (pw + 1) + cx
 			var low := minf(
-				minf(corner_z[i], corner_z[i + 1]),
-				minf(corner_z[i + pw + 1], corner_z[i + pw + 2])
+				minf(corner_z[i], corner_z[i + 1]), minf(corner_z[i + pw + 1], corner_z[i + pw + 2])
 			)
 			grounds[c] = snappedf(minf(low, MapLooksGrid.f(grounds[c])), .01)
 			if deep.has(c) and deep_tile >= 0:
@@ -295,7 +302,9 @@ static func _busy_cells(grid: MapLooksGrid) -> Dictionary:
 
 ## The surface's height at a corner (gx, gy) from the terrain already there.
 static func _terrain_corner(grid: MapLooksGrid, gx: int, gy: int) -> float:
-	for d: Vector2 in [Vector2(.001, .001), Vector2(-.001, .001), Vector2(.001, -.001), Vector2(-.001, -.001)]:
+	for d: Vector2 in [
+		Vector2(.001, .001), Vector2(-.001, .001), Vector2(.001, -.001), Vector2(-.001, -.001)
+	]:
 		var z := grid.terrain.height_at(gx + d.x, gy + d.y)
 		if not is_nan(z):
 			return z
@@ -403,52 +412,64 @@ static func _bridges(
 		count += 1
 		var tile := str(info.get("bridge_tile", "bayou_planks"))
 		var slabs: Array = geo["slabs"]
-		slabs.append(
-			{
-				"id": id,
-				"kind": "deck",
-				"x0": snappedf(box.position.x, .001),
-				"y0": snappedf(box.position.y, .001),
-				"x1": snappedf(box.end.x, .001),
-				"y1": snappedf(box.end.y, .001),
-				"top": snappedf(top, .001),
-				"thick": .15,
-				"tile": tile,
-				"under": tile,
-				"edge": tile,
-				"light": .85,
-				"area": grid.area[grid.cell(mid.x, mid.y)],
-			}
+		(
+			slabs
+			. append(
+				{
+					"id": id,
+					"kind": "deck",
+					"x0": snappedf(box.position.x, .001),
+					"y0": snappedf(box.position.y, .001),
+					"x1": snappedf(box.end.x, .001),
+					"y1": snappedf(box.end.y, .001),
+					"top": snappedf(top, .001),
+					"thick": .15,
+					"tile": tile,
+					"under": tile,
+					"edge": tile,
+					"light": .85,
+					"area": grid.area[grid.cell(mid.x, mid.y)],
+				}
+			)
 		)
 		var segments: Array = geo["segments"]
 		var inset := .06
 		var sides: Array = []
 		if absf(flow.x) >= absf(flow.y):
 			sides = [
-				[Vector2(box.position.x + inset, box.position.y), Vector2(box.position.x + inset, box.end.y)],
+				[
+					Vector2(box.position.x + inset, box.position.y),
+					Vector2(box.position.x + inset, box.end.y)
+				],
 				[Vector2(box.end.x - inset, box.position.y), Vector2(box.end.x - inset, box.end.y)],
 			]
 		else:
 			sides = [
-				[Vector2(box.position.x, box.position.y + inset), Vector2(box.end.x, box.position.y + inset)],
+				[
+					Vector2(box.position.x, box.position.y + inset),
+					Vector2(box.end.x, box.position.y + inset)
+				],
 				[Vector2(box.position.x, box.end.y - inset), Vector2(box.end.x, box.end.y - inset)],
 			]
 		for s in sides.size():
 			var ends: Array = sides[s]
 			var a: Vector2 = ends[0]
 			var b: Vector2 = ends[1]
-			segments.append(
-				{
-					"id": "%s_rail%d" % [id, s],
-					"a": [snappedf(a.x, .001), snappedf(a.y, .001)],
-					"b": [snappedf(b.x, .001), snappedf(b.y, .001)],
-					"z0": snappedf(top, .001),
-					"z1": snappedf(top + .95, .001),
-					"thick": .08,
-					"tile": "stockyard",
-					"light": .85,
-					"area": grid.area[grid.cell(mid.x, mid.y)],
-					"sight": false,
-					"shots": false,
-				}
+			(
+				segments
+				. append(
+					{
+						"id": "%s_rail%d" % [id, s],
+						"a": [snappedf(a.x, .001), snappedf(a.y, .001)],
+						"b": [snappedf(b.x, .001), snappedf(b.y, .001)],
+						"z0": snappedf(top, .001),
+						"z1": snappedf(top + .95, .001),
+						"thick": .08,
+						"tile": "stockyard",
+						"light": .85,
+						"area": grid.area[grid.cell(mid.x, mid.y)],
+						"sight": false,
+						"shots": false,
+					}
+				)
 			)

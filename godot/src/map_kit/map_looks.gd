@@ -62,7 +62,10 @@ static func apply(level: Dictionary, looks: Dictionary) -> Dictionary:
 			"trough":
 				done = MapWater.trough(grid, spec)
 			_:
-				done = {"cells": 0, "problems": [["water_type", "water is pond, creek or trough, not %s" % kind]]}
+				done = {
+					"cells": 0,
+					"problems": [["water_type", "water is pond, creek or trough, not %s" % kind]]
+				}
 		var cells: int = done.get("cells", 0)
 		water_cells += cells
 		report["water_cells"] = water_cells
@@ -87,6 +90,8 @@ static func apply(level: Dictionary, looks: Dictionary) -> Dictionary:
 		problems.append_array(_got(done, "problems"))
 	ms["dress"] = (Time.get_ticks_usec() - t0) / 1000.0
 	t0 = Time.get_ticks_usec()
+	# The way again, now to the set pieces too and round the vignettes.
+	grid = MapLooksGrid.of(level)
 	for f: Variant in _list(looks, "foliage"):
 		var spec: Dictionary = f
 		var done := MapFoliage.scatter(grid, spec)
@@ -148,7 +153,9 @@ static func moods(level: Dictionary, mood: String, by_area: Variant) -> Array:
 		if Effects.MOODS.has(mood):
 			level["mood"] = mood
 		else:
-			problems.append(["mood_unknown", "no mood %s (%s)" % [mood, ", ".join(Effects.MOODS.keys())]])
+			problems.append(
+				["mood_unknown", "no mood %s (%s)" % [mood, ", ".join(Effects.MOODS.keys())]]
+			)
 	var listed: Dictionary = level.get("area_moods", {})
 	var names: Array = level.get("districts", [])
 	var asked: Dictionary = by_area if by_area is Dictionary else {}
@@ -166,7 +173,9 @@ static func moods(level: Dictionary, mood: String, by_area: Variant) -> Array:
 	for key: Variant in listed.keys():
 		var named := str(listed[key])
 		if not Effects.MOODS.has(named):
-			problems.append(["mood_unknown", "no mood %s (%s)" % [named, ", ".join(Effects.MOODS.keys())]])
+			problems.append(
+				["mood_unknown", "no mood %s (%s)" % [named, ", ".join(Effects.MOODS.keys())]]
+			)
 			listed.erase(key)
 	if listed.is_empty():
 		return problems
