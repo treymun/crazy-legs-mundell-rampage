@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:\\Users\\treym\\AppData\\Local\\Temp\\claude\\1dc8348830e70b38\\f2338a2e-3874-4eaf-9e39-f1352f903b29\\scratchpad\\meshy-work\\meshy_out\\bottle_tosser_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "hillbilly, grey flat cap, brown plaid flannel shirt, leather strap across chest, olive grey trousers, brown boots, empty hands, no weapon, nothing held"
+}

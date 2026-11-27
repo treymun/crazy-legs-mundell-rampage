@@ -1,0 +1,52 @@
+{
+ "kind": "gas_man",
+ "rigged": "../meshy-work/meshy_out/gas_man_rig/rigged.glb",
+ "poses": "../meshy-work/dump/gas_man_poses.json",
+ "old_glb": "../meshy-work/old/gas_man.glb",
+ "old_tex": "../meshy-work/old/actor3d_gas_man.png",
+ "out": "../meshy-work/raw/gas_man",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "gloves": [
+  68,
+  72,
+  42
+ ],
+ "glove_shade": true,
+ "glove_light": 0.75,
+ "glove_contrast": 1.5,
+ "skin_zones": [
+  "hand_l",
+  "hand_r"
+ ],
+ "face_lift_most": 1.0,
+ "item_types": {
+  "r": "throw"
+ },
+ "grip_parts": {
+  "r": [
+   "b47"
+  ],
+  "l": [
+   "b51"
+  ]
+ },
+ "gear_skip": [
+  "b47",
+  "b51"
+ ],
+ "keep_out_best": true,
+ "keep_out_steps": 14,
+ "bottle_grip": 0.45,
+ "glove_grime_k": 0.3,
+ "face_box": {
+  "auto": true
+ },
+ "face_uv": {
+  "k": 3.0,
+  "auto": true
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "kind": "coot",
+ "rigged": "../meshy-work/meshy_out/coot_rig/rigged.glb",
+ "poses": "../meshy-work/dump/coot_poses.json",
+ "old_glb": "../meshy-work/old/coot.glb",
+ "old_tex": "../meshy-work/old/actor3d_coot.png",
+ "out": "../meshy-work/raw/coot",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "item_types": {
+  "r": "pistol"
+ }
+}

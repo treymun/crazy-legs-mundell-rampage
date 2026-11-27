@@ -1,0 +1,36 @@
+{
+ "kind": "noodler",
+ "rigged": "../meshy-work/meshy_out/noodler_rig/rigged.glb",
+ "poses": "../meshy-work/dump/noodler_poses.json",
+ "old_glb": "../meshy-work/old/noodler.glb",
+ "old_tex": "../meshy-work/old/actor3d_noodler.png",
+ "out": "../meshy-work/raw/noodler",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "gear_one": true,
+ "gear_skip": [
+  "b31",
+  "b34",
+  "b23",
+  "b26"
+ ],
+ "hold_legs": true,
+ "grip_skip": [
+  "l"
+ ],
+ "item_types": {
+  "r": "bottle"
+ },
+ "held_model": {
+  "glb": "meshy/assets/catfish.glb",
+  "length": 0.62,
+  "tris": 2600,
+  "tails": [
+   0.45,
+   0.72
+  ],
+  "band": 0.025,
+  "grip": 0.05
+ }
+}

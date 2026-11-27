@@ -1,0 +1,21 @@
+{
+ "kind": "yard_deputy",
+ "rigged": "../meshy-work/meshy_out/yard_deputy_rig/rigged.glb",
+ "poses": "../meshy-work/dump/yard_deputy_poses.json",
+ "old_glb": "../meshy-work/old/yard_deputy.glb",
+ "old_tex": "../meshy-work/old/actor3d_yard_deputy.png",
+ "out": "../meshy-work/raw/yard_deputy",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "item_types": {
+  "r": "pistol"
+ },
+ "hands_paint": "texture",
+ "colour": 1.4,
+ "relaxed_curl": 1.6,
+ "hand_hue": [
+  8,
+  30
+ ]
+}

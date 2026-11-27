@@ -44,6 +44,10 @@ const TAIL_BEND := .86
 ## Standing (its belly over its floor by more than STAND of its height
 ## standing) a dead beast's knees give, KNEE_GIVE map units a second a second.
 const STAND := .55
+## (and its feet slide out from under it, FOOT_SLIDE map units a second by
+## its size: a crawler blasted over and over that came down on its splayed
+## feet stood on them, its knees' give only arching them.)
+const FOOT_SLIDE := .6
 ## The turn onto the side it is to lie on: up to ROLL_RATE radians a second
 ## (by the root of its heft), till its back points within ROLL_DONE of the
 ## way.
@@ -423,10 +427,15 @@ func _slump(tone: float) -> bool:
 	var torso := _torso_basis(pos)
 	if standing:
 		var give := KNEE_GIVE * STEP * STEP
+		var mid := middle()
 		for k in beast.legs.size() / 3:
 			var knee := beast.legs[k * 3 + 1]
 			var bend := (torso * _bend_rest[k]) if k < _bend_rest.size() else Vector3.ZERO
 			old[knee] -= (bend * .8 + Vector3(0.0, 0.0, -.4)) * give
+			var foot := beast.legs[k * 3 + 2]
+			var out := Vector3(pos[foot].x - mid.x, pos[foot].y - mid.y, 0.0)
+			if foot < _touch.size() and _touch[foot] and out.length_squared() > 1e-8:
+				pos[foot] += out.normalized() * FOOT_SLIDE * size * STEP
 	if _lie != Vector3.ZERO:
 		var back := dorsal()
 		var d := back.dot(_lie)

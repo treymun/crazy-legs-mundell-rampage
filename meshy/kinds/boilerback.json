@@ -1,0 +1,81 @@
+{
+ "kind": "boilerback",
+ "rigged": "../meshy-work/meshy_out/boilerback_rig/rigged.glb",
+ "poses": "../meshy-work/dump/boilerback_poses.json",
+ "old_glb": "../meshy-work/old/boilerback.glb",
+ "old_tex": "../meshy-work/old/actor3d_boilerback.png",
+ "out": "../meshy-work/raw/boilerback",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "face_clean": {
+  "cloth_hue": 45
+ },
+ "face_uv": {
+  "k": 2.2,
+  "auto": true
+ },
+ "skin_sat": 1.5,
+ "gear_one": true,
+ "item_holds": {
+  "0": {
+   "r": 0.3,
+   "l": 0.62
+  }
+ },
+ "cheek_weld": true,
+ "upright_aim_deg": 4,
+ "aim_holds": {
+  "r": 0.3,
+  "l": 0.62
+ },
+ "face_box": {
+  "auto": true
+ },
+ "head_keys": {
+  "0": [
+   0,
+   0,
+   0
+  ],
+  "w0": [
+   0,
+   0,
+   0
+  ],
+  "w1": [
+   0,
+   0,
+   0
+  ],
+  "w2": [
+   0,
+   0,
+   0
+  ],
+  "w3": [
+   0,
+   0,
+   0
+  ],
+  "w4": [
+   0,
+   0,
+   0
+  ],
+  "fidget": [
+   0,
+   0,
+   0
+  ],
+  "recover": [
+   0,
+   0,
+   0
+  ]
+ },
+ "cheek_pitch_max": 0.1,
+ "carry_both": true
+}

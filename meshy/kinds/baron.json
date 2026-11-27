@@ -1,0 +1,170 @@
+{
+ "kind": "baron",
+ "rigged": "../meshy-work/meshy_out/baron_rig/rigged.glb",
+ "poses": "../meshy-work/dump/baron_poses.json",
+ "old_glb": "../meshy-work/old/baron.glb",
+ "old_tex": "../meshy-work/old/actor3d_baron.png",
+ "out": "../meshy-work/raw/baron",
+ "tris": 12000,
+ "texture": 1024,
+ "gear": "old",
+ "phases": true,
+ "hold_legs": true,
+ "skin_zones": [
+  "head",
+  "hand_l",
+  "hand_r"
+ ],
+ "hands_paint": "texture",
+ "item_types": {
+  "r": "hold",
+  "l": "bottle"
+ },
+ "grip_parts": {
+  "r": [
+   "b235"
+  ],
+  "l": [
+   "b270"
+  ]
+ },
+ "gear_one": false,
+ "carry_keys": [
+  "fidget"
+ ],
+ "clearance": 0.03,
+ "head_noshadow": true,
+ "face_clean": {
+  "cloth_hue": 40,
+  "max_sat": 0.75,
+  "white_k": 1.2,
+  "ring_k": 0.85,
+  "hue": 0.4,
+  "keep_white": 1.25
+ },
+ "face_uv": {
+  "k": 2.5,
+  "r": 0.3
+ },
+ "shed": {
+  "tophat_brim": {
+   "gear": "tophat",
+   "on": "head",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.36,
+     0.36
+    ],
+    "y": [
+     -0.36,
+     0.36
+    ],
+    "z": [
+     1.75,
+     1.86
+    ]
+   },
+   "radial": [
+    0,
+    -0.05,
+    1.85
+   ],
+   "outside": 0.1,
+   "within": 0.34,
+   "val": [
+    0,
+    0.38
+   ]
+  },
+  "tophat": {
+   "z": 1.836,
+   "on": "head",
+   "within": 0.27,
+   "head_only": true,
+   "cap": 0.55,
+   "cap_colour": [
+    218,
+    214,
+    206
+   ],
+   "ring_pct": 60,
+   "cap_base": 0.015,
+   "cap_grow": 0.9,
+   "cap_shag": 0.002,
+   "cap_noise": 0.25,
+   "even_rim": false,
+   "cap_skin": [
+    184,
+    126,
+    116
+   ],
+   "cap_fringe": {
+    "colour": [
+     206,
+     200,
+     192
+    ],
+    "height": 0.5,
+    "front_deg": 75,
+    "noise": 0.4,
+    "strands": 0.25,
+    "ragged": 0.45
+   },
+   "sliver_in": 1.0,
+   "band_in": [
+    0.06,
+    1.25,
+    true
+   ]
+  },
+  "monocle": {
+   "on": "head",
+   "ring": {
+    "at": [
+     -0.043,
+     -0.17,
+     1.778
+    ],
+    "r": 0.021,
+    "tube": 0.003,
+    "normal": [
+     0,
+     -1,
+     0
+    ],
+    "paint": 20,
+    "lens_paint": 21,
+    "lens": false
+   }
+  }
+ },
+ "face_box": {
+  "r": 0.3
+ },
+ "paint": {
+  "20": [
+   214,
+   172,
+   64
+  ],
+  "21": [
+   196,
+   214,
+   220
+  ]
+ },
+ "skin_sat": 1.7,
+ "skin_even": {
+  "ext": false,
+  "arms": false,
+  "face_even": 0,
+  "tone": [
+   170,
+   104,
+   90
+  ],
+  "smooth": 2,
+  "floor": 0.5
+ }
+}

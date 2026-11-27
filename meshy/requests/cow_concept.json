@@ -1,0 +1,9 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference images only as the animal's design (the 3D figure and the small game sprite are the same animal), paint a high-detail full-body concept of this Holstein dairy cow for a gritty 1990s Southern comedy horror first-person shooter. Keep its design exactly: a white hide with big black patches, a black head with a white blaze, a pink muzzle and nose, short pale horns, floppy ears, a brass cowbell hanging on a worn leather collar, a pink udder, a long thin tail with a dark tuft, dark hooves. Give it real personality: a dim, placid, slightly dopey look, a farm animal that has seen things. Natural anatomy, a little caricatured. Worn and grimy: mud on the legs and belly, matte hand-painted gritty texture detail, muted dusty colours, not glossy, not a clean modern render. Three-quarter view from the front left, standing square and still on all four straight legs, head level and looking ahead, tail hanging straight down. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole animal in frame with space around it, sharp focus, one single animal, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:../meshy-work/meshyref/cow_three.png",
+  "@file:../meshy-work/meshyref/cow_cel.png"
+ ],
+ "aspect_ratio": "4:3"
+}

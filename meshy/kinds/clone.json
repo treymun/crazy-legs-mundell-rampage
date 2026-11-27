@@ -1,0 +1,30 @@
+{
+ "kind": "clone",
+ "rigged": "../meshy-work/meshy_out/clone_rig/rigged.glb",
+ "poses": "../meshy-work/dump/clone_poses.json",
+ "old_glb": "../meshy-work/old/clone.glb",
+ "old_tex": "../meshy-work/old/actor3d_clone.png",
+ "out": "../meshy-work/raw/clone",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "skin_sat": 1.5,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "head_noshadow": true,
+ "upright_aim_deg": 4,
+ "aim_holds": {
+  "r": 0.32,
+  "l": 0.58
+ },
+ "face_clean": true,
+ "face_uv": {
+  "k": 2.6,
+  "brim_k": 0.7
+ },
+ "cheek_weld": true,
+ "wind_clear": true
+}

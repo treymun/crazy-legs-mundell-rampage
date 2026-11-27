@@ -118,6 +118,23 @@ static func most_now() -> int:
 
 
 ## The pose it tries to hold (map), this frame's (aim).
+## A gun hand keeps at least this share of its standing distance from the
+## chest, belly and head (made_live).
+const HOLD_NEAR := .98
+## The hand on a wound rests this many of its own radii off the torso's
+## surface, its elbow this many out from the ribs (_keep_out).
+const CLUTCH_REST := .9
+const CLUTCH_ELBOW := 1.6
+## The clutching elbow: how far down the upper arm hangs (its length's share)
+## and how far ahead of the belly it comes (the belly's and elbow's radii).
+const CLUTCH_DROP := .62
+const CLUTCH_AHEAD := 1.6
+## How much of the clutch's pull the elbow takes (the hand's whole).
+const CLUTCH_ELBOW_PULL := .35
+## How much firmer a gun-holding arm's muscles stay through a hit (at most
+## the full tone).
+const HOLD_TONE := 6.0
+
 var target := PackedVector3Array()
 ## A world target per ball that wins over the pose (Vector3.INF: none).
 var aim_override := PackedVector3Array()
@@ -217,6 +234,19 @@ static func made_live(
 		)
 		* scale
 	)
+	# A hand holding a gun (RagdollRig.holds) is kept off the chest, the belly
+	# and the head as far as it stands from them (a little nearer at most):
+	# the body never folds over its own gun.
+	for side in rig.holds.size():
+		if rig.holds[side] == 1:
+			var hand := R.HAND_L if side == 0 else R.HAND_R
+			var near := rig.hold_near if rig.hold_near > 0.0 else HOLD_NEAR
+			var keep: Array[int] = [R.BELLY, R.SH_L, R.SH_R, R.HEAD]
+			if rig.hold_legs:
+				keep.append_array([R.HIP_L, R.HIP_R, R.KNEE_L, R.KNEE_R])
+			for torso: int in keep:
+				var d := rest[torso].distance_to(rest[hand])
+				live._link(torso, hand, d * near, d * 4.0)
 	live.aim_override.resize(R.POINTS)
 	live.aim_override.fill(Vector3.INF)
 	return live
@@ -312,11 +342,16 @@ func hit(j: Vector2, hz: float, lat: float, zone: String, seed: int) -> void:
 			hand = 1 - limp_arm
 		elif absf(across) < radius[R.BELLY] * .5:
 			hand = 0 if dice.randf() < .5 else 1
-		# An arm modelled as one piece (RagdollRig.stiff) cannot bend to it:
-		# the other hand, or none.
-		if _stiff(R.SH_L if hand == 0 else R.SH_R):
+		# An arm modelled as one piece (RagdollRig.stiff) cannot bend to it,
+		# and a hand holding a gun keeps it (RagdollRig.holds): the other
+		# hand, or none.
+		if _stiff(R.SH_L if hand == 0 else R.SH_R) or _holding(hand):
 			hand = 1 - hand
-		if _stiff(R.SH_L if hand == 0 else R.SH_R) or (zone == "arms" and hand == limp_arm):
+		if (
+			_stiff(R.SH_L if hand == 0 else R.SH_R)
+			or _holding(hand)
+			or (zone == "arms" and hand == limp_arm)
+		):
 			hand = -1
 		clutch_hand = hand
 		var lo: float = CLUTCH[0]
@@ -363,6 +398,11 @@ func done() -> bool:
 	for i in R.POINTS:
 		off = maxf(off, pos[i].distance_to(target[i]))
 	return off < .06 * size
+
+
+## Whether hand `hand` (0 left, 1 right) holds a thing it keeps hold of.
+func _holding(hand: int) -> bool:
+	return rig != null and hand >= 0 and hand < rig.holds.size() and rig.holds[hand] == 1
 
 
 ## The muscles' stiffness now for group `g` (soft after a hit, back over RECOVER).
@@ -524,11 +564,19 @@ func _pull(supported: bool) -> void:
 	var limp := limp_arm >= 0 and age < clutch_until + .5
 	var limp_elbow := R.ELBOW_R if limp_arm == 1 else R.ELBOW_L
 	var limp_hand := R.HAND_R if limp_arm == 1 else R.HAND_L
+	var hold_l := _holding(0)
+	var hold_r := _holding(1)
 	for i in R.POINTS:
 		var par: int = PARENT_OF[i]
 		if par == -1:
 			continue
 		var k := _st[GROUP_OF[i]]
+		# An arm holding a gun keeps its hold firm: the gun stays up in front
+		# instead of swinging away behind the hip.
+		if (i == R.ELBOW_L or i == R.HAND_L) and hold_l:
+			k = minf(k * HOLD_TONE, TONE)
+		elif (i == R.ELBOW_R or i == R.HAND_R) and hold_r:
+			k = minf(k * HOLD_TONE, TONE)
 		if i == R.KNEE_L or i == R.FOOT_L:
 			k *= give_l
 		elif i == R.KNEE_R or i == R.FOOT_R:
@@ -621,6 +669,30 @@ func _reach() -> void:
 		pos[hand] += fix * .85
 		for i: int in [R.HIP_L, R.HIP_R, R.SH_L, R.SH_R]:
 			pos[i] -= fix * .15 * .25
+		# A protective clutch that reads from every side: the elbow down and
+		# forward of the belly (the upper arm hanging a little ahead of the
+		# chest line, the forearm up at an angle to the wound), not flat on
+		# the ribs.
+		var elbow := hand - 1
+		var ahead := pos[R.BELLY] - pos[R.BACK]
+		ahead = ahead.normalized() if ahead.length() > 1e-5 else _ahead()
+		var neck := (pos[R.SH_L] + pos[R.SH_R]) * .5
+		var down := (hips - neck).normalized()
+		var upper := rig.points[sh].distance_to(rig.points[elbow]) * size
+		var out := (pos[sh] - neck).normalized()
+		var elbow_want := (
+			pos[sh]
+			+ down * upper * CLUTCH_DROP
+			+ ahead * (radius[R.BELLY] + radius[elbow]) * CLUTCH_AHEAD
+			+ out * radius[elbow]
+		)
+		# (Gently, its pull taken back from the torso: a pull on the elbow
+		# alone threw the whole body about.)
+		var efix := (elbow_want - pos[elbow]) * k * CLUTCH_ELBOW_PULL
+		pos[elbow] += efix * .85
+		old[elbow] += efix * .85
+		for i: int in [R.SH_L, R.SH_R]:
+			pos[i] -= efix * .15 * .5
 	for i in aim_override.size():
 		var w := aim_override[i]
 		if w != Vector3.INF:
@@ -636,9 +708,23 @@ func _keep_out() -> void:
 	var skip := -1
 	if clutch_hand >= 0 and age < clutch_until:
 		skip = R.HAND_L if clutch_hand == 0 else R.HAND_R
+	if skip >= 0:
+		# The hand on the wound rests ON the body (the torso's capsule, its
+		# belly as thick as it is, the hand's own half thickness kept), and
+		# its elbow stays out from the ribs, so the arm keeps its shape and
+		# shows from every side.
+		var hips := (pos[R.HIP_L] + pos[R.HIP_R]) * .5
+		var neck := (pos[R.SH_L] + pos[R.SH_R]) * .5
+		var core := maxf(radius[R.BELLY], radius[R.HIP_L])
+		for i: int in [skip, skip - 1]:
+			var c := Geometry3D.get_closest_point_to_segment(pos[i], hips, neck)
+			var off := pos[i] - c
+			var d := off.length()
+			var least := core + radius[i] * (CLUTCH_REST if i == skip else CLUTCH_ELBOW)
+			if d < least and d > 1e-6:
+				pos[i] = c + off * (least / d)
 	for i in range(R.ELBOW_L, R.FOOT_R + 1):
 		if i == skip or i == skip - 1:
-			# (The hand and its elbow: the arm folded onto the body.)
 			continue
 		var off := pos[i] - mid
 		var d := off.length()

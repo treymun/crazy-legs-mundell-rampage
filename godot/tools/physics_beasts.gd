@@ -25,9 +25,17 @@ const STRETCH_LET := .02
 ## (A crawler's links are a few centimetres: a blast stretches one by half
 ## for a frame.)
 const STRETCH_HIT := .6
+## (and in a hit a link may give this much more in metres: the Meshy gator's
+## front leg roots sit 4 cm from the torso's corners, and a blast stretches
+## that link 3 cm, 73%, for a frame; the old block gator's was 12 cm long.)
+const STRETCH_HIT_LET := .035
 const REST_BY := Ragdoll.MOST_AWAKE + .1
 const TOL := .03
 const KINDS := ["gator", "crawler", "hog", "cow"]
+## Open ground on Hickston's street (two cells clear all round: the deaths
+## were shot at 30.5, 30.5 until pass 15 walled that row in, and a hog blasted
+## out of the wall's cell had a foot held outside it, its leg stretched 73%).
+const OPEN := Vector2(30.5, 26.5)
 const KILLS := ["revolver", "shotgun_near", "rifle", "blast", "revolver_b"]
 ## Boss hand-over: a part may move at the hand-over this many times its most
 ## in the frames before (and POP_LET more), and the body lie this far from
@@ -106,19 +114,24 @@ func _victim(at: Vector2, z: float, how: String, way: float) -> Enemy:
 func _settle(doll: BeastDoll, world: LevelData) -> Array:
 	var t := 0.0
 	var worst := 0.0
+	var link := ""
 	while doll.awake and t < REST_BY + .5:
 		doll.step(world)
 		t += Ragdoll.STEP
-		worst = maxf(worst, _stretch(doll))
+		var now := _stretch(doll, STRETCH_HIT_LET)
+		if now > worst:
+			worst = now
+			link = "%s at %.2f s" % [worst_link, t]
+	worst_hit = link
 	return [t, worst]
 
 
-static func _stretch(doll: Ragdoll) -> float:
+static func _stretch(doll: Ragdoll, let := STRETCH_LET) -> float:
 	var worst := 0.0
 	for k in doll.la.size():
 		if doll.lmin[k] == doll.lmax[k] and doll.lmin[k] > 0.0:
 			var d := doll.pos[doll.la[k]].distance_to(doll.pos[doll.lb[k]])
-			var st := maxf(0.0, absf(d - doll.lmin[k]) - STRETCH_LET) / doll.lmin[k]
+			var st := maxf(0.0, absf(d - doll.lmin[k]) - let) / doll.lmin[k]
 			if st > worst:
 				worst = st
 				worst_link = "%d-%d" % [doll.la[k], doll.lb[k]]
@@ -126,6 +139,7 @@ static func _stretch(doll: Ragdoll) -> float:
 
 
 static var worst_link := ""
+static var worst_hit := ""
 
 
 ## "" when every knee lies on its own side of the line from root to foot.
@@ -174,7 +188,12 @@ func _kind(game: Game, kind: String) -> void:
 			% [kind, rig.legs.size() / 3, rig.head.size(), rig.tail.size()]
 		)
 	)
-	var at := Vector2(30.5, 30.5)
+	var at := OPEN
+	var cell := Vector2i(at)
+	_check(
+		PhysCore.plain_rect(game.world, cell.x - 2, cell.y - 2, cell.x + 2, cell.y + 2),
+		"the beasts' deaths are shot on open ground (%s)" % at
+	)
 	var z := game.world.floor_under(at.x, at.y, 99.0)
 	var faults := PackedStringArray()
 	var ends := {}
@@ -199,10 +218,18 @@ func _kind(game: Game, kind: String) -> void:
 			var hit: float = ran[1]
 			rests.append(t)
 			if hit > STRETCH_HIT:
-				faults.append("%s: a rigid link stretched %.0f%%" % [name, hit * 100.0])
+				faults.append(
+					"%s: a rigid link stretched %.0f%% (%s)" % [name, hit * 100.0, worst_hit]
+				)
 				print("    (worst link %s)" % worst_link)
-			if _stretch(doll) > STRETCH:
-				faults.append("%s: a rigid link lies stretched" % name)
+			var lying := _stretch(doll)
+			if lying > STRETCH:
+				faults.append(
+					(
+						"%s: a rigid link lies stretched (%s, %.0f%%)"
+						% [name, worst_link, lying * 100.0]
+					)
+				)
 			if doll.awake or t > REST_BY:
 				faults.append("%s: still moving after %.1f s" % [name, t])
 			var steps := doll.steps
@@ -383,7 +410,7 @@ func _boss(game: Game, kind: String) -> void:
 		_check(false, "%s's model poses" % kind)
 		view.queue_free()
 		return
-	var at := Vector2(30.5, 30.5)
+	var at := OPEN
 	var e := Enemy.new(kind, at.x, at.y, .4)
 	e.floor_z = game.world.floor_under(at.x, at.y, 99.0)
 	var clock := 10.0

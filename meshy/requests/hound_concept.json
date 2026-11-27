@@ -1,0 +1,9 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference images only as the animal's design (the 3D figure and the small game sprite are the same animal), paint a high-detail full-body concept of this bluetick coonhound dog named Blue, the hero's loyal hunting dog for a gritty 1990s Southern comedy horror first-person shooter. Keep its design exactly: a lean, long-legged hound with a blue-ticked coat: grey-blue speckled and mottled fur with black patches on the back and sides, a black head and long droopy black ears, tan-brown markings on the cheeks, eyebrows, chest and lower legs and paws, a long thin upright tail with ticked fur, a red leather collar, a pink tongue hanging out of a friendly open mouth. Give it real personality: loyal, eager, friendly and a bit goofy, a good old hunting dog. Natural anatomy, a little caricatured. Worn and grimy: mud and swamp muck, matte hand-painted gritty texture detail, muted dusty colours, not glossy, not a clean modern render. Seen from the front left three-quarter, standing square and still on all four straight legs, head up and looking ahead, tail up. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole animal in frame with space around it, sharp focus, one single animal, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:../meshy-work/meshyref/hound_three.png",
+  "@file:../meshy-work/meshyref/hound_cel.png"
+ ],
+ "aspect_ratio": "4:3"
+}

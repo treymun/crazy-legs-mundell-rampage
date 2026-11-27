@@ -33,9 +33,11 @@ const BEAST_FORMAT := 1
 ## height off the floor and it stands this share of the torso's half width
 ## out from its middle; a part within REACH of the height of a leg's part (a
 ## crawler's foot's tip stands a little off its shin) joins the leg when it
-## stands out to the foot's side at least GROW of the foot's way.
+## stands out to the foot's side at least GROW of the foot's way. (FOOT_OUT
+## was .3 for the old block bodies; a Meshy cow's barrel belly is wider than
+## its stance and a hind foot stepped in under it stands .27 out.)
 const FOOT_LOW := .06
-const FOOT_OUT := .3
+const FOOT_OUT := .2
 const GROW := .45
 const REACH := .04
 ## A knee off the line from root to foot by less than BENT of the leg's
@@ -60,6 +62,10 @@ var tail := PackedInt32Array()
 ## Each leg's knee's way off the line from root to foot (model space, at the
 ## standing key): the way it folds.
 var bend := PackedVector3Array()
+## The legs' bones when the model names them (actors.json "beast_legs": a
+## Meshy beast skinned smoothly over the old armature, whose parts are no
+## longer blocks to be found by where they stand): no search for feet.
+var _named_legs: Array[PackedInt32Array] = []
 
 
 func segs() -> int:
@@ -82,7 +88,10 @@ func point_n() -> int:
 static func beast_key(info: Dictionary) -> String:
 	var frames: Dictionary = info.get("frames", {})
 	var labels: Dictionary = info.get("labels", {})
-	return var_to_str([frames.get("0"), frames.get("down"), labels, info.get("beast")]).md5_text()
+	var made_of := [
+		frames.get("0"), frames.get("down"), labels, info.get("beast"), info.get("beast_legs")
+	]
+	return var_to_str(made_of).md5_text()
 
 
 ## The kind's baked rig put back on the model under `view`, or null when it
@@ -226,6 +235,16 @@ func _build_beast(view: Node, info: Dictionary) -> void:
 	var anim := player.get_animation(player.get_animation_list()[0])
 	var stand_key: float = frames["0"]
 	var bones := skeleton.get_bone_count()
+	_named_legs.clear()
+	var named: Array = info.get("beast_legs", [])
+	for chain: Array in named:
+		var ids := PackedInt32Array()
+		for bone_name: String in chain:
+			var b := skeleton.find_bone(bone_name)
+			if b >= 0:
+				ids.append(b)
+		if not ids.is_empty():
+			_named_legs.append(ids)
 	var rest := _poses(anim, skeleton, stand_key * ActorModels.KEY_TIME)
 	# Every vertex where the standing key puts it, by its part.
 	var all_at := PackedVector3Array()
@@ -351,6 +370,9 @@ func _fit(
 	var feet: Array[PackedInt32Array] = []
 	for k in rows * 2:
 		feet.append(PackedInt32Array())
+	if _named_legs.size() == rows * 2:
+		low_feet.clear()
+		feet = _named_legs.duplicate()
 	for b: int in low_feet:
 		var row := 0
 		if rows > 1:
@@ -368,7 +390,7 @@ func _fit(
 		for b: int in group:
 			leg_of[b] = g
 		groups.append(group)
-	var grew := true
+	var grew := _named_legs.size() != rows * 2
 	var reach := Vector3.ONE * tall * REACH
 	while grew:
 		grew = false
@@ -433,6 +455,9 @@ func _fit(
 		var thick := _quantile(perp, .5)
 		var off_most := 0.0
 		for b: int in groups[g]:
+			if count[b] == 0:
+				# (A named leg's bone the skin gives nothing: no middle.)
+				continue
 			var t := clampf((mids[b] - root).dot(run) / maxf(leg_len * leg_len, 1e-6), 0.0, 1.0)
 			var d := mids[b].distance_to(root + run * t)
 			if d > off_most and d > leg_len * BENT:

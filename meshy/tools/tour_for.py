@@ -1,0 +1,53 @@
+"""A view tour (main.gd --view-tour) showing one kind close up by day and by
+night, standing and mid-stride, and a few cells off.
+
+    python meshy/tools/tour_for.py <kind> <out.json> [ahead]
+"""
+import json
+import sys
+
+kind, out = sys.argv[1], sys.argv[2]
+near = float(sys.argv[3]) if len(sys.argv) > 3 else 2.4
+DAY = {"level": "grainyard", "x": 44.4, "y": 6.6, "angle": -1.5708, "pitch": 0.0, "weapon": False}
+# A long street view by day (Hickston) for the shot a few cells off.
+DAY_FAR = {"level": "hickston", "x": 60.5, "y": 44.5, "angle": 1.5708, "pitch": 0.0, "weapon": False}
+NIGHT = {"level": "moonshine", "x": 86.5, "y": 91.7, "angle": -0.02, "pitch": 0.0, "weapon": False, "contrast": 6.5}
+# Animals (long and low) by day on Hickston's open street, whole body in
+# frame: three-quarter standing, side on mid-stride, and the attack keys
+# turned three-quarter (the grain yard's spot hid a cow behind its wall).
+ANIMALS = {"cow", "hog", "gator", "crawler", "hound"}
+animal = kind in ANIMALS
+if animal:
+    DAY = dict(DAY_FAR)
+# Giants (Maw, 4.4 m; the King's boat) by day on the open street too, the
+# view tipped up to take in the head.
+if kind in {"maw", "maw_bare", "swamp_king"}:
+    DAY = dict(DAY_FAR, pitch=0.22)
+    NIGHT = dict(NIGHT, pitch=0.22)
+POSES = (("idle", {"state": "idle", "turn": 0.35}),
+         ("walk", {"state": "walk", "gait": 0.3, "turn": 0.9}),
+         ("far", {"state": "idle", "turn": 0.2, "ahead": near * 2.6}),
+         ("aim", {"state": "aim", "turn": 0.5}),
+         ("wind", {"state": "windup", "left": 0.15, "turn": 0.0}))
+if animal:
+    POSES = (("idle", {"state": "idle", "turn": 0.8}),
+             ("walk", {"state": "walk", "gait": 0.3, "turn": 1.57}),
+             ("far", {"state": "idle", "turn": 0.5, "ahead": near * 2.6}),
+             ("aim", {"state": "aim", "turn": 1.0}),
+             ("wind", {"state": "windup", "turn": 1.3}))
+# A boss also under half health (his phase-two look, battle-worn).
+if kind in {"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "revenue_man", "maw", "maw_bare"}:
+    POSES = POSES + (("p2", {"state": "hurt", "gait": 0.3, "turn": 0.6}),)
+shots = []
+for tod, base in (("day", DAY), ("night", NIGHT)):
+    for tag, spec in POSES:
+        a = {"kind": kind, "ahead": near, "side": 0.0}
+        if kind == "maw_bare":
+            # (no enemy of its own: Maw under a third of her health)
+            a.update({"kind": "maw", "hp": .3})
+        a.update(spec)
+        s = dict(DAY_FAR if (tod == "day" and tag == "far") else base)
+        s["tag"] = "%s_%s_%s" % (kind, tod, tag)
+        s["actors"] = [a]
+        shots.append(s)
+json.dump(shots, open(out, "w"), indent=1)

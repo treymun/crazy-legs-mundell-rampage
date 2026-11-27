@@ -1,0 +1,39 @@
+{
+ "kind": "big_billy",
+ "rigged": "../meshy-work/meshy_out/big_billy_rig/rigged.glb",
+ "poses": "../meshy-work/dump/big_billy_poses.json",
+ "old_glb": "../meshy-work/old/big_billy.glb",
+ "old_tex": "../meshy-work/old/actor3d_big_billy.png",
+ "out": "../meshy-work/raw/big_billy",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "belly": {
+  "z": 0.42,
+  "k": 0.7,
+  "rx": 0.21,
+  "ry": 0.3,
+  "rz": 0.22
+ },
+ "skin_even": true,
+ "hold_near": 1.08,
+ "cheek_weld": true,
+ "aim_holds": {
+  "r": 0.27,
+  "l": 0.55
+ },
+ "upright_aim_deg": 4,
+ "aim_ins": [
+  0.0,
+  0.04,
+  0.08,
+  0.12
+ ],
+ "aim_twists": [
+  30,
+  40,
+  50,
+  60
+ ],
+ "cheek_roll": 0.45
+}

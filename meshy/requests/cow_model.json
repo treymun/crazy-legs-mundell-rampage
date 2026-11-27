@@ -1,0 +1,11 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:../meshy-work/meshy_out/cow_concept/image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "texture_prompt": "Holstein dairy cow, white hide with big black patches, black head with white blaze, pink muzzle, brass cowbell on leather collar, pink udder, dark hooves, muddy legs"
+}

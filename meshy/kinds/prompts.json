@@ -1,0 +1,190 @@
+{
+ "coot": {
+  "who": "skinny old backwoods moonshiner, a gaunt elderly hillbilly",
+  "design": "battered olive-brown wide-brim felt hat with a round crown, a long pointed snow-white beard reaching his chest, white bushy sideburns and moustache, big bulbous red nose, rust-brown work shirt with a few dark buttons and patches, a worn dark leather belt, baggy grey-olive trousers with a tan patch on the left knee, scuffed dark brown boots, thin bony arms with bare weathered forearms",
+  "face": "sunken cheeks, squinting suspicious little eyes under bushy white brows, a toothless sneer, deep wrinkles, ruddy leathery skin",
+  "texture": "old hillbilly, olive-brown felt hat, long white beard, red nose, rust brown shirt, grey olive trousers with tan knee patch, dark brown boots, empty hands, no weapon",
+  "height": 1.79
+ },
+ "yard_deputy": {
+  "refs": "cel",
+  "who": "small-town rural sheriff's deputy, a middle-aged southern lawman",
+  "design": "WEARING a black felt lawman's cowboy hat with a rounded crown and a curled brim on his head, a thick neat black moustache, a tan khaki uniform shirt with two buttoned chest pockets, shoulder epaulettes and brown buttons, the sleeves rolled to the elbow, a small gold star badge on his left chest, a brown leather duty belt with an empty holster and cartridge loops, dark charcoal-grey uniform trousers, black boots, a solid stocky build with a modest gut",
+  "face": "a stylized game-character face, slightly caricatured but natural: weathered sun-tanned skin, narrowed suspicious eyes under the hat brim, bushy dark eyebrows, a smug half-smirk under the moustache",
+  "texture": "rural sheriff's deputy, black hat, black moustache, tan khaki uniform shirt with pockets and brown buttons, gold star badge, brown duty belt, charcoal grey trousers, black boots, tanned skin, empty hands, no weapon",
+  "height": 1.8
+ },
+ "clone": {
+  "refs": "cel",
+  "who": "backwoods hillbilly farmer, a lean rangy country man (one of a run of identical farmhand clones from a backyard lab)",
+  "design": "WEARING a wide-brimmed frayed straw farmer's hat with a dark band on his head, a green and dark-green checked flannel shirt with the sleeves rolled to the forearms, faded blue denim bib overalls with brass buckles, scuffed brown leather work boots, a lean wiry natural build with real shoulders and arms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a long weathered sun-tanned face lit evenly, small sharp eyes, a big crooked nose, a gap-toothed lopsided grin, sandy stubble, sandy hair under the hat brim, the face fully in light under the brim",
+  "texture": "hillbilly farmer, straw hat with dark band, green checked flannel shirt, blue denim bib overalls, brown boots, tanned skin, clear face, empty hands, no weapon",
+  "height": 1.8
+ },
+ "alien": {
+  "who": "grey bug-eyed space alien soldier in a dark segmented armour suit, comedic 1950s B-movie alien",
+  "design": "a big round olive-grey head with two thin antennae tipped with glowing cyan balls, huge round black goggle eyes rimmed in metal with cyan glints, a dark charcoal-grey padded armour suit with round shoulder pads, a glowing cyan round light on the chest, a belt with a small orange buckle, segmented dark-grey arms and legs with round knee pads, three-fingered grey hands",
+  "face": "no nose, a small slit mouth, wrinkled grey skin, the huge glossy black goggle eyes",
+  "texture": "grey alien, olive grey head with antennae with cyan tips, black goggle eyes, dark charcoal armour suit, cyan chest light, orange belt buckle, empty hands, no weapon",
+  "height": 2.05
+ },
+ "big_billy": {
+  "who": "huge fat burly hillbilly brute, an enormous bearded redneck",
+  "design": "grey-green flat cap, a thick bushy dark-brown beard, a red and black plaid flannel shirt with rolled sleeves showing huge pink forearms, faded blue denim bib overalls over a giant round belly, dark brown work boots",
+  "face": "tiny mean eyes, a broad flat nose, a gap-toothed snarl in the beard, sunburnt skin",
+  "texture": "huge fat hillbilly, grey green cap, dark brown beard, red plaid shirt, blue denim bib overalls, brown boots, empty hands, no weapon, nothing held",
+  "height": 1.93
+ },
+ "drunk_coot": {
+  "who": "skinny drunk old moonshiner, a staggering elderly hillbilly",
+  "design": "a battered black bowler hat, a long pointed white beard, a big round bulbous bright red nose, a rust-brown work shirt with a dark vest, a dark belt, baggy olive-grey trousers with a tan knee patch, dark boots, bony arms",
+  "face": "bleary half-closed drunk eyes, a loose grin, wrinkled ruddy skin",
+  "texture": "old drunk hillbilly, black bowler hat, white beard, red nose, rust brown shirt, olive grey trousers with knee patch, dark boots, empty hands, no weapon, nothing held",
+  "height": 1.81
+ },
+ "bottle_tosser": {
+  "who": "lean young hillbilly in a cap",
+  "design": "a grey flat newsboy cap, a brown and dark-red plaid flannel shirt, a brown leather bandolier strap across the chest, olive-grey work trousers, dark brown boots",
+  "face": "a hard squinting stare, stubbly jaw, tanned skin",
+  "texture": "hillbilly, grey flat cap, brown plaid flannel shirt, leather strap across chest, olive grey trousers, brown boots, empty hands, no weapon, nothing held",
+  "height": 1.75
+ },
+ "barker": {
+  "refs": "cel",
+  "who": "fast-talking carnival barker, a country-fair showman working the midway",
+  "design": "WEARING a straw boater hat with a flat crown, a flat stiff brim and a red hat band on his head, a thick waxed black handlebar moustache, a white long-sleeved dress shirt with the sleeves held up by red arm garters, a black string bow tie, a red-and-cream vertically striped waistcoat vest buttoned down the front with brass buttons and a watch chain, grey-olive trousers, dark brown lace-up shoes, a normal trim build with straight shoulders and a flat stomach",
+  "face": "a stylized game-character face, slightly caricatured but natural: a wide toothy salesman's grin, bright eager eyes, one bushy black eyebrow raised, ruddy cheeks, slicked dark hair at the temples",
+  "texture": "carnival barker, straw boater hat with red band, black handlebar moustache, white shirt with red arm garters, black bow tie, red and cream striped vest with brass buttons, grey olive trousers, brown shoes, empty hands, no weapon, nothing held",
+  "height": 1.78
+ },
+ "chum_tosser": {
+  "refs": "cel",
+  "who": "bayou commercial fisherman who throws fish guts, a weathered working man of the swamp",
+  "design": "WEARING a faded red baseball cap on his head, a blue-and-white plaid flannel work shirt with the sleeves rolled up to the forearms, bright yellow rubber bib-and-brace fishing overalls (proper bib waders with a chest bib, two shoulder straps with buckles and a front pocket, slick rubber with creases and fish-gut stains) worn over the shirt, the overall legs tucked into tall white rubber fishing boots, yellow rubber work gloves, a solid sturdy working build with broad shoulders and a natural belly",
+  "face": "a stylized game-character face, slightly caricatured but natural: a sunburnt weathered face, a red nose, squinting eyes, a stubbly jaw, a grumpy scowl with a cigarette-stained grin at one corner",
+  "texture": "bayou fisherman, red baseball cap, blue and white plaid flannel shirt with rolled sleeves, bright yellow rubber bib fishing overalls with shoulder straps, white rubber boots, yellow rubber gloves, sunburnt skin, red nose, empty hands, no weapon, nothing held",
+  "height": 1.76
+ },
+ "noodler": {
+  "who": "burly bare-armed bayou fisherman, a catfish noodler",
+  "design": "an olive-green cap, a bushy brown beard and sideburns, a white sleeveless undershirt over a big belly, dark olive-grey wader overalls with suspenders, dark boots, thick bare pink arms",
+  "face": "a broad grin, small eyes, a sunburnt face",
+  "texture": "bayou noodler, olive green cap, brown beard, white sleeveless undershirt, dark olive wader overalls with suspenders, dark boots, bare arms, empty hands, no weapon, nothing held",
+  "height": 1.73
+ },
+ "boss": {
+  "who": "crooked small-town sheriff who is secretly a space alien in disguise, a tall lanky menacing lawman",
+  "design": "a wide cream straw cowboy hat with a dark brown band and a small gold star on the band, two thin alien antennae poking up through the hat's crown each tipped with a glowing green-cyan bulb, a smooth grey alien head wearing a dark grey rubber gas mask with two big round glowing green goggle eyes and a short round respirator snout, a long worn brown leather duster coat reaching his knees with wide lapels, a diagonal leather bandolier across the chest from the right shoulder to the left hip lined with glowing cyan-green energy cells, a big gold five-pointed sheriff's star badge on the left chest, a brown belt with a big glowing cyan square buckle, dark charcoal-grey trousers, scuffed dark grey cowboy boots, clean white cotton gloves on both hands",
+  "face": "no face visible: the gas mask's two glowing green goggle eyes stare out cold and unblinking, the head tilted a little forward with quiet menace, shoulders square like a man used to being obeyed",
+  "texture": "alien sheriff, cream straw cowboy hat with dark band and gold star, antennae with green tips, grey gas mask with glowing green goggles, long brown leather duster coat, bandolier of glowing cyan cells, gold star badge, cyan belt buckle, charcoal trousers, dark grey boots, white gloves, empty hands, no weapon",
+  "height": 1.95
+ },
+ "revenue_man": {
+  "who": "hard-nosed government revenue agent, a big pot-bellied federal moonshine-buster from the 1930s",
+  "design": "a grey felt campaign hat with a flat wide brim and a pinched crown, small round blue-tinted spectacles, a thick bushy grey walrus moustache, a big ruddy bulbous nose, a black three-piece suit with wide lapels stretched over a big round belly, a crisp white shirt and white waistcoat front showing over the belly with a gold watch chain across it, a thin black necktie, black trousers, scuffed black shoes, a fire axe with a bright red head and a long wooden handle slung diagonally across his back on a strap, its red head showing over his right shoulder, bare ruddy hands",
+  "face": "jowly and stern, a self-satisfied sneer under the moustache, small mean eyes behind the round tinted spectacles, the look of a man who enjoys smashing stills",
+  "texture": "1930s revenue agent, grey campaign hat, round blue tinted spectacles, grey walrus moustache, red nose, black suit, white shirt and waistcoat, gold watch chain, black tie, black shoes, red fire axe on his back, empty hands, no gun",
+  "height": 1.85
+ },
+ "jerry": {
+  "refs": "cel",
+  "who": "washed-up county high-school football legend turned hog farmer, a big heavyset former linebacker who still carries himself like the star of the team",
+  "design": "WEARING a glossy mustard-yellow American football helmet with one wide dark red stripe running front to back over the crown and an old-fashioned 1960s single-bar face mask: ONE thin chrome-silver bar curving in front of the chin only, below the mouth, so the whole face (eyes, nose, mouth) is completely open and unobstructed; a dark red football jersey with short sleeves over broad rounded red shoulder pads, two gold-yellow stripes round each upper sleeve, thick strong bare forearms, faded blue denim bib overalls over a solid round gut, rounded dark blue knee pads over the overall legs, white tube socks, scuffed grey football cleats, a silver whistle on a cord round his neck, and an off-white burlap sack of brown leather footballs carried HIGH ON HIS BACK like a backpack between his shoulder blades (from the front only its top and two footballs peek up behind his left shoulder pad; nothing hangs in front of him or at his hips); a tall heavyset athletic build, about six foot three, with long strong legs that make up half his height (not short or stubby legs): a thick neck, big shoulders and chest, powerful arms and legs in proportion, a gut but strong",
+  "face": "a stylized game-character face, slightly caricatured but natural, clearly readable behind the face mask: a big cocky lopsided GRIN showing white teeth (smiling, not scowling), one heavy black eyebrow cocked up, confident bright eyes with a wink-ready squint, a short black moustache, ruddy cheeks and a slightly red nose, the swagger of a man who still thinks it is homecoming 1971",
+  "texture": "old football linebacker, mustard yellow helmet with dark red stripe and thin silver face mask, black brows, short black moustache, dark red jersey with shoulder pads and gold sleeve stripes, ruddy bare forearms, blue denim bib overalls, blue knee pads, white socks, grey cleats, sack of footballs on his back, empty hands",
+  "height": 1.88
+ },
+ "rudy": {
+  "refs": "cel",
+  "who": "loud-mouthed travelling circus ringmaster of a rundown county-fair big top, a portly middle-aged showman",
+  "design": "a natural portly build of a tall well-fed man - broad shoulders, a round belly under the coat, long legs of normal length (his legs are half his height), real arms in proportion - WEARING a tall battered black top hat with a red band studded with little bulbs, a white ruffled cravat, a bright red ringmaster's tailcoat with gold braid frogging across the chest, gold fringed epaulettes and long tails behind, cream trousers with wide dark brown vertical stripes, scuffed dark grey boots, clean white cotton gloves with real fingers, and on his back a black iron frame holding two big brass gramophone horns on short poles, one rising over each shoulder with their wide bells facing forward beside his hat",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a ruddy round face lit evenly, bright eyes with clear whites and dark pupils, raised bushy black eyebrows, a big red nose, a big black handlebar moustache with curled ends, black sideburns, a showman's wide toothy grin",
+  "texture": "circus ringmaster, black top hat with red bulb band, ruddy face, clear eyes, red nose, black handlebar moustache, white cravat, red tailcoat with gold braid and epaulettes, cream and brown striped trousers, grey boots, white gloves, two brass horns over his shoulders, empty hands",
+  "height": 1.9
+ },
+ "foreman": {
+  "who": "brutal backwoods sawmill foreman, a hulking barrel-chested lumberjack boss",
+  "design": "a scuffed bright yellow hard hat with a round headlamp on its front and a few faded stickers, small mean eyes, a big red nose, a huge bushy ginger-red beard down to his chest, a red and dark red buffalo-plaid flannel shirt with thick rolled sleeves pushed up to the elbows, enormous bare freckled forearms, a quilted bright orange safety vest with two shiny silver reflective stripes round the chest, a wide brown leather tool belt with a hammer and a yellow tape measure, baggy tan-brown canvas work trousers with dark knee patches, heavy brown laced work boots, and strapped on his back a black steel saw rig: a small grey motor box with two spare circular saw blades and a double-bladed red axe sticking up over his left shoulder",
+  "face": "a furious scowl under the hard hat, teeth bared in the beard, thick ginger eyebrows knitted, the look of a man who fires people by throwing them in the chipper",
+  "texture": "sawmill foreman, yellow hard hat with headlamp, ginger beard, red nose, red buffalo plaid shirt, bare forearms, orange quilted safety vest with silver reflective stripes, brown tool belt with hammer, tan work trousers with knee patches, brown boots, black saw rig with blades and red axe on his back, empty hands",
+  "height": 1.85
+ },
+ "baron": {
+  "refs": "cel",
+  "who": "pompous old moonshine robber baron, a portly well-fed gentleman wearing a steam-powered copper moonshine still rig strapped over his clothes",
+  "design": "a tall black silk top hat, big bushy white mutton-chop sideburns joined to a white walrus moustache, a real neck and a normal human head, a portly round belly under a dark charcoal waistcoat and frock coat with a white shirt collar and a dark cravat, charcoal trousers, grey boots with white spats; OVER the coat he wears a riveted copper and brass moonshine still harness: a hammered copper boiler tank on his back with two short copper smokestacks rising behind his shoulders, a coiled copper still worm pipe, copper pipes running over his shoulders to a brass chest plate with two round brass pressure gauges and little teal valve wheels, copper shoulder guards and copper bracers on the forearms bound in brass wire, bare ruddy hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a ruddy round jowly old face lit evenly, a big red nose, bright clear eyes with whites and dark pupils, a smug greedy grin under the white moustache, chin up like he owns the county",
+  "texture": "moonshine baron, black top hat, white mutton chops and moustache, red nose, clear eyes, charcoal frock coat and waistcoat, white collar, copper boiler tank and smokestacks on his back, copper pipes, brass chest plate with gauges and teal valve wheels, copper shoulder guards and bracers, grey boots with white spats, empty hands",
+  "height": 1.9
+ },
+ "maw": {
+  "she": true,
+  "who": "giant alien matriarch, the Alien Sheriff's mother, a towering grey alien housewife who runs the mothership like a trailer-park kitchen",
+  "design": "a big smooth grey-green alien head shaped like a dome, two huge glossy black bug eyes with glowing red irises, bright red lipstick on a small mouth, exactly TWO thin straight grey antennae standing up from the top of her head, one on the left and one on the right, symmetrical like a V, each ending in a round glowing green ball, a row of pink plastic hair rollers and silver tin curlers set in a ring on the top of her bald dome under a brown hairnet, the sides of her smooth grey head and her face bare, pink cat-eye glasses with little rhinestones hanging on a beaded chain under her chin, a pear-shaped body with wide hips in a knee-length quilted pink and dusty-rose plaid housecoat with big puffed shoulders, a ruffled cream collar, ruffled cream cuffs at the elbows, two front pockets and a white hanky poking out of the right pocket, thin bare grey-green alien forearms and long grey four-fingered hands, thin grey legs below the hem, and fluffy pink slippers with big pink pompoms",
+  "face": "a scolding, put-upon mother's glare, lips pursed, one antenna bent, the look of a mom about to swat somebody with a rolling pin",
+  "texture": "giant grey-green alien mother, black bug eyes with red irises, red lipstick, antennae with green glowing tips, pink and silver hair curlers under a brown hairnet, pink cat-eye glasses on a chain, pink plaid quilted housecoat with cream ruffled collar and cuffs, grey-green arms and legs, fluffy pink slippers with pompoms, empty hands",
+  "height": 1.9
+ },
+ "maw_bare": {
+  "she": true,
+  "who": "giant alien matriarch, the Alien Sheriff's mother, a towering grey alien whose burning housecoat has fallen away to show the battle girdle she wore under it",
+  "design": "she MUST have her two antennae: exactly two thin grey antennae, each about half as tall as her head, standing up out of the top of her dome in a V, each tipped with a round glowing red ball; a big smooth grey-green alien head shaped like a dome with a glowing red crack across the top, two huge glossy black bug eyes with glowing red irises, bright red lipstick on a small mouth, exactly TWO thin straight grey antennae standing up from the top of her head, one on the left and one on the right, symmetrical like a V, each ending in a round glowing red ball, no hair rollers and no glasses, a big round plump pear-shaped grey-green alien body, as wide and round as her housecoat was, a heavy round belly and very wide hips, her whole torso from the armpits down to the bloomers armoured by FOUR wide riveted dull tin hoops stacked close one above the other like a barrel's staves and hoops, the chest completely covered by a tin breastplate band, only narrow grey gaps between the hoops, a ring of eight glowing green power cells set upright round the girdle at the waist, plain dark brown bloomers snug under the round belly, round tin shoulder caps, thin bare grey-green alien arms with long grey four-fingered hands, thin grey legs, and fluffy pink slippers with big pink pompoms",
+  "face": "furious, eyes blazing red, lips pulled back, the look of a mother who has completely run out of patience",
+  "texture": "giant grey-green alien mother, glowing red crack on her dome, black bug eyes with red irises, red lipstick, antennae with red glowing tips, riveted dull tin hoop girdle with glowing green power cells round the waist, dark brown bloomers, tin shoulder caps, grey-green arms and legs, fluffy pink slippers with pompoms, empty hands",
+  "height": 1.9,
+  "extra_refs": [
+   "meshy-work/meshy_out/maw_concept/image_0.png"
+  ],
+  "extra_note": " The third reference image is this same character painted before in her housecoat: keep her head shape, face, bug eyes, lips, antennae, arms, hands, legs and slippers exactly as there, but WITHOUT the housecoat, the curlers, the hairnet and the glasses: her bald grey dome bare, and the riveted tin hoop girdle with glowing green cells and the dark brown bloomers described."
+ },
+ "boilerback": {
+  "refs": "cel",
+  "who": "backwoods boiler-tank brute, a stocky steam-plant worker who sprays scalding steam from a homemade boiler strapped to his back",
+  "design": "WEARING a short dark grey flat cap, round brass-rimmed welding goggles pushed UP onto the front of the cap (his eyes uncovered), a padded grey canvas work suit with quilted shoulders, brass knee pads, scuffed dark grey work boots, a dented grey steel boiler tank strapped on his back with leather straps and a short brass pressure valve on top, a sturdy stocky natural build with real shoulders and arms, bare forearms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy sweaty face lit evenly, a big nose, stubble, a mean determined scowl, clear eyes with whites and dark pupils under heavy brows, standing straight facing the viewer",
+  "texture": "boiler worker, dark grey flat cap, round goggles pushed up on the cap, uncovered eyes, padded grey work suit, brass knee pads, grey boots, grey steel boiler tank on his back with brass valve, ruddy skin, clear face, empty hands",
+  "height": 1.77
+ },
+ "chain_hand": {
+  "refs": "cel",
+  "who": "beer-bellied junkyard enforcer who whips a heavy tow chain, a big-gutted backwoods mechanic",
+  "design": "WEARING a tan flat cap, a teal-green button-up work shirt with a chest pocket and the sleeves rolled to the elbows, stretched over a round beer belly, brown work trousers with a dark belt, black leather work gloves, dark brown work boots, a natural heavy build with real shoulders and thick forearms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a fleshy ruddy face lit evenly, small mean eyes with whites and dark pupils, a bushy ginger-brown moustache, a sneering half grin, stubble, no sunglasses",
+  "texture": "junkyard enforcer, tan flat cap, teal work shirt, brown trousers, black gloves, brown boots, ruddy skin, moustache, clear face, empty hands",
+  "height": 1.72
+ },
+ "swamp_king": {
+  "refs": "cel",
+  "who": "Swamp King, a huge pot-bellied bayou crime boss who rules the swamp from his airboat, a big heavyset backwoods man",
+  "design": "WEARING a black mesh trucker cap, big round red airboat ear-muff headphones over both ears, a thick bushy ginger-red brush beard and moustache, a fat brown cigar in the corner of his mouth, a dark olive-green canvas vest hanging open over a dirty off-white undershirt stretched over a big round beer belly, bare sunburnt pink forearms and upper arms, a ragged dark green alligator-hide cape over his shoulders and back with a real alligator's head worn on his left shoulder, dark grey-green work trousers, black rubber boots, a natural heavy build with broad shoulders and thick arms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a sunburnt ruddy round face lit evenly, wide-open eyes with clear whites and dark pupils under bushy ginger brows, a big nose, a cocky lordly sneer around the cigar, no glasses",
+  "texture": "swamp king, black mesh trucker cap, red ear-muff headphones, ginger brush beard, cigar, olive-green open vest, off-white undershirt over a round belly, sunburnt bare arms, dark green alligator-hide cape with a gator head on the left shoulder, grey-green trousers, black rubber boots, clear face, empty hands",
+  "extra_note": " The sprite shows him standing on an airboat wearing a crown: paint ONLY the man himself standing on the floor, with no boat, no crown, no gun, no pole.",
+  "height": 1.95
+ },
+ "chalk_spitter": {
+  "refs": "cel",
+  "who": "chalk spitter, a gaunt chalk-white quarry ghoul who hawks gobs of chalk dust at people, a scrawny backwoods quarry miner turned undead",
+  "design": "chalk-white grey skin caked and flaking with quarry chalk dust all over, a bald lumpy head, a skinny wiry body with a little pot belly, WEARING ragged off-white chalk-stained long-john underwear with a few square stitched-on patches and a button flap on the chest, the sleeves torn off at the elbows, bare chalky forearms and hands, frayed legs tucked into grey cracked work boots, everything the same dusty chalk white and pale grey, standing tall and UPRIGHT with a straight back, shoulders back, head held up and chin level, looking straight ahead (not hunched, not stooped, not leaning forward)",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a gaunt chalky face lit evenly, sunken eyes with pale whites and dark pupils under heavy brow ridges, a big gaping round mouth with chalky lips and a few crooked teeth, cheeks puffed like he is about to spit, a creepy hungry leer",
+  "texture": "chalk-white ghoul, flaking chalky grey-white skin, bald, ragged off-white long johns with stitched square patches, grey cracked boots, sunken eyes with whites, gaping mouth, empty hands",
+  "height": 1.6
+ },
+ "flagman": {
+  "refs": "cel",
+  "who": "crazed old railroad flagman who waves a signal flag and hurls lit road flares, a wiry old backwoods railroad worker",
+  "design": "WEARING a red railroad cap with a short brim, a white long-sleeved work shirt, a black work vest buttoned over it, black work trousers held by a belt, dark scuffed work boots, a natural lean wiry old man's build with real shoulders and arms",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a weathered old face lit evenly, bright wild eyes with clear whites and dark pupils under bushy white eyebrows, a big bushy white walrus moustache, a big nose, a manic gap-toothed grin, white hair sticking out under the cap, no glasses",
+  "texture": "old railroad flagman, red cap, white hair, bushy white moustache, white shirt, black vest, black trousers, dark boots, clear eyes, empty hands",
+  "height": 1.8
+ },
+ "gas_man": {
+  "refs": "cel",
+  "who": "riot trooper of a crooked county sheriff who lobs tear-gas canisters, a stocky backwoods deputy in surplus riot gear",
+  "design": "WEARING an old black rubber gas mask with two round glass eye lenses and a round filter canister on the snout, the straps over a bald dark-grey hood, an olive drab surplus field jacket with the sleeves to the wrists, an olive load-bearing vest with a row of little tear-gas canister pouches across the belly, olive drab trousers, black combat boots, olive canvas gloves with real fingers, a natural sturdy build with real shoulders and arms",
+  "face": "the face hidden by the gas mask: clear readable eyes visible behind the round glass lenses, with whites and dark pupils, a menacing squint-free stare",
+  "texture": "gas-masked riot trooper, black rubber gas mask with round glass eye lenses and filter, eyes visible behind lenses, olive drab field jacket, olive vest with canister pouches, olive trousers, black boots, olive gloves, empty hands",
+  "height": 1.75
+ }
+}

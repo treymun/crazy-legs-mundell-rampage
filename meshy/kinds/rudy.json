@@ -1,0 +1,233 @@
+{
+ "kind": "rudy",
+ "rigged": "../meshy-work/meshy_out/rudy_rig/rigged.glb",
+ "poses": "../meshy-work/dump/rudy_poses.json",
+ "old_glb": "../meshy-work/old/rudy.glb",
+ "old_tex": "../meshy-work/old/actor3d_rudy.png",
+ "out": "../meshy-work/raw/rudy",
+ "tris": 15000,
+ "texture": 1024,
+ "gear": "old",
+ "phases": true,
+ "hold_legs": true,
+ "skin_zones": [
+  "head"
+ ],
+ "hands_paint": "texture",
+ "gloves": [
+  138,
+  135,
+  127
+ ],
+ "item_types": {
+  "r": "raise",
+  "l": "bottle"
+ },
+ "gear_skip": [
+  "b78"
+ ],
+ "gear_extra": [
+  "b74",
+  "b83"
+ ],
+ "grip_parts": {
+  "r": [
+   "b99",
+   "b100"
+  ],
+  "l": [
+   "b116",
+   "b117"
+  ]
+ },
+ "skin_rgb": [
+  200,
+  130,
+  104
+ ],
+ "to_body": [
+  {
+   "x": [
+    0.2,
+    0.75
+   ],
+   "y": [
+    -0.45,
+    0.6
+   ],
+   "z": [
+    1.62,
+    2.35
+   ],
+   "near": 0.08
+  },
+  {
+   "x": [
+    -0.75,
+    -0.2
+   ],
+   "y": [
+    -0.45,
+    0.6
+   ],
+   "z": [
+    1.62,
+    2.35
+   ],
+   "near": 0.08
+  },
+  {
+   "x": [
+    -0.2,
+    0.2
+   ],
+   "y": [
+    0.19,
+    0.6
+   ],
+   "z": [
+    1.3,
+    2.35
+   ],
+   "near": 0.08
+  }
+ ],
+ "shed": {
+  "tophat": {
+   "z": 1.712,
+   "on": "head",
+   "within": 0.25,
+   "cap": 0.7,
+   "cap_colour": [
+    40,
+    32,
+    28
+   ],
+   "ring_pct": 60,
+   "cap_base": 0.05,
+   "cap_grow": 1.0,
+   "cap_shag": 0.01,
+   "cap_noise": 0.3,
+   "band": 0.015,
+   "cap_x": 0.0,
+   "cap_ymin": -0.13
+  },
+  "tophat_brim": {
+   "gear": "tophat",
+   "on": "head",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.36,
+     0.36
+    ],
+    "y": [
+     -0.42,
+     0.34
+    ],
+    "z": [
+     1.672,
+     1.725
+    ]
+   },
+   "radial": [
+    0,
+    -0.025,
+    1.7
+   ],
+   "outside": 0.16,
+   "within": 0.34
+  },
+  "horns": {
+   "on": "body",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.75,
+     0.75
+    ],
+    "y": [
+     -0.45,
+     0.6
+    ],
+    "z": [
+     1.56,
+     2.35
+    ]
+   },
+   "radial": [
+    0,
+    -0.04,
+    1.8
+   ],
+   "outside": 0.215
+  },
+  "horns_pole": {
+   "gear": "horns",
+   "on": "body",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.2,
+     0.2
+    ],
+    "y": [
+     0.17,
+     0.6
+    ],
+    "z": [
+     1.74,
+     2.35
+    ]
+   }
+  }
+ },
+ "head_noshadow": true,
+ "face_clean": true,
+ "face_box": {
+  "auto": true
+ },
+ "face_uv": {
+  "k": 2.6,
+  "auto": true
+ },
+ "item_axis": {
+  "1": "all"
+ },
+ "item_neck": {
+  "1": "near"
+ },
+ "bottle_grip": 0.1,
+ "glove_shade": true,
+ "glove_light": 0.9,
+ "glove_contrast": 1.5,
+ "recolour": [
+  {
+   "name": "temple_block",
+   "x": [
+    0.055,
+    0.135
+   ],
+   "y": [
+    -0.17,
+    -0.095
+   ],
+   "z": [
+    0.795,
+    0.83
+   ],
+   "val": [
+    0,
+    0.24
+   ],
+   "to": [
+    190,
+    122,
+    98
+   ],
+   "contrast": 0.35,
+   "smooth": 3,
+   "not_skin": false
+  }
+ ]
+}

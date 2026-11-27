@@ -1,0 +1,9 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference images only as the animal's design (the 3D figure and the small game sprite are the same animal), paint a high-detail full-body concept of this feral wild hog (a razorback boar) for a gritty 1990s Southern comedy horror first-person shooter. Keep its design exactly: a dark brown-black coat of coarse shaggy bristles, a ridge of stiff bristles standing up along its spine like a mohawk, a long wedge head, a pale pink flat snout disc, two curved ivory tusks out of the lower jaw, small dark mean eyes, short pointed ears, a thin tail, short sturdy legs with dark split hooves. Give it real personality: mean, wary and ready to charge, a swamp-bottom brute. Natural anatomy, a little caricatured. Worn and grimy: mud and swamp muck, matte hand-painted gritty texture detail, muted dusty colours, not glossy, not a clean modern render. Standing square and still on all four straight legs, head level and looking ahead. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole animal in frame with space around it, sharp focus, one single animal, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:../meshy-work/meshyref/hog_three.png",
+  "@file:../meshy-work/meshyref/hog_cel.png"
+ ],
+ "aspect_ratio": "4:3"
+}

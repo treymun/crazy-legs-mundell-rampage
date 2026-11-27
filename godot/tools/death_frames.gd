@@ -91,14 +91,22 @@ func _run() -> void:
 		return
 	if OS.get_cmdline_user_args().has("audit"):
 		var only := ""
+		# kind=: the rows asked for with that kind instead (the Meshy models track).
+		var kind := ""
 		for arg in OS.get_cmdline_user_args():
 			if String(arg).begins_with("rows="):
 				only = String(arg).substr(5)
+			elif String(arg).begins_with("kind="):
+				kind = String(arg).substr(5)
 		var wanted := Array(only.split(",", false))
 		for row: Array in DeathRows.ROWS:
 			var name: String = row[0]
-			if wanted.is_empty() or wanted.any(func(w: String) -> bool: return name.contains(w)):
-				await DeathRows.new(self).run(row)
+			if wanted.is_empty() or wanted.any(func(w: String) -> bool: return name == w):
+				var use := row.duplicate()
+				if kind != "":
+					use[0] = name.replace(str(row[1]), kind)
+					use[1] = kind
+				await DeathRows.new(self).run(use)
 		print("death rows written to ", out)
 		main.queue_free()
 		await process_frame

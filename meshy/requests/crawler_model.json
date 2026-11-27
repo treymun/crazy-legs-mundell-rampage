@@ -1,0 +1,11 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:../meshy-work/meshy_out/crawler_concept/image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "texture_prompt": "giant spider crab creature, round tan brown shell body with darker mottling, two glossy black eyes, ivory fangs, six thin jointed brown legs, swamp mud"
+}

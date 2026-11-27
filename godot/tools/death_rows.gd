@@ -171,6 +171,18 @@ func run(row: Array) -> void:
 	p.y = keep.y
 	print("  %s: %s zone %s, killed by %s" % [name, kind, e.last_zone, e.killed_by])
 	var done := 0
+	if OS.get_environment("ROW_VIDEO") != "":
+		# Every other tick to the last moment, one picture each
+		# (video_<row>_<n>.png: meshy/tools/make_video.py's frames).
+		var n := 0
+		for t in range(2, int(TICKS[-1]) + 1, 2):
+			await _ticks(g, t - done, cam, at, top)
+			done = t
+			await _snap()
+			_frames[-1].save_png(String(tool.get("out")).path_join("video_%s_%03d.png" % [name, n]))
+			n += 1
+		_frames.clear()
+		return
 	for t: int in TICKS.slice(1):
 		await _ticks(g, t - done, cam, at, top)
 		done = t
@@ -278,14 +290,21 @@ func _slab(id: String, what: String) -> Dictionary:
 ## sees the body (else behind the shooter's shoulder).
 func _camera(g: Game, at: Vector2, way: Vector2, top: float, near := 1.0) -> Vector3:
 	var w := g.world
-	var across := Vector2(-way.y, way.x)
-	for c: Vector2 in [
+	# (ROW_SIDE=other: watched from the other side, the Meshy track's look at
+	# the far arm.)
+	var across := (
+		Vector2(-way.y, way.x) * (-1.0 if OS.get_environment("ROW_SIDE") == "other" else 1.0)
+	)
+	var spots: Array[Vector2] = [
 		at + (across * 4.0 + way * .8) * near,
 		at - (across * 4.0 - way * .8) * near,
 		at + (across * 2.4 - way * 1.6) * near,
 		at - (across * 2.4 + way * 1.6) * near,
 		at - (way * 3.4 - across * .8) * near,
-	]:
+	]
+	if OS.get_environment("ROW_SIDE") == "front":
+		spots.push_front(at - (way * 3.4 - across * .8) * near)
+	for c: Vector2 in spots:
 		if c.x < 1 or c.y < 1 or c.x > w.width - 1 or c.y > w.height - 1:
 			continue
 		var z := w.floor_under(c.x, c.y, top + .6)

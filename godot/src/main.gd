@@ -476,6 +476,10 @@ func _tour_actors(shot: Dictionary) -> Array[Enemy]:
 			"down":
 				foe.hp = 0.0
 				foe.died_at = game.clock - 30.0
+		# (a share of its health: Maw out of her housecoat at a third)
+		if spec.has("hp") and foe.alive:
+			var share: float = spec["hp"]
+			foe.hp = foe.max_hp * share
 	return cast
 
 

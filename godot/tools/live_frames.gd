@@ -7,7 +7,7 @@
 ## catch itself with real steps, hold the wound, buckle a knee.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
-##       --script res://tools/live_frames.gd -- out=<dir> [rows=chest,legs] [off]
+##       --script res://tools/live_frames.gd -- out=<dir> [rows=chest,legs] [off] [kind=coot]
 ##
 ## off: the active bodies off (RAGDOLLS off: the old rigid flinch) for a
 ## side by side. Point APPDATA at a scratch folder.
@@ -31,6 +31,13 @@ const LIVE_ROWS := [
 		false
 	],
 	["buckshot", "billy", [[0, "shotgun", "body", 3.0, 40.0]], false],
+	# Knocked down: both barrels close, then once more (the Meshy models track).
+	[
+		"knock",
+		"billy",
+		[[0, "shotgun", "body", 1.1, 90.0], [8, "shotgun", "body", 1.1, 90.0]],
+		false
+	],
 	["coot_chest", "coot", [[0, "revolver", "body", 3.0, 18.0]], false],
 	["coot_legs", "coot", [[0, "revolver", "legs", 4.0, 14.0]], false],
 	["coot_down", "coot", [[0, "shotgun", "body", 1.2, 90.0]], false],
@@ -46,6 +53,21 @@ const HEIGHT := {"head": .93, "body": .6, "arms": .62, "legs": .3}
 const ACROSS := {"head": 0.0, "body": .25, "arms": 1.0, "legs": .35}
 
 var _rows: Rows
+## kind=: every row with that kind instead (the Meshy models track).
+var _kind := ""
+var _video := false
+## probe: after every picture, how deep the body's held things (the Meshy
+## models' guns) are inside it (tools/meshy/gear_probe.gd); the row's worst.
+var _probe_on := false
+var _probe_worst := 0.0
+var _probe_at := -1
+var _piece_worst := 0.0
+var _probe_key := ""
+## The arms' showing share at the row's first picture, and each view's worst.
+var _arms_rest := {}
+var _arms_worst := {}
+var _piece_said := ""
+var _at: Array = AT.duplicate()
 
 
 func _run() -> void:
@@ -58,6 +80,17 @@ func _run() -> void:
 			only = a.substr(5)
 		elif a == "off":
 			classic = true
+		elif a.begins_with("kind="):
+			_kind = a.substr(5)
+		elif a == "probe":
+			_probe_on = true
+		elif a == "video":
+			# Every other tick for two and a half seconds, each frame its own
+			# picture (<row>/f_NNN.png), for a clip at real speed (30 a second).
+			_video = true
+			_at = [0]
+			for k in range(2, 152, 2):
+				_at.append(k)
 	DirAccess.make_dir_recursive_absolute(out)
 	main = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
@@ -78,7 +111,7 @@ func _run() -> void:
 
 func _row(row: Array) -> void:
 	var name: String = row[0]
-	var kind: String = row[1]
+	var kind: String = row[1] if _kind == "" else _kind
 	var shots: Array = row[2]
 	var running: bool = row[3]
 	var spot: Dictionary = _rows._open("hickston", false)
@@ -121,9 +154,10 @@ func _row(row: Array) -> void:
 			e.y = at.y
 		await _rows._ticks(g, 1, cam, at, top)
 	await _rows._snap()
+	_probe(kind)
 	var done := 0
 	var next := 0
-	for t: int in AT.slice(1):
+	for t: int in _at.slice(1):
 		while next < shots.size():
 			var shot: Array = shots[next]
 			var when: int = shot[0]
@@ -148,7 +182,66 @@ func _row(row: Array) -> void:
 				_hit(g, e, shot, way)
 				next += 1
 		await _rows._snap()
+		_probe(kind)
 	_save15(name)
+	if _probe_on:
+		print(
+			(
+				"GEAR PROBE %s %s: worst %.3f m at picture %d (%s)"
+				% [name, kind, _probe_worst, _probe_at, _probe_key]
+			)
+		)
+		print("BODY PROBE %s %s: worst %.2f %s" % [name, kind, _piece_worst, _piece_said])
+		_probe_worst = 0.0
+		_probe_at = -1
+		_piece_worst = 0.0
+		_piece_said = ""
+		var arms_said := ""
+		for key: String in _arms_worst:
+			var worst_at: Array = _arms_worst[key]
+			arms_said += " %s %.0f%%@%d" % [key, float(worst_at[0]) * 100.0, int(worst_at[1])]
+		print("ARMS SEEN %s %s (share of the first picture's, worst):%s" % [name, kind, arms_said])
+		_arms_rest = {}
+		_arms_worst = {}
+
+
+func _probe(kind: String) -> void:
+	if not _probe_on:
+		return
+	var probe: GDScript = load("res://tools/meshy/gear_probe.gd")
+	for n in root.find_children("*", "Node3D", true, false):
+		if n is ActorView and (n as ActorView).kind == kind and (n as Node3D).is_visible_in_tree():
+			var view := n as ActorView
+			var info: Dictionary = view.models.kinds.get(kind, {})
+			var d: float = probe.depth(view, info.get("labels", {}))
+			if d > _probe_worst:
+				_probe_worst = d
+				_probe_at = _rows._frames.size() - 1
+				_probe_key = (
+					"key %.2f live %s blend %s"
+					% [
+						float(view.get("_seeked")) / ActorModels.KEY_TIME,
+						str(view.live != null),
+						str(float(view.get("_blend_at")) >= 0.0)
+					]
+				)
+			var seen: Dictionary = probe.arms_seen(view, info.get("labels", {}))
+			if _arms_rest.is_empty():
+				_arms_rest = seen
+			for w: String in seen:
+				var now: Array = seen[w]
+				var was: Array = _arms_rest.get(w, [1.0, 1.0])
+				for a in 2:
+					var share: float = float(now[a]) / maxf(float(was[a]), .05)
+					var key := "%s %s" % [w, "left" if a == 0 else "right"]
+					if share < float(_arms_worst.get(key, [9.0])[0]):
+						_arms_worst[key] = [share, _rows._frames.size() - 1]
+			var rig: RagdollRig = RagdollRig.of(kind, view, info)
+			var bad: Array = probe.pieces(view, rig)
+			var badness: float = bad[0]
+			if badness > _piece_worst:
+				_piece_worst = badness
+				_piece_said = "%s at picture %d" % [bad[1], _rows._frames.size() - 1]
 
 
 ## One hit on `e` from the shooter along `way`: the player put there a moment
@@ -179,6 +272,11 @@ func _hit(g: Game, e: Enemy, shot: Array, way: Vector2) -> void:
 
 
 func _save15(name: String) -> void:
+	if _video:
+		DirAccess.make_dir_recursive_absolute(out.path_join(name))
+		for k in _rows._frames.size():
+			_rows._frames[k].save_png(out.path_join(name).path_join("f_%03d.png" % k))
+		return
 	var sheet := Image.create(320 * 5, 202 * 3, false, Image.FORMAT_RGB8)
 	sheet.fill(Color(.1, .1, .1))
 	for k in _rows._frames.size():

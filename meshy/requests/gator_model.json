@@ -1,0 +1,11 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:../meshy-work/meshy_out/gator_concept/image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "texture_prompt": "American alligator, olive grey armoured scales, bony ridges on the back and tail, cream belly, yellowed teeth, yellow eyes, swamp mud"
+}

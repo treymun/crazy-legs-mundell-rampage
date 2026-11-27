@@ -1,0 +1,256 @@
+{
+ "kind": "maw",
+ "rigged": "../meshy-work/meshy_out/maw_rig/rigged.glb",
+ "poses": "../meshy-work/dump/maw_poses.json",
+ "old_glb": "../meshy-work/old/maw.glb",
+ "old_tex": "../meshy-work/old/actor3d_maw.png",
+ "out": "../meshy-work/raw/maw",
+ "tris": 14000,
+ "texture": 1024,
+ "gear": "old",
+ "phases": true,
+ "hold_legs": true,
+ "skin_zones": [
+  "hand_l",
+  "hand_r"
+ ],
+ "hands_paint": "flat",
+ "item_types": {
+  "r": "pistol",
+  "l": "bottle"
+ },
+ "gear_skip": [
+  "b123",
+  "b126",
+  "b135",
+  "b137",
+  "b138",
+  "b29",
+  "b3",
+  "b32",
+  "b4",
+  "b5",
+  "b50",
+  "b51",
+  "b54",
+  "b6",
+  "b8"
+ ],
+ "gear_extra": [
+  "b115",
+  "b119",
+  "b120"
+ ],
+ "grip_parts": {
+  "r": [
+   "b130"
+  ],
+  "l": [
+   "b140"
+  ]
+ },
+ "skin_texels": {
+  "hue": [
+   60,
+   140
+  ],
+  "sat": [
+   0.06,
+   0.45
+  ],
+  "val": [
+   0.12,
+   0.95
+  ]
+ },
+ "shed": {
+  "glasses": {
+   "on": "head",
+   "box": {
+    "x": [
+     -0.58,
+     0.58
+    ],
+    "y": [
+     -0.7,
+     -0.25
+    ],
+    "z": [
+     3.33,
+     3.62
+    ]
+   },
+   "hue": [
+    295,
+    20
+   ],
+   "sat": [
+    0.08,
+    1
+   ],
+   "val": [
+    0.4,
+    1
+   ],
+   "lift": 0.012,
+   "radial": [
+    0,
+    0.08,
+    3.45
+   ],
+   "under": "cap",
+   "cap_colour": [
+    142,
+    136,
+    120
+   ],
+   "cap_noise": 0.05
+  },
+  "curlers": {
+   "on": "head",
+   "box": {
+    "x": [
+     -0.8,
+     0.8
+    ],
+    "y": [
+     -0.36,
+     0.8
+    ],
+    "z": [
+     3.2,
+     4.0
+    ]
+   },
+   "hue": [
+    295,
+    40
+   ],
+   "sat": [
+    0.12,
+    1
+   ],
+   "val": [
+    0.2,
+    1
+   ],
+   "lift": 0.015,
+   "radial": [
+    0,
+    0.08,
+    3.45
+   ],
+   "under": "cap",
+   "cap_colour": [
+    142,
+    136,
+    120
+   ],
+   "cap_noise": 0.05
+  },
+  "curlers_tin": {
+   "gear": "curlers",
+   "on": "head",
+   "box": {
+    "x": [
+     -0.8,
+     0.8
+    ],
+    "y": [
+     -0.36,
+     0.8
+    ],
+    "z": [
+     3.15,
+     4.0
+    ]
+   },
+   "sat": [
+    0,
+    0.1
+   ],
+   "val": [
+    0.45,
+    1
+   ],
+   "lift": 0.015,
+   "radial": [
+    0,
+    0.08,
+    3.45
+   ],
+   "outside": 0.5
+  },
+  "curlers_net": {
+   "on": "head",
+   "box": {
+    "x": [
+     -0.8,
+     0.8
+    ],
+    "y": [
+     -0.36,
+     0.8
+    ],
+    "z": [
+     2.9,
+     3.3
+    ]
+   },
+   "hue": [
+    295,
+    40
+   ],
+   "sat": [
+    0.12,
+    1
+   ],
+   "val": [
+    0.2,
+    1
+   ],
+   "lift": 0.015,
+   "radial": [
+    0,
+    0.08,
+    3.45
+   ],
+   "under": "cap",
+   "cap_colour": [
+    142,
+    136,
+    120
+   ],
+   "cap_noise": 0.05,
+   "within": 0.63,
+   "gear": "curlers"
+  }
+ },
+ "bottle_grip": 0.08,
+ "head_keys": {
+  "pain": [
+   -20,
+   0,
+   15
+  ]
+ },
+ "gear_scale": [
+  {
+   "parts": [
+    "b113",
+    "b114",
+    "b115",
+    "b116",
+    "b117",
+    "b118"
+   ],
+   "k": 1.7,
+   "side": "r"
+  }
+ ],
+ "keep_reach": 0.4,
+ "keep_vote": 3,
+ "keep_out_best": true,
+ "keep_out_steps": 16,
+ "gear_uv": 0.7
+}

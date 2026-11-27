@@ -1,0 +1,258 @@
+{
+ "kind": "flagman",
+ "rigged": "../meshy-work/meshy_out/flagman_rig/rigged.glb",
+ "poses": "../meshy-work/dump/flagman_poses.json",
+ "old_glb": "../meshy-work/old/flagman.glb",
+ "old_tex": "../meshy-work/old/actor3d_flagman.png",
+ "out": "../meshy-work/raw/flagman",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "face_clean": {
+  "sat_k": 1.45
+ },
+ "face_box": {
+  "auto": true,
+  "z": [
+   -0.24,
+   0.16
+  ]
+ },
+ "face_uv": {
+  "k": 2.2,
+  "auto": true
+ },
+ "item_types": {
+  "r": "bottle"
+ },
+ "gear_extra": [
+  "b15"
+ ],
+ "recolour": [
+  {
+   "hue": [
+    330,
+    40
+   ],
+   "sat": [
+    0.15,
+    1
+   ],
+   "val": [
+    0,
+    0.95
+   ],
+   "to": [
+    178,
+    36,
+    30
+   ],
+   "contrast": 0.7,
+   "not_skin": false,
+   "name": "cap_front",
+   "z": [
+    0.942,
+    1.03
+   ],
+   "y": [
+    -9,
+    -0.04
+   ]
+  },
+  {
+   "hue": [
+    330,
+    40
+   ],
+   "sat": [
+    0.15,
+    1
+   ],
+   "val": [
+    0,
+    0.95
+   ],
+   "to": [
+    178,
+    36,
+    30
+   ],
+   "contrast": 0.7,
+   "not_skin": false,
+   "name": "cap_back",
+   "z": [
+    0.922,
+    1.03
+   ],
+   "y": [
+    -0.04,
+    9
+   ]
+  },
+  {
+   "sat": [
+    0,
+    0.3
+   ],
+   "to": [
+    214,
+    208,
+    190
+   ],
+   "contrast": 0.8,
+   "smooth": 5,
+   "name": "shirt",
+   "z": [
+    0.42,
+    0.825
+   ],
+   "x": [
+    -0.2,
+    0.2
+   ],
+   "val": [
+    0.24,
+    1
+   ]
+  },
+  {
+   "sat": [
+    0,
+    0.3
+   ],
+   "to": [
+    214,
+    208,
+    190
+   ],
+   "contrast": 0.8,
+   "smooth": 5,
+   "name": "sleeve_l",
+   "z": [
+    0.42,
+    0.845
+   ],
+   "x": [
+    0.2,
+    9
+   ],
+   "val": [
+    0.08,
+    1
+   ],
+   "not_skin": false
+  },
+  {
+   "sat": [
+    0,
+    0.3
+   ],
+   "to": [
+    214,
+    208,
+    190
+   ],
+   "contrast": 0.8,
+   "smooth": 5,
+   "name": "sleeve_r",
+   "z": [
+    0.42,
+    0.845
+   ],
+   "x": [
+    -9,
+    -0.2
+   ],
+   "val": [
+    0.08,
+    1
+   ],
+   "not_skin": false
+  },
+  {
+   "name": "neck",
+   "z": [
+    0.825,
+    0.865
+   ],
+   "x": [
+    -0.095,
+    0.095
+   ],
+   "y": [
+    -9,
+    0.02
+   ],
+   "sat": [
+    0,
+    0.32
+   ],
+   "val": [
+    0.2,
+    1
+   ],
+   "to": [
+    176,
+    118,
+    96
+   ],
+   "contrast": 0.6,
+   "smooth": 3,
+   "not_skin": false
+  }
+ ],
+ "item_axis": {
+  "0": [
+   "b15"
+  ]
+ },
+ "bottle_grip": 0.72,
+ "item_raise": {
+  "wind": {
+   "at": [
+    0.15,
+    0.72,
+    -0.02
+   ],
+   "pole": [
+    0.25,
+    1,
+    -0.45
+   ],
+   "hand": [
+    -0.4,
+    0.55,
+    0.5
+   ]
+  },
+  "aim": {
+   "hand": [
+    -0.45,
+    0.6,
+    0.5
+   ]
+  }
+ },
+ "skin_sat": 1.5,
+ "item_panel": [
+  {
+   "parts": [
+    "b16",
+    "b17",
+    "b18",
+    "b19",
+    "b20"
+   ],
+   "colour": [
+    64,
+    116,
+    46
+   ],
+   "pole": "b15",
+   "amp": 0.015,
+   "waves": 1.5
+  }
+ ]
+}

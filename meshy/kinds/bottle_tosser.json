@@ -1,0 +1,25 @@
+{
+ "kind": "bottle_tosser",
+ "rigged": "../meshy-work/meshy_out/bottle_tosser_rig/rigged.glb",
+ "poses": "../meshy-work/dump/bottle_tosser_poses.json",
+ "old_glb": "../meshy-work/old/bottle_tosser.glb",
+ "old_tex": "../meshy-work/old/actor3d_bottle_tosser.png",
+ "out": "../meshy-work/raw/bottle_tosser",
+ "tris": 10000,
+ "texture": 512,
+ "gear": "old",
+ "item_types": {
+  "r": "throw",
+  "l": "bottle"
+ },
+ "bandolier": {
+  "from": "r",
+  "colour": [
+   22,
+   62,
+   30
+  ]
+ },
+ "throw_out": 0.24,
+ "hold_legs": true
+}

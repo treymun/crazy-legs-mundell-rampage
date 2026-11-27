@@ -1,0 +1,453 @@
+{
+ "kind": "jerry",
+ "rigged": "../meshy-work/meshy_out/jerry_rig/rigged.glb",
+ "poses": "../meshy-work/dump/jerry_poses.json",
+ "old_glb": "../meshy-work/old/jerry.glb",
+ "old_tex": "../meshy-work/old/actor3d_jerry.png",
+ "out": "../meshy-work/raw/jerry",
+ "tris": 12000,
+ "texture": 1024,
+ "gear": "old",
+ "phases": true,
+ "hold_legs": true,
+ "skin_zones": [
+  "head",
+  "hand_l",
+  "hand_r"
+ ],
+ "hands_paint": "texture",
+ "gear_skip": [
+  "b199",
+  "b288"
+ ],
+ "gear_one": true,
+ "football": {},
+ "item_types": {
+  "r": "throw"
+ },
+ "akimbo": [
+  "l"
+ ],
+ "akimbo_skip": [
+  "wind",
+  "aim",
+  "fire",
+  "recover",
+  "pain"
+ ],
+ "to_body": [
+  {
+   "x": [
+    -0.35,
+    0.65
+   ],
+   "y": [
+    0.12,
+    0.9
+   ],
+   "z": [
+    0.8,
+    2.0
+   ],
+   "near": 0.08
+  }
+ ],
+ "skin_sat": 1.7,
+ "colour": 1.35,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "face_greys": 0.4,
+ "shed": {
+  "helmet_stripe": {
+   "gear": "helmet",
+   "on": "head",
+   "box": {
+    "x": [
+     -0.09,
+     0.09
+    ],
+    "y": [
+     -0.27,
+     0.2
+    ],
+    "z": [
+     1.7,
+     2.0
+    ]
+   },
+   "hue": [
+    325,
+    15
+   ],
+   "sat": [
+    0.35,
+    1
+   ],
+   "val": [
+    0,
+    0.6
+   ],
+   "lift": 0.015,
+   "under": "cap",
+   "cap_colour": [
+    66,
+    50,
+    40
+   ],
+   "radial": [
+    0,
+    -0.06,
+    1.7
+   ],
+   "shag": {
+    "shrink": 0.042,
+    "amp": 0.0,
+    "clamp": 0.2
+   }
+  },
+  "helmet_mask": {
+   "gear": "helmet",
+   "on": "head",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.2,
+     0.2
+    ],
+    "y": [
+     -0.36,
+     -0.222
+    ],
+    "z": [
+     1.45,
+     1.68
+    ]
+   },
+   "sat": [
+    0,
+    0.3
+   ],
+   "val": [
+    0.25,
+    1
+   ]
+  },
+  "helmet_mask_l": {
+   "gear": "helmet",
+   "on": "head",
+   "cut": true,
+   "box": {
+    "x": [
+     0.11,
+     0.24
+    ],
+    "y": [
+     -0.26,
+     -0.06
+    ],
+    "z": [
+     1.47,
+     1.68
+    ]
+   },
+   "sat": [
+    0,
+    0.3
+   ],
+   "val": [
+    0.25,
+    1
+   ]
+  },
+  "helmet_mask_r": {
+   "gear": "helmet",
+   "on": "head",
+   "cut": true,
+   "box": {
+    "x": [
+     -0.24,
+     -0.11
+    ],
+    "y": [
+     -0.26,
+     -0.06
+    ],
+    "z": [
+     1.47,
+     1.68
+    ]
+   },
+   "sat": [
+    0,
+    0.3
+   ],
+   "val": [
+    0.25,
+    1
+   ]
+  },
+  "helmet_brim": {
+   "gear": "helmet",
+   "on": "head",
+   "box": {
+    "x": [
+     -0.27,
+     0.27
+    ],
+    "y": [
+     -0.52,
+     -0.18
+    ],
+    "z": [
+     1.68,
+     1.9
+    ]
+   },
+   "hue": [
+    24,
+    70
+   ],
+   "sat": [
+    0.25,
+    1
+   ],
+   "val": [
+    0.2,
+    1
+   ],
+   "lift": 0.015,
+   "under": "cap",
+   "cap_colour": [
+    66,
+    50,
+    40
+   ],
+   "radial": [
+    0,
+    -0.06,
+    1.7
+   ]
+  },
+  "helmet_shell": {
+   "gear": "helmet",
+   "on": "head",
+   "box": {
+    "x": [
+     -0.3,
+     0.3
+    ],
+    "y": [
+     -0.27,
+     0.2
+    ],
+    "z": [
+     1.45,
+     2.0
+    ]
+   },
+   "lift": 0.015,
+   "under": "cap",
+   "cap_colour": [
+    66,
+    50,
+    40
+   ],
+   "radial": [
+    0,
+    -0.06,
+    1.7
+   ],
+   "shag": {
+    "shrink": 0.042,
+    "amp": 0.0,
+    "clamp": 0.2
+   },
+   "except": [
+    {
+     "hue": [
+      0,
+      30
+     ],
+     "sat": [
+      0.12,
+      0.6
+     ],
+     "val": [
+      0.25,
+      1
+     ]
+    },
+    {
+     "hue": [
+      335,
+      30
+     ],
+     "sat": [
+      0.12,
+      0.6
+     ],
+     "val": [
+      0.5,
+      1
+     ]
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "sat": [
+      0,
+      1
+     ],
+     "val": [
+      0,
+      0.18
+     ]
+    }
+   ],
+   "fill": 3
+  }
+ },
+ "recolour": [
+  {
+   "name": "hair_dark",
+   "z": [
+    0.84,
+    1.06
+   ],
+   "y": [
+    -0.12,
+    0.3
+   ],
+   "val": [
+    0,
+    0.16
+   ],
+   "to": [
+    52,
+    40,
+    32
+   ],
+   "contrast": 0.3,
+   "not_skin": false
+  },
+  {
+   "name": "scalp",
+   "z": [
+    0.9318901795142556,
+    1.06
+   ],
+   "hue": [
+    8,
+    32
+   ],
+   "sat": [
+    0.12,
+    0.85
+   ],
+   "to": [
+    52,
+    40,
+    32
+   ],
+   "contrast": 0.5,
+   "not_skin": false
+  },
+  {
+   "name": "scalp_back",
+   "z": [
+    0.8447729672650476,
+    1.06
+   ],
+   "y": [
+    -0.02,
+    0.3
+   ],
+   "hue": [
+    8,
+    32
+   ],
+   "sat": [
+    0.12,
+    0.85
+   ],
+   "to": [
+    52,
+    40,
+    32
+   ],
+   "contrast": 0.5,
+   "not_skin": false
+  },
+  {
+   "name": "scalp_front",
+   "z": [
+    0.9176346356916579,
+    1.06
+   ],
+   "y": [
+    -0.35,
+    -0.02
+   ],
+   "hue": [
+    8,
+    32
+   ],
+   "sat": [
+    0.12,
+    0.85
+   ],
+   "to": [
+    52,
+    40,
+    32
+   ],
+   "contrast": 0.5,
+   "not_skin": false
+  }
+ ],
+ "head_noshadow": true,
+ "skin_even": {
+  "ext": false,
+  "face_even": 0,
+  "tone": [
+   146,
+   94,
+   76
+  ]
+ },
+ "hi_texture": "../meshy-work/paint/jerry_tex_eyes.png",
+ "face_clean": {
+  "cloth_hue": 36,
+  "max_sat": 0.72,
+  "paint_hue": {
+   "hue": [
+    36,
+    70
+   ],
+   "sat": 0.3,
+   "to": [
+    66,
+    50,
+    40
+   ],
+   "grow": 1
+  }
+ },
+ "face_box": {
+  "r": 0.27,
+  "z": [
+   -0.16,
+   0.25
+  ],
+  "chin_z": 0.012
+ },
+ "face_uv": {
+  "k": 1.6,
+  "brim_k": 1.0,
+  "r": 0.27
+ }
+}

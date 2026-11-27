@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:\\Users\\treym\\AppData\\Local\\Temp\\claude\\1dc8348830e70b38\\f2338a2e-3874-4eaf-9e39-f1352f903b29\\scratchpad\\meshy-work\\meshy_out\\revenue_man_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "1930s revenue agent, grey campaign hat, round blue tinted spectacles, grey walrus moustache, red nose, black suit, white shirt and waistcoat, gold watch chain, black tie, black shoes, red fire axe on his back, empty hands, no gun"
+}

@@ -1,0 +1,38 @@
+{
+ "kind": "cow",
+ "meshy": "meshy/assets/cow.glb",
+ "old_glb": "../meshy-work/old/cow.glb",
+ "old_tex": "../meshy-work/old/actor3d_cow.png",
+ "out": "../meshy-work/raw/cow",
+ "tris": 9000,
+ "texture": 512,
+ "torso": "b0",
+ "legs": [
+  [
+   "b20",
+   "b21",
+   "b22"
+  ],
+  [
+   "b23",
+   "b24",
+   "b25"
+  ],
+  [
+   "b26",
+   "b27",
+   "b28"
+  ],
+  [
+   "b29",
+   "b30",
+   "b31"
+  ]
+ ],
+ "hard": [
+  "b18",
+  "b19"
+ ],
+ "smooth": 1,
+ "weights": "heat"
+}
