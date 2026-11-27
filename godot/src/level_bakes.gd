@@ -42,6 +42,7 @@ const NAV_SCRIPTS := [
 	"res://src/level_geometry.gd",
 	"res://src/level_nav.gd",
 	"res://src/nav_graph.gd",
+	"res://src/nav_walk.gd",
 ]
 ## What a key's pieces are cut by.
 const CUT_SCRIPTS := [

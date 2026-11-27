@@ -22,6 +22,10 @@ var over := {}
 ## and n * count + m -> the ladder joining n and m (both ways).
 var ladder_ends: Array[Vector2i] = []
 var links := {}
+## Whether each node's middle stands (LevelNav.stands), 1 or 0, as built
+## (LevelNav.build_nav: the open floor FlowField measures; never baked, so
+## empty for a graph read back).
+var stood := PackedByteArray()
 
 
 ## The node a body at (x, y) with feet at z stands on (NAN: the cell's own).
