@@ -351,7 +351,7 @@ static func bot_findings(bot: Dictionary) -> Array:
 		return out
 	var calm: float = flow.get("longest_calm", 0.0)
 	if calm > L.num("bot_calm_should"):
-		out.append(L.finding("bot", "bot_calm", [], {"seconds": calm, "from": "?"}))
+		out.append(L.finding("bot", "bot_calm", [], {"seconds": calm, "from": calm_from(bot)}))
 	var secs: float = bot.get("secs", 0.0)
 	var fight: float = flow.get("fight", 0.0)
 	if secs > 30.0 and fight / secs < L.num("bot_fight_least"):
@@ -366,6 +366,22 @@ static func bot_findings(bot: Dictionary) -> Array:
 			L.finding("bot", "bot_lost", [], {"count": lost, "seconds": flow.get("lost30_s", 0.0)})
 		)
 	return out
+
+
+## Where the bot's longest stretch without a fight began (s into its run).
+static func calm_from(bot: Dictionary) -> float:
+	var last_end := 0.0
+	var best := -1.0
+	var from := 0.0
+	for f in bot.get("fights", []):
+		var start := float(f[0])
+		if start - last_end > best:
+			best = start - last_end
+			from = last_end
+		last_end = start + float(f[1])
+	if float(bot.get("secs", 0.0)) - last_end > best:
+		from = last_end
+	return snappedf(from, .1)
 
 
 static func flow(cli) -> int:
