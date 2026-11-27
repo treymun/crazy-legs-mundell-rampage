@@ -1,0 +1,11 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:/Users/treym/AppData/Local/Temp/claude/1dc8348830e70b38/f2338a2e-3874-4eaf-9e39-f1352f903b29/scratchpad/meshy-work-b/meshy_out/skeeter_concept/image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "texture_prompt": "giant mosquito, dark olive brown hairy thorax, rust red blood swollen abdomen with dark brown bands, glossy red compound eyes, long black proboscis, thin dark brown legs, pale cream grey wings with dark veins"
+}
