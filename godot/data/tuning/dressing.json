@@ -1,0 +1,152 @@
+{
+	"_about": [
+		"Looks a map opts into (pass 16, LOOKS; src/map_kit/): foliage scattered on natural ground, dressing as hand-made vignettes set against walls, water (ponds, creeks, troughs) and the ground rules all three keep to. No chapter uses any of it.",
+		"foliage: kind -> pictures (camera-facing sprites, one picked a plant), height [least, most] in cells, spacing (the least distance between two plants of the kind at density 1), block (the trunk's half width that stops a body; 0 none), wall (how far off a wall it stands), ground (the floors it grows on; missing: natural), near_water (it grows only within that many cells of water).",
+		"vignettes: a group of things that belong together, made by hand, set with its back to a wall: id -> themes, where (outside, inside or any), by_door (it wants a door within 4 cells along its wall, never in front of it), size [along the wall, out from it] in whole cells, items: a town prop (prop, at [along, out] from the run's corner at the wall face, solid: a base that blocks, that half wide; scale) or a fixture (box [along, out] half sizes, at, top, side and cap tiles).",
+		"themes: the names a dress object may ask for. water: how deep a bed is carved and how its shore is drawn. clear: how far scatter and dressing keep off the way (route), doors, objectives, spawns, roads and other things. budget: how much foliage a map may have."
+	],
+	"natural": ["grass", "dirt", "orchard", "bayou_mud", "bayou_bank", "bayou_marsh"],
+	"roads": ["road", "asphalt", "oil_asphalt", "tracks", "gravel", "shoulder", "fair_gravel", "track_dirt", "track_chalk", "hub_patch", "concrete"],
+	"water_tiles": ["creek", "mill_water", "bayou_water", "bayou_deep"],
+	"clear": {
+		"route": 1.5,
+		"door": 1.5,
+		"objective": 1.5,
+		"spawn": 1.5,
+		"road": 1.5,
+		"thing": 0.8,
+		"board": 0.6,
+		"vignettes": 4.0
+	},
+	"budget": {
+		"most": 360,
+		"block": 6,
+		"most_block": 16,
+		"count_reach": 24.0,
+		"most_seen": 170
+	},
+	"foliage": {
+		"grass": {"pictures": ["foliage_grass_0", "foliage_grass_1", "foliage_grass_2"], "height": [0.26, 0.42], "spacing": 0.9, "block": 0.0, "wall": 0.15},
+		"weeds": {"pictures": ["foliage_weeds_0", "foliage_weeds_1"], "height": [0.42, 0.72], "spacing": 1.3, "block": 0.0, "wall": 0.2},
+		"scrub": {"pictures": ["foliage_bush_0", "foliage_bush_1"], "height": [0.7, 1.1], "spacing": 2.2, "block": 0.0, "wall": 0.4},
+		"tree": {"pictures": ["prop_tree"], "height": [3.2, 4.2], "spacing": 3.6, "block": 0.2, "wall": 1.2},
+		"pine": {"pictures": ["foliage_pine_0", "foliage_pine_1"], "height": [3.8, 5.2], "spacing": 3.0, "block": 0.2, "wall": 1.1},
+		"cypress": {"pictures": ["foliage_cypress", "foliage_cypress_b"], "height": [3.6, 4.8], "spacing": 3.4, "block": 0.28, "wall": 1.2, "ground": ["grass", "dirt", "bayou_mud", "bayou_bank", "bayou_marsh", "bayou_water"]},
+		"snag": {"pictures": ["foliage_snag"], "height": [2.8, 3.4], "spacing": 4.0, "block": 0.16, "wall": 1.0},
+		"corn": {"pictures": ["foliage_corn_0", "foliage_corn_1"], "height": [1.7, 2.1], "spacing": 0.85, "block": 0.0, "wall": 0.3, "ground": ["dirt", "grass", "orchard"]},
+		"reeds": {"pictures": ["prop_reeds"], "height": [0.5, 0.78], "spacing": 1.0, "block": 0.0, "wall": 0.2, "ground": ["grass", "dirt", "bayou_mud", "bayou_bank", "bayou_marsh"], "near_water": 1.6}
+	},
+	"themes": ["farm", "junk", "church", "fair", "yard_sale", "shine", "garage", "swamp", "house", "store"],
+	"vignettes": {
+		"porch_sittin": {"themes": ["farm", "house", "yard_sale"], "where": "outside", "by_door": true, "size": [4, 2],
+			"items": [
+				{"prop": "porch_couch", "at": [1.2, 0.55], "solid": 0.3},
+				{"prop": "cooler", "at": [2.45, 0.4]},
+				{"prop": "rocker", "at": [3.3, 0.6]},
+				{"prop": "bug_zapper", "at": [3.75, 0.25]}
+			]},
+		"junk_pile": {"themes": ["junk", "farm", "garage"], "where": "outside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "tire_pile", "at": [1.15, 0.6], "solid": 0.4},
+				{"prop": "fridge", "at": [2.55, 0.45], "solid": 0.3},
+				{"prop": "warning_barrel", "at": [3.4, 0.4], "solid": 0.25},
+				{"prop": "tire_stack", "at": [3.5, 1.3]}
+			]},
+		"wash_day": {"themes": ["house", "farm", "yard_sale"], "where": "outside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "laundry", "at": [1.6, 0.9]},
+				{"prop": "washer", "at": [3.3, 0.45], "solid": 0.3},
+				{"prop": "bathtub", "at": [0.8, 0.45]}
+			]},
+		"wood_pile": {"themes": ["farm", "house", "swamp"], "where": "outside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "log_pile", "at": [1.45, 0.75], "solid": 0.45},
+				{"prop": "axe_stump", "at": [3.1, 0.9]},
+				{"prop": "wheelbarrow", "at": [3.3, 0.35]}
+			]},
+		"stock_corner": {"themes": ["farm"], "where": "outside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"box": [0.9, 0.3], "at": [1.1, 0.45], "top": 0.45, "side": "tin", "cap": "creek"},
+				{"prop": "range_hay_bale", "at": [2.55, 0.45], "solid": 0.3},
+				{"prop": "range_hay_bale", "at": [3.45, 0.5], "solid": 0.3},
+				{"prop": "range_hay_bale", "at": [3.0, 0.5], "scale": 0.9, "z": 0.62}
+			]},
+		"chicken_yard": {"themes": ["farm", "house"], "where": "outside", "by_door": false, "size": [3, 2],
+			"items": [
+				{"prop": "chicken_coop", "at": [1.0, 0.8], "solid": 0.45},
+				{"prop": "wheelbarrow", "at": [2.4, 0.4]}
+			]},
+		"church_yard": {"themes": ["church"], "where": "outside", "by_door": false, "size": [5, 2],
+			"items": [
+				{"prop": "tombstone_a", "at": [0.7, 0.9]},
+				{"prop": "tombstone_c", "at": [1.7, 1.0]},
+				{"prop": "tombstone_b", "at": [2.7, 0.9]},
+				{"prop": "tombstone_a", "at": [3.7, 1.0], "scale": 0.9},
+				{"prop": "lantern_post", "at": [4.6, 0.3]}
+			]},
+		"church_social": {"themes": ["church", "fair"], "where": "outside", "by_door": true, "size": [4, 2],
+			"items": [
+				{"prop": "picnic_table", "at": [1.5, 1.0], "solid": 0.45},
+				{"prop": "ice_chest", "at": [3.1, 0.4]},
+				{"prop": "grill", "at": [3.6, 0.5], "solid": 0.25}
+			]},
+		"fair_corner": {"themes": ["fair", "yard_sale"], "where": "outside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "camp_chairs", "at": [1.1, 0.6]},
+				{"prop": "cooler", "at": [2.2, 0.4]},
+				{"prop": "trophy_gnome", "at": [3.0, 0.5]},
+				{"prop": "flamingo", "at": [3.6, 1.1]}
+			]},
+		"yard_sale": {"themes": ["yard_sale", "junk"], "where": "outside", "by_door": false, "size": [5, 2],
+			"items": [
+				{"prop": "picnic_table", "at": [1.4, 1.0], "solid": 0.45},
+				{"prop": "trophy_gnome", "at": [2.8, 0.5]},
+				{"prop": "mailbox_row", "at": [3.6, 0.3]},
+				{"prop": "flamingo", "at": [4.4, 1.0]},
+				{"prop": "flamingo", "at": [4.6, 0.6], "scale": 0.92}
+			]},
+		"shine_nook": {"themes": ["shine", "swamp"], "where": "any", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "still", "at": [1.2, 0.5], "solid": 0.35},
+				{"prop": "mash_barrel", "at": [2.75, 0.75], "solid": 0.45},
+				{"prop": "jug_stack", "at": [3.5, 1.5]}
+			]},
+		"tinker_corner": {"themes": ["garage", "junk"], "where": "any", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "engine_stand", "at": [1.0, 0.7], "solid": 0.3},
+				{"prop": "tool_chest", "at": [2.2, 0.3], "solid": 0.25},
+				{"prop": "gas_cans", "at": [2.95, 0.35]},
+				{"prop": "tire_stack", "at": [3.5, 0.45], "solid": 0.25}
+			]},
+		"bait_shack": {"themes": ["swamp"], "where": "outside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "crawfish_traps", "at": [1.0, 0.5]},
+				{"prop": "net_rack", "at": [2.4, 0.35]},
+				{"prop": "outboard_stand", "at": [3.5, 0.55], "solid": 0.3}
+			]},
+		"back_room": {"themes": ["house"], "where": "inside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "bunk", "at": [1.1, 0.5], "solid": 0.4},
+				{"prop": "strongbox", "at": [2.5, 0.35]},
+				{"prop": "ice_chest", "at": [3.35, 0.4]}
+			]},
+		"store_back": {"themes": ["store", "garage"], "where": "inside", "by_door": false, "size": [4, 2],
+			"items": [
+				{"prop": "pallet_stack", "at": [1.0, 0.6], "solid": 0.4},
+				{"prop": "jug_stack", "at": [2.3, 0.4]},
+				{"prop": "gas_cans", "at": [3.0, 0.35]},
+				{"prop": "safe_open", "at": [3.55, 0.5], "solid": 0.3}
+			]}
+	},
+	"water": {
+		"bed": 0.35,
+		"deep": 0.8,
+		"deep_from": 2,
+		"bank": 1,
+		"tile": "creek",
+		"deep_tile": "bayou_deep",
+		"shore": "bayou_bank",
+		"bridge_tile": "bayou_planks",
+		"bridge_top": 0.06
+	}
+}

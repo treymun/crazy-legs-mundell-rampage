@@ -72,6 +72,7 @@ const ALL := [
 	preload("res://src/features/hurt_looks.gd"),
 	preload("res://src/features/director.gd"),
 	preload("res://src/features/rampage.gd"),
+	preload("res://src/features/area_moods.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES
@@ -109,6 +110,7 @@ const LOOKS := [
 	"trail_marker",
 	"danger_looks",
 	"hurt_looks",
+	"area_moods",
 ]
 
 

@@ -503,6 +503,11 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 			lv.area_sounds[LevelData._int(key)] = str(j["area_sounds"][key])
 	for key: Variant in j.get("area_cues", {}):
 		lv.area_cues[LevelData._int(key)] = str(j["area_cues"][key])
+	lv.mood = str(j.get("mood", ""))
+	var moods: Variant = j.get("area_moods", {})
+	if moods is Dictionary:
+		for key: Variant in moods:
+			lv.area_moods[LevelData._int(key)] = str(moods[key])
 	if j.get("extraction") != null:
 		var ex: Dictionary = j["extraction"]
 		var exit := LevelData.Extraction.new()

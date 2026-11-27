@@ -492,6 +492,40 @@ rules and the refusals; `tools/ways_check.gd` holds it).
 - A `Geo.wall()` standing on an upper floor (`z0` over 0) cuts an opening
   with no `sill` from its own foot.
 
+## The looks layer (pass 16, LOOKS)
+
+Moods by area, foliage, vignettes, water and set-piece hooks, laid over a
+built level by one call, `MapLooks.apply(level, looks)`
+(`src/map_kit/map_looks.gd`; typed, no clock, no dice beyond each object's
+seed, so a player map compiles to the same level everywhere). Every part is
+opt-in: no chapter uses it, `tools/looks_map_check.gd` holds that no level in
+`data/` names a mood, and the identity rebuild is unchanged. The pieces:
+
+- `looks_grid.gd` (`MapLooksGrid`): a built level read by tile name, where a
+  body walks (thin walls close edges), the way through (from the start to
+  every objective, kept off the walls), what to keep clear, and the writers
+  (sprites, low bases that block, fixtures with their walls and caps);
+- `foliage.gd`: Poisson-disc scatter on natural ground, in the open, clear
+  of the way, doors, objectives, spawns and roads; trunks get a base; a map
+  holds at most 360 plants, 16 in any 6 x 6 cells;
+- `dressing.gd`: vignettes from `data/tuning/dressing.json`, hand-made
+  groups set against walls (`dress` picks them from a seed and hands back
+  the vignette objects it chose; the owner's placing rule above stands:
+  nothing scatters things to fill ground);
+- `water.gd`: ponds and creeks carved as terrain beds (geometry version 2)
+  with water, deep water and shore tiles, a plank bridge where a creek
+  crosses a road, troughs;
+- `set_piece_hooks.gd`: the chapters' barns, towers and fuel lines on any
+  map, checked for room to stand and fall (`set_piece_check.gd --
+  level=<file>` runs a map's);
+- moods: the level's `"mood"` and `"area_moods"` (`LevelData.mood`,
+  `area_moods`), presets in effects.cfg `[mood.*]`, blended by the view
+  ([view3d.md](view3d.md#moods-by-area-pass-16)).
+
+`tools/looks_demo.gd` is the 64 x 48 demo farm that uses all of it; the
+guide's notes, examples, codes and limits are in
+[docs/map_notes/t6.md](../map_notes/t6.md).
+
 ## Editing a level by hand
 
 `godot/data/<id>.json` is the source for a level not built from a plan. Change

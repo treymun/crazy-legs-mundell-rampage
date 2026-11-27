@@ -925,6 +925,21 @@ model by `prop_layer.gd` with the model's height and width): trees, flags
 and scarecrows bend from the ground, laundry, a hanging sign or a crane hook
 swing from their top (the posts at the ends stay), stilled by SCENERY MOTION.
 
+### Moods by area (pass 16)
+
+A map may name a mood for itself and for each district (levels.md "The
+looks layer"; no chapter does). `features/area_moods.gd` (`AreaMoodsFeature`,
+id `moods`, a LOOKS feature with no tick) answers `now(x, y, clock)`: {} on a
+level with no mood, so `WorldView3D._effects` reads `Effects.mood` as it
+always did; else the frame's fog colour and range, grade, fog banks and the
+share of the rain drawn, each preset (effects.cfg `[mood.<name>]`) over the
+level's mood over the level's own values, eased over `[moods] blend` (1.5 s,
+a smoothstep) when the player crosses into a district with another, taken at
+once on a jump of over `snap` cells or a frame at the same clock (a picture
+tour). `_effects` is the only place in world_view.gd that reads it; the gun's
+light (`view_lights.gd gun_light`) takes the blended grade, and ambient's
+crows and fireflies the mood's flags. Nothing is carried or saved.
+
 ### County Run's storm front
 
 (Track L, after v3.2.0.) `world_view.gd _storm` stands two open cylinders

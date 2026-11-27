@@ -23,6 +23,10 @@ static var GLOW := {}
 static var LEVELS := {}
 ## tile name -> {mode, rate, depth}: tiles that move
 static var ANIMS := {}
+## mood name -> its values ([mood.<name>], pass 16: moods by area; a map opts
+## in, features/area_moods.gd blends them), and [moods] (blend, snap).
+static var MOODS := {}
+static var MOOD_BLEND := {}
 ## [debris]: how long the leavings of a fight last
 static var DEBRIS := {}
 ## [ragdoll]: how a kill throws a dead body's limbs (src/ragdoll.gd)
@@ -70,6 +74,8 @@ static func load_tuning() -> void:
 	GLOW = {}
 	LEVELS = {}
 	ANIMS = {}
+	MOODS = {}
+	MOOD_BLEND = {}
 	DEBRIS = {}
 	RAGDOLL = {}
 	WATER = {}
@@ -98,6 +104,10 @@ static func load_tuning() -> void:
 			LEVELS[section.substr(6)] = values
 		elif section.begins_with("anim."):
 			ANIMS[section.substr(5)] = values
+		elif section.begins_with("mood."):
+			MOODS[section.substr(5)] = values
+		elif section == "moods":
+			MOOD_BLEND = values
 		elif section == "debris":
 			DEBRIS = values
 		elif section == "ragdoll":
@@ -137,6 +147,12 @@ static func num(section: String, key: String, fallback: Variant) -> Variant:
 ## A level's mood value, or `fallback` for a level effects.cfg does not name.
 static func mood(level_id: String, key: String, fallback: Variant) -> Variant:
 	var values: Dictionary = LEVELS.get(level_id, {})
+	return values.get(key, fallback)
+
+
+## A mood preset's value ([mood.<name>]), or `fallback` where it sets none.
+static func preset(mood_name: String, key: String, fallback: Variant) -> Variant:
+	var values: Dictionary = MOODS.get(mood_name, {})
 	return values.get(key, fallback)
 
 

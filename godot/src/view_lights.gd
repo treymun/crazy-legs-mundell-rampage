@@ -171,6 +171,9 @@ static func gun_light(g: GameView) -> Color:
 		var strength: float = l[5]
 		sum += Vector3(c.r, c.g, c.b) * strength * reach * reach
 	var tone: Color = Effects.mood(g.level.id, "grade", Color(1, 1, 1))
+	var moods: AreaMoodsFeature = g.features.get("moods")
+	if moods != null:
+		tone = moods.value("grade", tone)  # a map's mood where he stands
 	sum *= Vector3(tone.r, tone.g, tone.b) * (1.0 + g.lightning * .5)
 	# In a blackout the gun is in the dark but for the flashlight's spill.
 	var county: CountyEvents = g.features.get("events")
