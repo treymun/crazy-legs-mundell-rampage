@@ -1,0 +1,115 @@
+{
+ "kind": "shield_deputy",
+ "rigged": "../meshy-work-b/meshy_out/shield_deputy_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/shield_deputy_poses.json",
+ "old_glb": "../meshy-work-b/old/shield_deputy.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_shield_deputy.png",
+ "out": "../meshy-work-b/raw/shield_deputy",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.4,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "face_uv": {
+  "auto": true,
+  "k": 3.5,
+  "brim_k": 1.4,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_keep": {
+  "light": 1.0,
+  "eyes": 1.6,
+  "eye_sat": 0.15,
+  "soften": 0.5
+ },
+ "face_box": {
+  "auto": true,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "grip_parts": {
+  "r": [
+   "b57"
+  ],
+  "l": [
+   "b61"
+  ]
+ },
+ "gear_skip": [
+  "b57",
+  "b61"
+ ],
+ "gear_extra": [
+  "b25"
+ ],
+ "item_types": {
+  "r": "pistol",
+  "l": "hold"
+ },
+ "follow_old": [
+  "gear1"
+ ],
+ "skin_zones": [
+  "head",
+  "hand_l",
+  "hand_r"
+ ],
+ "recolour": [
+  {
+   "name": "hat",
+   "z": [
+    0.93,
+    1.1
+   ],
+   "to": [
+    74,
+    54,
+    40
+   ],
+   "contrast": 0.45,
+   "not_skin": false,
+   "not_face": true
+  },
+  {
+   "name": "shirt",
+   "z": [
+    0.5,
+    0.845
+   ],
+   "hue": [
+    15,
+    55
+   ],
+   "sat": [
+    0.1,
+    0.7
+   ],
+   "val": [
+    0.25,
+    1
+   ],
+   "to": [
+    162,
+    138,
+    98
+   ],
+   "contrast": 0.55,
+   "not_face": true
+  }
+ ],
+ "hold_out": {
+  "gear1": 0.12
+ }
+}

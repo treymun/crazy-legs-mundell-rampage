@@ -27,7 +27,19 @@ and ears toned warm at their own light; dark hair/hat left out by a light
 floor, r-b and saturation tests), hands skin_even tone [176,116,92] light
 .88 face_even 0 + hand_smooth 2; recolour fedora z .94+ charcoal, back hair
 x +-.065 y > .03 dark (the tone speckled them orange)).
-NEXT: shield_deputy (concept + model + rig bought), then still_buster.
+44b revenooer (0 cr; hair recolour boxes: hair_top z .917-.94 not_face,
+hair_back z .885-.917 y>.05, hair_nape |x|<.065 y>.03; fedora_back; collar).
+45 shield_deputy (44 cr; revolver r pistol, the riot-door shield l "hold"
+with "follow_old" [gear1] (new: the shield keeps the old one's own motion,
+the hand put on it as at the standing key - riding the new forearm's turn
+swung it out flat) and "hold_out" {gear1: .12} (new: the shield 12 cm
+ahead of the hand, the fist behind it, not through its window);
+grip_parts r b57 l b61 + gear_skip the same (the old hands shrink with the
+gear); gear_extra b25 (gold star); skin_zones head+hands (sleeves); hat
+and shirt recolours. Open: the back of the hat brim stays tan (recolour
+boxes by z/y did not reach it - its texels may share UV space; not solved).
+NEXT: still_buster (concept + model + rig bought; fire axe, chop overhead),
+then tin_guard, tire_roller, valve_rat, drone, skeeter.
 Mundell notes: the player kind is no enemy - the enemy tour, live_frames
 probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
 in-game sheet is tools/mode_frames.gd only=mundell (new: gd.sh, old:
@@ -84,6 +96,8 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   it: "face_lift_most" 1.15 for a full beard).
 - face_uv for a hard hat: "brim_k" 1.4 (.7 shrank the whole hat and the
   face's other islands: blockier), "z" [-.16, .2], "r" .2, k 3-4.5.
+- build_actor "follow_old" [gear bones], "hold_out" {gear: m} (one-hand
+  things: shields).
 - face_keep "gain" (absolute light), "tone"/"tone_k"/"tone_floor"/
   "tone_zone" "head" (warm a grey Meshy skin), "soften", "unhue".
 - build_actor recolour rule "not_face": true leaves FACEZONE out.

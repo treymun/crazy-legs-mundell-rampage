@@ -2474,7 +2474,31 @@ def solve(name, dz=0.0, held0=None):
                 wrist0, a0, n0 = HANDF.get(side, (None, Vector((0, 0, -1)), Vector((1, 0, 0))))
                 Rh = D["hand_" + side].to_3x3()
                 palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (it["rad"] + .028 * OLD_H / 1.7)
-                Di = Matrix.Translation(palm - grip)
+                # (kind config "hold_out" {gear bone: m}: the thing that far
+                # further ahead of the hand - a shield held by a handle behind
+                # it, not a fist through its middle)
+                fwd0 = -Vector((R_t @ T0).col[2])
+                Di = Matrix.Translation(palm - grip + fwd0 * float(CFG.get("hold_out", {}).get(it["bone"], 0.0)))
+            elif it["bone"] in CFG.get("follow_old", []) and old_bone(name, it["big"])[2].x > .2:
+                # (kind config "follow_old" [gear bones]: a one-handed thing
+                # that keeps the old one's own motion from the standing key -
+                # a riot shield held up in front: riding the new forearm's
+                # turn swung it out flat to the side - and the hand is put on
+                # it as it held it at the standing key)
+                p0_, r0_, _s0 = old_bone("0", it["big"])
+                p1_, r1_, _s1 = old_bone(name, it["big"])
+                old_d_ = Matrix.Translation(p1_) @ (r1_ @ r0_.inverted()).to_4x4() @ Matrix.Translation(-p0_)
+                Di = held0["@" + it["bone"]] @ old_d_
+                Dh_t = Di @ held0["@" + it["bone"]].inverted() @ held0["hand_" + side]
+                sh_f = at(J["upperarm_" + side])
+                out = 1.0 if side == "l" else -1.0
+                pole = R_t @ Vector((out * .4, .2, -1.0))
+                R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                            sh_f, Dh_t @ J["wrist_" + side], pole, Vector((0, -1, 0)))
+                D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+                D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+                D["hand_" + side] = Dh_t
+                joints["miss"][side] = (wr_f - Dh_t @ J["wrist_" + side]).length
             else:
                 Di = D["hand_" + side] @ held0["hand_" + side].inverted() @ held0["@" + it["bone"]]
             hang_ = None

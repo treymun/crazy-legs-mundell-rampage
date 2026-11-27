@@ -184,5 +184,13 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad sun-tanned face lit evenly, wide-open eyes with clear whites and dark pupils under thick dark brows, a strong nose, a thick dark brown moustache, a stern no-nonsense frown, short dark hair under the hat, clean skin, the face fully in light under the hat brim",
   "texture": "county deputy, dark brown round brimmed hat, tan khaki uniform shirt with gold star badge, dark brown trousers, black duty belt, black boots, tanned clean skin, dark moustache, clear face with eye whites, bare hands, empty hands, no weapon, no shield",
   "height": 1.78
+ },
+ "still_buster": {
+  "refs": "cel",
+  "who": "1990s government still-buster raid agent, a burly revenue officer who smashes moonshine stills with a fire axe",
+  "design": "WEARING a navy-blue peaked officer's cap with a small gold badge on his head, a navy-blue uniform jacket buttoned up with brass buttons and a gold shield badge on the left chest, the sleeves down to the wrists, navy-blue uniform trousers, a brown leather belt, black boots, a big burly natural build with broad shoulders and strong arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy face with a square jaw lit evenly, wide-open eyes with clear whites and dark pupils under heavy dark brows set in a determined glare, a big nose, a thick black handlebar moustache, a clean-shaven chin, short dark hair under the cap, clean skin, the face fully in light under the cap's peak",
+  "texture": "raid officer, navy peaked cap with gold badge, navy uniform jacket with brass buttons and gold badge, navy trousers, brown belt, black boots, ruddy clean skin, black handlebar moustache, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.72
  }
 }
