@@ -208,5 +208,13 @@
   "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad tanned face lit evenly, a shaved bald head, wide-open eyes with clear whites and dark pupils under heavy dark brows set in a mean scowl, a big flat boxer's nose, thick dark mutton-chop sideburns joined to a bushy dark horseshoe moustache, a clean-shaven chin, clean skin, the face fully in light",
   "texture": "speedway tire man, off-white sleeveless undershirt, mustard orange bib overalls, black rubber knee pads, grey work boots, tanned clean skin, bald head, dark mutton chop sideburns and horseshoe moustache, clear face with eye whites, bare hands, empty hands, no tire, no props",
   "height": 1.69
+ },
+ "valve_rat": {
+  "refs": "cel",
+  "who": "1990s moonshine-still valve rat, a short wiry hunched little sewer-and-still tinkerer who shoots darts out of a brass pipe",
+  "design": "WEARING a greasy dark grey flat newsboy cap, a dark leather eye patch strapped over the left eye, a worn brown canvas work jacket with the collar up and patched elbows, a grimy cream shirt under it, dark grey work trousers, scuffed black boots, a small wiry natural build, a short man (about four feet tall) with slightly stooped shoulders and long thin arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a narrow weathered face lit evenly, one wide-open right eye with a clear white and a dark pupil under a bushy grey brow, the dark eye patch over the other eye, a long pointed nose, a sly crooked grin showing a gap tooth, grey stubble on the chin, wisps of grey hair under the cap, clean readable skin, the face fully in light under the cap's peak",
+  "texture": "valve rat, dark grey flat cap, black leather eye patch, brown canvas work jacket with patched elbows, cream shirt, dark grey trousers, black boots, weathered tan skin, grey stubble, one clear eye with a white, bare hands, empty hands, no weapon, no pipe",
+  "height": 1.22
  }
 }

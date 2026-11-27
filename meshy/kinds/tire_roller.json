@@ -30,7 +30,7 @@
  },
  "face_keep": {
   "light": 0.88,
-  "eyes": 1.6,
+  "eyes": 0,
   "eye_sat": 0.15,
   "soften": 0.5,
   "tone": [
@@ -226,126 +226,54 @@
     126,
     100
    ],
-   "contrast": 0.6,
-   "smooth": 3,
+   "contrast": 0.4,
+   "smooth": 5,
    "not_skin": false,
    "not_hands": true,
    "not_face": true
   },
   {
-   "to": [
-    184,
-    126,
-    100
-   ],
-   "not_skin": false,
-   "not_hands": true,
-   "sat": [
-    0,
-    0.6
-   ],
-   "name": "scalp",
-   "z": [
-    0.935,
-    1.1
-   ],
-   "val": [
-    0.1,
-    1
-   ],
-   "not_face": true,
-   "smooth": 3,
-   "contrast": 0.6
-  },
-  {
-   "to": [
-    184,
-    126,
-    100
-   ],
-   "not_skin": false,
-   "not_hands": true,
-   "sat": [
-    0,
-    0.6
-   ],
-   "name": "nape",
+   "name": "head",
    "z": [
     0.8,
-    0.935
-   ],
-   "y": [
-    0.02,
-    9
-   ],
-   "val": [
-    0.1,
-    1
-   ],
-   "smooth": 3,
-   "contrast": 0.6
-  },
-  {
-   "name": "by_ears",
-   "z": [
-    0.86,
-    0.935
-   ],
-   "x": [
-    -9,
-    -0.075
-   ],
-   "y": [
-    -0.04,
-    9
-   ],
-   "val": [
-    0.22,
-    1
+    1.1
    ],
    "sat": [
     0,
     0.6
+   ],
+   "val": [
+    0.26,
+    1
    ],
    "to": [
     184,
     126,
     100
    ],
-   "contrast": 0.6,
-   "smooth": 3,
+   "contrast": 0.35,
+   "smooth": 6,
+   "not_face": true,
    "not_skin": false,
    "not_hands": true
   },
   {
-   "name": "by_ears_l",
-   "z": [
-    0.86,
-    0.935
-   ],
-   "x": [
-    0.075,
-    9
-   ],
-   "y": [
-    -0.04,
-    9
-   ],
+   "name": "face_hi",
+   "only_face": true,
    "val": [
-    0.22,
+    0.72,
     1
    ],
    "sat": [
     0,
-    0.6
+    0.45
    ],
    "to": [
-    184,
-    126,
-    100
+    200,
+    140,
+    112
    ],
-   "contrast": 0.6,
-   "smooth": 3,
+   "contrast": 0.2,
    "not_skin": false,
    "not_hands": true
   }

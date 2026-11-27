@@ -99,6 +99,12 @@ undershirt smooth recolour boxed to the torso (|x| < .2: else the arms'
 pale skin went cream). Known: the live probe shows the tire 8-10 cm in
 the body in the pain reaction (key 9) though the old pain key hides it
 (scale 0) - the live view seems to show it; not solved.
+48b tire_roller (0 cr; coordinator: dark band across the crown, a tone
+step down the nape, pale specks): ONE "head" recolour z .80-1.1 not_face
+val .26+ contrast .35 smooth 6 (separate scalp/nape/ear rules each had
+their own median: the steps), "face_hi" only_face val .72+ pulled to a
+warm tan (Meshy's sweat highlights clipped to white specks), face_keep
+eyes 0, chest_skin contrast .4 smooth 5.
 NEXT: valve_rat, drone
 (alien grey, see 05b alien.json), skeeter (dumps ok=false: a bug - beast
 path; see the beast-path section). check_all quick batch 2 (44-46)
