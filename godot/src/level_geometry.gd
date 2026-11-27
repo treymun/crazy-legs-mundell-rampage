@@ -38,6 +38,9 @@ const STEEPEST := 1.0
 const THINNEST := .08
 ## Index cells reach this far past a piece (a body's radius and then some).
 const PAD := .75
+## The sight index's reach past a piece (a sight line's step tests .023 round
+## it, LevelSight).
+const SIGHT_PAD := .03
 ## How a nav edge is walked: sub-steps from cell middle to cell middle.
 const NAV_STEPS := 8
 ## The nav graph's body radius (FlowField.BODY).
@@ -219,6 +222,18 @@ var height := 0
 var _index := {}
 ## cell -> Array of the slabs and ceilings over its footprint (for headroom).
 var _over := {}
+## cell -> Array of the slabs and segments within SIGHT_PAD of it: all a sight
+## line's step in it can meet (LevelSight's tests reach .023), so its tests
+## and its bands ask these and never the rest of the cell's PAD list.
+var _sight := {}
+## 1 for a cell the sight index lists anything under.
+var sight_cells := PackedByteArray()
+## cell -> its sight index's pieces as boxes for sight_first(), SIGHT_BOX
+## numbers each: x0, y0, x1, y1 (a segment's grown by its half), the lowest
+## and highest they fill, 1 when they stop a look (a slab, a segment that
+## stops sight), 0 a rail's.
+var _sight_boxes := {}
+const SIGHT_BOX := 7
 ## 1 for a cell the index lists anything under.
 var cells := PackedByteArray()
 ## The heights that may stop a sight line in each cell: for cell c the
@@ -377,11 +392,14 @@ static func _tile(tile_index: Dictionary, name: Variant, errors: Array, owner: S
 func _build_index() -> void:
 	_index = {}
 	_over = {}
+	_sight = {}
 	cells = PackedByteArray()
 	cells.resize(width * height)
 	cells.fill(0)
+	var sp := SIGHT_PAD
 	for slab in slabs:
 		_put(_index, slab.x0 - PAD, slab.y0 - PAD, slab.x1 + PAD, slab.y1 + PAD, slab, true)
+		_put(_sight, slab.x0 - sp, slab.y0 - sp, slab.x1 + sp, slab.y1 + sp, slab, false)
 		if slab.thick >= 0.0:
 			_put(_over, slab.x0, slab.y0, slab.x1, slab.y1, slab, false)
 	for seg in segments:
@@ -394,6 +412,55 @@ func _build_index() -> void:
 			seg,
 			true
 		)
+		var reach := sp + seg.half
+		_put(
+			_sight,
+			minf(seg.ax, seg.bx) - reach,
+			minf(seg.ay, seg.by) - reach,
+			maxf(seg.ax, seg.bx) + reach,
+			maxf(seg.ay, seg.by) + reach,
+			seg,
+			false
+		)
+	sight_cells = PackedByteArray()
+	sight_cells.resize(width * height)
+	sight_cells.fill(0)
+	_sight_boxes = {}
+	for c: int in _sight:
+		sight_cells[c] = 1
+		var boxes := PackedFloat64Array()
+		for item: Variant in _sight[c]:
+			if item is Slab:
+				var sl: Slab = item
+				boxes.append_array(
+					PackedFloat64Array(
+						[
+							sl.x0,
+							sl.y0,
+							sl.x1,
+							sl.y1,
+							-1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick,
+							sl.top_max(),
+							1.0
+						]
+					)
+				)
+			else:
+				var g: Segment = item
+				boxes.append_array(
+					PackedFloat64Array(
+						[
+							minf(g.ax, g.bx) - g.half,
+							minf(g.ay, g.by) - g.half,
+							maxf(g.ax, g.bx) + g.half,
+							maxf(g.ay, g.by) + g.half,
+							g.z0,
+							g.top_max(),
+							1.0 if g.sight else 0.0
+						]
+					)
+				)
+		_sight_boxes[c] = boxes
 	for c in ceilings:
 		_put(_over, c.x0, c.y0, c.x1, c.y1, c, true)
 	_build_sight_bands()
@@ -412,7 +479,7 @@ func _build_sight_bands() -> void:
 		if cells[c] == 0:
 			continue
 		var spans: Array[Vector2] = []
-		for item: Variant in _index.get(c, NOTHING):
+		for item: Variant in _sight.get(c, NOTHING):
 			if item is Slab:
 				var sl: Slab = item
 				var low := -1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick
@@ -441,8 +508,9 @@ func _build_sight_bands() -> void:
 
 
 ## Whether a sight line's step from height z0 to z1 ending in cell c meets
-## nothing of the geometry: z1 in no band and no band between z0 and z1, so
-## neither solid_point() nor crosses() could stop it there. False: ask them
+## nothing of the geometry (the pieces within SIGHT_PAD of the cell): z1 in
+## no band and no band between z0 and z1, so neither solid_point() nor
+## crosses() could stop it there. False: ask them
 ## (it never says clear where they would not).
 func sight_clear(c: int, z0: float, z1: float) -> bool:
 	for k in range(sight_band_at[c], sight_band_at[c + 1], 2):
@@ -453,6 +521,123 @@ func sight_clear(c: int, z0: float, z1: float) -> bool:
 		if (z0 < low) != (z1 < low) or (z0 > high) != (z1 > high):
 			return false
 	return true
+
+
+## A sight line's step at (x, y) in cell c (its own cell, marked): whether a
+## body's flat test there (blocks() at .023, the floor `ground`) meets a
+## piece; over the sight index, so the same answers as blocks().
+func sight_blocks(c: int, x: float, y: float, ground: float) -> bool:
+	var items: Array = _sight.get(c, NOTHING)
+	return blocks_in(items, x, y, .023, ground + STEP, ground + BODY)
+
+
+## solid_point(x, y, z, .023, false) for a sight line's step in cell c.
+func sight_point(c: int, x: float, y: float, z: float) -> bool:
+	for item: Variant in _sight.get(c, NOTHING):
+		if item is Slab:
+			var s: Slab = item
+			if s.near(x, y, .023) and z <= s.top_at(x, y) and z >= s.bottom_at(x, y):
+				return true
+		else:
+			var g: Segment = item
+			if g.sight and z >= g.z0 and z <= g.top_near(x, y, .023):
+				var reach := .023 + g.half
+				if g.dist2(x, y) < reach * reach:
+					return true
+	return false
+
+
+## Where on the stretch of a sight line from (x, y, z) along (dx, dy, dz),
+## from t0 to t1, it might first meet a piece of cell c's sight index (INF:
+## nowhere): each piece's box grown by a step's reach, clipped to the stretch
+## (Liang-Barsky), and its heights over that against the piece's. `flat`: a
+## look without heights, tested at the floor `ground` as sight_blocks() is.
+## Before the answer no step meets one (sight_point, sight_crosses,
+## sight_blocks); after it one only might.
+func sight_first(
+	c: int,
+	x: float,
+	y: float,
+	z: float,
+	dx: float,
+	dy: float,
+	dz: float,
+	t0: float,
+	t1: float,
+	flat: bool,
+	ground: float
+) -> float:
+	var first := INF
+	var step_lo := ground + STEP
+	var body_hi := ground + BODY
+	var reach := .023 + 1e-4
+	var boxes: PackedFloat64Array = _sight_boxes.get(c, PackedFloat64Array())
+	for o in range(0, boxes.size(), SIGHT_BOX):
+		var low := boxes[o + 4]
+		var high := boxes[o + 5]
+		if flat:
+			if high <= step_lo or low >= body_hi:
+				continue
+		elif boxes[o + 6] == 0.0:
+			continue
+		var lo := t0
+		var hi := minf(t1, first)
+		var gx0 := x - (boxes[o] - reach)
+		var gx1 := (boxes[o + 2] + reach) - x
+		var gy0 := y - (boxes[o + 1] - reach)
+		var gy1 := (boxes[o + 3] + reach) - y
+		if dx == 0.0:
+			if gx0 < 0.0 or gx1 < 0.0:
+				continue
+		elif dx > 0.0:
+			lo = maxf(lo, -gx0 / dx)
+			hi = minf(hi, gx1 / dx)
+		else:
+			lo = maxf(lo, gx1 / dx)
+			hi = minf(hi, -gx0 / dx)
+		if dy == 0.0:
+			if gy0 < 0.0 or gy1 < 0.0:
+				continue
+		elif dy > 0.0:
+			lo = maxf(lo, -gy0 / dy)
+			hi = minf(hi, gy1 / dy)
+		else:
+			lo = maxf(lo, gy1 / dy)
+			hi = minf(hi, -gy0 / dy)
+		if lo > hi:
+			continue
+		if not flat:
+			var za := z + dz * lo
+			var zb := z + dz * hi
+			if maxf(za, zb) < low - 1e-4 or minf(za, zb) > high + 1e-4:
+				continue
+			if dz != 0.0:
+				# The first of the clipped part within the piece's heights.
+				if za < low - 1e-4:
+					lo = maxf(lo, (low - 1e-4 - z) / dz)
+				elif za > high + 1e-4:
+					lo = maxf(lo, (high + 1e-4 - z) / dz)
+		first = minf(first, lo)
+	return first
+
+
+## crosses() for a sight line's step ending at (x1, y1) in cell c.
+func sight_crosses(
+	c: int, x0: float, y0: float, z0: float, x1: float, y1: float, z1: float
+) -> bool:
+	for item: Variant in _sight.get(c, NOTHING):
+		if not (item is Slab):
+			continue
+		var s: Slab = item
+		if not s.inside(x1, y1) or not s.inside(x0, y0):
+			continue
+		var t := s.top_at(x1, y1)
+		if (z0 >= t) != (z1 >= t):
+			return true
+		var b := s.bottom_at(x1, y1)
+		if b > -1e8 and (z0 <= b) != (z1 <= b):
+			return true
+	return false
 
 
 func _put(
