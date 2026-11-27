@@ -1,0 +1,9 @@
+{
+ "ai_model": "nano-banana-pro",
+ "prompt": "Using the reference images only as the animal's design (the 3D figure and the small game sprite are the same animal), paint a high-detail full-body concept of this giant swamp mosquito (a 'skeeter') the size of a small dog for a gritty 1990s Southern comedy horror first-person shooter. Keep its design: a dark olive-brown hairy thorax, a long segmented abdomen swollen with blood, rust-red with dark brown bands, a small dark head with two big glossy blood-red compound eyes, a long thin black needle proboscis pointing forward and down, two short feathery antennae, six long thin jointed dark brown legs spread wide around the body and arched down to the ground, two long narrow pale cream-grey wings with dark veins spread straight out flat to the left and right. Give it real personality: nasty, hungry and twitchy, a bayou bloodsucker. Natural anatomy, a little caricatured. Worn and grimy: swamp muck, matte hand-painted gritty texture detail, muted dusty colours, not glossy, not a clean modern render. Seen from the front left three-quarter, standing still on all six thin legs, the body level, the two wings spread straight out flat to the sides, the proboscis forward. Plain flat light-grey studio background, soft even lighting with no cast shadows, the whole animal in frame with space around it, sharp focus, one single animal, no text, no logo, no frame.",
+ "reference_image_urls": [
+  "@file:C:/Users/treym/AppData/Local/Temp/claude/1dc8348830e70b38/f2338a2e-3874-4eaf-9e39-f1352f903b29/scratchpad/meshy-work-b/meshyref/skeeter_three.png",
+  "@file:C:/Users/treym/AppData/Local/Temp/claude/1dc8348830e70b38/f2338a2e-3874-4eaf-9e39-f1352f903b29/scratchpad/meshy-work-b/meshyref/skeeter_cel.png"
+ ],
+ "aspect_ratio": "4:3"
+}

@@ -1,0 +1,226 @@
+{
+ "kind": "valve_rat",
+ "rigged": "../meshy-work-b/meshy_out/valve_rat_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/valve_rat_poses.json",
+ "old_glb": "../meshy-work-b/old/valve_rat.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_valve_rat.png",
+ "out": "../meshy-work-b/raw/valve_rat",
+ "tris": 18000,
+ "texture": 1024,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.4,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "gear_groups": [
+  [
+   "b27",
+   "b32",
+   "b33",
+   "b34",
+   "b35",
+   "b41",
+   "b31",
+   "b36",
+   "b37",
+   "b38",
+   "b39",
+   "b40",
+   "b50",
+   "b30"
+  ]
+ ],
+ "grip_parts": {
+  "r": [
+   "b45"
+  ]
+ },
+ "face_uv": {
+  "auto": true,
+  "k": 2.6,
+  "brim_k": 1.0,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_box": {
+  "auto": true,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "gear_extra": [
+  "b30",
+  "b36"
+ ],
+ "item_holds": {
+  "0": {
+   "r": 0.22,
+   "l": 0.62
+  }
+ },
+ "cheek_weld": true,
+ "upright_aim_deg": 5,
+ "to_body": [
+  {
+   "x": [
+    -0.3,
+    0.3
+   ],
+   "y": [
+    0.13,
+    0.42
+   ],
+   "z": [
+    0.44,
+    1.16
+   ],
+   "near": 0.05
+  }
+ ],
+ "hair_smooth": [
+  {
+   "x": [
+    -0.17,
+    0.17
+   ],
+   "y": [
+    -0.03,
+    0.14
+   ],
+   "z": [
+    0.93,
+    1.1
+   ],
+   "iters": 10,
+   "k": 0.6,
+   "fade": 0.02
+  }
+ ],
+ "recolour": [
+  {
+   "albedo_hue": [
+    0,
+    360
+   ],
+   "albedo_sat": [
+    0,
+    0.13
+   ],
+   "val": [
+    0.18,
+    1
+   ],
+   "not_face": false,
+   "not_skin": false,
+   "not_hands": true,
+   "to": [
+    146,
+    140,
+    128
+   ],
+   "smooth": 1,
+   "x": [
+    -0.17,
+    0.17
+   ],
+   "name": "hair_back",
+   "y": [
+    -0.02,
+    0.12
+   ],
+   "z": [
+    0.79,
+    0.893
+   ],
+   "from_albedo": 0.85,
+   "albedo_tint": true,
+   "contrast": 0.8
+  },
+  {
+   "albedo_hue": [
+    0,
+    360
+   ],
+   "albedo_sat": [
+    0,
+    0.13
+   ],
+   "val": [
+    0.18,
+    1
+   ],
+   "not_face": false,
+   "not_skin": false,
+   "not_hands": true,
+   "to": [
+    146,
+    140,
+    128
+   ],
+   "smooth": 1,
+   "x": [
+    -0.17,
+    0.17
+   ],
+   "name": "hair_side",
+   "y": [
+    -0.15,
+    -0.02
+   ],
+   "z": [
+    0.845,
+    0.893
+   ],
+   "from_albedo": 0.85,
+   "albedo_tint": true,
+   "contrast": 0.8
+  }
+ ],
+ "upright_deg": 2,
+ "carry_both": true,
+ "carry_dir": [
+  0.9,
+  0.38,
+  0.15
+ ],
+ "carry_at": [
+  0.1,
+  0.24,
+  0.06
+ ],
+ "face_clean": {
+  "detail": 0.85,
+  "hue": 0.85,
+  "keep_white": 0.85
+ },
+ "skin_zones": [
+  "hand_l",
+  "hand_r"
+ ],
+ "face_lift_most": 1.0,
+ "gear_even": {
+  "to": [
+   150,
+   118,
+   70
+  ],
+  "hue": [
+   24,
+   60
+  ],
+  "sat_min": 0.2,
+  "val_min": 0.15,
+  "smooth": 2,
+  "keep_light": 0.85,
+  "pale_reds": 0.42,
+  "specks": 5
+ }
+}

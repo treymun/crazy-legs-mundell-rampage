@@ -269,6 +269,281 @@ legs (he reads a little squat mid-stride); a raised arm in pain/die still
 pulls a short wing of vest under the armpit; the old gun/boat texels are the
 old low-res ones. Sheets 27_swamp_king_make/ingame/face.png.
 
+## Agent B (branch meshy-models-b, worktree SP/p18-meshy, work SP/meshy-work-b)
+
+List, in order: millhand, mundell, nitro_huffer, pit_mechanic, revenooer,
+shield_deputy, still_buster, tin_guard, tire_roller, valve_rat, drone (alien
+grey, see 05b), skeeter. Budget 650 credits (ledger section "agent B",
+running total in its "spent").
+DONE (all with INDEX lines): 40 millhand (44 cr), 41 mundell (44 cr), 42 nitro_huffer (53 cr: two
+concepts, the first used; dynamite = gear_extra b33,b35..b50, gear_skip b31,
+gear_one, item_types r throw, "bottle_flip" (new) + bottle_grip .72 so the
+spark stands up out of the fist; skin_even tone with face_even 0 (else the
+sandy hair went skin-peach); face_keep light .78 (the evened arms raised
+the face's target)).
+43 pit_mechanic (44 cr; lug wrench: grip_parts r b27 l b31, gear_one,
+item_types r "hold" (throw/bottle mode could not take a cross: wrist 63
+degrees, 3 cm in the body); cap recolour with "not_face" (new: the cap's
+band reached the brow) split into crown z .93+ and a band z .90-.93 by
+saturation so the dark hair stays).
+44 revenooer (44 cr; revolver item_types r pistol, grip_parts r b42 l b45;
+the Meshy pale skin went grey-yellow: face_keep "gain" .78 (absolute, new),
+"tone" [186,124,98] "tone_k" .75 "tone_zone" "head" (new: the face, neck
+and ears toned warm at their own light; dark hair/hat left out by a light
+floor, r-b and saturation tests), hands skin_even tone [176,116,92] light
+.88 face_even 0 + hand_smooth 2; recolour fedora z .94+ charcoal, back hair
+x +-.065 y > .03 dark (the tone speckled them orange)).
+44b revenooer (0 cr; hair recolour boxes: hair_top z .917-.94 not_face,
+hair_back z .885-.917 y>.05, hair_nape |x|<.065 y>.03; fedora_back; collar).
+45 shield_deputy (44 cr; revolver r pistol, the riot-door shield l "hold"
+with "follow_old" [gear1] (new: the shield keeps the old one's own motion,
+the hand put on it as at the standing key - riding the new forearm's turn
+swung it out flat) and "hold_out" {gear1: .12} (new: the shield 12 cm
+ahead of the hand, the fist behind it, not through its window);
+grip_parts r b57 l b61 + gear_skip the same (the old hands shrink with the
+gear); gear_extra b25 (gold star); skin_zones head+hands (sleeves); hat
+and shirt recolours. Open: the back of the hat brim stays tan (recolour
+boxes by z/y did not reach it - its texels may share UV space; not solved).
+45b shield_deputy (0 cr; recolour "smooth" (new): shirt/sleeves/collar
+khaki [150,126,88] smooth 8, sat<.55 keeps patches/star; hat smooth 6).
+46 still_buster (44 cr; fire axe one-handed: item_holds {"0": {"r": .78}},
+item_types r "hold", follow_old [gear0] + "follow_wrist" 65 (new: the
+wrist bends at most 65 degrees off the forearm, the axe turning with the
+hand the rest; the followed item's elbow now points along the hand);
+grip_parts r b39 l b42, gear_extra b33-36 (red axe head), gear_skip b18;
+hands skin_even tone [176,112,88]). Open: the fire key holds the axe
+across the chest (the old fire chopped down-forward; the wrist clamp turns
+it) - a "fire" chop pose would need its own authored key; the axe body
+and the hands are the old cartoon ones.
+Two-handed tries for the axe (two_old + two_both + "two_old_shift" (new,
+kept in the tool)) left the left hand 15-40 cm short of the haft: the old
+model held it one-handed.
+47 tin_guard (44 cr; alien grey in riveted tin armour, open-face helmet;
+the old coil gun r "pistol" one-handed + the old red shield l "hold"
+follow_old [gear1] hold_out .12; grip_parts r b62 (old right hand), l b85
+(shield boss: the old dump's LEFT ARM tracks the shield, the real old left
+arm b63/b64/b66 is labelled body); gear_extra b56 b82 (orange muzzle cap
+and the shield board passed for skin); gear_groups (new) gun b7-b57 /
+shield b82-b87; item_holds {"0": {"r": .59}, "1": {"l": .81}};
+pistol_low (new) r [20, 25, .35] + pistol_aim_drop .12, pistol_aim_in
+-.05, pistol_wind_out .8 (a 0.76 m gun with a stock behind the grip:
+along a raised forearm it stood past the face, at the eye line its rear
+went into the face); follow_wrist 60 + follow_wrist_keep (new). Colour:
+skin_zones hands only (the face pass took the helmet for skin), recolour
+armour/suit by val with not_skin false + not_hands (new), then face boxes
+by hue (the suit is tagged by a blue-ish [48,47,50] so the eyes rule can
+find the eye texels after it) - neutral greys dither beige/blue in the
+grade: use the old warm greys. Known: jaw edge of the green face is a
+little jagged; gear probe 5 cm legs row picture 11 (wind blend).
+47b tin_guard (10 cr: a Meshy RETEXTURE, v1/retexture on the model task,
+enable_original_uv, "clean riveted gun-metal plate" prompt; coordinator
+held 47: granite armour, sticker face, pale shield hand). The retexture
+made clean plates but a grey robot mask face, so the texture is
+composited: meshy/tools/retex_swap.py (Blender: "polys" = UV polygons of
+the faces whose centre is in build-space boxes; "swap" = the rigged glb
+with its image replaced) + retex_comp.py (the original texture inside the
+polygons, the retexture elsewhere) -> meshy-work-b/meshy_out/
+tin_guard_rig_rt/rigged.glb (kind "rigged"). Then: texture 1024 (at 512
+the plate read as granite blocks), recolour "steel" with "keep_light"
+(new: each texel keeps its own light, only the hue set - the warm dusk
+bake stepped grey steel into beige/blue palette specks; neutral greys
+have a clean ramp in the VGA palette) and "not_boxes" (new: the face
+boxes left out), a visor band, brow specks, eye glints (tiny boxes);
+face_keep gain .95 + tone; gloves [62,62,64] glove_shade (gauntlets).
+The 47 config is kept as meshy-work-b/tin_guard_47.json.
+48 tire_roller (44 cr; the old tire, two_old + two_both, aim_keys [],
+gear_one, two_old_in 0 + two_old_shift [.05, 0, .06] (centred on the new
+deep belly), item_axis (new) {"0": [1,0,0]} (a disc's long axis is any way
+in its plane: across the body) + item_holds r .03 / l .97 (the hands on
+the rim's sides - at .15/.85 the palm went to the bottom of that slice),
+grip_parts r b139 l b142 (old hands hidden behind the tire), gear_skip =
+the arm-labelled gear parts (old fingers on the rim, flesh blobs),
+gear_extra = the rest of the dump's gear groups (orange ring pieces passed
+for skin); hold_legs; skin_even tone + face_keep tone_zone head + scalp/
+nape/by_ears/chest_skin recolours (the bald head came out grey-blotched),
+undershirt smooth recolour boxed to the torso (|x| < .2: else the arms'
+pale skin went cream). Known: the live probe shows the tire 8-10 cm in
+the body in the pain reaction (key 9) though the old pain key hides it
+(scale 0) - the live view seems to show it; not solved.
+48b tire_roller (0 cr; coordinator: dark band across the crown, a tone
+step down the nape, pale specks): ONE "head" recolour z .80-1.1 not_face
+val .26+ contrast .35 smooth 6 (separate scalp/nape/ear rules each had
+their own median: the steps), "face_hi" only_face val .72+ pulled to a
+warm tan (Meshy's sweat highlights clipped to white specks), face_keep
+eyes 0, chest_skin contrast .4 smooth 5.
+49 valve_rat DONE (third B session; 88 cr in all: the first concept/
+model/rig 44 kept in meshy-work-b/meshy_out/valve_rat_*_49 + config
+meshy-work-b/valve_rat_49.json, then a NEW concept/model/rig 44: prompt
+"STANDING TALL AND UPRIGHT", "short close-cropped hair", the brass twin-
+tank pack described, plus "extra_refs" = the 49 concept (same face) and a
+crop of the old model's side/back views (the tanks); prompts entry kept as
+meshy-work-b/prompts/valve_rat_49.json). Build: "to_body" box x +-.3,
+y .13-.42, z .44-1.16 near .05 (the tanks ride the trunk only: Meshy gave
+their bottoms to the thighs); "hair_smooth" (NEW build_actor option, see
+the tool list) on the back/side hair under the cap (spiky cards rounded)
++ a "hair_back" recolour (x +-.15, y 0-.115, z .80-.893: the tank tops sit
+behind the head at the same height, keep y < .12); carry_both, carry_dir
+[.9,.38,.15] carry_at [.10,.24,.06] (lower carries left the right hand
+3-9 cm short of its grip on his short arms); upright_deg 2; NO head_keys
+(any head lift smears the jaw: the chin lies in the neck blend); FACE:
+skin_zones hands only + face_lift_most 1 + face_clean {detail .85, hue
+.85, keep_white .85} and NO face_keep (face_keep's no-shadow bake misses
+face islands and left salmon/grey shards; the skin passes lifted the
+face x1.2). tris 18000 (the gap-tooth grin went jagged at 14000).
+Known: the right fist sits under the pipe in the stand/walk (fingers
+closed short of it; the grip window takes in the valve wheel), gear probe
+9.6 cm in one running/pain blend picture, back/side arm views hidden by
+the tanks (front views 63-100%); the graded face steps salmon/grey.
+50 drone DONE (44 cr: concept, model, rig; prompt meshy-work-b/prompts/
+drone.json, "refs": "cel"): an alien grey farmhand - green trucker cap,
+black goggles with cyan lenses, orange plaid shirt, denim bib overalls,
+pale work gloves, the old hay hook. Config (kind_config + edits): tris
+14000, texture 1024, head_noshadow, face_uv/face_box auto, face_keep
+{eyes 0, soften .5} (the Meshy face is sculpted: no sticker look),
+skin_zones hands only, gloves [150,148,140] + glove_shade, item_types r
+"hold" + follow_old [gear0] + follow_wrist 65 (the jab: the prod points
+ahead in aim/fire as the old one did; without follow_old it stood up
+vertical), gear_groups [[b16,b17,b20,b21]] + gear_skip [b29] (a 7 cm
+stray "item" in the left hand), cap recolours (cap z .895+ val .12-.8
+with the cream patch boxed out, cap_patch_rim, cap_back z .882-.9 y > 0:
+Meshy's cap was camo-blotched teal/brown). Known: gear probe up to 10 cm
+(the 0.79 m hook through a leg in one buckshot reaction picture, 7 cm
+head row), arms seen front 24-98% (running row low: the hook arm swings
+behind).
+49b/50b (0 cr; the coordinator's early review): valve_rat - the back/side
+hair is now Meshy's own painted short grey hair: recolours hair_back (y
+-.02-.12, z .79-.893) and hair_side (y -.15 to -.02, z .845-.893), both
+"albedo_hue" [0,360] + "albedo_sat" [0,.13] (Meshy's grey hair texels
+only: a clean hairline to the skin and ears), "from_albedo" .85 +
+"albedo_tint" (NEW) to warm grey [146,140,128], contrast .8, smooth 1;
+the brass pipe evened by "gear_even" (NEW, gear_paste.py) {to
+[150,118,70], hue [24,60], keep_light .85, smooth 2, pale_reds .42,
+specks 5} (the old gear's brass was yellow speckle noise). drone - a
+cap_band recolour (z .885-.912, front/sides, low sat, val .3+: the pale
+strip between brim and goggles) and every cap rule contrast .3 smooth 6
+(the lower crown read lighter, as a see-through layer).
+51 skeeter DONE (39 cr: concept 9 + model 30, beast path, no rig;
+meshy/assets/skeeter.glb; requests by meshy-work-b/prompts/
+skeeter_requests.py): kinds/skeeter.json - weights heat, legs [[b4,b5],
+[b6,b7],[b8,b9],[b13,b14],[b15,b16],[b17,b18]] realigned to the Meshy legs,
+"square": false, groups body b0 / wings [b1,b2,b3] [b10,b11,b12] /
+proboscis [b20,b19] (b20 first: b19 is scaled to 0 in aim/fire) / each leg
+bone alone. The skeeter pops when killed (no ragdoll); its keys -1/0/1 are
+the wing-beat (enemies.gd frame cycle). Known: 5.6k bake texels unreached
+(dark marks on a wing underside in key 1), wings span a little wider.
+still_buster chop (0 cr) TRIED AND REVERTED: a per-key wrist limit
+("follow_wrist_keys" fire 120) left the axe across the chest, worse: the
+old axe's fire turn is applied about the OLD pivot to the new held place,
+so the arm reaches up to the chest; a real fix needs an authored "fire"
+chop pose (the axe swung from over the shoulder down-forward to hip
+height ahead). The tool change was reverted; the game has 46 again
+(repacked/imported); meshy-work-b/raw/still_buster holds the 46b try
+(rebuild from kinds/still_buster.json before using it); the shared
+previews 46b_still_buster_make/hands.png are that try (no INDEX line).
+millhand chainsaw NOT done (20 cr > the 14 left under B's 600 cap).
+INDEX lines 49, 50, 51 written (third B session).
+Credits: agent B 586 of 600 (track ledger 2,327 after skeeter's model).
+check_all quick (third B session, after 49b/50b/51, scratch profile): ALL
+CHECKS OK (54 listed ok, 157 s).
+check_all quick (second B session, after 47b/48b, old valve_rat in the
+game, scratch profile): 1 FAILED in 171 s - hud_layout_check (a SCRIPT
+ERROR in Enemy._init under check_all's parallel load); hud_layout_check
+alone right after: HUD LAYOUT OK. Everything else ok. check_all quick batch 2 (44-46)
+run after 46 (scratch profile): ALL CHECKS OK in 190 s; batch 1 (40-43) ALL
+OK except net_errors_check under load,
+OK alone.
+Mundell notes: the player kind is no enemy - the enemy tour, live_frames
+probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
+in-game sheet is tools/mode_frames.gd only=mundell (new: gd.sh, old:
+gd_old.sh) composed old|new; after a mundell model change also run
+tools/art/build_player_down.gd then pack_assets (player_down_*.png).
+Long gun: cheek_weld with "cheek_at" [.045,.07,.065] (a bearded jaw: the
+default point sat on the beard), "aim_drops" down to -.12 (butt raised to
+the cheek), "head_keys" aim/fire/wind [10, 35, 0] (the old head looked up
+off the barrel after the weld), "tris" 13000 (a decimated cap triangle hung
+green over the brow at 10000); face_keep "soften" .7 (lit wrinkle creases
+baked as dark crack lines: lifted toward the neighbours' median).
+
+Setup (all agent B's own; never A's places):
+- `. SP/meshy-work-b/env.sh` sets MESHY_WT=SP/p18-meshy, MESHY_WORK=
+  SP/meshy-work-b, MESHY_AGENT=B, MESHY_BUDGET=650 and a scratch APPDATA/
+  LOCALAPPDATA under meshy-work-b/appdata. Then the usual tools work:
+  `sh meshy/tools/meshy_kind.sh <k> concept|model`, `kind_config.py`
+  (writes ../meshy-work-b/... paths), `sh meshy/tools/build.sh <k> <NN>`,
+  `SKIP_BUILD=1 SKIP_INGAME=1 sh meshy/tools/finish.sh <k> <NN>` (probe and
+  death rows), then in meshy-work-b `sh sheets.sh <k> <NN> <face cz>` and
+  `sh checks.sh actor_check,live_body_check,physics_check`.
+- meshy-work-b has its own gd.sh / gd_old.sh (gd_old runs the untouched
+  tree SP/p16-meshy-old, own profile), iter.sh, headshots.sh, sheets.sh,
+  checks.sh, aimview.sh, facetry.sh, unchurn.sh, keys_zoom/keys_views/strip;
+  prompts in meshy-work-b/prompts/ (<kind>.json; add_prompt.py <kind>
+  <json> puts it in prompts.json). Dumps of all 12 old kinds are in
+  meshy-work-b/dump (skeeter dumps ok=false: a bug, beast path).
+  meshy-work-b/old holds the old glbs/textures and the untouched tree's
+  actors.json (build_actor reads it next to old_glb).
+- A's 04g commit (face_clean / face_uv / cheek_weld) is cherry-picked here.
+
+Tool changes by B (all opt-in; defaults unchanged for A):
+- tools/*.sh: MESHY_WT / MESHY_WORK env (default p16-meshy / meshy-work);
+  finish.sh SKIP_INGAME=1 (no in-game sheet: minor enemies).
+- meshy.py: MESHY_AGENT/MESHY_BUDGET keep a ledger section "agent <X>"
+  (entries, budget, running "spent"); if the shared balance moved by more
+  than a call's price (the other agent's call landed meanwhile) the entry
+  records the nominal price (9/30/5) and "balance_moved".
+- kind_config.py / make_requests.py: MESHY_WORK env.
+- build_actor.py "two_old": a two-handed tool (chainsaw) moves as the old
+  one did in every key, brought in by the chest ("two_old_in" x the forward
+  fix); use with "aim_keys": [] (nothing shouldered). "two_both": the other
+  hand stays on it in every living key but pain.
+- build_actor.py "face_keep": true or {light, blend, zone, eyes, eye_sat,
+  eye_lum}: after every skin pass, the face's front (FACEZONE; widen it with
+  "face_box" {"r": .27} for a big head - the Meshy Head bone sits at the
+  back of the skull, so at r .17 the eyes fell outside it) is taken back
+  from the head's no-shadow bake at the finished skin's light. "eyes": k
+  sets the eye whites/teeth (pale grey in Meshy's albedo; the dusk bake
+  makes them peach and the grade dithers them into the skin) to grey at k x
+  the face skin's light; it triggers the albedo bake. millhand:
+  {"light": 1.15, "eyes": 1.6}. Use it where face_clean smears the eyes or
+  blotches a bearded face (face_lift reads a beard as dark skin and lifts
+  it: "face_lift_most" 1.15 for a full beard).
+- face_uv for a hard hat: "brim_k" 1.4 (.7 shrank the whole hat and the
+  face's other islands: blockier), "z" [-.16, .2], "r" .2, k 3-4.5.
+- build_actor "follow_wrist" deg, "two_old_shift" [x,y,z], recolour
+  "smooth" passes; "MESHY wrists over 45" log line per key.
+- build_actor "follow_old" [gear bones], "hold_out" {gear: m} (one-hand
+  things: shields).
+- face_keep "gain" (absolute light), "tone"/"tone_k"/"tone_floor"/
+  "tone_zone" "head" (warm a grey Meshy skin), "soften", "unhue".
+- build_actor recolour rule "not_face": true leaves FACEZONE out.
+- build_actor "bottle_flip": a bottle/throw item whose thick end is its
+  top (dynamite spark).
+- build_actor (47): "gear_groups" [[old bones]] (each list one held thing,
+  the lists alone decide); "pistol_low" {side: [barrel deg down, arm deg
+  ahead, out share]} (carry/walk/pain keys of a long one-handed gun, the
+  frame flattened; pain flings it up and out); "pistol_aim_drop",
+  "pistol_aim_in", "pistol_wind_out"; "follow_wrist_keep"; recolour
+  "only_face", "not_hands", "albedo_hue"/"albedo_sat" (Meshy unlit colour;
+  triggers the albedo bake). MESHY_DEBUG_KEEP now also names the bone for
+  the solve's own keep-out lines.
+- 48: build_actor "item_axis" {gear index: [x,y,z]}.
+- 49 (third session): build_actor "hair_smooth" [{x, y, z (m, build
+  space), iters, k, fade}] - the Meshy hi mesh's vertices in each box
+  Laplacian-smoothed (by place, so UV seams stay shut) before the bake:
+  spiky hair cards draw in to a rounded mass. valve_rat: x +-.17, y -.03
+  to .14, z .93-1.10, iters 10, k .6, fade .02.
+- build_beast.py is A's version copied whole (A's 27/27b commits:
+  keep_parts, meshy_uv, light hemi, smooth_normals...; all opt-in, the
+  animals' defaults unchanged) - the same file on both branches now.
+- 49b: build_actor recolour "from_albedo": share (+ "albedo_tint": the
+  albedo's light tinted by "to") - Meshy's unlit colour lit by the rule's
+  smoothed light (needs "albedo_hue" in the rule to trigger the albedo
+  bake). gear_paste.py "gear_even" in the kind config (keys above): old
+  gear texels of a hue set to one colour at their own smoothed light.
+- 47b: recolour "keep_light" k, "not_boxes" [{x,y,z}]; meshy.py NOMINAL
+  v1/retexture 10; meshy/tools/retex_swap.py + retex_comp.py (see 47b).
+- grip_parts: the old millhand's yellow coat passed for skin (b5); name the
+  old hands (b40/b41 right, b45 left) or the saw is held by one hand.
+
 ## Seventh session (read first, then the sixth)
 
 SPLIT (coordinator, 2026-11-26): agent A (this branch, meshy-models) keeps

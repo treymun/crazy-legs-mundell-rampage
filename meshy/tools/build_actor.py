@@ -279,6 +279,39 @@ if CFG.get("belly"):
     print("MESHY belly: front %+d, out %.3f m at most, %d vertices moved" % (
         fdir, float(numpy.linalg.norm(co2 - co, axis=1).max()), int((w > .01).sum())))
 
+# Spiky hair cards rounded off (kind config "hair_smooth": [{x, y, z (m,
+# build space), iters, k, fade}]): the Meshy mesh's vertices in each box are
+# Laplacian-smoothed `iters` times (each step `k` of the way to their
+# neighbours' mean), fading out over `fade` m inside the box edges, so the
+# tufts' tips draw in to a rounded mass; the bake then follows the new shape.
+for _hs in CFG.get("hair_smooth", []):
+    _all = numpy.array([v.co[:] for v in mesh.data.vertices])
+    # (UV seams split the vertices: smoothed by place, so seams stay shut)
+    _uq, _inv = numpy.unique(numpy.round(_all, 6), axis=0, return_inverse=True)
+    _inv = _inv.reshape(-1)
+    co = _uq.astype(float)
+    _ed = _inv[numpy.array([e.vertices[:] for e in mesh.data.edges])]
+    _ed = _ed[_ed[:, 0] != _ed[:, 1]]
+    _fd = float(_hs.get("fade", .015))
+    _w = numpy.ones(len(co))
+    for _ax, _k2 in (("x", 0), ("y", 1), ("z", 2)):
+        _lo, _hi = _hs[_ax]
+        _w *= numpy.clip(numpy.minimum(co[:, _k2] - _lo, _hi - co[:, _k2]) / max(_fd, 1e-6), 0, 1)
+    _kk = float(_hs.get("k", .5)) * _w
+    _deg = numpy.bincount(_ed.ravel(), minlength=len(co)).astype(float)
+    c0 = co.copy()
+    for _ in range(int(_hs.get("iters", 6))):
+        _sum = numpy.zeros_like(co)
+        numpy.add.at(_sum, _ed[:, 0], co[_ed[:, 1]])
+        numpy.add.at(_sum, _ed[:, 1], co[_ed[:, 0]])
+        _mean = _sum / numpy.maximum(_deg, 1)[:, None]
+        co = co + (_mean - co) * _kk[:, None]
+    for i, v in enumerate(mesh.data.vertices):
+        if _w[_inv[i]] > 0:
+            v.co = co[_inv[i]]
+    print("MESHY hair smooth: %d places, moved %.3f m at most" % (
+        int((_w > 0).sum()), float(numpy.linalg.norm(co - c0, axis=1).max())))
+
 # Matte, as the game's plain bakes are.
 for slot in mesh.material_slots:
     m = slot.material
@@ -1253,6 +1286,13 @@ if CFG.get("gear", "old") == "old" and LOST:
         _all = set(LOST)
         for _k in LOST:
             _link[_k] = _all
+    # (kind config "gear_groups": [[old bones], ...] - each list one thing:
+    # the tin guard's coil gun of 50 rings and his shield with its bands;
+    # the lists decide alone, touching parts of two lists stay apart)
+    for _gg in CFG.get("gear_groups", []):
+        _s = {DUMP["bones"].index(_b) for _b in _gg if _b in DUMP["bones"]} & set(LOST)
+        for _k in _s:
+            _link[_k] = _s
     _items = []
     for _i in LOST:
         if not any(_i in it for it in _items):
@@ -1647,11 +1687,21 @@ if gear_obj is not None:
                 print("MESHY item gear%d axis from %s (%d vertices)" % (gi, _ia, int(_sel_ia.sum())))
         ctr = Vector(pts.mean(axis=0))
         ax = Vector(numpy.linalg.svd(pts - pts.mean(axis=0))[2][0])
+        # (kind config "item_axis" {gear index: [x, y, z]}: the thing's axis
+        # set by hand - a tire is a disc, its long axis any way in its
+        # plane; across the body, the hands take its rim at the sides)
+        _iax = CFG.get("item_axis", {}).get(str(gi))
+        # (A's form of "item_axis" names old parts instead: only three numbers
+        # are an axis)
+        if _iax and len(_iax) == 3 and all(isinstance(v, (int, float)) for v in _iax):
+            ax = Vector(_iax).normalized()
         proj = (pts - numpy.array(ctr[:])) @ numpy.array(ax[:])
         perp = (pts - numpy.array(ctr[:])) - numpy.outer(proj, numpy.array(ax[:]))
         # The rear end (lo) is the thicker one: a stock, a grip, a handle.
         pw = numpy.linalg.norm(perp, axis=1)
-        if pw[proj > 0].mean() > pw[proj < 0].mean():
+        if _iax:
+            pass
+        elif pw[proj > 0].mean() > pw[proj < 0].mean():
             ax = -ax
             proj = -proj
         lo_e, hi_e = ctr + ax * float(proj.min()), ctr + ax * float(proj.max())
@@ -1752,6 +1802,17 @@ def item_delta(it, name, P, D, R_t, hipc):
     # wind-up and hangs from his fists in the aim)
     if s1.x < .2 and name.replace("hurt_", "") not in CFG.get("item_show", []):
         return old_d, False
+    # (kind config "two_old": a two-handed tool - a chainsaw - moves as the
+    # old one did in every key, brought in by the new chest's front
+    # ("two_old_in" times the forward fix); both hands are then put on it.
+    # Use with "aim_keys": [] so nothing is shouldered.)
+    if it["two"] and CFG.get("two_old"):
+        F_ = -Vector(TWIST.get("fwd", R_t @ T0).col[2])
+        # ("two_old_shift" [x, y, z] m in the trunk's frame: the tool moved
+        # toward the body's middle where the old one sat out of the new
+        # arms' reach)
+        sh_ = Vector(CFG.get("two_old_shift", [0, 0, 0]))
+        return Matrix.Translation(F_ * it["fwd"] * float(CFG.get("two_old_in", 1.0)) + R_t @ sh_) @ old_d, True
     if not it["two"]:
         return None, True
     bare = name.replace("hurt_", "")
@@ -2171,9 +2232,13 @@ def solve(name, dz=0.0, held0=None):
         if Di is not None and shown and it["two"]:
             for side in it["holds"]:
                 bare = name.replace("hurt_", "")
+                # ("two_both": a tool both hands keep hold of in every
+                # living key but the pain drop - a chainsaw)
+                if CFG.get("two_both") and bare != "pain":
+                    pass
                 # (kind config "carry_both": the other hand on it in every
                 # standing, walking or carrying key, the old one off it or not)
-                if side != it["main"] and bare not in AIMS and not (
+                elif side != it["main"] and bare not in AIMS and not (
                         CFG.get("carry_both") and (bare in WALK or bare in CARRY or bare == "0")):
                     # The other hand only while the old one is on it (as it
                     # stands for a walk or a carry).
@@ -2346,8 +2411,11 @@ def solve(name, dz=0.0, held0=None):
             inward = -Rt if side == "r" else Rt
             reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
                      + (J["wrist_" + side] - J["forearm_" + side]).length)
-            eye = (D["head"] @ J["head"]).z - .06
-            a1 = (Fw * 1.0 + inward * .12).normalized()
+            # (kind config "pistol_aim_drop" m under the eye line and
+            # "pistol_aim_in" (share inward, .12): a long one-handed gun
+            # whose rear end ran back into the face at the eye line)
+            eye = (D["head"] @ J["head"]).z - .06 - float(CFG.get("pistol_aim_drop", 0.0))
+            a1 = (Fw * 1.0 + inward * float(CFG.get("pistol_aim_in", .12))).normalized()
             if bare == "fire":
                 a1 = (a1 + Up * .22).normalized()
             if bare == "wind":
@@ -2360,9 +2428,57 @@ def solve(name, dz=0.0, held0=None):
             wrist_t = sh_f + (a1 * .93 * reach)
             wrist_t.z = eye - (J["hand_" + side] - wrist0).length * .2
             if bare == "wind":
-                wrist_t = sh_f + Fw * reach * .45 + inward * .05 + Up * reach * .3
+                # (kind config "pistol_wind_out": share of the reach the fist
+                # is held out ahead in the wind-up - a long gun's rear end
+                # went into the chest drawn in at .45)
+                wrist_t = sh_f + Fw * reach * float(CFG.get("pistol_wind_out", .45)) + inward * .05 + Up * reach * .3
             R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
                                         sh_f, wrist_t, R_t @ Vector((0, .2, -1.0)), Vector((0, -1, 0)))
+            D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+            D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+            D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
+            joints["miss"][side] = (wr_f - wrist_t).length
+        elif (ITEM_TYPE.get(side) == "pistol" and CFG.get("pistol_low", {}).get(side)
+              and name.replace("hurt_", "") not in AIMS
+              and not name.replace("hurt_", "").startswith("die") and "down" not in name
+              and any(it["main"] == side and not it["two"] for it in ITEMS)):
+            # (kind config "pistol_low" {side: [barrel deg below level, arm
+            # deg ahead of plumb, arm out to the side (share)]}: a long one-handed gun carried at the low
+            # ready - the arm hanging a little ahead, the barrel ahead and
+            # down past the knee - instead of along a forearm raised to the
+            # chest, where it stood up past the face; the old arm's swing kept)
+            pl_ = CFG["pistol_low"][side]
+            # (the body's frame flattened: a walk key's turned torso swung
+            # the arm across to the other thigh)
+            Tn = TWIST["fwd"]
+            Fw = -Vector(Tn.col[2])
+            Fw = Vector((Fw.x, Fw.y, 0)).normalized()
+            Up = Vector((0, 0, 1))
+            Rt = Fw.cross(Up) if Vector(Tn.col[0]).dot(Fw.cross(Up)) > 0 else Up.cross(Fw)
+            inward = -Rt if side == "r" else Rt
+            reach = ((J["forearm_" + side] - J["upperarm_" + side]).length
+                     + (J["wrist_" + side] - J["forearm_" + side]).length)
+            b_ = math.radians(float(pl_[0]))
+            a_ = math.radians(float(pl_[1]))
+            # the old arm's swing ahead/behind over its standing key
+            P0_ = old_points("0")
+            sw_ = ((P[ha] - P[sh]) - (P0_[ha] - P0_[sh])).dot(Fw)
+            a_ += max(-.25, min(.25, sw_ / max(reach, .1)))
+            arm_d = (Fw * math.sin(a_) - Up * math.cos(a_) - inward * float(pl_[2] if len(pl_) > 2 else .15)).normalized()
+            wrist_t = sh_f + arm_d * reach * .94
+            a1 = (Fw * math.cos(b_) - Up * math.sin(b_) - inward * .1).normalized()
+            if name.replace("hurt_", "") == "pain":
+                # (pain: the gun arm flung out and up to the side, the
+                # muzzle up, clear of the head)
+                arm_d = (-inward * .85 + Up * .2 + Fw * .25).normalized()
+                wrist_t = sh_f + arm_d * reach * .9
+                a1 = (Up * .75 - inward * .45 + Fw * .2).normalized()
+            n1 = (inward - a1 * inward.dot(a1)).normalized()
+            wrist0, a0, n0 = HANDF[side]
+            R_hand = Matrix((a1, n1, a1.cross(n1))).transposed() @ Matrix((a0, n0, a0.cross(n0))).transposed().inverted()
+            R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                        sh_f, wrist_t, R_t @ Vector((0, .3, -1.0)),
+                                        Vector((0, -1, 0)))
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
             D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
             D["hand_" + side] = place(R_hand, J["wrist_" + side], wr_f)
@@ -2478,6 +2594,17 @@ def solve(name, dz=0.0, held0=None):
                 if seen:
                     target = sum((q[0] for q in seen), Vector()) / len(seen)
                     end_r = J["hand_" + side]
+                    # (kind config "carry_drop" {side: [down, forward] m}: the
+                    # hand lower in the carry and walk keys - a long pistol
+                    # held at the chest stood up along the forearm past the
+                    # face; low, it points ahead and down at the low ready)
+                    cd_ = CFG.get("carry_drop", {}).get(side)
+                    bare_c = name.replace("hurt_", "")
+                    if cd_ and bare_c not in AIMS and bare_c != "pain" and not bare_c.startswith("die") \
+                            and "down" not in bare_c:
+                        fw_c = -Vector((R_t @ T0).col[2])
+                        fw_c = Vector((fw_c.x, fw_c.y, 0)).normalized()
+                        target = target + Vector((0, 0, -float(cd_[0]))) + fw_c * float(cd_[1])
             R_u, R_l, el_f, tip_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], end_r,
                                          sh_f, target, pole, Vector((0, -1, 0)))
             D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
@@ -2594,7 +2721,9 @@ def solve(name, dz=0.0, held0=None):
                     if G0.dot(_away) < 0:
                         G0 = -G0
                         al = -al
-                elif r_hi > r_lo:
+                # (kind config "bottle_flip": the thick end is the top - a
+                # dynamite stick's spark - so it stands up out of the fist)
+                elif (r_hi > r_lo) != bool(CFG.get("bottle_flip")):
                     G0 = -G0
                     al = -al
                 # (G0 now from the body toward the neck; the grip a fifth
@@ -2686,7 +2815,51 @@ def solve(name, dz=0.0, held0=None):
                 wrist0, a0, n0 = HANDF.get(side, (None, Vector((0, 0, -1)), Vector((1, 0, 0))))
                 Rh = D["hand_" + side].to_3x3()
                 palm = D["hand_" + side] @ J["hand_" + side] + (Rh @ n0) * (it["rad"] + .028 * OLD_H / 1.7)
-                Di = Matrix.Translation(palm - grip)
+                # (kind config "hold_out" {gear bone: m}: the thing that far
+                # further ahead of the hand - a shield held by a handle behind
+                # it, not a fist through its middle)
+                fwd0 = -Vector((R_t @ T0).col[2])
+                Di = Matrix.Translation(palm - grip + fwd0 * float(CFG.get("hold_out", {}).get(it["bone"], 0.0)))
+            elif it["bone"] in CFG.get("follow_old", []) and old_bone(name, it["big"])[2].x > .2:
+                # (kind config "follow_old" [gear bones]: a one-handed thing
+                # that keeps the old one's own motion from the standing key -
+                # a riot shield held up in front: riding the new forearm's
+                # turn swung it out flat to the side - and the hand is put on
+                # it as it held it at the standing key)
+                p0_, r0_, _s0 = old_bone("0", it["big"])
+                p1_, r1_, _s1 = old_bone(name, it["big"])
+                old_d_ = Matrix.Translation(p1_) @ (r1_ @ r0_.inverted()).to_4x4() @ Matrix.Translation(-p0_)
+                Di = held0["@" + it["bone"]] @ old_d_
+                Dh_t = Di @ held0["@" + it["bone"]].inverted() @ held0["hand_" + side]
+                sh_f = at(J["upperarm_" + side])
+                out = 1.0 if side == "l" else -1.0
+                pole = R_t @ Vector((out * .4, .2, -1.0))
+                if side in HANDF:
+                    # (the elbow where the forearm runs on into the hand, so
+                    # the wrist stays near straight)
+                    wt_ = Dh_t @ J["wrist_" + side]
+                    lf_ = (J["wrist_" + side] - J["forearm_" + side]).length
+                    want_el = wt_ - (Dh_t.to_3x3() @ HANDF[side][1]).normalized() * lf_
+                    if (want_el - sh_f).length > .02:
+                        pole = (want_el - sh_f).normalized()
+                R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
+                                            sh_f, Dh_t @ J["wrist_" + side], pole, Vector((0, -1, 0)))
+                D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
+                D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+                # ("follow_wrist": degrees - the wrist bends at most that far
+                # off the forearm; the thing turns with the hand the rest of
+                # the way, about the wrist)
+                fw_ = CFG.get("follow_wrist")
+                if fw_:
+                    q_want = Dh_t.to_quaternion()
+                    q_str = R_l.to_quaternion()
+                    ang_ = q_str.rotation_difference(q_want).angle
+                    lim_ = math.radians(float(fw_))
+                    q_h = q_str.slerp(q_want, min(1.0, lim_ / max(ang_, 1e-6)))
+                    Dh_t = place(q_h.to_matrix(), J["wrist_" + side], wr_f)
+                    Di = Dh_t @ held0["hand_" + side].inverted() @ held0["@" + it["bone"]]
+                D["hand_" + side] = Dh_t
+                joints["miss"][side] = (wr_f - Dh_t @ J["wrist_" + side]).length
             else:
                 Di = D["hand_" + side] @ held0["hand_" + side].inverted() @ held0["@" + it["bone"]]
             hang_ = None
@@ -2746,6 +2919,20 @@ def solve(name, dz=0.0, held0=None):
                         # (a thing held up to the mouth keeps its aim: the
                         # hand keeps its turn, only moved)
                         Dh_new = place(D["hand_" + side].to_3x3(), J["wrist_" + side], wr_f)
+                    if it["bone"] in CFG.get("follow_old", []):
+                        # (a followed thing - a shield - only moves out, its
+                        # turn kept, the hand with it)
+                        Dh_new = Dh
+                        if CFG.get("follow_wrist") and CFG.get("follow_wrist_keep"):
+                            # (kind config "follow_wrist_keep": the wrist
+                            # limit kept after the arm reached after the moved
+                            # thing - the shield's wrist bent 96 degrees)
+                            q_w = Dh.to_quaternion()
+                            q_s = R_l.to_quaternion()
+                            a_w = q_s.rotation_difference(q_w).angle
+                            l_w = math.radians(float(CFG["follow_wrist"]))
+                            if a_w > l_w:
+                                Dh_new = place(q_s.slerp(q_w, l_w / a_w).to_matrix(), J["wrist_" + side], wr_f)
                     Di = Dh_new @ D["hand_" + side].inverted() @ Di
                     D["hand_" + side] = Dh_new
                     if hang_ is not None:
@@ -2756,7 +2943,9 @@ def solve(name, dz=0.0, held0=None):
                     d, Di = best_[0], best_[1]
                     D.update(best_[2])
                 if first > .004:
-                    print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d))
+                    print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d)
+                          + (" (worst on %s at %.2f of its length, z %.2f)" % KEEP_WHY[it["bone"]]
+                             if os.environ.get("MESHY_DEBUG_KEEP") and it["bone"] in KEEP_WHY else ""))
                 PEN[name + ":" + it["bone"]] = d
         D["@" + it["bone"]] = Di
         D[it["bone"]] = D["hand_" + side]
@@ -2948,6 +3137,7 @@ for t in KEYS:
         pb.keyframe_insert("scale", frame=t)
 print("MESHY wrists: worst bend %d degrees (%s)" % (round(max(WRIST.values()) if WRIST else 0),
                                                  max(WRIST, key=WRIST.get) if WRIST else "-"))
+print("MESHY wrists over 45: %s" % {k: round(v) for k, v in WRIST.items() if v > 45})
 if CONTACT:
     _wf = min(CONTACT, key=lambda k: CONTACT[k][0])
     _wg = max(CONTACT, key=lambda k: CONTACT[k][1])
@@ -3391,7 +3581,8 @@ bpy.context.view_layer.update()
 # (kind config "face_albedo": Meshy's own unlit colour, for a face shadowed
 # by a helmet and its face mask in the lit bake - see face_lift)
 ALBEDO = None
-if CFG.get("face_albedo") or CFG.get("face_clean"):
+if CFG.get("face_albedo") or CFG.get("face_clean") or (isinstance(CFG.get("face_keep"), dict) and CFG["face_keep"].get("eyes")) or any(
+        "albedo_hue" in _r for _r in CFG.get("recolour", [])):
     scene.cycles.samples = 8
     select([hi, lo], lo)
     bake_op(type="DIFFUSE", pass_filter={"COLOR"}, margin=TEXTURE // 128, use_clear=True,
@@ -4117,6 +4308,128 @@ if os.environ.get("MESHY_DUMP_FACE"):
                            facezone=FACEZONE, backzone=BACKZONE, upperzone=UPPERZONE,
                            chinzone=CHINZONE)
 total = face_clean(total)
+
+
+def face_keep(px):
+    """Kind config "face_keep": true or {light, blend, zone, eyes, eye_sat,
+    eye_lum}: the face's front (FACEZONE, as "face_box" sets it; "zone":
+    "head" for the whole head zone) taken straight from the head's no-shadow
+    bake, only brought to the finished skin's light (its luminance, its own
+    hue kept). The skin passes and face_clean's albedo rebuild smear small
+    painted eyes (a few texels across at 512) into a grey patch; the
+    no-shadow bake keeps their shape."""
+    fk = CFG.get("face_keep")
+    if not fk or NOSHADOW is None:
+        return px
+    opt = fk if isinstance(fk, dict) else {}
+    lw = numpy.array([.299, .587, .114])
+
+    def skinlike(a):
+        mx, mn = a.max(axis=1), a.min(axis=1)
+        sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+        return (a[:, 0] > a[:, 1]) & (a[:, 1] > a[:, 2]) & (sat > .15) & (sat < .7) & (mx > .15)
+
+    zone = HEADZONE if opt.get("zone") == "head" else FACEZONE
+    m = zone & (NOSHADOW.sum(axis=1) > 1e-4)
+    if "HANDMASK" in globals():
+        m &= ~HANDMASK
+    src = m & skinlike(NOSHADOW)
+    ref = ZONE & ~HEADZONE & skinlike(px[:, :3])
+    if src.sum() < 50 or ref.sum() < 50:
+        print("MESHY face keep: too few skin texels")
+        return px
+    k = float(numpy.median(px[ref, :3] @ lw)) / max(float(numpy.median(NOSHADOW[src] @ lw)), 1e-4)
+    k = min(2.0, max(.5, k)) * float(opt.get("light", 1.0))
+    # ("gain": the no-shadow bake's light times this, not matched to the arms
+    # - sleeved arms leave only the hands to match, and they change)
+    if "gain" in opt:
+        k = float(opt["gain"])
+    b = float(opt.get("blend", 1.0))
+    px = px.copy()
+    px[m, :3] = px[m, :3] * (1 - b) + numpy.clip(NOSHADOW[m] * k, 0, 1) * b
+    # ("tone": [r, g, b], "tone_k": share - a pale Meshy skin goes yellow-grey
+    # under the dusk bake and the grade: the face's skin (not its dark hair,
+    # brows or lashes) drawn that share toward the tone at its own light)
+    if opt.get("tone"):
+        a = px[:, :3]
+        lum_ = a @ lw
+        tone = numpy.array(opt["tone"], dtype=float) / 255.0
+        tl = float(tone @ lw)
+        mid = float(numpy.median(lum_[m])) if m.any() else .4
+        sk_t = FACEZONE & m & (lum_ > mid * float(opt.get("tone_floor", .8)))
+        # ("tone_zone": "head" - also the neck, ears and the skin behind
+        # them: warm-ish texels of the head zone at the face's light)
+        if opt.get("tone_zone") == "head":
+            hz_mx, hz_mn = a.max(axis=1), a.min(axis=1)
+            hz_sat = numpy.where(hz_mx > 1e-4, (hz_mx - hz_mn) / numpy.maximum(hz_mx, 1e-4), 0)
+            hz = HEADZONE & (lum_ > mid * float(opt.get("tone_head_floor", .9))) & (a[:, 0] - a[:, 2] > .04) & (
+                hz_sat > float(opt.get("tone_head_sat", .14)))
+            if "HANDMASK" in globals():
+                hz &= ~HANDMASK
+            sk_t = sk_t | hz
+        tk = float(opt.get("tone_k", .7))
+        px[sk_t, :3] = numpy.clip(a[sk_t] * (1 - tk) + tone[None, :] * (lum_[sk_t] / max(tl, 1e-4))[:, None] * tk, 0, 1)
+        print("MESHY face keep: %d texels toned to %s" % (int(sk_t.sum()), opt["tone"]))
+    # ("soften": share - the hi mesh's deep wrinkle creases, lit, bake as
+    # hard dark lines that read as cracks: a face skin texel darker than its
+    # neighbours' median is brought that share of the way up to it)
+    if opt.get("soften"):
+        a = px[:, :3]
+        sk_m = (m & skinlike(a)).reshape(TEXTURE, TEXTURE)
+        L = (a @ lw).reshape(TEXTURE, TEXTURE)
+        stack = []
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                mm = numpy.roll(numpy.roll(sk_m, dy, 0), dx, 1)
+                stack.append(numpy.where(mm, numpy.roll(numpy.roll(L, dy, 0), dx, 1), numpy.nan))
+        with numpy.errstate(all="ignore"):
+            med = numpy.nanmedian(numpy.stack(stack), axis=0)
+        med = numpy.where(numpy.isnan(med), L, med).reshape(-1)
+        Lf = L.reshape(-1)
+        dark = sk_m.reshape(-1) & (Lf < med * .92)
+        if dark.any():
+            want_l = Lf[dark] + (med[dark] - Lf[dark]) * float(opt["soften"])
+            px[dark, :3] = numpy.clip(a[dark] * (want_l / numpy.maximum(Lf[dark], 1e-4))[:, None], 0, 1)
+        print("MESHY face keep: %d crease texels softened" % int(dark.sum()))
+    # ("unhue": [lo, hi] degrees - face texels of that hue (a cap's green
+    # where a decimated triangle spans the bill's underside and the brow)
+    # take the face skin's median colour at their own light)
+    if opt.get("unhue"):
+        a = px[:, :3]
+        mx, mn = a.max(axis=1), a.min(axis=1)
+        dd = numpy.maximum(mx - mn, 1e-6)
+        hh = numpy.where(mx == a[:, 0], (60 * ((a[:, 1] - a[:, 2]) / dd)) % 360,
+                         numpy.where(mx == a[:, 1], 60 * ((a[:, 2] - a[:, 0]) / dd) + 120, 60 * ((a[:, 0] - a[:, 1]) / dd) + 240))
+        sat = numpy.where(mx > 1e-4, (mx - mn) / numpy.maximum(mx, 1e-4), 0)
+        lo_, hi_ = opt["unhue"]
+        bad = FACEZONE & m & (hh >= lo_) & (hh <= hi_) & (sat > .12)
+        fs = m & skinlike(a) & ~bad
+        if bad.any() and fs.sum() > 50:
+            med = numpy.median(a[fs], axis=0)
+            px[bad, :3] = numpy.clip(med[None, :] * ((a[bad] @ lw) / max(float(med @ lw), 1e-4))[:, None] * 1.15, 0, 1)
+            print("MESHY face keep: %d texels of hue %s to the skin" % (int(bad.sum()), opt["unhue"]))
+    # ("eyes": k - the eye whites and teeth, found in Meshy's unlit colour
+    # (pale and nearly grey there; the dusk bake's warm light makes them
+    # peach, and the game's grade then dithers them into the skin), set to
+    # that grey at k times the face skin's light: whites that read white)
+    ne = 0
+    if opt.get("eyes") and ALBEDO is not None:
+        al = ALBEDO
+        amx, amn = al.max(axis=1), al.min(axis=1)
+        asat = numpy.where(amx > 1e-4, (amx - amn) / numpy.maximum(amx, 1e-4), 0)
+        alum = al @ lw
+        a = px[:, :3]
+        sk = float(numpy.median((a @ lw)[m & skinlike(a)])) if (m & skinlike(a)).sum() > 50 else .4
+        ew = FACEZONE & m & (asat < float(opt.get("eye_sat", .2))) & (alum > float(opt.get("eye_lum", .5)))
+        if ew.any():
+            g = numpy.clip(alum[ew] / max(float(numpy.median(alum[ew])), 1e-4), .7, 1.15)[:, None]
+            px[ew, :3] = numpy.clip(al[ew] / numpy.maximum(alum[ew][:, None], 1e-4) * g * sk * float(opt["eyes"]), 0, 1)
+        ne = int(ew.sum())
+    print("MESHY face keep: %d texels from the no-shadow bake (light x%.2f), %d eye-white texels" % (int(m.sum()), k, ne))
+    return px
+
+
+total = face_keep(total)
 _fsk = HEADZONE & SKIN_DONE if "SKIN_DONE" in globals() else HEADZONE
 shed.paint(lo, image, total, CFG, pixels, bake_op, select, TEXTURE,
            skin=numpy.median(total[_fsk, :3], axis=0) if _fsk.sum() > 50 else None)
@@ -4255,10 +4568,42 @@ for rule in CFG.get("recolour", []):
         rr = float(rule.get("r", .035)) * OLD_H / 1.7
         m &= numpy.sqrt((px_ - NOSE.x) ** 2 + (py_ - NOSE.y) ** 2 + ((pz_ * OLD_H) - NOSE.z) ** 2) < rr
     m &= (mx >= rule.get("val", [0, 1])[0]) & (mx <= rule.get("val", [0, 1])[1])
+    # ("not_face": true - the face's front (FACEZONE, "face_box") left out:
+    # a cap's band reaching down to the brow)
+    if rule.get("not_face"):
+        m &= ~FACEZONE
+    # ("not_boxes": [{x, y, z}] - texels inside any of these boxes left out:
+    # the tin guard's face inside his helmet, by its place)
+    for _nb in rule.get("not_boxes", []):
+        m &= ~((pz_ >= _nb.get("z", [0, 2])[0]) & (pz_ <= _nb.get("z", [0, 2])[1])
+               & (px_ >= _nb.get("x", [-9, 9])[0]) & (px_ <= _nb.get("x", [-9, 9])[1])
+               & (py_ >= _nb.get("y", [-9, 9])[0]) & (py_ <= _nb.get("y", [-9, 9])[1]))
+    # ("only_face": true - the face's front alone: an alien's skin tone)
+    if rule.get("only_face"):
+        m &= FACEZONE
+    # ("albedo_hue" [lo, hi] / "albedo_sat" [lo, hi]: by Meshy's own unlit
+    # colour - the lit bake made the tin guard's olive face and his grey
+    # helmet one beige)
+    if "albedo_hue" in rule and ALBEDO is not None:
+        _amx, _amn = ALBEDO.max(axis=1), ALBEDO.min(axis=1)
+        _ad = numpy.maximum(_amx - _amn, 1e-6)
+        _ar, _ag, _ab = ALBEDO[:, 0], ALBEDO[:, 1], ALBEDO[:, 2]
+        _ah = numpy.where(_amx == _ar, (60 * ((_ag - _ab) / _ad)) % 360,
+                          numpy.where(_amx == _ag, 60 * ((_ab - _ar) / _ad) + 120, 60 * ((_ar - _ag) / _ad) + 240))
+        _as = numpy.where(_amx > 1e-4, (_amx - _amn) / numpy.maximum(_amx, 1e-4), 0)
+        h0, h1 = rule["albedo_hue"]
+        m &= ((_ah >= h0) & (_ah <= h1)) if h0 <= h1 else ((_ah >= h0) | (_ah <= h1))
+        m &= (_as >= rule.get("albedo_sat", [0, 1])[0]) & (_as <= rule.get("albedo_sat", [0, 1])[1])
+        if os.environ.get("MESHY_DEBUG"):
+            numpy.save(os.path.join(OUT, "dbg_albedo.npy"), ALBEDO)
     if rule.get("not_skin", True):
         m &= ~SKIN_DONE
         if "HANDMASK" in globals():
             m &= ~HANDMASK
+    elif rule.get("not_hands") and "HANDMASK" in globals():
+        # ("not_hands": with "not_skin": false - the face pass's skin taken
+        # (a helmet the face lift read as skin), the hands still left out)
+        m &= ~HANDMASK
     if m.sum() < 10:
         print("MESHY recolour %s: nothing" % rule.get("name", "?"))
         continue
@@ -4278,7 +4623,27 @@ for rule in CFG.get("recolour", []):
     lmid = float(numpy.median(lum[m]))
     to = numpy.array(rule["to"], dtype=float) / 255.0
     k = numpy.clip(lum / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
+    if rule.get("keep_light"):
+        # ("keep_light": k - each texel keeps its own light (times k), only
+        # its hue taken from "to": a warm dusk bake on grey steel, which the
+        # palette steps into beige and blue specks)
+        k = lum / max(float(to @ numpy.array([.299, .587, .114])), 1e-4) * float(rule["keep_light"])
     total[m, :3] = numpy.clip(to[None, :] * k[m, None], 0, 1)
+    # ("from_albedo": share - Meshy's own unlit colour (its painted hair
+    # strands, a clean hairline) brought in that share, lit by the rule's
+    # (smoothed) light: the dusk bake left short grey hair a flat slab)
+    if rule.get("from_albedo") and ALBEDO is not None:
+        _lw = numpy.array([.299, .587, .114])
+        _al = ALBEDO[m, :3]
+        _all = _al @ _lw
+        _sc = lmid / max(float(numpy.median(_all)), 1e-4)
+        _sh = numpy.clip(lum[m] / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
+        _fa = float(rule["from_albedo"])
+        _tint = to / max(float(to @ _lw), 1e-4)
+        _src = numpy.clip(_al * _sc * _sh[:, None], 0, 1)
+        if rule.get("albedo_tint"):
+            _src = (_src @ _lw)[:, None] * _tint[None, :]
+        total[m, :3] = numpy.clip(total[m, :3] * (1 - _fa) + _src * _fa, 0, 1)
     print("MESHY recolour %s: %d texels to %s" % (rule.get("name", "?"), int(m.sum()), rule["to"]))
 if os.environ.get("MESHY_DEBUG"):
     numpy.save(os.path.join(OUT, "dbg_pos.npy"), numpy.stack([px_, py_, pz_]))

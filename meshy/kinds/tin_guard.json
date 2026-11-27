@@ -1,0 +1,344 @@
+{
+ "kind": "tin_guard",
+ "rigged": "../meshy-work-b/meshy_out/tin_guard_rig_rt/rigged.glb",
+ "poses": "../meshy-work-b/dump/tin_guard_poses.json",
+ "old_glb": "../meshy-work-b/old/tin_guard.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_tin_guard.png",
+ "out": "../meshy-work-b/raw/tin_guard",
+ "tris": 12000,
+ "texture": 1024,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "item_types": {
+  "r": "pistol",
+  "l": "hold"
+ },
+ "face_uv": {
+  "auto": true,
+  "k": 3.5,
+  "brim_k": 1.4,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_keep": {
+  "gain": 0.95,
+  "eyes": 0,
+  "soften": 0.5,
+  "tone": [
+   128,
+   134,
+   112
+  ],
+  "tone_k": 0.5
+ },
+ "face_box": {
+  "auto": true,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "skin_zones": [
+  "hand_l",
+  "hand_r"
+ ],
+ "gear_extra": [
+  "b56",
+  "b82"
+ ],
+ "grip_parts": {
+  "r": [
+   "b62"
+  ],
+  "l": [
+   "b85"
+  ]
+ },
+ "gear_groups": [
+  [
+   "b7",
+   "b8",
+   "b9",
+   "b10",
+   "b11",
+   "b12",
+   "b13",
+   "b14",
+   "b15",
+   "b16",
+   "b17",
+   "b18",
+   "b19",
+   "b20",
+   "b21",
+   "b22",
+   "b23",
+   "b24",
+   "b25",
+   "b26",
+   "b27",
+   "b28",
+   "b29",
+   "b30",
+   "b31",
+   "b32",
+   "b33",
+   "b34",
+   "b35",
+   "b36",
+   "b37",
+   "b38",
+   "b39",
+   "b40",
+   "b41",
+   "b42",
+   "b43",
+   "b44",
+   "b45",
+   "b46",
+   "b47",
+   "b48",
+   "b49",
+   "b50",
+   "b51",
+   "b52",
+   "b53",
+   "b54",
+   "b55",
+   "b56",
+   "b57"
+  ],
+  [
+   "b82",
+   "b83",
+   "b84",
+   "b85",
+   "b86",
+   "b87"
+  ]
+ ],
+ "follow_old": [
+  "gear1"
+ ],
+ "hold_out": {
+  "gear1": 0.12
+ },
+ "item_holds": {
+  "0": {
+   "r": 0.59
+  },
+  "1": {
+   "l": 0.81
+  }
+ },
+ "follow_wrist": 60,
+ "pistol_low": {
+  "r": [
+   20,
+   25,
+   0.35
+  ]
+ },
+ "pistol_wind_out": 0.8,
+ "pistol_aim_drop": 0.12,
+ "pistol_aim_in": -0.05,
+ "follow_wrist_keep": true,
+ "recolour": [
+  {
+   "name": "steel",
+   "z": [
+    0,
+    1.1
+   ],
+   "sat": [
+    0,
+    0.45
+   ],
+   "to": [
+    98,
+    99,
+    102
+   ],
+   "not_skin": false,
+   "not_hands": true,
+   "not_boxes": [
+    {
+     "x": [
+      -0.125,
+      0.125
+     ],
+     "y": [
+      -9,
+      -0.03
+     ],
+     "z": [
+      0.85,
+      0.918
+     ]
+    },
+    {
+     "x": [
+      -0.095,
+      0.095
+     ],
+     "y": [
+      -9,
+      -0.03
+     ],
+     "z": [
+      0.825,
+      0.85
+     ]
+    },
+    {
+     "x": [
+      -0.04,
+      0.04
+     ],
+     "y": [
+      -9,
+      -0.13
+     ],
+     "z": [
+      0.81,
+      0.825
+     ]
+    },
+    {
+     "x": [
+      -0.11,
+      0.11
+     ],
+     "y": [
+      -9,
+      -0.08
+     ],
+     "z": [
+      0.936,
+      0.95
+     ]
+    }
+   ],
+   "keep_light": 1.0
+  },
+  {
+   "name": "visor",
+   "x": [
+    -0.1,
+    0.1
+   ],
+   "y": [
+    -9,
+    -0.08
+   ],
+   "z": [
+    0.94,
+    0.948
+   ],
+   "to": [
+    214,
+    120,
+    36
+   ],
+   "contrast": 0.3,
+   "not_skin": false,
+   "not_hands": true
+  },
+  {
+   "name": "brow_specks",
+   "x": [
+    -0.13,
+    0.13
+   ],
+   "y": [
+    -9,
+    -0.03
+   ],
+   "z": [
+    0.9,
+    0.938
+   ],
+   "hue": [
+    5,
+    60
+   ],
+   "sat": [
+    0.4,
+    1
+   ],
+   "to": [
+    98,
+    99,
+    102
+   ],
+   "keep_light": 0.8,
+   "not_skin": false,
+   "not_hands": true
+  },
+  {
+   "name": "glint_r",
+   "x": [
+    -0.058,
+    -0.044
+   ],
+   "y": [
+    -9,
+    -0.08
+   ],
+   "z": [
+    0.894,
+    0.902
+   ],
+   "val": [
+    0,
+    0.15
+   ],
+   "to": [
+    232,
+    232,
+    228
+   ],
+   "contrast": 0.0,
+   "not_skin": false,
+   "not_hands": true
+  },
+  {
+   "name": "glint_l",
+   "x": [
+    0.044,
+    0.058
+   ],
+   "y": [
+    -9,
+    -0.08
+   ],
+   "z": [
+    0.894,
+    0.902
+   ],
+   "val": [
+    0,
+    0.15
+   ],
+   "to": [
+    232,
+    232,
+    228
+   ],
+   "contrast": 0.0,
+   "not_skin": false,
+   "not_hands": true
+  }
+ ],
+ "gloves": [
+  62,
+  62,
+  64
+ ],
+ "glove_shade": true
+}

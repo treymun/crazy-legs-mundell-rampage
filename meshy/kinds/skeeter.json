@@ -1,0 +1,15 @@
+{
+ "kind": "skeeter",
+ "meshy": "meshy/assets/skeeter.glb",
+ "old_glb": "../meshy-work-b/old/skeeter.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_skeeter.png",
+ "out": "../meshy-work-b/raw/skeeter",
+ "tris": 9000,
+ "texture": 512,
+ "weights": "heat",
+ "legs": [["b4", "b5"], ["b6", "b7"], ["b8", "b9"], ["b13", "b14"], ["b15", "b16"], ["b17", "b18"]],
+ "torso": "b0",
+ "square": false,
+ "groups": [["b0"], ["b1", "b2", "b3"], ["b10", "b11", "b12"], ["b20", "b19"],
+            ["b4"], ["b5"], ["b6"], ["b7"], ["b8"], ["b9"], ["b13"], ["b14"], ["b15"], ["b16"], ["b17"], ["b18"]]
+}

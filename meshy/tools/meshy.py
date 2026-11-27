@@ -28,6 +28,12 @@ LEDGER = os.path.join(os.path.dirname(HERE), "credit_ledger.json")
 KEY_FILE = os.path.join(os.path.expanduser("~"), ".clmr", "meshy_key.txt")
 START = 2938  # balance when this track began (2026-11-25)
 LIMIT = 2500  # the owner's hard cap for this track
+# A second agent keeps its own section of the ledger ("agent B": entries, its
+# budget and a running total) and its own budget: MESHY_AGENT=B MESHY_BUDGET=650.
+AGENT = os.environ.get("MESHY_AGENT", "")
+BUDGET = int(os.environ.get("MESHY_BUDGET", "0") or 0)
+# What each call costs (the balance can move under another agent's call).
+NOMINAL = {"v1/image-to-image": 9, "v1/image-to-3d": 30, "v1/rigging": 5, "v1/retexture": 10}
 
 
 def _head():
@@ -67,6 +73,13 @@ def ledger():
     return {"start": START, "limit": LIMIT, "entries": []}
 
 
+def section(led):
+    """The entries this agent writes (the top level, or its own section)."""
+    if not AGENT:
+        return led
+    return led.setdefault("agent " + AGENT, {"budget": BUDGET, "spent": 0, "entries": []})
+
+
 def save(led):
     with open(LEDGER, "w", encoding="utf-8") as f:
         json.dump(led, f, indent=1)
@@ -87,7 +100,7 @@ def expand(body, led):
         return data_uri(body[6:])
     if isinstance(body, str) and body.startswith("@task:"):
         want = body[6:]
-        for e in reversed(led["entries"]):
+        for e in list(reversed(section(led)["entries"])) + list(reversed(led["entries"])):
             if e["label"] == want and e.get("status") == "SUCCEEDED":
                 return e["task"]
         sys.exit(f"no succeeded task labelled {want}")
@@ -100,18 +113,21 @@ def spent_now(bal):
 
 def submit(endpoint, body_path, max_cost, label):
     led = ledger()
-    pending = [e for e in led["entries"] if e.get("cost") is None]
+    sec = section(led)
+    pending = [e for e in sec["entries"] if e.get("cost") is None]
     if pending:
         sys.exit(f"refused: {len(pending)} task(s) still unsettled; wait for them first")
     bal = balance()
     spent = spent_now(bal)
     if spent + max_cost > LIMIT:
         sys.exit(f"refused: spent {spent}, this may cost {max_cost}, cap {LIMIT}")
+    if AGENT and sec["spent"] + max_cost > sec["budget"]:
+        sys.exit(f"refused: agent {AGENT} spent {sec['spent']}, this may cost {max_cost}, budget {sec['budget']}")
     with open(body_path, encoding="utf-8") as f:
         body = expand(json.load(f), led)
     res = call("POST", endpoint, body)
     tid = res["result"]
-    led["entries"].append(
+    sec["entries"].append(
         {"label": label, "endpoint": endpoint, "task": tid, "before": bal, "cost": None,
          "body": os.path.basename(body_path), "time": time.strftime("%Y-%m-%d %H:%M:%S")}
     )
@@ -137,12 +153,22 @@ def wait(endpoint, tid, label, out):
     time.sleep(4)
     bal = balance()
     led = ledger()
-    for e in led["entries"]:
+    sec = section(led)
+    for e in sec["entries"]:
         if e["task"] == tid:
             e["cost"] = e["before"] - bal
             e["after"] = bal
             e["status"] = st
+            nom = NOMINAL.get(endpoint)
+            if AGENT and nom is not None and e["cost"] != nom:
+                # the other agent's calls moved the shared balance meanwhile
+                e["balance_moved"] = e["cost"]
+                e["cost"] = nom if st == "SUCCEEDED" else 0
+                e["note"] = "balance delta %d: concurrent call by the other agent; counted at the price" % e["balance_moved"]
             print("cost", e["cost"], "balance", bal, "track spent", spent_now(bal))
+    if AGENT:
+        sec["spent"] = sum(e.get("cost") or 0 for e in sec["entries"])
+        print("agent", AGENT, "spent", sec["spent"], "of", sec["budget"])
     save(led)
     if st != "SUCCEEDED":
         print("FAILED", json.dumps(t.get("task_error")))

@@ -1,0 +1,79 @@
+{
+ "kind": "nitro_huffer",
+ "rigged": "../meshy-work-b/meshy_out/nitro_huffer_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/nitro_huffer_poses.json",
+ "old_glb": "../meshy-work-b/old/nitro_huffer.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_nitro_huffer.png",
+ "out": "../meshy-work-b/raw/nitro_huffer",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.1,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "face_uv": {
+  "k": 3.5,
+  "brim_k": 1.0,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_keep": {
+  "light": 0.78,
+  "eyes": 1.6,
+  "eye_sat": 0.2,
+  "eye_lum": 0.5,
+  "soften": 0.5
+ },
+ "face_box": {
+  "r": 0.27,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "gear_extra": [
+  "b33",
+  "b35",
+  "b36",
+  "b37",
+  "b38",
+  "b39",
+  "b40",
+  "b41",
+  "b42",
+  "b43",
+  "b44",
+  "b45",
+  "b46",
+  "b47",
+  "b48",
+  "b49",
+  "b50"
+ ],
+ "gear_skip": [
+  "b31"
+ ],
+ "gear_one": true,
+ "item_types": {
+  "r": "throw"
+ },
+ "throw_out": 0.24,
+ "skin_even": {
+  "tone": [
+   160,
+   104,
+   80
+  ],
+  "ext": false,
+  "face_even": 0.0
+ },
+ "bottle_flip": true,
+ "bottle_grip": 0.72
+}

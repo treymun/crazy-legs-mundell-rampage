@@ -186,5 +186,99 @@
   "face": "the face hidden by the gas mask: clear readable eyes visible behind the round glass lenses, with whites and dark pupils, a menacing squint-free stare",
   "texture": "gas-masked riot trooper, black rubber gas mask with round glass eye lenses and filter, eyes visible behind lenses, olive drab field jacket, olive vest with canister pouches, olive trousers, black boots, olive gloves, empty hands",
   "height": 1.75
+ },
+ "millhand": {
+  "refs": "cel",
+  "who": "burly sawmill hand, a big stocky lumber-mill worker",
+  "design": "WEARING a mustard-yellow hard hat on his head, a long mustard-yellow oilskin rain slicker coat to mid-thigh, buttoned, with big patch pockets and the sleeves to the wrists, faded blue denim jeans, heavy black rubber work boots, a broad barrel chest and thick strong arms on a natural sturdy build, bare weathered hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy weathered face lit evenly, wide-open eyes with clear whites and dark pupils under heavy black eyebrows knitted in a mean scowl, a big nose, a thick bushy black beard and moustache, the face fully in light under the hat brim",
+  "texture": "sawmill worker, mustard-yellow hard hat, mustard-yellow rain slicker coat, blue jeans, black rubber boots, ruddy skin, bushy black beard, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.74
+ },
+ "mundell": {
+  "refs": "cel",
+  "cel": "full_body_player",
+  "who": "rough backwoods redneck hero, a tough middle-aged country man (the player character of the game)",
+  "design": "WEARING a green trucker cap with a white front patch on his head, a red and dark-red plaid flannel shirt with the sleeves rolled to the forearms, faded blue denim bib overalls with brass buckles, a patched left knee and a row of red shotgun shells in the bib pocket, scuffed brown leather work boots, a lean strong natural build with real shoulders and forearms, bare weathered hands",
+  "face": "a stylized game-character face, slightly caricatured but natural, handsome in a rugged way and clearly readable: a weathered sun-tanned face lit evenly, wide-open eyes with clear whites and blue irises under thick grey brows, a strong straight nose, a short grey beard and moustache, a wry determined half-smile, the face fully in light under the cap's bill",
+  "texture": "redneck hero, green trucker cap with white patch, red plaid flannel shirt with rolled sleeves, blue denim bib overalls, red shotgun shells in bib pocket, brown boots, tanned skin, short grey beard, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.77
+ },
+ "nitro_huffer": {
+  "refs": "cel",
+  "who": "scrawny wiry hillbilly nitrous huffer, a twitchy junkyard speed freak who throws dynamite",
+  "design": "WEARING old brass-rimmed driving goggles pushed up on his forehead, a stained off-white sleeveless ribbed undershirt, faded red work trousers, scuffed black boots, a dented blue steel gas cylinder strapped upright in the middle of his back with two shoulder straps, a short black rubber hose running from its valve tight over his left shoulder down to a small black breathing mask hanging flat on his chest (the hose lies close against the body, no loose loops), a thin wiry natural build with lean ropy arms, clean bare hands and arms with smooth even skin (the dirt only on the clothes)",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a narrow lean face with healthy even tanned skin lit evenly, wild wide-open eyes with clear whites and dark pupils, raised eyebrows, a manic buck-toothed grin, messy sandy hair sticking out under the goggles, light stubble, no sores, no dirt on the face",
+  "texture": "skinny hillbilly, brass goggles on forehead, off-white sleeveless undershirt, red trousers, black boots, blue gas cylinder on back with black hose and small black mask at chest, tanned skin, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.7
+ },
+ "pit_mechanic": {
+  "refs": "cel",
+  "who": "speedway pit-crew mechanic, a burly stock-car garage grease monkey who throws lug wrenches",
+  "design": "WEARING a red baseball cap on his head, dark navy-blue mechanic's coveralls zipped up the front with the sleeves down to the wrists, a white oval name patch on the left chest, a red rag hanging from the back pocket, black work boots, a sturdy heavyset natural build with broad shoulders, strong arms and a modest gut, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a round ruddy weathered face lit evenly, wide-open eyes with clear whites and dark pupils under bushy dark brows, a big nose, a thick dark-brown walrus moustache, a gruff scowl, short dark hair under the cap, clean skin, the face fully in light under the cap's bill",
+  "texture": "pit-crew mechanic, red ball cap, dark navy coveralls, white name patch, red rag, black boots, ruddy clean skin, dark walrus moustache, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.68
+ },
+ "revenooer": {
+  "refs": "cel",
+  "who": "1990s federal revenue agent (a 'revenooer'), a lean hard-nosed government man who busts moonshine stills",
+  "design": "WEARING a black narrow-brimmed fedora on his head, small round wire spectacles with clear lenses, a black two-piece suit with the jacket buttoned, a white shirt and a thin black tie, a small silver badge clipped on his belt, black leather shoes, a lean fit natural build with real shoulders and arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a long lean clean-shaven face with a square jaw lit evenly, wide-open eyes with clear whites and dark pupils behind the clear round spectacles, thin stern eyebrows, a sharp nose, a tight-lipped smug smirk, short slicked dark hair under the hat, clean skin, the face fully in light under the hat brim",
+  "texture": "federal agent, black fedora, round wire spectacles with clear lenses, black suit, white shirt, thin black tie, silver belt badge, black shoes, clean pale skin, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.72
+ },
+ "shield_deputy": {
+  "refs": "cel",
+  "who": "small-town county sheriff's deputy, a stocky country lawman (he carries a riot shield and a revolver in the game)",
+  "design": "WEARING a dark brown round-crowned brimmed deputy hat on his head, a tan khaki uniform shirt with the sleeves down to the wrists, a gold star badge on the chest and two buttoned breast pockets, dark brown uniform trousers, a black leather duty belt with an empty holster, black boots, a sturdy strong natural build with real shoulders and arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad sun-tanned face lit evenly, wide-open eyes with clear whites and dark pupils under thick dark brows, a strong nose, a thick dark brown moustache, a stern no-nonsense frown, short dark hair under the hat, clean skin, the face fully in light under the hat brim",
+  "texture": "county deputy, dark brown round brimmed hat, tan khaki uniform shirt with gold star badge, dark brown trousers, black duty belt, black boots, tanned clean skin, dark moustache, clear face with eye whites, bare hands, empty hands, no weapon, no shield",
+  "height": 1.78
+ },
+ "still_buster": {
+  "refs": "cel",
+  "who": "1990s government still-buster raid agent, a burly revenue officer who smashes moonshine stills with a fire axe",
+  "design": "WEARING a navy-blue peaked officer's cap with a small gold badge on his head, a navy-blue uniform jacket buttoned up with brass buttons and a gold shield badge on the left chest, the sleeves down to the wrists, navy-blue uniform trousers, a brown leather belt, black boots, a big burly natural build with broad shoulders and strong arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad ruddy face with a square jaw lit evenly, wide-open eyes with clear whites and dark pupils under heavy dark brows set in a determined glare, a big nose, a thick black handlebar moustache, a clean-shaven chin, short dark hair under the cap, clean skin, the face fully in light under the cap's peak",
+  "texture": "raid officer, navy peaked cap with gold badge, navy uniform jacket with brass buttons and gold badge, navy trousers, brown belt, black boots, ruddy clean skin, black handlebar moustache, clear face with eye whites, bare hands, empty hands, no weapon",
+  "height": 1.72
+ },
+ "tin_guard": {
+  "refs": "cel",
+  "who": "tall grey space alien guard in a home-made suit of riveted tin-can armour, a comedic 1950s B-movie alien trooper who guards the mothership",
+  "design": "WEARING a round dented gunmetal-grey tin helmet with the face left open and a thin glowing orange visor strip across the brow, big round riveted gunmetal-grey tin shoulder pauldrons, a riveted dented tin breastplate, dark charcoal-grey padded suit underneath on the arms and legs, round tin knee cops, a dark belt, heavy dark grey tin boots, tall and lean but strong natural build with long arms and long legs, bare grey three-fingered alien hands with a thumb",
+  "face": "a stylized game-character alien face, slightly caricatured but clearly readable: a smooth olive-grey alien face inside the open helmet, lit evenly, two large glossy black almond-shaped alien eyes each with a clear white highlight, a small flat nose with two slits, a thin stern mouth set in a grim frown, clean smooth grey skin, the whole face fully in light under the helmet",
+  "texture": "grey alien guard, gunmetal grey riveted tin armour helmet pauldrons breastplate knee cops, glowing orange visor strip on brow, dark charcoal padded suit, dark belt, dark grey boots, olive grey smooth alien skin, big glossy black eyes with white highlights, bare grey hands, empty hands, no weapon, no shield",
+  "height": 1.87
+ },
+ "tire_roller": {
+  "refs": "cel",
+  "who": "1990s speedway tire man, a big burly pit-lane brute who bowls heavy racing tires at people",
+  "design": "WEARING a dirty off-white sleeveless ribbed undershirt, mustard-orange work bib overalls with the straps over the shoulders and a big front bib pocket, round black rubber knee pads strapped over the overall legs, scuffed grey work boots, a big heavy natural strongman build with a broad chest, a round gut and thick muscular bare arms, bald head, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a broad tanned face lit evenly, a shaved bald head, wide-open eyes with clear whites and dark pupils under heavy dark brows set in a mean scowl, a big flat boxer's nose, thick dark mutton-chop sideburns joined to a bushy dark horseshoe moustache, a clean-shaven chin, clean skin, the face fully in light",
+  "texture": "speedway tire man, off-white sleeveless undershirt, mustard orange bib overalls, black rubber knee pads, grey work boots, tanned clean skin, bald head, dark mutton chop sideburns and horseshoe moustache, clear face with eye whites, bare hands, empty hands, no tire, no props",
+  "height": 1.69
+ },
+ "valve_rat": {
+  "refs": "cel",
+  "who": "1990s moonshine-still valve rat, a short wiry old sewer-and-still tinkerer who wears a brass twin-tank pack on his back and shoots darts out of a brass pipe fed by it",
+  "design": "WEARING a greasy dark grey flat newsboy cap, a dark leather eye patch strapped over the left eye, a worn brown canvas work jacket with patched elbows, a grimy cream shirt under it, dark grey work trousers, scuffed black boots, and ON HIS BACK a big tarnished BRASS TWIN-TANK PACK: two rounded brass cylinders side by side, strapped on with two dark leather shoulder straps that cross his chest, the tanks' domed tops with small valve wheels rising clearly above both shoulders behind his head and the tanks' sides showing past his waist on both sides; a small wiry natural build, a short man (about four feet tall), STANDING TALL AND UPRIGHT with a straight back, chest out, head up and looking straight ahead at the camera, long thin arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a narrow weathered face lit evenly, one wide-open right eye with a clear white and a dark pupil under a bushy grey brow, the dark eye patch over the other eye, a long pointed nose, a sly crooked grin showing a gap tooth, short neat grey stubble on the chin, short close-cropped grey hair at the temples tucked under the cap (no wild or spiky hair), clean readable skin, the face fully in light under the cap's peak",
+  "texture": "valve rat, dark grey flat cap, black leather eye patch, brown canvas work jacket with patched elbows, cream shirt, dark grey trousers, black boots, tarnished brass twin-tank pack on his back with dark leather straps, weathered tan skin, short grey stubble, short grey hair, one clear eye with a white, bare hands, empty hands, no weapon, no pipe",
+  "extra_refs": [
+   "meshy-work-b/meshy_out/valve_rat_concept_49/image_0.png",
+   "meshy-work-b/meshyref/valve_rat_tank_ref.png"
+  ],
+  "extra_note": " The second reference image is this same character's earlier concept: keep his face, eye patch, cap, jacket and colours from it, but he now stands tall and upright with a straight back and his head up (not stooped, not hunched, not looking down), his hair is short and close-cropped, and he wears the brass twin-tank pack on his back. The third reference image shows the old figure from the side and back only for the brass twin-tank pack (two rounded brass tanks strapped high on the back): copy that pack, not the figure.",
+  "height": 1.22
+ },
+ "drone": {
+  "refs": "cel",
+  "who": "1990s alien grey drone worker disguised as a hillbilly farmhand, a lanky grey space alien in farm clothes who lunges and jabs at people",
+  "design": "WEARING a faded green trucker cap with a small cream patch on its front, big round black welding goggles with glowing cyan lenses strapped over his eyes, an orange-and-brown plaid flannel work shirt, faded blue denim bib overalls with brass buckles and a slightly round belly under the bib, scuffed dark brown work boots, pale grey work gloves; a tall lanky thin alien body with long thin arms and long legs, a big smooth bald domed grey head with a narrow chin under the cap, STANDING TALL AND UPRIGHT with a straight back and the head up looking straight at the camera",
+  "face": "a sculpted grey alien face, clearly readable and a little comical: smooth leathery pale grey skin with soft wrinkles, the big round goggles over the eyes, a high brow ridge above them, a tiny flat nose with two nostril slits, a thin wide lipless mouth in a blank little smile, a narrow pointed chin, the face modelled in real relief with soft shading and lit evenly, not a flat painted mask",
+  "texture": "alien grey farmhand, faded green trucker cap with a cream patch, black round goggles with cyan lenses, pale grey alien skin, orange and brown plaid flannel shirt, faded blue denim bib overalls, dark brown work boots, pale grey work gloves, empty hands, no weapon, no tool",
+  "height": 1.8
  }
 }

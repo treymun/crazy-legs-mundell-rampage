@@ -1,0 +1,12 @@
+{
+ "ai_model": "latest",
+ "image_url": "@file:C:/Users/treym/AppData/Local/Temp/claude/1dc8348830e70b38/f2338a2e-3874-4eaf-9e39-f1352f903b29/scratchpad/meshy-work-b\\meshy_out\\mundell_concept\\image_0.png",
+ "should_texture": true,
+ "enable_pbr": false,
+ "topology": "triangle",
+ "should_remesh": true,
+ "target_polycount": 30000,
+ "symmetry_mode": "auto",
+ "pose_mode": "a-pose",
+ "texture_prompt": "redneck hero, green trucker cap with white patch, red plaid flannel shirt with rolled sleeves, blue denim bib overalls, red shotgun shells in bib pocket, brown boots, tanned skin, short grey beard, clear face with eye whites, bare hands, empty hands, no weapon"
+}

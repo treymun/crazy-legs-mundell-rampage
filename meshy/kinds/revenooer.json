@@ -1,0 +1,193 @@
+{
+ "kind": "revenooer",
+ "rigged": "../meshy-work-b/meshy_out/revenooer_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/revenooer_poses.json",
+ "old_glb": "../meshy-work-b/old/revenooer.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_revenooer.png",
+ "out": "../meshy-work-b/raw/revenooer",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.4,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "face_uv": {
+  "k": 3.5,
+  "brim_k": 1.0,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_keep": {
+  "gain": 0.78,
+  "eyes": 1.5,
+  "eye_sat": 0.15,
+  "soften": 0.5,
+  "tone": [
+   186,
+   124,
+   98
+  ],
+  "tone_k": 0.75,
+  "tone_zone": "head"
+ },
+ "face_box": {
+  "r": 0.27,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "item_types": {
+  "r": "pistol"
+ },
+ "grip_parts": {
+  "r": [
+   "b42"
+  ],
+  "l": [
+   "b45"
+  ]
+ },
+ "skin_even": {
+  "ext": false,
+  "arms": false,
+  "tone": [
+   176,
+   116,
+   92
+  ],
+  "face_even": 0.0,
+  "light": 0.88
+ },
+ "recolour": [
+  {
+   "name": "fedora",
+   "z": [
+    0.94,
+    1.1
+   ],
+   "to": [
+    46,
+    44,
+    46
+   ],
+   "contrast": 0.9,
+   "not_skin": false
+  },
+  {
+   "name": "fedora_back",
+   "z": [
+    0.928,
+    0.94
+   ],
+   "y": [
+    0.0,
+    9
+   ],
+   "to": [
+    46,
+    44,
+    46
+   ],
+   "contrast": 0.9,
+   "not_skin": false
+  },
+  {
+   "to": [
+    52,
+    50,
+    52
+   ],
+   "contrast": 0.6,
+   "not_skin": false,
+   "name": "hair_top",
+   "z": [
+    0.917,
+    0.94
+   ],
+   "not_face": true
+  },
+  {
+   "to": [
+    52,
+    50,
+    52
+   ],
+   "contrast": 0.6,
+   "not_skin": false,
+   "name": "hair_back",
+   "z": [
+    0.885,
+    0.917
+   ],
+   "y": [
+    0.05,
+    9
+   ]
+  },
+  {
+   "to": [
+    52,
+    50,
+    52
+   ],
+   "contrast": 0.6,
+   "not_skin": false,
+   "name": "hair_nape",
+   "z": [
+    0.88,
+    0.917
+   ],
+   "x": [
+    -0.065,
+    0.065
+   ],
+   "y": [
+    0.03,
+    9
+   ]
+  },
+  {
+   "name": "collar_back",
+   "z": [
+    0.825,
+    0.852
+   ],
+   "y": [
+    0.03,
+    9
+   ],
+   "hue": [
+    0,
+    50
+   ],
+   "sat": [
+    0.2,
+    1
+   ],
+   "to": [
+    222,
+    220,
+    214
+   ],
+   "contrast": 0.5,
+   "not_skin": false,
+   "x": [
+    -0.075,
+    0.075
+   ],
+   "val": [
+    0.45,
+    1
+   ]
+  }
+ ],
+ "hand_smooth": 2
+}

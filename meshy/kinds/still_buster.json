@@ -1,0 +1,89 @@
+{
+ "kind": "still_buster",
+ "rigged": "../meshy-work-b/meshy_out/still_buster_rig/rigged.glb",
+ "poses": "../meshy-work-b/dump/still_buster_poses.json",
+ "old_glb": "../meshy-work-b/old/still_buster.glb",
+ "old_tex": "../meshy-work-b/old/actor3d_still_buster.png",
+ "out": "../meshy-work-b/raw/still_buster",
+ "tris": 12000,
+ "texture": 512,
+ "gear": "old",
+ "hands_paint": "texture",
+ "head_noshadow": true,
+ "skin_sat": 1.4,
+ "hand_hue": [
+  5,
+  30
+ ],
+ "face_uv": {
+  "auto": true,
+  "k": 3.5,
+  "brim_k": 1.0,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.2
+  ]
+ },
+ "face_box": {
+  "auto": true,
+  "r": 0.2,
+  "z": [
+   -0.16,
+   0.17
+  ]
+ },
+ "face_keep": {
+  "light": 1.0,
+  "eyes": 1.6,
+  "eye_sat": 0.15,
+  "soften": 0.5
+ },
+ "skin_zones": [
+  "head",
+  "hand_l",
+  "hand_r"
+ ],
+ "gear_skip": [
+  "b18"
+ ],
+ "grip_parts": {
+  "r": [
+   "b39"
+  ],
+  "l": [
+   "b42"
+  ]
+ },
+ "gear_extra": [
+  "b33",
+  "b34",
+  "b35",
+  "b36"
+ ],
+ "gear_one": true,
+ "item_holds": {
+  "0": {
+   "r": 0.78
+  }
+ },
+ "item_types": {
+  "r": "hold"
+ },
+ "follow_old": [
+  "gear0"
+ ],
+ "follow_wrist": 65,
+ "skin_even": {
+  "ext": false,
+  "arms": false,
+  "tone": [
+   176,
+   112,
+   88
+  ],
+  "light": 0.9,
+  "face_even": 0.0
+ },
+ "hand_smooth": 2
+}
