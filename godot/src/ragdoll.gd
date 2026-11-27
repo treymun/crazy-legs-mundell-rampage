@@ -366,8 +366,9 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 ## rest, so the part struck moves first and drags the torso, the torso struck
 ## moves the whole body. No ball is sent faster than STRIKE_MOST (a light
 ## hand flung at 30 went through walls). Looks only: a shot, a blast, a piece.
-func strike(at: Vector3, dir: Vector3, strength: float) -> void:
-	var reach := STRIKE_REACH * size
+## `reach_k`: the reach as a share of STRIKE_REACH (a longer body's, LiveBody).
+func strike(at: Vector3, dir: Vector3, strength: float, reach_k := 1.0) -> void:
+	var reach := STRIKE_REACH * size * reach_k
 	for i in pos.size():
 		var d2 := pos[i].distance_squared_to(at) / (reach * reach)
 		if d2 > 6.0:

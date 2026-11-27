@@ -135,6 +135,11 @@ const CLUTCH_ELBOW_PULL := .35
 ## the full tone).
 const HOLD_TONE := 6.0
 
+## The hips-to-shoulders length (model units) the hits were tuned on (pass
+## 15, the coot before the Meshy models): a longer torso takes a hit's reach
+## and push in proportion, so the same blow turns it as far (_torso_k).
+const TORSO_REF := .329
+
 var target := PackedVector3Array()
 ## A world target per ball that wins over the pose (Vector3.INF: none).
 var aim_override := PackedVector3Array()
@@ -198,6 +203,8 @@ var _frame_t := Basis.IDENTITY
 ## Each group's stiff() this step (worked out once a step: it holds still
 ## through the passes).
 var _st: Array[float] = [0.0, 0.0, 0.0, 0.0]
+## This body's torso against TORSO_REF (made_live; 1 for the tuned one).
+var _torso_k := 1.0
 
 
 ## A live body for a body hung on `rig`, posed as `model` (model space,
@@ -227,6 +234,9 @@ static func made_live(
 		var b := live.lb[k]
 		if (a == R.HAND_L and b == R.HAND_R) or (a == R.HAND_R and b == R.HAND_L):
 			live.lmin[k] = (live.radius[a] + live.radius[b]) * .9
+	var hips_mid := (rig.points[R.HIP_L] + rig.points[R.HIP_R]) * .5
+	var neck_mid := (rig.points[R.SH_L] + rig.points[R.SH_R]) * .5
+	live._torso_k = clampf(hips_mid.distance_to(neck_mid) / TORSO_REF, .6, 1.8)
 	live._leg = (
 		(
 			rig.points[R.HIP_L].distance_to(rig.points[R.KNEE_L])
@@ -322,7 +332,10 @@ func hit(j: Vector2, hz: float, lat: float, zone: String, seed: int) -> void:
 	# The impulse at the point (its torque turns the body), a touch down a
 	# leg hit and up a head hit.
 	var lift := .25 if zone == "head" else -.2 if zone == "legs" else 0.0
-	strike(at, (way + Vector3(0.0, 0.0, lift)).normalized(), strength * STRIKE_K)
+	# (Reach and push in proportion to the torso: the same turn on any body.)
+	strike(
+		at, (way + Vector3(0.0, 0.0, lift)).normalized(), strength * STRIKE_K * _torso_k, _torso_k
+	)
 	# The hips' run across the floor is play's (carried with play's body):
 	# what the impulse gave them is mostly taken back; the rest of him keeps
 	# it, so a blow above the hips turns the body about them (the shoulders

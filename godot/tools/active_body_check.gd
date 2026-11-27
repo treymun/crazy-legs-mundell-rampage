@@ -1,6 +1,7 @@
 ## The active bodies' steps two and three (pass 15, T11), headless:
 ##
 ##   Godot --headless --path godot --script res://tools/active_body_check.gd [-- print]
+##       [kind=billy]
 ##
 ## Play's half (src/body_play.gd): a reel the steps cannot stop next to a rail
 ## holds on to it (the same reel on open floor goes down); a man driven hard
@@ -18,7 +19,9 @@
 ## the same line; a dying man goes slack over a second or more (a plain
 ## ragdoll at once), writhes or crawls on the ground and then lies still;
 ## the muscles off, every one of them is a plain ragdoll. Play is the same to
-## the bit with the active bodies stepped beside it or not.
+## the bit with the active bodies stepped beside it or not. `kind=` runs the
+## looks' half on another humanoid's rig and model (its own play body when it
+## is an enemy, else a coot's), sized against the coot as the game sizes it.
 extends SceneTree
 
 const DT := 1.0 / 60.0
@@ -27,6 +30,12 @@ const R := preload("res://src/view3d/ragdoll_rig.gd")
 var failures: Array = []
 var verbose := false
 var rig: RagdollRig
+## The rig's kind (kind=) and the play body's (the kind itself when it is an
+## enemy, else a coot).
+var kind := "coot"
+var body := "coot"
+## The model's size against SIZE (the game's height over canvas, the coot's 1).
+static var size_k := 1.0
 
 
 func _init() -> void:
@@ -46,16 +55,31 @@ func _say(text: String) -> void:
 
 func _run() -> void:
 	verbose = OS.get_cmdline_user_args().has("print")
+	for a: String in OS.get_cmdline_user_args():
+		if a.begins_with("kind="):
+			kind = a.substr(5)
 	var main: Control = load("res://src/Main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
 	main.set_process(false)
 	main.state = "title"
 	var data: Dictionary = ActorModels.new(Assets.new()).kinds
-	var view: Node = load("res://scenes/actors/coot.tscn").instantiate()
+	body = kind if Enemy.KINDS.has(kind) else "coot"
+	var view: Node = load("res://scenes/actors/%s.tscn" % kind).instantiate()
 	root.add_child(view)
-	rig = RagdollRig.of("coot", view, data["coot"])
+	rig = RagdollRig.of(kind, view, data[kind])
 	view.free()
+	if kind != "coot":
+		var tall: float = Enemy.KINDS[body][3]
+		var coot_tall: float = Enemy.KINDS["coot"][3]
+		var canvas: Array = data[kind].get("canvas", [1.0, tall])
+		var coot_canvas: Array = data["coot"].get("canvas", [1.0, coot_tall])
+		var fit: float = data[kind].get("scale", 1.0)
+		var coot_fit: float = data["coot"].get("scale", 1.0)
+		var mine: float = tall / float(canvas[1]) * fit
+		var coots: float = coot_tall / float(coot_canvas[1]) * coot_fit
+		size_k = mine / coots
+		print("kind %s (play body %s, size %.3f of the coot's)" % [kind, body, size_k])
 	print("ACTIVE BODIES: PLAY'S SAY, THE BODY'S PHYSICS")
 	_play(main)
 	_looks(main)
@@ -278,7 +302,7 @@ const SIZE := 1.51 / 1.7
 static func _xf(at: Vector2, z: float, angle: float) -> Transform3D:
 	var turn := PI * .5 - angle
 	return Transform3D(
-		Basis(Vector3.UP, turn).scaled(Vector3(SIZE, SIZE, SIZE)), Vector3(at.x, z, at.y)
+		Basis(Vector3.UP, turn).scaled(Vector3.ONE * SIZE * size_k), Vector3(at.x, z, at.y)
 	)
 
 
@@ -337,10 +361,10 @@ func _drive(g: Game, e: Enemy, live: ActiveBody, secs: float, each: Callable) ->
 func _shove(main: Node, at_share: float, strength: float) -> Dictionary:
 	var g := _game(main)
 	var open := _open(g)
-	var e := _man(g, open, PI, "coot")
+	var e := _man(g, open, PI, body)
 	var live := _active(open, e.floor_z, PI)
 	var z := e.floor_z
-	var tall := 1.51
+	var tall := 1.51 * size_k
 	Stagger.point = Vector3(e.x - .2, e.y, z + tall * at_share)
 	Stagger.shove(e, g, strength, 0.0)
 	var note := Stagger.of(e)
@@ -424,7 +448,7 @@ func _brace_check(main: Node) -> void:
 	for acts: bool in [true, false]:
 		var g := _game(main)
 		var open := _open(g)
-		var e := _man(g, open, PI, "coot")
+		var e := _man(g, open, PI, body)
 		var live := _active(open, e.floor_z, PI)
 		live.acts = acts
 		BodyPlay.knock_down(e, g, Vector2(1.8, 0.0), Stagger.PITCH_FOR * 1.4)
@@ -480,7 +504,7 @@ func _brace_check(main: Node) -> void:
 func _grab_check(main: Node) -> void:
 	var g := _game(main)
 	var at := Vector2(44.0, 9.05)
-	var e := _man(g, at, PI, "coot")
+	var e := _man(g, at, PI, body)
 	var live := _active(at, e.floor_z, PI)
 	Stagger.push(e, g, Vector2(3.2, 0.0))
 	var st := {"slip": 0.0, "held": 0.0}
@@ -510,7 +534,7 @@ func _stairs_check(main: Node) -> void:
 	var g := _game(main, "feedstore")
 	var top := Vector2(10.9, 4.6)
 	var way := Vector2(-1.0, 0.0)
-	var e := _man(g, top, 0.0, "coot")
+	var e := _man(g, top, 0.0, body)
 	var live := _active(top, e.floor_z, 0.0)
 	var start := e.floor_z
 	var t := 0.0
@@ -553,7 +577,7 @@ func _stairs_check(main: Node) -> void:
 ## the rail's top, none through it.
 func _rail_check(main: Node) -> void:
 	var g := _game(main)
-	var e := _man(g, LOFT, -PI * .5, "coot")
+	var e := _man(g, LOFT, -PI * .5, body)
 	var live := _active(LOFT, e.floor_z, -PI * .5)
 	Stagger.push(e, g, Vector2(0.0, 3.0))
 	var line := 9.55
@@ -637,7 +661,7 @@ func _same_play(main: Node) -> void:
 	var traces: Array = []
 	for with_live: bool in [false, true]:
 		var g := _game(main)
-		var e := _man(g, LOFT, -PI * .5, "coot")
+		var e := _man(g, LOFT, -PI * .5, body)
 		var live := _active(LOFT, e.floor_z, -PI * .5)
 		Stagger.push(e, g, Vector2(.4, 3.0))
 		var trace := PackedFloat64Array()
@@ -688,7 +712,7 @@ func _dying(g: Game, at: Vector2, kind_of: int, muscles := true, plain := false)
 	doll.strike(chest, Vector3(-1.0, 0.0, .1).normalized(), 2.2)
 	var dying := doll as DyingDoll
 	if dying != null:
-		var e := Enemy.new("coot", at.x, at.y, PI)
+		var e := Enemy.new(body, at.x, at.y, PI)
 		e.last_zone = "body"
 		e.killed_by = "revolver"
 		dying.begin(e, 9)

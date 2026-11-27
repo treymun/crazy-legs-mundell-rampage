@@ -52,6 +52,14 @@ static var force_style := -1
 static var MUSCLE_MOST: float = Effects.RAGDOLL.get("dying_muscle_most", .02)
 ## Seconds the arms take the fall once a hand is down before they give.
 static var BRACE_GIVE: float = Effects.RAGDOLL.get("dying_brace_give", .2)
+## How hard a crawling arm pulls (times the tone) and how far ahead the
+## hand reaches for the floor (a share of the arm).
+static var CRAWL_PULL: float = Effects.RAGDOLL.get("dying_crawl_pull", 2.6)
+static var CRAWL_REACH: float = Effects.RAGDOLL.get("dying_crawl_reach", .85)
+## The share of a writhing (or rising) body's drift across the floor taken
+## back each step: the muscles move its balls straight, past the floor's
+## friction (which holds speeds), so without it the thrashing swims him along.
+static var WRITHE_ANCHOR: float = Effects.RAGDOLL.get("dying_writhe_anchor", 1.0)
 
 var style := LIMP
 var slack_for := 1.5
@@ -88,6 +96,8 @@ var hood_until := -1.0
 ## The muscles' travel this step (map units; the checks).
 var work := 0.0
 var _rest := PackedVector3Array()
+## The middle where the writhing left it last step (INF: not writhing).
+var _anchor := Vector3.INF
 
 
 ## A dying body for a body hung on `rig`, posed as `model` under `xf`.
@@ -196,6 +206,15 @@ func active() -> bool:
 	return muscles and env > .01
 
 
+## Ragdoll's, and no muscle travel reported once it has gone to sleep (the
+## last step's would otherwise stand for every frame after).
+func advance(world: LevelData, dt: float) -> int:
+	var n := super.advance(world, dt)
+	if not awake:
+		work = 0.0
+	return n
+
+
 ## Once a step: where each muscle wants its ball now (and how hard).
 func _before_passes(_world: LevelData) -> void:
 	work = 0.0
@@ -203,6 +222,10 @@ func _before_passes(_world: LevelData) -> void:
 		return
 	_mark_down()
 	env = _envelope()
+	if active():
+		# (Not asleep while the muscles still move him: lying still a moment
+		# between two pulls of a crawl is not rest.)
+		still = 0.0
 	var fr := LiveBody._torso_frame(pos)
 	for i in R.POINTS:
 		_want[i] = held[i]
@@ -213,11 +236,19 @@ func _before_passes(_world: LevelData) -> void:
 		return
 	var t := age - lay_at
 	if t > behave_for or style == LIMP:
+		# (The behaviour over, no hand stays gripping the floor; while the
+		# last of the tone fades the floor still holds him where he is.)
+		grips.clear()
+		if style != LIMP and active():
+			_hold_in_place(WRITHE, fr)
+		else:
+			_anchor = Vector3.INF
 		return
 	var face_down := fr.z.z < -.3
 	var now := style
 	if (now == GET_UP or now == CRAWL) and not face_down:
 		now = WRITHE
+	_hold_in_place(now, fr)
 	match now:
 		WRITHE:
 			_writhe(fr, t)
@@ -278,6 +309,29 @@ func _mark_down() -> void:
 	if lay_at < 0.0 and (torso >= 3 or flat):
 		lay_at = age
 		grips.clear()
+
+
+## The floor holding a body on the ground that the muscles would shove about
+## (they move its balls straight, past the floor's friction, which only holds
+## speeds): writhing or trying to rise, its drift across the floor since last
+## step is mostly taken back (WRITHE_ANCHOR), the whole body moved, the limbs
+## still thrashing; crawling (`now` CRAWL), all of a drift back against the
+## way his head points and none of the rest (the gripping hand and his knees
+## hold him; the reaching arm and the drawn knees would push him back), so
+## each pull gains ground.
+func _hold_in_place(now: int, fr: Basis) -> void:
+	var mid := middle()
+	if _anchor != Vector3.INF:
+		var drift := Vector3(mid.x - _anchor.x, mid.y - _anchor.y, 0.0)
+		var back := drift * WRITHE_ANCHOR
+		if now == CRAWL:
+			var head_way := Vector3(fr.y.x, fr.y.y, 0.0).normalized()
+			back = head_way * minf(drift.dot(head_way), 0.0)
+		for i in R.POINTS:
+			pos[i] -= back
+			old[i] -= back
+		mid -= back
+	_anchor = mid
 
 
 ## Going down: the arms toward where the chest will land, the head off it.
@@ -429,7 +483,6 @@ func _crawl(fr: Basis, t: float) -> void:
 	var sh := R.SH_L if arm == 0 else R.SH_R
 	var hand := R.HAND_L if arm == 0 else R.HAND_R
 	var other := R.HAND_R if arm == 0 else R.HAND_L
-	grips.erase(other)
 	var arm_len := (
 		(
 			rig.points[sh].distance_to(rig.points[hand - 1])
@@ -437,16 +490,33 @@ func _crawl(fr: Basis, t: float) -> void:
 		)
 		* size
 	)
+	# The floor he lies on (under the torso's lowest ball): the reach is for
+	# it, however high his chest lies off it (a long torso, a belly, gear
+	# under him), not a set drop from the shoulder.
+	var floor_at := INF
+	for i: int in [R.SH_L, R.SH_R, R.BELLY, R.BACK, R.HIP_L, R.HIP_R]:
+		floor_at = minf(floor_at, pos[i].z - radius[i])
+	var on_floor := Vector3(0.0, 0.0, floor_at + radius[hand] * .5 - pos[sh].z)
 	if u < .45:
 		grips.erase(hand)
-		_hand_to(fr, arm, pos[sh] + head_way * arm_len + Vector3(0.0, 0.0, -arm_len * .3), 1.0)
+		_hand_to(fr, arm, pos[sh] + head_way * arm_len * CRAWL_REACH + on_floor, 1.0)
 		_k[hand] = TONE * env * 1.5
 	else:
 		if _touch.size() > hand and _touch[hand] and not grips.has(hand):
 			grips[hand] = pos[hand]
-		_hand_to(fr, arm, pos[sh] + head_way * arm_len * .25 + Vector3(0.0, 0.0, -.1), .45)
-		_k[hand] = TONE * env * 2.6
-		_k[hand - 1] = TONE * env * 2.6
+		if grips.has(hand):
+			# Gripping: the arm pulls him on to the hand (the other lets go
+			# only now: it held him while this one reached, so he does not
+			# slide back between pulls).
+			grips.erase(other)
+			_hand_to(fr, arm, pos[sh] + head_way * arm_len * .25 + Vector3(0.0, 0.0, -.1), .45)
+			_k[hand] = TONE * env * CRAWL_PULL
+			_k[hand - 1] = TONE * env * CRAWL_PULL
+		else:
+			# Not down yet: the hand comes down where it is, ahead.
+			var at := Vector3(pos[hand].x, pos[hand].y, pos[sh].z) + on_floor
+			_hand_to(fr, arm, at, 1.0)
+			_k[hand] = TONE * env * 1.5
 	for leg in 2:
 		_curl(leg, .15 + .15 * sin(t * TAU / CRAWL_CYCLE + leg * PI))
 	_want[R.HEAD] = Basis(Vector3(1.0, 0.0, 0.0), .4) * _rest[R.HEAD]
