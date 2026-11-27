@@ -489,7 +489,7 @@ static func _footprints(group: Array) -> Array:
 			cuts.append(
 				[snappedf(nrm.x, .0001), snappedf(nrm.y, .0001), snappedf(nrm.dot(a), .0001)]
 			)
-		if cuts.size() <= 2:
+		if cuts.size() <= Source.MOST_CUTS:
 			return [
 				{
 					"rect":

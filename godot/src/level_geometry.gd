@@ -111,6 +111,9 @@ class Segment:
 	var by := 0.0
 	var z0 := 0.0
 	var z1 := 2.0
+	## The top at b (a gable end, a raking wall, an arch's haunch): the top
+	## runs straight from z1 at a to z1b at b. Equal to z1 for a level top.
+	var z1b := 2.0
 	var half := .05
 	var tile := -1
 	var light := .9
@@ -118,6 +121,25 @@ class Segment:
 	## Stops sight lines and shots (a chain fence or a rail may let them by).
 	var sight := true
 	var shots := true
+
+	func raked() -> bool:
+		return z1b != z1
+
+	func top_max() -> float:
+		return maxf(z1, z1b)
+
+	## The top over the centre line nearest (px, py), grown by `reach` along
+	## the wall toward the higher end (a body touching the wall meets the top
+	## anywhere within its reach). z1 itself for a level top.
+	func top_near(px: float, py: float, reach: float) -> float:
+		if z1b == z1:
+			return z1
+		var ex := bx - ax
+		var ey := by - ay
+		var length2 := maxf(ex * ex + ey * ey, 1e-12)
+		var t := ((px - ax) * ex + (py - ay) * ey) / length2
+		t += reach / sqrt(length2) * (1.0 if z1b > z1 else -1.0)
+		return z1 + (z1b - z1) * clampf(t, 0.0, 1.0)
 
 	## Squared distance from (px, py) to the centre line.
 	func dist2(px: float, py: float) -> float:
@@ -275,6 +297,7 @@ static func from_json(
 		seg.by = b[1]
 		seg.z0 = s.get("z0", 0.0)
 		seg.z1 = s.get("z1", 2.0)
+		seg.z1b = s.get("z1b", seg.z1)
 		var thick: float = s.get("thick", .12)
 		seg.half = maxf(THINNEST, thick) * .5
 		seg.tile = _tile(tile_index, s.get("tile", "plaster"), errors, seg.id)
@@ -282,7 +305,8 @@ static func from_json(
 		seg.area = s.get("area", 0)
 		seg.sight = s.get("sight", true)
 		seg.shots = s.get("shots", seg.sight)
-		if seg.z1 <= seg.z0:
+		# A raked top may come down to the foot at one end (a gable's).
+		if seg.top_max() <= seg.z0 or minf(seg.z1, seg.z1b) < seg.z0:
 			errors.append("%s: segment has no height" % seg.id)
 			continue
 		g.segments.append(seg)
@@ -396,7 +420,7 @@ func _build_sight_bands() -> void:
 			elif item is Segment:
 				var g: Segment = item
 				if g.sight:
-					spans.append(Vector2(g.z0, g.z1))
+					spans.append(Vector2(g.z0, g.top_max()))
 		spans.sort()
 		var low := 0.0
 		var high := 0.0
@@ -534,7 +558,7 @@ func blocks(x: float, y: float, r: float, lo: float, hi: float) -> bool:
 				return true
 		else:
 			var g: Segment = item
-			if g.z0 < hi and g.z1 > lo:
+			if g.z0 < hi and g.top_near(x, y, r) > lo:
 				var reach := r + g.half
 				if g.dist2(x, y) < reach * reach:
 					return true
@@ -551,7 +575,7 @@ func solid_point(x: float, y: float, z: float, r: float, shots: bool) -> bool:
 				return true
 		else:
 			var g: Segment = item
-			if (g.shots if shots else g.sight) and z >= g.z0 and z <= g.z1:
+			if (g.shots if shots else g.sight) and z >= g.z0 and z <= g.top_near(x, y, r):
 				var reach := r + g.half
 				if g.dist2(x, y) < reach * reach:
 					return true
@@ -677,9 +701,7 @@ func render_parts(ground: Callable) -> Dictionary:
 		if length < .001:
 			continue
 		if g.half * 2.0 < .2:
-			walls.append_array(
-				PackedFloat32Array([g.ax, g.ay, g.bx, g.by, g.tile, g.light, g.z0, g.z1, g.area])
-			)
+			_face_rows(walls, g, Vector2(g.ax, g.ay), Vector2(g.bx, g.by), g.z1, g.z1b)
 			continue
 		# A thick wall: its two faces, its ends and (when low) its top.
 		var d := Vector2(g.bx - g.ax, g.by - g.ay) / length
@@ -690,13 +712,13 @@ func render_parts(ground: Callable) -> Dictionary:
 			Vector2(g.bx, g.by) + n,
 			Vector2(g.ax, g.ay) + n
 		]
+		# Each face's top at its two ends (a raked wall's faces slope with it).
+		var tops: Array[float] = [g.z1, g.z1b, g.z1b, g.z1b, g.z1b, g.z1, g.z1, g.z1]
 		for i in 4:
 			var p: Vector2 = c[i]
 			var q: Vector2 = c[(i + 1) % 4]
-			walls.append_array(
-				PackedFloat32Array([p.x, p.y, q.x, q.y, g.tile, g.light, g.z0, g.z1, g.area])
-			)
-		if g.z1 < 1.5:
+			_face_rows(walls, g, p, q, tops[i * 2], tops[i * 2 + 1])
+		if g.z1 < 1.5 and not g.raked():
 			var key := snappedf(g.z1, .001)
 			if not caps.has(key):
 				caps[key] = []
@@ -763,6 +785,31 @@ static func ladder_rows(lad: Ladder) -> PackedFloat32Array:
 			)
 		z += RUNG
 	return out
+
+
+## A segment's face from p (top ta) to q (top tb) as wall rows: one row for a
+## level top, else strips RAKE_STRIP high at most, each topped at its higher
+## end (the step hides in the roof a gable carries; the wall row format has
+## one top a row, and everything reading level walls keeps it).
+func _face_rows(
+	walls: PackedFloat32Array, g: Segment, p: Vector2, q: Vector2, ta: float, tb: float
+) -> void:
+	var strips := 1
+	if ta != tb:
+		strips = clampi(int(ceilf(absf(tb - ta) / RAKE_STRIP)), 1, 96)
+	for k in strips:
+		var u := float(k) / strips
+		var v := float(k + 1) / strips
+		var a := p.lerp(q, u)
+		var b := p.lerp(q, v)
+		var top := maxf(lerpf(ta, tb, u), lerpf(ta, tb, v))
+		walls.append_array(
+			PackedFloat32Array([a.x, a.y, b.x, b.y, g.tile, g.light, g.z0, top, g.area])
+		)
+
+
+## A raked wall's strips rise at most this each.
+const RAKE_STRIP := .05
 
 
 func _add_cap(into: Dictionary, z: float, s: Slab, tile: int) -> void:

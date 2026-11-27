@@ -17,6 +17,9 @@ extends RefCounted
 const SCHEMA := "clmr-map"
 const VERSION := 1
 const ID_PATTERN := "^[a-z][a-z0-9_]*$"
+## Cut lines a deck, block or ceiling may have (the 3D view and every query
+## take any number; SPIKE pass 16: was two, for the old software view).
+const MOST_CUTS := 8
 const MAPS_DIR := "res://maps"
 ## Where sources, their kept copies and built.json live (a check points it
 ## at a scratch folder); built levels go to `data_dir`.
@@ -764,13 +767,13 @@ static func _check_values(
 				""
 			)
 		)
-	if o.has("cuts") and (o["cuts"] as Array).size() > 2:
+	if o.has("cuts") and (o["cuts"] as Array).size() > MOST_CUTS:
 		out.append(
 			_issue(
 				"error",
 				"cuts",
 				where,
-				"at most two cut lines (the shader view draws two)",
+				"at most %d cut lines" % MOST_CUTS,
 				"split it into two objects"
 			)
 		)

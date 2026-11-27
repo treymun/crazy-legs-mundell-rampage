@@ -392,7 +392,7 @@ static func write_schema(path: String, result: Dictionary) -> int:
 		"cuts":
 		{
 			"type": "array",
-			"maxItems": 2,
+			"maxItems": Source.MOST_CUTS,
 			"items": {"type": "array", "items": number, "minItems": 3, "maxItems": 3},
 			"description": "lines [nx, ny, c]: inside where nx*x + ny*y <= c"
 		},
