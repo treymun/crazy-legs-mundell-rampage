@@ -1864,7 +1864,7 @@ def cheek_weld(D, it, Di, R_t, at):
     cr = cheek_rest(main)
     best = None
     for pitch in [i * .05 for i in range(0, 11)]:
-        for roll in [i * .05 for i in range(-7, 10)]:
+        for roll in [i * .05 for i in range(-int(CFG.get("cheek_roll", .35) / .05 + .5), 10)]:
             Rq = (Matrix.Rotation(pitch, 3, Rt) @ Matrix.Rotation(roll if main == "r" else -roll, 3, -Fw))
             Dh = Matrix.Translation(piv) @ Rq.to_4x4() @ Matrix.Translation(-piv) @ base
             c = Dh @ cr
@@ -2588,9 +2588,9 @@ def pose_key(name):
         key = name
         if key not in AIM_BEST:
             best = None
-            for tw in (30, 40, 50):
+            for tw in CFG.get("aim_twists", [30, 40, 50]):
                 for drop in CFG.get("aim_drops", [-.06, -.03, 0.0, .02, .04] if CFG.get("cheek_weld") else [0.0, .02, .04]):
-                    for inn in (0.0, .03, .06):
+                    for inn in CFG.get("aim_ins", [0.0, .03, .06]):
                         CFG.update(aim_twist=tw, aim_drop=drop, aim_in=inn)
                         _D, jt, _P = solve(key, 0.0, HELD0)
                         miss = sum(jt["miss"].values())

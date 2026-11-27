@@ -178,7 +178,9 @@ func _stacked(game: Game) -> void:
 ## from two other ways leaves two different bodies; a head shot drops it
 ## where it stood, buckshot at arm's length throws it further.
 func _falls(game: Game) -> void:
-	var at := Vector2(30.5, 30.5)
+	# (open ground, as physics_beasts' OPEN: pass 15 walled row 30 in, and a
+	# body thrown from 2.1 radians wedged its pelvis against the wall)
+	var at := Vector2(30.5, 26.5)
 	for kind: String in ["billy", "tin_guard"]:
 		var r: RagdollRig = RagdollRig._built.get(kind)
 		if r == null or not r.ok:
