@@ -278,6 +278,39 @@ if CFG.get("belly"):
     print("MESHY belly: front %+d, out %.3f m at most, %d vertices moved" % (
         fdir, float(numpy.linalg.norm(co2 - co, axis=1).max()), int((w > .01).sum())))
 
+# Spiky hair cards rounded off (kind config "hair_smooth": [{x, y, z (m,
+# build space), iters, k, fade}]): the Meshy mesh's vertices in each box are
+# Laplacian-smoothed `iters` times (each step `k` of the way to their
+# neighbours' mean), fading out over `fade` m inside the box edges, so the
+# tufts' tips draw in to a rounded mass; the bake then follows the new shape.
+for _hs in CFG.get("hair_smooth", []):
+    _all = numpy.array([v.co[:] for v in mesh.data.vertices])
+    # (UV seams split the vertices: smoothed by place, so seams stay shut)
+    _uq, _inv = numpy.unique(numpy.round(_all, 6), axis=0, return_inverse=True)
+    _inv = _inv.reshape(-1)
+    co = _uq.astype(float)
+    _ed = _inv[numpy.array([e.vertices[:] for e in mesh.data.edges])]
+    _ed = _ed[_ed[:, 0] != _ed[:, 1]]
+    _fd = float(_hs.get("fade", .015))
+    _w = numpy.ones(len(co))
+    for _ax, _k2 in (("x", 0), ("y", 1), ("z", 2)):
+        _lo, _hi = _hs[_ax]
+        _w *= numpy.clip(numpy.minimum(co[:, _k2] - _lo, _hi - co[:, _k2]) / max(_fd, 1e-6), 0, 1)
+    _kk = float(_hs.get("k", .5)) * _w
+    _deg = numpy.bincount(_ed.ravel(), minlength=len(co)).astype(float)
+    c0 = co.copy()
+    for _ in range(int(_hs.get("iters", 6))):
+        _sum = numpy.zeros_like(co)
+        numpy.add.at(_sum, _ed[:, 0], co[_ed[:, 1]])
+        numpy.add.at(_sum, _ed[:, 1], co[_ed[:, 0]])
+        _mean = _sum / numpy.maximum(_deg, 1)[:, None]
+        co = co + (_mean - co) * _kk[:, None]
+    for i, v in enumerate(mesh.data.vertices):
+        if _w[_inv[i]] > 0:
+            v.co = co[_inv[i]]
+    print("MESHY hair smooth: %d places, moved %.3f m at most" % (
+        int((_w > 0).sum()), float(numpy.linalg.norm(co - c0, axis=1).max())))
+
 # Matte, as the game's plain bakes are.
 for slot in mesh.material_slots:
     m = slot.material

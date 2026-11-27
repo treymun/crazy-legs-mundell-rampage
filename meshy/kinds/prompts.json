@@ -211,10 +211,23 @@
  },
  "valve_rat": {
   "refs": "cel",
-  "who": "1990s moonshine-still valve rat, a short wiry hunched little sewer-and-still tinkerer who shoots darts out of a brass pipe",
-  "design": "WEARING a greasy dark grey flat newsboy cap, a dark leather eye patch strapped over the left eye, a worn brown canvas work jacket with the collar up and patched elbows, a grimy cream shirt under it, dark grey work trousers, scuffed black boots, a small wiry natural build, a short man (about four feet tall) with slightly stooped shoulders and long thin arms, bare hands",
-  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a narrow weathered face lit evenly, one wide-open right eye with a clear white and a dark pupil under a bushy grey brow, the dark eye patch over the other eye, a long pointed nose, a sly crooked grin showing a gap tooth, grey stubble on the chin, wisps of grey hair under the cap, clean readable skin, the face fully in light under the cap's peak",
-  "texture": "valve rat, dark grey flat cap, black leather eye patch, brown canvas work jacket with patched elbows, cream shirt, dark grey trousers, black boots, weathered tan skin, grey stubble, one clear eye with a white, bare hands, empty hands, no weapon, no pipe",
+  "who": "1990s moonshine-still valve rat, a short wiry old sewer-and-still tinkerer who wears a brass twin-tank pack on his back and shoots darts out of a brass pipe fed by it",
+  "design": "WEARING a greasy dark grey flat newsboy cap, a dark leather eye patch strapped over the left eye, a worn brown canvas work jacket with patched elbows, a grimy cream shirt under it, dark grey work trousers, scuffed black boots, and ON HIS BACK a big tarnished BRASS TWIN-TANK PACK: two rounded brass cylinders side by side, strapped on with two dark leather shoulder straps that cross his chest, the tanks' domed tops with small valve wheels rising clearly above both shoulders behind his head and the tanks' sides showing past his waist on both sides; a small wiry natural build, a short man (about four feet tall), STANDING TALL AND UPRIGHT with a straight back, chest out, head up and looking straight ahead at the camera, long thin arms, bare hands",
+  "face": "a stylized game-character face, slightly caricatured but natural and clearly readable: a narrow weathered face lit evenly, one wide-open right eye with a clear white and a dark pupil under a bushy grey brow, the dark eye patch over the other eye, a long pointed nose, a sly crooked grin showing a gap tooth, short neat grey stubble on the chin, short close-cropped grey hair at the temples tucked under the cap (no wild or spiky hair), clean readable skin, the face fully in light under the cap's peak",
+  "texture": "valve rat, dark grey flat cap, black leather eye patch, brown canvas work jacket with patched elbows, cream shirt, dark grey trousers, black boots, tarnished brass twin-tank pack on his back with dark leather straps, weathered tan skin, short grey stubble, short grey hair, one clear eye with a white, bare hands, empty hands, no weapon, no pipe",
+  "extra_refs": [
+   "meshy-work-b/meshy_out/valve_rat_concept_49/image_0.png",
+   "meshy-work-b/meshyref/valve_rat_tank_ref.png"
+  ],
+  "extra_note": " The second reference image is this same character's earlier concept: keep his face, eye patch, cap, jacket and colours from it, but he now stands tall and upright with a straight back and his head up (not stooped, not hunched, not looking down), his hair is short and close-cropped, and he wears the brass twin-tank pack on his back. The third reference image shows the old figure from the side and back only for the brass twin-tank pack (two rounded brass tanks strapped high on the back): copy that pack, not the figure.",
   "height": 1.22
+ },
+ "drone": {
+  "refs": "cel",
+  "who": "1990s alien grey drone worker disguised as a hillbilly farmhand, a lanky grey space alien in farm clothes who lunges and jabs at people",
+  "design": "WEARING a faded green trucker cap with a small cream patch on its front, big round black welding goggles with glowing cyan lenses strapped over his eyes, an orange-and-brown plaid flannel work shirt, faded blue denim bib overalls with brass buckles and a slightly round belly under the bib, scuffed dark brown work boots, pale grey work gloves; a tall lanky thin alien body with long thin arms and long legs, a big smooth bald domed grey head with a narrow chin under the cap, STANDING TALL AND UPRIGHT with a straight back and the head up looking straight at the camera",
+  "face": "a sculpted grey alien face, clearly readable and a little comical: smooth leathery pale grey skin with soft wrinkles, the big round goggles over the eyes, a high brow ridge above them, a tiny flat nose with two nostril slits, a thin wide lipless mouth in a blank little smile, a narrow pointed chin, the face modelled in real relief with soft shading and lit evenly, not a flat painted mask",
+  "texture": "alien grey farmhand, faded green trucker cap with a cream patch, black round goggles with cyan lenses, pale grey alien skin, orange and brown plaid flannel shirt, faded blue denim bib overalls, dark brown work boots, pale grey work gloves, empty hands, no weapon, no tool",
+  "height": 1.8
  }
 }

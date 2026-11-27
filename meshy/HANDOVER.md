@@ -105,24 +105,29 @@ val .26+ contrast .35 smooth 6 (separate scalp/nape/ear rules each had
 their own median: the steps), "face_hi" only_face val .72+ pulled to a
 warm tan (Meshy's sweat highlights clipped to white specks), face_keep
 eyes 0, chest_skin contrast .4 smooth 5.
-49 valve_rat: IN PROGRESS, NOT INSTALLED (44 cr spent: concept, model,
-rig in meshy-work-b/meshy_out/valve_rat_*; the game still has the OLD
-valve_rat - the WIP build was reverted). Concept is good (short wiry old
-man, flat cap, eye patch, brown canvas jacket, grey stubble, gap-tooth
-grin) BUT the prompt left out the old model's brass TANK PACK on his back
-(it feeds the pipe gun) - needs a new concept (+44) or a "slung"-style
-built tank. Kind config meshy/kinds/valve_rat.json (copy
-meshy-work-b/valve_rat_wip.json): the old pipe gun b27..b50 + b30 muzzle
-ring as one gear_group (gear_extra b30 b36: passed for skin), grip_parts
-r b45 (old right hand at the pipe's rear), item_holds r .22 l .62,
-cheek_weld (shouldered two-handed: aim/fire look right), upright_deg 8,
-upright_aim_deg 5. Open: (1) the Meshy body is hunched and the head
-looks at the floor in the stand/walk; head_keys [-22,0,0] lifts it but
-stretches the jaw (vertical texture smears on the chin/cheeks) and folds
-the cap's sides into "horns" - try a smaller lift (-10) spread over neck
-+ head, or a fresh concept standing straighter; (2) the hair cards read
-as spikes; (3) face at texture 1024 + face_uv k 2.6 still blotchy grey
-stubble on the cheeks. No INDEX line yet.
+49 valve_rat DONE (third B session; 88 cr in all: the first concept/
+model/rig 44 kept in meshy-work-b/meshy_out/valve_rat_*_49 + config
+meshy-work-b/valve_rat_49.json, then a NEW concept/model/rig 44: prompt
+"STANDING TALL AND UPRIGHT", "short close-cropped hair", the brass twin-
+tank pack described, plus "extra_refs" = the 49 concept (same face) and a
+crop of the old model's side/back views (the tanks); prompts entry kept as
+meshy-work-b/prompts/valve_rat_49.json). Build: "to_body" box x +-.3,
+y .13-.42, z .44-1.16 near .05 (the tanks ride the trunk only: Meshy gave
+their bottoms to the thighs); "hair_smooth" (NEW build_actor option, see
+the tool list) on the back/side hair under the cap (spiky cards rounded)
++ a "hair_back" recolour (x +-.15, y 0-.115, z .80-.893: the tank tops sit
+behind the head at the same height, keep y < .12); carry_both, carry_dir
+[.9,.38,.15] carry_at [.10,.24,.06] (lower carries left the right hand
+3-9 cm short of its grip on his short arms); upright_deg 2; NO head_keys
+(any head lift smears the jaw: the chin lies in the neck blend); FACE:
+skin_zones hands only + face_lift_most 1 + face_clean {detail .85, hue
+.85, keep_white .85} and NO face_keep (face_keep's no-shadow bake misses
+face islands and left salmon/grey shards; the skin passes lifted the
+face x1.2). tris 18000 (the gap-tooth grin went jagged at 14000).
+Known: the right fist sits under the pipe in the stand/walk (fingers
+closed short of it; the grip window takes in the valve wheel), gear probe
+9.6 cm in one running/pain blend picture, back/side arm views hidden by
+the tanks (front views 63-100%); the graded face steps salmon/grey.
 NEXT: valve_rat (finish, see 49), drone (alien grey, see 05b
 alien.json), skeeter (dumps ok=false: a bug - beast path; see the
 beast-path section and A's swamp_king notes), then as credits allow the
@@ -210,6 +215,14 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   triggers the albedo bake). MESHY_DEBUG_KEEP now also names the bone for
   the solve's own keep-out lines.
 - 48: build_actor "item_axis" {gear index: [x,y,z]}.
+- 49 (third session): build_actor "hair_smooth" [{x, y, z (m, build
+  space), iters, k, fade}] - the Meshy hi mesh's vertices in each box
+  Laplacian-smoothed (by place, so UV seams stay shut) before the bake:
+  spiky hair cards draw in to a rounded mass. valve_rat: x +-.17, y -.03
+  to .14, z .93-1.10, iters 10, k .6, fade .02.
+- build_beast.py is A's version copied whole (A's 27/27b commits:
+  keep_parts, meshy_uv, light hemi, smooth_normals...; all opt-in, the
+  animals' defaults unchanged) - the same file on both branches now.
 - 47b: recolour "keep_light" k, "not_boxes" [{x,y,z}]; meshy.py NOMINAL
   v1/retexture 10; meshy/tools/retex_swap.py + retex_comp.py (see 47b).
 - grip_parts: the old millhand's yellow coat passed for skin (b5); name the

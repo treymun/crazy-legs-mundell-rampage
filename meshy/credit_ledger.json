@@ -1010,7 +1010,7 @@
  ],
  "agent B": {
   "budget": 650,
-  "spent": 459,
+  "spent": 586,
   "entries": [
    {
     "label": "millhand_concept",
@@ -1370,6 +1370,94 @@
     "body": "valve_rat_rig.json",
     "time": "2026-11-27 00:47:42",
     "after": 708,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "valve_rat_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21bd7-4d53-72db-9220-27c4d3e5954f",
+    "before": 708,
+    "cost": 9,
+    "body": "valve_rat_concept.json",
+    "time": "2026-11-27 01:10:27",
+    "after": 699,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "valve_rat_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21bd8-1b1b-717f-8dab-07d5a72f6b47",
+    "before": 699,
+    "cost": 30,
+    "body": "valve_rat_model.json",
+    "time": "2026-11-27 01:11:22",
+    "after": 669,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "valve_rat_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21bd9-8482-71ca-975d-1123e4581d79",
+    "before": 669,
+    "cost": 5,
+    "body": "valve_rat_rig.json",
+    "time": "2026-11-27 01:12:54",
+    "after": 664,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "drone_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21be5-dd9e-720a-9e82-7d7b365f81e0",
+    "before": 664,
+    "cost": 9,
+    "body": "drone_concept.json",
+    "time": "2026-11-27 01:26:20",
+    "after": 655,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "drone_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21be7-b890-705c-aae0-bfa3f9af1e57",
+    "before": 655,
+    "cost": 30,
+    "body": "drone_model.json",
+    "time": "2026-11-27 01:28:25",
+    "after": 625,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "drone_rig",
+    "endpoint": "v1/rigging",
+    "task": "01a21be9-c990-7718-80c8-203668b36de2",
+    "before": 625,
+    "cost": 5,
+    "body": "drone_rig.json",
+    "time": "2026-11-27 01:30:40",
+    "after": 620,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "skeeter_concept",
+    "endpoint": "v1/image-to-image",
+    "task": "01a21bee-15b7-700d-9c74-251fb2ac1797",
+    "before": 620,
+    "cost": 9,
+    "body": "skeeter_concept.json",
+    "time": "2026-11-27 01:35:19",
+    "after": 611,
+    "status": "SUCCEEDED"
+   },
+   {
+    "label": "skeeter_model",
+    "endpoint": "v1/image-to-3d",
+    "task": "01a21bee-df57-7097-9b41-7df7e8ab21b2",
+    "before": 611,
+    "cost": 30,
+    "body": "skeeter_model.json",
+    "time": "2026-11-27 01:36:13",
+    "after": 581,
     "status": "SUCCEEDED"
    }
   ]

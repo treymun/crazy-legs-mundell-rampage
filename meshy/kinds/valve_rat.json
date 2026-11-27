@@ -5,7 +5,7 @@
  "old_glb": "../meshy-work-b/old/valve_rat.glb",
  "old_tex": "../meshy-work-b/old/actor3d_valve_rat.png",
  "out": "../meshy-work-b/raw/valve_rat",
- "tris": 14000,
+ "tris": 18000,
  "texture": 1024,
  "gear": "old",
  "hands_paint": "texture",
@@ -48,19 +48,6 @@
    0.2
   ]
  },
- "face_keep": {
-  "light": 1.0,
-  "eyes": 1.6,
-  "eye_sat": 0.15,
-  "soften": 0.5,
-  "tone": [
-   178,
-   120,
-   96
-  ],
-  "tone_k": 0.75,
-  "tone_zone": "head"
- },
  "face_box": {
   "auto": true,
   "r": 0.2,
@@ -81,47 +68,88 @@
  },
  "cheek_weld": true,
  "upright_aim_deg": 5,
- "upright_deg": 8,
- "head_keys": {
-  "0": [
-   -22,
-   0,
-   0
-  ],
-  "w0": [
-   -22,
-   0,
-   0
-  ],
-  "w1": [
-   -22,
-   0,
-   0
-  ],
-  "w2": [
-   -22,
-   0,
-   0
-  ],
-  "w3": [
-   -22,
-   0,
-   0
-  ],
-  "w4": [
-   -22,
-   0,
-   0
-  ],
-  "recover": [
-   -22,
-   0,
-   0
-  ],
-  "fidget": [
-   -22,
-   0,
-   0
-  ]
- }
+ "to_body": [
+  {
+   "x": [
+    -0.3,
+    0.3
+   ],
+   "y": [
+    0.13,
+    0.42
+   ],
+   "z": [
+    0.44,
+    1.16
+   ],
+   "near": 0.05
+  }
+ ],
+ "hair_smooth": [
+  {
+   "x": [
+    -0.17,
+    0.17
+   ],
+   "y": [
+    -0.03,
+    0.14
+   ],
+   "z": [
+    0.93,
+    1.1
+   ],
+   "iters": 10,
+   "k": 0.6,
+   "fade": 0.02
+  }
+ ],
+ "recolour": [
+  {
+   "name": "hair_back",
+   "z": [
+    0.8,
+    0.893
+   ],
+   "x": [
+    -0.15,
+    0.15
+   ],
+   "y": [
+    0.0,
+    0.115
+   ],
+   "to": [
+    96,
+    93,
+    88
+   ],
+   "contrast": 0.6,
+   "smooth": 4,
+   "not_skin": false,
+   "not_hands": true
+  }
+ ],
+ "upright_deg": 2,
+ "carry_both": true,
+ "carry_dir": [
+  0.9,
+  0.38,
+  0.15
+ ],
+ "carry_at": [
+  0.1,
+  0.24,
+  0.06
+ ],
+ "face_clean": {
+  "detail": 0.85,
+  "hue": 0.85,
+  "keep_white": 0.85
+ },
+ "skin_zones": [
+  "hand_l",
+  "hand_r"
+ ],
+ "face_lift_most": 1.0
 }
