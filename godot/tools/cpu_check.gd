@@ -19,7 +19,7 @@
 ##   bot game's tick (best of three batches) inside TICK_BUDGET and no
 ##   feature's tick past FEATURE_BUDGET, in yardsticks (CI-scale: they catch
 ##   a big slowdown, not noise). `report` prints the numbers.
-## - A fight in a town of geometry (pass 16): house_spike_check's 36 houses,
+## - A fight in a town of geometry (pass 16): kit_check's 36 houses,
 ##   its 40 hands awake and after the bot (god mode), the tick inside
 ##   TOWN_BUDGET yardsticks.
 extends SceneTree
@@ -33,7 +33,7 @@ const TEXT_BUDGET := 40.0
 const TICK_BUDGET := 2.0
 const FEATURE_BUDGET := .3
 const TOWN_BUDGET := 1.5
-const Spike := preload("res://tools/house_spike_check.gd")
+const Kit := preload("res://tools/kit_check.gd")
 const WORDS := [
 	"E  OPEN DOOR",
 	"FIRE  THROW     ALT  SET DOWN",
@@ -435,7 +435,7 @@ func _tick(main) -> void:
 ## tick, best of two batches.
 func _town(main) -> void:
 	var id := "zz_cpu_town"
-	LevelData.preview[id] = Spike.town_level(id, 36)
+	LevelData.preview[id] = Kit.town_level(id, 36)
 	var best := INF
 	for batch in 2:
 		var g: Game = main.make_game(id)

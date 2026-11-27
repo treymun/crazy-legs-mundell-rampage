@@ -488,3 +488,66 @@ static func lift_onto_terrain(b) -> void:
 			continue
 		var c: int = b.at(int(x), int(y))
 		bd["z"] = _r(float(bd["z"]) + z - float(b.ground[c]))
+
+
+# ------------------------------------------------ the map kit (pass 16, T5)
+
+
+## Whole buildings and bits from the map kit (src/map_kit/, KitPiece): each
+## spec ({"piece": "farmhouse", "id": "home", "x": 10, "y": 6, ...}, every
+## other key defaulted) built into one LevelParts and copied into the plan.
+## `seed` is the map's (looks dice). Returns the LevelParts (its .pieces say
+## what each piece is); a refused spec stops the plan with its line.
+static func kit(b, specs: Array, seed := 0) -> LevelParts:
+	var parts := LevelParts.new()
+	parts.seed = seed
+	parts.width = b.w
+	parts.height = b.h
+	for spec: Dictionary in specs:
+		var made := KitPiece.build(spec, parts)
+		assert(not made.has("error"), str(made.get("error", "")))
+	kit_apply(b, parts)
+	return parts
+
+
+## Copies what the kit made into a plan: opens its cells (keeping the map's
+## floor, light and district where the kit says nothing), appends its
+## geometry, stands its props up, lights its glows and adds its stations.
+static func kit_apply(b, parts: LevelParts) -> void:
+	for c: Dictionary in parts.cells:
+		for y in range(int(c["y0"]), int(c["y1"]) + 1):
+			for x in range(int(c["x0"]), int(c["x1"]) + 1):
+				if not b.inside(x, y):
+					continue
+				var i: int = b.at(x, y)
+				if b.solid[i] >= 0:
+					b.solid[i] = -1
+					b.floor_tile[i] = b.t("dirt")
+				b.roof[i] = 0.0
+				b.skin[i] = -1
+				if String(c["floor"]) != "":
+					b.floor_tile[i] = b.t(String(c["floor"]))
+				if float(c["light"]) >= 0.0:
+					b.light[i] = float(c["light"])
+				if int(c["area"]) >= 0:
+					b.area[i] = int(c["area"])
+	for key: String in ["slabs", "segments", "ceilings", "ladders"]:
+		var list: Array = parts.geometry()[key]
+		b.geometry[key].append_array(list.duplicate(true))
+	for p: Dictionary in parts.props:
+		var o := {"z": float(p["z"])} if float(p["z"]) > 0.0 else {}
+		if String(p["signal"]) != "":
+			b.quest(String(p["name"]), float(p["x"]), float(p["y"]), String(p["signal"]), o)
+		else:
+			b.town(String(p["name"]), float(p["x"]), float(p["y"]), o)
+	for g: Dictionary in parts.glows:
+		b.glow(float(g["x"]), float(g["y"]), float(g["reach"]), float(g["amount"]))
+	for s: Dictionary in parts.stations:
+		b.station(
+			String(s["id"]),
+			float(s["x"]),
+			float(s["y"]),
+			String(s["label"]),
+			String(s["message"]),
+			{"cue": String(s["cue"])}
+		)

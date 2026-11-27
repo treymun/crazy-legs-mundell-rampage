@@ -23,6 +23,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_gore_art` | gore pictures (it rewrites the older gore pictures slightly differently: put those back after a run) |
 | `build_menu_art` | menu boards and pictures |
 | `build_building_tiles` | building wall tiles |
+| `build_kit_art` | the map kit's tiles (pass 16): `kit_shingle` (cedar shingles gone grey, staggered courses, slots and splits, a little moss), `kit_clapboard` (white lap boards, the paint flaking to grey wood), `kit_clapboard_grey` (bare weathered boards), `kit_trim` (painted trim boards), `kit_stone` (fieldstone in mortar), `kit_church_glass` and `_lit` (coloured quarries in lead round a ring; the lit one glows, effects.cfg [glow]), `kit_staves` (a silo's concrete staves under rusty hoops), `kit_canopy` (a canopy's underside with its light boxes, which glow), `kit_porch` (grey porch boards worn to the wood), `kit_hay` (a bale's straw and twine). Each its own dice, seamless, digitized |
 | `build_town_signs` | Hickston's painted signs and the corn tile |
 | `build_bayou_art`, `build_speedway_art`, `build_moonshine_art`, `build_ship_art` | each new chapter's tiles, sky or signs; the Mothership's alien-lettered signs and Maw's floor marks; the Moonshine Run's woods, bluff and cave floor tiles, its moonlit sky, its signs and the tear gas canister in flight |
 | `build_quest_art` | every chapter's quest props (below) |
