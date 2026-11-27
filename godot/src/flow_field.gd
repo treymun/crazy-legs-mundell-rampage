@@ -86,9 +86,10 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 		_bars = floor_from._bars
 		return
 	for door: LevelData.Door in world.doors:
-		_door_at[door.y * width + door.x] = door
-		if door.bar_side != 0:
-			_bars[door.y * width + door.x] = door
+		for n in door_nodes(door):
+			_door_at[n] = door
+			if door.bar_side != 0:
+				_bars[n] = door
 	# The level as read, nothing opened yet: its open floor as measured the
 	# last time it was played. A copy each way: a packed array in a Variant
 	# is shared, and reopen() writes this one.
@@ -104,13 +105,35 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 		_opens[key] = open.duplicate()
 
 
+## The places a door stands in: its cells (a door on the ground), or the
+## nodes on its floor over them (a door up on a storey, pass 16).
+func door_nodes(door: LevelData.Door) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	for at: Vector2i in door.cells():
+		if at.x < 0 or at.y < 0 or at.x >= width or at.y >= height:
+			continue
+		var c := at.y * width + at.x
+		if door.raised() and graph != null:
+			var n := graph.node_at(at.x + .5, at.y + .5, width, height, door.z + .1)
+			if n >= 0 and absf(graph.z[n] - door.z) < .3:
+				c = n
+		out.append(c)
+	return out
+
+
 ## The open floor of a level (open): 0 wall, 1 floor, 2 a door's, a pane's
 ## or a gate's.
 func _measure_open(nodes: int) -> void:
 	open.resize(nodes)
 	var changing := {}
+	# (A door up on a storey changes only the places on its floor: below.)
 	for tile: Vector2i in world.near_doors:
-		changing[tile.y * width + tile.x] = true
+		var low := not world.raised_doors
+		if not low:
+			for door: LevelData.Door in world.near_doors[tile]:
+				low = low or not door.raised()
+		if low:
+			changing[tile.y * width + tile.x] = true
 	for pane: Vector2i in world.pane_tiles:
 		changing[pane.y * width + pane.x] = true
 	for gate: LevelData.Gate in world.locked_gates:
@@ -118,11 +141,24 @@ func _measure_open(nodes: int) -> void:
 			for gy in range(int(gate.y) - 1, int(gate.y) + 2):
 				if gx >= 0 and gy >= 0 and gx < width and gy < height:
 					changing[gy * width + gx] = true
+	for pane: LevelData.GeoPane in world.geo_panes:
+		# (A pane in the geometry: the cells round it on its floor.)
+		var floor_z := pane.z0 - LevelGeometry.BODY
+		for c in world._pane_reach(pane):
+			if graph == null or absf(graph.z[c] - floor_z) <= 1.2:
+				changing[c] = true
 	# A door's own cell may be marked solid; the walls beside it never open.
 	var door_cells := {}
+	var upper := {}
 	for door: LevelData.Door in world.doors:
-		changing[door.y * width + door.x] = true
-		door_cells[door.y * width + door.x] = true
+		if door.raised():
+			_raised_round(door, upper)
+			for n in door_nodes(door):
+				upper[n] = true
+			continue
+		for at: Vector2i in door.cells():
+			changing[at.y * width + at.x] = true
+			door_cells[at.y * width + at.x] = true
 	# The nodes the geometry stands on or near, asked all at once (LevelNav
 	# shares them out over the worker threads: pass 16).
 	var asked := PackedInt32Array()
@@ -147,6 +183,24 @@ func _measure_open(nodes: int) -> void:
 				open[n] = stood[k]
 			elif stood[k] == 1 and not world.deep_at(n % width + .5, n / width + .5):
 				open[n] = 1
+	for n: int in upper:
+		if n < open.size() and (n >= width * height or open[n] != 0):
+			open[n] = 2
+
+
+## The places on a raised door's floor round it (its cells and the ring of
+## cells round them, a barn door's run too) into `into`.
+func _raised_round(door: LevelData.Door, into: Dictionary) -> void:
+	if graph == null:
+		return
+	var reach := 1 if door.span <= 1 else door.span * 2
+	var far_x := door.x + 1 if door.vertical else door.x + reach
+	var far_y := door.y + reach if door.vertical else door.y + 1
+	for cy in range(maxi(0, door.y - 1), mini(height - 1, far_y) + 1):
+		for cx in range(maxi(0, door.x - 1), mini(width - 1, far_x) + 1):
+			var n := graph.node_at(cx + .5, cy + .5, width, height, door.z + .1)
+			if n >= 0 and absf(graph.z[n] - door.z) < .3:
+				into[n] = true
 
 
 ## Measure the open floor again over a box of the map, from x0, y0 to x1, y1
@@ -194,11 +248,24 @@ func passable(cell: int) -> bool:
 					and (door.key == "" or keys.has(door.key))
 				)
 			)
+		if cell >= width * height:
+			# A place on a deck (a door or a pane up on a storey): asked at
+			# its own height.
+			return (doors_open and every_door) or not _node_blocked(cell)
 		return (
 			(doors_open and every_door)
 			or not world.blocked(cell % width + .5, cell / width + .5, BODY)
 		)
 	return kind == 1
+
+
+## Whether what moves (a door, a pane) stands in a body's way at node n's
+## middle, at its height.
+func _node_blocked(n: int) -> bool:
+	var c := graph.cell[n]
+	return world.geo.blocked_body(
+		world, c % width + .5, c / width + .5, BODY, graph.z[n], LevelGeometry.BODY
+	)
 
 
 ## Measure again from the player's cell if they have moved to another one
@@ -338,11 +405,14 @@ func _barred(cell: int, to: int) -> bool:
 ## field does not reach there.
 func heading(x: float, y: float, z := NAN) -> float:
 	if graph != null:
-		var n := downhill_node(graph.node_at(x, y, width, height, z))
+		var here := graph.node_at(x, y, width, height, z)
+		var n := downhill_node(here)
 		if n < 0:
 			return NAN
-		var c := graph.cell[n]
-		return atan2(c / width + .5 - y, c % width + .5 - x)
+		# (Through the via point an edge bends through, while it lies ahead:
+		# pass 16.)
+		var to := graph.toward(here, n, x, y, width)
+		return atan2(to.y - y, to.x - x)
 	var to := downhill(Vector2i(int(x), int(y)))
 	if to.x < 0:
 		return NAN

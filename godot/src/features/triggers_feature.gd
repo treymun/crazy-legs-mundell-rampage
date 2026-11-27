@@ -47,3 +47,4 @@ func restore(state: Dictionary) -> void:
 		for name: Variant in fired:
 			if typeof(name) == TYPE_STRING and known.has(name):
 				game.triggers_fired[str(name)] = true
+	Triggers.relock(game)

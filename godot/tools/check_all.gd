@@ -119,6 +119,7 @@ const CHECKS := [
 	["map_review_check", "MAP REVIEW CHECK OK"],
 	["map_share_check", "MAP SHARE OK"],
 	["geometry2_check", "GEOMETRY 2 CHECK OK"],
+	["ways_check", "WAYS CHECK OK"],
 	["kit_check", "KIT CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
@@ -260,6 +261,7 @@ const CI_SECONDS := {
 	"map_review_check": 30,
 	"map_share_check": 15,
 	"geometry2_check": 15,
+	"ways_check": 15,
 	"kit_check": 25,
 	"onboard_check": 60,
 	"marker_check": 60,

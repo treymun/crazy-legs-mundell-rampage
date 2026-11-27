@@ -224,6 +224,11 @@ var slabs: Array[Slab] = []
 var segments: Array[Segment] = []
 var ceilings: Array[Ceiling] = []
 var ladders: Array[Ladder] = []
+## Pass 16 (T4 WAYS): "nav_via" on, the nav graph also joins neighbour places
+## by a bent walk through each of `vias` (an opening's middle, a stair's
+## foot: x, y and the floor there) where the straight walk fails (LevelNav).
+var nav_via := false
+var vias := PackedVector3Array()
 ## The ground's patches of corner heights (version 2), or null.
 var terrain: LevelTerrain = null
 ## Every slab edge render_parts() made: Vector4(ax, ay, bx, by) -> its tile (the
@@ -378,6 +383,7 @@ static func from_json(
 			errors.append("%s: ladder climbs nothing" % lad.id)
 			continue
 		g.ladders.append(lad)
+	LevelNav.read_vias(g, data, errors)
 	if data.has("terrain"):
 		if version < 2:
 			errors.append("geometry: terrain needs version 2")
@@ -1038,7 +1044,10 @@ func blocked_body(
 			return true
 		if solid[iy * width + ix] >= 0:
 			return true
-	if not lv.pane_tiles.is_empty() and feet < 1.83 and lv.pane_at(x, y, null, r) != null:
+	if (
+		(not lv.pane_tiles.is_empty() or not lv.geo_panes.is_empty())
+		and lv.panes_block(x, y, r, feet, tall)
+	):
 		return true
 	for gate: LevelData.Gate in lv.locked_gates:
 		if absf(y - gate.y) < r + .09 and absf(x - gate.x) < gate.width * .5 + r:
@@ -1049,9 +1058,9 @@ func blocked_body(
 	var listed := index_cells.size() != width * height or index_cells[int(y) * width + int(x)] != 0
 	if (listed or r > lv.index_radius) and _fixture_in(lv, x, y, r, feet, tall):
 		return true
-	if feet < 1.85 and listed:
+	if (feet < 1.85 or lv.raised_doors) and listed:
 		for door: LevelData.Door in lv.near_doors.get(Vector2i(int(x), int(y)), NOTHING):
-			if door.blocks(x, y, r):
+			if door.blocks(x, y, r) and door.spans(feet, tall):
 				return true
 	return pieces and blocks(x, y, r, feet + STEP, feet + tall)
 

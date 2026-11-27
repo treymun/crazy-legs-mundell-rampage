@@ -21,6 +21,12 @@ const MAP_GROUND := [Color8(54, 58, 47), Color8(70, 58, 45), Color8(44, 68, 72)]
 ## A wall's own mass, against the void beyond the level.
 const MAP_MASS := Color8(40, 31, 23)
 const MAP_WALKED := [Color8(104, 92, 64), Color8(132, 104, 72), Color8(66, 104, 110)]
+## Pass 16 (T4 WAYS): standing this far over the cell's ground, the map shows
+## the storey the player is on (its floors, walls and doors) instead of the
+## ground's.
+const STOREY := 1.2
+## Floors within this of the storey's are on it.
+const STOREY_BAND := .6
 
 ## The whole map drawn at the zoom in use, the scale it was drawn at, how much
 ## of the game's `visited` is painted on it, the cells a secret still hides,
@@ -39,6 +45,10 @@ var last_signature: Variant = null
 ## by the picture's extra columns in ASPECT WIDE (the canvas is centred in it).
 var map_x := MAP_X
 var map_w := MAP_W
+## The storey the image shows (its floor, snapped to half a unit; 0 the
+## ground) and its cells (cell -> true).
+var built_storey := 0.0
+var storey_cells := {}
 
 
 func draw(g: Game, c: Canvas) -> void:
@@ -47,7 +57,9 @@ func draw(g: Game, c: Canvas) -> void:
 	map_w = MAP_W + 2 * View.shift
 	var region := _region(g)
 	var scale := _scale_for(g, region)
-	if image == null or built_scale != scale or _signature_changed(g):
+	var storey := _storey_of(g)
+	if image == null or built_scale != scale or _signature_changed(g) or storey != built_storey:
+		built_storey = storey
 		_build_image(g, region, scale)
 	_paint_walked(g, region, scale)
 	# The window follows the player (clamped to the level), or shows it all.
@@ -69,13 +81,20 @@ func draw(g: Game, c: Canvas) -> void:
 	_blit(c)
 	if not g.in_hub:
 		for door: LevelData.Door in g.world.doors:
-			if not door.secret or door.discovered:
+			# (A door up on a storey shows on its storey's map only.)
+			var here := (
+				not door.raised()
+				if built_storey == 0.0
+				else door.raised() and absf(door.z - built_storey) < STOREY_BAND + .25
+			)
+			if here and (not door.secret or door.discovered):
 				var color := (
 					Canvas.rgb(110, 136, 90)
 					if door.opened
 					else Canvas.rgb(222, 128, 52) if door.key != "" else Canvas.rgb(176, 132, 82)
 				)
-				_cell_mark(c, float(door.x), float(door.y), color)
+				for at: Vector2i in door.cells():
+					_cell_mark(c, float(at.x), float(at.y), color)
 	for station: LevelData.Station in g.world.stations:
 		if not station.reveals_secret and (not station.hidden or g.stations_done.has(station.id)):
 			var at2 := point(station.x, station.y)
@@ -95,6 +114,12 @@ func draw(g: Game, c: Canvas) -> void:
 				false
 			)
 	_labels(g, c)
+	if built_storey > 0.0:
+		var label := "FLOOR %d" % maxi(2, 1 + roundi(built_storey / 2.6))
+		c.fill_rect(
+			map_x + 1, MAP_Y + 1, PixelType.text_width(label) + 4, 9, Canvas.rgb(30, 23, 18)
+		)
+		HUD.text(c, label, map_x + 3, MAP_Y + 2, "body", Canvas.rgb(244, 223, 185), false, false)
 	# The vehicles standing ready, keys in them (src/vehicle_finder.gd).
 	var keyed := ""
 	var rides: Game.VehiclesScript = g.features.get("vehicles")
@@ -183,10 +208,89 @@ func _build_image(g: Game, region: Rect2i, scale: float) -> void:
 	built_scale = scale
 	region_now = region
 	painted = 0
+	storey_cells.clear()
+	if built_storey > 0.0:
+		_build_storey(g, region)
+		return
 	for yy in range(region.position.y, region.end.y):
 		for xx in range(region.position.x, region.end.x):
 			if _open(g, xx, yy):
 				_paint_cell(g, xx, yy, false)
+	if g.world.geo != null and g.world.geo.nav_via:
+		# A map made with the ways (pass 16): its thin walls on the ground too.
+		_storey_walls(g, 0.0)
+
+
+## The upper floor the player stands on (snapped to half a unit), or 0 on the
+## ground and on every level without geometry.
+func _storey_of(g: Game) -> float:
+	if g.world.geo == null or g.in_hub:
+		return 0.0
+	var feet := g.world.stand(g.player)
+	if feet - g.world.elevation(g.player.x, g.player.y) < STOREY:
+		return 0.0
+	return maxf(.5, snappedf(feet, .5))
+
+
+## The storey's map (pass 16): the cells a floor of its height covers (their
+## middles), walked or not, their edges as walls, and the geometry's walls
+## standing on it.
+func _build_storey(g: Game, region: Rect2i) -> void:
+	var geo := g.world.geo
+	for s: LevelGeometry.Slab in geo.slabs:
+		if not s.walk or s.top_max() < built_storey - 1.5 or s.top_min() > built_storey + 1.5:
+			continue
+		for cy in range(maxi(region.position.y, floori(s.y0)), mini(region.end.y, ceili(s.y1))):
+			for cx in range(maxi(region.position.x, floori(s.x0)), mini(region.end.x, ceili(s.x1))):
+				if (
+					s.inside(cx + .5, cy + .5)
+					and absf(s.top_at(cx + .5, cy + .5) - built_storey) <= STOREY_BAND
+				):
+					storey_cells[cy * g.world.width + cx] = true
+	for c: int in storey_cells:
+		_paint_storey_cell(
+			g,
+			c % g.world.width,
+			c / g.world.width,
+			g.visited.has(Vector2i(c % g.world.width, c / g.world.width))
+		)
+	_storey_walls(g, built_storey)
+
+
+func _paint_storey_cell(g: Game, x: int, y: int, walked: bool) -> void:
+	var r := _cell_rect(x, y)
+	var shade: Color = (MAP_WALKED if walked else MAP_GROUND)[1]
+	image.fill_rect(r, shade)
+	var w := int(g.world.width)
+	var line := 2 if built_scale >= 4.0 else 1
+	if not storey_cells.has(y * w + x - 1):
+		image.fill_rect(Rect2i(r.position.x, r.position.y, line, r.size.y), MAP_WALL)
+	if not storey_cells.has(y * w + x + 1):
+		image.fill_rect(Rect2i(r.end.x - line, r.position.y, line, r.size.y), MAP_WALL)
+	if not storey_cells.has((y - 1) * w + x):
+		image.fill_rect(Rect2i(r.position.x, r.position.y, r.size.x, line), MAP_WALL)
+	if not storey_cells.has((y + 1) * w + x):
+		image.fill_rect(Rect2i(r.position.x, r.end.y - line, r.size.x, line), MAP_WALL)
+
+
+## The geometry's walls standing on a floor at `z` (a body's height over it)
+## drawn as lines.
+func _storey_walls(g: Game, z: float) -> void:
+	for seg: LevelGeometry.Segment in g.world.geo.segments:
+		if seg.z0 > z + 1.5 or seg.top_max() < z + .4:
+			continue
+		var a := (
+			Vector2(seg.ax - region_now.position.x, seg.ay - region_now.position.y) * built_scale
+		)
+		var b := (
+			Vector2(seg.bx - region_now.position.x, seg.by - region_now.position.y) * built_scale
+		)
+		var steps := maxi(1, ceili(maxf(absf(b.x - a.x), absf(b.y - a.y))))
+		for k in steps + 1:
+			var at := a.lerp(b, float(k) / steps)
+			var px := clampi(int(at.x), 0, image.get_width() - 1)
+			var py := clampi(int(at.y), 0, image.get_height() - 1)
+			image.set_pixel(px, py, MAP_WALL)
 
 
 func _open(g: Game, x: int, y: int) -> bool:
@@ -232,10 +336,20 @@ func _paint_cell(g: Game, x: int, y: int, walked: bool) -> void:
 ## The ground walked since the image was last brought up to date.
 func _paint_walked(g: Game, region: Rect2i, _scale: float) -> void:
 	var keys: Array = g.visited.keys()
+	var lines := g.world.geo != null and (built_storey > 0.0 or g.world.geo.nav_via)
+	var again := false
 	for i in range(painted, keys.size()):
 		var key: Vector2i = keys[i]
-		if region.has_point(key) and _open(g, key.x, key.y):
+		if built_storey > 0.0:
+			if storey_cells.has(key.y * int(g.world.width) + key.x):
+				_paint_storey_cell(g, key.x, key.y, true)
+				again = true
+		elif region.has_point(key) and _open(g, key.x, key.y):
 			_paint_cell(g, key.x, key.y, true)
+			again = true
+	if lines and again:
+		# (The walls over the cells painted again.)
+		_storey_walls(g, built_storey)
 	painted = keys.size()
 
 

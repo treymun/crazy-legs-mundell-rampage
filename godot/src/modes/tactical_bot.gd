@@ -890,7 +890,8 @@ func _heading(game: Game, p: Player, goal: Vector2) -> float:
 		or (straight and goal.distance_to(straight_goal) < .6)
 	):
 		return direct
-	var field := TacticalNav.field(game, goal.x, goal.y)
+	# (On a map of storeys the field of the goal's own floor: pass 16.)
+	var field := TacticalNav.field(game, goal.x, goal.y, TacticalNav.floor_of(game, goal))
 	var h: float = field.heading(p.x, p.y, game.world.stand(p)) if field != null else NAN
 	return direct if is_nan(h) else h
 

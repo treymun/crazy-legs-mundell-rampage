@@ -458,6 +458,40 @@ and crosses a geometry cell whole when nothing in it can meet the look. The
 numbers are in [checks.md](checks.md#measured-in-pass-16-shapes-2026-11-27).
 `tools/geometry2_check.gd` holds it.
 
+## Doors, panes and vias (pass 16, WAYS)
+
+All opt-in: a level that uses none of it rebuilds byte for byte and plays as
+before ([docs/map_notes/t4.md](../map_notes/t4.md) has the examples, the
+rules and the refusals; `tools/ways_check.gd` holds it).
+
+- **Doors** (`LevelData.Door`): `z`, the floor an upper storey's door stands
+  on (NAN in play for a door on the ground), and `span`, 1 to 3 cells along
+  its wall (`cells()`; a wide hinged door is a pair of leaves, a wide sliding
+  one a barn door that slides aside along the wall's face, `segments()`).
+  Collision (`blocked_body`, `spans()`), sight (`meets()`), USE (from its own
+  floor), closing on someone (on its floor), the drawn leaf (`active_walls`,
+  from z), FlowField (an upper door's place is the deck's node over its cell,
+  `door_nodes()`; its ground cell is plain floor), boss locks (every cell) and
+  the automap all take them. `Geo.door()` adds one standing in the geometry;
+  `b.door()` takes `span` on the grid.
+- **Panes in the geometry** (`LevelData.GeoPane`, the level's `geo_panes`:
+  `Geo.wall()` openings with `"pane": true`): glass from a to b, z0 to z1.
+  Broken they are in `broken_panes` under `LevelData.pane_key(i)`, a key off
+  the map, so the snapshot and the saves carry them as they carry the grid's
+  panes, unchanged. `pane_at()`, `panes_block()` and `pane_middle()` answer
+  for both kinds.
+- **Vias** (`geometry.nav_via` and `vias`, `Geo.ways()`): `LevelNav.via_edges`
+  joins two neighbouring places not yet joined that a body walks between bent
+  through a via (an off-grid doorway's middle, a stair's foot or head),
+  after the diagonals and only on a level with `nav_via`, so no chapter's
+  graph changes; the edge's via is in `NavGraph.vias` (baked as the graph
+  row's 12th field, only when there are any). `FlowField.heading()` aims at
+  it while the body is still on the leg to it (`NavGraph.toward`).
+- **Triggers** `close` and `lock` (and `open` by a door's id); **the automap**
+  shows the storey the player stands on (`GameAutomap._storey_of`).
+- A `Geo.wall()` standing on an upper floor (`z0` over 0) cuts an opening
+  with no `sill` from its own foot.
+
 ## The map kit (pass 16, KIT)
 
 Whole buildings and bits in one line each: `src/map_kit/` (typed game code,

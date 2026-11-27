@@ -378,10 +378,21 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 		door.material = LevelData._int(d.get("material", 0))
 		door.id = str(d.get("id", ""))
 		door.bar_side = LevelLoad.bar_side(str(d.get("bar_side", "")), door.vertical)
+		if d.has("z") or d.has("span"):
+			# Pass 16 (T4 WAYS): a door up on a storey, a door wider than a cell.
+			var wrong := LevelLoad.door_ways(door, d)
+			if wrong != "":
+				push_error("level %s door %d,%d: %s" % [lv.id, door.x, door.y, wrong])
 		lv.doors.append(door)
 
 	for p: Variant in j.get("pane_tiles", []):
 		lv.pane_tiles.append(Vector2i(LevelData._int(p[0]), LevelData._int(p[1])))
+	for p: Variant in j.get("geo_panes", []):
+		var pane := LevelLoad.geo_pane(p)
+		if pane == null:
+			push_error("level %s: a geo pane is {a: [x, y], b: [x, y], z0, z1}" % lv.id)
+		else:
+			lv.geo_panes.append(pane)
 
 	for f: Array in j.get("fixtures", []):
 		lv.fixtures.append(floats(f))
@@ -611,6 +622,56 @@ static func gate(lv: LevelData, g: Dictionary) -> LevelData.Gate:
 	gate.side = LevelData._int(g.get("side", 1))
 	gate.closed_tile = lv.tile_id("route_closed")
 	return gate
+
+
+## A door's "z" (the floor it stands on, 0 to 100) and "span" (1 to 3 cells)
+## onto `door`; what is wrong with them ("" when nothing is: a wrong value is
+## left as a door on the ground one cell wide).
+static func door_ways(door: LevelData.Door, d: Dictionary) -> String:
+	var z: Variant = d.get("z", 0.0)
+	var span: Variant = d.get("span", 1)
+	if not (z is float or z is int) or not (span is float or span is int):
+		return "z and span are numbers"
+	var zf: float = z
+	var sf: float = span
+	if zf < 0.0 or zf > 100.0:
+		return "z is 0 to 100"
+	if sf != floorf(sf) or sf < 1.0 or sf > 3.0:
+		return "span is 1, 2 or 3 cells"
+	if zf != 0.0:
+		door.z = snappedf(zf, .001)
+	door.span = int(sf)
+	return ""
+
+
+## A geometry pane from the level file ({a, b, z0, z1}), or null when it is
+## not one (a side under .05 or over 16, heights out of order).
+static func geo_pane(p: Variant) -> LevelData.GeoPane:
+	if not (p is Dictionary):
+		return null
+	var d: Dictionary = p
+	var a_at: Variant = d.get("a")
+	var b_at: Variant = d.get("b")
+	if not (a_at is Array and b_at is Array):
+		return null
+	var a: Array = a_at
+	var b: Array = b_at
+	if a.size() != 2 or b.size() != 2:
+		return null
+	for v: Variant in [a[0], a[1], b[0], b[1], d.get("z0", .9), d.get("z1", 1.9)]:
+		if not (v is float or v is int):
+			return null
+	var pane := LevelData.GeoPane.new()
+	pane.ax = a[0]
+	pane.ay = a[1]
+	pane.bx = b[0]
+	pane.by = b[1]
+	pane.z0 = d.get("z0", .9)
+	pane.z1 = d.get("z1", 1.9)
+	var length := Vector2(pane.bx - pane.ax, pane.by - pane.ay).length()
+	if length < .05 or length > 16.0 or pane.z1 <= pane.z0 + .05 or pane.z0 < -50.0:
+		return null
+	return pane
 
 
 ## A barred door's side (pass 15, the level file's "bar_side": "n", "s", "e"

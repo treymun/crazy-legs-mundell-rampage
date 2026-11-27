@@ -12,6 +12,14 @@ const SHARED_FROM := 2048
 const SHARE := 512
 ## The most worker threads a graph is built on (more only wait on each other).
 const THREADS := 6
+## The most via points a level may list (pass 16, T4 WAYS).
+const MOST_VIAS := 4096
+## How far above or below a via point's floor a node may stand to be joined
+## through it.
+const VIA_RISE := 1.0
+## How far off the straight way between two places' middles a via may lie to
+## bend their edge (a way through the opening between them, never a detour).
+const VIA_OFF := .75
 
 
 ## One share of the building (a run of nodes): what its walks found.
@@ -151,6 +159,8 @@ static func build_nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGra
 	g.first = starts
 	g.edges = edges
 	diagonals(geo, lv, g, masks, shares)
+	if geo.nav_via and not geo.vias.is_empty():
+		via_edges(geo, lv, g)
 	if flat != null:
 		# Whether each node stands, while the threads are at it: the open floor
 		# FlowField measures next (stands_all), asked of a graph just built.
@@ -267,6 +277,162 @@ static func _orthogonal(
 	share.pair_m = pair_m
 	share.mask_at = mask_at
 	share.mask_bit = mask_bit
+
+
+## A geometry block's "nav_via" and "vias" (pass 16, T4 WAYS) onto g: each
+## via [x, y] or [x, y, z] (z the floor there, 0 when left out), on the map.
+## What is wrong goes to `errors` and the point is left out.
+static func read_vias(g: LevelGeometry, data: Dictionary, errors: Array) -> void:
+	var on: Variant = data.get("nav_via", false)
+	g.nav_via = on is bool and on
+	var list: Variant = data.get("vias", [])
+	if not (list is Array):
+		errors.append("geometry: vias is a list of [x, y, z]")
+		return
+	var rows: Array = list
+	if rows.size() > MOST_VIAS:
+		errors.append("geometry: %d vias, at most %d are read" % [rows.size(), MOST_VIAS])
+		rows = rows.slice(0, MOST_VIAS)
+	for row: Variant in rows:
+		var point: Array = row if row is Array else []
+		var ok := point.size() == 2 or point.size() == 3
+		for v: Variant in point:
+			ok = ok and (v is float or v is int)
+		if not ok:
+			errors.append("geometry: a via is [x, y] or [x, y, z]")
+			continue
+		var x: float = point[0]
+		var y: float = point[1]
+		var z: float = point[2] if point.size() == 3 else 0.0
+		if x < 0.0 or y < 0.0 or x >= g.width or y >= g.height or absf(z) > 100.0:
+			errors.append("geometry: the via at %s, %s is off the map" % [x, y])
+			continue
+		g.vias.append(Vector3(x, y, z))
+
+
+## The edges through the via points (pass 16, T4 WAYS; a level with
+## "nav_via" only, so no chapter's graph changes): two neighbouring places
+## round a via, not joined yet, that a body walks between both ways bent
+## through the via (an off-grid doorway's middle, a stair's foot) are joined,
+## the via kept for the edge both ways (g.vias). They go at the end of each
+## node's orthogonal list, after the ladders, in the order the vias are
+## listed and the pairs found.
+static func via_edges(geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph) -> void:
+	var w := geo.width
+	var h := geo.height
+	var count := g.count
+	var extra := {}
+	for v: Vector3 in geo.vias:
+		var near := PackedInt32Array()
+		var cx := int(v.x)
+		var cy := int(v.y)
+		for yy in range(maxi(0, cy - 1), mini(h - 1, cy + 1) + 1):
+			for xx in range(maxi(0, cx - 1), mini(w - 1, cx + 1) + 1):
+				var c := yy * w + xx
+				if absf(g.z[c] - v.z) <= VIA_RISE:
+					near.append(c)
+				for n: int in g.over.get(c, []):
+					if absf(g.z[n] - v.z) <= VIA_RISE:
+						near.append(n)
+		for i in near.size():
+			for j in range(i + 1, near.size()):
+				var n := near[i]
+				var m := near[j]
+				var a := g.cell[n]
+				var b := g.cell[m]
+				if a == b or absi(a % w - b % w) > 1 or absi(a / w - b / w) > 1:
+					continue
+				if g.vias.has(n * count + m) or _joined(g, n, m):
+					continue
+				var from := Vector2(a % w + .5, a / w + .5)
+				var to := Vector2(b % w + .5, b / w + .5)
+				var bend := Vector2(v.x, v.y)
+				if (
+					bend.distance_to(Geometry2D.get_closest_point_to_segment(bend, from, to))
+					> VIA_OFF
+				):
+					continue
+				if not _bent(geo, lv, g, n, m, v) or not _bent(geo, lv, g, m, n, v):
+					continue
+				g.vias[n * count + m] = v
+				g.vias[m * count + n] = v
+				var more: PackedInt32Array = extra.get(n, PackedInt32Array())
+				more.append(m)
+				extra[n] = more
+				var back: PackedInt32Array = extra.get(m, PackedInt32Array())
+				back.append(n)
+				extra[m] = back
+	if extra.is_empty():
+		return
+	var joined := PackedInt32Array()
+	var starts := PackedInt32Array()
+	starts.resize(count + 1)
+	for n in count:
+		starts[n] = joined.size()
+		joined.append_array(g.edges.slice(g.first[n], g.first[n + 1]))
+		var more: Variant = extra.get(n)
+		if more != null:
+			var list: PackedInt32Array = more
+			joined.append_array(list)
+	starts[count] = joined.size()
+	g.first = starts
+	g.edges = joined
+
+
+## Whether n and m are neighbours in g already (either list).
+static func _joined(g: LevelGeometry.NavGraph, n: int, m: int) -> bool:
+	for e in range(g.first[n], g.first[n + 1]):
+		if g.edges[e] == m:
+			return true
+	for e in range(g.dfirst[n], g.dfirst[n + 1]):
+		if g.dedges[e] == m:
+			return true
+	return false
+
+
+## Whether a body walks from node n's middle to the via and on to node m's
+## middle (walks()' tests along both legs).
+static func _bent(
+	geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph, n: int, m: int, v: Vector3
+) -> bool:
+	var w := geo.width
+	var a := g.cell[n]
+	var b := g.cell[m]
+	var feet := _leg(geo, lv, g.z[n], Vector2(a % w + .5, a / w + .5), Vector2(v.x, v.y))
+	if is_nan(feet):
+		return false
+	feet = _leg(geo, lv, feet, Vector2(v.x, v.y), Vector2(b % w + .5, b / w + .5))
+	return not is_nan(feet) and absf(feet - g.z[m]) < .06
+
+
+## A walk from `from` to `to` with the feet at `feet`, sub-stepped as walks()
+## does (NAV_STEPS a cell): the feet where it ends, NAN when it cannot.
+static func _leg(
+	geo: LevelGeometry, lv: LevelData, feet: float, from: Vector2, to: Vector2
+) -> float:
+	var width := geo.width
+	var steps := maxi(1, ceili(from.distance_to(to) * LevelGeometry.NAV_STEPS))
+	for k in range(1, steps + 1):
+		var at := from.lerp(to, float(k) / steps)
+		if at.x < 0.0 or at.y < 0.0 or at.x >= width or at.y >= geo.height:
+			return NAN
+		var c := int(at.y) * width + int(at.x)
+		var floor_z := geo.floor_at(at.x, at.y, feet, lv.ground[c], true)
+		if (
+			floor_z > feet + LevelGeometry.STEP + .002
+			and (
+				floor_z > lv.ground[c] + .001
+				or (geo.terrain != null and geo.terrain.patch_at[c] != 0)
+			)
+		):
+			return NAN
+		feet = floor_z
+		if geo.static_blocked(lv, at.x, at.y, LevelGeometry.NAV_BODY, feet, LevelGeometry.BODY):
+			return NAN
+		var room := minf(geo.ceiling_at(at.x, at.y, feet), LevelGeometry._roof(lv, c, feet)) - feet
+		if room < LevelGeometry.CROUCH:
+			return NAN
+	return feet
 
 
 ## CSR arrays [first, edges] of the pairs (n, m): each node's neighbours in

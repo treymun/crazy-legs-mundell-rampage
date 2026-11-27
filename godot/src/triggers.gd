@@ -14,7 +14,12 @@
 ##    "once": true,
 ##    "do": [{"message": "TEXT", "for": 3.0},
 ##           {"sound": "cue", "at": [x, y]},  ("at" left out: heard everywhere)
-##           {"open": [x, y]},                the door in that cell
+##           {"open": [x, y]},                the door in that cell (or its
+##                                            "id": {"open": "loft_door"})
+##           {"close": [x, y]},               swing it shut (pass 16)
+##           {"lock": [x, y]},                shut it and hold it shut (USE:
+##                                            a remote switch's) until an
+##                                            "open" opens it
 ##           {"wake": ["id", ...]},           enemies this trigger holds back
 ##                                            (dormant until it fires) come in
 ##           {"alert": 12.0},                 every enemy that close comes for
@@ -123,10 +128,24 @@ static func run(game: Game, action: Dictionary) -> void:
 		else:
 			game.sound.play(str(action["sound"]))
 	if action.has("open"):
-		var cell: Array = action["open"]
-		for door: LevelData.Door in game.world.doors:
-			if door.x == _int(cell[0]) and door.y == _int(cell[1]):
-				game.toggle_door(door, true)
+		var opened: Variant = action["open"]
+		if opened is Array:
+			var cell: Array = opened
+			for door: LevelData.Door in game.world.doors:
+				if door.x == _int(cell[0]) and door.y == _int(cell[1]):
+					_unlock(game.world, door)
+					game.toggle_door(door, true)
+		for door: LevelData.Door in doors_named(game.world, opened, false):
+			_unlock(game.world, door)
+			game.toggle_door(door, true)
+	for verb: String in ["close", "lock"]:
+		if action.has(verb):
+			for door: LevelData.Door in doors_named(game.world, action[verb], true):
+				if verb == "lock":
+					game.world.controlled_doors[Vector2i(door.x, door.y)] = true
+					game.world.locked_doors[Vector2i(door.x, door.y)] = true
+				if door.opened:
+					game.toggle_door(door, false)
 	if action.has("wake"):
 		for id: Variant in action["wake"]:
 			var at: int = game.enemy_ids.find(str(id))
@@ -176,6 +195,45 @@ static func run(game: Game, action: Dictionary) -> void:
 		var drop: Dictionary = action["pickup"]
 		var spot: Array = drop.get("at", [p.x, p.y])
 		game.add_pickup(str(drop["name"]), _float(spot[0]), _float(spot[1]))
+
+
+## The doors an action names (pass 16): by "id", or (`cells` true) any door
+## standing in the cell [x, y] (a wide door in any of its cells). "open"
+## still finds its [x, y] as ever, so only its "id" is asked here then.
+static func doors_named(level: LevelData, what: Variant, cells: bool) -> Array[LevelData.Door]:
+	var out: Array[LevelData.Door] = []
+	for door: LevelData.Door in level.doors:
+		if what is String:
+			if door.id != "" and door.id == what:
+				out.append(door)
+		elif cells and what is Array:
+			var cell: Array = what
+			if cell.size() >= 2 and door.cells().has(Vector2i(_int(cell[0]), _int(cell[1]))):
+				out.append(door)
+	return out
+
+
+## A door a trigger locked, opened: its remote switch's hold let go (a door
+## the level holds that way keeps it).
+static func _unlock(level: LevelData, door: LevelData.Door) -> void:
+	var at := Vector2i(door.x, door.y)
+	if level.locked_doors.has(at):
+		level.locked_doors.erase(at)
+		level.controlled_doors.erase(at)
+
+
+## Shut again the doors fired triggers locked (a save loaded: the remote
+## switch's hold is not saved, the fired triggers are).
+static func relock(game: Game) -> void:
+	for trigger: Dictionary in game.level.triggers:
+		if not game.triggers_fired.has(str(trigger.get("id", ""))):
+			continue
+		for action: Dictionary in trigger.get("do", []):
+			if action.has("lock"):
+				for door: LevelData.Door in doors_named(game.world, action["lock"], true):
+					if not door.opened:
+						game.world.controlled_doors[Vector2i(door.x, door.y)] = true
+						game.world.locked_doors[Vector2i(door.x, door.y)] = true
 
 
 ## int() and float() of a value read from data or a dictionary, typed (the
