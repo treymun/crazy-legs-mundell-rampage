@@ -193,7 +193,9 @@ func setup(p_models: ActorModels) -> bool:
 	for child in find_children("*", "", true, false):
 		if child is MeshInstance3D:
 			var mesh := child as MeshInstance3D
-			OwnMaterial.give(mesh, material)
+			var own := OwnMaterial.give(mesh, material)
+			if kind == "flagman" and mesh.name.begins_with("held_gear0"):
+				own.set_shader_parameter("flag_cloth", true)
 			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mesh.visibility_range_end = REACH
 			_meshes.append(mesh)

@@ -32,6 +32,7 @@ const Validate := preload("res://tools/map/map_validate.gd")
 const Edit := preload("res://tools/map/map_edit.gd")
 const Import := preload("res://tools/map/map_import.gd")
 const Playtest := preload("res://tools/map/map_playtest.gd")
+const Pilot := preload("res://tools/bot_pilot.gd")
 
 
 static func _codes(issues: Array, severity := "error") -> Dictionary:
@@ -46,13 +47,13 @@ static func _has(issues: Array, code: String, object_id: String) -> bool:
 	return _codes(issues).has(code + "|" + object_id)
 
 
-static func run(main, check: Callable) -> void:
+static func run(main, check: Callable) -> bool:
 	print("MAP TOOLS: SOURCE CHECKS, VALIDATION, TARGETED EDITS, BUILDS, IMPORT, PLAYTEST")
 	var assets: Assets = main.art
 	var demo := Source.read("feedstore")
 	check.call(not demo.is_empty(), "the demo map's source reads")
 	if demo.is_empty():
-		return
+		return false
 	var kept_dir := Source.dir
 	var kept_data := Source.data_dir
 	var scratch := OS.get_cache_dir().path_join("clmr_map_check")
@@ -69,11 +70,16 @@ static func run(main, check: Callable) -> void:
 	_build_guard(demo, check)
 	_import(assets, check)
 	_editor(main, demo, check)
-	preload("res://tools/map_check_v2.gd").run(main, check)
+	var v2 = load("res://tools/map_check_v2.gd")
+	var v2_ok: bool = v2 != null and v2.can_instantiate() and v2.run(main, check) == true
 	Source.dir = kept_dir
 	Source.data_dir = kept_data
+	check.call(v2_ok, "map source v2 check completed")
+	if not v2_ok:
+		return false
 	_playtest(main, demo, check)
 	climbers(main, demo, check)
+	return true
 
 
 static func _names(assets: Assets) -> Dictionary:
@@ -439,6 +445,7 @@ static func _playtest(main, demo: Dictionary, check: Callable) -> void:
 	var a := Playtest.place("spawn", demo, built, g.world)
 	var b := Playtest.place("chute_lever", demo, built, g.world)
 	var walk := Playtest.walk(g, a, b, 20.0, [])
+	_loft_shot(main, check)
 	LevelData.preview.erase("feedstore")
 	check.call(
 		bool(walk["reached"]),
@@ -448,6 +455,38 @@ static func _playtest(main, demo: Dictionary, check: Callable) -> void:
 		)
 	)
 	check.call(absf(g.world.stand(g.player) - 1.7) < .05, "and stands on the loft")
+
+
+static func _loft_shot(main, check: Callable) -> void:
+	var g: Game = main.make_game("feedstore")
+	g.configure({})
+	var loft: Enemy = g.enemies[g.enemy_ids.find("loft_billy")]
+	for enemy: Enemy in g.enemies:
+		if enemy != loft:
+			enemy.hp = 0.0
+	loft.alerted = true
+	var p := g.player
+	p.x = 10.5
+	p.y = 5.5
+	p.floor_z = 0.0
+	p.eye = .95
+	check.call(
+		g.world.visible(p.x, p.y, loft.x, loft.y) and Pilot.nearest_threat(g) == null,
+		"the pilot holds fire when a flat sight line misses the intervening loft deck"
+	)
+	p.x = 5.5
+	p.y = 7.5
+	var gap := Vector2(loft.x - p.x, loft.y - p.y).length()
+	p.angle = atan2(loft.y - p.y, loft.x - p.x)
+	var hp := loft.hp
+	var pilot := Pilot.new()
+	var controls := pilot.steer(g)
+	check.call(not controls.fire, "the pilot waits while its crosshair comes up")
+	p.pitch = Pilot._aim_pitch(g, loft, gap)
+	controls = pilot.steer(g)
+	if controls.fire:
+		g.hitscan(p.angle, p.pitch / View.base_focal, 20.0, 16.0, .04)
+	check.call(loft.hp < hp, "a shot from an exposed Feedstore angle reaches the loft actor")
 
 
 static func _editor(main, demo: Dictionary, check: Callable) -> void:

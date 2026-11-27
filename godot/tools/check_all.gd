@@ -33,6 +33,7 @@ const CHECKS := [
 	["radio_check", "RADIO CHECK OK"],
 	["audio_qa_check", "AUDIO QA OK"],
 	["pack_check", "PACK CHECK OK"],
+	["audit_regression", "AUDIT REGRESSION OK"],
 	["warm_check", "WARM CHECK OK"],
 	["check_fixes", "PARITY FIXES OK"],
 	["physics_check", "PHYSICS OK"],
@@ -130,6 +131,7 @@ const SLOW := ["bot_campaign", "quest_reach"]
 ## net_lag went over its 12% limit.
 const ALONE := ["net_lag", "net_pace", "net_feel"]
 const QUICK := [
+	"audit_regression",
 	"check_shader",
 	"view3d_check",
 	"view_perf_check",

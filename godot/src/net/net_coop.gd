@@ -39,7 +39,7 @@ static func save_path() -> String:
 
 ## What MAP THE PARTY SAVE would load: "" when it can, else why not.
 static func save_note() -> String:
-	if not FileAccess.file_exists(save_path()):
+	if not SessionStore.has_file(save_path()):
 		return "NO PARTY SAVE YET. THE HOST'S F5 MAKES ONE."
 	return ""
 

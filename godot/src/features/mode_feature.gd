@@ -15,6 +15,8 @@ var mode := Modes.CAMPAIGN
 var started := false
 ## How many of game.enemies have had their health scaled for the party (co-op).
 var scaled_upto := 0
+## Active party size whose factors are already applied to those enemies.
+var scaled_party := 1
 ## The slot of the player whose hit is landing this moment (Modes._blamed).
 var blame := -1
 ## Versus: the frag limit, the time limit (seconds of play), the arena
@@ -181,6 +183,7 @@ func save() -> Dictionary:
 		"mode": mode,
 		"started": started,
 		"scaled_upto": scaled_upto,
+		"scaled_party": scaled_party,
 		"frag_limit": frag_limit,
 		"time_limit": time_limit,
 		"arena": arena,
@@ -223,7 +226,10 @@ func restore(state: Dictionary) -> void:
 		if i > 0:
 			_kit(p, row)
 	if mode == Modes.COOP:
-		CoopMode.rescale_loaded(game, self, game.players.size())
+		# Before v12 the number of slots set the scale, even with partners away.
+		var saved_party: int = state.get("scaled_party", game.players.size())
+		scaled_party = clampi(saved_party, 1, Modes.MAX_FREE_FOR_ALL)
+		CoopMode.rescale_loaded(game, self)
 
 
 ## A partner's health, guns and pockets from their row of a save.

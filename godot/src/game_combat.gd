@@ -22,7 +22,8 @@ func launch(
 	enemy := false,
 	damage := 0,
 	life := -1.0,
-	owner := 0
+	owner := 0,
+	attack: Attack = null
 ) -> void:
 	if life <= 0.0:
 		life = 2.6 if kind == "blade" else 3.8 if enemy else 1.55
@@ -40,11 +41,14 @@ func launch(
 		3 if kind == "blade" else 2 if kind == "bowling" else 5 if Shots.rolls(kind) else 0
 	)
 	shot.owner = owner
+	shot.attack = attack
 	shot.slot = player.slot
 	shots.append(shot)
 
 
 func throw_dynamite(remaining: float) -> void:
+	events.attack_started.emit()
+	var attack := Attack.new(Weapons.DYNAMITE)
 	var p := player
 	var aim := p.view_angle()
 	var dx := cos(aim)
@@ -56,6 +60,7 @@ func throw_dynamite(remaining: float) -> void:
 		y = p.y
 	if remaining <= 0.0:
 		var in_hand := Shot.new(p.x, p.y, p.eye - .30, 0.0, 0.0, 0.0, "tnt", 0.0, false, 0)
+		in_hand.attack = attack
 		in_hand.slot = p.slot
 		explode(in_hand)
 		damage(21, [p.x, p.y], "LIT DYNAMITE")
@@ -63,6 +68,7 @@ func throw_dynamite(remaining: float) -> void:
 	var stick := Shot.new(
 		x, y, p.eye - .17, dx * 6.1, dy * 6.1, 1.55 + p.pitch * .037, "tnt", remaining, false, 0, 5
 	)
+	stick.attack = attack
 	stick.slot = p.slot
 	shots.append(stick)
 
@@ -76,7 +82,8 @@ func hitscan(
 	max_range: float,
 	spread: float,
 	spark := true,
-	pressure := false
+	pressure := false,
+	attack: Attack = null
 ) -> bool:
 	var p := player
 	var me: Game = self as Object
@@ -178,7 +185,7 @@ func hitscan(
 		_traced(ax, ay, slope, near, "enemy")
 		var victim: Player = mate[0]
 		var height_at: float = mate[2]
-		Modes.player_hit(me, victim, amount, "SHOT", height_at)
+		Modes.player_hit(me, victim, amount, "SHOT", height_at, attack)
 		return true
 	if best != null:
 		_traced(ax, ay, slope, near, "enemy")
@@ -187,7 +194,7 @@ func hitscan(
 		hit_from = Vector2(p.x, p.y)
 		# A mode's upgrades on the hit and after it (COUNTY RUN; nothing elsewhere).
 		amount = Modes.hit_amount(me, best, amount, near)
-		best.hurt(amount, self, false, pressure, null, str(Weapons.NAMES[armory.active]))
+		best.hurt(amount, self, false, pressure, null, str(Weapons.NAMES[armory.active]), attack)
 		Modes.hit_after(me, best, amount, near, ax, ay, slope)
 		return true
 	if not spark:
@@ -312,7 +319,7 @@ func hitscan(
 				if (
 					surface_tile == null
 					and Penetration.pierce(
-						self, ax, ay, slope, d, amount, max_range, spread, pressure
+						self, ax, ay, slope, d, amount, max_range, spread, pressure, attack
 					)
 				):
 					return true
@@ -576,7 +583,13 @@ func explode(shot: Shot) -> void:
 			if middle_share > 0.0:
 				bite *= 1.0 + middle_share if distance < radius * .45 else 1.0 - edge_share
 			enemy.hurt(
-				maxi(1, int(bite)), self, not energy, false, null, "energy" if energy else "blast"
+				maxi(1, int(bite)),
+				self,
+				not energy,
+				false,
+				null,
+				"energy" if energy else "blast",
+				shot.attack
 			)
 	if blame != null:
 		focus(acting, own)
@@ -922,7 +935,7 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 			hit_point = Vector3(x, y, z)
 			hit_from = Vector2(player.x, player.y)
 			if shot.kind == "blade":
-				enemy.hurt(shot.damage, self, false, false, null, "blade")
+				enemy.hurt(shot.damage, self, false, false, null, "blade", shot.attack)
 				sound_at("saw_hit", x, y)
 			elif shot.kind == "bowling":
 				# Each hand once a ball, remembered on the ball by the hand's uid
@@ -930,7 +943,7 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 				var seen: Array = shot.struck
 				if not seen.has(enemy.uid):
 					seen.append(enemy.uid)
-					enemy.hurt(shot.damage, self, false, false, null, "bowling")
+					enemy.hurt(shot.damage, self, false, false, null, "bowling", shot.attack)
 					sound_at("bowling_hit", x, y)
 					if seen.size() == 3 and barks.enabled:
 						# Three down with one ball.

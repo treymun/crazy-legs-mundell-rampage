@@ -126,7 +126,12 @@ var rematch_result := {}
 var rematch_open := {}
 var rematch_bests := {}
 
-var state := "title"
+var state := "title":
+	set(value):
+		if state != value and waiting_play != null:
+			waiting_play = null
+			menu_note = ""
+		state = value
 var selection := 0
 var options := {}
 var option_slot := 0
@@ -211,8 +216,7 @@ var time_scale := 1.0
 var level_stamp := 0
 var level_stamp_of := ""
 var level_check := 0
-## A Game whose chapter's pictures a browser build is still fetching: play()
-## leaves it here and main.gd starts it when they arrive.
+## The browser starts a pending chapter only while its requesting screen is open.
 var waiting_play: Game = null
 ## VIEW DETAIL AUTO: the frame's work, smoothed, and how long it has been over
 ## or well under the frame's time.
@@ -589,8 +593,7 @@ func entries() -> PackedStringArray:
 	return out
 
 
-## The firing range (data/range.json) is the game in play: practice, never
-## saved, never the campaign.
+## Whether the game in play is firing-range practice.
 func in_range() -> bool:
 	return game != null and game.level.id == RANGE_ID
 
@@ -601,11 +604,11 @@ func in_rematch() -> bool:
 
 
 func _save_exists() -> bool:
-	return FileAccess.file_exists(_save_path())
+	return SessionStore.has_file(_save_path())
 
 
 func _entry_exists() -> bool:
-	return FileAccess.file_exists(_entry_path())
+	return SessionStore.has_file(_entry_path())
 
 
 func _save_path() -> String:
@@ -620,19 +623,15 @@ func make_game(level_id := "hickston") -> Game:
 	return games.track(Game.new(art, hud, sound, level_id))
 
 
-## Disposes, at the frame's end, the games made here that nothing keeps any
-## more (GamePool): by then a change of level, retry, load, rematch or match
-## has put every game it keeps in its place.
+## Disposes unused games after the frame's transitions have finished.
 func _release_due() -> void:
 	if not _release_queued and is_inside_tree():
 		_release_queued = true
 		release_games.call_deferred()
 
 
-## The games kept: on screen, the campaign and the hub's, a replay, the ones
-## waiting behind the range or a rematch or for their pictures, a match's,
-## and any the kill cam, PHOTO MODE or the HUD still look at (each with the
-## chapters it retains). Every other game made here is disposed.
+## Keep active games, pending starts, and games the UI or network still holds.
+## The pool also retains their carried chapters.
 func release_games() -> int:
 	_release_queued = false
 	var kept: Array = [

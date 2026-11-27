@@ -65,7 +65,7 @@ static func _has(issues: Array, code: String, with_hint := true) -> bool:
 	return false
 
 
-static func run(main, check: Callable) -> void:
+static func run(main, check: Callable) -> bool:
 	print("MAP SOURCE VERSION 2: TYPES, PLANTED ERRORS, V1 KEPT, PREFABS, VERSUS")
 	var assets: Assets = main.art
 	_demos(assets, check)
@@ -75,6 +75,7 @@ static func run(main, check: Callable) -> void:
 	_v1_kept(check)
 	_prefabs(check)
 	_versus(main, assets, check)
+	return true
 
 
 static func _demos(assets: Assets, check: Callable) -> void:

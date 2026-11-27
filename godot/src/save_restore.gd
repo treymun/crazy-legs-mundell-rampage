@@ -122,6 +122,8 @@ static func _restore_list(rows: Variant, factory: Callable, kinds: Array, cap: i
 			return []
 		var obj: Object = factory.call()
 		for key: String in fields:
+			if obj is GameState.Shot and key in ["attack_gun", "attack_landed"]:
+				continue
 			if key == "kind":
 				obj.set("kind", str(fields[key]))
 			elif key == "enemy" or key == "resting":
@@ -132,6 +134,16 @@ static func _restore_list(rows: Variant, factory: Callable, kinds: Array, cap: i
 				if typeof(fields[key]) != TYPE_INT and typeof(fields[key]) != TYPE_FLOAT:
 					return []
 				obj.set(key, SessionStore._float(fields[key]))
+		if obj is GameState.Shot:
+			var shot: GameState.Shot = obj
+			var gun: Variant = fields.get("attack_gun", -1)
+			var landed: Variant = fields.get("attack_landed", false)
+			if not SessionStore._number(gun) or not (landed is bool):
+				return []
+			var source := SessionStore._int(gun)
+			if source >= 0 and source < Weapons.COUNT:
+				shot.attack = GameState.Attack.new(source)
+				shot.attack.landed = landed
 		out.append(obj)
 	return out
 
@@ -195,6 +207,7 @@ static func read(
 	expected_replay: Variant = null,
 	expected_level: Variant = null
 ) -> Game:
+	path = SessionStore.readable_path(path)
 	if not FileAccess.file_exists(path):
 		return SessionStore._fail_at(646)
 	var raw := FileAccess.get_file_as_bytes(path)
@@ -650,6 +663,8 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay: Variant)
 	for shot: Game.Shot in game.shots:
 		if not valid_position(w, shot.x, shot.y):
 			return SessionStore._fail_at(895)
+		if shot.slot < 0 or shot.slot >= game.players.size():
+			shot.slot = 0
 	for speck: Game.Speck in game.specks:
 		if not valid_position(w, speck.x, speck.y):
 			return SessionStore._fail_at(895)

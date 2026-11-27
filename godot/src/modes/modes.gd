@@ -334,6 +334,8 @@ static func join_late(game: Game, name: String) -> Player:
 		var at := open_spot_near(game, near.x, near.y)
 		place(game, p, at.x, at.y, near.angle)
 		stand_up(game, p, 100)
+		if st.started:
+			CoopMode.scale_new(game, st)
 	else:
 		if String(st.mode) == TEAM:
 			var up := [0, 0]
@@ -363,6 +365,9 @@ static func went_away(game: Game, p: Player) -> void:
 	p.revive = 0.0
 	p.holding = false
 	p.scoped = false
+	var st := feature(game)
+	if st != null and String(st.mode) == COOP and st.started:
+		CoopMode.scale_new(game, st)
 
 
 ## A partner's own kit into the next game (a chapter after a chapter, a retry
@@ -657,7 +662,12 @@ static func player_in_line(
 ## shooter (frags), with blood and the crosshair's mark. `height` is where on
 ## the body it struck (0 the feet, 1 the top of the head; -1 not known).
 static func player_hit(
-	game: Game, victim: Player, amount: float, cause := "SHOT", height := -1.0
+	game: Game,
+	victim: Player,
+	amount: float,
+	cause := "SHOT",
+	height := -1.0,
+	attack: GameState.Attack = null
 ) -> void:
 	var me: Player = game.player
 	if victim.health <= 0:
@@ -667,6 +677,8 @@ static func player_hit(
 		return
 	_blamed(game, me.slot, victim, dealt, [me.x, me.y], cause)
 	game.burst(victim.x, victim.y, victim.eye - .3, "gore", 6, 1.2)
+	if attack != null:
+		game.credit_attack(attack)
 	game.struck(dealt, victim.health <= 0, false)
 
 
@@ -685,9 +697,17 @@ static func blast_hit(
 	var dealt := rules(game).blast_damage(game, thrower, p, float(amount), String(shot.kind))
 	if dealt <= 0.0:
 		return
+	var health := p.health
 	_blamed(
 		game, shot.slot, p, maxf(1.0, dealt), [shot.x, shot.y], cause if thrower == p else "BLAST"
 	)
+	if shot.attack != null and thrower != p and p.health < health and rules(game).versus():
+		# _blamed restores the acting player after applying this player's damage.
+		var acting := game.player
+		var own := game.own_step
+		game.focus(thrower, own)
+		game.credit_attack(shot.attack)
+		game.focus(acting, own)
 
 
 ## A player's shot in flight striking another player's body (game_combat.gd
@@ -719,6 +739,8 @@ static func shot_strikes(game: Game, shot: GameState.Shot, x: float, y: float, z
 			if dealt > 0.0:
 				_blamed(game, shot.slot, q, dealt, [x, y], "SHOT")
 				game.burst(q.x, q.y, z, "gore", 6, 1.2)
+				if shot.attack != null:
+					game.credit_attack(shot.attack)
 			game.finish_shot(shot)
 			return true
 	return false

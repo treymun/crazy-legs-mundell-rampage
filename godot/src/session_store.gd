@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 11
+const VERSION := 12
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
@@ -22,6 +22,9 @@ const ROAD_NOTES_FILE := "county-road-notes.json"
 const MANUAL_SLOTS := 4
 const LABEL_LENGTH := 24
 const MAX_BYTES := 600_000
+const BACKUP_SUFFIX := ".previous"
+
+static var _write_lock := Mutex.new()
 
 const GAME_FIELDS := [
 	"clock",
@@ -340,7 +343,10 @@ static func snapshot(game: Game) -> Dictionary:
 				"damage": shot.damage,
 				"bounces": shot.bounces,
 				"travelled": shot.travelled,
-				"resting": shot.resting
+				"resting": shot.resting,
+				"slot": shot.slot,
+				"attack_gun": shot.attack.gun if shot.attack != null else -1,
+				"attack_landed": shot.attack != null and shot.attack.landed
 			}
 		)
 	var specks: Array = []
@@ -449,25 +455,68 @@ static func _sorted_keys(source: Dictionary) -> Array:
 # ------------------------------------------------------------------- files
 
 
+## Read the last committed file, including an interrupted Windows replacement.
+static func readable_path(path: String) -> String:
+	if not FileAccess.file_exists(path) and FileAccess.file_exists(path + BACKUP_SUFFIX):
+		return path + BACKUP_SUFFIX
+	return path
+
+
+static func has_file(path: String) -> bool:
+	return FileAccess.file_exists(readable_path(path))
+
+
 static func _write_atomic(path: String, text: String) -> bool:
-	if text.to_utf8_buffer().size() > MAX_BYTES:
+	var bytes := text.to_utf8_buffer()
+	if bytes.size() > MAX_BYTES:
 		push_error("checkpoint too large: " + path)
 		return false
 	var global := ProjectSettings.globalize_path(path)
-	var folder := global.get_base_dir()
-	DirAccess.make_dir_recursive_absolute(folder)
-	var temporary := global + ".tmp"
+	_write_lock.lock()
+	var result := _stage_and_replace(global, bytes)
+	_write_lock.unlock()
+	if not result:
+		push_warning("cannot replace " + global)
+	return result
+
+
+static func _stage_and_replace(path: String, bytes: PackedByteArray) -> bool:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var temporary := "%s.%d.tmp" % [path, OS.get_process_id()]
 	var handle := FileAccess.open(temporary, FileAccess.WRITE)
 	if handle == null:
-		push_error("cannot write " + temporary)
 		return false
-	handle.store_string(text)
+	var written := handle.store_buffer(bytes)
+	handle.flush()
+	var write_error := handle.get_error()
 	handle.close()
-	if FileAccess.file_exists(global):
-		DirAccess.remove_absolute(global)
-	if DirAccess.rename_absolute(temporary, global) != OK:
-		push_error("cannot replace " + global)
+	var check := FileAccess.open(temporary, FileAccess.READ)
+	written = written and write_error == OK and check != null and check.get_length() == bytes.size()
+	if check != null:
+		check.close()
+	var replaced := written and _replace_staged(temporary, path, OS.has_feature("windows"))
+	if not replaced:
+		DirAccess.remove_absolute(temporary)
+	return replaced
+
+
+static func _replace_staged(temporary: String, path: String, windows: bool) -> bool:
+	if not windows:
+		return DirAccess.rename_absolute(temporary, path) == OK
+	# Godot's Windows rename removes an existing destination before moving.
+	# Keep the old file at a readable path until the new name is committed.
+	var backup := path + BACKUP_SUFFIX
+	if FileAccess.file_exists(path):
+		if FileAccess.file_exists(backup) and DirAccess.remove_absolute(backup) != OK:
+			return false
+		if DirAccess.rename_absolute(path, backup) != OK:
+			return false
+	if DirAccess.rename_absolute(temporary, path) != OK:
+		if not FileAccess.file_exists(path) and FileAccess.file_exists(backup):
+			DirAccess.rename_absolute(backup, path)
 		return false
+	if FileAccess.file_exists(backup):
+		DirAccess.remove_absolute(backup)
 	return true
 
 
@@ -542,6 +591,7 @@ static func _sha256(raw: PackedByteArray) -> String:
 ## Returns [fingerprint, meta] exactly like the Python helper; an empty
 ## fingerprint means "unreadable or incompatible", null meta means "empty".
 static func slot_metadata(path: String, replay_level: Variant = null) -> Array:
+	path = readable_path(path)
 	if not FileAccess.file_exists(path):
 		return [null, null]
 	var raw := FileAccess.get_file_as_bytes(path)
@@ -592,11 +642,12 @@ static func save_named(game: Game, path: String, name: String, fingerprint: Vari
 	if clean == "" or (fingerprint is String and str(fingerprint) == ""):
 		return false
 	# Python passes None for "this slot was empty when the menu read it".
-	var exists := FileAccess.file_exists(path)
+	var previous := readable_path(path)
+	var exists := FileAccess.file_exists(previous)
 	if exists:
 		if (
 			not (fingerprint is String)
-			or _sha256(FileAccess.get_file_as_bytes(path)) != str(fingerprint)
+			or _sha256(FileAccess.get_file_as_bytes(previous)) != str(fingerprint)
 		):
 			return false
 	elif fingerprint != null:
@@ -635,7 +686,7 @@ static func _local_iso_stamp() -> String:
 
 
 static func settings(path := "") -> Dictionary:
-	var target := path if path != "" else _path(SETTINGS_FILE)
+	var target := readable_path(_resolve(path, SETTINGS_FILE))
 	var values := {}
 	if FileAccess.file_exists(target):
 		var raw := FileAccess.get_file_as_bytes(target)
@@ -658,7 +709,7 @@ static func settings(path := "") -> Dictionary:
 
 ## Whether this profile has saved settings (false on a first run).
 static func settings_saved() -> bool:
-	return FileAccess.file_exists(_path(SETTINGS_FILE))
+	return FileAccess.file_exists(readable_path(_path(SETTINGS_FILE)))
 
 
 static func save_settings(path: String, values: Dictionary) -> bool:
@@ -666,7 +717,7 @@ static func save_settings(path: String, values: Dictionary) -> bool:
 
 
 static func unlocks(path := "") -> Dictionary:
-	var target := path if path != "" else _path(UNLOCKS_FILE)
+	var target := readable_path(_resolve(path, UNLOCKS_FILE))
 	var result := {"hickston": true}
 	if FileAccess.file_exists(target):
 		var raw := FileAccess.get_file_as_bytes(target)
@@ -694,7 +745,7 @@ static func save_unlocks(path: String, unlocked: Dictionary) -> bool:
 
 
 static func road_notes(path := "") -> Dictionary:
-	var target := path if path != "" else _path(ROAD_NOTES_FILE)
+	var target := readable_path(_resolve(path, ROAD_NOTES_FILE))
 	var out := {}
 	if FileAccess.file_exists(target):
 		var raw := FileAccess.get_file_as_bytes(target)

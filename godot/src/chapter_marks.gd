@@ -62,8 +62,9 @@ static func write_soon(kind: String, game: Game, keep := "") -> void:
 	var file := path_of(kind, game)
 	var kept := path_of(keep, game) if keep != "" else ""
 	var job := func() -> void:
-		if kept != "" and FileAccess.file_exists(file):
-			_move(file, kept)
+		var previous := SessionStore.readable_path(file)
+		if kept != "" and FileAccess.file_exists(previous):
+			SessionStore._write_atomic(kept, FileAccess.get_file_as_string(previous))
 		SessionStore.write_document(file, doc)
 	if OS.has_feature("web"):
 		job.call()
@@ -86,17 +87,10 @@ static func _hook_exit() -> void:
 ## `from`'s file put in place of `to`'s (a copy: `from`'s stays).
 static func promote(from: String, to: String, game: Game) -> bool:
 	settle()
-	var source := ProjectSettings.globalize_path(path_of(from, game))
+	var source := SessionStore.readable_path(path_of(from, game))
 	if not FileAccess.file_exists(source):
 		return false
-	return DirAccess.copy_absolute(source, ProjectSettings.globalize_path(path_of(to, game))) == OK
-
-
-static func _move(file: String, to: String) -> void:
-	var there := ProjectSettings.globalize_path(to)
-	if FileAccess.file_exists(there):
-		DirAccess.remove_absolute(there)
-	DirAccess.rename_absolute(ProjectSettings.globalize_path(file), there)
+	return SessionStore._write_atomic(path_of(to, game), FileAccess.get_file_as_string(source))
 
 
 ## Waits for a write still going.
@@ -108,9 +102,10 @@ static func settle() -> void:
 
 static func clear(kind: String, level_id: String, replay: bool) -> void:
 	settle()
-	var file := path(kind, level_id, replay)
-	if FileAccess.file_exists(file):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
+	var file := ProjectSettings.globalize_path(path(kind, level_id, replay))
+	for target: String in [file, file + SessionStore.BACKUP_SUFFIX]:
+		if FileAccess.file_exists(target):
+			DirAccess.remove_absolute(target)
 
 
 ## A chapter starts: the other chapters' files (of the same kind of run) go.
@@ -132,6 +127,7 @@ static func clear_all() -> void:
 ## save of `level_id` ({} for none).
 static func state_on_file(file: String, level_id: String, feature: String) -> Dictionary:
 	settle()
+	file = SessionStore.readable_path(file)
 	if not FileAccess.file_exists(file):
 		return {}
 	var doc: Variant = JSON.parse_string(FileAccess.get_file_as_string(file))

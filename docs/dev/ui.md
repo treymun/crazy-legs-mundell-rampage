@@ -456,12 +456,10 @@ start (`src/update_notice.gd`, `UpdateNotice`):
   updates itself instead (below).
 - **Installing over the old copy** needs the same package name
   (`com.hickston.crazylegsmundell`), a version code that never goes down
-  (`tools/version.gd`) and the same signing key. Until the three
-  `ANDROID_KEYSTORE_*` secrets are set, a `v*` tag's APK is signed with a
-  throwaway key (a warning in its run), so each release still needs the old
-  copy uninstalled and the in-game update cannot put it in; once they are
-  set every later APK installs over the last. The package step refuses
-  another package name or a code under 3.11.0's. The player's steps are in
+  (`tools/version.gd`) and the same signing key. The release workflow
+  requires the lasting key and checks its public certificate fingerprint.
+  An installation signed with a temporary key, including v3.15.0, requires
+  a fresh install for the move to the lasting key. The player's steps are in
   the README ("Updating").
 - `tools/update_check.gd` (UPDATE CHECK OK, in check_all) holds all of it
   without the network; `tools/update_frames.gd -- out=<dir>` pictures the

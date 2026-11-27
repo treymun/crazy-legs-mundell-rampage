@@ -13,6 +13,9 @@ extends Node
 const STORE := "user://packs"
 const MANIFEST := "packs.json"
 const CHUNK := 4 << 20
+const MAX_PACK_SIZE := 256 << 20
+const MAX_MANIFEST_SIZE := 64 << 10
+const MAX_ATTEMPTS := 4
 ## What the screen says while a chapter's pack comes down, with how far.
 const ROAD_LINES := {
 	"chapter_hickston": "WARMING UP THE TRUCK",
@@ -32,8 +35,11 @@ var _base := ""
 var _http: HTTPRequest
 var _busy := ""
 var _manifest_due := false
-var _tries := 0
-var _wait := 0.0
+var _tries := {}
+var _failed := {}
+var _retry_at := {}
+var _priority := ""
+var _clock := 0.0
 
 
 func _ready() -> void:
@@ -49,6 +55,7 @@ func _ready() -> void:
 	# Read in big bites: the request is polled once a frame, and the default
 	# 64 KB a bite is under 4 MB a second at 60 frames a second.
 	_http.download_chunk_size = CHUNK
+	_http.timeout = 120.0
 	add_child(_http)
 	_http.request_completed.connect(_done)
 	_manifest_due = true
@@ -70,55 +77,88 @@ func progress(pack: String) -> float:
 ## The line the screen shows while `pack` comes down: the chapter's road
 ## and how far along it is.
 func road_line(pack: String) -> String:
+	if _failed.has(pack) or _failed.has(MANIFEST):
+		return "ROAD DOWN. BACK OUT AND TRY AGAIN."
 	var line := str(ROAD_LINES.get(pack, "FETCHING THE CHAPTER"))
 	return "%s... %d%%" % [line, roundi(progress(pack) * 100.0)]
 
 
 ## Fetch this pack next (a chapter has just started).
-func want_first(pack: String) -> void:
-	var at := queue.find(pack)
-	if at > 0:
-		queue.remove_at(at)
-		queue.push_front(pack)
+func want_first(pack: String, retry_failed := false) -> void:
+	if not ROAD_LINES.has(pack) or loaded.has(pack):
+		return
+	_priority = pack
+	if retry_failed:
+		if _failed.erase(MANIFEST):
+			_tries.erase(MANIFEST)
+			_manifest_due = true
+		if _failed.erase(pack) and manifest.has(pack) and not queue.has(pack):
+			_tries.erase(pack)
+			queue.push_front(pack)
+		_next()
 
 
 func _process(dt: float) -> void:
-	if _wait > 0.0:
-		_wait -= dt
-		if _wait <= 0.0:
-			_next()
+	_clock += dt
+	if not _retry_at.is_empty():
+		_next()
+
+
+func _eligible(name: String) -> bool:
+	var due: float = _retry_at.get(name, 0.0)
+	return _clock >= due
+
+
+func _dequeue() -> String:
+	if queue.has(_priority) and _eligible(_priority):
+		queue.erase(_priority)
+		return _priority
+	for name: String in queue:
+		if _eligible(name):
+			queue.erase(name)
+			return name
+	return ""
 
 
 func _next() -> void:
-	if _busy != "" or _wait > 0.0:
+	if _http == null or _busy != "":
 		return
 	if _manifest_due:
+		if not _eligible(MANIFEST):
+			return
 		_manifest_due = false
+		_retry_at.erase(MANIFEST)
 		_busy = MANIFEST
-		_http.download_file = ""
+		_http.body_size_limit = MAX_MANIFEST_SIZE
 		var asked := _http.request(_base + MANIFEST)
 		if asked != OK:
 			print("chapter packs: cannot ask for ", _base + MANIFEST, " (error ", asked, ")")
 			_busy = ""
 			_retry(MANIFEST)
 		return
-	while not queue.is_empty():
-		var name: String = queue.pop_front()
+	var name := _dequeue()
+	while name != "":
+		_retry_at.erase(name)
 		var entry: Dictionary = manifest[name]
 		var file := str(entry["file"])
 		var kept := STORE.path_join(file)
 		var handle := FileAccess.open(kept, FileAccess.READ)
 		var size: int = entry.get("size", -1)
-		if handle != null and handle.get_length() == size:
-			# Fetched on an earlier visit.
+		if handle != null:
+			var same_size := handle.get_length() == size
 			handle.close()
-			_mount(name)
-			continue
-		# Kept in memory and written by _done(): a browser build's HTTPRequest
-		# does not write download_file, and renaming a file in a browser's
-		# storage does not work either.
+			var digest: String = entry.get("sha256", "")
+			if (
+				same_size
+				and (digest == "" or FileAccess.get_sha256(kept) == digest)
+				and _mount(name)
+			):
+				name = _dequeue()
+				continue
+			DirAccess.remove_absolute(kept)
+		# Web HTTPRequest returns the data in memory, so _done writes the file.
 		_busy = name
-		_http.download_file = ""
+		_http.body_size_limit = size
 		if _http.request(_base + file) != OK:
 			_busy = ""
 			_retry(name)
@@ -128,55 +168,123 @@ func _next() -> void:
 func _done(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	var name := _busy
 	_busy = ""
+	if name == "":
+		return
 	var ok := result == HTTPRequest.RESULT_SUCCESS and code == 200
 	if name == MANIFEST:
 		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8()) if ok else null
-		if not (parsed is Dictionary):
-			# A site without packs yet, or no network: try again shortly.
+		var validated := _validated_manifest(parsed)
+		if validated.is_empty():
 			_retry(MANIFEST)
 			return
-		manifest = parsed
+		manifest = validated
+		_tries.erase(MANIFEST)
 		for pack: String in manifest:
-			queue.append(pack)
+			if not loaded.has(pack):
+				queue.append(pack)
 		_forget_old()
-		_next()
+		_next.call_deferred()
 		return
 	var entry: Dictionary = manifest[name]
 	var kept := STORE.path_join(str(entry["file"]))
 	var size: int = entry.get("size", -1)
-	if not ok or body.size() != size:
+	var digest: String = entry.get("sha256", "")
+	if not ok or body.size() != size or not _matches_digest(body, digest):
 		_retry(name)
 		return
 	var handle := FileAccess.open(kept, FileAccess.WRITE)
 	if handle == null:
 		push_warning("cannot write " + kept)
+		_retry(name)
 		return
-	handle.store_buffer(body)
+	var written := handle.store_buffer(body)
+	handle.flush()
+	var write_error := handle.get_error()
 	handle.close()
-	_mount(name)
-	_next()
+	if not written or write_error != OK or not _mount(name):
+		DirAccess.remove_absolute(kept)
+		_retry(name)
+		return
+	_next.call_deferred()
 
 
 func _retry(name: String) -> void:
-	_tries += 1
-	if _tries > 6:
+	var tries: int = _tries.get(name, 0) + 1
+	_tries[name] = tries
+	if tries >= MAX_ATTEMPTS:
 		push_warning("giving up on " + name)
-		return
-	if name == MANIFEST:
-		_manifest_due = true
+		_failed[name] = true
 	else:
-		queue.push_front(name)
-	_wait = 4.0 * _tries
+		_retry_at[name] = _clock + 4.0 * tries
+		if name == MANIFEST:
+			_manifest_due = true
+		else:
+			queue.append(name)
+	# Keep fetching other chapters while this one waits for a retry.
+	_next.call_deferred()
 
 
-func _mount(name: String) -> void:
+static func _validated_manifest(value: Variant) -> Dictionary:
+	if not (value is Dictionary):
+		return {}
+	var entries: Dictionary = value
+	if entries.size() != ROAD_LINES.size():
+		return {}
+	var out := {}
+	for name: String in ROAD_LINES:
+		var found: Variant = entries.get(name)
+		if not (found is Dictionary):
+			return {}
+		var row: Dictionary = found
+		var raw_size: Variant = row.get("size")
+		if not (
+			row.get("file") is String
+			and (raw_size is int or raw_size is float)
+			and row.get("sha256", "") is String
+		):
+			return {}
+		var file: String = row["file"]
+		var size: float = raw_size
+		var digest: String = row.get("sha256", "")
+		var prefix := name + "-"
+		if (
+			not file.begins_with(prefix)
+			or not file.ends_with(".pck")
+			or not _is_hex(file.trim_prefix(prefix).trim_suffix(".pck"), 10)
+			or size < 1
+			or size > MAX_PACK_SIZE
+			or size != floorf(size)
+			or (digest != "" and not _is_hex(digest, 64))
+		):
+			return {}
+		out[name] = {"file": file, "size": int(size), "sha256": digest}
+	return out
+
+
+static func _is_hex(value: String, length: int) -> bool:
+	return value.length() == length and value.is_valid_hex_number(false)
+
+
+static func _matches_digest(body: PackedByteArray, expected: String) -> bool:
+	if expected == "":
+		return true  # manifests from before the full pack checksum
+	var hash_context := HashingContext.new()
+	hash_context.start(HashingContext.HASH_SHA256)
+	hash_context.update(body)
+	return hash_context.finish().hex_encode() == expected
+
+
+func _mount(name: String) -> bool:
 	var path := STORE.path_join(str(manifest[name]["file"]))
 	if ProjectSettings.load_resource_pack(path, false):
 		loaded[name] = true
+		_tries.erase(name)
+		_failed.erase(name)
 		_learn_ids(name)
 		print("chapter pack ready: ", name)
-	else:
-		push_warning("could not mount " + path)
+		return true
+	push_warning("could not mount " + path)
+	return false
 
 
 ## The ids of the models a pack brings (tools/make_packs.gd uid_list): the

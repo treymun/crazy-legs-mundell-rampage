@@ -25,7 +25,8 @@ static func pierce(
 	amount: float,
 	max_range: float,
 	spread: float,
-	pressure := false
+	pressure := false,
+	attack: GameState.Attack = null
 ) -> bool:
 	var gun: int = game.armory.active
 	var how: Dictionary = Weapons.FIRING[gun]
@@ -49,7 +50,7 @@ static func pierce(
 	game.hit_point = Vector3(p.x + ax * reach, p.y + ay * reach, p.eye + reach * slope)
 	game.hit_from = Vector2(p.x, p.y)
 	var share: float = how.get("penetrate_damage", .6)
-	target.hurt(amount * share, game, false, pressure, null, str(Weapons.NAMES[gun]))
+	target.hurt(amount * share, game, false, pressure, null, str(Weapons.NAMES[gun]), attack)
 	return true
 
 

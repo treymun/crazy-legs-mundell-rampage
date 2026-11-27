@@ -32,9 +32,10 @@ func start(
 
 
 func play(target: Game) -> void:
-	if not art.chapter_ready(target.level.id):
+	var pack_level := CountyData.base_of(target.level.id)
+	if not art.chapter_ready(pack_level):
 		waiting_play = target
-		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(target.level.id), "")))
+		packs.want_first(str(CHAPTER_PACKS.get(pack_level, "")), true)
 		notice("HOLD YOUR HORSES. THE ROAD'S STILL COMING IN.", 4.0)
 		return
 	waiting_play = null
@@ -475,6 +476,7 @@ func back_on_the_road(target: Game, crossroads: bool) -> void:
 
 
 func return_to_title(discard := false) -> void:
+	cancel_waiting_play()
 	if UserMapPlay.back_from_test(self):
 		return  # the MAP SHED's test run goes back to the shed
 	if discard or replay_play != null:
@@ -730,7 +732,7 @@ func load_game() -> void:
 	if UserMapPlay.load_key(self):
 		return  # a player map's own save
 	var slot := current_slot()
-	if not FileAccess.file_exists(slot):
+	if not SessionStore.has_file(slot):
 		notice("NO QUICKSAVE YET.")
 		return
 	var replay := slot != _save_path()
@@ -1019,8 +1021,16 @@ func setup_scroll_to(scroll: int) -> void:
 	option_scroll = Menu.scroll_for(option_page, option_slot, option_scroll)
 
 
+## Cancel a request even when Back leaves the screen's name unchanged.
+func cancel_waiting_play() -> void:
+	if waiting_play != null:
+		waiting_play = null
+		menu_note = ""
+
+
 ## Leave a sub-screen for the title, with the cursor where it was.
 func back_to_title() -> void:
+	cancel_waiting_play()
 	settle_display(false)
 	sound.stop_preview()
 	menu_note = ""
@@ -1284,6 +1294,7 @@ func net_begin_match() -> void:
 
 ## Everyone back in the lobby after a match.
 func net_to_lobby() -> void:
+	cancel_waiting_play()
 	game = null
 	net_run = null
 	pilots.clear()
@@ -1324,6 +1335,7 @@ func net_closed() -> void:
 
 
 func _net_gone(note: String) -> void:
+	cancel_waiting_play()
 	net_old.append(net)
 	net = null
 	net_run = null

@@ -80,7 +80,7 @@ jobs:
             if [ -n "${!name}" ]; then echo "ANDROID_$name: set"; else echo "ANDROID_$name: missing"; missing=1; fi
           done
           if [ "$missing" = 1 ]; then
-            echo "::warning::The lasting Android signing key is not set: a v* tag's APK is signed with a throwaway key."
+            echo "::warning::The lasting Android signing key is not set: Android release builds will fail."
           else
             echo "::notice::Android signing key: set"
           fi
@@ -317,18 +317,23 @@ jobs:
           KEYSTORE_USER: ${{ secrets.ANDROID_KEYSTORE_USER }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          EXPECTED_CERT: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
         run: |
           set -euo pipefail
+          umask 077
           keystore="$RUNNER_TEMP/release.keystore"
-          if [ "$RELEASE_TAG" = "true" ] && { [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_USER" ] || [ -z "$KEYSTORE_PASSWORD" ]; }; then
-            # The owner's call (2026-11-24): until the three secrets are set a
-            # tag still publishes, its APK signed with a throwaway key, so it
-            # will not install over the last release (phones uninstall first,
-            # and the in-game update cannot put it in).
-            echo "::warning::This tag's APK is signed with a throwaway key: the ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_USER and ANDROID_KEYSTORE_PASSWORD secrets are not all set (Settings > Secrets and variables > Actions). It will not install over the last release."
+          if [ "$RELEASE_TAG" = "true" ]; then
+            if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_USER" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+              echo "::error::Set all three ANDROID_KEYSTORE_* secrets before building an Android release."
+              exit 1
+            fi
+            if ! [[ "${EXPECTED_CERT//:/}" =~ ^[[:xdigit:]]{64}$ ]]; then
+              echo "::error::Set ANDROID_SIGNING_CERT_SHA256 to the lasting signing certificate's SHA-256 fingerprint."
+              exit 1
+            fi
           fi
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_USER" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
             user="$KEYSTORE_USER"
             password="$KEYSTORE_PASSWORD"
           else
@@ -376,6 +381,7 @@ jobs:
       - name: Check the package
         env:
           RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          EXPECTED_CERT: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
         run: |
           set -euo pipefail
           apk=godot/build/android/CrazyLegsMundellRampage.apk
@@ -393,8 +399,13 @@ jobs:
             echo "::error::The APK's version code ($code) is below 3.11.0's (3110099): phones would refuse it as an update (a downgrade)."
             exit 1
           fi
-          if [ "$RELEASE_TAG" = "true" ] && grep -q "Crazy Legs Mundell Rampage CI" certs.txt; then
-            echo "::warning::This tag's APK is signed with the throwaway CI key: it will not install over the last release."
+          if [ "$RELEASE_TAG" = "true" ]; then
+            actual=$(sed -n 's/^Signer #[0-9][0-9]* certificate SHA-256 digest: //p' certs.txt)
+            expected=${EXPECTED_CERT//:/}
+            if [ "${actual,,}" != "${expected,,}" ] || grep -q 'Crazy Legs Mundell Rampage CI' certs.txt; then
+              echo "::error::The APK does not use the configured lasting signing certificate."
+              exit 1
+            fi
           fi
           # The in-game update (src/update_notice.gd): leave to open the
           # package installer, the updater plugin Godot finds by its

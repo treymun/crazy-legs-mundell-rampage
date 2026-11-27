@@ -75,6 +75,7 @@ static func run(main, check: Callable, seconds := QUICK_SECONDS) -> void:
 	_spawns(main, check)
 	_routes(main, check)
 	_crossing(main, check)
+	_rodeo_gate(main, check)
 	_daily(main, check)
 	_steer(main, check)
 	_melee_blood(check)
@@ -85,6 +86,17 @@ static func run(main, check: Callable, seconds := QUICK_SECONDS) -> void:
 		_play(main, check, map_id, seconds)
 	_records(check)
 	CountyRecords.folder_override = ""
+
+
+static func _rodeo_gate(main, check: Callable) -> void:
+	var g: Game = main.make_game("county_hickston")
+	for gate: LevelData.Door in g.world.doors:
+		if gate.x == 100 and gate.y == 22:
+			check.call(
+				gate.opened and gate.progress == 1.0, "Hickston's rodeo shortcut starts open"
+			)
+			return
+	check.call(false, "Hickston's rodeo shortcut is present")
 
 
 ## A run on `map_id`, started (its first tick played, the spawner held off).

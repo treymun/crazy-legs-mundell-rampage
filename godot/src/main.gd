@@ -710,7 +710,7 @@ func _process(delta: float) -> void:
 		_view_tour()
 		return
 	warm_view(delta)
-	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
+	if waiting_play != null and art.chapter_ready(CountyData.base_of(waiting_play.level.id)):
 		if state != "play":
 			menu_note = ""
 		play(waiting_play)
@@ -722,7 +722,8 @@ func _process(delta: float) -> void:
 		if state != "play" and menu_note != packs.road_line(waited):
 			menu_note = packs.road_line(waited)
 	if game != null:
-		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(game.level.id), "")))
+		if waiting_play == null:
+			packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(game.level.id), "")))
 		_watch_level()
 	# The engine paces frames to the FRAME LIMIT option (apply_options sets
 	# Engine.max_fps), which is what the reference's clock.tick() does. A
@@ -979,7 +980,8 @@ func _demo_controls(dt: float) -> Game.Controls:
 
 func advance(elapsed: float, controls: Game.Controls) -> void:
 	if net != null and net.phase == "match":
-		_net_advance(elapsed, controls)
+		if waiting_play == null:
+			_net_advance(elapsed, controls)
 		return
 	if replay_play != null:
 		ReplayKeeper.advance(self, elapsed)
@@ -1284,6 +1286,8 @@ func _net_host_tick(mine: Game.Controls) -> void:
 ## (net_predict.gd), our shots shown at the press (net_shot_predict.gd).
 ## Looks only; net_draw_end puts it all back after the frame.
 func net_draw_begin(dt: float) -> Array:
+	if net != null and waiting_play != null:
+		return []
 	_solo_draw()
 	# Our own player first, walked among the others as the copy has them
 	# (the prediction's walk against bodies part way between ticks moved

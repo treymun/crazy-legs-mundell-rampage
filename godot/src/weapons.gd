@@ -382,7 +382,10 @@ class Armory:
 				(p.pitch + p.sway) / View.base_focal,
 				damage,
 				melee_range,
-				melee_width
+				melee_width,
+				true,
+				false,
+				GameState.Attack.new(active)
 			)
 			if reached:
 				game.sound.play(
@@ -530,6 +533,7 @@ class Armory:
 		var shake_by: float = Weapons.SHAKE.get(i, 0.0)
 		game.shake = minf(1.0, game.shake + shake_by * maxf(1, spent))
 		game.events.shot_fired.emit(i)
+		game.events.attack_started.emit()
 		shot_age = 0.0
 		if pool:
 			reserve[i] -= spent
@@ -559,8 +563,9 @@ class Armory:
 		var noise := num(i, "shot_noise")
 		game.wake_nearby(noise, player.x, player.y)
 		var mode := str(how.get("fire", ""))
+		var attack := GameState.Attack.new(i)
 		if grind:
-			game.hitscan(aim, slope, Weapons.GRIND_DAMAGE, 1.45, .36)
+			game.hitscan(aim, slope, Weapons.GRIND_DAMAGE, 1.45, .36, true, false, attack)
 		elif mode == "melee":
 			swing_hit = true
 		elif mode == "hitscan":
@@ -581,7 +586,7 @@ class Armory:
 					yaw += game.rng.randf_range(-spread.x, spread.x)
 				if spread.y > 0.0:
 					tilt += game.rng.randf_range(-spread.y, spread.y)
-				game.hitscan(yaw, tilt, amount, reach, width, true, pressure)
+				game.hitscan(yaw, tilt, amount, reach, width, true, pressure, attack)
 			if how.has("climb"):
 				var climb: float = how["climb"]
 				var climb_heat: float = how.get("climb_heat", 0.0)
@@ -599,7 +604,16 @@ class Armory:
 			for pellet in pellets * spent:
 				var dx: float = game.rng.randf_range(-spread.x, spread.x)
 				var dy: float = game.rng.randf_range(-spread.y, spread.y)
-				game.hitscan(aim + dx, slope + dy, pellet_damage, reach, width, pellet < sparks)
+				game.hitscan(
+					aim + dx,
+					slope + dy,
+					pellet_damage,
+					reach,
+					width,
+					pellet < sparks,
+					false,
+					attack
+				)
 		elif mode == "projectile":
 			var speed: float = how["shot_speed"]
 			var reach: float = how.get("shot_reach", .23)
@@ -623,7 +637,9 @@ class Armory:
 				(slope * speed + lift) if aimed else 0.0,
 				false,
 				damage,
-				life
+				life,
+				0,
+				attack
 			)
 
 	## A bayonet's jab (a mod's `bayonet`: [damage, reach, finish below]):
@@ -667,7 +683,8 @@ class Armory:
 				return true
 		if best != null and brawl == null and best.hp <= best.max_hp * finish:
 			damage = best.hp + 1.0
-		if game.hitscan(aim, slope, damage, reach, .34):
+		game.events.attack_started.emit()
+		if game.hitscan(aim, slope, damage, reach, .34, true, false, GameState.Attack.new(active)):
 			game.sound.play("crowbar_hit", .85)
 		return true
 

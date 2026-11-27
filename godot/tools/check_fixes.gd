@@ -108,7 +108,13 @@ func _run() -> void:
 			"polish_bugs":
 				load("res://tools/polish_bugs_check.gd").run(main, check)
 			_:
-				load("res://tools/%s.gd" % step).run(main, check)
+				var script = load("res://tools/%s.gd" % step)
+				if script == null or not script.can_instantiate():
+					check(false, "%s loads" % step)
+				elif step == "map_check":
+					check(script.run(main, check) == true, "map checks completed")
+				else:
+					script.run(main, check)
 		times[step] = (Time.get_ticks_msec() - step_began) / 1000.0
 	print("\nSTEP TIMES (s)")
 	for step: String in picked:
@@ -653,16 +659,20 @@ func _parity(main: Control) -> void:
 		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind):
 			target = e
 			break
-	eventful.events.shot_fired.emit(Weapons.REVOLVER)
-	target.hurt(9999.0, eventful)
+	eventful.events.attack_started.emit()  # a miss
+	eventful.events.attack_started.emit()
+	var shell := GameState.Attack.new(Weapons.SHOTGUN)
+	target.hurt(1.0, eventful, false, false, null, "shotgun", shell)
+	target.hurt(9999.0, eventful, false, false, null, "shotgun", shell)
 	var stats = eventful.features["stats"]
 	check(heard == [target.kind], "a kill is announced to whoever listens")
-	check(stats.shots == 1 and stats.landed == 1, "the stats feature counts a shot and its hit")
+	check(stats.shots == 2 and stats.landed == 1, "one shell's pellets only count once")
+	check(stats.kills_by_gun == {"shotgun": 1}, "the kill uses the attack's gun")
 	var stats_path := OS.get_user_data_dir().path_join("features-check.json")
 	SessionStore.save(eventful, stats_path)
 	var stats_back: Game = SessionStore.read(stats_path, Callable(main, "make_game"), false)
 	check(
-		stats_back != null and stats_back.features["stats"].shots == 1,
+		stats_back != null and stats_back.features["stats"].shots == 2,
 		(
 			"a feature's state comes back from a save"
 			+ ("" if stats_back != null else " (%s)" % SessionStore.last_error)

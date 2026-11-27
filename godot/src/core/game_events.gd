@@ -24,6 +24,10 @@ signal pickup_taken(name: String)
 signal station_done(station_id: String)
 ## The acting player's gun went off (its index in weapons.cfg).
 signal shot_fired(gun: int)
+## One attack for chapter statistics, including a bayonet jab or a thrown stick.
+signal attack_started
+## This attack dealt damage. At most one contact per attack has `first` set.
+signal attack_contact(gun: int, first: bool, killed_hostile: bool)
 ## The acting player's hit landed on someone: how much, and whether it killed.
 signal hit_landed(amount: float, killed: bool)
 ## The world stepped `dt` (slow motion included): every tick, last thing.

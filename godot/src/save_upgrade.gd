@@ -101,6 +101,10 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			# by (nothing killed or found; its gate stays open for a replay).
 			_moonshine_passed(doc)
 			return doc
+		11:
+			# Older saves lack exact trigger credit for shots already in flight.
+			# Leave them unattributed and keep their recorded chapter totals.
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null

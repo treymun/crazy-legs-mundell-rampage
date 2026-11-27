@@ -88,6 +88,9 @@ func _on_focus_gained() -> void:
 
 
 func key(code: int, shift := false) -> void:
+	if code == KEY_ESCAPE and state == "title" and waiting_play != null:
+		cancel_waiting_play()
+		return
 	if ui != null and ui.takes_keys(state) and not _global_key(code):
 		# A screen of Control nodes: the key goes to it as a press and release.
 		ui.show_state(state)

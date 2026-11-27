@@ -38,10 +38,18 @@ uniform bool baked_light = false;
 uniform float min_px = 0.0;
 // The looks' brightness against the kind's cels (actors fit.json "light").
 uniform float light = 1.0;
+// Flagman's cloth and hem have a secondary UV across the width, rooted at
+// the pole. The pole and its fittings carry zero weight.
+uniform bool flag_cloth = false;
 
 varying vec3 map_p;
 
 void vertex() {
+	if (flag_cloth && fallen == 0.0) {
+		float reach = UV2.x;
+		float wave = sin(anim_time * 8.0 - reach * 8.0 + UV2.y * 4.0);
+		VERTEX += vec3(-0.358, -0.866, 0.350) * (0.033 * motion * reach * reach * wave);
+	}
 	if (min_px > 0.0) {
 		float depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;
 		float px_focal = PROJECTION_MATRIX[1][1] * VIEWPORT_SIZE.y * 0.5;

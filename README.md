@@ -212,10 +212,10 @@ and nothing at all is fetched). When one is, a sign on the title says NEW VERSIO
   playing meanwhile; a dropped line picks up where it left off), is checked against the size and
   checksum published with the release, and is handed to Android: tap **Update** when your phone
   asks. The first time, the game says ONE SWITCH: tap SETTIN'S and allow it to install updates,
-  then come back. **For now each release is signed with a key of its own,** so Android will not
-  put a new one over the old: uninstall the old copy first (this loses its saves), then install
-  the new APK from the release page. Once the game's lasting key is in place, updates go straight
-  over the last copy and keep your saves.
+  then come back. **If you installed v3.15.0 or another APK signed with a temporary key,** the
+  first release signed with the lasting key requires a fresh install. Uninstalling the old copy
+  deletes its local saves. Once you have a copy signed with the lasting key, later releases with
+  that key install over it and keep your saves.
 
 ### Controls
 
@@ -303,9 +303,10 @@ pictures. Tools that play the game write into a scratch profile, never yours.
 `.github/workflows/release.yml` runs the checks in six parallel shards and the 3D view's picture
 comparison on every push, builds the browser builds and deploys this landing page on `main`, and on
 a `v*` tag builds and publishes the Windows EXE, installer and APK. The APK is signed with the
-lasting key in `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_USER` and `ANDROID_KEYSTORE_PASSWORD`,
-so each release installs over the last; a tag without them fails rather than publish an APK signed
-with a throwaway key (branch and hand-started builds still use one).
+lasting key configured in the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_USER` and
+`ANDROID_KEYSTORE_PASSWORD` secrets. Set the `ANDROID_SIGNING_CERT_SHA256` Actions variable to
+that certificate's public SHA-256 fingerprint. Tags require all four values and verify the signed
+APK against the pinned certificate. Branch and hand-started builds can use a temporary key.
 
 ## How it is put together
 

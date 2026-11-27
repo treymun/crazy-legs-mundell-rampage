@@ -86,7 +86,11 @@ func _run() -> void:
 	main.set_process(false)
 	main.state = "title"
 	run(main, _check)
-	preload("res://tools/map_check.gd").run(main, _check)
+	var map_check = load("res://tools/map_check.gd")
+	_check(
+		map_check != null and map_check.can_instantiate() and map_check.run(main, _check) == true,
+		"map checks completed"
+	)
 	print("")
 	print("GEOMETRY CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
 	main.queue_free()
@@ -101,6 +105,7 @@ static func run(main, check: Callable) -> void:
 	_queries(main, check)
 	_walking(main, check)
 	_shooting(main, check)
+	_revive(main, check)
 	_nav(main, check)
 	_views(main, check)
 	_saves(main, check)
@@ -246,10 +251,24 @@ static func _shooting(main, check: Callable) -> void:
 	var slope := (g.world.stand(e) + e.height * .5 - p.eye) / d
 	g.hitscan(0.0, slope, 20.0, 30.0, 0.0)
 	check.call(e.hp < hp, "a shot from the deck past its edge hits a hand on the ground")
+	p.x = 16.5
+	p.floor_z = 0.0
+	p.eye = .95
+	e.x = 13.0
+	e.floor_z = DECK
+	e.hp = e.max_hp
+	hp = e.hp
+	d = p.x - e.x
+	slope = (g.world.stand(e) + e.height * .8 - p.eye) / d
+	g.hitscan(PI, slope, 20.0, 30.0, 0.0)
+	check.call(e.hp < hp, "an upward shot past an open edge hits a hand on the deck")
 	# Now under the deck: a shot straight down does not reach it.
 	e.x = 11.0
 	e.y = 6.0
+	e.floor_z = 0.0
 	p.x = 9.5
+	p.floor_z = DECK
+	p.eye = DECK + .95
 	hp = e.hp
 	d = e.x - p.x
 	slope = (g.world.stand(e) + e.height * .5 - p.eye) / d
@@ -258,6 +277,28 @@ static func _shooting(main, check: Callable) -> void:
 	check.call(
 		absf(g.world.stand(e)) < .01 and absf(g.world.stand(p) - DECK) < .01,
 		"each stands on their own floor"
+	)
+
+
+static func _revive(main, check: Callable) -> void:
+	var g := _game(main)
+	var p := g.player
+	var down := Players.join(g, 11.0, 6.0, 0.0)
+	down.health = 0
+	p.holding = true
+	Modes.place(g, p, 11.5, 6.0, 0.0)
+	p.floor_z = 0.0
+	check.call(CoopMode._helper(g, down) == p, "revive accepts a nearby partner on the same floor")
+	p.floor_z = DECK
+	check.call(
+		CoopMode._helper(g, down) == null and CoopMode.downed_near(g, p) == null,
+		"the deck separates both the revive action and prompt"
+	)
+	Modes.place(g, p, 17.6, 7.0, 0.0)
+	Modes.place(g, down, 18.4, 7.0, 0.0)
+	check.call(
+		CoopMode._helper(g, down) == null and CoopMode.downed_near(g, p) == null,
+		"the wall separates both the revive action and prompt"
 	)
 
 

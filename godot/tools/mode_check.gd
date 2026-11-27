@@ -57,6 +57,7 @@ func _run() -> void:
 static func run(main, check: Callable, seconds := QUICK_SECONDS, level := "hickston") -> void:
 	_campaign(main, check)
 	_scaling(main, check)
+	_late_scaling(main, check)
 	_coop_play(main, check, level, seconds)
 	_revive(main, check)
 	_respawn(main, check)
@@ -220,6 +221,62 @@ static func _coop_play(main, check: Callable, level: String, seconds: float) -> 
 	)
 
 
+static func _late_scaling(main, check: Callable) -> void:
+	var g := _made(main, "hickston", Modes.COOP, 2)
+	_ticks(g, 1)
+	var hand: Enemy
+	var dead: Enemy
+	var boss: Enemy
+	for e: Enemy in g.enemies:
+		if Enemy.BOSS_TITLES.has(e.kind):
+			boss = e
+		elif e.hostile:
+			if hand == null:
+				hand = e
+			elif dead == null:
+				dead = e
+	if hand == null or boss == null or dead == null:
+		check.call(false, "Hickston has enemies for late join scaling")
+		return
+	hand.hp = hand.max_hp * .37
+	boss.hp = boss.max_hp * .44
+	dead.hp = 0.0
+	var hand_top := hand.max_hp
+	var boss_top := boss.max_hp
+	var leaving: Player = g.players[1]
+	Modes.went_away(g, leaving)
+	check.call(
+		(
+			is_equal_approx(hand.max_hp, hand_top / 1.25)
+			and is_equal_approx(boss.max_hp, boss_top / 1.6)
+		),
+		"a departure scales hands and bosses down by the active party size"
+	)
+	check.call(Modes.join_late(g, "LATE") == leaving, "late join takes the away slot")
+	check.call(
+		(
+			is_equal_approx(hand.max_hp, hand_top)
+			and is_equal_approx(boss.max_hp, boss_top)
+			and is_equal_approx(hand.hp / hand.max_hp, .37)
+			and is_equal_approx(boss.hp / boss.max_hp, .44)
+			and not dead.alive
+		),
+		"joining restores the original scale, preserving damage and deaths"
+	)
+	var arrived := Enemy.new(hand.kind, hand.x, hand.y)
+	g.enemies.append(arrived)
+	var newcomer := Modes.join_late(g, "THIRD")
+	check.call(newcomer != null and newcomer != leaving, "late join can add a slot")
+	_ticks(g, 1)
+	check.call(
+		(
+			is_equal_approx(arrived.max_hp, hand.max_hp)
+			and is_equal_approx(arrived.hp, arrived.max_hp)
+		),
+		"a new enemy uses the current party scale once"
+	)
+
+
 static func _revive(main, check: Callable) -> void:
 	var g := _made(main, "hickston", Modes.COOP, 2)
 	_ticks(g, 1)
@@ -231,6 +288,20 @@ static func _revive(main, check: Callable) -> void:
 	var holding := Game.Controls.new()
 	holding.hold = true
 	Modes.place(g, b, a.x + .7, a.y, 0.0)
+	var binding := KeyBindings.option_key("use")
+	var previous_key: int = main.options[binding]
+	var previous_device: String = main.input_device
+	main.options[binding] = KEY_K
+	for device: String in ["keyboard", "pad", "touch"]:
+		main.input_device = device
+		g.use_key = main.use_button()
+		var expected: String = {"keyboard": "K", "pad": "Y", "touch": "USE"}[device]
+		check.call(
+			ModeScreens.revive_prompt(g).begins_with(expected + "  HOLD TO REVIVE"),
+			"the revive prompt uses the %s binding" % device
+		)
+	main.options[binding] = previous_key
+	main.input_device = previous_device
 	_ticks(g, int(CoopMode.REVIVE_TIME * 60.0 * .5), {0: holding})
 	var halfway := b.revive
 	_ticks(g, 30, {0: Game.Controls.new()})

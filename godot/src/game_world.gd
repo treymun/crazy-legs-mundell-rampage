@@ -334,6 +334,15 @@ func damage(amount: float, source: Variant = null, cause := "HIT", who: Player =
 		message("YOU BOUGHT THE FARM.", 8.0)
 
 
+## Attribute damage to the attack that produced it, even after a gun switch.
+func credit_attack(attack: Attack, killed_hostile := false) -> void:
+	if attack == null or attack.gun < 0 or attack.gun >= Weapons.COUNT:
+		return
+	var first := not attack.landed
+	attack.landed = true
+	events.attack_contact.emit(attack.gun, first, killed_hostile)
+
+
 ## The world's hold on a hit (hits.cfg [punch], pass 15: see struck).
 static var PUNCH_KILL_HOLD: float = HitData.value("punch", "kill_hold", .05)
 static var PUNCH_BOSS_HOLD: float = HitData.value("punch", "boss_hold", .09)

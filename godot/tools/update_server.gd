@@ -21,6 +21,8 @@ var no_manifest := false
 ## Bytes sent per poll.
 var pace := 262144
 var port := 0
+## Additional files for tests of the browser pack fetcher.
+var files := {}
 
 var _server := TCPServer.new()
 var _peers: Array = []
@@ -99,6 +101,10 @@ func _answer(peer: Dictionary) -> void:
 		if line.to_lower().begins_with("range:"):
 			range_text = line.substr(6).strip_edges()
 	seen.append([path, range_text])
+	if files.has(path):
+		var data: PackedByteArray = files[path]
+		peer["out"] = _head(200, "OK", data.size(), "application/octet-stream") + data
+		return
 	if path.ends_with("/update.json"):
 		if no_manifest:
 			peer["out"] = _head(404, "Not Found", 0)

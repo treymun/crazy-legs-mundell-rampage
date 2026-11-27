@@ -195,7 +195,17 @@ class Rng:
 		state = value
 
 
+## Shared by every pellet of one trigger and carried with a projectile in flight.
+class Attack:
+	var gun := -1
+	var landed := false
+
+	func _init(weapon := -1) -> void:
+		gun = weapon
+
+
 class Shot:
+	var attack: Attack
 	var x := 0.0
 	var y := 0.0
 	var z := 0.0

@@ -63,7 +63,9 @@ func _init() -> void:
 			packer.add_file(uid_list(pack), list_path)
 		packer.flush()
 		var handle := FileAccess.open(target, FileAccess.READ)
-		manifest[pack] = {"file": file, "size": handle.get_length()}
+		manifest[pack] = {
+			"file": file, "size": handle.get_length(), "sha256": FileAccess.get_sha256(target)
+		}
 		handle.close()
 		total += int(manifest[pack]["size"])
 		print("%s %.1f MB (%d files)" % [file, manifest[pack]["size"] / 1e6, parts.size()])

@@ -4,15 +4,10 @@
 ## the rest.
 extends GameFeature
 
-## A shot counts as landing when a hit comes within this long of it (a
-## crossbow bolt or a bowling ball takes a moment to arrive).
-const LANDS_WITHIN := 2.5
-
 var shots := 0
 var landed := 0
 var hurt := 0.0
 var kills_by_gun := {}
-var _waiting: Array[float] = []
 
 
 func id() -> String:
@@ -20,38 +15,27 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.events.shot_fired.connect(_fired)
-	game.events.hit_landed.connect(_hit)
+	game.events.attack_started.connect(_fired)
+	game.events.attack_contact.connect(_hit)
 	game.events.player_hurt.connect(
 		func(amount: float, _cause: String) -> void: hurt += amount if game.acting_local() else 0.0
 	)
-	game.events.enemy_killed.connect(_killed)
 
 
-func _fired(_gun: int) -> void:
+func _fired() -> void:
+	if game.acting_local():
+		shots += 1
+
+
+func _hit(gun: int, first: bool, killed_hostile: bool) -> void:
 	if not game.acting_local():
 		return
-	shots += 1
-	_waiting.append(game.clock)
-
-
-func _hit(_amount: float, _killed: bool) -> void:
-	if not game.acting_local():
-		return
-	while not _waiting.is_empty() and game.clock - _waiting[0] > LANDS_WITHIN:
-		_waiting.pop_front()
-	if not _waiting.is_empty():
-		_waiting.pop_front()
-		landed += 1
-
-
-func _killed(enemy: Enemy) -> void:
-	if not game.acting_local():
-		return
-	if enemy.hostile:
-		var gun := str(Weapons.NAMES[game.armory.active])
-		var so_far: int = kills_by_gun.get(gun, 0)
-		kills_by_gun[gun] = so_far + 1
+	if first:
+		landed = mini(landed + 1, shots)
+	if killed_hostile:
+		var name: String = Weapons.NAMES[gun]
+		var so_far: int = kills_by_gun.get(name, 0)
+		kills_by_gun[name] = so_far + 1
 
 
 func accuracy() -> int:

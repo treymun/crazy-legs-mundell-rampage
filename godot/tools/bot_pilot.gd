@@ -62,11 +62,18 @@ func steer(game: Game) -> Game.Controls:
 		var want := atan2(foe.y - p.y, foe.x - p.x)
 		var turn := fposmod(want - p.angle + PI, TAU) - PI
 		controls.turn = clampf(turn, -.12, .12)
-		var target: float = game.world.stand(foe) + foe.z + foe.height * .58
-		var slope := (target - p.eye) / maxf(.5, Vector2(foe.x - p.x, foe.y - p.y).length())
-		controls.look = clampf(slope * View.base_focal - p.pitch, -3.0, 3.0)
-		controls.fire = absf(turn) < .08
 		var gap := Vector2(foe.x - p.x, foe.y - p.y).length()
+		var pitch := _aim_pitch(game, foe, gap)
+		controls.look = clampf(pitch - p.pitch, -3.0, 3.0)
+		var tilt := clampf(p.pitch + controls.look, -53.0, 53.0) + p.sway
+		var z := p.eye + gap * tilt / View.base_focal
+		var feet := game.world.stand(foe) + foe.z
+		controls.fire = (
+			absf(angle_difference(want, p.view_angle() + controls.turn)) < .08
+			and z > feet
+			and z < feet + foe.height
+			and game.world.visible(p.x, p.y, foe.x, foe.y, p.eye, z)
+		)
 		controls.forward = .4 if gap > 4.0 else 0.0
 		# Something at its feet (a gator under the gun): step back to get a shot.
 		if gap < 1.2:
@@ -258,10 +265,22 @@ static func nearest_threat(game: Game) -> Enemy:
 		if not (e.alive and e.hostile and (e.alerted or e.player_seen)):
 			continue
 		var d := Vector2(e.x - p.x, e.y - p.y).length()
-		if d < near and game.world.visible(p.x, p.y, e.x, e.y):
+		if d < near and not is_nan(_aim_pitch(game, e, d)):
 			best = e
 			near = d
 	return best
+
+
+## Aim at an exposed part of the actor within the game's vertical look range.
+static func _aim_pitch(game: Game, e: Enemy, distance: float) -> float:
+	var p: Player = game.player
+	var feet := game.world.stand(e) + e.z
+	for part: float in [.58, .88, .27]:
+		var z := feet + e.height * part
+		var pitch := (z - p.eye) * View.base_focal / maxf(.01, distance) - p.sway
+		if absf(pitch) <= 53.0 and game.world.visible(p.x, p.y, e.x, e.y, p.eye, z):
+			return pitch
+	return NAN
 
 
 ## The scenery a strike station at `goal` is struck through, if it is one.

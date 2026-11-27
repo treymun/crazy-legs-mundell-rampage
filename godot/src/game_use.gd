@@ -215,9 +215,11 @@ static func aim_points(g: Game, device: Variant) -> Array:
 
 
 static func use_prompt(g: Game) -> String:
-	if g.players.size() > 1 and ModeScreens.revive_prompt(g) != "":
-		g.use_aim = Vector3.INF  # a partner down beside you (src/modes/)
-		return ModeScreens.revive_prompt(g)
+	if g.players.size() > 1:
+		var revive := ModeScreens.revive_prompt(g)
+		if revive != "":
+			g.use_aim = Vector3.INF  # a partner down beside you (src/modes/)
+			return revive
 	var bench: Game.BenchScript = g.features.get("bench")
 	if bench != null and bench.prompt(g.player) != "":
 		g.use_aim = Vector3.INF  # the junk bench (features/bench.gd)

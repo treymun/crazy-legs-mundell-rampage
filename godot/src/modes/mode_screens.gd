@@ -210,12 +210,12 @@ static func _watch_lines(game: Game, me: Player) -> PackedStringArray:
 ## game_world.gd use_prompt shows it where the other prompts go), or "".
 static func revive_prompt(game: Game) -> String:
 	var me: Player = game.local_player
-	if me.health <= 0 or Modes.mode_of(game) != Modes.COOP:
+	if me.health <= 0 or Modes.mode_of(game) not in [Modes.COOP, Modes.COUNTY]:
 		return ""
 	var down := CoopMode.downed_near(game, me)
 	if down == null:
 		return ""
-	return "E  HOLD TO REVIVE " + Modes.tag(down)
+	return "%s  HOLD TO REVIVE %s" % [game.use_key, Modes.tag(down)]
 
 
 ## One partner's tag and health bar over their head, or at the view's edge

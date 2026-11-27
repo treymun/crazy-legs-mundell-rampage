@@ -39,6 +39,7 @@ func build(_b) -> Array:
 		"HICKSTON",
 		"SURVIVE. THE CREEK, THE RODEO AND THE COURT ALL GO THROUGH NOW."
 	)
+	b.meta["layout"] = 3
 	shortcuts()
 	footbridge()
 	landmarks()

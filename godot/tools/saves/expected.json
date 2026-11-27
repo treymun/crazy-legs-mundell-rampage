@@ -229,6 +229,98 @@
 		"x": 12.0,
 		"y": 100.5
 	},
+	"v12_fair_carrying_hickston.json": {
+		"alive": 29,
+		"health": 100.0,
+		"kills": 0,
+		"level": "fair",
+		"replay": false,
+		"reserve": 30,
+		"retained": [
+			"hickston"
+		],
+		"x": 66.212,
+		"y": 78.968
+	},
+	"v12_hickston_fight.json": {
+		"alive": 60,
+		"health": 100.0,
+		"kills": 0,
+		"level": "hickston",
+		"replay": false,
+		"reserve": 24,
+		"retained": [],
+		"x": 9.448,
+		"y": 73.889
+	},
+	"v12_hickston_wrecked.json": {
+		"alive": 60,
+		"down": 56,
+		"health": 100.0,
+		"kills": 0,
+		"level": "hickston",
+		"replay": false,
+		"reserve": 18,
+		"retained": [],
+		"x": 5.713,
+		"y": 73.356
+	},
+	"v12_moonshine_replay.json": {
+		"alive": 30,
+		"health": 100.0,
+		"kills": 0,
+		"level": "moonshine",
+		"replay": true,
+		"reserve": 159,
+		"retained": [],
+		"x": 10.506,
+		"y": 90.389
+	},
+	"v12_mothership_replay.json": {
+		"alive": 46,
+		"health": 100.0,
+		"kills": 0,
+		"level": "mothership",
+		"replay": true,
+		"reserve": 174,
+		"retained": [],
+		"x": 65.506,
+		"y": 90.389
+	},
+	"v12_quarry_replay.json": {
+		"alive": 26,
+		"health": 100.0,
+		"kills": 0,
+		"level": "quarry",
+		"replay": true,
+		"reserve": 159,
+		"retained": [],
+		"x": 65.506,
+		"y": 79.389
+	},
+	"v12_sawmill_slot.json": {
+		"alive": 31,
+		"health": 100.0,
+		"kills": 0,
+		"label": "OLD SLOT",
+		"level": "sawmill",
+		"replay": false,
+		"reserve": 30,
+		"retained": [],
+		"x": 64.913,
+		"y": 80.137
+	},
+	"v12_speedway_replay.json": {
+		"alive": 32,
+		"health": 100.0,
+		"kills": 0,
+		"level": "speedway",
+		"replay": true,
+		"reserve": 162,
+		"retained": [],
+		"x": 13.006,
+		"y": 98.389
+	},
 	"v4_fair_carrying_hickston.json": {
 		"alive": 48.0,
 		"health": 100.0,

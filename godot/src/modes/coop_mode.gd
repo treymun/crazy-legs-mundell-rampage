@@ -37,11 +37,11 @@ func id() -> String:
 
 
 static func scale_for(count: int) -> Array:
-	return SCALE[clampi(count, 1, Modes.MAX_PLAYERS)]
+	return SCALE[clampi(count, 1, Modes.MAX_FREE_FOR_ALL)]
 
 
 func start(game: Game, st: ModeFeature) -> void:
-	var table := scale_for(game.players.size())
+	var table := scale_for(_party_size(game))
 	var step: int = table[2]
 	if step > 0:
 		var count := 0
@@ -66,31 +66,48 @@ func start(game: Game, st: ModeFeature) -> void:
 ## Health scaled on every enemy that has come along since the last look (the
 ## level's own and the extras at the start; a boss's backup, Maw's crew).
 static func scale_new(game: Game, st: ModeFeature) -> void:
-	if st.scaled_upto >= game.enemies.size():
-		return
-	var table := scale_for(game.players.size())
-	for i in range(st.scaled_upto, game.enemies.size()):
+	var count := _party_size(game)
+	var table := scale_for(count)
+	var already := mini(st.scaled_upto, game.enemies.size())
+	if st.scaled_party != count:
+		var prior := scale_for(st.scaled_party)
+		for i in already:
+			var e: Enemy = game.enemies[i]
+			_scale_health(e, _multiplier(e, table) / _multiplier(e, prior))
+		st.scaled_party = count
+	for i in range(already, game.enemies.size()):
 		var e: Enemy = game.enemies[i]
-		if not e.hostile:
-			continue
-		var boss_times: float = table[1]
-		var other_times: float = table[0]
-		var times := boss_times if Enemy.BOSS_TITLES.has(e.kind) else other_times
-		e.max_hp *= times
-		e.hp *= times
+		_scale_health(e, _multiplier(e, table))
 	st.scaled_upto = game.enemies.size()
 
 
-## A save brought the enemies back with their scaled health but their kind's
-## own top: scale the top again (st.scaled_upto of them were scaled).
-static func rescale_loaded(game: Game, st: ModeFeature, count: int) -> void:
-	var table := scale_for(count)
+static func _party_size(game: Game) -> int:
+	var count := 0
+	for p: Player in game.players:
+		if not p.away:
+			count += 1
+	return maxi(1, count)
+
+
+static func _multiplier(e: Enemy, table: Array) -> float:
+	return table[1 if Enemy.BOSS_TITLES.has(e.kind) else 0]
+
+
+static func _scale_health(e: Enemy, times: float) -> void:
+	if e.hostile:
+		e.max_hp *= times
+		e.hp *= times
+
+
+## A save brought back scaled current health and unscaled maximum health.
+static func rescale_loaded(game: Game, st: ModeFeature) -> void:
+	var table := scale_for(st.scaled_party)
 	for i in mini(st.scaled_upto, game.enemies.size()):
 		var e: Enemy = game.enemies[i]
 		if e.hostile:
-			var boss_times: float = table[1]
-			var other_times: float = table[0]
-			e.max_hp *= boss_times if Enemy.BOSS_TITLES.has(e.kind) else other_times
+			e.max_hp *= _multiplier(e, table)
+	if st.started:
+		scale_new(game, st)
 
 
 func _beside(game: Game, anchor: Enemy) -> Vector2:
@@ -130,22 +147,33 @@ func tick(game: Game, st: ModeFeature, dt: float) -> void:
 ## A partner up, within reach and holding USE over the downed player `p`.
 static func _helper(game: Game, p: Player) -> Player:
 	for q: Player in game.players:
-		if q == p or q.health <= 0 or not q.holding:
+		if q == p or q.health <= 0 or q.away or not q.holding:
 			continue
-		if Vector2(q.x - p.x, q.y - p.y).length() < REVIVE_REACH:
+		if _can_reach(game, q, p):
 			return q
 	return null
 
 
-## The partner up nearest `p` (null when nobody is), for a revive prompt.
+## Both the action and its prompt use the same floor-aware reach test.
+static func _can_reach(game: Game, helper: Player, down: Player) -> bool:
+	var a := Vector3(helper.x, helper.y, game.world.stand(helper) + helper.air)
+	var b := Vector3(down.x, down.y, game.world.stand(down) + down.air)
+	return (
+		absf(a.z - b.z) <= .65
+		and a.distance_to(b) < REVIVE_REACH
+		and game.world.visible(a.x, a.y, b.x, b.y, a.z + .65, b.z + .35)
+	)
+
+
+## The downed partner nearest `p` (null when nobody is), for a revive prompt.
 static func downed_near(game: Game, p: Player) -> Player:
 	var best: Player = null
-	var gap := REVIVE_REACH * 2.0
+	var gap := REVIVE_REACH
 	for q: Player in game.players:
 		if q == p or q.health > 0 or q.away:
 			continue
 		var d := Vector2(q.x - p.x, q.y - p.y).length()
-		if d < gap:
+		if d < gap and _can_reach(game, p, q):
 			gap = d
 			best = q
 	return best

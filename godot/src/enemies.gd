@@ -369,7 +369,8 @@ func hurt(
 	explosive_hit := false,
 	pressure := false,
 	by: Enemy = null,
-	how := ""
+	how := "",
+	attack: GameState.Attack = null
 ) -> void:
 	if not alive or brain == "bessie":
 		return
@@ -474,6 +475,8 @@ func hurt(
 		"shell" if SHELL_ACTORS.has(kind) else "tool" if TOOL_ACTORS.has(kind) else "cloth"
 	)
 	if by == null:
+		if amount > 0.0 and attack != null:
+			game.credit_attack(attack, hostile and not alive)
 		game.struck(amount, hostile and not alive, champion, self, how)
 	HitZones.land(self, game as Game, amount, by)
 	if alive:

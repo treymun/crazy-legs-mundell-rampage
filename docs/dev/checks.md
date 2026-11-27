@@ -274,11 +274,10 @@ The builds wait for all of those (every shard, the lint and the window job):
 template's), Gradle's downloads cached, `pack_lite.gd`, the updater's AAR
 (`tools/android_plugin.gd`, ANDROID PLUGIN BUILT), then `--install-android-build-template
 --export-release "Android"` (fails on `export ... failed`, BUILD FAILED or
-the AAR missing). It is signed with the lasting `ANDROID_KEYSTORE_*` key
-when those secrets are set; without them (so far: the owner's call on
-2026-11-24) a tag still publishes, signed with a throwaway key and a warning
-saying so. The package step checks the package name, a version code not
-under 3.11.0's, warns of a throwaway key on a tag, and checks the manifest:
+the AAR missing). Tags require the lasting `ANDROID_KEYSTORE_*` secrets and
+an `ANDROID_SIGNING_CERT_SHA256` Actions variable pinning the public signing
+certificate. The package step checks the certificate on tags, the package
+name, a version code at least as high as 3.11.0's, and the manifest:
 REQUEST_INSTALL_PACKAGES, the plugin entry and class, the FileProvider and
 VIBRATE, and the plugin's class in the dex; it writes the APK's size and
 SHA-256 to the run's summary.
