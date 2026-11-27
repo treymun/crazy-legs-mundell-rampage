@@ -477,6 +477,28 @@ for what feeds them.
   squeeze the whole tile into its own height; `EDGE_STRETCHED` keeps the
   ones drawn per piece (the grandstand riser).
 
+### Rakes and terrain (pass 16)
+
+- **Rakes** (`LevelGeometry.rakes`, made by `GeoParts.render` in
+  `level_geometry_parts.gd`): faces whose top or bottom slopes, a row of
+  eleven numbers (ax, ay, bx, by, tile, light, the bottom and top at a, the
+  bottom and top at b, area). `LevelMesh.add_rakes` draws each as a quad laid
+  as a wall row is (by the metre, or the whole picture stretched over the
+  face's full height); a plank material is drawn whole there (only grid
+  walls shoot apart). They are not wall rows, so the wall rows' readers were
+  gone through: shots' holes (`WallHits`) and a station's lights
+  (`LevelGeometry.brighten`) take rakes too; the plank breaks, a fixture's
+  side tiles and the openers' camera only ever meet grid walls, and the
+  automap draws the grid.
+- **Terrain** (`LevelMesh._add_terrain`): each cell two triangles, each
+  corner lit from its slope (its normal from the patch's heights either
+  side, against `SUN`; `SLOPE_SHADE` how much, a flat cell as bright as a
+  floor), its UVs the floors' (by the map), so the light runs smooth over a
+  hill the 1997 way. A cliff's triangle is drawn as a wall (its picture by
+  the metre along its level line and by height up it, in the patch's
+  `cliff` tile); a patch's edge over lower ground is drawn down to it
+  (`_terrain_sides`). `_add_floors` draws no floor in a terrain cell.
+
 ## Props
 
 Each prop placed with `town()` (and every quest station) shows as a
