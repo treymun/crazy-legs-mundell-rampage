@@ -2563,8 +2563,15 @@ def solve(name, dz=0.0, held0=None):
                 # In the body (a jug against a thigh, a pistol in the belly):
                 # the hand moves it out, the arm reaching after it.
                 first = depth_in(surface, it["bone"], Di)[0]
-                for _ in range(8):
+                # (kind config "keep_out_best": the steps' least deep pose
+                # kept, not the last - a walk key's hand pushed out of one
+                # thigh swung the canister deeper into it)
+                best_ = None
+                for _ in range(int(CFG.get("keep_out_steps", 8))):
                     d, way = depth_in(surface, it["bone"], Di)
+                    if CFG.get("keep_out_best") and (best_ is None or d < best_[0]):
+                        best_ = (d, Di.copy(), {k_: D[k_].copy() for k_ in
+                                                ("upperarm_" + side, "forearm_" + side, "hand_" + side)})
                     if d < .004:
                         break
                     move = Matrix.Translation(way * (d + .012))
@@ -2589,6 +2596,9 @@ def solve(name, dz=0.0, held0=None):
                         # (the fish swings back to its hang from the jaw)
                         Di = plumb(Di, hang_[0], hang_[1])
                 d = depth_in(surface, it["bone"], Di)[0]
+                if best_ is not None and best_[0] < d:
+                    d, Di = best_[0], best_[1]
+                    D.update(best_[2])
                 if first > .004:
                     print("MESHY keep-out %s %s: %.3f m in, %.3f m after" % (name, it["bone"], first, d))
                 PEN[name + ":" + it["bone"]] = d

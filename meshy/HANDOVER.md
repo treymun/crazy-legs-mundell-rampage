@@ -26,6 +26,19 @@ Cap: two recolour boxes (front z .942 so the forehead under the brim stays
 skin, back z .922); face_clean sat_k 1.45 + skin_sat 1.5 (the face was grey
 with orange dither without them).
 
+30 gas_man DONE (44 cr: concept, model, rig; one 9-cr balance drop during
+the rig was B's, noted in the ledger). kinds/gas_man.json: olive gloves
+("gloves" [68,72,42] + glove_shade, glove_light .75, glove_grime_k .3),
+skin_zones hands only + face_lift_most 1 (no skin shows), head_noshadow,
+face_uv k 3 auto (the eyes behind the lenses were mud at k 1). The old
+model's olive fist blocks (b47, b51) passed the colour test as GEAR (a ball
+"held" in the left hand, a lump on the canister): "grip_parts" {r: [b47],
+l: [b51]} + "gear_skip" [b47, b51]. Canister: item_types r "throw",
+"bottle_grip" .45 (held by its middle: held low it swung into the thigh in
+the walk). New opt-in build_actor option: "keep_out_best" (+
+"keep_out_steps", default 8): the keep-out steps' least deep pose kept
+instead of the last (w2 ended 7 cm in the thigh, deeper than it started).
+
 ## Eighth session
 
 27 swamp_king DONE (44 cr: concept, model, rig). Built on the BEAST path
