@@ -1,9 +1,10 @@
 ## Pass 10's load speed held headless (PERFLOAD; docs/dev/checks.md
 ## "Benchmarks", view3d.md "The warm-up"):
 ## - every actor kind's baked ragdoll rig (assets3d/actors/<kind>.rig,
-##   RagdollRig.baked) is the rig found from its model, field for field and
-##   bit for bit (tools/rig_reference.gd, the build as it was); a stale one
-##   names tools/art/bake_rigs.gd;
+##   RagdollRig.baked) is the rig found from its model, field for field
+##   (tools/rig_reference.gd, the build as it was): its whole numbers to the
+##   bit, its measures to NEAR (CI's Linux rounds a hair differently), its
+##   hulls as shapes (_same_hull); a stale one names tools/art/bake_rigs.gd;
 ## - the cues made in code (Assets.MADE_CUES), packed by pack_assets.gd
 ##   (made_cues.bin), are the samples made at once;
 ## - the title's warm-up (WorldView3D.warm_title) draws every view3d shader
@@ -56,6 +57,23 @@ const GROWTH_MB := 40.0
 const BEAST_FIELDS := ["ends", "parents", "rides", "legs", "head", "tail", "bend"]
 ## How near a beast rig's numbers must match the ones found anew (metres).
 const BEAST_EPS := 1e-4
+## A humanoid rig's measures (its points, radii, frames, reaches: sums and
+## means over its model's vertices) match the ones found anew to NEAR
+## (metres): Linux (CI) rounds them a hair differently than Windows (3.14:
+## alien's radii, nitro_huffer's points). Its whole numbers (ok, bone_seg,
+## anchors) stay to the bit.
+const NEAR := 1e-4
+const NEAR_FIELDS := [
+	"points",
+	"radii",
+	"bone_rest",
+	"dead_scale",
+	"rest_frames",
+	"down_points",
+	"lying_points",
+	"hull_reach",
+	"_rest_inv"
+]
 
 var failures: Array = []
 var report := false
@@ -134,7 +152,9 @@ func _rigs() -> void:
 		for field: String in fields if baked.ok else ["ok"]:
 			var a: Variant = baked.get(field)
 			var b: Variant = found.get(field)
-			if not _same(a, b, info.has("beast")):
+			var near: bool = info.has("beast") or field in NEAR_FIELDS
+			var match_ := _same_hull(a, b) if field == "hull" else _same(a, b, near)
+			if not match_:
 				stale.append("%s (%s)" % [kind, field])
 				break
 	_check(
@@ -153,10 +173,52 @@ func _rigs() -> void:
 	)
 
 
-## Whether a baked rig field is the one found anew: to the bit, except a
-## beast's (pass 13 BeastRig), whose fitting sums its model's points in an
-## order that rounds a hair differently on Linux (CI) than on Windows: those
-## match to BEAST_EPS.
+## Whether a rig's hull (each segment's buckets of outermost points,
+## RagdollRig._hull) is the one found anew as a shape: as many segments and
+## buckets, and each segment's points reach as far along every fine way
+## (_fine_ways), to NEAR. Its points as lists may differ: the convex hull
+## and the furthest point along a way choose between points a rounding
+## apart differently on Linux (CI) and Windows (3.14: chalk_spitter's and
+## chum_tosser's), the same surface either way.
+func _same_hull(a: Variant, b: Variant) -> bool:
+	if a == b and var_to_bytes(a) == var_to_bytes(b):
+		return true
+	var ha: Array = a
+	var hb: Array = b
+	if ha.size() != hb.size():
+		return false
+	var fine := RagdollRig._fine_ways()
+	for s in ha.size():
+		var ba: Array = ha[s]
+		var bb: Array = hb[s]
+		if ba.size() != bb.size():
+			return false
+		var pa := PackedVector3Array()
+		var pb := PackedVector3Array()
+		for c in ba.size():
+			if (ba[c] as PackedVector3Array).is_empty() != (bb[c] as PackedVector3Array).is_empty():
+				return false
+			pa.append_array(ba[c])
+			pb.append_array(bb[c])
+		if pa.is_empty():
+			continue
+		for way: Vector3 in fine:
+			var most_a := -INF
+			var most_b := -INF
+			for p in pa:
+				most_a = maxf(most_a, p.dot(way))
+			for p in pb:
+				most_b = maxf(most_b, p.dot(way))
+			if absf(most_a - most_b) > NEAR:
+				return false
+	return true
+
+
+## Whether a baked rig field is the one found anew: to the bit, or (`near`:
+## a beast's every field, pass 13 BeastRig, and a humanoid's NEAR_FIELDS)
+## its numbers to BEAST_EPS, the same as NEAR: they are sums over the
+## model's points that round a hair differently on Linux (CI) than on
+## Windows.
 func _same(a: Variant, b: Variant, beast: bool) -> bool:
 	if a == b and var_to_bytes(a) == var_to_bytes(b):
 		return true
