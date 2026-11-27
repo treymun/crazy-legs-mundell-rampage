@@ -54,8 +54,9 @@ kept in the tool)) left the left hand 15-40 cm short of the haft: the old
 model held it one-handed.
 NEXT: tin_guard (no credits spent), then tire_roller, valve_rat, drone
 (alien grey, see 05b alien.json), skeeter (dumps ok=false: a bug - beast
-path; see the beast-path section). check_all quick batch 2 (44-46) is
-still to run; batch 1 (40-43) ALL OK except net_errors_check under load,
+path; see the beast-path section). check_all quick batch 2 (44-46)
+run after 46 (scratch profile): ALL CHECKS OK in 190 s; batch 1 (40-43) ALL
+OK except net_errors_check under load,
 OK alone.
 Mundell notes: the player kind is no enemy - the enemy tour, live_frames
 probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
