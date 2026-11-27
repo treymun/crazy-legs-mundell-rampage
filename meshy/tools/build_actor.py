@@ -1625,7 +1625,11 @@ def item_delta(it, name, P, D, R_t, hipc):
     # Use with "aim_keys": [] so nothing is shouldered.)
     if it["two"] and CFG.get("two_old"):
         F_ = -Vector(TWIST.get("fwd", R_t @ T0).col[2])
-        return Matrix.Translation(F_ * it["fwd"] * float(CFG.get("two_old_in", 1.0))) @ old_d, True
+        # ("two_old_shift" [x, y, z] m in the trunk's frame: the tool moved
+        # toward the body's middle where the old one sat out of the new
+        # arms' reach)
+        sh_ = Vector(CFG.get("two_old_shift", [0, 0, 0]))
+        return Matrix.Translation(F_ * it["fwd"] * float(CFG.get("two_old_in", 1.0)) + R_t @ sh_) @ old_d, True
     if not it["two"]:
         return None, True
     bare = name.replace("hurt_", "")
@@ -4171,6 +4175,22 @@ for rule in CFG.get("recolour", []):
         print("MESHY recolour %s: nothing" % rule.get("name", "?"))
         continue
     lum = rgbv @ numpy.array([.299, .587, .114])
+    # ("smooth": passes - the rule's light averaged over its own texels first:
+    # Meshy's painted grime and the grade's dither left a cloth camo-blotched;
+    # this keeps the folds' soft shading, not the specks)
+    if rule.get("smooth"):
+        Ls = lum.reshape(TEXTURE, TEXTURE).copy()
+        ms = m.reshape(TEXTURE, TEXTURE)
+        for _ in range(int(rule["smooth"])):
+            acc = numpy.zeros_like(Ls)
+            cnt = numpy.zeros_like(Ls)
+            for dy, dx in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)):
+                mm = numpy.roll(numpy.roll(ms, dy, 0), dx, 1)
+                acc += numpy.roll(numpy.roll(Ls, dy, 0), dx, 1) * mm
+                cnt += mm
+            Ls[ms] = (acc / numpy.maximum(cnt, 1))[ms]
+        lum = lum.copy()
+        lum[m] = Ls.reshape(-1)[m]
     lmid = float(numpy.median(lum[m]))
     to = numpy.array(rule["to"], dtype=float) / 255.0
     k = numpy.clip(lum / max(lmid, 1e-4), .4, 1.8) ** float(rule.get("contrast", .8))
