@@ -40,7 +40,8 @@
  ],
  "face_keep": {
   "light": 1.1,
-  "eyes": 1.6
+  "eyes": 1.6,
+  "soften": 0.7
  },
  "face_box": {
   "r": 0.27,

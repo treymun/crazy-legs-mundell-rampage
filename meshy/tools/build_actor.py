@@ -3847,6 +3847,27 @@ def face_keep(px):
     b = float(opt.get("blend", 1.0))
     px = px.copy()
     px[m, :3] = px[m, :3] * (1 - b) + numpy.clip(NOSHADOW[m] * k, 0, 1) * b
+    # ("soften": share - the hi mesh's deep wrinkle creases, lit, bake as
+    # hard dark lines that read as cracks: a face skin texel darker than its
+    # neighbours' median is brought that share of the way up to it)
+    if opt.get("soften"):
+        a = px[:, :3]
+        sk_m = (m & skinlike(a)).reshape(TEXTURE, TEXTURE)
+        L = (a @ lw).reshape(TEXTURE, TEXTURE)
+        stack = []
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                mm = numpy.roll(numpy.roll(sk_m, dy, 0), dx, 1)
+                stack.append(numpy.where(mm, numpy.roll(numpy.roll(L, dy, 0), dx, 1), numpy.nan))
+        with numpy.errstate(all="ignore"):
+            med = numpy.nanmedian(numpy.stack(stack), axis=0)
+        med = numpy.where(numpy.isnan(med), L, med).reshape(-1)
+        Lf = L.reshape(-1)
+        dark = sk_m.reshape(-1) & (Lf < med * .92)
+        if dark.any():
+            want_l = Lf[dark] + (med[dark] - Lf[dark]) * float(opt["soften"])
+            px[dark, :3] = numpy.clip(a[dark] * (want_l / numpy.maximum(Lf[dark], 1e-4))[:, None], 0, 1)
+        print("MESHY face keep: %d crease texels softened" % int(dark.sum()))
     # ("unhue": [lo, hi] degrees - face texels of that hue (a cap's green
     # where a decimated triangle spans the bill's underside and the brow)
     # take the face skin's median colour at their own light)

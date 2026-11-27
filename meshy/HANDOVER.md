@@ -23,7 +23,8 @@ Long gun: cheek_weld with "cheek_at" [.045,.07,.065] (a bearded jaw: the
 default point sat on the beard), "aim_drops" down to -.12 (butt raised to
 the cheek), "head_keys" aim/fire/wind [10, 35, 0] (the old head looked up
 off the barrel after the weld), "tris" 13000 (a decimated cap triangle hung
-green over the brow at 10000).
+green over the brow at 10000); face_keep "soften" .7 (lit wrinkle creases
+baked as dark crack lines: lifted toward the neighbours' median).
 
 Setup (all agent B's own; never A's places):
 - `. SP/meshy-work-b/env.sh` sets MESHY_WT=SP/p18-meshy, MESHY_WORK=
