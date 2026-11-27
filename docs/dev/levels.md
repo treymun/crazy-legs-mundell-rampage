@@ -593,3 +593,15 @@ deathmatch, CAMPAIGN CO-OP on the map (a retry, no party save, the win back
 to the lobby with nothing opened), MODE stepping past what a map can't
 host, the always-open servers refusing player maps, the map changed in the
 lobby, and hostile MAP packets refused. `menu_touch_check` taps through CUSTOM MAPS and the shed.
+
+### Sharing (pass 16)
+
+A map passes between players as a code or through the lobby server's shelf
+(`src/user_maps/share_code.gd`, `src/net/map_shelf.gd`; how it works in
+[multiplayer.md](multiplayer.md#the-map-shelf-pass-16), players' how-to in
+`docs/online.md` "Sharing maps"). Both carry only the map's canonical text,
+read back through `UserMap.parse_text` like any file, so a shared map has the
+same hash, level id and saves as the original. CUSTOM MAPS' rows THE MAP
+SHELF and ENTER A CODE, and a map's SHARE IT, are the way in; maps that come
+so are kept in `maps/shared` (tagged SHARED). `tools/map_share_check.gd`
+holds it.

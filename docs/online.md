@@ -156,15 +156,39 @@ A map made in the MAP SHED (title, **CUSTOM MAPS**) can be played online:
    truck: one map, the win takes everyone back to the lobby, no party save).
    Stepping MODE onto one the map can't host steps past it and says why.
 3. Everyone who joins gets a copy of the map on the way in, before anything
-   can start (a few KB). Their game checks it: its hash must match what the
-   host said, and it must be a map the shed would load. A map that does not
-   check out sends the joiner back with `THE HOST'S MAP WAS NO GOOD` and why.
-   A copy is kept in their own maps folder (`maps/shared`, the 32 newest),
-   listed under CUSTOM MAPS as FROM A LOBBY.
+   can start (a few KB, packed). Their game checks it: its hash must match
+   what the host said, and it must be a map the shed would load. A map that
+   does not check out sends the joiner back with `THE HOST'S MAP WAS NO GOOD`
+   and why. A copy is kept in their own maps folder (`maps/shared`, the 32
+   newest), listed under CUSTOM MAPS as SHARED.
 4. MAP's < > goes back to the game's own maps; to put a custom map on again,
    HOST ONLINE it again.
 
 The always-open county servers do not take custom maps (yet).
+
+## Sharing maps
+
+Two ways to pass a map around, both from **CUSTOM MAPS**:
+
+- **A long code** holds the whole map and needs no server: pick your map,
+  **SHARE IT**, and its code (`CLMR1:` and about 1,400 letters) is copied.
+  Paste it to a friend anywhere text goes. They pick **ENTER A CODE** and
+  **PASTE A CODE** (or CTRL+V anywhere on the list), and the map is on their
+  list, ready to play or host.
+- **The map shelf** is on the county server: press **SHARE IT** again and
+  the map goes up; its short code (like `7KQ2-M9XD`) is copied and shows
+  on SHARE IT's line. Anyone types that code under **ENTER A CODE**, or
+  browses **THE MAP SHELF**: newest or most taken first, FIND BY NAME, a page
+  at a time (PGUP PGDN, or NEXT PAGE). **TAKE IT HOME** puts the map on their
+  list, picked, where PLAY ALONE, the modes and HOST ONLINE are.
+
+What the shelf takes: a map the shed would load that can host something,
+64 KB at most, whose name, author and note are fit to print; ten maps a day
+from one house. Everybody sees its name and its author's name, so pick them
+with that in mind. A map taken off the shelf by the server's owner stays
+off. The shelf needs the same game version as the server (an older game is
+told to update). Maps taken home live with the ones lobbies sent (the 32
+newest); EDIT IN THE SHED and SAVE make one your own copy.
 
 ## County servers (no code needed)
 
@@ -211,7 +235,11 @@ address and port (or join code) and its password if it has one.
   bunched)`: p99 near the beat, 16.7 ms at 60 a second or 33.3 at 30, and
   nothing bunched is right).
 - Players need the same version as the server: update the server with each
-  release.
+  release. An older game is refused with THE SERVER RUNS ANOTHER VERSION
+  (3.15.0). UPDATE YOUR GAME TO JOIN.
+- **The map shelf** (`server/lobbies.json` `"shelf"`) keeps players' maps in
+  `/opt/clmr/maps` on the server: [Sharing maps](#sharing-maps) and
+  "Looking after the map shelf" below.
 - **Voice chat** goes through the server, which sends each talker on only
   to the players near them (four voices at most to one player): a full 5v5
   of ten all talking at once added about 170 KB/s out and two to four
@@ -240,6 +268,25 @@ godot --headless --path godot -- --lobby-server=../server/lobbies.json
 ```
 
 The server's address is kept out of this public repository.
+
+**Looking after the map shelf** (from the owner's PC, Git Bash, in the repo,
+with the same SSH key as deploy.sh):
+
+```
+server/map_shelf.sh root@<server address> list              # every map, newest first
+server/map_shelf.sh root@<server address> remove 7KQ2-M9XD  # off the shelf for good
+server/map_shelf.sh root@<server address> backup            # the shelf to maps-<date>.tgz here
+```
+
+`list` shows each map's code, the day it went up, how many took it, its name
+and author, and a short hash of the address it came from (the same house
+twice has the same hash; the address itself is never kept). `remove` asks the
+running server: it takes the map off within 10 seconds, deletes its file,
+keeps it from going up again, and the script shows the log line. The shelf's
+files are `/opt/clmr/maps` (`<hash>.json` each map, `index.json`, `list.txt`);
+`deploy.sh` never touches them, and `setup.sh` keeps one copy as it stood in
+`/root/clmr-maps-before-update.tgz` before each update. The log has a
+`SHELF:` line for each map put up or taken off.
 
 ## The party line on the server
 

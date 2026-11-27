@@ -52,6 +52,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `lobby.cfg` | the online lobby's rows and defaults: each row is [key, label, values, names]; a new online mode goes in the mode row (and `NetPlay.play_mode()`) | `src/net/net_play.gd` |
 | `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short`, the storm front (`storm`), a player map's horde (`custom_map`) | `county_data.gd` |
 | `user_maps.json` | player maps: their limits, what a mode needs, the moods, every cell and thing the MAP SHED offers (a new one at the end of its list) | `UserMap` (`src/user_maps/user_map.gd`) |
+| `map_share.json` | sharing player maps: the long code's prefix and check, the shelf code's letters, a MAP packet packed past `pack_over`, THE MAP SHELF's caps (maps, bytes, puts a day and an hour, asks a minute, page, how often it writes) and the words a shared map may not hold (ROT13) | `ShareCode` (`src/user_maps/share_code.gd`), `MapShelf` (`src/net/map_shelf.gd`) |
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
 | `radio_lines.json` | the county radio's words: Dub's lines by group, his crude ones, the scanner's pieces (the voice tools read it too) | `RadioStation` |
