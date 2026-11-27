@@ -18,7 +18,6 @@ extends SceneTree
 
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
-const House := preload("res://tools/levels/house_kit.gd")
 const Source := preload("res://tools/map/map_source.gd")
 const Compile := preload("res://tools/map/map_compile.gd")
 const Import := preload("res://tools/map/map_import.gd")
@@ -56,7 +55,9 @@ static func level() -> Dictionary:
 	# A raked wall: .5 high at its west end, 3.0 at its east end.
 	Geo.raked(b, "rake", Vector2(30, 22), Vector2(36, 22), 0.0, .5, 3.0, {"thick": .2})
 	# A house with a gable roof (its ridge east-west at y 28).
-	House.house(b, "house", 6, 25, 14, 31, {"storeys": 1, "area": yard})
+	var house := {"piece": "house", "id": "house", "x": 6, "y": 25, "w": 8, "d": 6, "storeys": 1}
+	house.merge({"doors": "s", "rooms": 1, "area": yard, "hung": false, "glass": false})
+	Geo.kit(b, [house])
 	# An octagonal deck: a box cut by eight lines (four corners, four sides).
 	var cuts := [
 		[1, 1, 73.0],

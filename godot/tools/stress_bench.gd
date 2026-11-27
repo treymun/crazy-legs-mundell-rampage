@@ -20,7 +20,7 @@
 ##   county   County Run on county_hickston, its clock jumped to 12 minutes:
 ##            the storm closing in and the horde at its cap (county_frames.gd)
 ##   town     a town of 36 two- and three-storey houses of geometry (pass 16:
-##            744 slabs, 2,125 segments, raked gables; house_spike_check's),
+##            744 slabs, 2,158 segments, raked gables; kit_check's town_level),
 ##            its 40 hands awake and coming, the player at a crossroads
 ##            looking down a street
 ##   looks    pass 16 LOOKS' demo farm (tools/looks_demo.gd), dense: its
@@ -76,7 +76,7 @@ const TICK_YARDS := {
 	"looks": 2.0
 }
 const Fire := preload("res://src/features/fire.gd")
-const Spike := preload("res://tools/house_spike_check.gd")
+const Kit := preload("res://tools/kit_check.gd")
 const TOWN := "zz_stress_town"
 const LooksDemo := preload("res://tools/looks_demo.gd")
 const CountyBot := preload("res://tools/county_bot.gd")
@@ -833,7 +833,7 @@ func _fivev5() -> String:
 
 
 func _town() -> String:
-	LevelData.preview[TOWN] = Spike.town_level(TOWN, 36)
+	LevelData.preview[TOWN] = Kit.town_level(TOWN, 36)
 	var g: Game = main.make_game(TOWN)
 	main.game = g
 	main.state = "play"

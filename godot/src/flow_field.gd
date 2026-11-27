@@ -321,7 +321,8 @@ func adopt(other: FlowField, clock: float) -> void:
 ## all of it, so there is an answer from the start); a finished walk becomes
 ## the field.
 func _walk() -> void:
-	var stop := _queue.size() + width * height
+	# Every node at most once (a graph has more nodes than cells: its decks').
+	var stop := _queue.size() + steps.size()
 	if budget > 0 and _walked:
 		stop = _head + budget
 	# (passable() written out for the open and the wall cells, the most of

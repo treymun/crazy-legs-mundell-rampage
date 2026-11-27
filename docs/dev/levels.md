@@ -526,6 +526,44 @@ opt-in: no chapter uses it, `tools/looks_map_check.gd` holds that no level in
 guide's notes, examples, codes and limits are in
 [docs/map_notes/t6.md](../map_notes/t6.md).
 
+## The map kit (pass 16, KIT)
+
+Whole buildings and bits in one line each: `src/map_kit/` (typed game code,
+so player maps can use it at runtime), its numbers, styles and every
+piece's options in `data/tuning/map_kit.json`. The catalog of pieces and
+options, the refusals and the limits are in
+[docs/map_notes/t5.md](../map_notes/t5.md).
+
+- `KitPiece.build(spec, parts)`: a spec (`{"piece": "farmhouse", "id":
+  "home", "x": 10, "y": 6}`, every other key defaulted, checked and refused
+  in one plain line) built into a `LevelParts`: cells to open, geometry
+  (slabs, segments, ceilings, ladders), props, glow pools, stations, and per
+  piece its footprint, doorways, floors, roof, test points and cost.
+- A piece draws in its own frame (`KitFrame`: local x across, local y deep,
+  the front south) and is mirrored, turned (`face` or `turn`) and moved by
+  it, so every turn is the same piece.
+- Families: `KitHouses` (house, farmhouse, shack, trailer, outhouse),
+  `KitFarm` (barn, pole barn, silo, grain bin, water tower), `KitTown`
+  (store, gas station, church), `KitBits` (porch, stairs, ramp, ladder,
+  fence, bridge, wall, arch, curved wall, chimney, dock, catwalk, tower),
+  `KitRoofs` (gable, hip, shed, gambrel, quonset, cone, flat), `KitBody`
+  (storeys of walls with doorways and windows, floors, stairs, partitions).
+- Deterministic: the same specs in the same order give the same parts
+  (`LevelParts.hash_text()`); looks dice (bales, variants) come from the
+  piece's id and the map's seed (`parts.seed`), never play's.
+- Doorways sit in the middle of cells (and a round building's are 1.6
+  wide), and ladders are moved to the middle of their cell, so the nav graph
+  (which walks cell middle to cell middle) takes them.
+- In a plan: `Geo.kit(b, [specs], seed)` (`tools/levels/geo_kit.gd`, which
+  `kit_apply`s the parts into the builder); the old `geo_kit` functions are
+  as they were. The audit's `house_kit.gd` and `house_spike_check.gd` are
+  gone: the plain `house` piece is their house, and `kit_check.gd
+  town_level` their town (stress_bench town, cpu_check).
+- T4's ways: front doors hang in the doorways (`LevelParts.door`, the wall
+  then on its cells' middle line), windows are glazed (`panes`), and every
+  doorway and stair end is a via (`vias`, `nav_via`); `kit_apply` writes them.
+- `tools/kit_check.gd` holds it ([checks.md](checks.md)).
+
 ## Editing a level by hand
 
 `godot/data/<id>.json` is the source for a level not built from a plan. Change
