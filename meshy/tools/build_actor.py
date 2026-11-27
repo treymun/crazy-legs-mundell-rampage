@@ -2542,6 +2542,10 @@ def solve(name, dz=0.0, held0=None):
                         # (a thing held up to the mouth keeps its aim: the
                         # hand keeps its turn, only moved)
                         Dh_new = place(D["hand_" + side].to_3x3(), J["wrist_" + side], wr_f)
+                    if it["bone"] in CFG.get("follow_old", []):
+                        # (a followed thing - a shield - only moves out, its
+                        # turn kept, the hand with it)
+                        Dh_new = Dh
                     Di = Dh_new @ D["hand_" + side].inverted() @ Di
                     D["hand_" + side] = Dh_new
                     if hang_ is not None:
