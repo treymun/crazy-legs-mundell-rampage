@@ -522,7 +522,8 @@ static func stands(geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph,
 
 ## stands() for each of `nodes`, 1 or 0 in their order (FlowField's open
 ## floor): the graph's own answers when it was built here (build_nav keeps
-## them), else asked, on the worker threads when there are many.
+## them), else asked: one by one here when they are few (a baked chapter's),
+## on the worker threads over a flat copy when they are many.
 static func stands_all(
 	geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph, nodes: PackedInt32Array
 ) -> PackedByteArray:
@@ -536,6 +537,11 @@ static func stands_all(
 		if known:
 			return out
 	var shares := _shares(nodes.size())
+	if shares.size() == 1:
+		# A few: asked here, one by one (a flat copy costs more than it saves).
+		for k in nodes.size():
+			out[k] = 1 if stands(geo, lv, g, nodes[k]) else 0
+		return out
 	var flat := NavWalk.make(geo, lv, g)
 	for share in shares:
 		share.walk = flat if flat == null or shares.size() == 1 else flat.copy()
