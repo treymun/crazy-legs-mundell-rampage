@@ -51,8 +51,12 @@ static func use_target(g: Game) -> Variant:
 			)
 		):
 			continue
-		var centre := door.center()
+		# (A wide door: the point of its doorway nearest; one up on a storey:
+		# only from its floor. Pass 16.)
+		var centre := door.nearest(px, py)
 		if absf(centre.x - px) >= 1.57 or absf(centre.y - py) >= 1.57:
+			continue
+		if door.raised() and absf(door.z - g.world.stand(g.player)) > 1.2:
 			continue
 		doors.append([door, centre.x, centre.y])
 	var devices: Array = []
@@ -76,7 +80,17 @@ static func use_target(g: Game) -> Variant:
 		var x: float = door_entry[1]
 		var y: float = door_entry[2]
 		var rank := use_rank(g, x, y, 1.57, .50, .48, facing)
-		if ranks_above(rank, best) and g.world.visible(g.player.x, g.player.y, x, y):
+		var up: LevelData.Door = door_entry[0]
+		var seen: bool
+		if up.span <= 1 and not up.raised():
+			seen = g.world.visible(g.player.x, g.player.y, x, y)
+		else:
+			# (Up to a hand short of its leaf: a barn door's stands off its line.)
+			var short := Vector2(x, y).move_toward(Vector2(g.player.x, g.player.y), .2)
+			seen = g.world.visible(
+				g.player.x, g.player.y, short.x, short.y, g.player.eye, up.base() + .95
+			)
+		if ranks_above(rank, best) and seen:
 			best = rank
 			result = door_entry
 			g.use_aim = Vector3.INF

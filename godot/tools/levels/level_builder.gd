@@ -45,6 +45,9 @@ var extra_walls: Array = []
 ## them as the level's geometry block, src/level_geometry.gd).
 var geometry := {"slabs": [], "segments": [], "ceilings": [], "ladders": []}
 var pane_tiles: Array = []
+## Panes in the geometry's openings (pass 16, T4 WAYS: geo_kit's wall() with
+## an opening's "pane"): {a, b, z0, z1}, written only when there are any.
+var geo_panes: Array = []
 var enemies: Array = []
 var patrols := {}
 var pickups: Array = []
@@ -258,14 +261,18 @@ func door(x: int, y: int, vertical: bool, o := {}) -> Dictionary:
 	var dx := {"e": 1, "w": -1}.get(side, 0) as int
 	var dy := {"s": 1, "n": -1}.get(side, 0) as int
 	var j := at(x + dx, y + dy)
-	solid[i] = -1
-	floor_tile[i] = floor_tile[j]
-	ceiling[i] = ceiling[j]
-	area[i] = area[j]
-	light[i] = light[j]
-	ground[i] = 0.0
-	roof[i] = float(o.get("roof", DOOR_TOP))
-	skin[i] = -1
+	# (A door wider than a cell, pass 16: o.span cells along its wall.)
+	for k in int(o.get("span", 1)):
+		var c := at(x, y + k) if vertical else at(x + k, y)
+		var beside := at(x + dx, y + dy + k) if vertical else at(x + dx + k, y + dy)
+		solid[c] = -1
+		floor_tile[c] = floor_tile[beside]
+		ceiling[c] = ceiling[beside]
+		area[c] = area[beside]
+		light[c] = light[beside]
+		ground[c] = 0.0
+		roof[c] = float(o.get("roof", DOOR_TOP))
+		skin[c] = -1
 	var d := {
 		"x": x,
 		"y": y,
@@ -286,8 +293,18 @@ func door(x: int, y: int, vertical: bool, o := {}) -> Dictionary:
 	if o.has("bar"):
 		# Pass 15's loops: barred on that side (n, s, e or w), opened only from it.
 		d["bar_side"] = String(o["bar"])
+	ways_of_door(d, o)
 	doors.append(d)
 	return d
+
+
+## A door's "z" (up on a storey) and "span" (cells wide) from o, written only
+## when they are not a ground door's one cell (pass 16, T4 WAYS).
+static func ways_of_door(d: Dictionary, o: Dictionary) -> void:
+	if float(o.get("z", 0.0)) != 0.0:
+		d["z"] = snappedf(float(o["z"]), .001)
+	if int(o.get("span", 1)) != 1:
+		d["span"] = int(o["span"])
 
 
 ## A gap with no door (an archway, a gate left open).
@@ -1235,6 +1252,9 @@ func finish(spawn: Array) -> Dictionary:
 	if meta.has("tactical"):
 		# A 5v5 map's spawns, sites, hostages and bot routes (tactical_mode.gd).
 		out["tactical"] = meta["tactical"]
+	if not geo_panes.is_empty():
+		# Glass in the geometry's openings (pass 16, T4 WAYS).
+		out["geo_panes"] = geo_panes
 	var pieces := 0
 	for kind: String in geometry:
 		pieces += (geometry[kind] as Array).size()
@@ -1242,6 +1262,9 @@ func finish(spawn: Array) -> Dictionary:
 		out["format"] = LevelData.FORMAT
 		var block := {"version": LevelGeometry.version_for(geometry)}
 		block.merge(geometry)
+		if geometry.has("vias"):
+			# Geo.ways(b) (pass 16): the nav graph bends through the vias.
+			block["nav_via"] = true
 		out["geometry"] = block
 	LevelEdit.refresh_heights(out)
 	var roofs := {}

@@ -17,6 +17,54 @@ const DECK := .15
 const DOOR_HEAD := 1.85
 
 
+## Pass 16 (T4 WAYS): the level's nav graph also walks bent through the
+## middle of every doorway cut after this (wall()'s openings with no sill
+## over a step) and the foot and head of every stair (stairs()), so hands and
+## bots find off-grid doorways and stairs. Call it before the walls. Writes
+## "nav_via" and "vias" in the geometry block (never on a chapter that does
+## not ask).
+static func ways(b) -> void:
+	if not b.geometry.has("vias"):
+		b.geometry["vias"] = []
+
+
+## A via point by hand (pass 16): where a way passes that the cells' middles
+## miss (x, y, and the floor there). Turns the ways on.
+static func via(b, x: float, y: float, z := 0.0) -> void:
+	ways(b)
+	b.geometry["vias"].append([_r(x), _r(y), _r(z)])
+
+
+## A door that stands in the geometry (pass 16): on the line through the
+## middles of cells (x, y) and the next o.span - 1 along it (east, or south
+## when `vertical`), on the floor o.z (0 the ground), in the opening a
+## wall() along that line leaves for it. Nothing of the grid changes (the
+## cells stay as they are: under an upper door, the room below). o: span (1
+## to 3; 2 hinged swings as a pair, 3 sliding is a barn door), style (hinge,
+## slide), key, secret, bar, tile, id, opened.
+static func door(b, x: int, y: int, vertical: bool, o := {}) -> Dictionary:
+	var d := {
+		"x": x,
+		"y": y,
+		"style": String(o.get("style", "hinge")),
+		"vertical": vertical,
+		"key": String(o.get("key", "")),
+		"secret": bool(o.get("secret", false)),
+		"blast_only": false,
+		"progress": 1 if bool(o.get("opened", false)) else 0,
+		"opened": bool(o.get("opened", false)),
+		"discovered": false,
+		"texture": "",
+		"material": b.t(String(o.get("tile", "door"))),
+		"id": String(o.get("id", "")),
+	}
+	if o.has("bar"):
+		d["bar_side"] = String(o["bar"])
+	b.ways_of_door(d, o)
+	b.doors.append(d)
+	return d
+
+
 static func _rect(r: Array) -> Array:
 	return [
 		minf(float(r[0]), float(r[2])),
@@ -124,6 +172,27 @@ static func stairs(
 				tread = [r[0], r[3] - c, r[2], r[3] - a]
 		var top := z0 + (z1 - z0) * (k + 1) / n
 		out.append(slab(b, "%s_%d" % [id, k + 1], tread, top, opts))
+	if b.geometry.has("vias"):
+		# (Its foot and its head, the ways on: pass 16.)
+		var mx: float = (r[0] + r[2]) * .5
+		var my: float = (r[1] + r[3]) * .5
+		match toward:
+			"e":
+				b.geometry["vias"].append_array(
+					[[_r(r[0]), _r(my), _r(z0)], [_r(r[2]), _r(my), _r(z1)]]
+				)
+			"w":
+				b.geometry["vias"].append_array(
+					[[_r(r[2]), _r(my), _r(z0)], [_r(r[0]), _r(my), _r(z1)]]
+				)
+			"s":
+				b.geometry["vias"].append_array(
+					[[_r(mx), _r(r[1]), _r(z0)], [_r(mx), _r(r[3]), _r(z1)]]
+				)
+			_:
+				b.geometry["vias"].append_array(
+					[[_r(mx), _r(r[3]), _r(z0)], [_r(mx), _r(r[1]), _r(z1)]]
+				)
 	return out
 
 
@@ -138,9 +207,12 @@ static func wall(b, id: String, a: Vector2, bb: Vector2, z0: float, z1: float, o
 	for hole: Dictionary in o.get("openings", []):
 		var half := float(hole.get("width", 1.0)) * .5
 		var mid := float(hole["at"])
-		var sill := float(hole.get("sill", 0.0))
-		var head := float(hole.get("head", DOOR_HEAD if sill <= 0.0 else sill + 1.0))
+		# (A wall standing on an upper floor: its doorway from that floor, pass 16.)
+		var foot := maxf(0.0, z0)
+		var sill := float(hole.get("sill", foot))
+		var head := float(hole.get("head", DOOR_HEAD + foot if sill <= foot else sill + 1.0))
 		holes.append([maxf(0.0, mid - half), minf(length, mid + half), sill, head])
+		_way_through(b, a, dir, mid, half, z0, sill, head, hole)
 	holes.sort_custom(func(p, q): return p[0] < q[0])
 	for i in range(1, holes.size()):
 		if holes[i][0] < holes[i - 1][1] - .001:
@@ -171,6 +243,33 @@ static func wall(b, id: String, a: Vector2, bb: Vector2, z0: float, z1: float, o
 		var name := id if holes.is_empty() else "%s_%d" % [id, k]
 		pieces.append(_piece(b, name, a + dir * from, bb, z0, z1, o))
 	return pieces
+
+
+## An opening's pane and via (pass 16, T4 WAYS): o.pane true puts glass in it
+## from its sill to its head; a doorway (no pane, its sill within a step of
+## the wall's foot) is a via while the ways are on (ways()).
+static func _way_through(
+	b, a: Vector2, dir: Vector2, mid: float, half: float, z0: float, sill: float, head: float, hole
+) -> void:
+	if bool(hole.get("pane", false)):
+		var p0 := a + dir * (mid - half)
+		var p1 := a + dir * (mid + half)
+		(
+			b
+			. geo_panes
+			. append(
+				{
+					"a": [_r(p0.x), _r(p0.y)],
+					"b": [_r(p1.x), _r(p1.y)],
+					"z0": _r(sill),
+					"z1": _r(head),
+				}
+			)
+		)
+		return
+	if b.geometry.has("vias") and sill <= z0 + .245:
+		var at := a + dir * mid
+		b.geometry["vias"].append([_r(at.x), _r(at.y), _r(maxf(z0, sill))])
 
 
 ## A wall whose openings overlap along it: the length cut at every opening's

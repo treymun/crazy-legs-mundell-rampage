@@ -28,6 +28,43 @@ class Door:
 	## side, 1 the east or south, 0 a plain door. It opens only from that side
 	## (kicked open, the bar busted: it stays open); from the other, never.
 	var bar_side: int = 0
+	## Pass 16 (T4 WAYS): the floor the door stands on (an upper storey's;
+	## NAN: the ground, as every door before), and how many cells wide it is
+	## along its wall (1 to 3: a pair of leaves hinged, a barn door slid).
+	var z := NAN
+	var span := 1
+	## How far a barn door's leaf stands off its wall's line (outside a thin
+	## wall's face: it slides along it).
+	const BARN := .09
+
+	## The floor its leaf stands on (0 on the ground).
+	func base() -> float:
+		return 0.0 if is_nan(z) else z
+
+	func raised() -> bool:
+		return not is_nan(z)
+
+	## The cells it stands across (its own, then along its wall).
+	func cells() -> Array[Vector2i]:
+		var out: Array[Vector2i] = []
+		for k in span:
+			out.append(Vector2i(x, y + k) if vertical else Vector2i(x + k, y))
+		return out
+
+	## Whether a body with its feet at `feet`, `tall` high, meets the leaf's
+	## height (a door on the ground: anyone under 1.85, as ever).
+	func spans(feet: float, tall: float) -> bool:
+		if is_nan(z):
+			return feet < 1.85
+		return feet < z + 1.85 and feet + tall > z
+
+	## Whether a point at height `at` (null: any) meets the leaf's height (a
+	## door on the ground meets every height, as ever).
+	func meets(at: Variant) -> bool:
+		if is_nan(z) or at == null:
+			return true
+		var h: float = at
+		return h > z - .05 and h < z + 1.9
 
 	## Whether (px, py) stands on the side of a barred door it will not open
 	## from (false for a door with no bar, or one already open).
@@ -50,11 +87,53 @@ class Door:
 			return PackedFloat32Array([x + .5, y + progress, x + .5, y + 1.0])
 		return PackedFloat32Array([x + progress, y + .5, x + 1.0, y + .5])
 
+	## Every leaf as it stands, four numbers each (ax, ay, bx, by; empty when
+	## fully open): segment() for a door one cell wide; a pair of leaves each
+	## half the span, hinged at its ends, for a wider hinged one; one leaf the
+	## span long slid aside along the wall's face (a barn door) for a wider
+	## sliding one.
+	func segments() -> PackedFloat32Array:
+		if span <= 1:
+			return segment()
+		var s := float(span)
+		if style == "hinge":
+			if progress >= .995:
+				return PackedFloat32Array()
+			var half := s * .5
+			var turn := progress * PI * .5
+			var c := cos(turn) * half
+			var n := sin(turn) * half
+			if vertical:
+				return PackedFloat32Array(
+					[x + .5, y, x + .5 + n, y + c, x + .5, y + s, x + .5 + n, y + s - c]
+				)
+			return PackedFloat32Array(
+				[x, y + .5, x + c, y + .5 + n, x + s, y + .5, x + s - c, y + .5 + n]
+			)
+		var off := progress * s
+		if vertical:
+			return PackedFloat32Array([x + .5 + BARN, y + off, x + .5 + BARN, y + s + off])
+		return PackedFloat32Array([x + off, y + .5 + BARN, x + s + off, y + .5 + BARN])
+
 	func center() -> Vector2:
+		if span > 1:
+			var half := span * .5
+			return Vector2(x + .5, y + half) if vertical else Vector2(x + half, y + .5)
 		return Vector2(x + .5, y + .5)
+
+	## The point of its doorway nearest (px, py) (its middle for a door one
+	## cell wide).
+	func nearest(px: float, py: float) -> Vector2:
+		if span <= 1:
+			return center()
+		if vertical:
+			return Vector2(x + .5, clampf(py, y + .5, y + span - .5))
+		return Vector2(clampf(px, x + .5, x + span - .5), y + .5)
 
 	## Mirrors Door.blocks() for movement collision.
 	func blocks(px: float, py: float, radius: float) -> bool:
+		if span > 1:
+			return _blocks_wide(px, py, radius)
 		if absf(px - x - .5) > 1.3 or absf(py - y - .5) > 1.3:
 			return false
 		var seg := segment()
@@ -68,6 +147,50 @@ class Door:
 		var dx := px - ax - ex * t
 		var dy := py - ay - ey * t
 		return dx * dx + dy * dy < (radius + .055) * (radius + .055)
+
+	func _blocks_wide(px: float, py: float, radius: float) -> bool:
+		var along := py - y if vertical else px - x
+		var across := px - x - .5 if vertical else py - y - .5
+		if absf(across) > 1.3 or along < -1.3 or along > span * 2.0 + 1.3:
+			return false
+		var segs := segments()
+		var reach := (radius + .055) * (radius + .055)
+		for k in range(0, segs.size(), 4):
+			var ax := segs[k]
+			var ay := segs[k + 1]
+			var ex := segs[k + 2] - ax
+			var ey := segs[k + 3] - ay
+			var t := clampf(
+				((px - ax) * ex + (py - ay) * ey) / maxf(ex * ex + ey * ey, 1e-12), 0., 1.
+			)
+			var dx := px - ax - ex * t
+			var dy := py - ay - ey * t
+			if dx * dx + dy * dy < reach:
+				return true
+		return false
+
+
+## A pane of glass standing in an opening of the geometry (pass 16, T4 WAYS:
+## the level's "geo_panes"): from a to b, z0 up to z1. Broken, it is in
+## broken_panes under its key (pane_key()), as the grid's panes are under
+## their cells.
+class GeoPane:
+	var ax := 0.0
+	var ay := 0.0
+	var bx := 0.0
+	var by := 0.0
+	var z0 := .9
+	var z1 := 1.9
+
+	## How far (x, y) lies from its line.
+	func off(x: float, y: float) -> float:
+		var ex := bx - ax
+		var ey := by - ay
+		var t := clampf(((x - ax) * ex + (y - ay) * ey) / maxf(ex * ex + ey * ey, 1e-12), 0., 1.)
+		return Vector2(x - ax - ex * t, y - ay - ey * t).length()
+
+	func middle() -> Vector2:
+		return Vector2((ax + bx) * .5, (ay + by) * .5)
 
 
 ## Mirrors campaign.Station.
@@ -245,6 +368,11 @@ var boards_version := 0  # bumped when a board is hidden or shown (relisted)
 var _edge_index := {}
 var doors: Array[Door] = []
 var pane_tiles: Array[Vector2i] = []
+## Panes in the geometry's openings (pass 16: "geo_panes"); pane i broken is
+## broken_panes[pane_key(i)].
+var geo_panes: Array[GeoPane] = []
+## Whether any door stands off the ground (pass 16), set by _build_indexes().
+var raised_doors := false
 var fixtures: Array[PackedFloat32Array] = []
 var collision_volumes: Array[PackedFloat32Array] = []
 
@@ -320,6 +448,8 @@ var return_gate: Gate = null
 var extraction: Extraction = null
 var hub_clues: Array = []
 var controlled_doors := {}
+## The doors a trigger's "lock" holds shut (pass 16): their cells.
+var locked_doors := {}
 var access_doors := {}
 var crouch_doors := {}
 var discovery_rooms := {}
@@ -450,9 +580,15 @@ func surface_sound(tile: int) -> String:
 ## Mirrors TileMap.finish_geometry's spatial indexes (near_doors, near_fixtures).
 func _build_indexes() -> void:
 	near_doors = {}
+	raised_doors = false
 	for door in doors:
-		for yy in range(door.y - 1, door.y + 2):
-			for xx in range(door.x - 1, door.x + 2):
+		raised_doors = raised_doors or door.raised()
+		# (A door wider than a cell: its span, and a barn door's run aside.)
+		var reach := 1 if door.span <= 1 else door.span * 2
+		var far_x := door.x + 2 if door.vertical else door.x + reach + 1
+		var far_y := door.y + reach + 1 if door.vertical else door.y + 2
+		for yy in range(door.y - 1, far_y):
+			for xx in range(door.x - 1, far_x):
 				var key := Vector2i(xx, yy)
 				if not near_doors.has(key):
 					near_doors[key] = []
@@ -473,7 +609,9 @@ func _build_indexes() -> void:
 				at_key.append(fixture)
 	door_cells = {}
 	for door in doors:
-		door_cells[door.y * width + door.x] = true
+		for at: Vector2i in door.cells():
+			if at.x >= 0 and at.y >= 0 and at.x < width and at.y < height:
+				door_cells[at.y * width + at.x] = true
 	index_cells = PackedByteArray()
 	index_cells.resize(width * height)
 	index_cells.fill(0)
@@ -489,6 +627,9 @@ func _build_indexes() -> void:
 		for px in range(pane.x - 1, pane.x + 2):
 			if px >= 0 and pane.y >= 0 and px < width and pane.y < height:
 				pane_cells[pane.y * width + px] = 1
+	for pane: GeoPane in geo_panes:
+		for c in _pane_reach(pane):
+			pane_cells[c] = 1
 	furniture_cells = PackedByteArray()
 	furniture_cells.resize(width * height)
 	furniture_cells.fill(0)
@@ -528,6 +669,55 @@ func _build_indexes() -> void:
 				and not near_doors.has(Vector2i(cx, cy))
 			):
 				box_cells[cell] = 1
+
+
+## The cells within a body's reach (PAD) of a geometry pane.
+func _pane_reach(pane: GeoPane) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	var pad := LevelGeometry.PAD
+	var y0 := floori(minf(pane.ay, pane.by) - pad)
+	var y1 := floori(maxf(pane.ay, pane.by) + pad)
+	var x0 := floori(minf(pane.ax, pane.bx) - pad)
+	var x1 := floori(maxf(pane.ax, pane.bx) + pad)
+	for cy in range(y0, y1 + 1):
+		for cx in range(x0, x1 + 1):
+			if cx >= 0 and cy >= 0 and cx < width and cy < height:
+				if pane.off(cx + .5, cy + .5) < pad + .71:
+					out.append(cy * width + cx)
+	return out
+
+
+## The key a geometry pane is broken under in broken_panes (off the map, so
+## never a grid pane's cell).
+static func pane_key(i: int) -> Vector2i:
+	return Vector2i(-1 - i, -1)
+
+
+## Where the pane under `key` stands (a grid pane's cell middle, a geometry
+## pane's middle), and the middle of its glass's height.
+func pane_middle(key: Vector2i) -> Vector3:
+	if key.y == -1 and key.x < 0 and -1 - key.x < geo_panes.size():
+		var pane := geo_panes[-1 - key.x]
+		var m := pane.middle()
+		return Vector3(m.x, m.y, (pane.z0 + pane.z1) * .5)
+	return Vector3(key.x + .5, key.y + .5, .99)
+
+
+## Whether a whole pane stands in a body's way (feet at `feet`, `tall`
+## high): a grid pane under 1.83 as ever, a geometry pane at its heights.
+func panes_block(x: float, y: float, radius: float, feet: float, tall: float) -> bool:
+	if not pane_tiles.is_empty() and feet < 1.83 and _grid_pane_at(x, y, null, radius) != null:
+		return true
+	for i in geo_panes.size():
+		var pane := geo_panes[i]
+		if (
+			feet < pane.z1
+			and feet + tall > pane.z0
+			and not broken_panes.has(pane_key(i))
+			and pane.off(x, y) < radius + .044
+		):
+			return true
+	return false
 
 
 ## Take one piece of furniture out of the way (a crate shot to pieces:
@@ -653,7 +843,7 @@ func blocked(x: float, y: float, radius := 0.0, z: Variant = null) -> bool:
 			return true
 		if solid[iy * width + ix] >= 0:
 			return true
-	if not pane_tiles.is_empty() and pane_at(x, y, z, radius) != null:
+	if (not pane_tiles.is_empty() or not geo_panes.is_empty()) and pane_at(x, y, z, radius) != null:
 		return true
 	for gate: Gate in locked_gates:
 		if absf(y - gate.y) < radius + .09 and absf(x - gate.x) < gate.width * .5 + radius:
@@ -684,7 +874,7 @@ func blocked(x: float, y: float, radius := 0.0, z: Variant = null) -> bool:
 			return true
 	for door: Door in near_doors.get(tile, NOTHING):
 		var d: Door = door
-		if d.blocks(x, y, radius):
+		if d.blocks(x, y, radius) and d.meets(z):
 			return true
 	return false
 
@@ -698,6 +888,23 @@ const NOTHING: Array = []
 ## panes near y are asked (_pane_rows, pass 10: every blocked() on a level
 ## with glass asked every pane).
 func pane_at(x: float, y: float, z: Variant = null, radius := 0.0) -> Variant:
+	var grid: Variant = _grid_pane_at(x, y, z, radius) if not pane_tiles.is_empty() else null
+	if grid != null or geo_panes.is_empty():
+		return grid
+	# The geometry's panes (pass 16): the first whole one the point meets, at
+	# its heights (any height for a point without one).
+	for i in geo_panes.size():
+		var pane := geo_panes[i]
+		if (
+			not broken_panes.has(pane_key(i))
+			and pane.off(x, y) < radius + .044
+			and (z == null or (pane.z0 < _float(z) and _float(z) < pane.z1))
+		):
+			return pane_key(i)
+	return null
+
+
+func _grid_pane_at(x: float, y: float, z: Variant, radius: float) -> Variant:
 	if _pane_rows_of != pane_tiles.size():
 		_pane_rows_of = pane_tiles.size()
 		_pane_rows.clear()
@@ -839,14 +1046,23 @@ func update(dt: float, players: Array, enemies: Array) -> void:
 		if (door.opened and door.progress >= 1.0) or (not door.opened and door.progress <= 0.0):
 			continue
 		var centre := door.center()
-		if not door.opened and _someone_in(players, centre):
+		var held := (
+			_someone_in(players, centre)
+			if door.span <= 1 and not door.raised()
+			else _someone_in_door(players, door)
+		)
+		if not door.opened and held:
 			continue
 		var direction := 1.0 if door.opened else -1.0
 		var previous := door.progress
 		door.progress = maxf(0.0, minf(1.0, door.progress + dt * 1.65 * direction))
 		if not door.opened:
 			for enemy: Enemy in enemies:
-				if enemy.alive and door.blocks(enemy.x, enemy.y, enemy.radius):
+				if (
+					enemy.alive
+					and door.blocks(enemy.x, enemy.y, enemy.radius)
+					and (not door.raised() or door.spans(enemy.floor_z, LevelGeometry.BODY))
+				):
 					door.progress = previous
 					break
 
@@ -862,6 +1078,18 @@ func _someone_in(players: Array, centre: Vector2) -> bool:
 			)
 			< .8
 		):
+			return true
+	return false
+
+
+## _someone_in() for a door wider than a cell or off the ground: anyone
+## within .8 of its doorway, on its floor.
+func _someone_in_door(players: Array, door: Door) -> bool:
+	for player: Player in players:
+		var at := door.nearest(player.x, player.y)
+		if Vector2(player.x - at.x, player.y - at.y).length() >= .8:
+			continue
+		if not door.raised() or door.spans(player.floor_z + player.air, LevelGeometry.BODY):
 			return true
 	return false
 
@@ -895,6 +1123,8 @@ func active_walls(at_hub: bool) -> PackedFloat32Array:
 	# Only doors and gates move (and the light, which the walls carry, changes
 	# with light_version): the list is made again only when one of them has.
 	var key: Array = [at_hub, light_version, locked_gates.size(), lock_walls.size()]
+	if not geo_panes.is_empty():
+		key.append(broken_panes.size())
 	if not at_hub:
 		for door in doors:
 			key.append(door.progress)
@@ -919,19 +1149,18 @@ func _make_active(at_hub: bool) -> PackedFloat32Array:
 	out.append_array(lock_walls)
 	if not at_hub:
 		for door in doors:
-			var seg := door.segment()
-			if seg.is_empty():
-				continue
+			var seg := door.segment() if door.span <= 1 else door.segments()
 			var idx := door.y * width + door.x
-			out.append(seg[0])
-			out.append(seg[1])
-			out.append(seg[2])
-			out.append(seg[3])
-			out.append(float(door.material))
-			out.append(light[idx])
-			out.append(0.0)
-			out.append(1.85)
-			out.append(float(area[idx]))
+			for k in range(0, seg.size(), 4):
+				out.append(seg[k])
+				out.append(seg[k + 1])
+				out.append(seg[k + 2])
+				out.append(seg[k + 3])
+				out.append(float(door.material))
+				out.append(light[idx])
+				out.append(door.base())
+				out.append(door.base() + 1.85)
+				out.append(float(area[idx]))
 		for p in pane_tiles:
 			out.append(float(p.x))
 			out.append(p.y + .5)
@@ -942,6 +1171,20 @@ func _make_active(at_hub: bool) -> PackedFloat32Array:
 			out.append(.36)
 			out.append(1.78)
 			out.append(1.0)
+		for i in geo_panes.size():
+			if broken_panes.has(pane_key(i)):
+				continue
+			var pane := geo_panes[i]
+			var c := _cell_near(pane.middle().x, pane.middle().y)
+			out.append(pane.ax)
+			out.append(pane.ay)
+			out.append(pane.bx)
+			out.append(pane.by)
+			out.append(_float(tile_index.get("glazing", 0)))
+			out.append(light[c])
+			out.append(pane.z0)
+			out.append(pane.z1)
+			out.append(float(area[c]))
 	return out
 
 

@@ -166,6 +166,14 @@ site of the round (`plan_site`), hold the map's `holds` on defence, call foes
 seen on a site, plant, defuse, carry and chase, and pick the gun for the
 distance.
 
+**Maps of storeys** (pass 16, [levels.md](levels.md#doors-panes-and-vias-pass-16-ways)):
+a goal on a deck has a step field of its own (`TacticalNav.field`'s `z`; the
+goal's floor from `TacticalNav.floor_of`: a player standing there, a route
+point `[x, y, z]`, a hold `[x, y, facing, z]`; the ground without one, as
+before), and every field's heading bends through the map's vias. The
+deathmatch and co-op bot (`tools/mode_bot.gd`) walks a target's field from
+its own floor.
+
 **Skill.** BOT SKILL (the lobby's row, PLAY VS BOTS' BOTS row, `bot_skill`
 in `Modes.HOST_SETTINGS`): EASY, NORMAL (the default), HARD, HOG WILD, or
 MIXED (each bot its own, modes.cfg `[tactical_bot] mixed` by place in its

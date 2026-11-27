@@ -441,8 +441,10 @@ func shatter(pane: Vector2i, z := .99) -> void:
 	if world.broken_panes.has(pane):
 		return
 	world.broken_panes[pane] = true
-	var x := float(pane.x) + .5
-	var y := float(pane.y) + .5
+	# (A pane in the geometry stands at its own middle: pass 16.)
+	var middle := world.pane_middle(pane)
+	var x := middle.x
+	var y := middle.y
 	sound_at("glass_break", x, y, .96)
 	sound_at("glass_settle", x, y, .5)
 	burst(x, y, minf(1.6, maxf(.38, z)), "glass", 17, 1.95)
@@ -606,6 +608,10 @@ func explode(shot: Shot) -> void:
 		for pane in world.pane_tiles:
 			if sqrt(pow(float(pane.x) + .5 - x, 2) + pow(float(pane.y) + .5 - y, 2)) < 2.0:
 				shatter(pane)
+		for i in world.geo_panes.size():
+			var glass := world.geo_panes[i]
+			if glass.off(x, y) < 2.0 and absf((glass.z0 + glass.z1) * .5 - shot.z) < 2.5:
+				shatter(LevelData.pane_key(i), (glass.z0 + glass.z1) * .5)
 		for point: Vector2 in drums.keys():
 			var vec: Vector2 = point
 			if (
