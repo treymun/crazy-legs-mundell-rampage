@@ -11,8 +11,8 @@
 ##   tests the geometry, not the order of the quest.
 ## - enemies: hands woken and set on the player standing at each route's end,
 ##   on whatever floor that is: how near each got in `seconds`.
-## - perf: the software view's frame time from the spawn and every route's
-##   ends, and the tick's while the bots walk.
+## - perf: the level's parse, first nav build and 3D mesh build times, and
+##   the tick's while the bots walk (the pictures are map check's).
 ## A scenario is {"routes": [{"id", "from", "to", "seconds"}], "enemies": bool,
 ## "perf": bool}; with no routes, the spawn to every objective, pickup, spawn
 ## point and deck. A route fails the playtest; enemies and perf only report.
@@ -295,33 +295,28 @@ static func _enemies(
 	return out
 
 
-static func _perf(main, map_id: String, routes: Array, tick_us: Array, lines: Array) -> Dictionary:
+static func _perf(main, map_id: String, _routes: Array, tick_us: Array, lines: Array) -> Dictionary:
+	# What the level costs to load and to play: the first nav build (no bake:
+	# a map not yet built, or a player map, pays it at every load), the 3D
+	# view's mesh, and the tick while the bots walked.
 	var g := _game(main, map_id)
-	var spots: Array = [[g.player.x, g.player.y, g.world.stand(g.player)]]
-	for r: Dictionary in routes:
-		if r.has("from"):
-			spots.append(r["from"])
-		if r.has("to"):
-			spots.append(r["to"])
-	var times: Array = []
-	var canvas := Canvas.new()
-	for s: Array in spots:
-		var p := g.player
-		p.x = s[0]
-		p.y = s[1]
-		p.floor_z = s[2]
-		p.eye = .95 + s[2]
-		for k in 8:
-			p.angle = k * TAU / 8.0
-			var began := Time.get_ticks_usec()
-			g.draw(canvas, 1, false)
-			times.append((Time.get_ticks_usec() - began) / 1000.0)
-	times.sort()
+	var began := Time.get_ticks_usec()
+	var fresh := LevelData.from_dict(LevelData.preview.get(map_id, {}), g.art)
+	var parse_ms := (Time.get_ticks_usec() - began) / 1000.0
+	began = Time.get_ticks_usec()
+	if fresh != null:
+		FlowField.new(fresh)
+	var nav_ms := (Time.get_ticks_usec() - began) / 1000.0
+	began = Time.get_ticks_usec()
+	var builder := LevelMesh.new(g.level)
+	builder.build_static(g.level.active_base(false))
+	var mesh_ms := (Time.get_ticks_usec() - began) / 1000.0
 	tick_us.sort()
 	var out := {
-		"frames": times.size(),
-		"frame_ms_median": snappedf(times[times.size() / 2], .01) if not times.is_empty() else 0.0,
-		"frame_ms_max": snappedf(times[times.size() - 1], .01) if not times.is_empty() else 0.0,
+		"parse_ms": snappedf(parse_ms, .1),
+		"nav_build_ms": snappedf(nav_ms, .1),
+		"mesh_build_ms": snappedf(mesh_ms, .1),
+		"ticks": tick_us.size(),
 		"tick_ms_median":
 		snappedf(tick_us[tick_us.size() / 2] / 1000.0, .001) if not tick_us.is_empty() else 0.0,
 		"tick_ms_p99":
@@ -331,70 +326,20 @@ static func _perf(main, map_id: String, routes: Array, tick_us: Array, lines: Ar
 			else 0.0
 		),
 	}
-	(
-		lines
-		. append(
+	lines.append(
+		(
 			(
-				"perf: software view %.1f ms median, %.1f max over %d frames; tick %.3f ms median, %.3f p99"
-				% [
-					out["frame_ms_median"],
-					out["frame_ms_max"],
-					out["frames"],
-					out["tick_ms_median"],
-					out["tick_ms_p99"]
-				]
+				"perf: level parse %.1f ms, first nav build %.1f ms, 3D mesh %.1f ms;"
+				+ " tick %.3f ms median, %.3f p99 over %d ticks"
 			)
+			% [
+				out["parse_ms"],
+				out["nav_build_ms"],
+				out["mesh_build_ms"],
+				out["tick_ms_median"],
+				out["tick_ms_p99"],
+				out["ticks"]
+			]
 		)
 	)
 	return out
-
-
-## The game's own view (the software view with the palette, as the tools draw
-## it) from each of `views` ({tag, at: [x, y, z], angle, pitch} in degrees).
-static func shots(
-	tree: SceneTree, map_id: String, level: Dictionary, views: Array, dir: String
-) -> Array:
-	LevelData.preview[map_id] = level
-	var main: Control = await _main(tree)
-	DirAccess.make_dir_recursive_absolute(dir)
-	var out: Array = []
-	var g := _game(main, map_id)
-	for v: Dictionary in views:
-		var at: Array = v.get("at", [g.player.x, g.player.y, 0.0])
-		var p := g.player
-		p.x = float(at[0])
-		p.y = float(at[1])
-		p.floor_z = g.world.floor_under(p.x, p.y, (float(at[2]) if at.size() > 2 else 0.0) + .05)
-		p.air = 0.0
-		p.eye = .95 + p.floor_z
-		p.angle = deg_to_rad(float(v.get("angle", 0.0)))
-		p.pitch = float(v.get("pitch", 0.0))
-		p.sway = 0.0
-		g.armory.holstered = not bool(v.get("weapon", false))
-		g.armory.lower = 1.0 if g.armory.holstered else 0.0
-		g.message_until = 0.0
-		g.district_until = 0.0
-		var canvas := Canvas.new()
-		canvas.clear(0, 0, 0)
-		g.draw(canvas, 1, false)
-		_palette(canvas, g.art.palette)
-		var image := Image.create_from_data(320, 200, false, Image.FORMAT_RGB8, canvas.pixels)
-		var path := dir.path_join("%s.png" % String(v.get("tag", "view%d" % out.size())))
-		image.save_png(path)
-		out.append(path)
-	LevelData.preview.erase(map_id)
-	main.queue_free()
-	return out
-
-
-static func _palette(canvas: Canvas, lut: PackedByteArray) -> void:
-	var pix := canvas.pixels
-	for i in range(0, pix.size(), 3):
-		var r5 := (pix[i] * 31 + 127) / 255
-		var g5 := (pix[i + 1] * 31 + 127) / 255
-		var b5 := (pix[i + 2] * 31 + 127) / 255
-		var at := ((r5 << 10) | (g5 << 5) | b5) * 3
-		pix[i] = lut[at]
-		pix[i + 1] = lut[at + 1]
-		pix[i + 2] = lut[at + 2]
-	canvas.pixels = pix
