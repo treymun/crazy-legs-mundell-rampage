@@ -192,7 +192,7 @@ func _names() -> Dictionary:
 
 
 ## The source read and checked, compiled and validated: [doc, built, issues]
-## (doc empty when it could not be read).
+## (doc empty when it could not be read; a version 2 source's prefabs placed).
 func _load(map_id: String) -> Array:
 	var errors: Array = []
 	var doc := Source.read(map_id, errors)
@@ -200,6 +200,11 @@ func _load(map_id: String) -> Array:
 		result["error"] = errors[0]["message"] if not errors.is_empty() else "no source"
 		return [{}, {}, errors]
 	var issues: Array = Source.check(doc, _names())
+	var placed: Array = []
+	doc = Source.expand(doc, placed)
+	if not placed.is_empty() or doc.has("prefabs"):
+		issues = Source.check(doc, _names())
+		issues.append_array(placed)
 	var has_error := false
 	for i: Dictionary in issues:
 		if i["severity"] == "error":

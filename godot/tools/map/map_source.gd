@@ -1,5 +1,5 @@
 ## A map's authoritative source: godot/maps/<id>.map.json ("clmr-map" version
-## 1). Either a whole map (size, districts, objects) or objects laid over a
+## 1 or 2; version 2, pass 16, adds the high-level types of map_source_v2.gd). Either a whole map (size, districts, objects) or objects laid over a
 ## level's plan (base: {"plan": "<id>"}: tools/levels/<id>_plan.gd runs first,
 ## then these). Every object has a stable id and a type from TYPES; the
 ## compiler (map_compile.gd) turns them into builder and geometry calls.
@@ -15,7 +15,10 @@
 extends RefCounted
 
 const SCHEMA := "clmr-map"
-const VERSION := 1
+const V2 := preload("res://tools/map/map_source_v2.gd")
+## The newest version this build reads and writes (a source is written as
+## version 2 only once it uses something of version 2: V2.needed()).
+const VERSION := 2
 const ID_PATTERN := "^[a-z][a-z0-9_]*$"
 ## Cut lines a deck, block or ceiling may have (the 3D view and every query
 ## take any number; SPIKE pass 16: was two, for the old software view).
@@ -27,9 +30,10 @@ static var dir := MAPS_DIR
 static var data_dir := "res://data"
 
 ## type -> {"grid": changes cells, "req": required keys, "opt": optional keys
-## with their defaults, "doc": what it is}. The JSON Schema
-## (docs/map_schema.json) and the catalog are made from this table.
-const TYPES := {
+## with their defaults, "doc": what it is}: version 1's types. TYPES (below)
+## is every type, version 2's (map_source_v2.gd, marked "v": 2) after these;
+## the JSON Schema (docs/map_schema.json) and the catalog are made from it.
+const TYPES_V1 := {
 	"yard":
 	{
 		"grid": true,
@@ -355,12 +359,30 @@ const TYPES := {
 	},
 }
 
+## Every type a source may use: TYPES_V1 (with version 2's keys on them, such
+## as a door's z and span) and then map_source_v2.gd's.
+static var TYPES: Dictionary = _all_types()
+
 ## Keys whose values are tile names (the material swap looks in these).
 const TILE_KEYS := [
 	"floor", "tile", "wall", "edge", "under", "side", "cap", "ceiling", "skin", "rail_tile"
 ]
 ## Keys whose values are positions (move shifts these).
 const POINT_KEYS := ["at", "a", "b", "cell"]
+
+
+static func _all_types() -> Dictionary:
+	var out := TYPES_V1.duplicate(true)
+	for type: String in V2.V1_KEYS:
+		(out[type]["opt"] as Dictionary).merge(V2.V1_KEYS[type])
+	out.merge(V2.types())
+	return out
+
+
+## The source with its prefabs placed (map_source_v2.gd expand); problems
+## (a prefab missing or placing itself) appended to `out`.
+static func expand(doc: Dictionary, out: Array = []) -> Dictionary:
+	return V2.expand(doc, out)
 
 
 static func path_of(map_id: String) -> String:
@@ -428,6 +450,9 @@ static func write(map_id: String, doc: Dictionary) -> bool:
 	var file := FileAccess.open(ProjectSettings.globalize_path(path_of(map_id)), FileAccess.WRITE)
 	if file == null:
 		return false
+	# The first version 2 object makes the file version 2 (never back down).
+	if int(doc.get("version", 1)) < V2.needed(doc, TYPES):
+		doc["version"] = V2.needed(doc, TYPES)
 	file.store_string(to_text(doc))
 	file.close()
 	return true
@@ -584,6 +609,7 @@ static func check(doc: Dictionary, names: Dictionary) -> Array:
 			)
 			continue
 		var spec: Dictionary = TYPES[type]
+		var kit: bool = spec.get("kit", false) or type == "kit"
 		for key: String in spec["req"]:
 			if not o.has(key):
 				out.append(
@@ -597,7 +623,8 @@ static func check(doc: Dictionary, names: Dictionary) -> Array:
 				)
 		for key in o:
 			if (
-				key != "id"
+				not kit
+				and key != "id"
 				and key != "type"
 				and not (key in spec["req"])
 				and not (spec["opt"] as Dictionary).has(key)
@@ -613,6 +640,19 @@ static func check(doc: Dictionary, names: Dictionary) -> Array:
 					)
 				)
 		_check_values(out, o, type, where, base == null, size, names, districts)
+		if int(spec.get("v", 1)) >= 2 or V2.V1_KEYS.has(type):
+			V2.check_object(out, o, type, where, names, seen)
+	V2.check_top(out, doc, names)
+	if version >= 1 and version < V2.needed(doc, TYPES):
+		out.append(
+			_issue(
+				"warning",
+				"version",
+				"",
+				"the source uses version 2 types or keys but says version %d" % version,
+				'say "version": 2 (map.gd writes it for you on its next edit)'
+			)
+		)
 	if not (doc.get("spawn") is Dictionary) and base == null:
 		out.append(_issue("error", "spawn", "", "no spawn {at, angle, z}", ""))
 	return out

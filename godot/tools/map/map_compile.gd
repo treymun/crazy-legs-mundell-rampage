@@ -8,13 +8,17 @@ extends RefCounted
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const Source := preload("res://tools/map/map_source.gd")
+const V2 := preload("res://tools/map/map_compile_v2.gd")
 
 
 ## {level, builder, spawn, problems (the builder's), issues (objects it could
-## not make), objects (id -> what it made: slab, segment and other ids)}.
-## level is empty when the source could not be built.
+## not make), objects (id -> what it made: slab, segment and other ids),
+## doc (the source with its prefabs placed: what validate reads)}.
+## level is empty when the source could not be built. A version 2 source
+## (map_compile_v2.gd) also walks by via points and gets its looks.
 static func compile(doc: Dictionary) -> Dictionary:
 	var issues: Array = []
+	doc = Source.expand(doc, issues)
 	var made := {}
 	var b
 	var spawn: Array
@@ -25,7 +29,7 @@ static func compile(doc: Dictionary) -> Dictionary:
 		var path := "res://tools/levels/%s_plan.gd" % plan_id
 		if not ResourceLoader.exists(path):
 			issues.append(_issue("no_plan", "", "no plan %s for base" % path))
-			return {"level": {}, "issues": issues, "objects": made}
+			return {"level": {}, "issues": issues, "objects": made, "doc": doc}
 		var plan = load(path).new()
 		b = plan.make()
 		spawn = plan.build(b)
@@ -56,21 +60,39 @@ static func compile(doc: Dictionary) -> Dictionary:
 		if float(s.get("z", 0.0)) > 0.0:
 			spawn.append(float(s["z"]))
 	var ctx := {"districts": districts, "made": made, "issues": issues}
+	var v2 := V2.is_v2(doc, Source.TYPES)
+	if v2:
+		ctx["types"] = Source.TYPES
+		ctx["district_of"] = func(o: Dictionary) -> int: return _district(o, ctx)
+		V2.begin(b, doc, ctx)
 	for o in doc.get("objects", []):
 		if o is Dictionary and Source.TYPES.has(String(o.get("type", ""))):
 			_apply(b, o, ctx)
+	if v2:
+		V2.finish(b, doc, ctx, spawn)
 	b.mount_signs()
 	var problems: Array = b.problems(spawn)
 	var level: Dictionary = b.finish(spawn)
 	level["source"] = "maps/%s.map.json" % doc.get("id", "")
-	return {
+	if v2:
+		V2.looks(level, doc, ctx)
+	var out := {
 		"level": level,
 		"builder": b,
 		"spawn": spawn,
 		"problems": problems,
 		"issues": issues,
-		"objects": made
+		"objects": made,
+		"doc": doc,
+		"cost": int(ctx.get("cost", 0)),
 	}
+	if v2:
+		# Each kit object's footprint (validate's buildings on terrain).
+		var pieces := {}
+		for r: Dictionary in ctx["kit_records"]:
+			pieces[str(r["id"])] = r["footprint"]
+		out["kit_pieces"] = pieces
+	return out
 
 
 static func _issue(code: String, object_id: String, message: String) -> Dictionary:
@@ -119,6 +141,9 @@ static func _apply(b, o: Dictionary, ctx: Dictionary) -> void:
 	var v: Dictionary = (spec["opt"] as Dictionary).duplicate(true)
 	v.merge(o, true)
 	var made: Array = []
+	if int(spec.get("v", 1)) >= 2:
+		ctx["made"][id] = V2.apply(b, type, v, o, ctx)
+		return
 	match type:
 		"yard":
 			var c := _cells(v["rect"])
@@ -187,7 +212,18 @@ static func _apply(b, o: Dictionary, ctx: Dictionary) -> void:
 			}
 			if String(v["from"]) != "":
 				opts["from"] = v["from"]
-			b.door(int(cell[0]), int(cell[1]), bool(v["vertical"]), opts)
+			# Version 2: up on a storey (z), wider (span), barred, a barn door.
+			if String(v["style"]) == "barn":
+				opts["style"] = "slide"
+			if int(v["span"]) != 1:
+				opts["span"] = int(v["span"])
+			if String(v["bar"]) != "":
+				opts["bar"] = v["bar"]
+			if float(v["z"]) > 0.0:
+				opts["z"] = float(v["z"])
+				Geo.door(b, int(cell[0]), int(cell[1]), bool(v["vertical"]), opts)
+			else:
+				b.door(int(cell[0]), int(cell[1]), bool(v["vertical"]), opts)
 		"gap":
 			var cell: Array = v["cell"]
 			b.gap(int(cell[0]), int(cell[1]), String(v["from"]))
@@ -226,7 +262,9 @@ static func _apply(b, o: Dictionary, ctx: Dictionary) -> void:
 				made.append(s["id"])
 		"wall":
 			var opts := _geo_opts(v, ctx, ["thick", "tile", "openings", "light"])
-			if float(v["z1b"]) >= 0.0:
+			if not (v["curve"] as Dictionary).is_empty():
+				made.append_array(_curve(b, id, v, opts))
+			elif float(v["z1b"]) >= 0.0:
 				# Raked (geometry version 2): its top from z1 at a to z1b at b.
 				var raked := Geo.raked(
 					b,
@@ -336,6 +374,28 @@ static func _apply(b, o: Dictionary, ctx: Dictionary) -> void:
 		"spawn_point", "allow_overlap":
 			pass
 	ctx["made"][id] = made
+
+
+## A wall bent round a circle (version 2 "curve": centre, radius, from, to in
+## degrees, 0 east, 90 south): straight pieces of .6 at most along the arc.
+static func _curve(b, id: String, v: Dictionary, opts: Dictionary) -> Array:
+	var c: Dictionary = v["curve"]
+	var centre := _v(c["centre"])
+	var radius := float(c["radius"])
+	var from := deg_to_rad(float(c.get("from", 0.0)))
+	var to := deg_to_rad(float(c.get("to", 360.0)))
+	var pieces := maxi(3, ceili(absf(to - from) * radius / .6))
+	var plain := opts.duplicate()
+	plain.erase("openings")
+	var out: Array = []
+	for k in pieces:
+		var a := centre + Vector2.from_angle(lerpf(from, to, float(k) / pieces)) * radius
+		var e := centre + Vector2.from_angle(lerpf(from, to, float(k + 1) / pieces)) * radius
+		for s: Dictionary in Geo.wall(
+			b, "%s_%d" % [id, k], a, e, float(v["z0"]), float(v["z1"]), plain
+		):
+			out.append(s["id"])
+	return out
 
 
 static func _ground(b, at: Vector2) -> float:

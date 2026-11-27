@@ -19,7 +19,9 @@
 ##   tools/pacing_check.gd counts it) and how far the first hand is;
 ## - height, looks (district names, bare ground, dark rooms), cost (pieces,
 ##   wall rows, the first nav build's time);
-## - a level with no objective and no exit is a versus arena: its loot.
+## - a level with no objective and no exit is a versus arena: its loot;
+## - a level with a versus plan (LevelData.tactical: deathmatch starts, the
+##   5v5 starts and sites) gets MapVersus' checks (versus.gd, pass 16 T7).
 class_name MapReview
 extends RefCounted
 
@@ -96,6 +98,8 @@ func run() -> void:
 		MapFights.ammo(self)
 		MapFights.cover(self)
 		_pacing()
+	if not lv.tactical.is_empty():
+		MapVersus.review(self)
 	_spawn_seen()
 	_alleys()
 	_dead_ends()
@@ -849,8 +853,13 @@ func _budget(key: String, what: String, value: int) -> void:
 		_add("cost", "cost_should", at, {"what": what, "value": value, "budget": should})
 
 
-## A versus map: something to heal with and rounds lying out.
+## A versus map: something to heal with and rounds lying out (not asked of
+## a map that names its modes without deathmatch: the 5v5 clears the loot).
 func _arena() -> void:
+	var listed: Variant = lv.tactical.get("modes", [])
+	var modes: Array = listed if listed is Array else []
+	if not modes.is_empty() and not modes.has("deathmatch") and not modes.has("team_deathmatch"):
+		return
 	var heals := 0
 	var rounds := 0
 	for p: Array in lv.pickups:

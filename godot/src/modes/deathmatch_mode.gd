@@ -1,7 +1,9 @@
 ## Deathmatch: every player for themselves in an arena (CLAUDE.md "Modes").
 ##
 ## No enemies (the level's own, its posse and critters are cleared at the
-## start). Players start on spawn points worked out from the arena
+## start). Players start on the map's own deathmatch starts when it names
+## them (LevelData.tactical "deathmatch", a map source's dm_spawn objects,
+## pass 16), else on spawn points worked out from the arena
 ## (Modes.spawn_points: open dry ground with room round it, spread out) with
 ## the starting kit (Modes.give_kit: crowbar, .38, shotgun). Every hit lands
 ## (PVP_SCALE of what it does to a hand; your own blast hurts you too). A
@@ -39,7 +41,12 @@ func hurt_scale(_game: Game, _attacker: Player, _victim: Player, _blast: bool) -
 func start(game: Game, st: ModeFeature) -> void:
 	Modes.clear_enemies(game)
 	var kind := str(Modes.arena_of(st.arena)[1])
-	st.spawns = Modes.spawn_points(game, Modes.arena_box(game, kind), 12)
+	var named: Variant = game.world.tactical.get("deathmatch", [])
+	var own: Array = named if named is Array else []
+	if not own.is_empty() and kind == "":
+		st.spawns = own.duplicate(true)
+	else:
+		st.spawns = Modes.spawn_points(game, Modes.arena_box(game, kind), 12)
 	st.pickup_spots = []
 	for entry: Array in game.pickups:
 		var name := str(entry[0])
