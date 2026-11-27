@@ -473,40 +473,38 @@ func _build_index() -> void:
 	sight_cells.resize(width * height)
 	sight_cells.fill(0)
 	_sight_boxes = {}
+	# Each piece's box once, then each cell's list of them.
+	var box_of := {}
+	for sl in slabs:
+		box_of[sl] = PackedFloat64Array(
+			[
+				sl.x0,
+				sl.y0,
+				sl.x1,
+				sl.y1,
+				-1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick,
+				sl.top_max(),
+				1.0
+			]
+		)
+	for g in segments:
+		box_of[g] = PackedFloat64Array(
+			[
+				minf(g.ax, g.bx) - g.half,
+				minf(g.ay, g.by) - g.half,
+				maxf(g.ax, g.bx) + g.half,
+				maxf(g.ay, g.by) + g.half,
+				g.z0,
+				g.top_max(),
+				1.0 if g.sight else 0.0
+			]
+		)
 	for c: int in _sight:
 		sight_cells[c] = 1
 		var boxes := PackedFloat64Array()
 		for item: Variant in _sight[c]:
-			if item is Slab:
-				var sl: Slab = item
-				boxes.append_array(
-					PackedFloat64Array(
-						[
-							sl.x0,
-							sl.y0,
-							sl.x1,
-							sl.y1,
-							-1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick,
-							sl.top_max(),
-							1.0
-						]
-					)
-				)
-			else:
-				var g: Segment = item
-				boxes.append_array(
-					PackedFloat64Array(
-						[
-							minf(g.ax, g.bx) - g.half,
-							minf(g.ay, g.by) - g.half,
-							maxf(g.ax, g.bx) + g.half,
-							maxf(g.ay, g.by) + g.half,
-							g.z0,
-							g.top_max(),
-							1.0 if g.sight else 0.0
-						]
-					)
-				)
+			var box: PackedFloat64Array = box_of[item]
+			boxes.append_array(box)
 		_sight_boxes[c] = boxes
 	for c in ceilings:
 		_put(_over, c.x0, c.y0, c.x1, c.y1, c, true)
@@ -561,18 +559,16 @@ func _build_sight_bands() -> void:
 		sight_band_at[c] = sight_bands.size()
 		if cells[c] == 0:
 			continue
+		# The heights of its sight index's pieces (their boxes: a slab, a
+		# segment that stops sight, the terrain under it).
 		var spans: Array[Vector2] = []
-		for item: Variant in _sight.get(c, NOTHING):
-			if item is Slab:
-				var sl: Slab = item
-				var low := -1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick
-				spans.append(Vector2(low, sl.top_max()))
-			elif item is Segment:
-				var g: Segment = item
-				if g.sight:
-					spans.append(Vector2(g.z0, g.top_max()))
-		if terrain != null and terrain.patch_at[c] != 0:
-			spans.append(Vector2(-1e12, terrain.high[c]))
+		var found: Variant = _sight_boxes.get(c)
+		if found != null:
+			var boxes: PackedFloat64Array = found
+			for o in range(0, boxes.size(), SIGHT_BOX):
+				var kind := boxes[o + 6]
+				if kind == 1.0 or kind == 2.0:
+					spans.append(Vector2(boxes[o + 4], boxes[o + 5]))
 		spans.sort()
 		var low := 0.0
 		var high := 0.0
@@ -744,13 +740,17 @@ func sight_crosses(
 func _put(
 	into: Dictionary, x0: float, y0: float, x1: float, y1: float, item: RefCounted, mark: bool
 ) -> void:
+	# (One lookup a cell, the list made only where there is none: the same
+	# lists in the same order.)
 	for cy in range(maxi(0, floori(y0)), mini(height - 1, floori(y1)) + 1):
 		for cx in range(maxi(0, floori(x0)), mini(width - 1, floori(x1)) + 1):
 			var key := cy * width + cx
-			if not into.has(key):
-				into[key] = []
-			var list: Array = into[key]
-			list.append(item)
+			var found: Variant = into.get(key)
+			if found == null:
+				into[key] = [item]
+			else:
+				var list: Array = found
+				list.append(item)
 			if mark:
 				cells[key] = 1
 
