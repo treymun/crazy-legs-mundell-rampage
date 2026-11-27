@@ -831,8 +831,7 @@ func ceiling_at(x: float, y: float, z: float) -> float:
 	return ceiling_in(items, x, y, z)
 
 
-## ceiling_at() over the overhead pieces `items` (a cell's, or those a nav
-## walk passes under: LevelNav._near_walk).
+## ceiling_at() over the overhead pieces `items` (a cell's).
 static func ceiling_in(items: Array, x: float, y: float, z: float) -> float:
 	var best := INF
 	for item: Variant in items:
@@ -857,8 +856,7 @@ func blocks(x: float, y: float, r: float, lo: float, hi: float) -> bool:
 	return blocks_in(near_items(x, y), x, y, r, lo, hi)
 
 
-## blocks() over the pieces `items` (a cell's list, or the part of it a nav
-## walk can meet: LevelNav._near_walk).
+## blocks() over the pieces `items` (a cell's list, or a sight cell's).
 static func blocks_in(items: Array, x: float, y: float, r: float, lo: float, hi: float) -> bool:
 	for item: Variant in items:
 		if item is Slab:
@@ -1002,26 +1000,6 @@ func static_blocked(lv: LevelData, x: float, y: float, r: float, feet: float, ta
 	if _fixture_in(lv, x, y, r, feet, tall):
 		return true
 	return blocks(x, y, r, feet + STEP, feet + tall)
-
-
-## static_blocked() with the pieces `items` in place of the cell's list (the
-## part of it a nav walk can meet: LevelNav._near_walk).
-func static_blocked_in(
-	lv: LevelData, x: float, y: float, r: float, feet: float, tall: float, items: Array
-) -> bool:
-	for step in 4:
-		var ix := int(x + (-r if step < 2 else r))
-		var iy := int(y + (-r if step % 2 == 0 else r))
-		if ix < 0 or iy < 0 or ix >= lv.width or iy >= lv.height:
-			return true
-		var c: int = iy * lv.width + ix
-		if lv.solid[c] >= 0 and not lv.door_cells.has(c):
-			return true
-	if _fixture_in(lv, x, y, r, feet, tall):
-		return true
-	if terrain != null and terrain.blocks(x, y, r, feet + STEP):
-		return true
-	return blocks_in(items, x, y, r, feet + STEP, feet + tall)
 
 
 func _fixture_in(lv: LevelData, x: float, y: float, r: float, feet: float, tall: float) -> bool:
