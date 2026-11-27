@@ -2497,10 +2497,30 @@ def solve(name, dz=0.0, held0=None):
                 sh_f = at(J["upperarm_" + side])
                 out = 1.0 if side == "l" else -1.0
                 pole = R_t @ Vector((out * .4, .2, -1.0))
+                if side in HANDF:
+                    # (the elbow where the forearm runs on into the hand, so
+                    # the wrist stays near straight)
+                    wt_ = Dh_t @ J["wrist_" + side]
+                    lf_ = (J["wrist_" + side] - J["forearm_" + side]).length
+                    want_el = wt_ - (Dh_t.to_3x3() @ HANDF[side][1]).normalized() * lf_
+                    if (want_el - sh_f).length > .02:
+                        pole = (want_el - sh_f).normalized()
                 R_u, R_l, el_f, wr_f = limb(R_t, J["upperarm_" + side], J["forearm_" + side], J["wrist_" + side],
                                             sh_f, Dh_t @ J["wrist_" + side], pole, Vector((0, -1, 0)))
                 D["upperarm_" + side] = place(R_u, J["upperarm_" + side], sh_f)
                 D["forearm_" + side] = place(R_l, J["forearm_" + side], el_f)
+                # ("follow_wrist": degrees - the wrist bends at most that far
+                # off the forearm; the thing turns with the hand the rest of
+                # the way, about the wrist)
+                fw_ = CFG.get("follow_wrist")
+                if fw_:
+                    q_want = Dh_t.to_quaternion()
+                    q_str = R_l.to_quaternion()
+                    ang_ = q_str.rotation_difference(q_want).angle
+                    lim_ = math.radians(float(fw_))
+                    q_h = q_str.slerp(q_want, min(1.0, lim_ / max(ang_, 1e-6)))
+                    Dh_t = place(q_h.to_matrix(), J["wrist_" + side], wr_f)
+                    Di = Dh_t @ held0["hand_" + side].inverted() @ held0["@" + it["bone"]]
                 D["hand_" + side] = Dh_t
                 joints["miss"][side] = (wr_f - Dh_t @ J["wrist_" + side]).length
             else:
@@ -2748,6 +2768,7 @@ for t in KEYS:
             pb.scale = (1, 1, 1)
         pb.keyframe_insert("scale", frame=t)
 print("MESHY wrists: worst bend %d degrees" % round(max(WRIST.values()) if WRIST else 0))
+print("MESHY wrists over 45: %s" % {k: round(v) for k, v in WRIST.items() if v > 45})
 if CONTACT:
     _wf = min(CONTACT, key=lambda k: CONTACT[k][0])
     _wg = max(CONTACT, key=lambda k: CONTACT[k][1])

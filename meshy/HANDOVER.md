@@ -9,7 +9,7 @@ List, in order: millhand, mundell, nitro_huffer, pit_mechanic, revenooer,
 shield_deputy, still_buster, tin_guard, tire_roller, valve_rat, drone (alien
 grey, see 05b), skeeter. Budget 650 credits (ledger section "agent B",
 running total in its "spent").
-DONE: 40 millhand (44 cr), 41 mundell (44 cr), 42 nitro_huffer (53 cr: two
+DONE (all with INDEX lines): 40 millhand (44 cr), 41 mundell (44 cr), 42 nitro_huffer (53 cr: two
 concepts, the first used; dynamite = gear_extra b33,b35..b50, gear_skip b31,
 gear_one, item_types r throw, "bottle_flip" (new) + bottle_grip .72 so the
 spark stands up out of the fist; skin_even tone with face_even 0 (else the
@@ -38,8 +38,25 @@ grip_parts r b57 l b61 + gear_skip the same (the old hands shrink with the
 gear); gear_extra b25 (gold star); skin_zones head+hands (sleeves); hat
 and shirt recolours. Open: the back of the hat brim stays tan (recolour
 boxes by z/y did not reach it - its texels may share UV space; not solved).
-NEXT: still_buster (concept + model + rig bought; fire axe, chop overhead),
-then tin_guard, tire_roller, valve_rat, drone, skeeter.
+45b shield_deputy (0 cr; recolour "smooth" (new): shirt/sleeves/collar
+khaki [150,126,88] smooth 8, sat<.55 keeps patches/star; hat smooth 6).
+46 still_buster (44 cr; fire axe one-handed: item_holds {"0": {"r": .78}},
+item_types r "hold", follow_old [gear0] + "follow_wrist" 65 (new: the
+wrist bends at most 65 degrees off the forearm, the axe turning with the
+hand the rest; the followed item's elbow now points along the hand);
+grip_parts r b39 l b42, gear_extra b33-36 (red axe head), gear_skip b18;
+hands skin_even tone [176,112,88]). Open: the fire key holds the axe
+across the chest (the old fire chopped down-forward; the wrist clamp turns
+it) - a "fire" chop pose would need its own authored key; the axe body
+and the hands are the old cartoon ones.
+Two-handed tries for the axe (two_old + two_both + "two_old_shift" (new,
+kept in the tool)) left the left hand 15-40 cm short of the haft: the old
+model held it one-handed.
+NEXT: tin_guard (no credits spent), then tire_roller, valve_rat, drone
+(alien grey, see 05b alien.json), skeeter (dumps ok=false: a bug - beast
+path; see the beast-path section). check_all quick batch 2 (44-46) is
+still to run; batch 1 (40-43) ALL OK except net_errors_check under load,
+OK alone.
 Mundell notes: the player kind is no enemy - the enemy tour, live_frames
 probe and death_frames cannot spawn it (SCRIPT ERROR / empty frames). His
 in-game sheet is tools/mode_frames.gd only=mundell (new: gd.sh, old:
@@ -96,6 +113,8 @@ Tool changes by B (all opt-in; defaults unchanged for A):
   it: "face_lift_most" 1.15 for a full beard).
 - face_uv for a hard hat: "brim_k" 1.4 (.7 shrank the whole hat and the
   face's other islands: blockier), "z" [-.16, .2], "r" .2, k 3-4.5.
+- build_actor "follow_wrist" deg, "two_old_shift" [x,y,z], recolour
+  "smooth" passes; "MESHY wrists over 45" log line per key.
 - build_actor "follow_old" [gear bones], "hold_out" {gear: m} (one-hand
   things: shields).
 - face_keep "gain" (absolute light), "tone"/"tone_k"/"tone_floor"/
