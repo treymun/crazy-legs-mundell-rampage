@@ -299,8 +299,18 @@ def specimen_jar_broken():
     stand = mat(70, 46, 30, planks=6.0, grime=.5)
     glass = mat(*GLASS_GREEN, rough=.15, metal=.1, grime=.2)
     brine = mat(60, 150, 100, emit=.5, grime=.2)
-    box(.4, .4, .7, (0, 0, .35), stand)
-    cyl(.24, .04, (0, 0, .72), mat(176, 140, 66, metal=.8), seg=16)
+    brass = mat(148, 117, 68, metal=.63, grime=.59)
+    dark = mat(70, 65, 52, metal=.41, grime=.66)
+    for x in (-.161, .161):
+        for y in (-.161, .161):
+            box(.085, .085, .66, (x, y, .33), dark)
+            box(.117, .117, .056, (x, y, .029), stand)
+    for z in (.15, .635):
+        box(.408, .386, .075, (0, 0, z), stand)
+    cyl(.24, .08, (0, 0, .69), brass, seg=16)
+    for k in range(8):
+        a = k * math.tau / 8
+        cyl(.014, .032, (.232 * math.cos(a), .232 * math.sin(a), .701), dark, seg=6)
     _ring(.22, [.18, .08, .26, 0, .12, .2, 0, .16, .06, .22], glass, z0=.74, thick=.015, lean=-6)
     ball(.14, (.12, -.12, .86), mat(150, 146, 136, grime=.4), (1.2, .9, .8), (0, 30, 20))
     ball(.06, (.26, -.18, .8), mat(220, 200, 196, grime=.3))
@@ -347,7 +357,14 @@ def nitro_rack_broken():
     # The rack shot up: two bottles blown to stubs, one down on the deck,
     # the top shelf knocked crooked.
     steel = mat(150, 152, 156, metal=.5, grime=.6)
-    blue = mat(70, 120, 230, metal=.2, rough=.35, grime=.3)
+    blue = mat(77, 112, 126, metal=.29, rough=.52, grime=.65)
+    strap = mat(120, 101, 66, metal=.49, grime=.67)
+    for x in (-.42, .42):
+        beam((x, -.15, .15), (x, .16, .96), .035, strap)
+    for x, z in ((-.30, .29), (-.30, .74), (-.1, .19), (.09, .24)):
+        cyl(.086, .031, (x, .04, z), strap, seg=14)
+    for x in (-.38, .38):
+        box(.124, .352, .035, (x, 0, .042), strap)
     soot = mat(*SOOT, grime=.6)
     for x in (-.42, .42):
         box(.06, .3, 1.2 if x < 0 else 1.0, (x, 0, .6 if x < 0 else .5), steel)
@@ -378,7 +395,14 @@ def fuel_drum_burst():
     band = mat(220, 180, 40, metal=.4, grime=.6)
     soot = mat(*SOOT, grime=.6)
     cyl(.33, .5, (0, 0, .25), red, seg=20)
-    cyl(.335, .1, (0, 0, .3), band, seg=20)
+    cyl(.335, .073, (0, 0, .268), band, seg=20)
+    cyl(.344, .042, (0, 0, .119), red, seg=24)
+    cyl(.344, .042, (0, 0, .387), red, seg=24)
+    _hoop((0, 0, .496), .33, soot, t=.026, n=18)
+    for k in (2, 5, 8):
+        a = k * math.tau / 10
+        cyl(.02, .026, (.332 * math.cos(a), .332 * math.sin(a), .219),
+            soot, (90, 0, math.degrees(a) - 90), seg=6)
     cyl(.335, .08, (0, 0, .06), soot, seg=20)
     cyl(.3, .02, (0, 0, .42), soot, seg=20)
     _petals(.33, .5, 10, .42, 58, red, skip=(3,))
@@ -432,7 +456,14 @@ def gas_cans_broken():
     # one holed and leaking, the caps knocked off.
     red = mat(190, 40, 30, metal=.4, rough=.4, grime=.6)
     soot = mat(*SOOT, grime=.6)
-    box(.3, .16, .36, (-.18, 0, .18), red)
+    box(.283, .143, .326, (-.18, 0, .164), red)
+    oxblood = mat(116, 51, 36, metal=.34, grime=.58)
+    for x in (-.286, -.083):
+        box(.038, .149, .304, (x, 0, .174), oxblood)
+    for angle in (-42, 42):
+        box(.018, .012, .285, (-.18, -.079, .175), oxblood, (0, angle, 0))
+    beam((-.277, .009, .347), (-.249, .009, .416), .025, oxblood)
+    beam((-.249, .009, .416), (-.149, .009, .406), .023, oxblood)
     for k in range(3):
         cyl(.018, .01, (-.25 + k * .07, -.085, .1 + k * .07), soot, (90, 0, 0), seg=8)
     box(.3, .16, .36, (.25, .1, .08), red, (90, 0, 17))
@@ -493,8 +524,16 @@ def mailbox_row_broken():
     # The row of mailboxes shot up: two knocked off into the dirt, one
     # hanging off its post, the last holed through.
     colours = [(170, 60, 50), (60, 90, 140), (200, 190, 170), (60, 110, 60)]
+    dark = mat(88, 68, 52, planks=5, grime=.68)
     for k in range(4):
-        cyl(.03, .9, (-.45 + k * .3, 0, .45), mat(*GREY_WOOD), seg=6)
+        x = -.45 + k * .3
+        tilt = (0, 9, -16, 0)[k]
+        box(.052, .048, .847 - .074 * (k == 2), (x, .017, .425), dark, (0, tilt, 0))
+        box(.113, .245, .033, (x, .017, .839 - .113 * (k == 2)), dark, (0, tilt, 0))
+    mouth = mat(65, 58, 49, metal=.37, rough=.61, grime=.7)
+    box(.156, .017, .104, (.451, -.176, .949), mouth)
+    for x,z in ((-.593,.127),(-.224,.986),(.496,1.04)):
+        cyl(.013,.029,(x,-.15,z),mouth,(90,0,0),seg=6)
     box(.2, .34, .16, (-.55, -.4, .08), mat(*colours[0], metal=.5, grime=.75), (8, 0, 60))
     box(.2, .34, .16, (-.2, .05, .9), mat(*colours[1], metal=.5, grime=.75), (35, 0, 15))
     box(.2, .34, .16, (.25, -.45, .08), mat(*colours[2], metal=.5, grime=.75), (0, 90, -20))
@@ -523,7 +562,13 @@ def flamingo_broken():
 def prize_bear_broken():
     # The prize bear burst at the seams: slumped, its head off beside it, an
     # arm gone, white stuffing out.
-    fur = mat(140, 90, 200, rough=.95, grime=.2)
+    fur = mat(143, 103, 60, rough=.94, grime=.34)
+    paw = mat(184, 143, 86, rough=.84, grime=.42)
+    ball(.109, (-.198, -.292, .131), paw, (.81, .35, 1.04), (0, 17, 0))
+    ball(.101, (.199, -.295, .131), paw, (.85, .32, .86), (0, -18, 0))
+    for k in range(7):
+        box(.039, .012, .015, (-.178 + k * .051, -.307, .562 + .014 * (k % 2)),
+            mat(205, 173, 121, rough=.85, grime=.23), (0, (-1)**k * 26,0))
     stuff = mat(240, 236, 226, rough=.95, grime=.1)
     ball(.4, (0, 0, .34), fur, (1.05, .95, .8), (0, 14, 0))
     ball(.3, (.55, -.3, .27), fur, (1, 1, .9), (0, 60, 30))

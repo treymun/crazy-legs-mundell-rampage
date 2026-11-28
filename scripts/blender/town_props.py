@@ -385,14 +385,47 @@ def tombstone_c():
 
 
 def saucer_wreck():
-    hull = mat(150, 158, 164, metal=.75, rough=.35, grime=.55)
-    ball(1.9, (0, 0, .55), hull, (1, 1, .2))
-    cyl(1.95, .08, (0, 0, .55), mat(90, 96, 104, metal=.8, grime=.5), seg=40)
-    ball(.7, (0, 0, .8), mat(110, 220, 150, rough=.1, emit=.6, grime=.2), (1, 1, .7))
-    for k in range(10):
-        a = k / 10 * math.tau
-        ball(.07, (math.cos(a) * 1.85, math.sin(a) * 1.85, .58), mat(120, 255, 140, emit=5.0, grime=0))
-    box(.9, .1, .5, (1.1, .4, .9), hull, (20, -30, 40))
+    hull = mat(120, 139, 136, metal=.68, rough=.45, grime=.68)
+    rim = mat(79, 92, 81, metal=.63, rough=.54, grime=.7)
+    char = mat(58, 49, 38, metal=.57, grime=.76)
+    disc = bmesh.new()
+    profile = ((.45,.251),(1.23,.316),(1.94,.492),(1.98,.562),
+               (1.49,.734),(.86,.854),(.47,.865))
+    sectors = 28
+    rings = []
+    for radius, height in profile:
+        row = []
+        for i in range(sectors):
+            a = i * math.tau / sectors
+            tear = radius > .86 and 3 <= i <= 8
+            r = radius * (.71 + .055*(i%3)) if tear else radius
+            z = height + .11*(i%3) if tear else height
+            row.append(disc.verts.new((r*math.cos(a),r*math.sin(a),z)))
+        rings.append(row)
+    disc.faces.new(tuple(reversed(rings[0])))
+    disc.faces.new(rings[-1])
+    for low, high in zip(rings,rings[1:]):
+        for k in range(sectors):
+            n = (k + 1) % sectors
+            disc.faces.new((low[k],low[n],high[n],high[k]))
+    place(disc,hull,(0,0,0),(0,0,0))
+    dome = mat(80, 160, 112, rough=.23, emit=.25, grime=.58)
+    ball(.66,(0,0,.817),dome,(1,1,.66),(0,-4,11))
+    _hoop((0,0,.834),.64,rim,t=.055,n=24)
+    for k in range(sectors):
+        if 3 <= k <= 8:
+            continue
+        a = k * math.tau / sectors
+        box(.225,.073,.068,(1.888*math.cos(a),1.888*math.sin(a),.56),rim,(0,0,math.degrees(a)+90))
+        if k % 3 == 0:
+            ball(.046,(1.906*math.cos(a),1.906*math.sin(a),.58),
+                 mat(122,192,120,emit=2.8,grime=.21),seg=8)
+    for i in range(5):
+        a = (.70 + .207*i)
+        p = (1.23*math.cos(a),1.23*math.sin(a),.586)
+        q = (1.88*math.cos(a),1.88*math.sin(a),.43+.053*(i%2))
+        beam(p,q,.051,char)
+        box(.265,.068,.031,(q[0]+.053,q[1],q[2]-.12),hull,(21,35,i*16))
     ROOT.rotation_euler = Euler((math.radians(16), math.radians(-10), 0))
     ROOT.location = Vector((0, 0, -.2))
     ball(2.1, (0, 0, -.7), mat(92, 70, 48, grime=.6), (1, 1, .32))

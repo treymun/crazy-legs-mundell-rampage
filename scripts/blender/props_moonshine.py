@@ -150,9 +150,14 @@ def cruiser():
 def _ms_sawhorse(broken=False):
     """A barricade: two splayed A-frame legs, the striped rail and a plank
     painted ROAD CLOSED across them, an amber flasher on the end."""
-    wood = mat(*GREY_WOOD, planks=4.0, grime=.6)
-    stripe_a = mat(232, 104, 26, rough=.5, grime=.45)
-    stripe_b = mat(*MS_WHITE, rough=.5, grime=.45)
+    wood = mat(102, 86, 66, planks=8.0, grime=.68)
+    stripe_a = mat(162, 83, 43, rough=.58, grime=.54)
+    stripe_b = mat(195, 170, 128, rough=.61, grime=.47)
+    iron = mat(73, 75, 65, metal=.55, grime=.57)
+    for x in (-.48, .48):
+        box(.16,.144,.033,(x,0,.758 if not broken or x<0 else .701),iron)
+        for z in (.35,.706):
+            cyl(.023,.014,(x,-.122,z),iron,(90,0,0),seg=6)
     for x in (-.48, .48):
         for s in (1, -1):
             if broken and x > 0 and s > 0:
@@ -171,7 +176,11 @@ def _ms_sawhorse(broken=False):
     for k in range(7):
         colour = stripe_a if k % 2 == 0 else stripe_b
         box(.17, .06, .14, (-.51 + k * .17, -.04, .84), colour)
-    box(1.1, .04, .3, (0, -.05, .52), stripe_b)
+    box(1.1, .041, .3, (0, -.05, .52), stripe_b)
+    for x in (-.52,.52):
+        box(.038,.053,.31,(x,-.059,.52),iron)
+        for z in (.399,.641):
+            cyl(.013,.017,(x,-.091,z),wood,(90,0,0),seg=6)
     ink = mat(196, 40, 26, rough=.5, grime=.3)
     _ms_letters("ROAD", 0, -.075, .59, .024, ink)
     _ms_letters("CLOSED", 0, -.075, .45, .024, ink)
@@ -262,7 +271,15 @@ def radio_mast():
     top, a red lamp on its tip, the coax down to a box at its foot."""
     steel = mat(170, 172, 168, metal=.6, rough=.45, grime=.55)
     box(.8, .8, .16, (0, 0, .08), mat(150, 146, 136, grime=.75))
-    height, r = 6.6, .2
+    height, r = 6.6, .25
+    foot = mat(109, 91, 66, metal=.5, grime=.69)
+    for x in (-.293, .293):
+        for y in (-.293, .293):
+            cyl(.038, .038, (x,y,.175), foot, seg=8)
+    for z in (.91, 2.94, 4.95):
+        box(.32, .059, .052, (0, -.144, z), foot)
+        for x in (-.135, .135):
+            box(.036, .045, .327, (x, -.145, z - .142), foot)
     legs = [(r * math.cos(math.radians(a)), r * math.sin(math.radians(a))) for a in (90, 210, 330)]
     for k in range(3):
         beam((*legs[k], .16), (*legs[k], height), .04, steel)
@@ -293,6 +310,10 @@ def radio_mast():
     # The box at its foot and the cable up.
     box(.34, .24, .4, (.36, -.36, .36), mat(92, 98, 72, metal=.3, grime=.6))
     beam((.36, -.3, .5), (0, -.1, 1.4), .02, mat(*TIRE))
+    for j in range(9):
+        x = -.64 + .16*j
+        beam((x, -.06, height - .476), (x, -.291, height - .589), .022, steel)
+    beam((-.61,-.187,height-.518),(.61,-.187,height-.518),.028,foot)
     return 3.4, 7.9
 
 

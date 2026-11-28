@@ -152,14 +152,32 @@ def airboat():
 
 def pirogue():
     # A dugout pirogue pulled half up the bank, its paddle laid across.
-    wood = mat(92, 66, 44, planks=10.0, grime=.55)
-    for k in range(7):
-        x = -1.1 + k * .37
-        wide = .3 * math.sin((k + .5) / 7 * math.pi) + .06
-        box(.38, wide * 2, .22, (x, 0, .13), wood)
-    box(2.5, .3, .04, (0, 0, .05), mat(60, 44, 30, grime=.4))
-    beam((-.9, .1, .3), (.9, -.15, .32), .04, mat(*WOOD))
-    box(.24, .1, .03, (1.0, -.18, .32), mat(*WOOD), (0, 0, -10))
+    wood = mat(105, 79, 57, planks=10.0, grime=.62)
+    painted = mat(71, 92, 77, planks=8.0, grime=.55)
+    joints = mat(142, 105, 69, planks=6.0, grime=.53)
+    sections = ((-1.31,.025,.23),(-1.03,.16,.195),(-.64,.272,.219),
+                (0,.321,.242),(.64,.267,.229),(1.04,.167,.238),(1.31,.018,.322))
+    bm = bmesh.new()
+    rows = []
+    for x, r, lip in sections:
+        bottom = .035 + .14 * (abs(x)/1.31)**3
+        ring = ((-r,lip),(-r*.62,bottom),(r*.62,bottom),(r,lip),(r*.84,lip),
+                (r*.50,bottom+.03),(-r*.50,bottom+.03),(-r*.84,lip))
+        rows.append([bm.verts.new((x,y,z)) for y,z in ring])
+    bm.faces.new(tuple(reversed(rows[0])))
+    bm.faces.new(rows[-1])
+    for a,b in zip(rows,rows[1:]):
+        for k in range(len(a)):
+            n=(k+1)%len(a)
+            bm.faces.new((a[k],a[n],b[n],b[k]))
+    place(bm,painted,(0,0,0),(0,0,0))
+    for x, width in ((-.63,.484),(.027,.575),(.61,.47)):
+        box(.15,width,.035,(x,0,.173),wood)
+    for a,b in zip(sections,sections[1:]):
+        for side in (-1,1):
+            beam((a[0],a[1]*side,a[2]),(b[0],b[1]*side,b[2]),.025,joints)
+    beam((-.91,.1,.307),(.86,-.15,.322),.031,joints)
+    box(.265,.122,.026,(.981,-.17,.326),wood,(0,0,-8))
     ROOT.rotation_euler = Euler((0, math.radians(-3), math.radians(-10)))
     return 2.7, .55
 
@@ -238,13 +256,23 @@ def net_rack():
     for x in (-.95, .95):
         cyl(.05, 2.0, (x, 0, 1.0), wood, seg=8)
     beam((-1.0, 0, 1.85), (1.0, 0, 1.85), .06, wood)
-    for k, x in enumerate((-.55, 0, .55)):
-        bm = bmesh.new()
-        bmesh.ops.create_cone(bm, cap_ends=False, segments=14, radius1=.32, radius2=.03, depth=1.1)
-        place(bm, net, (x, 0, 1.3), (0, 0, k * 20))
+    weights = mat(81, 76, 65, metal=.5, grime=.67)
+    for k,x in enumerate((-.57, 0, .58)):
+        rings = []
         for j in range(5):
-            a = j * math.tau / 5
-            ball(.025, (x + math.cos(a) * .3, math.sin(a) * .3, .76), mat(80, 80, 84, metal=.6))
+            size = .061 + .059*j
+            rings.append([(x + size*math.cos(i*math.tau/8+.19*j),
+                           -.027 + .53*size*math.sin(i*math.tau/8+.19*j),
+                           1.82 - .242*j - .035*math.cos(i*math.tau/8 + 2*k))
+                          for i in range(8)])
+        for a,b in zip(rings,rings[1:]):
+            for i in range(8):
+                beam(a[i],b[i],.011,net)
+                beam(a[i],b[(i+1)%8],.009,net)
+        for i,p in enumerate(rings[-1]):
+            beam(p,rings[-1][(i+1)%8],.018,net)
+            if i%2==0:
+                ball(.026,p,weights,(1,.76,1.4),seg=8)
     for k in range(6):
         ball(.05, (-.85 + k * .34, -.05, 1.7 - abs(k - 2.5) * .03), mat(*((230, 200, 60) if k % 2 else (220, 80, 40)), rough=.4))
     return 2.2, 2.1
@@ -352,8 +380,19 @@ def outboard_stand():
         for y in (-.2, .2):
             beam((s * .4, 0, .75), (s * .45, y, 0), .05, wood)
     cowl = mat(30, 70, 140, metal=.3, rough=.45, grime=.6)
-    ball(.2, (0, -.15, 1.0), cowl, (1.0, 1.4, .9))
-    box(.12, .1, .7, (0, -.08, .5), mat(60, 60, 64, metal=.6))
+    iron = mat(69, 73, 67, metal=.61, rough=.55, grime=.68)
+    ivory = mat(186, 173, 139, metal=.3, rough=.58, grime=.52)
+    ball(.213, (0, -.155, .979), cowl, (.91, 1.42, .83))
+    box(.376, .514, .047, (0, -.155, .962), ivory)
+    box(.195, .294, .039, (0, -.119, 1.14), iron)
+    box(.15, .111, .7, (0, -.085, .499), iron)
+    for y in (-.143, -.027):
+        box(.085, .015, .621, (0, y, .533), ivory)
+    for x in (-.268, .268):
+        beam((x, -.08, .735), (x, -.243, .34), .049, wood)
+        cyl(.026, .061, (x, -.053, .754), iron, (90,0,0), seg=8)
+    for y in (.207, -.207):
+        box(.903, .085, .063, (0, y, .072), wood)
     box(.3, .1, .04, (0, -.08, .17), mat(60, 60, 64, metal=.6))
     cyl(.1, .03, (0, -.08, .1), mat(160, 160, 150, metal=.8), (0, 90, 0), seg=3)
     beam((0, -.25, 1.0), (0, -.6, .95), .03, mat(30, 30, 30))

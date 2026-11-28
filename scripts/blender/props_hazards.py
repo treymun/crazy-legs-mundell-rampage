@@ -94,8 +94,15 @@ def electric_fence():
         box(.1, .1, 1.3, (x, 0, .65), post)
         for z in (.4, .75, 1.1):
             cyl(.03, .06, (x, -.07, z), white, (90, 0, 0), seg=8)
-    for z in (.4, .75, 1.1):
-        cyl(.008, 1.9, (0, -.09, z), wire, (0, 90, 0), seg=4)
+    for k, z in enumerate((.4, .75, 1.1)):
+        nodes = [(-.95, -.093, z), (-.48, -.098, z - .025),
+                 (0.03, -.094, z - .038), (.51, -.087, z - .024), (.95, -.093, z)]
+        for a, b in zip(nodes, nodes[1:]):
+            beam(a, b, .013, wire)
+        for x in (-.903, .903):
+            cyl(.027, .023, (x, -.092, z), wire, (0, 90, 0), seg=8)
+    for x in (-.95, .95):
+        box(.139, .131, .037, (x, 0, 1.28), mat(94, 91, 72, metal=.45, grime=.7))
     # The charger on the near post: a grey box, its red pulse lamp, the
     # ground rod and lead, a yellow warning sign hung off the top strand.
     box(.26, .14, .3, (-.95, -.16, .95), mat(110, 112, 108, metal=.4, grime=.6))
@@ -106,6 +113,11 @@ def electric_fence():
     for k in range(3):
         box(.04 + k * .02, .016, .02, (.1, -.11, 1.04 - k * .045), mat(30, 28, 26))
     ball(.025, (.1, -.112, .91), mat(30, 28, 26), (1, .3, 1.6))
+    lead = mat(75, 64, 53, rough=.8, grime=.47)
+    beam((-.855, -.219, .895), (-.86, -.241, .426), .015, lead)
+    beam((-.86, -.241, .426), (-.82, -.2, .27), .015, lead)
+    for x in (-.049, .247):
+        beam((x, -.111, 1.071), (x, -.112, 1.133), .013, wire)
     return 2.4, 1.4
 
 
@@ -140,7 +152,13 @@ def cattle_guard():
     # and the wings off each side.
     box(1.8, 1.3, .02, (0, 0, .01), mat(18, 16, 14, grime=.1))
     for k in range(9):
-        cyl(.045, 1.36, (-.8 + k * .2, 0, .08), steel if k % 3 else rust, (90, 0, 0), seg=10)
+        x = -.8 + k * .2
+        box(.102, 1.34, .072, (x, 0, .078), steel if k % 3 else rust)
+        box(.061, 1.33, .02, (x - .012, 0, .116), mat(117, 107, 85, metal=.63, grime=.6))
+        for y in (-.597, .597):
+            cyl(.021, .011, (x, y, .126), steel, seg=6)
+    for y in (-.46, .46):
+        box(1.79, .077, .029, (0, y, .038), steel)
     for s in (1, -1):
         box(1.86, .1, .12, (0, s * .68, .06), steel)
         box(.1, 1.36, .12, (s * .93, 0, .06), steel)

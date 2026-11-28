@@ -64,7 +64,15 @@ def cow_tube():
 def probe_table():
     """The examining table: stirrups, a lamp, and an arm of probes in three sizes."""
     steel = mat(150, 156, 160, metal=.7, rough=.35, grime=.5)
-    cyl(.18, .7, (0, 0, .35), steel, seg=12)
+    base = mat(71, 85, 72, metal=.53, grime=.64)
+    lip = mat(138, 120, 74, metal=.47, grime=.55)
+    cyl(.22, .634, (0, 0, .352), steel, seg=12)
+    for side in (-1,1):
+        box(.73, .159, .084, (0, side * .207, .042), base)
+        beam((0, side*.24, .089),(0,side*.08,.387),.081,base)
+        box(1.47, .039, .026, (0, side*.306, .771), lip)
+    cyl(.264, .071, (0, 0, .088), lip, seg=16)
+    cyl(.197, .049, (0, 0, .616), lip, seg=16)
     box(1.7, .62, .1, (0, 0, .74), mat(176, 176, 160, grime=.45))
     box(1.6, .56, .06, (0, 0, .81), mat(110, 140, 120, rough=.6, grime=.4))
     for s in (1, -1):
@@ -82,16 +90,27 @@ def probe_table():
 
 
 def probe_rack():
-    """The probes on the wall, smallest to biggest, the last one a comment."""
-    wood = mat(*WOOD, planks=6.0, grime=.6)
-    box(1.7, .08, 1.1, (0, .05, .9), mat(64, 70, 66, metal=.4, grime=.6))
-    box(1.6, .1, .06, (0, -.02, .5), wood)
-    for k in range(5):
-        size = .04 + k * .035
-        x = -.65 + k * .32
-        cyl(.03, .16, (x, -.06, .62), mat(150, 40, 30, rough=.5), seg=8)
-        cyl(size, .18 + k * .1, (x, -.06, .8 + k * .05), mat(*CHROME, metal=.9, rough=.2), seg=12, top=.008)
-        box(.18, .01, .06, (x, -.04, .4), mat(220, 200, 150, grime=.3))
+    """A wall-mounted rack of five salvaged diagnostic tools."""
+    iron = mat(66, 82, 73, metal=.49, rough=.63, grime=.68)
+    brass = mat(157, 121, 67, metal=.6, rough=.49, grime=.56)
+    ends = mat(117, 69, 46, metal=.33, rough=.6, grime=.54)
+    polished = mat(160, 164, 149, metal=.82, rough=.35, grime=.52)
+    box(1.7, .068, 1.075, (0, .052, .898), iron)
+    for x in (-.826, .826):
+        box(.052, .122, 1.103, (x, .021, .9), brass)
+        for z in (.446, .902, 1.348):
+            cyl(.018, .016, (x, -.045, z), iron, (90, 0, 0), seg=6)
+    box(1.67, .187, .082, (0, -.012, .471), iron)
+    for k, x in enumerate((-.639, -.339, -.049, .262, .593)):
+        radius = .030 + k*.014
+        height = .264 + k*.111
+        y, z = -.115, .583
+        box(.124, .093, .038, (x, -.078, z+.15), brass)
+        cyl(radius, .111, (x, y, z+.045), ends, seg=10)
+        cyl(radius*.89, height, (x, y, z+.07+height*.5), polished, seg=10,
+            top=max(.012,.04-k*.006))
+        cyl(radius*1.15, .039, (x, y, z+.12+height*.59), brass, seg=8)
+        box(.115, .021, .049, (x, -.112, .483), brass)
     return 1.8, 1.5
 
 
@@ -246,6 +265,17 @@ def jukebox_rig():
     bm = bmesh.new()
     bmesh.ops.create_cone(bm, cap_ends=False, segments=20, radius1=.34, radius2=.04, depth=.12)
     place(bm, mat(196, 194, 186, rough=.5, grime=.55), (0, .1, 1.75), (-60, 0, 0))
+    iron = mat(76, 84, 76, metal=.56, grime=.63)
+    brass = mat(155, 121, 65, metal=.73, rough=.45, grime=.47)
+    for z in (.16, .46, .65):
+        box(.691, .043, .022, (0, -.325, z), brass)
+    for x in (-.264,-.131,0,.13,.262):
+        for row in range(4):
+            box(.063,.018,.028,(x,-.327,.839+row*.065),
+                mat(200,170,108,rough=.54,grime=.24))
+    for side in (-1,1):
+        beam((side*.33,.2,1.54),(side*.13,.04,1.73),.047,iron)
+        box(.13,.021,.06,(side*.265,-.328,.391),iron)
     return 1.6, 2.1
 
 
@@ -262,8 +292,18 @@ def escape_outhouse():
     for k in range(3):
         a = k / 3 * math.tau
         box(.04, .4, .5, (.62 + math.cos(a) * .2, .1 + math.sin(a) * .2, .4), mat(220, 216, 200, metal=.4), (0, 0, math.degrees(a)))
+    iron = mat(68, 67, 58, metal=.62, rough=.58, grime=.71)
+    brass = mat(163, 120, 66, metal=.57, grime=.58)
     for z in (.8, 1.8):
-        cyl(.5, .05, (.32, .05, z), mat(60, 60, 58, metal=.7), seg=20)
+        _hoop((.62, .10, z), .233, iron, t=.046, n=18)
+        box(1.02,.073,.056,(.293,-.354,z),iron)
+        for x in (-.338,.259,.737):
+            cyl(.024,.019,(x,-.392,z),brass,(90,0,0),seg=6)
+    for x in (-.37,.369):
+        box(.064,.086,1.55,(x,-.453,1.18),planks)
+    for z in (.7,1.62):
+        box(.114,.027,.051,(-.23,-.505,z),iron)
+    cyl(.035,.054,(.224,-.52,1.153),brass,(90,0,0),seg=10)
     cyl(.16, .3, (.62, .1, .05), mat(40, 38, 36, metal=.7), seg=12, top=.22)
     box(.3, .02, .2, (0, -.47, 2.0), mat(220, 210, 180, grime=.6))
     return 2.1, 3.0

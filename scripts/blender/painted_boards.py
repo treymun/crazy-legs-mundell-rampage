@@ -105,6 +105,13 @@ def line_sign():
         box(width * .86, .03, .06, (0, thick / 2 + .019, z), steel)
         for x in (-width * .36, width * .36):
             cyl(.018, .02, (x, thick / 2 + .04, z), mat(*CHROME, metal=.8, grime=.5), (90, 0, 0), seg=8)
+    for x in (-width * .34, width * .34):
+        box(.046, .025, height * .86, (x, thick / 2 + .036, height / 2), steel)
+        for z in (.128, height - .13):
+            cyl(.012, .011, (x, -thick / 2 - .011, z), steel, (90, 0, 0), seg=6)
+    for side in (-1, 1):
+        box(width * .982, .022, .013, (0, -.002, height / 2 + side * .425), green)
+        box(.013, .022, .832, (side * (width / 2 - .005), -.002, height / 2), green)
     return width + .2, height + .1
 
 

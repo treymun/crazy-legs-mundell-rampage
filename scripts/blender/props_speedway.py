@@ -329,7 +329,18 @@ def car_crusher():
     for x in (-.75, .75):
         cyl(.07, .5, (x, 0, 1.95), chrome, seg=10)
         cyl(.15, .5, (x, 0, 2.45), steel, seg=12)
-    box(2.5, 1.5, .26, (0, 0, 1.82), yellow)
+    box(2.5, 1.5, .25, (0, 0, 1.82), yellow)
+    for y in (-.758, .758):
+        for x in (-1.05, -.68, -.30, .30, .68, 1.05):
+            cyl(.028, .021, (x, y, 1.922), steel, (90, 0, 0), seg=6)
+        for x in (-1.1, 1.1):
+            beam((x, y*.88, 1.18), (.7*x, y*.88, 1.67), .073, steel)
+        box(2.40, .045, .043, (0, y, 1.642), steel)
+    for x in (-.75, .75):
+        cyl(.174, .031, (x, 0, 2.63), dark_yellow, seg=16)
+        for angle in (0, 90, 180, 270):
+            a = math.radians(angle)
+            cyl(.018, .025, (x + .144*math.cos(a), .144*math.sin(a), 2.65), chrome, seg=6)
     for k in range(10):
         box(.25, .02, .2, (-1.12 + k * .25, -.76, 1.82), mat(24, 22, 20) if k % 2 else yellow)
     box(.7, .6, .6, (-1.5, .4, .45), mat(70, 92, 66, metal=.3, grime=.7))
@@ -418,7 +429,11 @@ def tire_pile():
 
 def hubcap_board():
     tin = mat(120, 118, 110, metal=.4, rough=.6, grime=.8)
-    box(1.8, .05, 1.0, (0, 0, .5), tin)
+    for x in (-.60, 0, .60):
+        box(.593, .048, 1.0, (x, 0, .5), tin)
+        box(.024, .017, .982, (x + .285, -.027, .50), mat(88, 69, 51, metal=.53, grime=.65))
+    for x in (-.82, .82):
+        box(.08, .073, 1.018, (x, .014, .51), mat(*WOOD, planks=5, grime=.64))
     for z in (.02, .98):
         box(1.82, .06, .04, (0, 0, z), mat(*WOOD, grime=.6))
     caps = [(-.68, .74, .15), (-.3, .76, .13), (.08, .72, .16), (.48, .75, .14), (.78, .7, .1),
@@ -429,6 +444,11 @@ def hubcap_board():
         cyl(r, .03, (x, -.04, z), face, (90, 0, 0), seg=18)
         cyl(r * .45, .04, (x, -.05, z), mat(150, 150, 150, metal=.8, rough=.3, grime=.3), (90, 0, 0), seg=12)
         ball(.012, (x, -.07, z), mat(20, 20, 20))
+        for spoke in range(5 if k % 2 == 0 else 4):
+            a = spoke * math.tau / (5 if k % 2 == 0 else 4)
+            beam((x + .41*r*math.cos(a), -.056, z + .41*r*math.sin(a)),
+                 (x + .88*r*math.cos(a), -.057, z + .88*r*math.sin(a)),
+                 .017, mat(82, 78, 68, metal=.54, grime=.62))
     for k in range(5):
         ball(.08, (-.8 + k * .4, -.03, .1 + (k % 2) * .8), mat(*RUST, grime=.7), (1.4, .1, .8))
     return 1.9, 1.05
@@ -519,9 +539,18 @@ def pa_horns():
     for x, z, d in [(-.42, 3.12, (0, 1, 0)), (.42, 3.12, (0, 1, 0)), (-.2, 2.78, (-1, .8, 0)), (.2, 2.78, (1, .8, 0))]:
         v = Vector((d[0] * .4, -1, -.15)).normalized()
         rot = [math.degrees(a) for a in v.to_track_quat("Z", "Y").to_euler()]
-        cyl(.06, .44, Vector((x, 0, z)) + v * .2, grey, rot, seg=14, top=.22)
-        cyl(.08, .14, Vector((x, 0, z)) - v * .05, mat(60, 62, 60, metal=.5), rot, seg=10)
-        cyl(.19, .012, Vector((x, 0, z)) + v * .425, mat(26, 26, 28, grime=0), rot, seg=14)
+        socket = Vector((x, 0, z))
+        bell = bmesh.new()
+        bmesh.ops.create_cone(bell, cap_ends=False, segments=12, radius1=.07, radius2=.212, depth=.405)
+        place(bell, grey, socket + v*.191, rot)
+        inner = mat(114, 106, 87, metal=.39, grime=.51)
+        inside = bmesh.new()
+        bmesh.ops.create_cone(inside, cap_ends=False, segments=12, radius1=.048,radius2=.202,depth=.394)
+        bmesh.ops.reverse_faces(inside, faces=list(inside.faces))
+        place(inside, inner, socket + v*.198, rot)
+        cyl(.084,.14,socket-v*.049,mat(63,61,54,metal=.56,grime=.53),rot,seg=10)
+        _hoop(socket + v*.393,.209,grey,rot,t=.016,n=12)
+        beam((x,0,z-.09),(x,.076,z-.24),.038,wood)
     beam((0, -.08, 2.9), (0, -.08, .2), .02, mat(20, 20, 20))
     box(.18, .12, .24, (0, -.1, 1.4), mat(110, 110, 104, metal=.4, grime=.6))
     return 1.3, 3.5

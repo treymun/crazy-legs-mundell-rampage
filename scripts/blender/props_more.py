@@ -152,11 +152,19 @@ def carousel_horse():
 
 
 def cotton_candy():
-    cart = mat(230, 120, 170, rough=.4, grime=.4)
-    box(1.0, .6, .8, (0, 0, .6), cart)
+    cart = mat(62, 106, 98, metal=.38, rough=.55, grime=.61)
+    rim = mat(163, 76, 58, metal=.29, rough=.53, grime=.5)
+    box(1.0, .6, .65, (0, 0, .602), cart)
+    for x in (-.477, .477):
+        box(.036, .613, .68, (x, 0, .602), rim)
+    box(1.055, .645, .081, (0, 0, .937), mat(179, 151, 109, planks=4, grime=.57))
+    for x in (-.38,-.19,0,.19,.38):
+        box(.019, .016, .529, (x, -.302, .590), rim)
     for x in (.35, -.35):
         wheel(.2, .06, (x, .32, .2), mat(220, 220, 220, metal=.5), (90, 0, 0))
-    cyl(.26, .2, (0, 0, 1.1), mat(*CHROME, metal=.8), seg=20)
+    cyl(.267, .17, (0, 0, 1.052), rim, seg=20, top=.288)
+    _hoop((0, 0, 1.141), .284, mat(*CHROME, metal=.8, grime=.57), t=.024, n=22)
+    cyl(.248, .013, (0, 0, 1.115), mat(102, 66, 52, metal=.3, grime=.6), seg=20)
     fluff = [(255, 160, 220), (140, 200, 255), (255, 140, 220), (160, 220, 255)]
     for k in range(4):
         cyl(.012, .4, (-.3 + k * .2, -.2, 1.25), mat(220, 220, 210), seg=4)
@@ -295,9 +303,20 @@ def saw_blade():
     for k in range(24):
         a = k / 24 * math.tau
         box(.12, .05, .12, (math.cos(a) * 1.02, 0, 1.2 + math.sin(a) * 1.02), steel, (0, -math.degrees(a) + 45, 0))
-    cyl(.15, .1, (0, 0, 1.2), mat(60, 60, 60, metal=.6), (90, 0, 0), seg=12)
-    box(.3, .3, 1.2, (0, .2, .6), mat(70, 74, 70, metal=.5, grime=.6))
-    box(1.6, .5, .2, (0, .2, .1), mat(70, 74, 70, metal=.5, grime=.6))
+    dome = mat(78, 83, 74, metal=.62, grime=.76)
+    dull = mat(111, 95, 76, metal=.68, rough=.58, grime=.72)
+    cyl(.234, .045, (0, -.026, 1.2), dull, (90, 0, 0), seg=18)
+    cyl(.127, .12, (0, -.044, 1.2), dome, (90, 0, 0), seg=14)
+    for k in range(6):
+        a = k * math.tau / 6
+        cyl(.023, .012, (.178 * math.cos(a), -.053, 1.2 + .178 * math.sin(a)), steel,
+            (90, 0, 0), seg=6)
+    for radius in (.62, .77, .89):
+        _hoop((0, -.022, 1.2), radius, dull, (90, 0, 0), .009, 28)
+    for x in (-.66, .66):
+        box(.32, .5, .105, (x, .26, .053), dome)
+        beam((x, .32, .12), (0, .32, 1.19), .116, dome, .152)
+    box(1.61, .12, .095, (0, .27, .31), mat(143, 78, 44, metal=.36, grime=.73))
     return 2.2, 2.3
 
 
@@ -320,11 +339,37 @@ def forklift():
 
 
 def sawdust_pile():
-    bm = bmesh.new()
-    bmesh.ops.create_cone(bm, cap_ends=True, segments=24, radius1=1.0, radius2=.15, depth=.8)
-    place(bm, mat(206, 168, 112, rough=1.0, grime=.25), (0, 0, .4), (0, 0, 0))
-    box(.05, .05, .8, (.6, -.3, .5), mat(*WOOD), (0, 30, 0))
-    box(.25, .02, .3, (.75, -.3, .25), mat(150, 150, 150, metal=.7), (0, 30, 0))
+    dust = mat(178, 137, 87, rough=1.0, grime=.48)
+    ring_count = 24
+    rings = ((1.0, .0), (.88, .123), (.62, .305), (.31, .515), (.096, .634))
+    mesh = bmesh.new()
+    rows = []
+    for radius, z in rings:
+        row = []
+        for k in range(ring_count):
+            a = k * math.tau / ring_count
+            bump = 1 + .085 * math.sin(3 * a + .6) + .05 * math.cos(7 * a)
+            row.append(mesh.verts.new((radius * bump * math.cos(a),
+                                      .84 * radius * bump * math.sin(a),
+                                      max(0, z + .028 * z * math.sin(9 * a)))))
+        rows.append(row)
+    mesh.faces.new(tuple(reversed(rows[0])))
+    mesh.faces.new(rows[-1])
+    for below, above in zip(rows, rows[1:]):
+        for k in range(ring_count):
+            other = (k + 1) % ring_count
+            mesh.faces.new((below[k], below[other], above[other], above[k]))
+    place(mesh, dust, (0, 0, 0), (0, 0, 0))
+    for k in range(14):
+        a = k * 2.399
+        r = .80 + .16 * math.sin(4.7 * k)
+        box(.076 + .017 * (k % 3), .028, .023, (r * math.cos(a), .76 * r * math.sin(a), .035),
+            mat(136, 93, 51, planks=4, grime=.45), (0, k * 19, k * 38))
+    handle = mat(121, 82, 50, planks=4, grime=.61)
+    steel = mat(111, 111, 100, metal=.62, grime=.59)
+    beam((.67, -.298, .22), (.36, -.298, .83), .039, handle)
+    box(.21, .031, .25, (.712, -.297, .193), steel, (0, -24, 0))
+    box(.155, .034, .041, (.332, -.296, .828), steel, (0, -26, 0))
     return 2.2, 1.0
 
 
@@ -541,6 +586,20 @@ def headrig():
     beam((1.6, .15, .82), (1.75, -.02, 1.6), .06, mat(40, 40, 40, metal=.6))
     ball(.07, (1.75, -.02, 1.63), red)
     cyl(.2, .06, (1.85, .28, 1.12), steel, (90, 0, 0), seg=16)
+    from math import cos, sin, tau
+    for x in (-1.655, 1.655):
+        for radius in (.12, .21, .29, .354):
+            _hoop((x, -.06, 1.0), radius, mat(118, 80, 48, grime=.48),
+                  (0, 90, 0), .016, 16)
+    for x in (-1.5, -.91, -.31, .27, .9, 1.47):
+        for y in (-.422, .421):
+            cyl(.036, .02, (x, y, .085), steel, seg=6)
+    for y in (-.436, .436):
+        box(2.61, .025, .051, (0, y, .556), mat(139, 109, 56, metal=.31, grime=.67))
+    for k in range(8):
+        a = k * tau / 8
+        cyl(.016, .016, (1.85 + .158*cos(a), .241, 1.12 + .158*sin(a)), rust,
+            (90, 0, 0), seg=6)
     return 4.1, 2.1
 
 
@@ -572,6 +631,18 @@ def belt_conveyor():
         cyl(r - .02, .01, (x, -.285, at(x, .1 + r)), mat(*SAWN, grime=.3), (90, 0, 0), seg=12)
     for k in range(7):
         rock(.08, (-1.95 + (k % 4) * .14, -.15 + (k // 4) * .2, .52), (150, 112, 72), (1.4, 1, .6), (k * 30, 0, k * 40))
+    cleat = mat(92, 85, 66, metal=.53, grime=.68)
+    for k in range(18):
+        x = -1.53 + k * .181
+        box(.025, .493, .029, (x, 0, at(x, .112)), cleat, (0, slope, 0))
+    for y in (-.296, .296):
+        for x in (-1.27, -.02, 1.24):
+            foot = (x, y, .064)
+            upper = (min(1.62, x + .41), y, at(x, -.14))
+            beam(foot, upper, .05, cleat)
+            box(.138, .14, .023, foot, iron)
+    for k in range(4):
+        box(.235, .026, .028, (1.445, -.637, at(1.45, -.305 + .065 * k)), cleat)
     return 4.2, 2.0
 
 
@@ -877,7 +948,15 @@ def shop_lamp():
         box(.02, .16, .09, (x, 0, .12), shell)
         cyl(.034, .03, (x * .93, 0, .074), mat(40, 36, 34, metal=.5, rough=.4), (0, 90, 0), seg=12)
     # The tube: lit, a warm cream (its glow is the pale band in the picture).
-    cyl(.026, .63, (0, 0, .074), mat(250, 236, 206, rough=.3, emit=4.0, grime=0.), (0, 90, 0), seg=14)
+    ceramic = mat(237, 213, 175, rough=.3, emit=3.3, grime=.1)
+    for y in (-.034, .034):
+        cyl(.015, .62, (0, y, .073), ceramic, (0, 90, 0), seg=10)
+        for x in (-.329, .329):
+            cyl(.021, .051, (x, y, .074), shell, (0, 90, 0), seg=10)
+    for x in (-.27, -.09, .09, .27):
+        beam((x, -.088, .119), (x, -.051, .032), .009, shell)
+        beam((x, -.051, .032), (x, .051, .032), .009, shell)
+        beam((x, .051, .032), (x, .088, .119), .009, shell)
     wire = mat(*CHROME, metal=.8, rough=.35, grime=.5)
     for x in (-.26, .26):
         box(.01, .01, .075, (x, 0, .21), wire)
