@@ -14,6 +14,7 @@ extends Node3D
 var material: ShaderMaterial
 
 var _meshes: Array[MeshInstance3D] = []
+var _rotor: Node3D
 var _turn := 0.0
 var _lean := 0.0
 var _size := 1.0
@@ -24,12 +25,19 @@ var _lit_cell := -1
 ## Give every part of the model `material`; the prop shows to `reach` cells.
 func setup(p_material: ShaderMaterial, reach: float) -> void:
 	material = p_material
+	_rotor = get_node_or_null("Rotor") as Node3D
 	for child in find_children("*", "MeshInstance3D", true, false):
 		var mesh := child as MeshInstance3D
 		OwnMaterial.give(mesh, material)
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mesh.visibility_range_end = reach
 		_meshes.append(mesh)
+
+
+## Turn a windmill's wheel about its axle, at a phase set by the game clock.
+func spin_rotor(clock: float) -> void:
+	if _rotor != null:
+		_rotor.rotation.z = fposmod(clock * 1.9, TAU)
 
 
 ## The model's parts (what shots and fire mark: thing_marks.gd).

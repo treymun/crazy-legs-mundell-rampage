@@ -391,12 +391,16 @@ func _init(assets: Assets) -> void:
 ## Made now, at the level's first frame, behind the chapter's opener or the
 ## load.
 func _warm_models(game: Game) -> void:
-	props.warm(game.level)
 	var items: Array[String] = []
+	var pickup_models: Array[String] = []
 	for entry: Array in game.pickups:
 		var item := "item_" + str(entry[0])
-		if not item in items:
+		var model := props.models.name_of(item)
+		if model != "" and not model in pickup_models:
+			pickup_models.append(model)
+		elif model == "" and not item in items:
 			items.append(item)
+	props.warm(game.level, pickup_models)
 	slabs.warm(items)
 	actors.warm(_warm_actor_kinds(game))
 	var rides: VehiclesFeature = game.features.get("vehicles")
@@ -769,7 +773,8 @@ func frame(game: Game) -> void:
 	var t1 := Time.get_ticks_usec()
 	_shadows.collect(game, acting, modelled, wrecked, Vector3(x, y, z), props.models)
 	var t2 := Time.get_ticks_usec()
-	props.show_props(modelled, level, Vector3(x, y, z))
+	var prop_clock: float = game.clock * [1.0, .4, 0.0][clampi(r.world_motion, 0, 2)]
+	props.show_props(modelled, level, Vector3(x, y, z), prop_clock)
 	var t3 := Time.get_ticks_usec()
 	wrecks.show_wrecks(wrecked, level)
 	var t4 := Time.get_ticks_usec()

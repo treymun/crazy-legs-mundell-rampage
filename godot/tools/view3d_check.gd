@@ -63,6 +63,8 @@ func _init() -> void:
 	for art_name: String in assets.art_index:
 		if art_name.begins_with("town_quest_") and models.name_of(art_name) == "":
 			_fail("quest station %s: no model (tools/art/build_prop_meshes.gd)" % art_name)
+		elif art_name.begins_with("item_") and models.name_of(art_name) == "":
+			_fail("pickup %s: no authored 3D scene" % art_name)
 	print("%d triangles in %d levels, %d prop models" % [total, ids.size(), models.sizes.size()])
 	var actors := ActorModels.new(assets)
 	for kind: String in actors.kinds:

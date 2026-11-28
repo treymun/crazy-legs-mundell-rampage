@@ -39,7 +39,8 @@ const STEP := 1.0 / 60.0
 ## first download: its opener plays before any chapter pack can arrive).
 ## Lowered to 75 in pass 9: 71.8 with the lighter copy's WebP pictures and
 ## Vorbis lines and the chapters' ambience in their packs (86.5 before).
-const FIRST_BUDGET_MB := 75.0
+## The prop remaster lifts the web startup cap to 90 MB.
+const FIRST_BUDGET_MB := 90.0
 const PACK_BUDGET_MB := 20.0
 const WEB_PRESETS := ["Web", "Web Lite"]
 const LIGHT_PRESETS := ["Web", "Web Lite", "Android"]

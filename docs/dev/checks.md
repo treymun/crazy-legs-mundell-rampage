@@ -863,7 +863,7 @@ draws on the CPU); the load is quicker by the bytes.
   amb_bayou..., amb_ridge, amb_mothership) come with that chapter's pack.
 - **The check.** `tools/pack_check.gd` (above); CI's browser job runs it on
   the export with `lite build=build/web`. Budgets: the first download's
-  packed files 75 MB (71.8 at pass 9; 87 before it), a chapter pack 20 MB
+  packed files 90 MB, a chapter pack 20 MB
   (16.4).
 - **Not cut:** the sound effects other than the spoken lines stay QOA (short
   cues, loops that must meet their start); the models' imported scenes

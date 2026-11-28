@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets3d/props/farm_windmill.glb" id="2"]
+[ext_resource type="PackedScene" path="res://assets3d/props/farm_windmill_rotor.glb" id="3"]
+
+[node name="FarmWindmill" type="Node3D"]
+script = ExtResource("1")
+prop = "farm_windmill"
+
+[node name="Tower" type="Node3D" parent="." instance=ExtResource("2")]
+
+[node name="Rotor" type="Node3D" parent="."]
+position = Vector3(0, 3.65, 0.43)
+
+[node name="Wheel" type="Node3D" parent="Rotor" instance=ExtResource("3")]

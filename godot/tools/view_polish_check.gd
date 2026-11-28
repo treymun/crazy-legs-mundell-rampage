@@ -22,6 +22,7 @@ static func run(main, check: Callable) -> void:
 	print("VIEW POLISH (shadows, marks on props, the storm wall)")
 	_shadows(main, check)
 	_marks(main, check)
+	_windmill(main, check)
 	_storm(main, check)
 
 
@@ -156,6 +157,29 @@ static func _marks(main, check: Callable) -> void:
 	g.bullet_marks = true
 	layer.queue_free()
 	wrecks.queue_free()
+
+
+static func _windmill(main, check: Callable) -> void:
+	var g: Game = main.game
+	var layer := PropLayer3D.new(PropModels.new(g.art))
+	main.add_child(layer)
+	var s := View.Sprite.new(30.5, 30.5, "prop_windmill_0", 4.65, 0.0)
+	layer.show_props([s], g.level)
+	if layer.shown().is_empty():
+		check.call(false, "the windmill renders as a model")
+		layer.queue_free()
+		return
+	var node: PropView = layer.shown()[0]
+	var rotor := node.get_node_or_null("Rotor") as Node3D
+	s.image = "prop_windmill_1"
+	layer.show_props([s], g.level, Vector3.INF, .25)
+	check.call(
+		layer.shown()[0] == node and rotor != null and absf(rotor.rotation.z - .475) < .001,
+		"the same windmill spins a separate wheel as its sprite frame changes"
+	)
+	layer.show_props([s], g.level)
+	check.call(rotor != null and absf(rotor.rotation.z) < .001, "STILL stops the wheel")
+	layer.queue_free()
 
 
 static func _marks_of(node: PropView) -> PackedVector4Array:

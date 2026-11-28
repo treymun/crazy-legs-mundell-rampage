@@ -72,9 +72,13 @@ func materials() -> Array[ShaderMaterial]:
 ## comes into view: the first of a model cost 5 to 7 ms there (its scene's
 ## first instance, its texture), and a turn towards a yard of them over
 ## 0.1 s (tools/hitch_bench.gd). Returns the materials made.
-func warm(level: LevelData) -> Array[ShaderMaterial]:
+func warm(level: LevelData, extra: Array[String] = []) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
-	for name in level_models(level):
+	var wanted := level_models(level)
+	for name in extra:
+		if not name in wanted:
+			wanted.append(name)
+	for name in wanted:
 		var packed := models.scene(name)
 		if packed == null:
 			continue
@@ -110,10 +114,14 @@ func level_models(level: LevelData) -> Array[String]:
 	var pictures: Array[String] = []
 	for board: LevelData.Billboard in level.billboards:
 		pictures.append(board.image)
+		if board.signal_name != "":
+			pictures.append(board.image + "_on")
+			pictures.append(board.image + "_off")
 	for spec: Array in level.props:
 		var row: Array = spec
 		if not row.is_empty():
-			pictures.append("prop_" + str(row[0]))
+			var kind := str(row[0])
+			pictures.append("prop_" + kind + ("_0" if kind == "windmill" else ""))
 	var out: Array[String] = []
 	for picture in pictures:
 		var name := models.name_of(picture)
@@ -124,7 +132,9 @@ func level_models(level: LevelData) -> Array[String]:
 
 ## Show these sprites (each with a mesh) and nothing else. Returns the
 ## materials made this frame (the view hands them its shader numbers).
-func show_props(sprites: Array, level: LevelData, eye := Vector3.INF) -> Array[ShaderMaterial]:
+func show_props(
+	sprites: Array, level: LevelData, eye := Vector3.INF, motion_clock := 0.0
+) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
 	made.clear()
 	if level != _level:
@@ -153,7 +163,9 @@ func show_props(sprites: Array, level: LevelData, eye := Vector3.INF) -> Array[S
 		elif s.track != "":
 			key = [s.image, s.track]
 		else:
-			key = [s.image, Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))]
+			# The three sprite frames all belong to one rotating 3D windmill.
+			var picture := name if name == "farm_windmill" else s.image
+			key = [picture, Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))]
 		seen[key] = true
 		var node: PropView = _shown.get(key)
 		if node == null:
@@ -199,11 +211,16 @@ func show_props(sprites: Array, level: LevelData, eye := Vector3.INF) -> Array[S
 				node.tumble(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn), level, size, tall)
 				continue
 		if s.track != "":
-			node.carry(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn))
+			var turn := SolidLayer3D.godot_basis(s.turn)
+			if s.image.begins_with("item_"):
+				var angle := fposmod(motion_clock * SlabLayer3D.TURN + s.x * 1.7 + s.y * 2.3, TAU)
+				turn = Basis(Vector3.UP, angle) * turn
+			node.carry(s.x, s.y, s.z, turn)
 			if s.body:
 				# A vehicle on the move is lit where it is (features/vehicles.gd).
 				node.relight(s.x, s.y, level)
 			continue
+		node.spin_rotor(motion_clock)
 		node.lean(s.tilt)
 	var gone: Array = []
 	for key: Array in _shown.keys():

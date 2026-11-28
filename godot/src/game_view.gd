@@ -59,7 +59,12 @@ func _list_fixed() -> void:
 		if board.signal_name != "":
 			spr.face = _station_face(board)
 		sprites.append(spr)
-		if board.back != "":
+		# The arrow has both panels and the strand has bulbs on all sides.
+		var two_sided := (
+			(board.image == "hub_road_stake" and board.back == "hub_road_stake_back")
+			or (board.image == "fair_bulbs" and board.back in ["fair_bulbs_on", "fair_bulbs_off"])
+		)
+		if board.back != "" and not two_sided:
 			var back := View.Sprite.new(board.x, board.y, board.back, board.height, z)
 			back.plane = board.plane + PI
 			sprites.append(back)
@@ -395,9 +400,8 @@ func sprites() -> Array:
 		var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
 		var item := str(entry[0])
 		var pickup := pooled(x, y, "item_" + item, .33, lies + hover)
-		if item.begins_with("key_"):
-			# The model follows the hover through the same node each frame.
-			pickup.track = "key:%s:%s" % [x, y]
+		# An authored pickup follows its hover through the same node each frame.
+		pickup.track = "pickup:%s:%s" % [x, y]
 		sprites.append(pickup)
 		PickupLooks.glint(self, entry, x, y, lies + hover + .24, player, sprites)
 	for shot: Shot in shots:
