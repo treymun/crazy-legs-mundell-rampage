@@ -322,7 +322,7 @@ jobs:
           set -euo pipefail
           umask 077
           keystore="$RUNNER_TEMP/release.keystore"
-          if [ "$RELEASE_TAG" = "true" ]; then
+          if [ "$RELEASE_TAG" = "true" ] || [ -n "$EXPECTED_CERT" ]; then
             if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_USER" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
               echo "::error::Set all three ANDROID_KEYSTORE_* secrets before building an Android release."
               exit 1
@@ -399,13 +399,14 @@ jobs:
             echo "::error::The APK's version code ($code) is below 3.11.0's (3110099): phones would refuse it as an update (a downgrade)."
             exit 1
           fi
-          if [ "$RELEASE_TAG" = "true" ]; then
+          if [ "$RELEASE_TAG" = "true" ] || [ -n "$EXPECTED_CERT" ]; then
             actual=$(sed -n 's/^Signer #[0-9][0-9]* certificate SHA-256 digest: //p' certs.txt)
             expected=${EXPECTED_CERT//:/}
             if [ "${actual,,}" != "${expected,,}" ] || grep -q 'Crazy Legs Mundell Rampage CI' certs.txt; then
               echo "::error::The APK does not use the configured lasting signing certificate."
               exit 1
             fi
+            echo "::notice::Android APK signature matches the configured permanent certificate."
           fi
           # The in-game update (src/update_notice.gd): leave to open the
           # package installer, the updater plugin Godot finds by its

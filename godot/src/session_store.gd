@@ -501,18 +501,16 @@ static func _stage_and_replace(path: String, bytes: PackedByteArray) -> bool:
 
 
 static func _replace_staged(temporary: String, path: String, windows: bool) -> bool:
-	if not windows:
-		return DirAccess.rename_absolute(temporary, path) == OK
+	var backup := path + BACKUP_SUFFIX
 	# Godot's Windows rename removes an existing destination before moving.
 	# Keep the old file at a readable path until the new name is committed.
-	var backup := path + BACKUP_SUFFIX
-	if FileAccess.file_exists(path):
+	if windows and FileAccess.file_exists(path):
 		if FileAccess.file_exists(backup) and DirAccess.remove_absolute(backup) != OK:
 			return false
 		if DirAccess.rename_absolute(path, backup) != OK:
 			return false
 	if DirAccess.rename_absolute(temporary, path) != OK:
-		if not FileAccess.file_exists(path) and FileAccess.file_exists(backup):
+		if windows and not FileAccess.file_exists(path) and FileAccess.file_exists(backup):
 			DirAccess.rename_absolute(backup, path)
 		return false
 	if FileAccess.file_exists(backup):
