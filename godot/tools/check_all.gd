@@ -125,11 +125,9 @@ const CHECKS := [
 	["kit_check", "KIT CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
-## Rows that measure timing (net_lag's limits on hits that looked like hits,
-## stalls, rubber band; net_pace's on snapshot gaps, net_feel's on frames): they run last, one at
-## a time, with nothing beside them. Beside another check on a 4-core runner
-## net_lag went over its 12% limit.
-const ALONE := ["net_lag", "net_pace", "net_feel"]
+## Timing checks run last and alone. Other checks can distort the network
+## timings and make the stress benchmark exceed its tick budget.
+const ALONE := ["net_lag", "net_pace", "net_feel", "stress_bench"]
 const QUICK := [
 	"audit_regression",
 	"check_shader",
