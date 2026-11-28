@@ -13,14 +13,13 @@ static func pairs(phys: WreckPhysics, live: Array, contacts: Array) -> void:
 	var grid := phys.grid
 	var clock := phys.clock
 	var count := bodies.size()
-	for i in count:
-		var o: WreckPhysics.Body = bodies[i]
-		o.order = i
 	var gridded := count > WreckPhysics.GRID_FROM
 	if gridded:
 		grid.clear(count)
-		for i in count:
-			var o: WreckPhysics.Body = bodies[i]
+	for i in count:
+		var o: WreckPhysics.Body = bodies[i]
+		o.order = i
+		if gridded:
 			grid.add(i, o.p.x, o.p.y, o.reach)
 	for a: WreckPhysics.Body in live:
 		# _pair_up's tests asked here, before the call (most pairs fail one):
@@ -36,7 +35,7 @@ static func pairs(phys: WreckPhysics, live: Array, contacts: Array) -> void:
 			near.sort()
 			for i in near:
 				var o: WreckPhysics.Body = bodies[i]
-				if o == a or (o.awake and o.order < order):
+				if i == order or (i < order and o.awake):
 					continue
 				if group == o.group and (young or clock - o.born < WreckPhysics.APART):
 					continue
@@ -84,31 +83,33 @@ static func leasts(a: WreckPhysics.Body, o: WreckPhysics.Body, stamp: int, out: 
 	var b0 := tb.x
 	var b1 := tb.y
 	var b2 := tb.z
-	a.own_extents(stamp)
-	o.own_extents(stamp)
+	if a.ex_step != stamp:
+		a.own_extents(stamp)
 	var d := a.p - o.p
 	# m_ij: a's axis i on o's axis j (o.extent along a's axes, a's along o's).
 	var m00 := absf(a0.dot(b0))
 	var m01 := absf(a0.dot(b1))
 	var m02 := absf(a0.dot(b2))
-	var m10 := absf(a1.dot(b0))
-	var m11 := absf(a1.dot(b1))
-	var m12 := absf(a1.dot(b2))
-	var m20 := absf(a2.dot(b0))
-	var m21 := absf(a2.dot(b1))
-	var m22 := absf(a2.dot(b2))
 	var along0 := d.dot(a0)
 	var over0 := a.ex0 + (hb.x * m00 + hb.y * m01 + hb.z * m02) - absf(along0)
 	if over0 <= 0.0:
 		return false
+	var m10 := absf(a1.dot(b0))
+	var m11 := absf(a1.dot(b1))
+	var m12 := absf(a1.dot(b2))
 	var along1 := d.dot(a1)
 	var over1 := a.ex1 + (hb.x * m10 + hb.y * m11 + hb.z * m12) - absf(along1)
 	if over1 <= 0.0:
 		return false
+	var m20 := absf(a2.dot(b0))
+	var m21 := absf(a2.dot(b1))
+	var m22 := absf(a2.dot(b2))
 	var along2 := d.dot(a2)
 	var over2 := a.ex2 + (hb.x * m20 + hb.y * m21 + hb.z * m22) - absf(along2)
 	if over2 <= 0.0:
 		return false
+	if o.ex_step != stamp:
+		o.own_extents(stamp)
 	var along3 := d.dot(b0)
 	var over3 := (ha.x * m00 + ha.y * m10 + ha.z * m20) + o.ex0 - absf(along3)
 	if over3 <= 0.0:

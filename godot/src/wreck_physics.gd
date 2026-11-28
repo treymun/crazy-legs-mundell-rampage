@@ -213,6 +213,10 @@ class Body:
 	var ex_step := -1
 	var rp := PackedVector3Array()
 	var rp_step := -1
+	var re := PackedVector3Array()
+	var re_step := -1
+	## The orientation used for its inertia on the last physics step.
+	var stepped_q := Quaternion(0, 0, 0, 0)
 
 	## ex0..ex2 for step `stamp` (its turn is fixed through a step): the same
 	## sums extent() makes, once a step instead of once a pair.
@@ -236,6 +240,15 @@ class Body:
 			for i in points.size():
 				rp[i] = turn * points[i]
 		return rp
+
+	## Pairs touching along their edges share the same transformed edge points.
+	func rotated_edges(stamp: int) -> PackedVector3Array:
+		if re_step != stamp or re.size() != edges.size():
+			re_step = stamp
+			re.resize(edges.size())
+			for i in edges.size():
+				re[i] = turn * edges[i]
+		return re
 
 	func wake() -> void:
 		if not awake:
@@ -444,7 +457,10 @@ func _step(h: float) -> void:
 	stamp += 1
 	_pool.reset()
 	for b: Body in bodies:
-		b.turned()
+		# A resting piece's inertia is the same until its orientation changes.
+		if b.awake or b.q != b.stepped_q:
+			b.turned()
+			b.stepped_q = b.q
 		if b.awake and b.slept:
 			# Woken since it last stepped: whatever lay on it wakes too, and
 			# whatever leaned on it.
@@ -789,6 +805,9 @@ func _world_contacts(b: Body, h: float, out: Array) -> void:
 	var bounce := b.bounce
 	var grounded := b.grounded
 	if not is_nan(open):
+		# Its whole bounding sphere is above the plain ground's contact margin.
+		if bp.z - open > b.reach + margin + .001:
+			return
 		for r: Vector3 in b.rotated(stamp):
 			var depth := open - (bp.z + r.z)
 			if depth > -margin:
@@ -959,20 +978,23 @@ func _near_dolls() -> void:
 ## A piece against a ragdoll's balls (held still: the body lies, the piece
 ## comes to rest on it or glances off).
 func _doll_contacts(b: Body, out: Array) -> void:
+	var at_body := b.p
+	var body_reach := b.reach
 	for row: Array in _dolls:
 		var mid: Vector3 = row[1]
-		var reach: float = row[2] + b.reach
+		var reach: float = row[2] + body_reach
 		if (
-			absf(mid.x - b.p.x) > reach
-			or absf(mid.y - b.p.y) > reach
-			or absf(mid.z - b.p.z) > reach
+			absf(mid.x - at_body.x) > reach
+			or absf(mid.y - at_body.y) > reach
+			or absf(mid.z - at_body.z) > reach
 		):
 			continue
 		var doll: Ragdoll = row[0]
 		for i in doll.pos.size():
 			var ball := doll.pos[i]
 			var r := doll.radius[i]
-			if ball.distance_squared_to(b.p) > (b.reach + r) * (b.reach + r):
+			var sum_reach := body_reach + r
+			if ball.distance_squared_to(at_body) > sum_reach * sum_reach:
 				continue
 			var push := b.ball_out(ball, r)
 			var deep := push.length()
@@ -1004,11 +1026,7 @@ func pair_with(a: Body, o: Body, least: Vector3, out: Array) -> void:
 	var found := _pair_points(a, o, least, a.rotated(stamp), out)
 	# Lying face to face (one on the other): by its edges' middles too.
 	if found == 0 and absf(least.z) > PROP_N * least.length():
-		var edges := PackedVector3Array()
-		edges.resize(a.edges.size())
-		for i in a.edges.size():
-			edges[i] = a.turn * a.edges[i]
-		_pair_points(a, o, least, edges, out)
+		_pair_points(a, o, least, a.rotated_edges(stamp), out)
 
 
 ## (`turned`: the points already turned by a's turn, a.turn * point.)
@@ -1023,6 +1041,9 @@ func _pair_points(a: Body, o: Body, least: Vector3, turned: PackedVector3Array, 
 	var op := o.p
 	var oh := o.half
 	var disc := o.round == 1
+	var edge := op.dot(n) + top
+	var limit := least.length()
+	var friction := minf(a.grip, o.grip) * (MU_BODY / MU)
 	for r: Vector3 in turned:
 		var at := ap + r
 		var l := inverse * (at - op)
@@ -1035,7 +1056,7 @@ func _pair_points(a: Body, o: Body, least: Vector3, turned: PackedVector3Array, 
 			var across := Vector2(l[(o.axis + 1) % 3], l[(o.axis + 2) % 3]).length()
 			if across > o.radius or (o.form == "ring" and across < o.radius * RING_HOLE):
 				continue
-		var deep := minf(op.dot(n) + top - at.dot(n), least.length())
+		var deep := minf(edge - at.dot(n), limit)
 		if deep <= 0.0:
 			continue
 		if not a.awake or not o.awake:
@@ -1053,7 +1074,7 @@ func _pair_points(a: Body, o: Body, least: Vector3, turned: PackedVector3Array, 
 		c.n = n
 		c.depth = deep
 		c.e = E_BODY
-		c.mu = minf(a.grip, o.grip) * (MU_BODY / MU)
+		c.mu = friction
 		out.append(c)
 		# Lying on another piece holds it up as the floor does (it may sleep,
 		# and wakes when that one does); against one's side, it leans on it.
