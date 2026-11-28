@@ -330,7 +330,7 @@ AB_POD_ROT = (12, -58, 0)
 
 
 def _ab_mats():
-    return (mat(*ALUMINUM, metal=.7, rough=.4, grime=.65), mat(48, 92, 64, metal=.3, rough=.5, grime=.7),
+    return (mat(*ALUMINUM, metal=.7, rough=.4, grime=.65), mat(43, 77, 73, metal=.36, rough=.56, grime=.72),
             mat(40, 40, 42, metal=.5, grime=.5))
 
 
@@ -349,6 +349,8 @@ def cab_airboat_body():
         box(3.72, .11, .026, (.35, s * .68, deck + .19), alu)
         box(.8, .07, .2, (2.56, s * .68, deck + .19), paint, (0, -16, 0))
         box(.82, .11, .026, (2.56, s * .68, deck + .3), alu, (0, -16, 0))
+        for x in (.47, .93, 1.39, 1.85):
+            cyl(.013, .014, (x, s * .678, deck + .202), dark, seg=6)
         # Cleats, a dent, scuffed paint.
         box(.13, .035, .035, (2.3, s * .6, deck + .03), dark)
         ball(.07, (1.9 - s * .3, s * .64, deck + .1), mat(30, 52, 38, grime=.3), (1.5, .3, 1.0))
@@ -468,12 +470,12 @@ CAR_GAUGE_ROT = (0, -78, 0)
 
 
 def _car_mats():
-    white = mat(204, 198, 182, metal=.25, rough=.55, grime=.9)
-    red = mat(176, 36, 30, rough=.5, grime=.5)
+    paint = mat(150, 65, 51, metal=.29, rough=.6, grime=.76)
+    cream = mat(208, 187, 140, rough=.54, grime=.61)
     dark = mat(44, 42, 42, rough=.6, grime=.3, emit=.08)
     cage = mat(156, 158, 154, metal=.7, rough=.4, grime=.4)
     vinyl = mat(104, 74, 52, rough=.8, grime=.55, emit=.12)
-    return white, red, dark, cage, vinyl
+    return paint, cream, dark, cage, vinyl
 
 
 def _car_frame():
@@ -491,19 +493,19 @@ def car_grip(side):
 
 
 def cab_car_body():
-    white, red, dark, cage, vinyl = _car_mats()
+    paint, cream, dark, cage, vinyl = _car_mats()
     hood = CAR_HOOD
     primer = mat(118, 116, 108, rough=.95, grime=.6)
     chrome = mat(*CHROME, metal=.8, rough=.3, grime=.4)
-    # The long white hood, its nose wedged down, two red stripes up it.
-    box(1.22, 1.08, .12, (1.445, 0, hood - .06), white)
-    box(.48, 1.04, .1, (2.27, 0, hood - .1), white, (0, 10, 0))
+    # The long red hood, its nose wedged down, two old cream stripes up it.
+    box(1.22, 1.08, .12, (1.445, 0, hood - .06), paint)
+    box(.48, 1.04, .1, (2.27, 0, hood - .1), paint, (0, 10, 0))
     for s in (1, -1):
-        box(1.5, .14, .012, (1.6, s * .15, hood + .003), red)
-        box(.66, .17, .06, (1.75, s * .48, hood + .02), white)
+        box(1.5, .14, .012, (1.6, s * .15, hood + .003), cream)
+        box(.66, .17, .06, (1.75, s * .48, hood + .02), paint)
         cyl(.022, .025, (2.0, s * .4, hood + .012), chrome, seg=8)
     # A scoop up the middle, a primer patch, a dent.
-    box(.42, .32, .07, (1.25, 0, hood + .035), white)
+    box(.42, .32, .07, (1.25, 0, hood + .035), paint)
     box(.025, .27, .05, (1.46, 0, hood + .035), dark)
     box(.5, .4, .01, (1.75, -.26, hood + .006), primer, (0, 0, 8))
     ball(.12, (1.9, .32, hood + .01), mat(160, 156, 146, grime=.6), (1.6, 1.0, .12))
@@ -514,7 +516,7 @@ def cab_car_body():
         ball(r, (x, y, hood - .02 - (x - 2.0) * .17), mud, (1.5, 1.1, .1))
     ball(.07, (1.1, .44, hood + .006), mat(128, 66, 36, rough=.9, grime=.5), (1.4, 1.0, .1))
     box(.12, .12, .004, (1.27, 0, hood + .072), mat(236, 232, 220, rough=.6, grime=.4))
-    box(.03, .07, .006, (1.27, 0, hood + .075), red, (0, 0, 15))
+    box(.03, .07, .006, (1.27, 0, hood + .075), cream, (0, 0, 15))
     # The cowl, the dash's top, its face with two gauges, switches, tape.
     box(.06, 1.04, .04, (.82, 0, hood + .01), dark)
     box(.14, 1.0, .03, (.75, 0, -.215), vinyl)
@@ -527,11 +529,11 @@ def cab_car_body():
     box(.12, .045, .004, (.76, .33, -.199), mat(170, 166, 156, rough=.6, grime=.3), (0, 0, 12))
     # The windscreen: A-pillars, the header, two steel bars, the roof.
     for s in (1, -1):
-        beam((.82, s * .5, hood + .01), (.45, s * .44, .16), .055, white)
+        beam((.82, s * .5, hood + .01), (.45, s * .44, .16), .055, paint)
         rod((.82, s * .14, hood + .01), (.45, s * .12, .16), .012, cage)
-        box(.95, .06, .05, (.35, s * .5, hood + .02), white)
-        box(.9, .05, .04, (.0, s * .44, .17), white)
-    box(.06, .94, .05, (.45, 0, .17), white)
+        box(.95, .06, .05, (.35, s * .5, hood + .02), paint)
+        box(.9, .05, .04, (.0, s * .44, .17), paint)
+    box(.06, .94, .05, (.45, 0, .17), paint)
     box(.86, .86, .012, (-.02, 0, .15), dark)
     # The mirror on the header, fuzzy dice hung from it.
     box(.03, .22, .065, (.47, 0, .125), dark)
@@ -563,11 +565,11 @@ def cab_car_body():
         ball(.06, (-.4, s * .17, -.12), vinyl, (1.0, 1.2, .8))
     # The back window's frame and the trunk lid and spoiler beyond it.
     white = _car_mats()[0]
-    box(.05, .86, .04, (-.75, 0, .1), white)
+    box(.05, .86, .04, (-.75, 0, .1), paint)
     for s in (1, -1):
-        beam((-.75, s * .43, .1), (-1.0, s * .45, hood + .02), .05, white)
-    box(.5, 1.0, .05, (-1.25, 0, hood - .02), white)
-    box(.06, 1.02, .16, (-1.5, 0, hood + .06), white, (0, -25, 0))
+        beam((-.75, s * .43, .1), (-1.0, s * .45, hood + .02), .05, paint)
+    box(.5, 1.0, .05, (-1.25, 0, hood - .02), paint)
+    box(.06, 1.02, .16, (-1.5, 0, hood + .06), paint, (0, -25, 0))
 
 
 def cab_car_wheel():
@@ -662,6 +664,9 @@ def cab_mower_body():
         cyl(.034, .01, (1.276, s * .15, -.585), mat(240, 226, 170, rough=.3, emit=.5), (0, 80, 0), seg=14)
     ball(.03, (1.31, 0, -.6), chrome, (1.8, .7, 1.0))
     cyl(.035, .02, (.76, .12, -.565), chrome, seg=12)
+    # Pressed ribs on the steel hood.
+    for y in (-.101, .101):
+        box(.52, .014, .008, (.987, y, -.553), paint, (0, -4, 0))
     # The grille at the front.
     box(.03, .42, .24, (1.33, 0, -.76), dark, (0, -4, 0))
     for k in range(5):

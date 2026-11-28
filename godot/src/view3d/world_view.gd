@@ -401,6 +401,16 @@ func _warm_models(game: Game) -> void:
 		elif model == "" and not item in items:
 			items.append(item)
 	props.warm(game.level, pickup_models)
+	for board: LevelData.Billboard in game.level.billboards:
+		var pictures: Array[String] = [board.image, board.back]
+		if board.signal_name != "":
+			pictures.append(board.image + "_on")
+			pictures.append(board.image + "_off")
+		for image in pictures:
+			if image != "" and not props.models.named(image):
+				var key := image + SlabModels.BOARD_SUFFIX
+				if not key in items:
+					items.append(key)
 	slabs.warm(items)
 	actors.warm(_warm_actor_kinds(game))
 	var rides: VehiclesFeature = game.features.get("vehicles")
@@ -763,7 +773,7 @@ func frame(game: Game) -> void:
 			if kind == PICTURE_MODEL:
 				modelled.append(s)
 			elif (
-				kind != SlabModels.NONE
+				(kind != SlabModels.NONE or (s.board and slabs.has_board(s.image)))
 				and not s.translucent
 				and (kind != SlabModels.PICKUP or is_nan(s.plane))
 			):

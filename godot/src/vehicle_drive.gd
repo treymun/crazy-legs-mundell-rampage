@@ -63,7 +63,6 @@ class Spec:
 	var ram_from := 2.5
 	var blade := 0.0
 	var cuts := false
-	var every := 1.0
 	## How it looks on the move (src/vehicle_feel.gd, looks only): the
 	## springs' pace and damping, the lean in a turn and the squat on the
 	## throttle (and their most), the jolts off rough floors, the rocking on
@@ -126,8 +125,9 @@ class Ride:
 	var bump_at := -9.0
 	var bump_x := 0.0
 	var bump_y := 0.0
-	## When the engine and the tyres are heard next.
+	## A timestamp kept in older ride snapshots.
 	var engine_at := 0.0
+	## When the tyres can be heard next.
 	var skid_at := 0.0
 	## The wheel's lock (-1..1) and the slide across the heading this tick;
 	## the driver's throttle (-1..1: back is reverse) this tick.

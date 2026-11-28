@@ -1,5 +1,125 @@
 {
  "cues": {
+  "ride_engine_airboat": {
+   "purpose": "A continuous positional engine loop while a vehicle is driven.",
+   "refs": [
+    "mover_sounds.gd",
+    "vehicles.cfg"
+   ],
+   "family": "loop_tool",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/ride_engine_airboat.mp3",
+   "prompt": "Old aluminum airboat piston engine and rear propeller, steady dry cockpit sound without water.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/ride_engine_airboat.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "loop_tool",
+    "highpass_hz": 52,
+    "lowpass_hz": 6600,
+    "keep_seconds": 2.374,
+    "crossfade_ms": 26
+   },
+   "measured": {
+    "seconds": 2.374,
+    "lufs": -16.5,
+    "loud50_db": -14.2,
+    "peak_db": -4.41,
+    "true_peak_db": -4.39,
+    "dc": 0.0,
+    "clipped": 0,
+    "first_db": -7.0,
+    "last_db": -5.8,
+    "lead_s": 0.0,
+    "trail_s": 0.0,
+    "seam_step": 0.29,
+    "seam_level_db": 0.49,
+    "inside_level_db": 2.35
+   },
+   "validation": "ok"
+  },
+  "ride_engine_car": {
+   "purpose": "A continuous positional engine loop while a vehicle is driven.",
+   "refs": [
+    "mover_sounds.gd",
+    "vehicles.cfg"
+   ],
+   "family": "loop_tool",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/ride_engine_car.mp3",
+   "prompt": "Old dirt-track stock car V8 at steady low-to-mid throttle, recorded in the cockpit.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/ride_engine_car.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "loop_tool",
+    "highpass_hz": 38,
+    "lowpass_hz": 6400,
+    "keep_seconds": 2.374,
+    "crossfade_ms": 26
+   },
+   "measured": {
+    "seconds": 2.374,
+    "lufs": -16.5,
+    "loud50_db": -10.2,
+    "peak_db": -3.96,
+    "true_peak_db": -3.94,
+    "dc": 0.0,
+    "clipped": 0,
+    "first_db": -5.0,
+    "last_db": -5.2,
+    "lead_s": 0.0,
+    "trail_s": 0.0,
+    "seam_step": 0.35,
+    "seam_level_db": -0.79,
+    "inside_level_db": 2.36
+   },
+   "validation": "ok"
+  },
+  "ride_engine_mower": {
+   "purpose": "A continuous positional engine loop while a vehicle is driven.",
+   "refs": [
+    "mover_sounds.gd",
+    "vehicles.cfg"
+   ],
+   "family": "loop_tool",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/ride_engine_mower.mp3",
+   "prompt": "Small single-cylinder riding mower engine at steady working RPM, without the blades.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/ride_engine_mower.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "loop_tool",
+    "highpass_hz": 59,
+    "lowpass_hz": 7100,
+    "keep_seconds": 2.374,
+    "crossfade_ms": 26
+   },
+   "measured": {
+    "seconds": 2.374,
+    "lufs": -18.0,
+    "loud50_db": -15.8,
+    "peak_db": -3.0,
+    "true_peak_db": -3.0,
+    "dc": 0.0,
+    "clipped": 0,
+    "first_db": -7.6,
+    "last_db": -7.5,
+    "lead_s": 0.0,
+    "trail_s": 0.0,
+    "seam_step": 0.02,
+    "seam_level_db": -0.23,
+    "inside_level_db": 1.03
+   },
+   "validation": "ok"
+  },
   "revolver": {
    "purpose": "player fires revolver (Game.report (adds room_ twin indoors)); tin-rooster gallery borrowed pistol shot (sound.play .56, no room twin)",
    "refs": [
@@ -62689,6 +62809,9 @@
   "varmint_down"
  ],
  "added": [
+  "ride_engine_airboat",
+  "ride_engine_car",
+  "ride_engine_mower",
   "hunter",
   "mower",
   "mower_alt",

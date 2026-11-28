@@ -328,8 +328,6 @@ func use(p: Player, wide := false) -> bool:
 				_window_gun(p)
 			p.armory.holstered = not (s.window and one_handed(p))
 		_lap_reset(v)
-		v.engine_at = game.clock + .5
-		game.sound_from(Doppler.RIDE + i, s.engine, v.x, v.y, .8)
 	_place(p, v, s, k, 0.0)
 	return true
 
@@ -583,16 +581,11 @@ func _cut(v: VehicleDrive.Ride, s: VehicleDrive.Spec, c: GameState.Controls) -> 
 		breaks.call("strike", i, amount, cos(v.h) * dir, sin(v.h) * dir)
 
 
-## The engine's note, quicker and higher with speed, and the tyres' squeal on
-## a slide; both tied to the ride for the Doppler (sound only).
+## The tyres' squeal on a slide, tied to the ride for the Doppler.
 func _noises(v: VehicleDrive.Ride, s: VehicleDrive.Spec) -> void:
-	var pace := clampf(VehicleDrive.speed(v) / maxf(1.0, s.top), 0.0, 1.0)
-	var from := Doppler.RIDE + rides.find(v)
-	if game.clock >= v.engine_at:
-		v.engine_at = game.clock + s.every * (1.7 - .7 * pace)
-		game.sound_from(from, s.engine, v.x, v.y, .3 + .5 * pace, engine_rate(pace))
 	if v.slide > s.skid and game.clock >= v.skid_at:
 		v.skid_at = game.clock + .3
+		var from := Doppler.RIDE + rides.find(v)
 		game.sound_from(from, "tire_roll", v.x, v.y, .6)
 
 
@@ -1068,6 +1061,9 @@ func sprites() -> Array:
 		spr.body = true
 		spr.plane = s.nose
 		spr.track = "ride%d" % i
+		spr.rotor_running = (
+			v.kind == "airboat" and v.wreck < 0.0 and not v.seats.is_empty() and v.seats[0] >= 0
+		)
 		if b != null:
 			spr.z = v.z + b.heave
 			spr.turn = VehicleFeel.turn(b, v.h)

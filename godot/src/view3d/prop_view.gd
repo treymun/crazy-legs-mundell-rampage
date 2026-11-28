@@ -9,6 +9,7 @@ extends Node3D
 
 ## The prop's name (meshes.json, town_<name> sprites, mesh_<name> texture).
 @export var prop := ""
+@export var rotor_rate := 1.9
 ## Its model's material (setup()); each part draws with a copy of its own
 ## (OwnMaterial: its tone and marks are the copy's numbers).
 var material: ShaderMaterial
@@ -34,10 +35,10 @@ func setup(p_material: ShaderMaterial, reach: float) -> void:
 		_meshes.append(mesh)
 
 
-## Turn a windmill's wheel about its axle, at a phase set by the game clock.
+## Turn a wheel or fan about its axle at the game clock's phase.
 func spin_rotor(clock: float) -> void:
 	if _rotor != null:
-		_rotor.rotation.z = fposmod(clock * 1.9, TAU)
+		_rotor.rotation.z = fposmod(clock * rotor_rate, TAU)
 
 
 ## The model's parts (what shots and fire mark: thing_marks.gd).

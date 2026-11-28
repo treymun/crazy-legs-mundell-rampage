@@ -5,8 +5,8 @@
 ## everything is where it is drawn: part way between ticks in single player
 ## (SoloBlend) and online (NetBlend, our own player predicted).
 ##
-## - The movers: each ride (features/vehicles.gd ties its engine's notes and
-##   its tyres to it, Doppler.RIDE), each lap car or cruiser running
+## - The movers: each ride (engine and tyre sounds, Doppler.RIDE),
+##   each lap car or cruiser running
 ##   (features/race_laps.gd, Doppler.LAP), the shots with a flight loop
 ##   (doppler.cfg [fly], by uid), the carried things in the air
 ##   (features/carry.gd), the saucers and probes, the swamp king's airboat
@@ -17,6 +17,8 @@
 ##   (Sound.BED_HUM), placed as any sound is (Game.sound_position and
 ##   sound_cutoff, so through a wall or a floor they are muffled, and bend
 ##   all the same), faded up and down, tied to their mover.
+##   The nearest occupied rides loop their engines on Sound.BED_ENGINE
+##   and the bed after it.
 ##
 ## Sound only: it reads the game and the features and changes none of them.
 class_name MoverSounds
@@ -64,6 +66,7 @@ class Wanted:
 
 var fly: Array[Slot] = []
 var hum: Array[Slot] = []
+var _engines: Array[Slot] = []
 var _game_id := 0
 var _cfg: ConfigFile = null
 var _rows := {}
@@ -87,6 +90,8 @@ func _init() -> void:
 	for i in 3:
 		fly.append(Slot.new(Sound.BED_FLY + i))
 	hum.append(Slot.new(Sound.BED_HUM))
+	for i in 2:
+		_engines.append(Slot.new(Sound.BED_ENGINE + i))
 
 
 func _tune() -> void:
@@ -125,12 +130,13 @@ func frame(game: Game, dt: float) -> void:
 	_tune()
 	var d := sound.doppler
 	if game.get_instance_id() != _game_id:
+		hush(sound)
 		_game_id = game.get_instance_id()
 		d.reset()
 		_foes_of = -1
 	var p := game.local_player
 	d.listen(Vector3(p.x, p.y, p.eye), dt)
-	_rides(game, d, dt)
+	_loops(game, sound, _engines, _engines.size(), _rides(game, d, dt), dt)
 	_laps(game, d, dt)
 	var wanted: Array = []
 	_shots(game, d, dt, wanted)
@@ -143,20 +149,35 @@ func frame(game: Game, dt: float) -> void:
 ## Every loop let go at once (the game held still: PHOTO MODE, an opener, the
 ## KILL CAM; out of play).
 func hush(sound: Sound) -> void:
-	for slot: Slot in fly + hum:
+	for slot: Slot in fly + hum + _engines:
 		if slot.key != 0 and sound != null:
 			sound.set_bed(slot.bed, "", 0.0)
 		slot.key = 0
 		slot.level = 0.0
 
 
-func _rides(game: Game, d: Doppler, dt: float) -> void:
+func _rides(game: Game, d: Doppler, dt: float) -> Array:
+	var wanted: Array = []
 	var feature: VehiclesScript = game.features.get("vehicles")
 	if feature == null:
-		return
+		return wanted
 	for i in feature.rides.size():
 		var v: VehicleDrive.Ride = feature.rides[i]
-		d.feed(Doppler.RIDE + i, v.kind, Vector3(v.x, v.y, v.z + .5), dt)
+		var key := Doppler.RIDE + i
+		var at := Vector3(v.x, v.y, v.z + .5)
+		d.feed(key, v.kind, at, dt)
+		if v.wreck >= 0.0 or v.seats.is_empty() or v.seats[0] < 0:
+			continue
+		var spec := VehicleDrive.spec(v.kind)
+		var pace := clampf(VehicleDrive.speed(v) / maxf(1.0, spec.top), 0.0, 1.0)
+		var rpm := .73 * pace + .27 * absf(v.gas)
+		if v.kind == "car":
+			rpm = lerpf(rpm, VehicleCab.gear(v, spec).y, .38)
+		var gain := lerpf(.39, .61, rpm)
+		_want(
+			d, key, [spec.engine, gain, VehiclesScript.engine_rate(rpm), v.kind, false], at, wanted
+		)
+	return wanted
 
 
 func _laps(game: Game, d: Doppler, dt: float) -> void:

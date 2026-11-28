@@ -56,6 +56,7 @@ func _list_fixed() -> void:
 		var spr := View.Sprite.new(board.x, board.y, image, board.height, z)
 		spr.glow = board.glow
 		spr.plane = board.plane
+		spr.board = true
 		if board.signal_name != "":
 			spr.face = _station_face(board)
 		sprites.append(spr)
@@ -67,6 +68,7 @@ func _list_fixed() -> void:
 		if board.back != "" and not two_sided:
 			var back := View.Sprite.new(board.x, board.y, board.back, board.height, z)
 			back.plane = board.plane + PI
+			back.board = true
 			sprites.append(back)
 	for point: Vector2 in drums.keys():
 		var vec: Vector2 = point
@@ -85,13 +87,16 @@ func _list_fixed() -> void:
 				note.x, note.y, "county_note", .23, world.elevation(note.x, note.y) + .90
 			)
 			note_sprite.plane = note.plane
+			note_sprite.board = true
 			fixed_sprites.append(note_sprite)
 		if gallery != null:
 			var gallery_sign := View.Sprite.new(25.95, 32.72, "county_gallery_sign", .51, 1.03)
 			gallery_sign.plane = 0.0
+			gallery_sign.board = true
 			fixed_sprites.append(gallery_sign)
 			var backstop := View.Sprite.new(29.90, 33.48, "county_gallery_backstop", 1.49, .19)
 			backstop.plane = PI / 2.0
+			backstop.board = true
 			fixed_sprites.append(backstop)
 		for room: LevelData.Interior in level.interior_art:
 			var room_sprite := View.Sprite.new(
@@ -102,6 +107,7 @@ func _list_fixed() -> void:
 				world.elevation(room.x, room.y) + room.z
 			)
 			room_sprite.plane = room.plane
+			room_sprite.board = true
 			late.append(room_sprite)
 		for prop: LevelData.Scenery in world.scenery:
 			var state := "spent" if scenery_used(prop) else "whole"

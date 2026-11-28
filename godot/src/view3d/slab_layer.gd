@@ -1,6 +1,6 @@
 ## The world's flat pictures that the 3D view draws as slabs (SlabModels):
-## pickups, loose things (brass, gibs, bits, chips, hats, dropped guns) and
-## the firing range's targets, each where its sprite stood and the same size
+## pickups, loose things (brass, gibs, bits, chips, hats, dropped guns),
+## fixed signs and the firing range's targets, each where its sprite stood and the same size
 ## from the front. One MultiMesh per mesh; the art comes from the sprites'
 ## texture array (SpriteLayer3D slots), so the light, tint, fog and palette
 ## are the sprites' own (slab.gdshader). Looks only, and nothing is kept from
@@ -57,6 +57,8 @@ var _sprites: SpriteLayer3D
 var _shown: Dictionary = {}
 ## picture -> its mesh's box (sprite units)
 var _boxes: Dictionary = {}
+var _board_level: LevelData
+var _board_turns: Dictionary = {}
 
 
 func _init(p_models: SlabModels, sprites: SpriteLayer3D) -> void:
@@ -73,6 +75,8 @@ func takes(s: View.Sprite) -> bool:
 	if s.translucent:
 		return false
 	var kind := SlabModels.family(s.image)
+	if kind == SlabModels.NONE and s.board:
+		return has_board(s.image)
 	if kind == SlabModels.NONE or (kind == SlabModels.PICKUP and not is_nan(s.plane)):
 		return false
 	return models.mesh(s.image) != null
@@ -83,8 +87,12 @@ func takes(s: View.Sprite) -> bool:
 ## turn at Hickston's spawn met eleven; tools/hitch_bench.gd).
 func warm(images: Array[String]) -> void:
 	for image in images:
-		if SlabModels.family(image) != SlabModels.NONE:
+		if image.ends_with(SlabModels.BOARD_SUFFIX) or SlabModels.family(image) != SlabModels.NONE:
 			models.mesh(image)
+
+
+func has_board(image: String) -> bool:
+	return models.mesh(image + SlabModels.BOARD_SUFFIX) != null
 
 
 ## Whether a picture can be a slab at all (its family and mesh), whatever its
@@ -109,6 +117,9 @@ func show_slabs(
 	motion: int,
 	everywhere := false
 ) -> void:
+	if level != _board_level:
+		_board_level = level
+		_board_turns.clear()
 	var fx := cos(angle)
 	var fy := sin(angle)
 	var speed: float = MOTION[clampi(motion, 0, 2)]
@@ -118,8 +129,11 @@ func show_slabs(
 	for item: Variant in list:
 		var s: View.Sprite = item
 		var kind := SlabModels.family(s.image)
+		if kind == SlabModels.NONE and s.board:
+			kind = SlabModels.BOARD
 		var ahead := (s.x - cam.x) * fx + (s.y - cam.y) * fy
-		var reach := TARGET_REACH if kind == SlabModels.TARGET else REACH
+		var long_range := kind == SlabModels.TARGET or kind == SlabModels.BOARD
+		var reach := TARGET_REACH if long_range else REACH
 		if ahead >= reach or (ahead <= BEHIND and not everywhere):
 			continue
 		var tone := SpriteLayer3D.tone_at(level, s.x, s.y, s.glow)
@@ -137,6 +151,8 @@ func show_slabs(
 				_add(rows, s.image, Transform3D(basis, Vector3(s.x, s.z, s.y)), tone, art)
 			SlabModels.LOOSE:
 				_add(rows, s.image, _loose(s), tone, art)
+			SlabModels.BOARD:
+				_board(rows, s, level, tone, art)
 			_:
 				_target(rows, s, facing, tone, art)
 	for key: String in rows:
@@ -234,6 +250,23 @@ func _target(rows: Dictionary, s: View.Sprite, facing: float, tone: Color, art: 
 	var bar := Vector3(0.0, hang * s.height, 0.0)
 	var at := foot + turn * bar - part * bar
 	_add(rows, s.image + SlabModels.PART, Transform3D(part.scaled(grow), at), tone, art)
+
+
+## Set the backing against the old artwork's plane. Opposite faces of a
+## two-sided sign sit on opposite sides of the plane and do not overlap.
+func _board(rows: Dictionary, s: View.Sprite, level: LevelData, tone: Color, art: Vector4) -> void:
+	var key := s.image + SlabModels.BOARD_SUFFIX
+	var mesh := models.mesh(key)
+	var angle := -s.plane
+	if is_nan(angle):
+		var place := Vector2(s.x, s.y)
+		if not _board_turns.has(place):
+			_board_turns[place] = PropModels.facing(level, s.x, s.y, s.plane, s.face)
+		angle = _board_turns[place]
+	var turn := Basis(Vector3.UP, angle)
+	var offset := turn.z * mesh.get_aabb().size.z * s.height * .5
+	var at := Vector3(s.x, s.z, s.y) + offset
+	_add(rows, key, Transform3D(turn.scaled(Vector3.ONE * s.height), at), tone, art)
 
 
 ## One instance's 20 numbers into its mesh's row: its transform, its tint and

@@ -219,8 +219,10 @@ func show_props(
 			if s.body:
 				# A vehicle on the move is lit where it is (features/vehicles.gd).
 				node.relight(s.x, s.y, level)
+				node.spin_rotor(motion_clock if s.rotor_running else 0.0)
 			continue
-		node.spin_rotor(motion_clock)
+		if name == "farm_windmill":
+			node.spin_rotor(motion_clock)
 		node.lean(s.tilt)
 	var gone: Array = []
 	for key: Array in _shown.keys():

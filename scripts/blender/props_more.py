@@ -95,21 +95,44 @@ CAR_COLOURS = [(200, 50, 60), (60, 140, 180), (220, 180, 60), (60, 100, 60)]
 
 
 def ferris_wheel():
-    steel = mat(200, 196, 186, metal=.6, rough=.4, grime=.5)
-    for s in (1, -1):
-        box(.12, .12, 4.0, (s * 1.1, 0, 1.9), steel, (0, s * 16, 0))
-    cyl(.18, .4, (0, 0, 3.7), steel, (90, 0, 0), seg=12)
-    for ring in (2.0, 1.9):
-        for k in range(24):
-            a = k / 24 * math.tau
-            box(.06, .06, ring * math.tau / 24 * 1.05, (math.cos(a) * ring, 0, 3.7 + math.sin(a) * ring),
-                steel, (0, -math.degrees(a), 0))
+    iron = mat(82, 91, 87, metal=.6, rough=.64, grime=.7)
+    ivory = mat(179, 164, 129, metal=.4, rough=.58, grime=.55)
+    russet = mat(156, 74, 49, metal=.45, rough=.53, grime=.64)
+    seat = mat(87, 69, 55, planks=4.0, rough=.84, grime=.45)
+    glow = mat(233, 176, 96, emit=2.8, grime=.1)
+    hub = (0, 0, 3.69)
+    for y in (-.36, .36):
+        for side in (-1, 1):
+            x = side * 1.25
+            box(.37, .31, .075, (x, y, .0375), iron)
+            beam((x, y, .074), (0, y, hub[2]), .112, russet, .15)
+        beam((-1.06, y, .82), (1.06, y, .82), .09, iron)
+        for rim in (1.91, 2.035):
+            points = [(rim * math.cos(k * math.tau / 24), y * .6,
+                       hub[2] + rim * math.sin(k * math.tau / 24)) for k in range(24)]
+            for k, p in enumerate(points):
+                beam(p, points[(k + 1) % len(points)], .048, ivory)
+                if rim > 2 and y < 0 and k % 2 == 0:
+                    ball(.034, (p[0], p[1] - .04, p[2]), glow)
+        for k in range(8):
+            a = k * math.tau / 8
+            x, z = math.cos(a) * 2.01, hub[2] + math.sin(a) * 2.01
+            beam((0, y * .6, hub[2]), (x, y * .6, z), .052, iron)
+    cyl(.145, .91, hub, iron, (90, 0, 0), seg=16)
     for k in range(8):
-        a = k / 8 * math.tau
-        box(.05, .05, 2.0, (math.cos(a) * 1.0, 0, 3.7 + math.sin(a) * 1.0), steel, (0, 90 - math.degrees(a), 0))
-        x, z = math.cos(a) * 2.05, 3.7 + math.sin(a) * 2.05
-        box(.5, .4, .34, (x, 0, z - .35), mat(*CAR_COLOURS[k % 4], metal=.3, rough=.4, grime=.4))
-        ball(.06, (x, -.08, z), mat(*BULB, emit=6.0, grime=0))
+        a = k * math.tau / 8
+        x, z = math.cos(a) * 2.06, hub[2] + math.sin(a) * 2.06
+        tone = mat(*[(158, 72, 50), (69, 120, 120), (186, 145, 65), (82, 113, 75)][k % 4],
+                   metal=.3, rough=.5, grime=.55)
+        cyl(.047, .54, (x, 0, z), iron, (90, 0, 0), seg=10)
+        box(.45, .43, .07, (x, 0, z - .37), tone)
+        box(.43, .10, .048, (x, .085, z - .294), seat)
+        box(.43, .06, .23, (x, .205, z - .25), tone, (9, 0, 0))
+        for side in (-1, 1):
+            xo = x + side * .23
+            beam((xo, 0, z - .014), (xo, .18, z - .334), .025, iron)
+            box(.045, .42, .165, (xo, 0, z - .29), tone)
+        box(.48, .033, .032, (x, -.204, z - .175), ivory)
     return 4.8, 6.0
 
 
@@ -145,14 +168,25 @@ def cotton_candy():
 
 
 def high_striker():
-    wood = mat(200, 60, 40, planks=4.0, grime=.5)
-    box(.24, .14, 3.0, (0, 0, 1.5), wood)
-    for k in range(6):
-        box(.26, .02, .06, (0, -.08, .5 + k * .45), mat(250, 240, 220))
-    ball(.16, (0, -.05, 3.08), mat(220, 190, 80, metal=.9, rough=.2))
-    box(.6, .5, .12, (0, -.25, .06), mat(80, 70, 60))
-    box(.14, .1, .1, (0, -.28, .16), mat(200, 30, 30, rough=.4))
-    box(.7, .1, .08, (.1, -.6, .3), mat(*WOOD), (0, 20, 30))
+    wood = mat(143, 64, 41, planks=6.0, grime=.58)
+    ivory = mat(213, 185, 135, rough=.62, grime=.28)
+    iron = mat(69, 75, 71, metal=.6, grime=.6)
+    brass = mat(169, 129, 59, metal=.7, rough=.38, grime=.48)
+    box(.36, .15, 2.92, (0, .02, 1.54), wood)
+    box(.12, .025, 2.69, (0, -.067, 1.52), iron)
+    for side in (-1, 1):
+        box(.035, .036, 2.81, (side * .157, -.069, 1.54), ivory)
+    for level in range(8):
+        z = .43 + level * .306
+        for side in (-1, 1):
+            box(.062, .014, .033 if level % 2 else .052, (side * .113, -.073, z), ivory)
+    cyl(.15, .13, (0, -.07, 3.064), brass, (0, 0, 0), seg=16, top=.093)
+    ball(.039, (0, -.07, 3.147), brass)
+    box(.64, .54, .095, (0, -.19, .048), iron)
+    box(.32, .21, .085, (0, -.264, .133), wood)
+    cyl(.079, .024, (0, -.265, .186), iron, seg=16)
+    beam((-.38, -.1, .085), (.3, -.37, .076), .044, mat(*WOOD, grime=.53))
+    cyl(.089, .155, (.333, -.385, .098), iron, (90, 0, 0), seg=12)
     return 1.0, 3.3
 
 
@@ -195,13 +229,26 @@ def giant_hog():
 
 
 def balloons():
-    colours = [(230, 50, 50), (60, 140, 220), (250, 220, 60), (80, 200, 100), (240, 120, 220)]
-    for k in range(9):
-        a = k * 2.4
-        x, z = math.cos(a) * .3 * (k % 3), 1.5 + math.sin(a) * .25 + (k % 3) * .15
-        ball(.17, (x, -.1, z), mat(*colours[k % 5], rough=.2, grime=.05))
-        cyl(.004, 1.2, (x * .5, -.05, .7 + (z - 1.5) * .5), mat(240, 240, 240), seg=3)
-    cyl(.04, .5, (0, 0, .25), mat(*WOOD), seg=6)
+    colours = [(170, 65, 50), (69, 119, 138), (202, 159, 62),
+               (103, 135, 72), (166, 98, 128)]
+    sleeve = mat(98, 73, 45, planks=5.0, grime=.61)
+    twine = mat(193, 171, 122, grime=.15)
+    stand = mat(62, 63, 59, metal=.48, rough=.71, grime=.55)
+    box(.36, .26, .06, (0, .015, .03), stand)
+    box(.08, .085, .69, (0, .015, .365), sleeve)
+    for k, (x, y, z, r) in enumerate((
+        (-.31, -.09, 1.67, .143), (-.154, .045, 1.77, .151),
+        (.049, .109, 1.81, .147), (.273, .035, 1.67, .151),
+        (-.239, .083, 1.47, .138), (-.086, -.153, 1.548, .153),
+        (.143, -.101, 1.552, .15), (.296, -.127, 1.428, .126),
+    )):
+        latex = mat(*colours[k % len(colours)], rough=.46, grime=.15)
+        ball(r, (x, y, z), latex, (1.0, .86, 1.19))
+        foot = (x, y, z - r * 1.15)
+        cyl(.018, .032, foot, latex, seg=6, top=.008)
+        bend = (.55 * x - .029, .5 * y + .034, 1.01)
+        beam((0, -.012, .68 + (k % 2) * .022), bend, .009, twine)
+        beam(bend, foot, .009, twine)
     return 1.3, 2.0
 
 
@@ -660,12 +707,17 @@ def stone_blocks():
 def mash_barrel():
     # A sour-mash barrel working: foam on top, the paddle, a sack of meal and
     # a sack of sugar leant against it, the tin dipper on the rim.
-    oak = mat(132, 92, 56, planks=14.0, grime=.6)
-    hoop = mat(56, 50, 46, metal=.6, grime=.6)
+    oak = mat(140, 98, 61, planks=16.0, grime=.67)
+    hoop = mat(62, 56, 49, metal=.63, rough=.52, grime=.66)
     cyl(.42, .5, (0, 0, .25), oak, seg=20, top=.46)
     cyl(.46, .46, (0, 0, .73), oak, seg=20, top=.42)
     for z in (.1, .5, .9):
         cyl(.47 if z == .5 else .44, .05, (0, 0, z), hoop, seg=20)
+    bolt = mat(127, 108, 79, metal=.62, rough=.48, grime=.48)
+    for z, radius in ((.1, .439), (.5, .467), (.9, .439)):
+        for a in (-.6, -1.57, -2.54):
+            point = (math.cos(a) * radius, math.sin(a) * radius, z)
+            ball(.016, point, bolt, seg=8)
     cyl(.39, .03, (0, 0, .93), mat(190, 160, 84, rough=.6, grime=.35), seg=20)
     for k in range(7):
         ball(.05 + (k % 3) * .015, (math.cos(k * 2.3) * .25, math.sin(k * 2.3) * .25, .95),
@@ -674,7 +726,7 @@ def mash_barrel():
     box(.16, .02, .3, (.15, .05, .55), mat(*WOOD), (0, 15, 30))
     cyl(.07, .1, (-.38, -.15, .98), mat(*CHROME, metal=.8, grime=.6), seg=10)
     beam((-.38, -.15, .98), (-.6, -.25, .95), .025, mat(*CHROME, metal=.8, grime=.6))
-    sack = mat(170, 140, 92, rough=.95, grime=.5)
+    sack = mat(164, 139, 95, planks=16.0, rough=.93, grime=.55)
     box(.44, .3, .62, (.66, -.22, .31), sack, (0, -14, 6))
     box(.36, .24, .14, (.74, -.22, .64), sack, (0, -30, 6))
     cyl(.05, .08, (.79, -.22, .72), mat(120, 96, 60), (0, -14, 0), seg=8)

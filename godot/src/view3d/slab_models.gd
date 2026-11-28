@@ -13,6 +13,7 @@
 ##   the gallery's movers): thin as plywood, a pixel for each 28 of height. A
 ##   gong's plate and chains are a part of their own (PARTS) that swings
 ##   from the bar, the frame staying put.
+## - BOARD: a fixed sign or panel with its artwork on a thin solid backing.
 ##
 ## A mesh is in sprite units: one unit is the picture's height, standing on
 ## its bottom row at y 0 (empty rows below the art kept, so it floats as the
@@ -26,6 +27,7 @@ const NONE := 0
 const PICKUP := 1
 const LOOSE := 2
 const TARGET := 3
+const BOARD := 4
 ## A pixel is solid past this alpha (sprite.gdshader's solid test).
 const SOLID := 100
 ## How thick a slab is: this share of the art's breadth (_breadth), in whole
@@ -68,6 +70,7 @@ const TARGET_NAMES := {
 ## Its mesh is `<picture>` + PART; the picture's own mesh leaves it out.
 const PARTS := {"town_range_gong": Rect2i(14, 6, 56, 48)}
 const PART := "#part"
+const BOARD_SUFFIX := "#board"
 
 var _assets: Assets
 ## picture -> its family (family())
@@ -117,7 +120,8 @@ func mesh(key: String) -> ArrayMesh:
 		var known: ArrayMesh = _meshes[key]
 		return known
 	var part := key.ends_with(PART)
-	var image := key.trim_suffix(PART) if part else key
+	var board := key.ends_with(BOARD_SUFFIX)
+	var image := key.trim_suffix(PART).trim_suffix(BOARD_SUFFIX)
 	if not _assets.has_art(image):
 		_meshes[key] = null
 		return null
@@ -126,7 +130,7 @@ func mesh(key: String) -> ArrayMesh:
 	var h: int = a["h"]
 	var data: PackedByteArray = a["data"]
 	var box: Rect2i = PARTS.get(image, Rect2i())
-	var built := build(w, h, data, family(image), box, part)
+	var built := build(w, h, data, BOARD if board else family(image), box, part)
 	# A picture whose pack is still being fetched comes back blank: asked again.
 	if built != null:
 		_meshes[key] = built
@@ -183,7 +187,7 @@ static func build(
 	var q := 1.0 / h
 	var mid := (all_x0 + all_x1 + 1) * .5
 	var depth := maxi(THIN, roundi(h / PLY))
-	if kind != TARGET:
+	if kind != TARGET and kind != BOARD:
 		var share: float = DEPTH.get(kind, DEPTH[PICKUP])
 		var most: int = THICK.get(kind, THICK[PICKUP])
 		depth = clampi(roundi(_breadth(solid, w, h) * share), THIN, most)

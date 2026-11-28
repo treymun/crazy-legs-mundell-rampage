@@ -133,6 +133,10 @@ func _check_surface(id: String, arrays: Array, tile_count: int) -> int:
 ## unit is the picture's height); a picture with a part (a gong's plate) and
 ## its part together.
 func _check_slabs(assets: Assets) -> void:
+	var boards := SlabModels.new(assets)
+	var panel := boards.mesh("quarry_scale" + SlabModels.BOARD_SUFFIX)
+	if panel == null or panel.get_aabb().size.z <= 0.0:
+		_fail("the quarry scale board has no solid backing")
 	var models := SlabModels.new(assets)
 	var names: Array[String] = []
 	var counts := {}

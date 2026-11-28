@@ -1,10 +1,19 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_lkcdf"]
-[ext_resource type="PackedScene" path="res://assets3d/props/airboat.glb" id="2_ymlsw"]
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets3d/props/airboat.glb" id="2"]
 
-[node name="Airboat" type="Node3D" unique_id=878530072]
-script = ExtResource("1_lkcdf")
+[ext_resource type="PackedScene" path="res://assets3d/props/airboat_rotor.glb" id="3"]
+
+[node name="Airboat" type="Node3D"]
+script = ExtResource("1")
 prop = "airboat"
+rotor_rate = 46.0
 
-[node name="Model" type="Node3D" parent="." unique_id=125405681 instance=ExtResource("2_ymlsw")]
+[node name="Model" type="Node3D" parent="." instance=ExtResource("2")]
+
+[node name="Rotor" type="Node3D" parent="."]
+position = Vector3(-1.055, 1.29, 0)
+rotation = Vector3(0, 1.5707963, 0)
+
+[node name="Fan" type="Node3D" parent="Rotor" instance=ExtResource("3")]

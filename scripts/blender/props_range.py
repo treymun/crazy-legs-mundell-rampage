@@ -26,6 +26,15 @@ GREEN_PAINT = (52, 92, 60)
 STEEL = (150, 152, 150)
 
 
+def _rounded_box(dims, loc, material, radius, rot=(0, 0, 0)):
+    mesh = bmesh.new()
+    bmesh.ops.create_cube(mesh, size=1.0)
+    for vert in mesh.verts:
+        vert.co = Vector(tuple(vert.co[i] * dims[i] for i in range(3)))
+    bmesh.ops.bevel(mesh, geom=list(mesh.edges), offset=radius, segments=2, affect="EDGES")
+    return place(mesh, material, loc, rot)
+
+
 def _rings(r, loc, rot, colours, depth=.02):
     """A painted bullseye: flat discs, each smaller ring a hair in front."""
     for k, colour in enumerate(colours):
@@ -42,7 +51,11 @@ def range_gun_rack():
     box(1.5, .3, .06, (0, 0, .42), wood)
     for x in (-.72, .72):
         box(.08, .4, 1.4, (x, 0, .72), dark)
-    box(1.6, .08, .22, (0, .14, 1.45), dark)
+    _rounded_box((1.6, .11, .22), (0, .15, 1.45), dark, .025)
+    band = mat(124, 99, 69, metal=.62, rough=.6, grime=.62)
+    for x in (-.72, .72):
+        box(.11, .04, .19, (x, -.215, .154), band)
+        cyl(.018, .016, (x, -.239, .175), mat(*STEEL, metal=.6), (90, 0, 0), seg=6)
     # Five long guns standing in the slots: stocks down, barrels up.
     stock = mat(118, 70, 40, rough=.5, grime=.35)
     blued = mat(46, 48, 52, metal=.8, rough=.3, grime=.4)
@@ -77,11 +90,14 @@ def range_dummy():
     cyl(.06, 1.7, (0, .02, .85), post, seg=8)
     box(.9, .08, .08, (0, .02, 1.28), post)
     sack = mat(176, 150, 102, planks=18.0, grime=.6)
-    box(.5, .32, .7, (0, 0, 1.0), sack, (0, 3, 0))
+    _rounded_box((.50, .32, .70), (0, 0, 1.0), sack, .068, (0, 3, 0))
     cyl(.18, .2, (0, 0, .6), mat(*STRAW, planks=30.0, grime=.4), seg=10, top=.24)
     # The target painted on its chest, the rope at the waist.
     _rings(.15, (0, -.16, 1.08), (90, 0, 0), [CREAM, RED, CREAM, RED])
-    cyl(.27, .04, (0, 0, .7), mat(150, 120, 70, grime=.4), seg=14)
+    cord = mat(119, 91, 55, planks=8.0, grime=.52)
+    for z in (.69, .715):
+        _rounded_box((.512, .332, .022), (0, 0, z), cord, .008, (0, 3, 0))
+    box(.088, .025, .092, (.16, -.164, .874), mat(134, 112, 74, planks=8.0, grime=.58), (0, -12, 0))
     for s in (1, -1):
         cyl(.08, .38, (s * .38, 0, 1.28), sack, (0, 90, 0), seg=8)
         for k in range(3):
@@ -96,14 +112,41 @@ def range_dummy():
 
 
 def _pin_shape():
-    white = mat(238, 232, 222, rough=.25, grime=.15)
-    red = mat(200, 34, 30, rough=.3, grime=.1)
-    ball(.06, (0, 0, .08), white, (1, 1, 1.2))
-    cyl(.062, .1, (0, 0, .14), white, seg=16, top=.04)
-    cyl(.04, .1, (0, 0, .23), white, seg=16, top=.032)
-    cyl(.033, .015, (0, 0, .25), red, seg=16)
-    cyl(.033, .015, (0, 0, .275), red, seg=16)
-    ball(.042, (0, 0, .32), white, (1, 1, 1.1))
+    white = mat(227, 217, 194, rough=.34, grime=.32)
+    red = mat(178, 43, 31, rough=.42, grime=.22)
+    heel = mat(129, 106, 79, rough=.62, grime=.48)
+    profile = (
+        (0.0, .040), (.010, .049), (.025, .057), (.053, .066), (.100, .067),
+        (.140, .060), (.180, .047), (.216, .034), (.238, .028), (.249, .027),
+        (.258, .028), (.270, .030), (.281, .032), (.296, .036), (.321, .041),
+        (.344, .035), (.359, .023), (.367, .008),
+    )
+    sides = 16
+    pin = bmesh.new()
+    rows = []
+    for z, radius in profile:
+        rows.append([
+            pin.verts.new((radius * math.cos(i * math.tau / sides),
+                           radius * math.sin(i * math.tau / sides), z))
+            for i in range(sides)
+        ])
+    for low, high in zip(rows, rows[1:]):
+        for i in range(sides):
+            j = (i + 1) % sides
+            pin.faces.new((low[i], low[j], high[j], high[i]))
+    pin.faces.new(tuple(reversed(rows[0])))
+    pin.faces.new(rows[-1])
+    ob = place(pin, white, (0, 0, 0), (0, 0, 0))
+    ob.data.materials.append(red)
+    ob.data.materials.append(heel)
+    for face in ob.data.polygons:
+        z = face.center.z
+        if .238 < z < .249 or .258 < z < .270:
+            face.material_index = 1
+        elif z < .010:
+            face.material_index = 2
+        face.use_smooth = len(face.vertices) == 4
+    return ob
 
 
 def range_pin():
@@ -136,13 +179,9 @@ def _pin_pose(tilt, yaw):
 
 
 def range_pin_down():
-    white = mat(238, 232, 222, rough=.25, grime=.15)
-    red = mat(200, 34, 30, rough=.3, grime=.1)
-    ball(.06, (-.1, 0, .06), white, (1.2, 1, 1), (0, 90, 0))
-    cyl(.062, .1, (-.03, 0, .06), white, (0, 90, 0), seg=16, top=.04)
-    cyl(.04, .1, (.06, 0, .06), white, (0, 90, 0), seg=16, top=.032)
-    cyl(.034, .015, (.09, 0, .06), red, (0, 90, 0), seg=16)
-    ball(.042, (.16, 0, .06), white, (1.1, 1, 1))
+    pin = _pin_shape()
+    pin.location = (-.168, 0, .067)
+    pin.rotation_euler.y = math.pi / 2
     ROOT.rotation_euler.z = math.radians(30)
     return .45, .2
 
@@ -180,11 +219,15 @@ def range_gong():
 
 
 def range_sandbags():
-    burlap = mat(160, 136, 92, planks=20.0, grime=.65)
+    burlap = mat(161, 138, 96, planks=15.0, grime=.68)
+    cord = mat(125, 106, 70, planks=13.0, grime=.45)
     for row in range(3):
         for k in range(4 - (row % 2)):
             x = -.6 + k * .4 + (row % 2) * .2
-            box(.42, .3, .2, (x, 0, .1 + row * .19), burlap, (0, (k * 7 + row * 3) % 5 - 2, (k * 11) % 7 - 3))
+            z = .1 + row * .19
+            turn = (0, (k * 7 + row * 3) % 5 - 2, (k * 11) % 7 - 3)
+            _rounded_box((.421, .30, .20), (x, 0, z), burlap, .064, turn)
+            _rounded_box((.33, .302, .026), (x, 0, z + .012), cord, .011, turn)
     return 1.7, .8
 
 
@@ -210,6 +253,9 @@ def range_floodlight():
 def range_loudspeaker():
     pole = mat(*GREY_WOOD, planks=3.0, grime=.6)
     cyl(.07, 3.2, (0, .05, 1.6), pole, seg=8)
+    sill = mat(64, 69, 59, metal=.6, rough=.55, grime=.62)
+    cyl(.14, .065, (0, .05, .0325), sill, seg=8)
+    _rounded_box((.20, .155, .23), (0, -.02, 1.15), sill, .024)
     horn = mat(96, 112, 92, metal=.5, rough=.45, grime=.6)
     mouth = mat(30, 30, 28, rough=.9, grime=0)
     for s in (1, -1):
@@ -227,7 +273,12 @@ def range_loudspeaker():
 
 def range_ammo_crate():
     crate = mat(*WOOD, planks=8.0, grime=.5)
-    box(.8, .5, .36, (0, 0, .18), crate)
+    box(.8, .5, .055, (0, 0, .028), crate)
+    for x in (-.374, .374):
+        _rounded_box((.052, .50, .36), (x, 0, .18), crate, .011)
+    for y in (-.223, .223):
+        _rounded_box((.723, .052, .36), (0, y, .18), crate, .012)
+    box(.70, .41, .11, (0, 0, .277), mat(92, 65, 41, planks=9.0, grime=.58))
     box(.8, .04, .4, (0, .3, .5), crate, (-30, 0, 0))
     box(.5, .02, .14, (0, -.26, .2), mat(220, 200, 150, grime=.4))
     shell = mat(*RED, rough=.4, grime=.2)
@@ -270,14 +321,15 @@ def range_duck():
 
 def range_bench():
     wood = mat(*GREY_WOOD, planks=9.0, grime=.55)
-    box(1.4, .6, .06, (0, 0, .72), wood)
+    for y in (-.205, 0, .205):
+        _rounded_box((1.4, .19, .062), (0, y, .72), wood, .013)
     for x in (-.6, .6):
         for y in (-.24, .24):
             box(.07, .07, .72, (x, y, .36), wood)
     box(1.3, .06, .1, (0, .25, .2), wood)
     burlap = mat(160, 136, 92, planks=20.0, grime=.6)
-    box(.34, .22, .14, (-.3, -.05, .82), burlap)
-    box(.2, .18, .12, (.25, .05, .81), burlap)
+    _rounded_box((.34, .22, .14), (-.3, -.05, .82), burlap, .043)
+    _rounded_box((.20, .18, .12), (.25, .05, .81), burlap, .034)
     # A spotting scope on its legs and a coffee can of brass.
     cyl(.035, .3, (.45, -.05, .9), mat(40, 40, 44, metal=.7, rough=.3), (0, 75, 20), seg=10)
     for k in range(3):
@@ -296,6 +348,13 @@ def range_scoreboard():
     box(1.8, .06, 1.0, (0, 0, 1.7), board)
     box(1.9, .1, .08, (0, 0, 2.24), frame)
     box(1.9, .1, .08, (0, 0, 1.16), frame)
+    brass = mat(154, 123, 74, metal=.47, rough=.57, grime=.54)
+    for x in (-.91, .91):
+        for z in (1.18, 2.2):
+            box(.096, .033, .101, (x, -.068, z), brass)
+            cyl(.018, .02, (x, -.087, z), mat(*STEEL, metal=.68), (90, 0, 0), seg=6)
+    for x in (-.59, -.30, 0, .29, .58):
+        box(.016, .016, .79, (x + .09, -.036, 1.70), mat(78, 87, 66, rough=.6, grime=.5))
     chalk = mat(230, 230, 220, rough=.9, grime=.2)
     for row in range(4):
         for k in range(5):

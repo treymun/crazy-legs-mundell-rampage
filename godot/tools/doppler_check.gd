@@ -398,8 +398,7 @@ func _snaps() -> void:
 
 
 func _bed(sound: Sound, cue: String) -> AudioStreamPlayer:
-	for i in 3:
-		var v: Sound.Voice = sound._beds[Sound.BED_FLY + i]
+	for v: Sound.Voice in sound._beds:
 		if v.player.playing and v.cue == cue:
 			return v.player
 	return null
@@ -462,14 +461,24 @@ func _in_game() -> void:
 		if (rides.rides[i] as VehicleDrive.Ride).kind == "car":
 			car = i
 	var seated := car >= 0 and rides.seat_in(cg.player, car)
+	var engine := VehicleDrive.spec("car").engine
+	for i in 12:
+		cg.tick(STEP, Game.Controls.new())
+		movers.frame(cg, STEP)
+	var idle := _bed(sound, engine)
+	var idle_pitch := idle.pitch_scale if idle != null else 0.0
+	_check(idle != null and Assets.loops(idle.stream), "the seated car starts its own engine loop")
 	var go := Game.Controls.new()
 	go.forward = 1.0
 	var most := 0.0
 	var fastest := 0.0
+	var engine_pitch := idle_pitch
 	var d := sound.doppler
 	for i in 150:
 		cg.tick(STEP, go)
 		movers.frame(cg, STEP)
+		if idle != null and idle.playing:
+			engine_pitch = maxf(engine_pitch, idle.pitch_scale)
 		if i > 60:
 			most = maxf(most, absf(semis(d.factor_of(Doppler.RIDE + car))))
 			fastest = maxf(fastest, d.speed_of(Doppler.RIDE + car))
@@ -480,7 +489,15 @@ func _in_game() -> void:
 			% [fastest, most]
 		)
 	)
+	_check(
+		_bed(sound, engine) == idle and engine_pitch > idle_pitch + .15,
+		(
+			"the same car engine voice rises from %.2f to %.2f as it drives"
+			% [idle_pitch, engine_pitch]
+		)
+	)
 	movers.hush(sound)
+	_check(_bed(sound, engine) == null, "the engine stops when the view holds")
 	d.reset()
 
 

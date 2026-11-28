@@ -909,6 +909,8 @@ func pooled(px: float, py: float, image: String, h: float, pz: float) -> View.Sp
 		s.translucent = false
 		s.body = false
 		s.plane = NAN
+		s.board = false
+		s.rotor_running = false
 		s.hurt = 0.0
 		s.who = null
 		s.pose = ""
@@ -919,6 +921,7 @@ func pooled(px: float, py: float, image: String, h: float, pz: float) -> View.Sp
 		s.lying = false
 		s.settle = -1.0
 		s.roll = 0.0
+		s.track = ""
 		return s
 	var made := View.Sprite.new(px, py, image, h, pz)
 	sprite_pool.append(made)

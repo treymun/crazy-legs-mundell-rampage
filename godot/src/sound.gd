@@ -246,7 +246,8 @@ const BED_EVENT := 4
 ## after it) and the nearest saucer's hum (mover_sounds.gd).
 const BED_FLY := 5
 const BED_HUM := 8
-const BEDS := 9
+const BED_ENGINE := 9
+const BEDS := 11
 
 
 ## Small deterministic generator so shuffling never touches the global RNG.

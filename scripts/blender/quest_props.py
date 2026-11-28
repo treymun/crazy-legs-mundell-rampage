@@ -127,21 +127,30 @@ def dark_glass(colour):
 
 
 def lamp(loc, r, colour, lit):
-    """A warning lamp: a glass dome in a wire cage on a black base. Lit, it
-    glows; dark, smoky glass. Drawn big: it is what tells to-do from done."""
+    """A glass beacon in a stamped metal guard, with a clear state at a glance."""
     x, y, z = loc
     r *= 1.3
-    cyl(r * 1.25, r * .5, (x, y, z + r * .25), mat(*SOOT, metal=.4, rough=.5))
-    ball(r, (x, y, z + r * .5), glow(colour) if lit else dark_glass(colour), (1, 1, 1.15))
-    wire = mat(30, 28, 26, metal=.7, rough=.4, grime=.2)
-    for a in (0, 60, 120):
-        hoop((x, y, z + r * .5), r * 1.12, r * .12, wire, (90, 0, a), seg=16)
-    cyl(r * .2, r * .3, (x, y, z + r * 1.75), wire, seg=8)
+    iron = mat(43, 39, 34, metal=.62, rough=.48, grime=.43)
+    edge = mat(98, 87, 71, metal=.58, rough=.42, grime=.35)
+    glass = glow(colour) if lit else dark_glass(colour)
+    cyl(r * 1.22, r * .21, (x, y, z + r * .12), iron, seg=8)
+    cyl(r * 1.06, r * .17, (x, y, z + r * .29), edge, seg=12)
+    cyl(r * .90, r * .87, (x, y, z + r * .82), glass, seg=12, top=r * .76)
+    ball(r * .76, (x, y, z + r * 1.23), glass, (1, 1, .48), seg=12)
+    for a in (0, 90, 180, 270):
+        theta = math.radians(a + 45)
+        dx, dy = math.cos(theta) * r, math.sin(theta) * r
+        rod((x + dx, y + dy, z + r * .29),
+            (x + dx * .82, y + dy * .82, z + r * 1.32), r * .067, iron, seg=6)
+    cyl(r * .83, r * .10, (x, y, z + r * 1.32), edge, seg=12)
+    cyl(r * .20, r * .085, (x, y, z + r * 1.65), iron, seg=8)
 
 
 def pilot(loc, colour, lit, r=.035, face=(90, 0, 0)):
-    cyl(r * 1.4, .02, loc, mat(*SOOT, metal=.5), face, seg=12)
-    ball(r, (loc[0], loc[1] - .015, loc[2]), glow(colour, 4.0) if lit else dark_glass(colour))
+    x, y, z = loc
+    cyl(r * 1.53, .021, loc, mat(*SOOT, metal=.5), face, seg=12)
+    cyl(r * 1.27, .013, (x, y - .013, z), mat(124, 107, 83, metal=.65, grime=.35), face, seg=12)
+    ball(r * .96, (x, y - .019, z), glow(colour, 4.0) if lit else dark_glass(colour), (1, .46, 1), seg=12)
 
 
 def tag(loc, turn=0):
@@ -196,7 +205,13 @@ def letters(text, cx, y, cz, size, m):
 
 
 def foot(w, d, m=None):
-    box(w, d, .07, (0, 0, .035), m or mat(*CONCRETE, grime=.75))
+    slab = m or mat(*CONCRETE, grime=.75)
+    box(w, d, .025, (0, 0, .0125), mat(87, 82, 71, grime=.63))
+    box(w * .93, d * .93, .048, (0, 0, .048), slab)
+    bolt = mat(104, 95, 76, metal=.58, grime=.38)
+    for x in (-w * .35, w * .35):
+        for y in (-d * .35, d * .35):
+            cyl(.019, .014, (x, y, .077), bolt, seg=6)
 
 
 # ------------------------------------------------------------- the switches
@@ -235,10 +250,14 @@ def quest_switch(done, style="mill"):
     paint = mat(*body, metal=.35, rough=.5, grime=.65)
     _post(kind, .74)
     box(.62, .34, .56, (0, 0, 1.06), paint)
-    box(.66, .38, .05, (0, 0, 1.35), mat(*[int(c * .7) for c in body], metal=.4, grime=.6))
+    hood = mat(*[int(c * .68) for c in body], metal=.4, grime=.6)
+    box(.66, .40, .05, (0, -.024, 1.35), hood)
+    box(.66, .023, .042, (0, -.211, 1.317), hood)
     # Door seam, hinges and a pull, all standing proud of the front.
     edge = mat(*trim, metal=.3, rough=.5, grime=.5)
     box(.56, .012, .5, (0, -.172, 1.06), mat(*[int(c * .85) for c in body], metal=.35, grime=.7))
+    for z in (.94, .98, 1.02):
+        box(.085, .018, .014, (.20, -.184, z), hood)
     for z in (.88, 1.24):
         cyl(.018, .06, (-.28, -.18, z), edge, seg=8)
     box(.46, .016, .08, (0, -.18, .86), stripes())
@@ -851,9 +870,19 @@ def quest_exit_flag(done):
 # ----------------------------------------------------------- the mothership
 def _pedestal(h=.75):
     hull = mat(*ALIEN_HULL, metal=.55, rough=.4, grime=.55)
-    cyl(.34, .08, (0, 0, .04), hull, seg=8)
-    cyl(.22, h, (0, 0, h / 2 + .08), hull, seg=8, top=.16)
-    cyl(.27, .04, (0, 0, h * .5), glow(ALIEN_GLOW, 3.0), seg=8)
+    trim = mat(70, 66, 56, metal=.66, rough=.48, grime=.65)
+    cyl(.34, .038, (0, 0, .019), trim, seg=8)
+    cyl(.31, .046, (0, 0, .061), hull, seg=8, top=.26)
+    cyl(.22, h, (0, 0, h / 2 + .08), hull, seg=8, top=.17)
+    cyl(.245, .035, (0, 0, h * .5), glow(ALIEN_GLOW, 2.7), seg=8)
+    for a in range(0, 360, 60):
+        theta = math.radians(a + 17)
+        dx, dy = math.cos(theta), math.sin(theta)
+        p0 = (dx * .245, dy * .245, .09)
+        p1 = (dx * .196, dy * .196, h * .44)
+        p2 = (dx * .175, dy * .175, h * .85)
+        rod(p0, p1, .018, trim, seg=6)
+        rod((p1[0], p1[1], h * .56), p2, .019, trim, seg=6)
     return hull
 
 

@@ -1680,4 +1680,10 @@ add("near",
                   4.0, 1.6, "amb"),
     saucer_hum=LOOP("A small 1950s B-movie flying saucer hovering close by: a warbling electronic hum with a "
                     "slow wobble and a faint theremin whine on top.", 3.0, 3.0, "fly"),
+    ride_engine_airboat=LOOP("An old aluminum airboat piston engine and rear propeller, steady dry cockpit sound without water.",
+                             2.4, 2.374, "tool"),
+    ride_engine_car=LOOP("An old dirt-track stock car V8 at steady low-to-mid throttle, recorded in the cockpit.",
+                         2.4, 2.374, "tool"),
+    ride_engine_mower=LOOP("A small single-cylinder riding mower engine at steady working RPM, without the blades.",
+                           2.4, 2.374, "tool"),
     )

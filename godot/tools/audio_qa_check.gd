@@ -141,6 +141,9 @@ func _pcm(cue: String) -> PackedByteArray:
 
 func _edges(main) -> void:
 	var assets: Assets = main.sound.assets
+	var loops := LOOPS.duplicate()
+	for kind: String in VehicleDrive.kinds():
+		loops.append(VehicleDrive.spec(kind).engine)
 	var clicks: Array = []
 	var seams: Array = []
 	var looked := 0
@@ -156,7 +159,7 @@ func _edges(main) -> void:
 		looked += 1
 		var first := absf(data.decode_s16(0) / 32768.0)
 		var last := absf(data.decode_s16(data.size() - 2) / 32768.0)
-		if cue.begins_with("amb_") or LOOPS.has(cue):
+		if cue.begins_with("amb_") or loops.has(cue):
 			# The step across the join, against the largest step inside.
 			var jump := absi(data.decode_s16(0) - data.decode_s16(data.size() - 2))
 			var inside := 0

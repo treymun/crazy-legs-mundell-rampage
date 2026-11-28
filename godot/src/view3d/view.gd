@@ -75,6 +75,9 @@ class Sprite:
 	var translucent := false
 	var body := false
 	var plane := NAN
+	## A rigid board or panel dressed with this picture.
+	var board := false
+	var rotor_running := false
 	## Which way a modelled prop faces when it is not a board (radians: its
 	## front toward map (sin face, cos face)); NAN: the view picks the most
 	## open way. A quest prop faces where its station is used from.
