@@ -398,7 +398,7 @@ func _warm_models(game: Game) -> void:
 		if not item in items:
 			items.append(item)
 	slabs.warm(items)
-	actors.warm(_event_kinds(game))
+	actors.warm(_warm_actor_kinds(game))
 	var rides: VehiclesFeature = game.features.get("vehicles")
 	if rides != null:
 		var seats: Array[String] = []
@@ -409,9 +409,13 @@ func _warm_models(game: Game) -> void:
 		cab.warm(seats)
 
 
-## The kinds a county event may bring (its hogs and raiders), none without
-## events.
-static func _event_kinds(game: Game) -> Array[String]:
+## Models shown from the first round or when a county event starts.
+static func _warm_actor_kinds(game: Game) -> Array[String]:
+	if Modes.is_tactical(game):
+		var roles: Array[String] = [ModeBodies.OUTLAW_KIND, ModeBodies.DEPUTY_KIND]
+		if Modes.mode_of(game) == Modes.HOSTAGE:
+			roles.append(ModeBodies.HOSTAGE_KIND)
+		return roles
 	if game.features.get("events") == null:
 		return []
 	return ["hog", EventRaid.squad_kind()]
@@ -699,7 +703,7 @@ func frame(game: Game) -> void:
 		# (pass 10); _warm_models then takes them. Not headless: the dummy
 		# renderer's meshes are not made safely from two threads at once.
 		props.models.request(props.level_models(level))
-		actors.request(game.enemies, _event_kinds(game))
+		actors.request(game.enemies, _warm_actor_kinds(game))
 	_build(level, at_hub)
 	var looks: WallLooks = game.features.get("wall_looks")
 	var planks := looks.view_rows(x, y) if looks != null else WallLooks.blank_rows()

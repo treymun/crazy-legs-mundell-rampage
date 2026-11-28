@@ -1,7 +1,6 @@
 ## The 3D bodies of the modes' people. The 3D view draws a sprite as its
 ## enemy's rigged model when the sprite names the enemy (View.Sprite.who); the
-## 5v5 players (the outlaws as the county's hillbillies, the deputies as its
-## yard deputies) and the hostages are no enemies, so each gets a stand-in
+## 5v5 players and hostages have dedicated models. Each gets a stand-in
 ## here: an Enemy of that kind that is never in game.enemies and never ticks,
 ## set each frame from what it shows (place, heading, gait, height, when they
 ## fell) so the model stands, walks, aims and falls as they do. Only the view
@@ -14,6 +13,9 @@ extends RefCounted
 
 ## The model of Mundell himself (scripts/blender/actors_mundell.py).
 const PLAYER_KIND := "mundell"
+const OUTLAW_KIND := "mp_outlaw"
+const DEPUTY_KIND := "mp_deputy"
+const HOSTAGE_KIND := "mp_hostage"
 ## How long a hit shows as the pain pose (seconds of game clock).
 const PAIN_TIME := .3
 ## A player moving this fast (Player.motion) walks.
@@ -43,7 +45,7 @@ static func stand_in(game: Game, key: String, kind: String) -> Enemy:
 	_forget_other_games(game)
 	var e: Enemy = _stand_ins.get(key)
 	if e == null or e.kind != kind:
-		# Mundell is no enemy kind: his stand-in is a coot wearing his name.
+		# View-only roles use the coot defaults with their own model name.
 		e = Enemy.new(kind if Enemy.DEFS.has(kind) else "coot")
 		e.kind = kind
 		e.variant = 1.0
@@ -71,7 +73,7 @@ static func for_player(game: Game, q: Player, kind: String, tall: float) -> Enem
 static func for_hostage(
 	game: Game, k: int, x: float, y: float, facing: float, gait: float, tall: float
 ) -> Enemy:
-	var e := stand_in(game, "h%d" % k, "coot")
+	var e := stand_in(game, "h%d" % k, HOSTAGE_KIND)
 	e.x = x
 	e.y = y
 	e.angle = facing
@@ -162,7 +164,8 @@ static func player_sprite(game: Game, q: Player) -> View.Sprite:
 ## of `kind`: falling then down when out, else firing, flinching from a hit,
 ## aiming (scoped or just fired), walking (ActorView runs the walk on their
 ## gait) or standing; under half health the hurt look (bloodied, limping).
-static func player_pose(game: Game, q: Player, kind: String) -> String:
+## `moving` covers tactical players whose velocity is already available.
+static func player_pose(game: Game, q: Player, kind: String, moving := false) -> String:
 	if q.health <= 0:
 		var since := game.clock - fell_at(game, q)
 		if since >= 0.0 and since < Enemy.DEATH_TIME:
@@ -183,6 +186,6 @@ static func player_pose(game: Game, q: Player, kind: String) -> String:
 		return look + "_pain"
 	if q.scoped or age < .7:
 		return look + "_aim"
-	if q.motion > WALKING and q.air == 0.0:
+	if (moving or q.motion > WALKING) and q.air == 0.0:
 		return look + "_w0"
 	return look + "_0"

@@ -147,15 +147,13 @@ static func ink_for(st: ModeFeature, p: Player) -> Color:
 	return OUTLAW_INK if TacticalMode.side_of(st, p) == 0 else DEPUTY_INK
 
 
-## How a 5v5 player looks to `me`: the OUTLAWS as the county's hillbillies,
-## the DEPUTIES as its yard deputies (the campaign's own actors, every view
-## and walk cel), at the height of a player's hit box (the head drawn where a
-## shot counts as the head); aiming and firing face on, hurt cels under half
-## health, crouched lower, falling and then laid out when down. The 3D view
-## draws each as that actor's model (a ModeBodies stand-in).
+## Draw each team's model at the player's standing or crouched height.
+## Keep the directional cels available when a model cannot be drawn.
 static func player_sprite(game: Game, q: Player, me: Player) -> View.Sprite:
 	var st := Modes.feature(game)
-	var kind := "billy" if st == null or TacticalMode.side_of(st, q) == 0 else "yard_deputy"
+	var outlaw := st == null or TacticalMode.side_of(st, q) == 0
+	var kind := "billy" if outlaw else "yard_deputy"
+	var model := ModeBodies.OUTLAW_KIND if outlaw else ModeBodies.DEPUTY_KIND
 	var floor_z: float = game.world.stand(q)
 	if q.health <= 0:
 		var since := game.clock - ModeBodies.fell_at(game, q)
@@ -167,7 +165,8 @@ static func player_sprite(game: Game, q: Player, me: Player) -> View.Sprite:
 		else:
 			down = game.pooled(q.x, q.y, kind + "_down", PLAYER_HEIGHT * .3, floor_z - .07)
 		down.body = true
-		down.who = ModeBodies.for_player(game, q, kind, PLAYER_HEIGHT)
+		down.who = ModeBodies.for_player(game, q, model, PLAYER_HEIGHT)
+		down.pose = model + down.image.substr(kind.length())
 		return down
 	var bearing := atan2(me.y - q.y, me.x - q.x)
 	var relative := Enemy.angle_delta(bearing, q.angle)
@@ -189,7 +188,8 @@ static func player_sprite(game: Game, q: Player, me: Player) -> View.Sprite:
 	var spr := game.pooled(q.x, q.y, image, tall, floor_z + q.air)
 	spr.flip = relative < 0.0 and direction < 4
 	spr.body = true
-	spr.who = ModeBodies.for_player(game, q, kind, tall)
+	spr.who = ModeBodies.for_player(game, q, model, tall)
+	spr.pose = ModeBodies.player_pose(game, q, model, moving)
 	return spr
 
 
@@ -243,13 +243,13 @@ static func sprites(game: Game, st: ModeFeature) -> Array:
 			var image := "coot_0" if has_coot else "player_front_0"
 			if has_coot and walking:
 				image = "coot_w%d" % (int(carrier.walk_phase / (PI * .5)) % 4)
-			image = art.tinted_art(image, [1.25, 1.2, .85])
+			image = art.tinted_art(image, [1.1, 1.08, .98])
 			var spr := game.pooled(x, y, image, .98, game.world.elevation(x, y))
 			spr.body = true
-			if has_coot:
-				var gait := carrier.walk_phase if carrier != null else 0.0
-				var facing: float = place[2]
-				spr.who = ModeBodies.for_hostage(game, k, x, y, facing, gait, .98)
+			var gait := carrier.walk_phase if carrier != null else 0.0
+			var facing: float = place[2]
+			spr.who = ModeBodies.for_hostage(game, k, x, y, facing, gait, .98)
+			spr.pose = ModeBodies.HOSTAGE_KIND + ("_w0" if walking else "_0")
 			out.append(spr)
 	elif String(st.mode) == Modes.BOMB and st.bomb is Dictionary and not st.bomb.is_empty():
 		var state := str(st.bomb["state"])
