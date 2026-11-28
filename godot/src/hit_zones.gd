@@ -303,6 +303,9 @@ static func _rearm(e: Enemy, game: Game) -> void:
 ## back instead (hard at arm's length: features/corpses.gd); both barrels at
 ## once still take it apart.
 static func overkill(e: Enemy, game: Game, how: String) -> bool:
+	# A ram throws the body. The mower's blade uses its separate hit kind.
+	if how == "roadkill":
+		return false
 	if how == "shotgun" and point_blank(e, game):
 		# (Pass 15) the sawed-off at arm's length always takes it apart.
 		return true

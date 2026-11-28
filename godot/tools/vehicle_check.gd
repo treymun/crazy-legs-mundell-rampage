@@ -173,11 +173,18 @@ func _vehicle(main, id: String) -> void:
 	var victim := _victim(g)
 	_check(victim != null, "%s: there is room for a hand ahead of it" % id)
 	if victim != null:
-		var from := Vector2(victim.x, victim.y)
+		# The victim can close on the driver before the collision. Measure
+		# the body's travel from the impact itself.
+		var impact: Array[Vector2] = []
+		var record := func(enemy: Enemy) -> void:
+			if enemy == victim:
+				impact.append(Vector2(enemy.x, enemy.y))
+		g.events.enemy_killed.connect(record)
 		for t in 300:
 			drive(g, 1, 1.0)
 			if not victim.alive:
 				break
+		g.events.enemy_killed.disconnect(record)
 		_check(
 			not victim.alive and victim.killed_by in ["roadkill", "mower"],
 			(
@@ -186,13 +193,10 @@ func _vehicle(main, id: String) -> void:
 			)
 		)
 		drive(g, 40, 0.0)
-		_check(
-			Vector2(victim.x, victim.y).distance_to(from) > .5,
-			(
-				"%s: its body is thrown %.1f cells"
-				% [id, Vector2(victim.x, victim.y).distance_to(from)]
-			)
+		var thrown := (
+			Vector2(victim.x, victim.y).distance_to(impact[0]) if not impact.is_empty() else 0.0
 		)
+		_check(thrown > .5, "%s: its body is thrown %.1f cells from impact" % [id, thrown])
 	drive(g, 90, -.0)
 	g.interact()
 	var p := g.player
