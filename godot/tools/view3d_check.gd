@@ -257,8 +257,9 @@ func _check_rest(kind: String, view: ActorView, info: Dictionary) -> void:
 ## shop_lamp model; the cow is a model that rolls over on the hooves of the
 ## side she lies on `down` as she is tipped (ActorView.tipped).
 func _check_leftovers(models: PropModels, actors: ActorModels) -> void:
-	if models.name_of("prop_lamp") != "shop_lamp":
-		_fail("prop_lamp: not drawn as the shop_lamp model")
+	for picture: String in PropModels.PICTURES:
+		if models.name_of(picture) != PropModels.PICTURES[picture]:
+			_fail("%s: its authored model is unavailable" % picture)
 	var cow: Dictionary = actors.kinds.get("cow", {})
 	var tips: float = cow.get("tips", 0.0)
 	var frames: Dictionary = cow.get("frames", {})

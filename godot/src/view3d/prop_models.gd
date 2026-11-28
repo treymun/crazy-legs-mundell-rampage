@@ -15,9 +15,51 @@ const LOOKS: Array[String] = ["off", "on"]
 ## -28 degrees): a prop that faces where it is used from is turned so, and
 ## from there is seen as its picture showed it.
 const PICTURE_TURN := deg_to_rad(28.0)
-## Pictures not named town_<name> that a model stands for: the hanging shop
-## lamp game.gd hangs under a roof (and a boss arena's wreck drops).
-const PICTURES := {"prop_lamp": "shop_lamp"}
+## Legacy scenery and pickup art mapped to their authored 3D props.
+const PICTURES := {
+	"county_dispatch_trunk": "dispatch_trunk",
+	"item_key_brass": "quest_key_brass",
+	"item_key_steel": "quest_key_steel",
+	"prop_barrel": "yard_barrel",
+	"prop_crate": "yard_crate",
+	"prop_fuel": "red_fuel_drum",
+	"prop_hay": "hay_bale",
+	"prop_lamp": "shop_lamp",
+	"prop_mailbox": "rural_mailbox",
+	"prop_pickup_truck": "pickup_truck",
+	"prop_pickup_truck_b": "pickup_truck_b",
+	"prop_pump": "roadside_pump",
+	"prop_pump_b": "roadside_pump_b",
+	"prop_reeds": "brush_reeds",
+	"prop_roadsign": "road_sign",
+	"prop_silo": "farm_silo",
+	"prop_sink": "outdoor_sink",
+	"prop_tire": "discarded_tire",
+	"prop_tree": "roadside_tree",
+	"prop_tree_b": "roadside_tree_b",
+	"prop_utilitypole": "power_pole",
+	"prop_water_tower": "water_tower",
+	"scenery_bottles_spent": "bottle_group_spent",
+	"scenery_bottles_whole": "bottle_group",
+	"scenery_cancan_spent": "battered_can_spent",
+	"scenery_cancan_whole": "battered_can",
+	"scenery_cans_spent": "can_group_spent",
+	"scenery_cans_whole": "can_group",
+	"scenery_jukebox_spent": "jukebox_cabinet_spent",
+	"scenery_jukebox_whole": "jukebox_cabinet",
+	"scenery_pipe_spent": "pipe_scrap_spent",
+	"scenery_pipe_whole": "pipe_scrap",
+	"scenery_scrap_spent": "metal_scrap_spent",
+	"scenery_scrap_whole": "metal_scrap",
+	"scenery_toilet_spent": "porcelain_toilet_spent",
+	"scenery_toilet_whole": "porcelain_toilet",
+	"scenery_tv_spent": "tube_tv_spent",
+	"scenery_tv_whole": "tube_tv",
+	"scenery_vending_spent": "vending_machine_spent",
+	"scenery_vending_whole": "vending_machine",
+	"scenery_window_spent": "salvage_window_spent",
+	"scenery_window_whole": "salvage_window",
+}
 
 ## name -> [width, depth, height, texture size, picture height]: the last,
 ## how tall its picture town_<name> was drawn (a sprite shown at another
@@ -195,9 +237,11 @@ func mesh(name: String) -> Mesh:
 	if cached != null:
 		return cached
 	var found: Mesh = null
-	var scene := load(FOLDER.path_join(name + ".glb")) as PackedScene
-	if scene != null:
-		var root := scene.instantiate()
+	# A painted variant can use its base GLB through its own PropView scene.
+	var path := FOLDER.path_join(name + ".glb")
+	var packed := load(path) as PackedScene if ResourceLoader.exists(path) else scene(name)
+	if packed != null:
+		var root := packed.instantiate()
 		found = _first_mesh(root)
 		root.free()
 	_meshes[name] = found

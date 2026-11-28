@@ -393,7 +393,12 @@ func sprites() -> Array:
 					continue
 		var hover := .06 + sin(clock * 3.5 + x) * bob
 		var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
-		sprites.append(pooled(x, y, "item_" + str(entry[0]), .33, lies + hover))
+		var item := str(entry[0])
+		var pickup := pooled(x, y, "item_" + item, .33, lies + hover)
+		if item.begins_with("key_"):
+			# The model follows the hover through the same node each frame.
+			pickup.track = "key:%s:%s" % [x, y]
+		sprites.append(pickup)
 		PickupLooks.glint(self, entry, x, y, lies + hover + .24, player, sprites)
 	for shot: Shot in shots:
 		if (
