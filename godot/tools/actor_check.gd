@@ -387,6 +387,20 @@ func _motion(models: ActorModels, assets: Assets) -> void:
 	var walked := _pose(skeleton)
 	view._player.seek(models.key_time("billy", "w1"), true)
 	_check(_far(walked, _pose(skeleton)) < 1e-4, "walk: blended between its beats")
+	# Sprite cels are selected by observer angle. The model stays on the same activity.
+	e.mind = Squad.Mind.new()
+	e.mind.spot = Vector2(e.x, e.y)
+	e.mind.activity = "chopping"
+	e.pose = 0.0
+	e.mind.phase = 0.0
+	s.image = "billy_aim"
+	view.show_as(s, e, level, clock + 1.4)
+	view.show_as(s, e, level, clock + 1.6)
+	var front := _pose(skeleton)
+	s.image = "billy_back_0"
+	view.show_as(s, e, level, clock + 1.6)
+	_check(_far(front, _pose(skeleton)) < 1e-4, "idle: the model kept its pose as the view moved")
+	e.mind = null
 	# A hit rocks it: by the zone, its own dice, still again after FLINCH.
 	s.image = "billy_0"
 	view.show_as(s, e, level, clock + 2.0)
@@ -425,8 +439,18 @@ func _motion(models: ActorModels, assets: Assets) -> void:
 		view.show_as(s, e, level, clock + 10.0 + t)
 		tall.append(view.transform.basis.y.length())
 	_check(absf(float(tall.max()) - float(tall.min())) > .002, "idle: the body stands stock still")
-	# A scripted fall: mirrored for about half the deaths, never a boss's.
 	var was := View.ragdolls
+	View.ragdolls = true
+	view.live_ok = true
+	e.died_at = clock + 12.0
+	e.hp = 0.0
+	s.image = "billy_die_0"
+	view.show_as(s, e, level, e.died_at + .01)
+	_check(
+		view.doll != null and not (view.doll is DyingDoll),
+		"fall: a nearby hand switches straight to a passive ragdoll"
+	)
+	# A scripted fall: mirrored for about half the deaths, never a boss's.
 	View.ragdolls = false
 	var mirrored := 0
 	for uid in 40:

@@ -27,6 +27,10 @@ static var KICK: Array = Difficulty.table("hands", "kick_doors")
 static var MAGAZINE: Array = Difficulty.table("hands", "magazine")
 static var DROP_MAX: Array = Difficulty.table("hands", "drop_max")
 static var RELOAD: float = ModeData.get_value("hand_tactics", "reload", 1.8)
+static var ALERT_READY: float = ModeData.get_value("hand_tactics", "alert_ready", .24)
+static var IDLE_READY: float = ModeData.get_value("hand_tactics", "idle_ready", .48)
+static var AIM_COMMIT: float = ModeData.get_value("hand_tactics", "aim_commit", .17)
+static var PUSH_PACE: float = ModeData.get_value("hand_tactics", "push_pace", 1.23)
 static var PEEK_OUT: float = ModeData.get_value("hand_tactics", "peek_out", .8)
 static var KICK_WINDUP: float = ModeData.get_value("hand_tactics", "kick_windup", .45)
 ## The classic chance of ducking after a shot.
@@ -36,6 +40,15 @@ const CLASSIC_DUCK := .3
 ## Whether the hands fight smart in this game (HANDS: SMART, not EASY).
 static func smart(game: GameWorld) -> bool:
 	return game.smart_hands > 0 and game.difficulty > 0
+
+
+## Gun tactics also apply to hitscan weapons. Enemy.RANGED selects the shot physics.
+static func shooter(e: Enemy) -> bool:
+	return Enemy.RANGED.has(e.kind) or e.brain in ["billy", "coot", "clone"]
+
+
+static func closer(e: Enemy) -> bool:
+	return e.brain == "billy" or Enemy.LUNGES.has(e.kind)
 
 
 ## The chance a ranged hand ducks into cover after a shot.
@@ -76,7 +89,7 @@ static func step(e: Enemy, dt: float, game: Game, can_see: bool, distance: float
 		return _kick(game, m)
 	if e.attacks != m.seen_attacks:
 		_shot_off(e, game, m, level)
-	if e.cover != null and Enemy.RANGED.has(e.kind) and _peek(e, dt, game, m, level):
+	if e.cover != null and shooter(e) and _peek(e, dt, game, m, level):
 		return true
 	if lost and kicks and now >= m.kick_next and e.target != null:
 		m.kick_next = now + .25
@@ -94,7 +107,7 @@ static func step(e: Enemy, dt: float, game: Game, can_see: bool, distance: float
 ## reloads under cover; one that peeked goes back to its spot.
 static func _shot_off(e: Enemy, game: Game, m: Squad.Mind, level: int) -> void:
 	m.seen_attacks = e.attacks
-	if not Enemy.RANGED.has(e.kind):
+	if not shooter(e):
 		return
 	m.since_reload += 1
 	var magazine: int = MAGAZINE[level]

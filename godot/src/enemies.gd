@@ -342,7 +342,12 @@ func wake(game: GameWorld, px: float, py: float) -> void:
 		if mind != null:
 			Squad.startled(self, game as Game)
 		alerted = true
-		cooldown = maxf(.65, cooldown)
+		var ready := .65
+		if tactical() and HandTactics.smart(game):
+			ready = HandTactics.ALERT_READY
+			angle = atan2(py - y, px - x)
+			face_left = cos(angle) < -.24
+		cooldown = maxf(ready, cooldown)
 		if hostile and kind != "boss" and kind != "jerry":
 			for other: Enemy in game.enemies:
 				if (
@@ -885,7 +890,22 @@ func tick(dt: float, game: Game) -> void:
 		# A ladder, a door kicked in, a peek out of cover (src/hand_tactics.gd).
 		return
 	var attack_range: float = REACH[kind]
+	var comfort: float = COMFORT[kind]
+	var smart := tactical() and HandTactics.smart(game)
+	if smart and brain == "billy":
+		attack_range = minf(attack_range, comfort + 1.2)
 	if windup > 0.0:
+		if (
+			smart
+			and HandTactics.shooter(self)
+			and not TELLS.has(kind)
+			and not SIGNATURES.has(kind)
+			and can_see
+			and windup > HandTactics.AIM_COMMIT
+		):
+			aim_mark = [p.x, p.y, p.eye]
+			angle = direction
+			face_left = cos(direction) < -.24
 		var mark: Array = aim_mark if aim_mark != null else [p.x, p.y, p.eye]
 		var tx: float = mark[0]
 		var ty: float = mark[1]
@@ -915,14 +935,20 @@ func tick(dt: float, game: Game) -> void:
 			):
 				attack(game, aimed, sqrt(pow(tx - x, 2) + pow(ty - y, 2)), eye, tz)
 				recovery = recovery_time(brain == "baron" and game.relief_open())
-				if RANGED.has(kind) and tactical() and game.rng.random() < HandTactics.duck(game):
-					# A shot off, then down behind something before the reply.
+				if (
+					tactical()
+					and (HandTactics.shooter(self) if smart else RANGED.has(kind))
+					and (not smart or brain != "billy")
+					and game.rng.random() < HandTactics.duck(game)
+				):
 					take_cover(game)
 			else:
 				cooldown = .43
 			aim_mark = null
 		return
 	if stun > 0.0:
+		return
+	if smart and HandTactics.closer(self) and recovery > .17:
 		return
 	if recovery > .17 and (BOSS_TITLES.has(kind) or SIGNATURES.has(kind) or brain == "boilerback"):
 		return
@@ -954,6 +980,14 @@ func tick(dt: float, game: Game) -> void:
 			):
 				retreat = [danger.x, danger.y, game.clock + .9]
 				return
+	if (
+		smart
+		and mind != null
+		and mind.flank_until > game.clock
+		and distance > comfort
+		and Squad.flank(self, dt, game)
+	):
+		return
 	if can_see and distance <= attack_range and cooldown <= 0.0:
 		var spec: Array = WINDUP[kind]
 		windup = spec[0]
@@ -972,7 +1006,7 @@ func tick(dt: float, game: Game) -> void:
 		return
 	var tx2: float = target[0]
 	var ty2: float = target[1]
-	var goal: float = COMFORT[kind]
+	var goal := comfort
 	var approach := atan2(ty2 - y, tx2 - x)
 	var strafe := PI / 2.0 if (attacks + int(pose / 1.45) + int(y)) % 2 else -PI / 2.0
 	# Deep water on the straight line (deep_steer.gd): go round by the flow field.
@@ -987,6 +1021,8 @@ func tick(dt: float, game: Game) -> void:
 	if not can_see or distance > goal:
 		if sqrt(pow(tx2 - x, 2) + pow(ty2 - y, 2)) > .36:
 			var pace := 1.21 if brain == "boss" and hp < 145.0 else 1.25 if enraged else 1.0
+			if smart and HandTactics.closer(self) and can_see:
+				pace *= HandTactics.PUSH_PACE
 			var partner: Array = game.partners.get(get_instance_id(), []) if can_see else []
 			var mate: Enemy = null if partner.is_empty() else partner[0]
 			if mate != null and mate.alive and mate.player_seen and mate.windup > 0.0:

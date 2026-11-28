@@ -55,6 +55,9 @@ class Mind:
 	var flank_until := 0.0
 	var flank_side := 1.0
 	var flank_from := 0.0
+	var flank_progress := 0.0
+	var flank_at := Vector2.ZERO
+	var flank_retried := false
 	var press_until := 0.0
 	## Falling back: [x, y, until].
 	var regroup: Variant = null
@@ -152,7 +155,8 @@ static func startled(e: Enemy, game: Game) -> void:
 			bark(e, game, "surprised")
 			return
 	if busy:
-		e.cooldown = maxf(e.cooldown, 1.1)
+		var ready := HandTactics.IDLE_READY if HandTactics.smart(game) else 1.1
+		e.cooldown = maxf(e.cooldown, ready)
 		_spill(e, game, was)
 		bark(e, game, "surprised")
 	else:
@@ -235,10 +239,8 @@ static func move(e: Enemy, dt: float, game: Game, can_see: bool, distance: float
 			m.flush_at = 0.0
 			_flush(e, game)
 		return true
-	if now < m.flank_until:
-		if _flank_step(e, dt, game):
-			return true
-		m.flank_until = 0.0
+	if now < m.flank_until and flank(e, dt, game):
+		return true
 	if now < m.press_until and can_see and distance > 1.7:
 		e.follow(dt, game, atan2(p.y - e.y, p.x - e.x), 1.15)
 		return true
@@ -301,6 +303,28 @@ static func _search_step(e: Enemy, dt: float, game: Game) -> void:
 	m.search_walk = now + 4.0
 
 
+static func flank(e: Enemy, dt: float, game: Game) -> bool:
+	var m: Mind = e.mind
+	var at := Vector2(e.x, e.y)
+	var bearing := (at - Vector2(game.player.x, game.player.y)).angle()
+	if Enemy.angle_delta(bearing, m.flank_from) * m.flank_side >= FLANK_SWING:
+		m.flank_until = 0.0
+		return false
+	if at.distance_squared_to(m.flank_at) > .09:
+		m.flank_at = at
+		m.flank_progress = game.clock
+	var moved := game.clock - m.flank_progress < .65 and _flank_step(e, dt, game)
+	if not moved and not m.flank_retried:
+		m.flank_retried = true
+		m.flank_from = (at - Vector2(game.player.x, game.player.y)).angle()
+		m.flank_side = -m.flank_side
+		m.flank_progress = game.clock
+		moved = _flank_step(e, dt, game)
+	if not moved:
+		m.flank_until = 0.0
+	return moved
+
+
 ## A step of a flank: round the player along the flow field, keeping about as
 ## many steps off as it is (wide while near, drawing in while far), the way
 ## it was sent round. False when it has swung far enough round, is near
@@ -315,7 +339,7 @@ static func _flank_step(e: Enemy, dt: float, game: Game) -> bool:
 	if cx < 0 or cy < 0 or cx >= f.width or cy >= f.height:
 		return false
 	var w := f.width
-	var here := f.steps[cy * w + cx]
+	var here := f.distance(e.x, e.y, e.floor_z)
 	if here >= FlowField.FAR or here <= 3:
 		return false
 	var p: Player = game.player
@@ -330,8 +354,9 @@ static func _flank_step(e: Enemy, dt: float, game: Game) -> bool:
 		var ny := cy + n.y
 		if nx < 0 or ny < 0 or nx >= f.width or ny >= f.height:
 			continue
-		var d := f.steps[ny * w + nx]
-		if d >= FlowField.FAR:
+		var at := Vector2(nx + .5, ny + .5)
+		var d := f.distance(at.x, at.y, e.floor_z)
+		if d >= FlowField.FAR or game.world.blocked(at.x, at.y, e.radius, e.floor_z + .45):
 			continue
 		if n.x != 0 and n.y != 0:
 			if f.steps[cy * w + nx] >= FlowField.FAR or f.steps[ny * w + cx] >= FlowField.FAR:

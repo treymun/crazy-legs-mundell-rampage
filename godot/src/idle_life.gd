@@ -168,6 +168,14 @@ static func frame(e: Enemy, observer: Variant) -> Variant:
 	var bearing := atan2(oy - e.y, ox - e.x)
 	if absf(Enemy.angle_delta(bearing, e.angle)) > PI / 3.0:
 		return 0
+	return activity_frame(e)
+
+
+## The same activity on a model from every angle, independent of the observer.
+static func activity_frame(e: Enemy) -> Variant:
+	var m: Squad.Mind = e.mind
+	if m.activity == "" or not at_it(e):
+		return 0
 	var t: float = e.pose + m.phase
 	var fidgets := Enemy.FIDGETS.has(e.kind)
 	match m.activity:

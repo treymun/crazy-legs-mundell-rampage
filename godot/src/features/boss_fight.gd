@@ -31,10 +31,10 @@ const Corpses := preload("res://src/features/corpses.gd")
 
 ## Real seconds of slow motion as a boss falls (game.SLOWMO_PACE is how slow).
 static var SLOWMO: float = BossData.get_value("boss_fight", "slowmo")
-## How many come at each phase change, EASY .. HOG WILD, and how far off the
-## player's facing (radians) a spot in plain view must be to count as unseen.
+## How many can come at each phase change, EASY .. HOG WILD.
 static var BACKUP: Array = Difficulty.table("bosses", "backup")
-static var BEHIND: float = BossData.get_value("boss_fight", "behind")
+static var BACKUP_RETRY: float = BossData.get_value("boss_fight", "backup_retry")
+static var BACKUP_WINDOW: float = BossData.get_value("boss_fight", "backup_window")
 ## Each boss's share of BACKUP (bosses.cfg [boss_fight] backup_share; 1 when
 ## not listed): Hickston's two bosses each call half, so the chapter gets the
 ## backup one boss brings anywhere else (polish pass 9).
@@ -64,6 +64,8 @@ var bosses: Array = []
 ## kind -> the clock when its fight began; kind -> seconds it took to fall.
 var met := {}
 var down := {}
+## Boss kind -> [count left, phase, next attempt, cutoff].
+var waiting_backup := {}
 ## A winding-up boss's instance id -> Vector2(its wind-up's length, last seen).
 var windups := {}
 ## Fallen bosses whose body has yet to land (looks: the dust beat).
@@ -136,6 +138,8 @@ func _tick(_dt: float) -> void:
 	if not landing.is_empty():
 		_landings()
 	for e: Enemy in bosses:
+		if waiting_backup.has(e.kind):
+			_retry_backup(e)
 		var key := e.get_instance_id()
 		if e.windup > 0.0 and e.alive:
 			var seen: Vector2 = windups.get(key, Vector2.ZERO)
@@ -208,18 +212,53 @@ func backup(e: Enemy, phase: int) -> int:
 	var kinds := ordinary_kinds()
 	if kinds.is_empty():
 		return 0
-	var p := game.player
-	var made := 0
 	var full: int = BACKUP[clampi(game.difficulty, 0, 3)]
 	var share: float = BACKUP_SHARE.get(e.kind, 1.0)
 	var want := ceili(full * share)
+	var made := _send_backup(e, phase, want, kinds)
+	if made < want:
+		waiting_backup[e.kind] = [
+			want - made, phase, game.clock + BACKUP_RETRY, game.clock + BACKUP_WINDOW
+		]
+	else:
+		waiting_backup.erase(e.kind)
+	return made
+
+
+func _retry_backup(e: Enemy) -> void:
+	var row: Array = waiting_backup[e.kind]
+	var left: int = row[0]
+	var phase: int = row[1]
+	var next: float = row[2]
+	var cutoff: float = row[3]
+	if not e.alive or not game.boss_backup or game.clock >= cutoff:
+		waiting_backup.erase(e.kind)
+	elif game.clock >= next:
+		var kinds := ordinary_kinds()
+		if kinds.is_empty():
+			waiting_backup.erase(e.kind)
+			return
+		left -= _send_backup(e, phase, left, kinds)
+		if left <= 0:
+			waiting_backup.erase(e.kind)
+		else:
+			waiting_backup[e.kind] = [left, phase, game.clock + BACKUP_RETRY, cutoff]
+
+
+func _send_backup(e: Enemy, phase: int, want: int, kinds: Array) -> int:
+	var p := game.player
+	var made := 0
 	for spot: Vector2 in hidden_spots(e, want):
 		var kind := str(kinds[(made + phase) % kinds.size()])
+		var ground := game.world.elevation(spot.x, spot.y)
 		var add := Enemy.new(kind, spot.x, spot.y, atan2(p.y - spot.y, p.x - spot.x))
+		add.floor_z = ground
+		add.last_floor = ground
 		add.flank = .42 if made % 2 else -.42
 		game.enemies.append(add)
 		game.total_kills += 1
 		add.wake(game, p.x, p.y)
+		EnemySpawn.face_entry(game, add)
 		add.hunt_until = game.clock + 12.0
 		add.cooldown = maxf(add.cooldown, 1.2)
 		made += 1
@@ -236,41 +275,29 @@ func ordinary_kinds() -> Array:
 	return kinds
 
 
-## Up to `want` open spots near the boss out of the player's sight, that the
-## enemies' paths reach, not on top of the player or of each other: first
-## those behind something, then those behind the player's back. Rings out
-## from the boss, beginning on its far side from the player.
+## Open, reachable points around the arena with cover from the entire party.
+## Rings start on the far side of the boss.
 func hidden_spots(e: Enemy, want: int) -> Array:
 	var p := game.player
 	var w: LevelData = game.world
 	var away := atan2(e.y - p.y, e.x - p.x)
-	var facing: float = p.view_angle()
 	var out: Array = []
-	for sweep in 2:
-		for ring: float in [3.0, 4.0, 5.5, 7.0, 8.5, 10.0, 12.0, 14.0]:
-			for k in 24:
-				if out.size() >= want:
-					return out
-				var turn: int = int((k + 1) / 2.0) * (1 if k % 2 else -1)
-				var a := away + turn * TAU / 24.0
-				var at := Vector2(e.x + cos(a) * ring, e.y + sin(a) * ring)
-				if not _spawnable(at, out):
-					continue
-				if (
-					not BossFight.lock_of(game, e.kind).is_empty()
-					and not BossFight.in_room(game, e.kind, at.x, at.y)
-				):
-					continue
-				var seen: bool = w.visible(
-					p.x, p.y, at.x, at.y, p.eye, w.elevation(at.x, at.y) + .9
-				)
-				if sweep == 0 and seen:
-					continue
-				if (
-					sweep == 1
-					and absf(Enemy.angle_delta(atan2(at.y - p.y, at.x - p.x), facing)) < BEHIND
-				):
-					continue
+	var locked := not BossFight.lock_of(game, e.kind).is_empty()
+	for ring: float in [3.0, 4.0, 5.5, 7.0, 8.5, 10.0, 12.0, 14.0, 17.0, 20.0]:
+		for k in 24:
+			if out.size() >= want:
+				return out
+			var turn: int = int((k + 1) / 2.0) * (1 if k % 2 else -1)
+			var at := Vector2(e.x, e.y) + Vector2.from_angle(away + turn * TAU / 24.0) * ring
+			if not _spawnable(at, out):
+				continue
+			if locked and not BossFight.in_room(game, e.kind, at.x, at.y):
+				continue
+			var floor_z := w.elevation(at.x, at.y)
+			if (
+				EnemySpawn.hidden(game, at, floor_z, 1.9)
+				and EnemySpawn.clear(game, at, floor_z, .4)
+			):
 				out.append(at)
 	return out
 

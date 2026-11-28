@@ -152,7 +152,7 @@ func _step(only: Player) -> void:
 	if level == 0:
 		return
 	_regroup(group, now)
-	_flank(group, now, level)
+	_flank(group, seers, now, level)
 	_press(seers, now, level)
 	_flush(group, now, level)
 
@@ -199,7 +199,7 @@ func _regroup(group: Array, now: float) -> void:
 ## One sent wide round the player: one that cannot see them (they went
 ## round a building) before one that can, the farthest first; it goes the
 ## way away from the nearest friend.
-func _flank(group: Array, now: float, level: int) -> void:
+func _flank(group: Array, seers: Array, now: float, level: int) -> void:
 	if group.size() < 2 or now < flank_next:
 		return
 	var out := 0
@@ -227,12 +227,20 @@ func _flank(group: Array, now: float, level: int) -> void:
 		var d := Vector2(e.x - p.x, e.y - p.y).length()
 		if d < 3.5 or d > 15.0:
 			continue
-		var score := d + (0.0 if e.player_seen else 20.0)
+		if seers.size() == 1 and seers[0] == e:
+			continue
+		if game.flow == null or game.flow.distance(e.x, e.y, e.floor_z) >= FlowField.FAR:
+			continue
+		var score := d + (0.0 if e.player_seen else 8.0)
+		if HandTactics.closer(e):
+			score += 18.0
 		if score > best:
 			best = score
 			pick = e
+	if pick == null:
+		return
 	flank_next = now + FLANK_WAIT[level]
-	if pick == null or game.rng.random() >= FLANK_CHANCE[level]:
+	if not HandTactics.closer(pick) and game.rng.random() >= FLANK_CHANCE[level]:
 		return
 	var mine := atan2(pick.y - p.y, pick.x - p.x)
 	var nearest := INF
@@ -247,6 +255,9 @@ func _flank(group: Array, now: float, level: int) -> void:
 	pick.mind.flank_from = mine
 	pick.mind.flank_side = side
 	pick.mind.flank_until = now + 8.0
+	pick.mind.flank_progress = now
+	pick.mind.flank_at = Vector2(pick.x, pick.y)
+	pick.mind.flank_retried = false
 	Squad.bark(pick, game, "flank")
 
 

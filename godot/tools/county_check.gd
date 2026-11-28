@@ -73,6 +73,7 @@ static func run(main, check: Callable, seconds := QUICK_SECONDS) -> void:
 	_hold(main, check)
 	_abilities(main, check)
 	_spawns(main, check)
+	_party_spawns(main, check)
 	_routes(main, check)
 	_crossing(main, check)
 	_rodeo_gate(main, check)
@@ -795,6 +796,52 @@ static func _spawns(main, check: Callable) -> void:
 			CountySpawner.spots(g).size() > 1500,
 			"%s: a big map (%d open cells to spawn on)" % [map_id, CountySpawner.spots(g).size()]
 		)
+
+
+## Test the whole group when the guest can see the host's preferred entry.
+static func _party_spawns(main, check: Callable) -> void:
+	var g: Game = main.make_game("county_hickston")
+	g.configure({"difficulty": 1})
+	Modes.setup(g, Modes.COUNTY, 2)
+	g.tick(STEP, Game.Controls.new())
+	Modes.clear_enemies(g)
+	var f = g.features["county"]
+	var host: Player = g.players[0]
+	var guest: Player = g.players[1]
+	var entry = CountySpawner.spot(g, f)
+	check.call(entry is Vector2, "there is a covered entry from the starting field")
+	if not entry is Vector2:
+		return
+	guest.x = entry.x + .12
+	guest.y = entry.y
+	guest.floor_z = g.world.elevation(guest.x, guest.y)
+	var ground := g.world.elevation(entry.x, entry.y)
+	check.call(
+		not EnemySpawn.hidden(g, entry, ground, 1.6),
+		"the host's covered entry is visible to the guest"
+	)
+	var checked := 0
+	for attempt in 12:
+		g.focus(host)
+		f.next_spawn = 0.0
+		CountySpawner.tick(g, f, STEP)
+		var seen := false
+		var stacked := false
+		for i in g.enemies.size():
+			var e: Enemy = g.enemies[i]
+			var at := Vector2(e.x, e.y)
+			for p: Player in g.players:
+				for part in [.5, .88]:
+					if g.world.visible(p.x, p.y, e.x, e.y, p.eye, e.floor_z + e.height * part):
+						seen = true
+			for j in i:
+				var other: Enemy = g.enemies[j]
+				if at.distance_to(Vector2(other.x, other.y)) < e.radius + other.radius:
+					stacked = true
+		check.call(not seen and not stacked, "co-op group %d is covered and spaced" % attempt)
+		checked += g.enemies.size()
+		Modes.clear_enemies(g)
+	check.call(checked >= 12, "the spawner kept the pressure on with split players (%d)" % checked)
 
 
 ## The routes: hands spawned round a player who stands still and never shoots

@@ -436,7 +436,7 @@ func _maybe_peak() -> void:
 			if game.world.geo != null
 			else 0.0
 		)
-		e.angle = atan2(p.y - spot.y, p.x - spot.x)
+		e.last_floor = e.floor_z
 	_wake(group, true)
 
 
@@ -480,6 +480,8 @@ func _wake(group: Array, holler: bool) -> void:
 		_rouse(e)
 		var p := _target_of(e)
 		e.wake(game, p.x, p.y)
+		if holler:
+			EnemySpawn.face_entry(game, e, p)
 		e.hunt_until = maxf(e.hunt_until, game.clock + hunt)
 		e.cooldown = maxf(e.cooldown, .9)
 	if not holler:

@@ -164,6 +164,14 @@ const R_POINTS := RagdollRig.POINTS
 ## Standing at idle, a body breathes and sways a touch (its own phase).
 const BREATH := .012
 const SWAY := .011
+## A small head turn during idle and a brief look toward the alert.
+var _head := -1
+var _head_rest := Quaternion.IDENTITY
+var _head_moved := false
+var _alerted := false
+var _turn_from := 0.0
+var _turn_at := -1.0
+var _heading := 0.0
 ## A scripted fall (RAGDOLLS off, or a kind with no ragdoll) is mirrored for
 ## about half the deaths and runs up to FALL_QUICK faster: dice of the death's own.
 const FALL_QUICK := .18
@@ -206,6 +214,7 @@ func setup(p_models: ActorModels) -> bool:
 	var entry: Dictionary = models.kinds.get(kind, {})
 	var rides: Dictionary = entry.get("rides", {})
 	if not _skeletons.is_empty():
+		_head = _skeletons[0].find_bone("head")
 		for held_name: String in rides:
 			var seg: int = rides[held_name]
 			var g := _skeletons[0].find_bone(held_name)
@@ -239,6 +248,9 @@ func revive() -> void:
 	_posed = -1
 	_posed_dead = false
 	_shown_alive = false
+	_head_moved = false
+	_alerted = false
+	_turn_at = -1.0
 	_doll_clock = 0.0
 	_was_at = Vector3.INF
 	_going = Vector3.ZERO
@@ -265,6 +277,19 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		named = s.pose + (s.image.substr(tilde) if tilde >= 0 else "")
 	var pose := ActorView.pose_cached(named, Variants.stem(e.kind))
 	var frame: String = pose[0]
+	var hand := e.alive and e.mind != null and s.pose == "" and not Enemy.BOSS_TITLES.has(e.kind)
+	var idle := hand and not e.alerted and frame in ["0", "fidget", "aim", "recover"]
+	if idle:
+		frame = str(IdleLife.activity_frame(e))
+		if frame == "0" and Enemy.FIDGETS.has(e.kind) and e.mind.activity == "":
+			var phase := float(e.uid % 131) * .31
+			if fposmod(clock + phase, 5.8) > 5.2:
+				frame = "fidget"
+	var knocked := Stagger.down_of(e) if hand else 0.0
+	if knocked > 0.0 and models.key_time(kind, "die_3") != null:
+		frame = "die_3"
+	elif knocked < 0.0 and models.key_time(kind, "recover") != null:
+		frame = "recover"
 	var look: int = pose[1]
 	var tint: Color = pose[2]
 	var z := s.z + (.07 if frame == "down" else 0.0)
@@ -289,13 +314,26 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		_shade(s, level, look, tint, down)
 		return
 	doll = null
+	if _head_moved:
+		_skeletons[0].set_bone_pose_rotation(_head, _head_rest)
+		_head_moved = false
 	if e.alive:
 		_track(Vector3(s.x, s.y, z), clock)
 		_live_begin(e, clock)
 		_drunk_begin(e, clock)
 	elif live != null:
 		live = null
-	var turn := PI * .5 - e.angle + _yaw()
+	if hand and _shown_alive and e.alerted and not _alerted:
+		_turn_from = _heading
+		_turn_at = clock
+	_alerted = e.alerted
+	_heading = e.angle
+	if hand and _turn_at >= 0.0:
+		var progress := clampf((clock - _turn_at) / BLEND, 0.0, 1.0)
+		_heading = lerp_angle(_turn_from, e.angle, smoothstep(0.0, 1.0, progress))
+		if progress >= 1.0:
+			_turn_at = -1.0
+	var turn := PI * .5 - _heading + _yaw()
 	var size := _size(e)
 	var mirror := 1.0
 	if (death & 1) == 1 and tips == 0.0 and not info.get("down_cel", false):
@@ -352,6 +390,12 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		# Handed back from a live body: eased onto the animation.
 		_ease_over(clampf((clock - _hand_at) / _hand_for, 0.0, 1.0))
 	_shown_alive = true
+	if idle and _head >= 0 and live == null:
+		var phase := float(e.uid % 97) * .37
+		var amount := sin(clock * 1.05 + phase) * (.065 if e.mind.activity == "" else .035)
+		_head_rest = _skeletons[0].get_bone_pose_rotation(_head)
+		_skeletons[0].set_bone_pose_rotation(_head, _head_rest * Quaternion(Vector3.UP, amount))
+		_head_moved = true
 	if _tail != null and e.alive:
 		_tail.step(_skeletons[0], clock, e.uid)
 	if handing and clock > _fall_at:
@@ -620,9 +664,6 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 		live = null
 		if _rig is BeastRig:
 			doll = BeastDoll.made_beast(_rig as BeastRig, from, start, kind)
-		elif fresh and live_ok and not Enemy.BOSS_TITLES.has(e.kind):
-			# Near enough (the live budget): he dies, not drops (src/dying_doll.gd).
-			doll = DyingDoll.made_dying(_rig, from, start)
 		else:
 			doll = Ragdoll.made(_rig, from, start)
 		doll.died_at = e.died_at
@@ -645,9 +686,6 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 				elif _shown_alive:
 					doll.drift(Vector3(_going.x, _going.y, 0.0))
 				doll.knock(e, dice)
-				var dying := doll as DyingDoll
-				if dying != null:
-					dying.begin(e, hash([e.uid, e.died_at, 3]))
 		else:
 			# Lying already: a few steps fit it to the floor, the rest as it is drawn.
 			doll.settle(level, SETTLE, true)
@@ -655,10 +693,6 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 		_posed = -1
 	var dt := clampf(clock - _doll_clock, 0.0, .1)
 	_doll_clock = clock
-	var dying_now := doll as DyingDoll
-	if dying_now != null and not live_ok:
-		# (Out of the budget: the rest of the way a plain ragdoll.)
-		dying_now.muscles = false
 	doll.follow(at, up, dt)
 	doll.advance(level, dt)
 	var xf := Transform3D(

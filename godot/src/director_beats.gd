@@ -286,9 +286,9 @@ static func _spot_ok(
 			return false
 	if by_door(w, at):
 		return false
-	for q: Player in game.players:
-		if q.health > 0 and w.visible(q.x, q.y, at.x, at.y, q.eye, w.elevation(at.x, at.y) + .9):
-			return false
+	var floor_z := w.elevation(at.x, at.y)
+	if not EnemySpawn.hidden(game, at, floor_z, 1.9) or not EnemySpawn.clear(game, at, floor_z, .4):
+		return false
 	if game.players.size() > 1:
 		game.focus(p)
 	var steps: int = game.flow.distance(at.x, at.y)

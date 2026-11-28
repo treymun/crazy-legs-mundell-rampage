@@ -147,13 +147,15 @@ static func tick(game: Game, f: CountyRun, _dt: float) -> void:
 		return
 	var group_most: int = s.get("group_most", 3)
 	var group := mini(room, 1 + roll(game, maxi(1, group_most)))
-	var found: Variant = spot(game, f)
-	if found == null:
-		return
-	var at: Vector2 = found
+	var at := Vector2.INF
 	for k in group:
 		var kind := pick_kind(game, f)
-		var place: Vector2 = at if k == 0 else _beside(game, at, k)
+		var found: Variant = spot(game, f, kind) if k == 0 else _beside(game, at, k, kind)
+		if found == null:
+			continue
+		var place: Vector2 = found
+		if k == 0:
+			at = place
 		spawn(game, f, kind, place.x, place.y, false)
 
 
@@ -195,11 +197,11 @@ static func _elite(game: Game, f: CountyRun) -> void:
 			ok.append(str(k))
 	if ok.is_empty():
 		return
-	var found: Variant = spot(game, f)
+	var kind := str(ok[f.elites % ok.size()])
+	var found: Variant = spot(game, f, kind)
 	if found == null:
 		return
 	var at: Vector2 = found
-	var kind := str(ok[f.elites % ok.size()])
 	var e := spawn(game, f, kind, at.x, at.y, true)
 	f.elites += 1
 	var def: Dictionary = Enemy.DEFS[kind]
@@ -216,6 +218,7 @@ static func _elite(game: Game, f: CountyRun) -> void:
 ## health raised and drops more XP (county_orbs.gd reads `elite`).
 static func spawn(game: Game, f: CountyRun, kind: String, x: float, y: float, elite: bool) -> Enemy:
 	var p: Player = game.player
+	var ground := game.world.elevation(x, y)
 	var e := Enemy.new(kind, x, y, atan2(p.y - y, p.x - x))
 	var s := CountyData.section("spawn")
 	var m := minutes(f)
@@ -231,11 +234,13 @@ static func spawn(game: Game, f: CountyRun, kind: String, x: float, y: float, el
 	e.max_hp = e.hp
 	if elite:
 		e.county_elite = true
-	e.floor_z = game.world.elevation(x, y)
+	e.floor_z = ground
+	e.last_floor = ground
 	game.enemies.append(e)
 	game.total_kills += 1
 	f.spawned += 1
 	e.wake(game, p.x, p.y)
+	EnemySpawn.face_entry(game, e, p)
 	e.hunt_until = game.clock + 9999.0
 	e.county_watch = [x, y, f.run_time, f.run_time]
 	return e
@@ -244,7 +249,7 @@ static func spawn(game: Game, f: CountyRun, kind: String, x: float, y: float, el
 ## Where the next one comes in: a spot `near`..`far` off, out of sight, that
 ## the flow field walks to the player within `steps_most`; failing that, one
 ## out of sight anywhere in the band; null when there is none.
-static func spot(game: Game, _f: CountyRun) -> Variant:
+static func spot(game: Game, _f: CountyRun, kind := "billy", old := Vector2.INF) -> Variant:
 	var s := CountyData.section("spawn")
 	var list := spots(game)
 	if list.is_empty():
@@ -254,23 +259,17 @@ static func spot(game: Game, _f: CountyRun) -> Variant:
 	var far: float = s.get("far", 26.0)
 	var most: int = s.get("steps_most", 40)
 	var fallback: Variant = null
-	var w: LevelData = game.world
 	for k in TRIES:
 		# A cell in the ring round the player, then the tests.
 		var a: float = game.rng.random() * TAU
 		var r: float = near + game.rng.random() * (far - near)
 		var at := Vector2(floorf(p.x + cos(a) * r) + .5, floorf(p.y + sin(a) * r) + .5)
-		if not reached(game, at.x, at.y) or w.blocked(at.x, at.y, .42) or w.deep_at(at.x, at.y):
-			continue
 		var d := at.distance_to(Vector2(p.x, p.y))
-		if d < near or d > far:
+		if d < near or d > far or at.distance_squared_to(old) < 9.0:
 			continue
-		var floor_z: float = game.world.elevation(at.x, at.y)
-		if game.world.visible(p.x, p.y, at.x, at.y, p.eye, floor_z + .9):
+		if not _spawnable(game, at, kind):
 			continue
-		if _by_deep(w, at.x, at.y):
-			continue
-		var steps: int = game.flow.distance(at.x, at.y) if game.flow != null else FlowField.FAR
+		var steps := _steps(game, at)
 		if steps <= most:
 			return at
 		if fallback == null and steps < FlowField.FAR:
@@ -287,18 +286,42 @@ static func _by_deep(w: LevelData, x: float, y: float) -> bool:
 	return false
 
 
-static func _beside(game: Game, at: Vector2, k: int) -> Vector2:
-	for reach: float in [.9, 1.4]:
+static func _beside(game: Game, at: Vector2, k: int, kind: String) -> Variant:
+	if at == Vector2.INF:
+		return null
+	var near := CountyData.number("spawn", "near", 11.0)
+	var lead := Vector2(game.player.x, game.player.y)
+	for reach: float in [1.4, 2.1]:
 		var a := k * 2.1 + .4
-		var x := at.x + cos(a) * reach
-		var y := at.y + sin(a) * reach
+		var place := at + Vector2.from_angle(a) * reach
 		if (
-			not game.world.blocked(x, y, .32)
-			and not _by_deep(game.world, x, y)
-			and reached(game, x, y)
+			place.distance_to(lead) >= near
+			and _spawnable(game, place, kind)
+			and _steps(game, place) < FlowField.FAR
 		):
-			return Vector2(x, y)
-	return at
+			return place
+	return null
+
+
+static func _steps(game: Game, at: Vector2) -> int:
+	if game.flow == null:
+		return FlowField.FAR
+	return game.flow.distance(at.x, at.y, game.world.elevation(at.x, at.y))
+
+
+static func _spawnable(game: Game, at: Vector2, kind: String) -> bool:
+	var w: LevelData = game.world
+	var spec: Array = Enemy.KINDS[kind]
+	var radius: float = spec[2]
+	var height: float = spec[3]
+	if not reached(game, at.x, at.y) or w.blocked(at.x, at.y, maxf(.42, radius)):
+		return false
+	if _by_deep(w, at.x, at.y):
+		return false
+	var ground := w.elevation(at.x, at.y)
+	return (
+		EnemySpawn.hidden(game, at, ground, height) and EnemySpawn.clear(game, at, ground, radius)
+	)
 
 
 ## Every county hand stays on the hunt; one far off or stuck out of sight for
@@ -351,13 +374,25 @@ static func _keep_hunting(game: Game, f: CountyRun) -> void:
 			and Vector2(e.x - p.x, e.y - p.y).length() > reach + 2.0
 			and (not _ahead(p, e.x, e.y) or f.run_time - still_since > after * 2.5)
 		)
-		if (gone or stuck) and (unseen or wedged):
-			var found: Variant = spot(game, f)
+		var old := Vector2(e.x, e.y)
+		if (
+			(gone or stuck)
+			and (unseen or wedged)
+			and e.ladder < 0
+			and e.climb_z <= 0.0
+			and e.z <= 0.0
+			and EnemySpawn.hidden(game, old, game.world.stand(e) + e.z, e.height * e.variant)
+		):
+			var found: Variant = spot(game, f, e.kind, old)
 			if found != null:
 				var at: Vector2 = found
 				e.x = at.x
 				e.y = at.y
 				e.floor_z = game.world.elevation(at.x, at.y)
+				e.last_floor = e.floor_z
+				EnemySpawn.face_entry(game, e, p)
+				e.chase_turn = 0.0
+				e.aim_mark = null
 				e.windup = 0.0
 				e.retreat = null
 				e.cover = null

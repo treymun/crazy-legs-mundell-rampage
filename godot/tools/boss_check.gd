@@ -230,7 +230,7 @@ static func _weak_spot(main, check: Callable) -> void:
 static func _backup(main, check: Callable) -> void:
 	var counts: Array = []
 	var saved := false
-	var full := true
+	var covered_arenas := {}
 	for level_id: String in [
 		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine"
 	]:
@@ -250,26 +250,25 @@ static func _backup(main, check: Callable) -> void:
 			var want: int = ceili(int(fight.BACKUP[difficulty]) * share)
 			counts.append("%s/%d: %d of %d (room %d)" % [level_id, difficulty, made, want, room])
 			check.call(
-				made == mini(want, room) and made >= mini(2, want),
-				"%s on %s calls %d backup (%d)" % [e.kind, difficulty, want, made]
+				made == mini(want, room), "%s fills its covered entries (%d)" % [e.kind, made]
 			)
-			if level_id != "quarry":
-				full = full and made == want
+			if made > 0:
+				covered_arenas[level_id] = true
+			var waiting: Array = fight.waiting_backup.get(e.kind, [0])
+			check.call(waiting[0] == want - made, "backup waits when the other entries are exposed")
 			var hidden := true
 			for i in range(before, g.enemies.size()):
 				var add: Enemy = g.enemies[i]
-				var head: float = g.world.elevation(add.x, add.y) + .9
 				var p := g.player
-				var off := absf(Enemy.angle_delta(atan2(add.y - p.y, add.x - p.x), p.view_angle()))
+				var torso := add.floor_z + add.height * .5
+				var head := add.floor_z + add.height * .88
 				hidden = (
 					hidden
 					and add.alerted
-					and (
-						off >= fight.BEHIND
-						or not g.world.visible(p.x, p.y, add.x, add.y, p.eye, head)
-					)
+					and not g.world.visible(p.x, p.y, add.x, add.y, p.eye, torso)
+					and not g.world.visible(p.x, p.y, add.x, add.y, p.eye, head)
 				)
-			check.call(hidden, "out of the player's sight (behind something or them), after them")
+			check.call(hidden, "backup is behind cover and pursuing the player")
 			if not saved and made > 0 and level_id == "hickston":
 				saved = true
 				var path := OS.get_cache_dir().path_join("clmr-boss-backup.json")
@@ -298,7 +297,7 @@ static func _backup(main, check: Callable) -> void:
 					)
 				)
 	print("    ", ", ".join(counts))
-	check.call(full, "every arena but the quarry's cramped one has room for them all")
+	check.call(covered_arenas.size() >= 4, "a mix of arenas still send immediate backup")
 	var off := _fight(main, "fair")
 	off.boss_backup = false
 	var foe := boss_of(off)

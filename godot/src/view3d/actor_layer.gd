@@ -243,12 +243,8 @@ func show_actors(
 	return fresh
 
 
-## The living bodies that may run a live body this frame (pass 15,
-## src/live_body.gd): those just hit, reeling or running one already, a
-## drunk near (src/active_body.gd), a body just killed or still dying
-## (src/dying_doll.gd), the nearest LiveBody.most_now() of them (fewer on a
-## phone); the rest keep the plain animation and its rigid flinch, the plain
-## ragdoll. Enemy instance id -> true.
+## The active rig is still used for nearby player stand-ins. Enemies use
+## animation while alive and passive ragdolls when they fall.
 func _live_ones(sprites: Array, clock: float, eye: Vector3) -> Dictionary:
 	var out := {}
 	if not View.ragdolls:
@@ -258,17 +254,7 @@ func _live_ones(sprites: Array, clock: float, eye: Vector3) -> Dictionary:
 		var e := s.who as Enemy
 		var id := e.get_instance_id()
 		var view: ActorView = _shown.get(id)
-		if not e.alive:
-			# Dying (src/dying_doll.gd): just killed, or still moving of itself.
-			var dying: DyingDoll = null
-			if view != null:
-				dying = view.doll as DyingDoll
-			var fresh := e.died_at >= 0.0 and clock - e.died_at < ActorView.LIVE_LATE
-			if (
-				(fresh and (view == null or view.doll == null))
-				or (dying != null and dying.active())
-			):
-				wants.append([_far2(s, eye), id])
+		if not e.alive or not e.notes.has("shine"):
 			continue
 		var running := view != null and view.live != null
 		var drunk := (
