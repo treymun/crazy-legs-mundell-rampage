@@ -13,7 +13,8 @@
 ##           they never show more than a few hundred texels across); each
 ##           picture kept as lossless WebP ("webp" in its entry) when that is
 ##           smaller than its deflated pixels (a fifth smaller, the same
-##           pixels, and as quick to open: Assets.art())
+##           pixels, and as quick to open: Assets.art()). The tactical
+##           character atlases use high-quality WebP to fit the first download.
 ##   sfx     the sound bank in the same files (sfx.bin, sfx_<chapter>.bin)
 ##           and its index; every spoken line (the audio manifest's "voice"
 ##           family) re-encoded by ffmpeg as mono Ogg Vorbis at VOICE_QUALITY,
@@ -32,6 +33,8 @@ const AssetsLib := preload("res://src/assets.gd")
 
 ## A model texture's widest side in the lite art.
 const LITE_TEXTURE := 512
+## Keep the tactical atlases at 512px within the browser's first download.
+const TACTICAL_WEBP_QUALITY := .93
 ## libvorbis -q:a: 3 is about 100 kbps for this stereo music (the desktop's
 ## tracks average 145): two thirds of the bytes.
 const MUSIC_QUALITY := 3
@@ -143,7 +146,8 @@ func _art(halve: bool) -> void:
 			image.resize(w, h, Image.INTERPOLATE_BILINEAR)
 			packed = image.get_data().compress(FileAccess.COMPRESSION_DEFLATE)
 			halved += 1
-		var webp := _webp(packed, w, h)
+		var quality := TACTICAL_WEBP_QUALITY if halve and name.begins_with("actor3d_mp_") else 1.0
+		var webp := _webp(packed, w, h, quality)
 		var blob: PackedByteArray = blobs[file_name]
 		var entry := {"offset": blob.size(), "size": packed.size(), "w": w, "h": h}
 		if not webp.is_empty():
@@ -172,15 +176,16 @@ func _art(halve: bool) -> void:
 	)
 
 
-## Deflated RGBA8 pixels as lossless WebP when that is smaller and opens to
-## the very same pixels; else empty.
-static func _webp(packed: PackedByteArray, w: int, h: int) -> PackedByteArray:
+## Use WebP when it is smaller and decodes correctly. Most art stays lossless.
+static func _webp(packed: PackedByteArray, w: int, h: int, quality: float) -> PackedByteArray:
 	var raw := packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE)
 	var image := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, raw)
-	var webp := image.save_webp_to_buffer(false, 1.0)
+	var lossy := quality < 1.0
+	var webp := image.save_webp_to_buffer(lossy, quality)
 	if webp.is_empty() or webp.size() >= packed.size():
 		return PackedByteArray()
-	if AssetsLib.unpack_webp(webp) != raw:
+	var decoded := AssetsLib.unpack_webp(webp)
+	if decoded.size() != raw.size() or (not lossy and decoded != raw):
 		return PackedByteArray()
 	return webp
 
