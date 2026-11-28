@@ -22,6 +22,7 @@
 extends SceneTree
 
 const DT := 1.0 / 60.0
+const WallBreaksScript := preload("res://src/features/wall_breaks.gd")
 const WallLooksScript := preload("res://src/features/wall_looks.gd")
 
 var failures: Array = []
@@ -362,7 +363,10 @@ func _windows(main: Control) -> void:
 			"where it struck (%.2f off)" % Vector2(web.x, web.y).distance_to(at)
 		)
 		_check(looks.wall_marks().has(web), "and shows it")
+	var windows: WallBreaksScript = g.features["wall_breaks"]
+	var cracked := windows.save()
 	var before: int = wreck.wrecks.size()
+	g.net_facts["wall_breaks"] = var_to_bytes(cracked)
 	_shoot_glass(g, face, .1, face.low + (face.high - face.low) * .7, 20.0)
 	_ticks(g, 1)
 	var shards: Array = []
@@ -373,6 +377,17 @@ func _windows(main: Control) -> void:
 		"the next shoots the glass out: %d shards" % shards.size()
 	)
 	_check(not looks.wall_marks().has(web), "its web goes with the glass")
+	_check(
+		not g.net_facts.has("wall_breaks"), "window changes invalidate the incoming snapshot memo"
+	)
+	var shattered := windows.save()
+	windows.restore(cracked)
+	_check(face.cracked, "a snapshot can put the cracked pane back in its frame")
+	windows.restore(shattered)
+	_check(face.broken and not face.cracked, "a snapshot clears glass shot out of a cracked pane")
+	windows.restore({})
+	_check(not face.broken and not face.cracked, "an earlier snapshot restores the whole pane")
+	windows.restore(shattered)
 	var tris := ""
 	for s in shards:
 		tris += str(s.tri)

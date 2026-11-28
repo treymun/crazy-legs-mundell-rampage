@@ -728,6 +728,7 @@ func _break_window(face: WindowFace, quiet: bool, blasted := false, held := fals
 		_retile(face, face.blast if face.blasted else face.shot)
 	if quiet:
 		return
+	game.net_facts.erase("wall_breaks")
 	var n := face.normal()
 	var at := face.middle() + n * .14
 	var z := (face.low + face.high) * .5
@@ -747,6 +748,7 @@ func _break_window(face: WindowFace, quiet: bool, blasted := false, held := fals
 ## its frame too, a body): only its picture and its sound; play had it
 ## broken already, so no dice, nobody hears more.
 func _shoot_out(face: WindowFace, blasted: bool) -> void:
+	game.net_facts.erase("wall_breaks")
 	face.cracked = false
 	face.blasted = blasted and face.blast >= 0
 	net_version += 1
@@ -1001,49 +1003,24 @@ func save() -> Dictionary:
 
 
 func restore(state: Dictionary) -> void:
-	var by_edge := {}
+	var broken := _saved_window_edges(state.get("windows", []))
+	var held := _saved_window_edges(state.get("cracked", []))
+	var torn := _saved_window_edges(state.get("blasted", []))
 	for face: WindowFace in windows:
-		by_edge[face.edge] = face
-	# Torn out by a blast (save version 12): shown so when it is put back.
-	var torn := {}
-	for item: Variant in state.get("blasted", []):
-		if item is Array:
-			var edge: Array = item
-			if edge.size() == 4:
-				var ex: float = edge[0]
-				var ey: float = edge[1]
-				var fx: float = edge[2]
-				var fy: float = edge[3]
-				torn[Vector4(ex, ey, fx, fy)] = true
-	for item: Variant in state.get("windows", []):
-		if not (item is Array):
+		var shot := broken.has(face.edge)
+		var blasted := shot and face.blast >= 0 and torn.has(face.edge)
+		var cracked := shot and not blasted and held.has(face.edge)
+		if face.broken == shot and face.blasted == blasted and face.cracked == cracked:
 			continue
-		var row: Array = item
-		if row.size() != 4:
-			continue
-		var ax: float = row[0]
-		var ay: float = row[1]
-		var bx: float = row[2]
-		var by: float = row[3]
-		var face: WindowFace = by_edge.get(Vector4(ax, ay, bx, by))
-		if face != null and not face.broken:
-			_break_window(face, true, torn.has(face.edge))
-	for item: Variant in state.get("cracked", []):
-		if not (item is Array):
-			continue
-		var row: Array = item
-		if row.size() != 4:
-			continue
-		var cx: float = row[0]
-		var cy: float = row[1]
-		var dx: float = row[2]
-		var dy: float = row[3]
-		var face: WindowFace = by_edge.get(Vector4(cx, cy, dx, dy))
-		# Broken but held cracked in its frame (a save of pass 11 on; one of
-		# an older build named only whole windows here, and none ever were).
-		if face != null and face.broken and not face.blasted and not face.cracked:
-			face.cracked = true
-			_retile(face, face.whole)
+		# An online snapshot may correct a window the copy broke differently.
+		face.broken = shot
+		face.blasted = blasted
+		face.cracked = cracked
+		net_version += 1
+		var tile := face.whole
+		if shot and not cracked:
+			tile = face.blast if blasted else face.shot
+		_retile(face, tile)
 	for item: Variant in state.get("fences", []):
 		if not (item is Array):
 			continue
@@ -1066,3 +1043,23 @@ func restore(state: Dictionary) -> void:
 		elif stage >= 1:
 			f.hp = maxf(f.hp, 1.0)
 			_shoot_about(f, true)
+
+
+## A window is saved by its two endpoints, in the level's own order.
+static func _saved_window_edges(rows: Variant) -> Dictionary:
+	var out := {}
+	if not rows is Array:
+		return out
+	var edges: Array = rows
+	for item: Variant in edges:
+		if not item is Array:
+			continue
+		var row: Array = item
+		if row.size() != 4:
+			continue
+		var ax: float = row[0]
+		var ay: float = row[1]
+		var bx: float = row[2]
+		var by: float = row[3]
+		out[Vector4(ax, ay, bx, by)] = true
+	return out
